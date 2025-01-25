@@ -4,6 +4,7 @@ from typing import List, Tuple, Dict
 import random
 from ..ai.genetic_ai import GeneticAI, Strategy
 from .game_runner import GameRunner
+from .game_logger import GameLogger, LogLevel
 
 class GeneticTrainer:
     """Trains Dominion strategies using a genetic algorithm."""
@@ -13,17 +14,22 @@ class GeneticTrainer:
                  population_size: int = 50,
                  generations: int = 100,
                  mutation_rate: float = 0.1,
-                 games_per_eval: int = 10):
+                 games_per_eval: int = 10,
+                 log_folder: str = "training_logs"):
         self.kingdom_cards = kingdom_cards
         self.population_size = population_size
         self.generations = generations
         self.mutation_rate = mutation_rate
         self.games_per_eval = games_per_eval
         self.game_runner = GameRunner(kingdom_cards, quiet=True)
+        self.logger = GameLogger(log_folder, LogLevel.INFO)
         
     def train(self) -> Tuple[Strategy, Dict[str, float]]:
         """Run the genetic algorithm training process."""
-        print(f"Starting training with {self.population_size} strategies for {self.generations} generations")
+        self.logger.log_info(
+            f"Starting training with {self.population_size} strategies "
+            f"for {self.generations} generations"
+        )
         
         # Create initial population
         population = [
@@ -45,13 +51,23 @@ class GeneticTrainer:
                 best_fitness = max_fitness
                 best_strategy = population[fitness_scores.index(max_fitness)]
             
-            print(f"Generation {gen}: Best fitness = {max_fitness:.3f}, Avg fitness = {sum(fitness_scores)/len(fitness_scores):.3f}")
+            avg_fitness = sum(fitness_scores)/len(fitness_scores)
+            self.logger.log_info(
+                f"Generation {gen}: Best fitness = {max_fitness:.3f}, "
+                f"Avg fitness = {avg_fitness:.3f}"
+            )
             
             # Create next generation
             population = self.create_next_generation(population, fitness_scores)
             
         # Final evaluation of best strategy
         metrics = self.evaluate_strategy(best_strategy)
+        
+        self.logger.log_info("Training complete!")
+        self.logger.log_info(f"Final metrics: {metrics}")
+        self.logger.log_info("\nBest strategy card priorities:")
+        for card, priority in best_strategy.gain_priorities.items():
+            self.logger.log_info(f"{card}: {priority:.3f}")
         
         return best_strategy, metrics
         
