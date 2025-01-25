@@ -11,8 +11,8 @@ def main():
     # Create trainer with parameters
     trainer = GeneticTrainer(
         kingdom_cards=kingdom_cards,
-        population_size=50,
-        generations=100,
+        population_size=5,
+        generations=10,
         mutation_rate=0.1,
         games_per_eval=10
     )

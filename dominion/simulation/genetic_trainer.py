@@ -21,15 +21,13 @@ class GeneticTrainer:
         self.generations = generations
         self.mutation_rate = mutation_rate
         self.games_per_eval = games_per_eval
-        self.game_runner = GameRunner(kingdom_cards, quiet=True)
-        self.logger = GameLogger(log_folder, LogLevel.INFO)
+        self.logger = GameLogger(log_folder)
+        self.game_runner = GameRunner(kingdom_cards, logger=self.logger)
         
     def train(self) -> Tuple[Strategy, Dict[str, float]]:
         """Run the genetic algorithm training process."""
-        self.logger.log_info(
-            f"Starting training with {self.population_size} strategies "
-            f"for {self.generations} generations"
-        )
+        # Initialize progress tracking
+        self.logger.start_training(self.generations)
         
         # Create initial population
         population = [
@@ -47,15 +45,14 @@ class GeneticTrainer:
             
             # Track best strategy
             max_fitness = max(fitness_scores)
+            avg_fitness = sum(fitness_scores)/len(fitness_scores)
+            
             if max_fitness > best_fitness:
                 best_fitness = max_fitness
                 best_strategy = population[fitness_scores.index(max_fitness)]
             
-            avg_fitness = sum(fitness_scores)/len(fitness_scores)
-            self.logger.log_info(
-                f"Generation {gen}: Best fitness = {max_fitness:.3f}, "
-                f"Avg fitness = {avg_fitness:.3f}"
-            )
+            # Update progress
+            self.logger.update_training(gen, max_fitness, avg_fitness)
             
             # Create next generation
             population = self.create_next_generation(population, fitness_scores)
@@ -63,11 +60,19 @@ class GeneticTrainer:
         # Final evaluation of best strategy
         metrics = self.evaluate_strategy(best_strategy)
         
-        self.logger.log_info("Training complete!")
-        self.logger.log_info(f"Final metrics: {metrics}")
-        self.logger.log_info("\nBest strategy card priorities:")
-        for card, priority in best_strategy.gain_priorities.items():
-            self.logger.log_info(f"{card}: {priority:.3f}")
+        # Clean up progress bar
+        self.logger.end_training()
+        
+        # Log final results
+        print("\nTraining Complete!")
+        print(f"Final metrics: {metrics}")
+        print("\nBest strategy priorities:")
+        for card, priority in sorted(
+            best_strategy.gain_priorities.items(), 
+            key=lambda x: x[1], 
+            reverse=True
+        )[:10]:  # Show top 10 priorities
+            print(f"{card}: {priority:.3f}")
         
         return best_strategy, metrics
         
