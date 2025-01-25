@@ -1,10 +1,14 @@
 from typing import Dict, List, Optional
 import random
-
 from dominion.cards.base_card import Card, CardType
 from dominion.game.game_state import GameState
 from dominion.cards.registry import get_card
 from dominion.game.player_state import PlayerState
+import json
+import os
+from typing import Dict, List, Optional
+import random
+from pathlib import Path
 
 class Strategy:
     """Represents a learnable strategy."""
@@ -18,6 +22,89 @@ class Strategy:
         self.treasure_weight = random.random()
         self.victory_weight = random.random()
         self.engine_weight = random.random()
+        
+        # Add metadata
+        self.name: Optional[str] = None
+        self.description: Optional[str] = None
+        self.version: str = "1.0"
+        self.creation_date: Optional[str] = None
+
+    def to_dict(self) -> dict:
+        """Convert strategy to dictionary for serialization."""
+        return {
+            "metadata": {
+                "name": self.name,
+                "description": self.description,
+                "version": self.version,
+                "creation_date": self.creation_date
+            },
+            "priorities": {
+                "gain": self.gain_priorities,
+                "play": self.play_priorities
+            },
+            "weights": {
+                "action": self.action_weight,
+                "treasure": self.treasure_weight,
+                "victory": self.victory_weight,
+                "engine": self.engine_weight
+            }
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'Strategy':
+        """Create strategy from dictionary representation."""
+        strategy = cls()
+        
+        # Load metadata
+        metadata = data.get("metadata", {})
+        strategy.name = metadata.get("name")
+        strategy.description = metadata.get("description")
+        strategy.version = metadata.get("version", "1.0")
+        strategy.creation_date = metadata.get("creation_date")
+        
+        # Load priorities
+        priorities = data.get("priorities", {})
+        strategy.gain_priorities = priorities.get("gain", {})
+        strategy.play_priorities = priorities.get("play", {})
+        
+        # Load weights
+        weights = data.get("weights", {})
+        strategy.action_weight = weights.get("action", random.random())
+        strategy.treasure_weight = weights.get("treasure", random.random())
+        strategy.victory_weight = weights.get("victory", random.random())
+        strategy.engine_weight = weights.get("engine", random.random())
+        
+        return strategy
+
+    def save(self, filepath: str):
+        """Save strategy to JSON file."""
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        
+        # Save to file
+        with open(filepath, 'w') as f:
+            json.dump(self.to_dict(), f, indent=2)
+
+    @classmethod
+    def load(cls, filepath: str) -> 'Strategy':
+        """Load strategy from JSON file."""
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+        return cls.from_dict(data)
+
+    @staticmethod
+    def list_available_strategies(strategies_dir: str = "strategies") -> List[str]:
+        """List all available strategy files in the strategies directory."""
+        strategy_files = []
+        strategies_path = Path(strategies_dir)
+        
+        if strategies_path.exists():
+            strategy_files = [
+                f.stem for f in strategies_path.glob("*.json")
+                if f.is_file()
+            ]
+            
+        return sorted(strategy_files)
 
     @classmethod
     def create_random(cls, card_names: List[str]) -> 'Strategy':

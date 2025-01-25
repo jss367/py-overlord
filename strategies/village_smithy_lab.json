@@ -1,0 +1,208 @@
+{
+  "metadata": {
+    "name": "Advanced Village/Smithy/Lab Engine",
+    "description": "Sophisticated engine strategy with phase-based decision making and game state conditions",
+    "version": "2.0",
+    "creation_date": "2025-01-24"
+  },
+  "phases": {
+    "opening": {
+      "conditions": {
+        "turn_count": "<=4",
+        "deck_size": "<=12"
+      },
+      "priorities": {
+        "gain": {
+          "Chapel": 1.0,
+          "Laboratory": 0.9,
+          "Village": 0.85,
+          "Silver": 0.8,
+          "Smithy": 0.75
+        }
+      }
+    },
+    "early_engine": {
+      "conditions": {
+        "turn_count": "<=10",
+        "action_cards_in_deck": "<=6"
+      },
+      "priorities": {
+        "gain": {
+          "Laboratory": 0.95,
+          "Village": 0.9,
+          "Smithy": 0.85,
+          "Gold": 0.7,
+          "Silver": 0.6
+        }
+      }
+    },
+    "mid_engine": {
+      "conditions": {
+        "villages_in_deck": ">=3",
+        "draw_cards_in_deck": ">=3",
+        "provinces_remaining": ">=6"
+      },
+      "priorities": {
+        "gain": {
+          "Gold": 0.9,
+          "Laboratory": 0.85,
+          "Province": 0.8,
+          "Village": 0.75,
+          "Smithy": 0.7
+        }
+      }
+    },
+    "late_game": {
+      "conditions": {
+        "provinces_remaining": "<=4"
+      },
+      "priorities": {
+        "gain": {
+          "Province": 1.0,
+          "Duchy": 0.8,
+          "Estate": 0.4
+        }
+      }
+    },
+    "endgame": {
+      "conditions": {
+        "provinces_remaining": "<=1",
+        "score_difference": "ANY"
+      },
+      "sub_phases": {
+        "winning_big": {
+          "conditions": {
+            "score_difference": ">=10"
+          },
+          "priorities": {
+            "gain": {
+              "Duchy": 0.9,
+              "Estate": 0.7
+            }
+          }
+        },
+        "close_game": {
+          "conditions": {
+            "score_difference": "-3to3"
+          },
+          "priorities": {
+            "gain": {
+              "Province": 1.0,
+              "Duchy": 0.95,
+              "Estate": 0.9
+            }
+          }
+        },
+        "losing": {
+          "conditions": {
+            "score_difference": "<=-4"
+          },
+          "priorities": {
+            "gain": {
+              "Province": 1.0,
+              "Duchy": 1.0,
+              "Estate": 0.95
+            }
+          }
+        }
+      }
+    }
+  },
+  "conditional_rules": {
+    "duchy_decisions": [
+      {
+        "conditions": {
+          "provinces_remaining": "<=4",
+          "coins": "<8",
+          "score_difference": "-5to5"
+        },
+        "priorities": {
+          "gain": {
+            "Duchy": 0.9
+          }
+        }
+      }
+    ],
+    "estate_decisions": [
+      {
+        "conditions": {
+          "provinces_remaining": "<=1",
+          "coins": "<5",
+          "score_difference": "-2to2"
+        },
+        "priorities": {
+          "gain": {
+            "Estate": 0.85
+          }
+        }
+      }
+    ],
+    "engine_adjustments": [
+      {
+        "conditions": {
+          "villages_in_deck": ">=4",
+          "laboratories_in_deck": ">=3"
+        },
+        "priorities": {
+          "gain": {
+            "Village": "-0.3",
+            "Laboratory": "-0.2"
+          }
+        }
+      }
+    ]
+  },
+  "play_priorities": {
+    "default": {
+      "Village": 0.95,
+      "Laboratory": 0.9,
+      "Smithy": 0.85,
+      "Chapel": 1.0,
+      "Gold": 1.0,
+      "Silver": 0.95,
+      "Copper": 0.9
+    },
+    "hand_size_low": {
+      "conditions": {
+        "hand_size": "<=3"
+      },
+      "priorities": {
+        "Laboratory": 1.0,
+        "Smithy": 1.0,
+        "Village": 0.8
+      }
+    },
+    "many_actions": {
+      "conditions": {
+        "actions_in_hand": ">=3"
+      },
+      "priorities": {
+        "Village": 1.0,
+        "Laboratory": 0.95
+      }
+    }
+  },
+  "trashing_priorities": {
+    "opening": {
+      "Estate": 0.9,
+      "Copper": 0.8
+    },
+    "mid_game": {
+      "conditions": {
+        "treasures_in_deck": ">=6"
+      },
+      "priorities": {
+        "Copper": 1.0
+      }
+    }
+  },
+  "weights": {
+    "action": 0.9,
+    "treasure": 0.6,
+    "victory": {
+      "default": 0.4,
+      "endgame": 0.9
+    },
+    "engine": 0.95
+  }
+}

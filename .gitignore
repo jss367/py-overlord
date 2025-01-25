@@ -174,3 +174,4 @@ cython_debug/
 .DS_Store
 /game_logs
 /training_logs
+/battle_logs

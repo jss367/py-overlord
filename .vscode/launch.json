@@ -15,16 +15,22 @@
             "args": []
         },
         {
-            "name": "Python: Debug Dominion Genetic Trainer",
+            "name": "Python: Run Strategy Battle",
             "type": "debugpy",
             "request": "launch",
-            "module": "runner",
+            "program": "${workspaceFolder}/dominion/simulation/strategy_battle.py",
             "console": "integratedTerminal",
-            "justMyCode": false,
+            "justMyCode": true,
+            "python": "/opt/anaconda3/envs/all/bin/python",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             },
-            "args": []
+            "args": [
+                "${workspaceFolder}/strategies/big_money.json",
+                "${workspaceFolder}/strategies/village_smithy_lab.json",
+                "--games",
+                "10"
+            ]
         }
     ]
 }
