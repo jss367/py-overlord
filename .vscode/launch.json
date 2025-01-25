@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Run Dominion Genetic Trainer",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "runner",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "args": []
+        },
+        {
+            "name": "Python: Debug Dominion Genetic Trainer",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "runner",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "args": []
+        }
+    ]
+}
