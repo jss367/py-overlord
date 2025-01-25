@@ -23,7 +23,7 @@ class GameState:
         self.log_callback = self._default_log_handler
         self.logs = []
 
-    def set_logger(self, logger: "GameLogger"):
+    def set_logger(self, logger):
         """Set the game logger instance."""
         self.logger = logger
         self.log_callback = self._log_handler

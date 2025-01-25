@@ -35,7 +35,7 @@ class GeneticAI(AI):
 
         # Sort by value and return highest value card
         values.sort(key=lambda x: x[0], reverse=True)
-        return values[0][1]
+        return values[0][1] if values[0][0] > 0 else None
 
     def choose_treasure(
         self, state: GameState, choices: list[Optional[Card]]
@@ -45,7 +45,7 @@ class GeneticAI(AI):
         if not valid_choices:
             return None
 
-        # Always play treasures - basic Big Money strategy
+        # Always play highest value treasures first
         treasures = [(c.stats.coins, c) for c in valid_choices]
         treasures.sort(key=lambda x: x[0], reverse=True)
         return treasures[0][1]
@@ -53,7 +53,7 @@ class GeneticAI(AI):
     def choose_buy(
         self, state: GameState, choices: list[Optional[Card]]
     ) -> Optional[Card]:
-        """Choose a card to buy using basic Big Money strategy."""
+        """Choose a card to buy using improved strategy."""
         valid_choices = [
             c
             for c in choices
@@ -73,41 +73,31 @@ class GeneticAI(AI):
 
         # Sort by value and return highest value card
         values.sort(key=lambda x: x[0], reverse=True)
-        return values[0][1]
+
+        # Never buy if highest value is negative
+        return values[0][1] if values[0][0] > 0 else None
 
     def get_action_value(self, card: Card, state: GameState) -> float:
-        """Calculate how valuable it is to play this action using improved heuristics."""
+        """Calculate how valuable it is to play this action."""
         value = self.strategy.play_priorities.get(card.name, 0.0)
         player = state.current_player
 
-        # Key strategic adjustments
-        if card.stats.actions > 0:  # Village effects
-            action_cards_in_hand = sum(1 for c in player.hand if c.is_action)
-            if player.actions <= 1 and action_cards_in_hand > 1:
-                value += 3.0  # Highly prioritize villages when we need actions
+        # Base values for card effects
+        value += card.stats.actions * 2.0  # Actions are valuable
+        value += card.stats.cards * 1.5  # Card draw is valuable
+        value += card.stats.coins * 1.0  # Direct coins
+        value += card.stats.buys * 0.5  # Extra buys
 
-        if card.stats.cards > 0:  # Card drawing
-            value += card.stats.cards * 1.5  # Base value for card drawing
+        # Situational bonuses
+        if card.stats.actions > 0 and len([c for c in player.hand if c.is_action]) > 1:
+            value += 2.0  # Village effects more valuable with other actions
 
-            # Extra value if our hand is running low
-            if len(player.hand) <= 3:
-                value += 2.0
+        if len(player.hand) <= 2:
+            value += card.stats.cards * 1.0  # Card draw more valuable with small hand
 
-        if card.stats.coins > 0:  # Treasure generating actions
-            value += card.stats.coins * 1.0
-
-            # Extra value if we're close to affording a key card
-            desired_coins = self._get_desired_coins(state)
-            if (player.coins + card.stats.coins) >= desired_coins > player.coins:
-                value += 2.0
-
-        if card.is_attack:  # Attack cards
-            # More valuable in multiplayer games
-            if len(state.players) > 2:
-                value += 1.0
-
-        # Adjust for timing
-        value = self._adjust_for_game_stage(value, state)
+        if card.name == "Chapel":
+            if self.should_trash_cards(state):
+                value += 3.0  # High priority early game
 
         return value
 
@@ -116,68 +106,110 @@ class GeneticAI(AI):
         value = self.strategy.gain_priorities.get(card.name, 0.0)
         player = state.current_player
 
-        # Basic Big Money priorities
-        if card.name == "Gold":
-            value += 4.0  # Highest priority for basic treasures
-        elif card.name == "Silver":
-            value += 3.0  # Second priority
-        elif card.name == "Copper":
-            value += 0.1  # Very low priority for Copper
-
-        # Victory card priorities
-        if card.name == "Province":
-            if player.coins >= 8:  # If we can afford it, high priority
-                value += 5.0
-        elif card.name == "Duchy":
-            # Buy Duchies late game
-            if state.supply["Province"] <= 4:
-                value += 3.0
-        elif card.name == "Estate":
-            # Generally avoid Estates unless end game
-            if state.supply["Province"] > 2:
-                value -= 2.0
-
-        # Never buy Curses
+        # Never buy Curse
         if card.name == "Curse":
-            value -= 10.0
+            return -10.0
 
-        return value
+        # Early game priorities
+        if state.turn_number <= 5:
+            if card.name == "Chapel":
+                return 8.0  # Highest early priority
+            elif card.name == "Silver":
+                return 7.0  # Second highest early priority
 
-    def _get_desired_coins(self, state: GameState) -> int:
-        """Determine target coins for buying."""
-        if state.supply.get("Province", 0) > 0:
-            return 8  # Always try to get to Province cost
-        elif state.supply.get("Gold", 0) > 0:
-            return 6  # Otherwise aim for Gold
-        elif state.supply.get("Duchy", 0) > 0 and state.supply.get("Province", 0) <= 4:
-            return 5  # Buy Duchies late game
-        elif state.supply.get("Silver", 0) > 0:
-            return 3  # Otherwise aim for Silver
-        return 0  # Fallback
+        # Basic treasure values
+        if card.name == "Gold":
+            value += 6.0
+        elif card.name == "Silver":
+            value += 4.0
+        elif card.name == "Copper":
+            value = -1.0  # Actively avoid buying copper
 
-    def _adjust_for_game_stage(self, value: float, state: GameState) -> float:
-        """Adjust card values based on game stage."""
+        # Victory card strategy
         provinces_left = state.supply.get("Province", 0)
-        empty_piles = sum(1 for count in state.supply.values() if count == 0)
+        if card.name == "Province":
+            if player.coins >= 8:
+                value += 10.0  # Buy Province if we can afford it
+        elif card.name == "Duchy":
+            if provinces_left <= 4:
+                value += 6.0  # Buy Duchy late game
+        elif card.name == "Estate":
+            if provinces_left <= 2:
+                value += 4.0  # Buy Estate very late game
+            else:
+                value -= 2.0  # Otherwise avoid Estates
 
-        if provinces_left <= 2 or empty_piles >= 2:
-            # Late game: favor victory points and coin generation
-            if any(
-                t in self.strategy.gain_priorities
-                for t in ["Province", "Duchy", "Estate"]
-            ):
-                value *= 1.5
-            if any(t in self.strategy.gain_priorities for t in ["Gold", "Silver"]):
-                value *= 1.3
-        elif provinces_left <= 4:
-            # Mid-late game: balance engine building with victory points
-            pass
-        else:
-            # Early game: favor engine building
-            if any(
-                t in self.strategy.gain_priorities
-                for t in ["Village", "Laboratory", "Market", "Festival"]
-            ):
-                value *= 1.2
+        # Action card values based on game stage
+        if card.is_action:
+            if state.turn_number <= 10:  # Early game
+                value += self.get_early_game_action_value(card)
+            else:  # Mid/Late game
+                value += self.get_late_game_action_value(card, state)
 
         return value
+
+    def get_early_game_action_value(self, card: Card) -> float:
+        """Value actions for early game engine building."""
+        value = 0.0
+
+        # Key early game cards
+        if card.name == "Chapel":
+            value += 8.0  # Best early game card
+        elif card.name == "Laboratory":
+            value += 7.0  # Strong card draw
+        elif card.name == "Village":
+            value += 6.0  # Actions are important
+        elif card.name == "Smithy":
+            value += 5.5  # Good card draw
+        elif card.name == "Market":
+            value += 5.0  # Good all-around card
+        elif card.name == "Festival":
+            value += 4.5  # Good actions and coins
+        elif card.name == "Workshop":
+            value += 4.0  # Good early game
+
+        return value
+
+    def get_late_game_action_value(self, card: Card, state: GameState) -> float:
+        """Value actions for mid/late game."""
+        value = 0.0
+
+        # Adjust values based on what we already have
+        action_cards = sum(1 for c in state.current_player.deck if c.is_action)
+
+        if action_cards < 5:  # Still building engine
+            value += card.stats.cards * 1.5
+            value += card.stats.actions * 1.0
+            value += card.stats.coins * 0.5
+        else:  # Engine built, focus on payload
+            value += card.stats.coins * 1.5
+            value += card.stats.cards * 1.0
+            value += card.stats.buys * 0.5
+
+        return value
+
+    def should_trash_cards(self, state: GameState) -> bool:
+        """Determine if we should be aggressively trashing cards."""
+        player = state.current_player
+
+        # Count total treasure value
+        total_treasure = sum(
+            c.stats.coins
+            for c in player.deck + player.hand + player.discard
+            if c.is_treasure
+        )
+
+        # Count number of copper and estates
+        coppers = sum(
+            1 for c in player.deck + player.hand + player.discard if c.name == "Copper"
+        )
+        estates = sum(
+            1 for c in player.deck + player.hand + player.discard if c.name == "Estate"
+        )
+
+        # Early game trashing
+        if state.turn_number <= 10:
+            return coppers > 4 or estates > 2
+
+        # Mid game trashing
+        return coppers > 2 and total_treasure >= 10
