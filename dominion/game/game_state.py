@@ -125,6 +125,39 @@ class GameState:
 
         self.phase = "action"
 
+    def do_duration_phase(self):
+        """Handle effects of duration cards from previous turn."""
+        player = self.current_player
+
+        # Process duration cards that were played last turn
+        for card in player.duration[:]:
+            # Log duration card effect
+            self.log_callback(
+                ("action", player.ai.name, f"resolves duration effect of {card}", {})
+            )
+
+            # Apply duration effects
+            card.on_duration(self)
+
+            # Move to discard after duration effect resolves
+            player.duration.remove(card)
+            player.discard.append(card)
+
+        # Process any cards that were multiplied (e.g. by Throne Room)
+        for card in player.multiplied_durations[:]:
+            self.log_callback(
+                (
+                    "action",
+                    player.ai.name,
+                    f"resolves multiplied duration effect of {card}",
+                    {},
+                )
+            )
+            card.on_duration(self)
+
+            player.multiplied_durations.remove(card)
+            player.discard.append(card)
+
     def handle_action_phase(self):
         """Handle the action phase of a turn."""
         player = self.current_player

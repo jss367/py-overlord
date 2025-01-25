@@ -1,12 +1,12 @@
-# dominion/cards/base_card.py
 from dataclasses import dataclass
-from typing import Dict, Optional, List
 from enum import Enum
+
 
 @dataclass
 class CardCost:
     coins: int = 0
     potions: int = 0
+
 
 @dataclass
 class CardStats:
@@ -17,6 +17,7 @@ class CardStats:
     vp: int = 0
     potions: int = 0
 
+
 class CardType(Enum):
     ACTION = "action"
     TREASURE = "treasure"
@@ -26,13 +27,16 @@ class CardType(Enum):
     REACTION = "reaction"
     DURATION = "duration"
 
+
 class Card:
-    def __init__(self, name: str, cost: CardCost, stats: CardStats, types: List[CardType]):
+    def __init__(
+        self, name: str, cost: CardCost, stats: CardStats, types: list[CardType]
+    ):
         self.name = name
         self.cost = cost
         self.stats = stats
         self.types = types
-    
+
     @property
     def is_action(self) -> bool:
         return CardType.ACTION in self.types
@@ -40,7 +44,7 @@ class Card:
     @property
     def is_treasure(self) -> bool:
         return CardType.TREASURE in self.types
-    
+
     @property
     def is_victory(self) -> bool:
         return CardType.VICTORY in self.types
@@ -76,15 +80,20 @@ class Card:
         player.coins += self.stats.coins
         player.potions += self.stats.potions
         player.buys += self.stats.buys
-        
+
         if self.stats.cards > 0:
             game_state.draw_cards(player, self.stats.cards)
-        
+
         # Let subclasses add additional effects
         self.play_effect(game_state)
 
     def play_effect(self, game_state):
         """Additional effects when card is played. Override in subclasses."""
+        pass
+
+    def on_duration(self, game_state):
+        """Handle duration effects that occur at the start of the next turn.
+        Override in duration card subclasses."""
         pass
 
     def on_buy(self, game_state):
