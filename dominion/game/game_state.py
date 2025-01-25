@@ -27,19 +27,20 @@ class GameState:
     def current_player(self) -> PlayerState:
         return self.players[self.current_player_index]
 
-    def initialize_game(self, players: List[PlayerState], kingdom_cards: List[Card]):
-        """Set up the game with given players and kingdom cards."""
-        self.players = players
+    def initialize_game(self, ais: List['AI'], kingdom_cards: List[Card]):
+        """Set up the game with given AIs and kingdom cards."""
+        # Create PlayerState objects for each AI
+        self.players = [PlayerState(ai) for ai in ais]
         self.setup_supply(kingdom_cards)
         
         # Initialize players
         for player in self.players:
-            player.initialize()
+            player.initialize()  # This now calls initialize on PlayerState, not AI
 
         self.log("Game initialized with players: " + 
-                 ", ".join(str(p.ai) for p in self.players))
+                ", ".join(str(p.ai) for p in self.players))
         self.log("Kingdom cards: " + 
-                 ", ".join(c.name for c in kingdom_cards))
+                ", ".join(c.name for c in kingdom_cards))
 
     def setup_supply(self, kingdom_cards: List[Card]):
         """Set up the initial supply piles."""

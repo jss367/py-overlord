@@ -1,7 +1,7 @@
 
 # dominion/game/player_state.py
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Set
+from typing import List, Dict, Set
 from ..cards.base_card import Card
 import random
 
@@ -29,8 +29,32 @@ class PlayerState:
 
     def initialize(self):
         """Set up starting deck (7 Coppers, 3 Estates) and draw initial hand."""
-        # Will implement once we have basic cards
-        pass
+        from ..cards.registry import get_card
+
+        # Create starting deck: 7 Coppers and 3 Estates
+        self.deck = [get_card("Copper") for _ in range(7)] + [get_card("Estate") for _ in range(3)]
+        
+        # Shuffle the deck
+        random.shuffle(self.deck)
+        
+        # Reset other collections
+        self.hand = []
+        self.discard = []
+        self.in_play = []
+        self.duration = []
+        self.multiplied_durations = []
+        
+        # Reset resources
+        self.actions = 1
+        self.buys = 1
+        self.coins = 0
+        self.potions = 0
+        self.turns_taken = 0
+        self.actions_played = 0
+        
+        # Draw initial hand of 5 cards
+        self.draw_cards(5)
+
 
     def draw_cards(self, count: int) -> List[Card]:
         """Draw specified number of cards from deck, shuffling if needed."""

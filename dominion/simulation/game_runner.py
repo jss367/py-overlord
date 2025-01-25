@@ -1,5 +1,3 @@
-
-# dominion/simulation/game_runner.py
 from typing import List, Tuple, Dict, Optional
 from ..game.game_state import GameState
 from ..ai.base_ai import AI
@@ -22,13 +20,15 @@ class GameRunner:
         
         # Add kingdom cards to supply
         kingdom_cards = [get_card(name) for name in self.kingdom_cards]
+        
+        # Initialize game with AIs (not PlayerStates)
         game_state.initialize_game([ai1, ai2], kingdom_cards)
         
         if not self.quiet:
             print(f"\nStarting game: {ai1.name} vs {ai2.name}")
         
         # Run game until completion
-        while not game_state.game_is_over():
+        while not self.is_game_over(game_state):
             game_state.play_turn()
         
         # Get results
@@ -41,3 +41,13 @@ class GameRunner:
             print(f"Winner: {winner.name}")
         
         return winner, scores
+
+    def is_game_over(self, game_state: GameState) -> bool:
+        """Check if the game is over."""
+        # Game ends if Province pile is empty
+        if game_state.supply.get("Province", 0) == 0:
+            return True
+            
+        # Or if any three supply piles are empty
+        empty_piles = sum(1 for count in game_state.supply.values() if count == 0)
+        return empty_piles >= 3
