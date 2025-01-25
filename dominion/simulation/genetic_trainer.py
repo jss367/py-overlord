@@ -1,6 +1,6 @@
 
 # dominion/simulation/genetic_trainer.py
-from typing import List, Optional, Tuple, Dict
+from typing import List, Tuple, Dict
 import random
 from ..ai.genetic_ai import GeneticAI, Strategy
 from .game_runner import GameRunner

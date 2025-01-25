@@ -26,6 +26,16 @@ class GeneticAI(AI):
         values: list[Tuple[float, Card]] = []
         for card in valid_choices:
             value = self.get_action_value(card, state)
+            
+            # Prioritize cards that give more actions when we need them
+            remaining_actions = state.current_player.actions
+            if remaining_actions <= 1 and card.stats.actions > 0:
+                value += 1.0
+                
+            # Prioritize card drawing
+            if card.stats.cards > 0:
+                value += 0.5 * card.stats.cards
+                
             values.append((value, card))
             
         if not values:
@@ -81,4 +91,26 @@ class GeneticAI(AI):
 
     def get_buy_value(self, card: Card) -> float:
         """Calculate how valuable it is to buy this card."""
-        return self.strategy.gain_priorities.get(card.name, 0.0)
+        base_value = self.strategy.gain_priorities.get(card.name, 0.0)
+        
+        # Adjust value based on game state and card type
+        value = base_value
+        
+        # Always maintain some interest in basic treasures
+        if card.name == "Gold":
+            value += 0.5
+        elif card.name == "Silver":
+            value += 0.3
+        elif card.name == "Copper":
+            value += 0.1
+            
+        # Adjust for card costs - prefer cheaper cards early
+        value -= (card.cost.coins * 0.1)
+        
+        # Boost value of cards that help prevent getting stuck
+        if card.stats.cards > 0:  # Card drawing
+            value += 0.2 * card.stats.cards
+        if card.stats.actions > 0:  # Village effects
+            value += 0.3 * card.stats.actions
+            
+        return value

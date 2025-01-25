@@ -88,7 +88,7 @@ class GameState:
         # Check if all players are truly stuck
         stuck_players = 0
         for player in self.players:
-            if player_is_stuck(player):
+            if self.player_is_stuck(player):
                 stuck_players += 1
         
         if stuck_players == len(self.players):
@@ -291,32 +291,27 @@ class GameState:
         self.extra_turn = False
         self.phase = "start"
 
-
-
-
-
-
-def player_is_stuck(player: PlayerState) -> bool:
-    """
-    Check if a player is stuck with no valid moves.
-    A player is only stuck if they can't:
-    1. Play any actions
-    2. Play any treasures
-    3. Buy any cards (including Copper)
-    4. Draw any more cards
-    """
-    # Check if player can play actions
-    has_actions = any(card.is_action for card in player.hand)
-    
-    # Check if player can play treasures
-    has_treasures = any(card.is_treasure for card in player.hand)
-    
-    # Check if player can buy anything (including Copper)
-    can_buy_copper = self.supply.get("Copper", 0) > 0
-    
-    # Check if player can draw more cards
-    total_cards = (len(player.hand) + len(player.deck) + 
-                len(player.discard) + len(player.in_play))
-    has_cards_to_draw = total_cards > 0
-    
-    return not (has_actions or has_treasures or can_buy_copper or has_cards_to_draw)
+    def player_is_stuck(self, player: PlayerState) -> bool:
+        """
+        Check if a player is stuck with no valid moves.
+        A player is only stuck if they can't:
+        1. Play any actions
+        2. Play any treasures
+        3. Buy any cards (including Copper)
+        4. Draw any more cards
+        """
+        # Check if player can play actions
+        has_actions = any(card.is_action for card in player.hand)
+        
+        # Check if player can play treasures
+        has_treasures = any(card.is_treasure for card in player.hand)
+        
+        # Check if player can buy anything (including Copper)
+        can_buy_copper = self.supply.get("Copper", 0) > 0
+        
+        # Check if player can draw more cards
+        total_cards = (len(player.hand) + len(player.deck) + 
+                    len(player.discard) + len(player.in_play))
+        has_cards_to_draw = total_cards > 0
+        
+        return not (has_actions or has_treasures or can_buy_copper or has_cards_to_draw)
