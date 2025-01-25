@@ -1,12 +1,10 @@
-from typing import Dict, List, Optional
+from typing import Optional, Tuple
 
 from .base_ai import AI
-
-from dominion.cards.base_card import Card, CardType
+from dominion.cards.base_card import Card
 from dominion.game.game_state import GameState
-from dominion.cards.registry import get_card
-from dominion.game.player_state import PlayerState
 from dominion.strategies.strategy import Strategy
+
 class GeneticAI(AI):
     """AI that uses a learnable strategy."""
     
@@ -18,42 +16,54 @@ class GeneticAI(AI):
     def name(self) -> str:
         return self._name
 
-    def choose_action(self, state: GameState, choices: List[Optional[Card]]) -> Optional[Card]:
+    def choose_action(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         """Choose an action card to play."""
         valid_choices = [c for c in choices if c is not None]
         if not valid_choices:
             return None
             
-        # Get play values for each card
-        values = [(self.get_action_value(c, state), c) for c in valid_choices]
+        # Calculate values and pair with cards
+        values: list[Tuple[float, Card]] = []
+        for card in valid_choices:
+            value = self.get_action_value(card, state)
+            values.append((value, card))
+            
         if not values:
             return None
             
-        # Return highest value card
-        return max(values)[1]
+        # Sort by value and return highest value card
+        values.sort(key=lambda x: x[0], reverse=True)
+        return values[0][1]
 
-    def choose_treasure(self, state: GameState, choices: List[Optional[Card]]) -> Optional[Card]:
+    def choose_treasure(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         """Choose a treasure card to play."""
         valid_choices = [c for c in choices if c is not None and c.is_treasure]
         if not valid_choices:
             return None
             
-        # Play treasures in descending order of value
-        return max(valid_choices, key=lambda c: c.stats.coins)
+        # Sort by coin value and return highest
+        treasures = [(c.stats.coins, c) for c in valid_choices]
+        treasures.sort(key=lambda x: x[0], reverse=True)
+        return treasures[0][1]
 
-    def choose_buy(self, state: GameState, choices: List[Optional[Card]]) -> Optional[Card]:
+    def choose_buy(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         """Choose a card to buy."""
         valid_choices = [c for c in choices if c is not None]
         if not valid_choices:
             return None
             
-        # Get buy values for each card
-        values = [(self.get_buy_value(c), c) for c in valid_choices]
+        # Calculate values and pair with cards
+        values: list[Tuple[float, Card]] = []
+        for card in valid_choices:
+            value = self.get_buy_value(card)
+            values.append((value, card))
+            
         if not values:
             return None
             
-        # Return highest value card
-        return max(values)[1]
+        # Sort by value and return highest value card
+        values.sort(key=lambda x: x[0], reverse=True)
+        return values[0][1]
 
     def get_action_value(self, card: Card, state: GameState) -> float:
         """Calculate how valuable it is to play this action."""
