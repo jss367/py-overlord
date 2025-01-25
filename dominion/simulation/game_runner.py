@@ -18,7 +18,8 @@ class GameRunner:
         
         # Set up game state
         game_state = GameState(players=[], supply={})
-        game_state.log_callback = lambda msg: self.logger.log_to_file("INFO", msg)
+        # Update to use the correct logging method
+        game_state.log_callback = lambda msg: self.logger.file_logger.info(msg) if self.logger.should_log_to_file else print(msg)
         
         # Initialize game
         kingdom_cards = [get_card(name) for name in self.kingdom_cards]
@@ -33,13 +34,14 @@ class GameRunner:
         winner = max(game_state.players, key=lambda p: p.get_victory_points(game_state)).ai
         
         # End game logging
-        self.logger.end_game(winner.name, scores)
+        self.logger.end_game(winner.name, scores, game_state.supply)
         
         return winner, scores
     
     def _log_message(self, message: str):
         """Callback for game state logging."""
-        self.logger.log_message(message)
+        if self.logger and self.logger.should_log_to_file:
+            self.logger.file_logger.info(message)
         if not self.quiet:
             print(message)
 
