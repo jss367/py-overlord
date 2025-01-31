@@ -32,3 +32,10 @@ class AI(ABC):
     ) -> Optional[Card]:
         """Choose a card to buy from available choices."""
         pass
+
+    @abstractmethod
+    def choose_card_to_trash(
+        self, state: GameState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Choose a card to trash from available choices."""
+        pass

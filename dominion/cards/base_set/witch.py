@@ -18,8 +18,15 @@ class Witch(Card):
             if player != current_player:
                 # Check if Curse is available in supply
                 if game_state.supply.get("Curse", 0) > 0:
-                    # Gain a Curse
-                    curse = Card.get_card("Curse")
-                    player.discard.append(curse)
-                    game_state.supply["Curse"] -= 1
-                    curse.on_gain(game_state, player)
+                    # We'll let game_state handle curse creation
+                    game_state.give_curse_to_player(player)
+
+                    # Log the curse
+                    game_state.log_callback(
+                        (
+                            "action",
+                            current_player.ai.name,
+                            f"gives curse to {player.ai.name}",
+                            {"curses_remaining": game_state.supply.get("Curse", 0)},
+                        )
+                    )

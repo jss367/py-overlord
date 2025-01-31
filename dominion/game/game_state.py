@@ -285,6 +285,8 @@ class GameState:
             choice.on_buy(self)
             choice.on_gain(self, player)
 
+        self.phase = "cleanup"
+
     def _get_affordable_cards(self, player):
         """Helper to get list of affordable cards."""
         affordable = []
@@ -401,3 +403,21 @@ class GameState:
         has_cards_to_draw = total_cards > 0
 
         return not (has_actions or has_treasures or can_buy_copper or has_cards_to_draw)
+
+    def draw_cards(self, player: PlayerState, count: int) -> list[Card]:
+        """Draw cards for a player, delegating to the player's draw_cards method."""
+        return player.draw_cards(count)
+
+    def give_curse_to_player(self, player):
+        """Give a curse card to a player. GameState has access to registry so can create cards."""
+        from ..cards.registry import (
+            get_card,
+        )  # Import here to avoid circular dependency
+
+        if self.supply.get("Curse", 0) > 0:
+            curse = get_card("Curse")
+            player.discard.append(curse)
+            self.supply["Curse"] -= 1
+            curse.on_gain(self, player)
+            return True
+        return False

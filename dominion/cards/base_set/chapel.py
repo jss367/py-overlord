@@ -33,5 +33,15 @@ class Chapel(Card):
                 # AI chose to stop trashing
                 break
 
-        # Logging for potential debugging
-        game_state.log(f"{player.ai} trashed {len(cards_to_trash)} cards")
+        # Log the trashing with context
+        game_state.log_callback(
+            (
+                "action",
+                player.ai.name,
+                f"trashes {len(cards_to_trash)} cards",
+                {
+                    "trashed_cards": [c.name for c in cards_to_trash],
+                    "remaining_hand": [c.name for c in player.hand],
+                },
+            )
+        )

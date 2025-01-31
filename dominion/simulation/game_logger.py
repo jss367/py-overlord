@@ -60,14 +60,6 @@ class GameLogger:
         self.file_logger = logging.getLogger("DominionGameFile")
         self.file_logger.setLevel(logging.DEBUG)
 
-        # Create custom formatter
-        formatter = logging.Formatter(
-            "%(asctime)s - %(levelname)s - %(message)s",
-            datefmt="%H:%M:%S",  # Shorter timestamp format
-        )
-
-        # Handlers will be added per-game
-
     def start_game(self, players: list[str]):
         """Start tracking a new game with enhanced initial state logging."""
         self.game_count += 1
