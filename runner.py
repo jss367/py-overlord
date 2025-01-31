@@ -1,11 +1,19 @@
 from dominion.simulation.genetic_trainer import GeneticTrainer
 
+
 def main():
     # Define kingdom cards to use
     kingdom_cards = [
-        "Village", "Smithy", "Market", "Festival",
-        "Laboratory", "Mine", "Witch", "Moat",
-        "Workshop", "Chapel"
+        "Village",
+        "Smithy",
+        "Market",
+        "Festival",
+        "Laboratory",
+        "Mine",
+        "Witch",
+        "Moat",
+        "Workshop",
+        "Chapel",
     ]
 
     # Create trainer with parameters
@@ -14,7 +22,7 @@ def main():
         population_size=5,
         generations=10,
         mutation_rate=0.1,
-        games_per_eval=10
+        games_per_eval=10,
     )
 
     # Run training
@@ -25,6 +33,7 @@ def main():
     print("\nBest strategy card priorities:")
     for card, priority in best_strategy.gain_priorities.items():
         print(f"{card}: {priority:.3f}")
+
 
 if __name__ == "__main__":
     main()

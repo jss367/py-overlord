@@ -1,4 +1,3 @@
-from typing import List
 from ..base_card import Card, CardCost, CardStats, CardType
 
 
@@ -8,5 +7,5 @@ class Laboratory(Card):
             name="Laboratory",
             cost=CardCost(coins=5),
             stats=CardStats(actions=1, cards=2),
-            types=[CardType.ACTION]
+            types=[CardType.ACTION],
         )

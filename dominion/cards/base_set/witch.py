@@ -1,5 +1,3 @@
-
-from typing import List
 from ..base_card import Card, CardCost, CardStats, CardType
 
 
@@ -9,13 +7,13 @@ class Witch(Card):
             name="Witch",
             cost=CardCost(coins=5),
             stats=CardStats(cards=2),
-            types=[CardType.ACTION, CardType.ATTACK]
+            types=[CardType.ACTION, CardType.ATTACK],
         )
-    
+
     def play_effect(self, game_state):
         """Each other player gains a Curse."""
         current_player = game_state.current_player
-        
+
         for player in game_state.players:
             if player != current_player:
                 # Check if Curse is available in supply

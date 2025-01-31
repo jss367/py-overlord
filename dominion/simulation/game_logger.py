@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
+from typing import Optional, Any
 from datetime import datetime
 import os
 import json
@@ -20,12 +20,12 @@ class GameMetrics:
     """Tracks various game metrics."""
 
     turn_count: int = 0
-    cards_played: Dict[str, int] = field(default_factory=dict)
-    victory_points: Dict[str, int] = field(default_factory=dict)
-    actions_played: Dict[str, int] = field(default_factory=dict)
-    cards_bought: Dict[str, int] = field(default_factory=dict)
+    cards_played: dict[str, int] = field(default_factory=dict)
+    victory_points: dict[str, int] = field(default_factory=dict)
+    actions_played: dict[str, int] = field(default_factory=dict)
+    cards_bought: dict[str, int] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "turn_count": self.turn_count,
             "cards_played": dict(self.cards_played),
@@ -43,7 +43,7 @@ class GameLogger:
         self.log_frequency = log_frequency
         self.current_game_id: Optional[str] = None
         self.current_metrics = GameMetrics()
-        self.game_logs: List[str] = []
+        self.game_logs: list[str] = []
         self.game_count = 0
         self.should_log_to_file = False
         self.training_progress: Optional[tqdm] = None
@@ -68,7 +68,7 @@ class GameLogger:
 
         # Handlers will be added per-game
 
-    def start_game(self, players: List[str]):
+    def start_game(self, players: list[str]):
         """Start tracking a new game with enhanced initial state logging."""
         self.game_count += 1
         self.should_log_to_file = self.game_count % self.log_frequency == 0
@@ -99,7 +99,7 @@ class GameLogger:
         return name
 
     def log_turn_header(
-        self, player_name: str, turn_number: int, resources: Dict[str, int]
+        self, player_name: str, turn_number: int, resources: dict[str, int]
     ):
         """Log formatted turn header with player state."""
         if not self.should_log_to_file:
@@ -118,7 +118,7 @@ class GameLogger:
             self.file_logger.info(f"Hand: {', '.join(resources['hand'])}")
         self.file_logger.info("-" * 40)
 
-    def log_action(self, player_name: str, action: str, context: Optional[Dict] = None):
+    def log_action(self, player_name: str, action: str, context: Optional[dict] = None):
         """Log game action with context."""
         if not self.should_log_to_file:
             return
@@ -149,7 +149,7 @@ class GameLogger:
         )
 
     def end_game(
-        self, winner: str, scores: Dict[str, int], supply_state: Dict[str, int]
+        self, winner: str, scores: dict[str, int], supply_state: dict[str, int]
     ):
         """End the current game with enhanced final state logging."""
         if self.should_log_to_file:
@@ -192,23 +192,27 @@ class GameLogger:
             total=total_generations,
             desc="Training Progress",
             bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} "
-                    "[{elapsed}<{remaining}, {rate_fmt}{postfix}]"
+            "[{elapsed}<{remaining}, {rate_fmt}{postfix}]",
         )
 
     def update_training(self, generation: int, best_fitness: float, avg_fitness: float):
         """Update training progress information."""
         if self.training_progress:
             self.training_progress.update(1)
-            self.training_progress.set_postfix({
-                'Best Fitness': f'{best_fitness:.3f}',
-                'Avg Fitness': f'{avg_fitness:.3f}',
-                'Generation': generation + 1
-            })
-            
+            self.training_progress.set_postfix(
+                {
+                    "Best Fitness": f"{best_fitness:.3f}",
+                    "Avg Fitness": f"{avg_fitness:.3f}",
+                    "Generation": generation + 1,
+                }
+            )
+
             # Log detailed metrics every 10 generations
             if generation % 10 == 0 and self.should_log_to_file:
                 self.file_logger.info("\n" + "=" * 40)
-                self.file_logger.info(f"Training Progress - Generation {generation + 1}")
+                self.file_logger.info(
+                    f"Training Progress - Generation {generation + 1}"
+                )
                 self.file_logger.info(f"Best Fitness: {best_fitness:.3f}")
                 self.file_logger.info(f"Average Fitness: {avg_fitness:.3f}")
                 self.file_logger.info("=" * 40)
@@ -218,6 +222,6 @@ class GameLogger:
         if self.training_progress:
             self.training_progress.close()
             self.training_progress = None
-            
+
             if self.should_log_to_file:
                 self.file_logger.info("\nTraining Complete!")

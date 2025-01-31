@@ -1,4 +1,3 @@
-from typing import List
 from ..base_card import Card, CardCost, CardStats, CardType
 
 
@@ -8,5 +7,5 @@ class Moat(Card):
             name="Moat",
             cost=CardCost(coins=2),
             stats=CardStats(cards=2),
-            types=[CardType.ACTION, CardType.REACTION]
+            types=[CardType.ACTION, CardType.REACTION],
         )

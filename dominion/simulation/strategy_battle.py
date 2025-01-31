@@ -1,6 +1,5 @@
 import json
 import argparse
-from typing import Dict, List
 from dominion.simulation.game_runner import GameRunner
 from dominion.ai.genetic_ai import GeneticAI
 from dominion.strategies.strategy import Strategy
@@ -40,8 +39,8 @@ def run_strategy_battle(
     strategy1_path: str,
     strategy2_path: str,
     num_games: int = 100,
-    kingdom_cards: List[str] = None,
-) -> Dict:
+    kingdom_cards: list[str] = None,
+) -> dict:
     """Run multiple games between two strategies and return statistics."""
 
     # Default kingdom cards if none provided
@@ -122,7 +121,7 @@ def run_strategy_battle(
     return results
 
 
-def print_results(results: Dict):
+def print_results(results: dict):
     """Print battle results in a readable format."""
     print("\n=== Strategy Battle Results ===")
     print(f"\nGames played: {results['games_played']}")

@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import List, Dict
 
 from ..cards.registry import get_card
 from ..cards.base_card import Card
@@ -8,9 +7,9 @@ from .player_state import PlayerState
 
 @dataclass
 class GameState:
-    players: List[PlayerState]
-    supply: Dict[str, int] = field(default_factory=dict)
-    trash: List[Card] = field(default_factory=list)
+    players: list[PlayerState]
+    supply: dict[str, int] = field(default_factory=dict)
+    trash: list[Card] = field(default_factory=list)
     current_player_index: int = 0
     phase: str = "start"
     turn_number: int = 1
@@ -57,7 +56,7 @@ class GameState:
     def current_player(self) -> PlayerState:
         return self.players[self.current_player_index]
 
-    def initialize_game(self, ais: list, kingdom_cards: List[Card]):
+    def initialize_game(self, ais: list, kingdom_cards: list[Card]):
         """Set up the game with given AIs and kingdom cards."""
         # Create PlayerState objects for each AI
         self.players = [PlayerState(ai) for ai in ais]
@@ -73,10 +72,8 @@ class GameState:
         )
         self.log_callback("Kingdom cards: " + ", ".join(c.name for c in kingdom_cards))
 
-    def setup_supply(self, kingdom_cards: List[Card]):
+    def setup_supply(self, kingdom_cards: list[Card]):
         """Set up the initial supply piles."""
-        self.supply = {}
-
         # Add basic cards with proper counts
         basic_cards = {
             "Copper": 60 - (7 * len(self.players)),
@@ -88,10 +85,7 @@ class GameState:
             "Curse": 10 * (len(self.players) - 1),
         }
 
-        # Add basic cards to supply
-        for card_name, count in basic_cards.items():
-            self.supply[card_name] = count
-
+        self.supply = dict(basic_cards)
         # Add kingdom cards
         for card in kingdom_cards:
             self.supply[card.name] = card.starting_supply(self)
@@ -203,7 +197,6 @@ class GameState:
 
         while True:
             treasures = [card for card in player.hand if card.is_treasure]
-
             if not treasures:
                 break
 
@@ -213,14 +206,32 @@ class GameState:
 
             # Log treasure play with context
             context = {
-                "coins_gained": choice.stats.coins,
-                "total_coins": player.coins + choice.stats.coins,
+                "coins_before": player.coins,
+                "coins_added": choice.stats.coins,
+                "coins_after": player.coins + choice.stats.coins,
+                "remaining_treasures": [
+                    c.name for c in player.hand if c != choice and c.is_treasure
+                ],
             }
             self.log_callback(("action", player.ai.name, f"plays {choice}", context))
 
+            # Update game state
             player.hand.remove(choice)
             player.in_play.append(choice)
             choice.on_play(self)
+
+        # Log end of treasure phase
+        self.log_callback(
+            (
+                "phase_end",
+                "treasure",
+                player.ai.name,
+                {
+                    "final_coins": player.coins,
+                    "remaining_hand": [c.name for c in player.hand],
+                },
+            )
+        )
 
         self.phase = "buy"
 
@@ -229,10 +240,25 @@ class GameState:
         player = self.current_player
 
         while player.buys > 0:
-            affordable = self._get_affordable_cards(player)
+            affordable = [
+                c for c in self._get_affordable_cards(player) if c is not None
+            ]
 
             if not affordable:
                 break
+
+            # Log available purchases
+            self.log_callback(
+                (
+                    "buy_options",
+                    player.ai.name,
+                    {
+                        "coins": player.coins,
+                        "buys": player.buys,
+                        "affordable": [c.name for c in affordable],
+                    },
+                )
+            )
 
             choice = player.ai.choose_buy(self, affordable + [None])
             if choice is None:
@@ -246,20 +272,18 @@ class GameState:
             }
             self.log_callback(("action", player.ai.name, f"buys {choice}", context))
 
-            # Log supply change
+            # Update supply
+            self.supply[choice.name] -= 1
             self.log_callback(
-                ("supply_change", choice.name, -1, self.supply[choice.name] - 1)
+                ("supply_change", choice.name, -1, self.supply[choice.name])
             )
 
-            # Update metrics
-            if self.logger:
-                self.logger.current_metrics.cards_bought[choice.name] = (
-                    self.logger.current_metrics.cards_bought.get(choice.name, 0) + 1
-                )
-
-            self._complete_purchase(player, choice)
-
-        self.phase = "cleanup"
+            # Complete purchase
+            player.buys -= 1
+            player.coins -= choice.cost.coins
+            player.discard.append(choice)
+            choice.on_buy(self)
+            choice.on_gain(self, player)
 
     def _get_affordable_cards(self, player):
         """Helper to get list of affordable cards."""

@@ -37,6 +37,15 @@ class Card:
         self.stats = stats
         self.types = types
 
+        # Debug validation
+        if not isinstance(types, list):
+            raise ValueError(
+                f"Card {name} initialized with types that's not a list: {types}"
+            )
+        for t in types:
+            if not isinstance(t, CardType):
+                raise ValueError(f"Card {name} initialized with invalid type: {t}")
+
     @property
     def is_action(self) -> bool:
         return CardType.ACTION in self.types

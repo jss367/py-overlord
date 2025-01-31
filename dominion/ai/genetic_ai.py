@@ -1,9 +1,8 @@
-from typing import Optional, Tuple
-from .base_ai import AI
+from typing import Optional
 from dominion.cards.base_card import Card
 from dominion.game.game_state import GameState
 from dominion.strategies.strategy import Strategy
-
+from dominion.ai.base_ai import AI
 
 class GeneticAI(AI):
     """AI that uses a learnable strategy with improved heuristics."""
@@ -25,7 +24,7 @@ class GeneticAI(AI):
             return None
 
         # Calculate values and pair with cards
-        values: list[Tuple[float, Card]] = []
+        values: list[tuple[float, Card]] = []
         for card in valid_choices:
             value = self.get_action_value(card, state)
             values.append((value, card))
@@ -41,29 +40,30 @@ class GeneticAI(AI):
         self, state: GameState, choices: list[Optional[Card]]
     ) -> Optional[Card]:
         """Choose a treasure card to play."""
+        # Always play treasures in descending order of value
         valid_choices = [c for c in choices if c is not None and c.is_treasure]
         if not valid_choices:
             return None
 
-        # Always play highest value treasures first
+        # Sort by coin value and play highest first
         treasures = [(c.stats.coins, c) for c in valid_choices]
         treasures.sort(key=lambda x: x[0], reverse=True)
-        return treasures[0][1]
+        return treasures[0][1]  # Always play highest value treasure
 
     def choose_buy(
         self, state: GameState, choices: list[Optional[Card]]
     ) -> Optional[Card]:
         """Choose a card to buy using improved strategy."""
+        available_coins = state.current_player.coins
         valid_choices = [
-            c
-            for c in choices
-            if c is not None and c.cost.coins <= state.current_player.coins
+            c for c in choices if c is not None and c.cost.coins <= available_coins
         ]
+
         if not valid_choices:
             return None
 
         # Calculate values and pair with cards
-        values: list[Tuple[float, Card]] = []
+        values: list[tuple[float, Card]] = []
         for card in valid_choices:
             value = self.get_buy_value(card, state)
             values.append((value, card))
@@ -73,8 +73,6 @@ class GeneticAI(AI):
 
         # Sort by value and return highest value card
         values.sort(key=lambda x: x[0], reverse=True)
-
-        # Never buy if highest value is negative
         return values[0][1] if values[0][0] > 0 else None
 
     def get_action_value(self, card: Card, state: GameState) -> float:
@@ -103,7 +101,7 @@ class GeneticAI(AI):
 
     def get_buy_value(self, card: Card, state: GameState) -> float:
         """Calculate how valuable it is to buy this card."""
-        value = self.strategy.gain_priorities.get(card.name, 0.0)
+        value = 0.0
         player = state.current_player
 
         # Never buy Curse
@@ -138,13 +136,6 @@ class GeneticAI(AI):
                 value += 4.0  # Buy Estate very late game
             else:
                 value -= 2.0  # Otherwise avoid Estates
-
-        # Action card values based on game stage
-        if card.is_action:
-            if state.turn_number <= 10:  # Early game
-                value += self.get_early_game_action_value(card)
-            else:  # Mid/Late game
-                value += self.get_late_game_action_value(card, state)
 
         return value
 

@@ -1,18 +1,18 @@
-from typing import List, Tuple, Dict, Optional
-from ..game.game_state import GameState
-from ..ai.base_ai import AI
-from ..cards.registry import get_card
-from .game_logger import GameLogger
+from typing import Optional
+from dominion.game.game_state import GameState
+from dominion.ai.base_ai import AI
+from dominion.cards.registry import get_card
+from dominion.simulation.game_logger import GameLogger
 
 
 class GameRunner:
     """Runs Dominion games between AIs."""
 
-    def __init__(self, kingdom_cards: List[str], logger: Optional[GameLogger] = None):
+    def __init__(self, kingdom_cards: list[str], logger: Optional[GameLogger] = None):
         self.kingdom_cards = kingdom_cards
         self.logger = logger or GameLogger()
 
-    def run_game(self, ai1: AI, ai2: AI) -> Tuple[AI, Dict[str, int]]:
+    def run_game(self, ai1: AI, ai2: AI) -> tuple[AI, dict[str, int]]:
         """Run a single game between two AIs and return winner and scores."""
         # Start game logging
         self.logger.start_game([ai1.name, ai2.name])
