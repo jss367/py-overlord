@@ -1,0 +1,79 @@
+strategy:
+  author:
+  - GeneticTrainer
+  gainPriority:
+  - card: Village
+    priority: 0.43
+  - card: Smithy
+    priority: 0.56
+  - card: Market
+    condition: state.countInSupply('Mine') >= 2
+    priority: 0.78
+  - card: Festival
+    priority: 0.69
+  - card: Laboratory
+    priority: 0.25
+  - card: Mine
+    priority: 0.85
+  - card: Witch
+    priority: 0.03
+  - card: Moat
+    priority: 0.01
+  - card: Workshop
+    priority: 0.62
+  - card: Chapel
+    priority: 0.19
+  - card: Copper
+    priority: 0.79
+  - card: Silver
+    condition: my.coins >= 3
+    priority: 0.18
+  - card: Gold
+    condition: my.coins >= 6
+    priority: 0.77
+  - card: Estate
+    priority: 0.64
+  - card: Duchy
+    priority: 0.97
+  - card: Province
+    condition: my.coins >= 8
+    priority: 0.46
+  metadata:
+    creation_date: '2025-02-01'
+    description: Genetically evolved strategy
+    name: Evolved-Strategy-4
+    version: '1.0'
+  play_priorities:
+    default:
+      Chapel: 0.5
+      Copper: 0.23
+      Duchy: 0.37
+      Estate: 0.5
+      Festival: 0.01
+      Gold: 0.76
+      Laboratory: 0.82
+      Market: 0.9
+      Mine: 0.5
+      Moat: 0.07
+      Province: 0.3
+      Silver: 0.88
+      Smithy: 0.06
+      Village: 0.53
+      Witch: 0.98
+      Workshop: 0.53
+  requires:
+  - Village
+  - Smithy
+  - Market
+  - Festival
+  - Laboratory
+  - Mine
+  - Witch
+  - Moat
+  - Workshop
+  - Chapel
+  weights:
+    action: 0.84
+    engine: 0.77
+    treasure: 0.77
+    victory: 0.39

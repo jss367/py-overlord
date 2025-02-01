@@ -1,0 +1,13 @@
+strategies:
+  - name: BigMoney
+    author:
+      - YourName
+    requires: []  # Big Money doesn't depend on specific cards
+    gainPriority:
+      - card: Province
+        condition: "my.coins >= 8"
+      - card: Gold
+        condition: "my.coins >= 6"
+      - card: Silver
+        condition: "my.coins >= 3"
+      - card: Copper

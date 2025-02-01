@@ -1,0 +1,73 @@
+strategies:
+  - name: OptimalStrategy
+    author:
+      - GeneticTrainer
+    requires:
+      - Village
+      - Smithy
+      - Market
+      - Festival
+      - Laboratory
+      - Mine
+      - Witch
+      - Moat
+      - Workshop
+      - Chapel
+    gainPriority:
+      - card: Province
+        condition: "my.coins >= 8"
+        priority: 1.0
+      - card: Gold
+        condition: "my.coins >= 6"
+        priority: 0.9
+      - card: Silver
+        condition: "my.coins >= 3"
+        priority: 0.8
+      - card: Laboratory
+        priority: 0.75
+      - card: Chapel
+        condition: "state.turn_number() <= 5"
+        priority: 0.85
+      - card: Village
+        priority: 0.7
+      - card: Smithy
+        priority: 0.65
+      - card: Market
+        priority: 0.6
+      - card: Festival
+        priority: 0.55
+      - card: Mine
+        priority: 0.5
+      - card: Workshop
+        priority: 0.45
+      - card: Witch
+        priority: 0.7
+      - card: Moat
+        priority: 0.4
+      - card: Copper
+        priority: 0.1
+      - card: Estate
+        priority: 0.2
+      - card: Duchy
+        condition: "state.countInSupply('Province') <= 4"
+        priority: 0.6
+    play_priorities:
+      default:
+        Chapel: 1.0
+        Laboratory: 0.95
+        Village: 0.9
+        Smithy: 0.85
+        Market: 0.8
+        Festival: 0.75
+        Mine: 0.7
+        Workshop: 0.65
+        Witch: 0.8
+        Moat: 0.6
+        Gold: 1.0
+        Silver: 0.9
+        Copper: 0.8
+    weights:
+      action: 0.7
+      treasure: 0.6
+      victory: 0.3
+      engine: 0.8

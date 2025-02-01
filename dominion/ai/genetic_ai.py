@@ -1,7 +1,7 @@
 from typing import Optional
 from dominion.cards.base_card import Card
 from dominion.game.game_state import GameState
-from dominion.strategies.strategy import Strategy
+from dominion.strategy.strategy import Strategy
 from dominion.ai.base_ai import AI
 
 

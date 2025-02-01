@@ -1,5 +1,5 @@
 from datetime import datetime
-from dominion.strategies.strategy import Strategy
+from dominion.strategy.strategy import Strategy
 
 
 def create_big_money_strategy() -> Strategy:
