@@ -1,17 +1,17 @@
-from pathlib import Path
+from typing import Dict, Any, List
 import yaml
 import random
 import copy
-from typing import List, Dict, Any
 from datetime import datetime
 from dominion.simulation.strategy_battle import StrategyBattle
 import os
+from pathlib import Path
 
 
 class YamlGeneticTrainer:
     def __init__(
         self,
-        kingdom_cards: List[str],
+        kingdom_cards: list[str],
         population_size: int = 50,
         generations: int = 100,
         mutation_rate: float = 0.1,
@@ -24,137 +24,10 @@ class YamlGeneticTrainer:
         self.mutation_rate = mutation_rate
         self.games_per_eval = games_per_eval
         self.log_folder = log_folder
-
-        # Create directories if they don't exist
-        strategies_dir = Path("strategies")
-        strategies_dir.mkdir(exist_ok=True)
-
         self.battle_system = StrategyBattle(kingdom_cards, log_folder)
 
-    def create_random_strategy(self, strategy_id: int) -> Dict[str, Any]:
-        """Create a random strategy in YAML format"""
-        # Create gain priority list with conditions
-        gain_priority = []
-        for card in self.kingdom_cards + [
-            "Copper",
-            "Silver",
-            "Gold",
-            "Estate",
-            "Duchy",
-            "Province",
-        ]:
-            priority = {"card": card, "priority": round(random.random(), 2)}
-
-            # Add conditions for certain cards
-            if card == "Province":
-                priority["condition"] = "my.coins >= 8"
-            elif card == "Gold":
-                priority["condition"] = "my.coins >= 6"
-            elif card == "Silver":
-                priority["condition"] = "my.coins >= 3"
-            elif random.random() < 0.3:  # 30% chance for random condition
-                priority["condition"] = self._generate_random_condition()
-
-            gain_priority.append(priority)
-
-        # Create strategy structure
-        strategy = {
-            "strategy": {
-                "metadata": {
-                    "name": f"Evolved-Strategy-{strategy_id}",
-                    "description": "Genetically evolved strategy",
-                    "version": "1.0",
-                    "creation_date": datetime.now().strftime("%Y-%m-%d"),
-                },
-                "author": ["GeneticTrainer"],
-                "requires": self.kingdom_cards,
-                "gainPriority": gain_priority,
-                "play_priorities": {
-                    "default": {
-                        card: round(random.random(), 2)
-                        for card in self.kingdom_cards
-                        + ["Copper", "Silver", "Gold", "Estate", "Duchy", "Province"]
-                    }
-                },
-                "weights": {
-                    "action": round(random.uniform(0.5, 0.9), 2),
-                    "treasure": round(random.uniform(0.4, 0.8), 2),
-                    "victory": {
-                        "default": round(random.uniform(0.2, 0.4), 2),
-                        "endgame": round(random.uniform(0.7, 0.9), 2),
-                    },
-                    "engine": round(random.uniform(0.6, 1.0), 2),
-                },
-            }
-        }
-        return strategy
-
-    def crossover(
-        self, parent1: Dict[str, Any], parent2: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """Create a new strategy by combining two parents"""
-        # Ensure we're working with valid strategy structures
-        if "strategy" not in parent1 or "strategy" not in parent2:
-            raise ValueError("Invalid strategy format - missing 'strategy' key")
-
-        child = copy.deepcopy(parent1)
-        parent1_strategy = parent1["strategy"]
-        parent2_strategy = parent2["strategy"]
-
-        # Crossover gain priorities
-        if "gainPriority" in parent1_strategy and "gainPriority" in parent2_strategy:
-            crossover_point = random.randint(0, len(parent1_strategy["gainPriority"]))
-            child["strategy"]["gainPriority"] = (
-                parent1_strategy["gainPriority"][:crossover_point]
-                + parent2_strategy["gainPriority"][crossover_point:]
-            )
-
-        # Crossover play priorities
-        if (
-            "play_priorities" in parent1_strategy
-            and "play_priorities" in parent2_strategy
-        ):
-
-            child["strategy"]["play_priorities"] = {"default": {}}
-            default1 = parent1_strategy["play_priorities"].get("default", {})
-            default2 = parent2_strategy["play_priorities"].get("default", {})
-
-            all_cards = set(list(default1.keys()) + list(default2.keys()))
-            for card in all_cards:
-                if random.random() < 0.5:
-                    value = default1.get(card, 0.5)  # Default to 0.5 if missing
-                else:
-                    value = default2.get(card, 0.5)
-                child["strategy"]["play_priorities"]["default"][card] = value
-
-        # Crossover weights
-        if "weights" in parent1_strategy and "weights" in parent2_strategy:
-            child["strategy"]["weights"] = {}
-            # Handle simple weights
-            for weight_type in ["action", "treasure", "engine"]:
-                if random.random() < 0.5:
-                    child["strategy"]["weights"][weight_type] = parent1_strategy[
-                        "weights"
-                    ][weight_type]
-                else:
-                    child["strategy"]["weights"][weight_type] = parent2_strategy[
-                        "weights"
-                    ][weight_type]
-
-            # Handle victory weight specially since it can be nested
-            if random.random() < 0.5:
-                child["strategy"]["weights"]["victory"] = copy.deepcopy(
-                    parent1_strategy["weights"]["victory"]
-                )
-            else:
-                child["strategy"]["weights"]["victory"] = copy.deepcopy(
-                    parent2_strategy["weights"]["victory"]
-                )
-
-        return child
-
-    def mutate_strategy(self, strategy: Dict[str, Any]) -> Dict[str, Any]:
-        """Mutate a strategy while maintaining YAML structure"""
+    def mutate_strategy(self, strategy: dict) -> dict:
+        """Mutate a strategy while handling nested structures properly."""
         new_strategy = copy.deepcopy(strategy)
         strategy_data = new_strategy["strategy"]
 
@@ -166,23 +39,11 @@ class YamlGeneticTrainer:
                         max(
                             0,
                             min(
-                                1,
-                                priority.get("priority", 0.5)
-                                + (random.random() - 0.5) * 0.4,
+                                1, priority["priority"] + (random.random() - 0.5) * 0.4
                             ),
                         ),
                         2,
                     )
-                    if random.random() < self.mutation_rate:
-                        if "condition" in priority:
-                            if random.random() < 0.3:  # 30% chance to remove condition
-                                del priority["condition"]
-                            else:  # 70% chance to change condition
-                                priority["condition"] = (
-                                    self._generate_random_condition()
-                                )
-                        elif random.random() < 0.3:  # 30% chance to add condition
-                            priority["condition"] = self._generate_random_condition()
 
         # Mutate play priorities
         if (
@@ -203,26 +64,94 @@ class YamlGeneticTrainer:
                         2,
                     )
 
-        # Mutate weights
+        # Mutate weights with proper handling of nested victory weight
         if "weights" in strategy_data:
-            for weight_type in ["action", "treasure", "victory", "engine"]:
+            weights = strategy_data["weights"]
+            for weight_type in ["action", "treasure", "engine"]:
                 if random.random() < self.mutation_rate:
-                    strategy_data["weights"][weight_type] = round(
+                    weights[weight_type] = round(
                         max(
                             0.1,
                             min(
-                                1,
-                                strategy_data["weights"][weight_type]
-                                + (random.random() - 0.5) * 0.4,
+                                1, weights[weight_type] + (random.random() - 0.5) * 0.4
                             ),
+                        ),
+                        2,
+                    )
+
+            # Handle victory weight which can be either a float or dict
+            if random.random() < self.mutation_rate:
+                if isinstance(weights["victory"], dict):
+                    for key in ["default", "endgame"]:
+                        if key in weights["victory"]:
+                            weights["victory"][key] = round(
+                                max(
+                                    0.1,
+                                    min(
+                                        1,
+                                        weights["victory"][key]
+                                        + (random.random() - 0.5) * 0.4,
+                                    ),
+                                ),
+                                2,
+                            )
+                else:
+                    weights["victory"] = round(
+                        max(
+                            0.1,
+                            min(1, weights["victory"] + (random.random() - 0.5) * 0.4),
                         ),
                         2,
                     )
 
         return new_strategy
 
+    def create_random_strategy(self, strategy_id: int) -> dict:
+        """Create a random strategy with proper structure."""
+        strategy = {
+            "strategy": {
+                "metadata": {
+                    "name": f"Evolved-Strategy-{strategy_id}",
+                    "description": "Genetically evolved strategy",
+                    "version": "1.0",
+                    "creation_date": datetime.now().strftime("%Y-%m-%d"),
+                },
+                "author": ["GeneticTrainer"],
+                "requires": self.kingdom_cards,
+                "gainPriority": [
+                    {
+                        "card": card,
+                        "priority": round(random.random(), 2),
+                        "condition": (
+                            self._generate_random_condition()
+                            if random.random() < 0.3
+                            else None
+                        ),
+                    }
+                    for card in (
+                        self.kingdom_cards
+                        + ["Copper", "Silver", "Gold", "Estate", "Duchy", "Province"]
+                    )
+                ],
+                "play_priorities": {
+                    "default": {
+                        card: round(random.random(), 2)
+                        for card in self.kingdom_cards
+                        + ["Copper", "Silver", "Gold", "Estate", "Duchy", "Province"]
+                    }
+                },
+                "weights": {
+                    "action": round(random.uniform(0.5, 0.9), 2),
+                    "treasure": round(random.uniform(0.4, 0.8), 2),
+                    "victory": round(random.uniform(0.2, 0.4), 2),
+                    "engine": round(random.uniform(0.6, 1.0), 2),
+                },
+            }
+        }
+        return strategy
+
     def _generate_random_condition(self) -> str:
-        """Generate a random condition for card priority"""
+        """Generate a random condition that will work with the strategy runner."""
         conditions = [
             "my.coins >= {}",
             "my.actions >= {}",
@@ -338,6 +267,98 @@ class YamlGeneticTrainer:
             tournament_fitness.index(max(tournament_fitness))
         ]
         return population[winner_idx]
+
+    def crossover(
+        self, parent1: Dict[str, Any], parent2: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Create a new strategy by combining two parent strategies with proper YAML structure."""
+        # Create a new strategy with metadata from parent1
+        child = copy.deepcopy(parent1)
+        strategy_data = child["strategy"]
+        parent2_data = parent2["strategy"]
+
+        # Crossover gain priorities
+        if "gainPriority" in strategy_data and "gainPriority" in parent2_data:
+            for i, priority in enumerate(strategy_data["gainPriority"]):
+                if i < len(parent2_data["gainPriority"]):
+                    weight = random.random()
+                    # Crossover priority values while keeping card and condition
+                    priority["priority"] = round(
+                        priority["priority"] * weight
+                        + parent2_data["gainPriority"][i]["priority"] * (1 - weight),
+                        2,
+                    )
+
+        # Crossover play priorities
+        if (
+            "play_priorities" in strategy_data
+            and "play_priorities" in parent2_data
+            and "default" in strategy_data["play_priorities"]
+            and "default" in parent2_data["play_priorities"]
+        ):
+
+            p1_priorities = strategy_data["play_priorities"]["default"]
+            p2_priorities = parent2_data["play_priorities"]["default"]
+
+            for card in p1_priorities:
+                if card in p2_priorities:
+                    weight = random.random()
+                    p1_priorities[card] = round(
+                        p1_priorities[card] * weight
+                        + p2_priorities[card] * (1 - weight),
+                        2,
+                    )
+
+        # Crossover weights
+        if "weights" in strategy_data and "weights" in parent2_data:
+            p1_weights = strategy_data["weights"]
+            p2_weights = parent2_data["weights"]
+
+            # Handle basic weights
+            for weight_type in ["action", "treasure", "engine"]:
+                if weight_type in p1_weights and weight_type in p2_weights:
+                    weight = random.random()
+                    p1_weights[weight_type] = round(
+                        p1_weights[weight_type] * weight
+                        + p2_weights[weight_type] * (1 - weight),
+                        2,
+                    )
+
+            # Handle victory weight which could be either float or dict
+            if "victory" in p1_weights and "victory" in p2_weights:
+                if isinstance(p1_weights["victory"], dict) and isinstance(
+                    p2_weights["victory"], dict
+                ):
+                    # Both are dicts, crossover each component
+                    for key in ["default", "endgame"]:
+                        if (
+                            key in p1_weights["victory"]
+                            and key in p2_weights["victory"]
+                        ):
+                            weight = random.random()
+                            p1_weights["victory"][key] = round(
+                                p1_weights["victory"][key] * weight
+                                + p2_weights["victory"][key] * (1 - weight),
+                                2,
+                            )
+                else:
+                    # At least one is a float, treat both as floats
+                    p1_val = (
+                        p1_weights["victory"]["default"]
+                        if isinstance(p1_weights["victory"], dict)
+                        else p1_weights["victory"]
+                    )
+                    p2_val = (
+                        p2_weights["victory"]["default"]
+                        if isinstance(p2_weights["victory"], dict)
+                        else p2_weights["victory"]
+                    )
+                    weight = random.random()
+                    p1_weights["victory"] = round(
+                        p1_val * weight + p2_val * (1 - weight), 2
+                    )
+
+        return child
 
 
 def train_optimal_strategy():
