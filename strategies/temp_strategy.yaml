@@ -3,66 +3,65 @@ strategy:
   - GeneticTrainer
   gainPriority:
   - card: Village
-    priority: 0.54
+    priority: 0.29
   - card: Smithy
-    priority: 0.35
+    priority: 0.69
   - card: Market
-    condition: my.actions >= 1
-    priority: 0.01
+    priority: 0.4
   - card: Festival
-    priority: 0.2
-  - card: Laboratory
-    priority: 0.87
-  - card: Mine
-    priority: 0.02
-  - card: Witch
-    priority: 0.1
-  - card: Moat
-    priority: 0.02
-  - card: Workshop
     priority: 0.59
+  - card: Laboratory
+    priority: 0.28
+  - card: Mine
+    priority: 0.34
+  - card: Witch
+    priority: 0.71
+  - card: Moat
+    condition: my.actions >= 6
+    priority: 0.37
+  - card: Workshop
+    priority: 0.14
   - card: Chapel
-    priority: 0.55
+    condition: state.turn_number() <= 6
+    priority: 0.66
   - card: Copper
     priority: 0.27
   - card: Silver
     condition: my.coins >= 3
-    priority: 0.58
+    priority: 0.5
   - card: Gold
     condition: my.coins >= 6
-    priority: 0.32
+    priority: 0.76
   - card: Estate
-    condition: my.actions >= 3
-    priority: 0.62
+    priority: 0.69
   - card: Duchy
-    condition: state.turn_number() <= 7
-    priority: 0.8
+    priority: 0.56
   - card: Province
     condition: my.coins >= 8
-    priority: 0.41
+    priority: 0.92
   metadata:
     creation_date: '2025-02-01'
     description: Genetically evolved strategy
-    name: Evolved-Strategy-4
+    name: Evolved-Strategy-0
     version: '1.0'
   play_priorities:
     default:
-      Chapel: 0.71
-      Copper: 0.79
-      Duchy: 0.97
-      Estate: 0.03
-      Festival: 0.56
-      Gold: 0.1
-      Laboratory: 0.91
-      Market: 0.44
-      Mine: 0.36
-      Moat: 0.2
-      Province: 0.08
-      Silver: 0.57
-      Smithy: 0.25
-      Village: 0.0
-      Witch: 0.16
-      Workshop: 0.74
+      Chapel: 0.76
+      Copper: 0.02
+      Duchy: 0.78
+      Estate: 0.63
+      Festival: 0.05
+      Gold: 0.2
+      Laboratory: 0.71
+      Market: 0.63
+      Mine: 0.44
+      Moat: 0.04
+      Province: 0.22
+      Silver: 0.17
+      Smithy: 0.87
+      Village: 0.04
+      Witch: 0.9
+      Workshop: 0.36
   requires:
   - Village
   - Smithy
@@ -75,7 +74,9 @@ strategy:
   - Workshop
   - Chapel
   weights:
-    action: 0.8
-    engine: 0.71
-    treasure: 0.64
-    victory: 0.32
+    action: 0.67
+    engine: 0.78
+    treasure: 0.8
+    victory:
+      default: 0.31
+      endgame: 0.74

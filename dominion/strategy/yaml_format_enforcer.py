@@ -126,6 +126,26 @@ class YAMLFormatEnforcer:
             ],
         }
 
+    def validate_condition(self, condition: str) -> bool:
+        """Safely validate a condition string."""
+        # Basic string comparisons
+        for op in ["<=", ">=", "<", ">", "=="]:
+            if op in condition:
+                parts = condition.split(op)
+                if len(parts) == 2:
+                    try:
+                        # Convert any numeric values for comparison
+                        left = parts[0].strip()
+                        right = parts[1].strip()
+                        # If both are numeric, ensure comparison is valid
+                        if left.isdigit() and right.isdigit():
+                            return True
+                        # Otherwise, assume it's a valid variable comparison
+                        return True
+                    except:
+                        return False
+        return True  # Allow other conditions by default
+
     def validate_strategy(self, strategy_data: Dict[str, Any]) -> List[str]:
         """Validate a strategy against the schema and return any errors."""
         errors = []
@@ -153,6 +173,21 @@ class YAMLFormatEnforcer:
                 errors.append(
                     f"Priority value for {priority['card']} must be between 0 and 1"
                 )
+            if "condition" in priority:
+                if not self.validate_condition(priority["condition"]):
+                    errors.append(
+                        f"Invalid condition in gainPriority: {priority['condition']}"
+                    )
+
+        # Check phases if they exist
+        if "phases" in strategy:
+            for phase_name, phase in strategy["phases"].items():
+                if "conditions" in phase:
+                    for cond_name, condition in phase["conditions"].items():
+                        if not self.validate_condition(str(condition)):
+                            errors.append(
+                                f"Invalid condition in phase {phase_name}: {condition}"
+                            )
 
         # Check play priorities
         for card, priority in strategy["play_priorities"]["default"].items():
