@@ -64,7 +64,18 @@ class YAMLFormatEnforcer:
                         "properties": {
                             "action": {"type": "number"},
                             "treasure": {"type": "number"},
-                            "victory": {"type": "number"},
+                            "victory": {
+                                "oneOf": [
+                                    {"type": "number"},
+                                    {
+                                        "type": "object",
+                                        "properties": {
+                                            "default": {"type": "number"},
+                                            "endgame": {"type": "number"},
+                                        },
+                                    },
+                                ]
+                            },
                             "engine": {"type": "number"},
                         },
                     },
@@ -281,7 +292,3 @@ def main():
         print(f"\n{filename}:")
         for error in errors:
             print(f"  {'✓' if error == 'OK' else '✗'} {error}")
-
-
-if __name__ == "__main__":
-    main()

@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
 import yaml
 from pathlib import Path
+from dominion.strategy.yaml_format_enforcer import YAMLFormatEnforcer
 
 
 @dataclass
@@ -60,63 +61,80 @@ class StrategyParser:
 
     @staticmethod
     def load_from_file(filepath: Path) -> Strategy:
-        """Load and parse a strategy from a YAML file"""
+        """Load and parse a strategy from a YAML file with validation"""
+        # Create enforcer
+        enforcer = YAMLFormatEnforcer()
+
         try:
+            # Load the raw YAML
             with open(filepath, "r", encoding="utf-8") as f:
                 data = yaml.safe_load(f)
                 if data is None:
                     raise ValueError(f"Empty or invalid YAML file: {filepath}")
+
+            # Validate and format the strategy
+            success, errors = enforcer.enforce_file(filepath)
+            if not success:
+                error_msg = "\n".join(errors)
+                raise ValueError(f"Invalid strategy file {filepath}:\n{error_msg}")
+
+            # Reload the formatted file
+            with open(filepath, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+
+            # Handle nested structure under 'strategy' or 'strategies' key
+            if "strategies" in data:
+                data = data["strategies"][0]  # Take first strategy if list
+            elif "strategy" in data:
+                data = data["strategy"]
+
+            # Parse gain priority
+            gain_priority = [
+                StrategyParser.parse_card_priority(p)
+                for p in (data.get("gainPriority") or [])
+            ]
+
+            # Parse phases if they exist
+            phases = None
+            if "phases" in data:
+                phases = {
+                    name: StrategyParser.parse_phase(phase_data)
+                    for name, phase_data in data["phases"].items()
+                }
+
+            # Parse rebuild priority
+            rebuild_priority = None
+            if data.get("rebuildPriority"):
+                rebuild_priority = [
+                    StrategyParser.parse_card_priority(p)
+                    for p in data["rebuildPriority"]
+                ]
+
+            # Parse VP priority
+            name_vp_priority = None
+            if data.get("nameVPPriority"):
+                name_vp_priority = [
+                    StrategyParser.parse_card_priority(p)
+                    for p in data["nameVPPriority"]
+                ]
+
+            return Strategy(
+                name=data.get("metadata", {}).get("name", data.get("name", "")),
+                author=data.get("author", []),
+                requires=data.get("requires", []),
+                gain_priority=gain_priority,
+                phases=phases,
+                conditional_rules=data.get("conditional_rules"),
+                play_priorities=data.get("play_priorities"),
+                weights=data.get("weights"),
+                wants_to_rebuild=data.get("wantsToRebuild"),
+                rebuild_priority=rebuild_priority,
+                name_vp_priority=name_vp_priority,
+            )
+
         except Exception as e:
-            print(f"Error loading YAML file {filepath}: {e}")
+            print(f"Error loading strategy file {filepath}: {e}")
             raise
-
-        # Handle nested structure under 'strategy' or 'strategies' key
-        if "strategies" in data:
-            data = data["strategies"][0]  # Take first strategy if list
-        elif "strategy" in data:
-            data = data["strategy"]
-
-        # Parse gain priority - ensure we have valid data to iterate over
-        gain_priority = [
-            StrategyParser.parse_card_priority(p)
-            for p in (data.get("gainPriority") or [])
-        ]
-
-        # Parse phases if they exist
-        phases = None
-        if "phases" in data:
-            phases = {
-                name: StrategyParser.parse_phase(phase_data)
-                for name, phase_data in data["phases"].items()
-            }
-
-        # Parse rebuild priority only if it exists and is not None
-        rebuild_priority = None
-        if data.get("rebuildPriority"):
-            rebuild_priority = [
-                StrategyParser.parse_card_priority(p) for p in data["rebuildPriority"]
-            ]
-
-        # Parse VP priority only if it exists and is not None
-        name_vp_priority = None
-        if data.get("nameVPPriority"):
-            name_vp_priority = [
-                StrategyParser.parse_card_priority(p) for p in data["nameVPPriority"]
-            ]
-
-        return Strategy(
-            name=data.get("metadata", {}).get("name", data.get("name", "")),
-            author=data.get("author", []),
-            requires=data.get("requires", []),
-            gain_priority=gain_priority,
-            phases=phases,
-            conditional_rules=data.get("conditional_rules"),
-            play_priorities=data.get("play_priorities"),
-            weights=data.get("weights"),
-            wants_to_rebuild=data.get("wantsToRebuild"),
-            rebuild_priority=rebuild_priority,
-            name_vp_priority=name_vp_priority,
-        )
 
 
 class StrategyLoader:
@@ -124,6 +142,7 @@ class StrategyLoader:
 
     def __init__(self):
         self.strategies: Dict[str, Strategy] = {}
+        self.enforcer = YAMLFormatEnforcer()
 
     def load_directory(self, directory: Path) -> None:
         """Load all YAML strategy files from a directory"""
@@ -131,12 +150,23 @@ class StrategyLoader:
             print(f"Warning: Strategy directory {directory} does not exist")
             return
 
+        print("\nLoading strategy files...")
         for file in directory.glob("*.yaml"):
             try:
+                # First validate the file
+                success, errors = self.enforcer.enforce_file(file)
+                if not success:
+                    print(f"\nSkipping {file.name} due to validation errors:")
+                    for error in errors:
+                        print(f"  - {error}")
+                    continue
+
+                # If valid, load the strategy
                 strategy = StrategyParser.load_from_file(file)
                 self.strategies[strategy.name] = strategy
+                print(f"✓ Loaded {file.name}")
             except Exception as e:
-                print(f"Error loading strategy file {file}: {e}")
+                print(f"✗ Error loading {file.name}: {e}")
 
     def get_strategy(self, name: str) -> Strategy:
         """Get a strategy by name"""

@@ -1,56 +1,57 @@
-strategies:
+strategy:
+  strategies:
   - name: OptimalStrategy
     author:
-      - GeneticTrainer
+    - GeneticTrainer
     requires:
-      - Village
-      - Smithy
-      - Market
-      - Festival
-      - Laboratory
-      - Mine
-      - Witch
-      - Moat
-      - Workshop
-      - Chapel
+    - Village
+    - Smithy
+    - Market
+    - Festival
+    - Laboratory
+    - Mine
+    - Witch
+    - Moat
+    - Workshop
+    - Chapel
     gainPriority:
-      - card: Province
-        condition: "my.coins >= 8"
-        priority: 1.0
-      - card: Gold
-        condition: "my.coins >= 6"
-        priority: 0.9
-      - card: Silver
-        condition: "my.coins >= 3"
-        priority: 0.8
-      - card: Laboratory
-        priority: 0.75
-      - card: Chapel
-        condition: "state.turn_number() <= 5"
-        priority: 0.85
-      - card: Village
-        priority: 0.7
-      - card: Smithy
-        priority: 0.65
-      - card: Market
-        priority: 0.6
-      - card: Festival
-        priority: 0.55
-      - card: Mine
-        priority: 0.5
-      - card: Workshop
-        priority: 0.45
-      - card: Witch
-        priority: 0.7
-      - card: Moat
-        priority: 0.4
-      - card: Copper
-        priority: 0.1
-      - card: Estate
-        priority: 0.2
-      - card: Duchy
-        condition: "state.countInSupply('Province') <= 4"
-        priority: 0.6
+    - card: Province
+      condition: my.coins >= 8
+      priority: 1.0
+    - card: Gold
+      condition: my.coins >= 6
+      priority: 0.9
+    - card: Silver
+      condition: my.coins >= 3
+      priority: 0.8
+    - card: Laboratory
+      priority: 0.75
+    - card: Chapel
+      condition: state.turn_number() <= 5
+      priority: 0.85
+    - card: Village
+      priority: 0.7
+    - card: Smithy
+      priority: 0.65
+    - card: Market
+      priority: 0.6
+    - card: Festival
+      priority: 0.55
+    - card: Mine
+      priority: 0.5
+    - card: Workshop
+      priority: 0.45
+    - card: Witch
+      priority: 0.7
+    - card: Moat
+      priority: 0.4
+    - card: Copper
+      priority: 0.1
+    - card: Estate
+      priority: 0.2
+    - card: Duchy
+      condition: state.countInSupply('Province') <= 4
+      priority: 0.6
     play_priorities:
       default:
         Chapel: 1.0
@@ -71,3 +72,70 @@ strategies:
       treasure: 0.6
       victory: 0.3
       engine: 0.8
+  metadata:
+    name: Unnamed Strategy
+    description: No description provided
+    version: '1.0'
+    creation_date: '2025-02-01'
+  author:
+  - Unknown
+  requires: []
+  gainPriority:
+  - card: Copper
+    priority: 0.5
+  - card: Silver
+    priority: 0.5
+  - card: Gold
+    priority: 0.5
+  - card: Estate
+    priority: 0.5
+  - card: Duchy
+    priority: 0.5
+  - card: Province
+    priority: 0.5
+  - card: Curse
+    priority: 0.5
+  - card: Village
+    priority: 0.5
+  - card: Smithy
+    priority: 0.5
+  - card: Market
+    priority: 0.5
+  - card: Festival
+    priority: 0.5
+  - card: Laboratory
+    priority: 0.5
+  - card: Mine
+    priority: 0.5
+  - card: Witch
+    priority: 0.5
+  - card: Moat
+    priority: 0.5
+  - card: Workshop
+    priority: 0.5
+  - card: Chapel
+    priority: 0.5
+  play_priorities:
+    default:
+      Copper: 0.5
+      Silver: 0.5
+      Gold: 0.5
+      Estate: 0.5
+      Duchy: 0.5
+      Province: 0.5
+      Curse: 0.5
+      Village: 0.5
+      Smithy: 0.5
+      Market: 0.5
+      Festival: 0.5
+      Laboratory: 0.5
+      Mine: 0.5
+      Witch: 0.5
+      Moat: 0.5
+      Workshop: 0.5
+      Chapel: 0.5
+  weights:
+    action: 0.7
+    treasure: 0.6
+    victory: 0.3
+    engine: 0.8
