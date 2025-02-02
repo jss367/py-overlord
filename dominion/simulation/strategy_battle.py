@@ -1,12 +1,13 @@
-from pathlib import Path
 import argparse
-from typing import Dict, Any
+from pathlib import Path
+from typing import Any, dict
+
+from dominion.cards.registry import get_card
+from dominion.game.game_state import GameState
 from dominion.simulation.game_logger import GameLogger
 from dominion.strategy.strategy_ai import StrategyAI
 from dominion.strategy.strategy_parser import StrategyLoader
 from dominion.strategy.strategy_runner import StrategyRunner
-from dominion.game.game_state import GameState
-from dominion.cards.registry import get_card
 
 
 class StrategyBattle:
@@ -24,9 +25,7 @@ class StrategyBattle:
         else:
             raise FileNotFoundError("Strategies directory not found")
 
-    def run_battle(
-        self, strategy1_name: str, strategy2_name: str, num_games: int = 100
-    ) -> Dict[str, Any]:
+    def run_battle(self, strategy1_name: str, strategy2_name: str, num_games: int = 100) -> dict[str, Any]:
         """Run multiple games between two strategies."""
         # Validate strategies exist
         if strategy1_name not in self.strategy_loader.strategies:
@@ -100,9 +99,7 @@ class StrategyBattle:
 
         return results
 
-    def _run_game(
-        self, ai1: StrategyAI, ai2: StrategyAI
-    ) -> tuple[StrategyAI, Dict[str, int]]:
+    def _run_game(self, ai1: StrategyAI, ai2: StrategyAI) -> tuple[StrategyAI, dict[str, int]]:
         """Run a single game between two AIs."""
         # Start game logging
         self.logger.start_game([ai1.name, ai2.name])
@@ -110,9 +107,7 @@ class StrategyBattle:
         # Set up game state
         game_state = GameState(players=[], supply={})
         game_state.log_callback = lambda msg: (
-            self.logger.file_logger.info(msg)
-            if self.logger.should_log_to_file
-            else print(msg)
+            self.logger.file_logger.info(msg) if self.logger.should_log_to_file else print(msg)
         )
 
         # Initialize game
@@ -124,12 +119,8 @@ class StrategyBattle:
             game_state.play_turn()
 
         # Get results
-        scores = {
-            p.ai.name: p.get_victory_points(game_state) for p in game_state.players
-        }
-        winner = max(
-            game_state.players, key=lambda p: p.get_victory_points(game_state)
-        ).ai
+        scores = {p.ai.name: p.get_victory_points(game_state) for p in game_state.players}
+        winner = max(game_state.players, key=lambda p: p.get_victory_points(game_state)).ai
 
         # End game logging
         self.logger.end_game(winner.name, scores, game_state.supply)
@@ -137,7 +128,7 @@ class StrategyBattle:
         return winner, scores
 
 
-def print_results(results: Dict[str, Any]):
+def print_results(results: dict[str, Any]):
     """Print battle results in a readable format."""
     print("\n=== Strategy Battle Results ===")
     print(f"\nGames played: {results['games_played']}")
@@ -161,14 +152,10 @@ def print_results(results: Dict[str, Any]):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Run a battle between two Dominion strategies"
-    )
+    parser = argparse.ArgumentParser(description="Run a battle between two Dominion strategies")
     parser.add_argument("strategy1", help="Name of first strategy")
     parser.add_argument("strategy2", help="Name of second strategy")
-    parser.add_argument(
-        "--games", type=int, default=100, help="Number of games to play"
-    )
+    parser.add_argument("--games", type=int, default=100, help="Number of games to play")
     args = parser.parse_args()
 
     # Default kingdom cards - could be made configurable

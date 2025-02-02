@@ -70,14 +70,10 @@ class Strategy:
             base_play = strategy.play_priorities.get(name, 0.0)
 
             # Adjust gain priority ±30%
-            strategy.gain_priorities[name] = max(
-                -1.0, min(1.0, base_gain + (random.random() - 0.5) * 0.6)
-            )
+            strategy.gain_priorities[name] = max(-1.0, min(1.0, base_gain + (random.random() - 0.5) * 0.6))
 
             # Adjust play priority ±20%
-            strategy.play_priorities[name] = max(
-                0.0, min(1.0, base_play + (random.random() - 0.5) * 0.4)
-            )
+            strategy.play_priorities[name] = max(0.0, min(1.0, base_play + (random.random() - 0.5) * 0.4))
 
         # Randomly adjust weights within reasonable bounds
         strategy.action_weight = random.uniform(0.5, 0.9)
@@ -104,21 +100,13 @@ class Strategy:
 
         # Mutate weights with constraints
         if random.random() < mutation_rate:
-            self.action_weight = max(
-                0.3, min(0.9, self.action_weight + (random.random() - 0.5) * 0.4)
-            )
+            self.action_weight = max(0.3, min(0.9, self.action_weight + (random.random() - 0.5) * 0.4))
         if random.random() < mutation_rate:
-            self.treasure_weight = max(
-                0.3, min(0.8, self.treasure_weight + (random.random() - 0.5) * 0.4)
-            )
+            self.treasure_weight = max(0.3, min(0.8, self.treasure_weight + (random.random() - 0.5) * 0.4))
         if random.random() < mutation_rate:
-            self.victory_weight = max(
-                0.1, min(0.5, self.victory_weight + (random.random() - 0.5) * 0.3)
-            )
+            self.victory_weight = max(0.1, min(0.5, self.victory_weight + (random.random() - 0.5) * 0.3))
         if random.random() < mutation_rate:
-            self.engine_weight = max(
-                0.4, min(1.0, self.engine_weight + (random.random() - 0.5) * 0.4)
-            )
+            self.engine_weight = max(0.4, min(1.0, self.engine_weight + (random.random() - 0.5) * 0.4))
 
     @classmethod
     def crossover(cls, parent1: "Strategy", parent2: "Strategy") -> "Strategy":
@@ -128,29 +116,21 @@ class Strategy:
         # Crossover card priorities using weighted average
         for card in parent1.gain_priorities:
             weight = random.random()
-            child.gain_priorities[card] = parent1.gain_priorities[
-                card
-            ] * weight + parent2.gain_priorities[card] * (1 - weight)
+            child.gain_priorities[card] = parent1.gain_priorities[card] * weight + parent2.gain_priorities[card] * (
+                1 - weight
+            )
 
         for card in parent1.play_priorities:
             weight = random.random()
-            child.play_priorities[card] = parent1.play_priorities[
-                card
-            ] * weight + parent2.play_priorities[card] * (1 - weight)
+            child.play_priorities[card] = parent1.play_priorities[card] * weight + parent2.play_priorities[card] * (
+                1 - weight
+            )
 
         # Crossover weights using weighted average
         weight = random.random()
-        child.action_weight = parent1.action_weight * weight + parent2.action_weight * (
-            1 - weight
-        )
-        child.treasure_weight = (
-            parent1.treasure_weight * weight + parent2.treasure_weight * (1 - weight)
-        )
-        child.victory_weight = (
-            parent1.victory_weight * weight + parent2.victory_weight * (1 - weight)
-        )
-        child.engine_weight = parent1.engine_weight * weight + parent2.engine_weight * (
-            1 - weight
-        )
+        child.action_weight = parent1.action_weight * weight + parent2.action_weight * (1 - weight)
+        child.treasure_weight = parent1.treasure_weight * weight + parent2.treasure_weight * (1 - weight)
+        child.victory_weight = parent1.victory_weight * weight + parent2.victory_weight * (1 - weight)
+        child.engine_weight = parent1.engine_weight * weight + parent2.engine_weight * (1 - weight)
 
         return child

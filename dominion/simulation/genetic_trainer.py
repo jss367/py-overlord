@@ -1,7 +1,8 @@
 import random
+
 from ..ai.genetic_ai import GeneticAI, Strategy
-from .game_runner import GameRunner
 from .game_logger import GameLogger
+from .game_runner import GameRunner
 
 
 class GeneticTrainer:
@@ -30,10 +31,7 @@ class GeneticTrainer:
         self.logger.start_training(self.generations)
 
         # Create initial population
-        population = [
-            Strategy.create_random(self.kingdom_cards)
-            for _ in range(self.population_size)
-        ]
+        population = [Strategy.create_random(self.kingdom_cards) for _ in range(self.population_size)]
 
         best_strategy = None
         best_fitness = 0.0
@@ -67,9 +65,7 @@ class GeneticTrainer:
         print("\nTraining Complete!")
         print(f"Final metrics: {metrics}")
         print("\nBest strategy priorities:")
-        for card, priority in sorted(
-            best_strategy.gain_priorities.items(), key=lambda x: x[1], reverse=True
-        )[
+        for card, priority in sorted(best_strategy.gain_priorities.items(), key=lambda x: x[1], reverse=True)[
             :10
         ]:  # Show top 10 priorities
             print(f"{card}: {priority:.3f}")
@@ -105,19 +101,12 @@ class GeneticTrainer:
             "avg_score": total_score / self.games_per_eval,
         }
 
-    def create_next_generation(
-        self, population: list[Strategy], fitness_scores: list[float]
-    ) -> list[Strategy]:
+    def create_next_generation(self, population: list[Strategy], fitness_scores: list[float]) -> list[Strategy]:
         """Create new generation through selection, crossover, and mutation."""
         new_population = []
 
         # Sort strategies by fitness
-        sorted_pop = [
-            x
-            for _, x in sorted(
-                zip(fitness_scores, population), key=lambda pair: pair[0], reverse=True
-            )
-        ]
+        sorted_pop = [x for _, x in sorted(zip(fitness_scores, population), key=lambda pair: pair[0], reverse=True)]
 
         # Keep best strategies
         elite_count = max(1, self.population_size // 10)

@@ -1,6 +1,6 @@
+from dominion.cards.base_card import Card
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
-from dominion.cards.base_card import Card
 
 
 class StateWrapper:
@@ -38,9 +38,7 @@ class StrategyRunner:
     def __init__(self, strategy: "Strategy"):
         self.strategy = strategy
 
-    def evaluate_condition(
-        self, condition: str, state: GameState, player: PlayerState
-    ) -> bool:
+    def evaluate_condition(self, condition: str, state: GameState, player: PlayerState) -> bool:
         """Safely evaluate a strategy condition"""
         if not condition:
             return True
@@ -61,23 +59,17 @@ class StrategyRunner:
         condition = self.strategy.wants_to_rebuild.get("condition")
         return self.evaluate_condition(condition, state, player)
 
-    def get_card_to_gain(
-        self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> Card | None:
+    def get_card_to_gain(self, state: GameState, player: PlayerState, choices: list[Card]) -> Card | None:
         """Get the highest priority card to gain from available choices"""
         choice_names = {c.name for c in choices}
 
         for priority in self.strategy.gain_priority:
-            if priority.card in choice_names and self.evaluate_condition(
-                priority.condition, state, player
-            ):
+            if priority.card in choice_names and self.evaluate_condition(priority.condition, state, player):
                 return next(c for c in choices if c.name == priority.card)
 
         return None
 
-    def get_rebuild_target(
-        self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> Card | None:
+    def get_rebuild_target(self, state: GameState, player: PlayerState, choices: list[Card]) -> Card | None:
         """Get the highest priority card to target with Rebuild"""
         if not self.strategy.rebuild_priority:
             return None

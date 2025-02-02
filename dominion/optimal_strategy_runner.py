@@ -1,10 +1,12 @@
-from typing import Dict, Any, List, Tuple, Optional
-import yaml
-import random
 import copy
+import random
+import shutil
 from datetime import datetime
 from pathlib import Path
-import shutil
+from typing import Any, Optional, Tuple, dict, list
+
+import yaml
+
 from dominion.simulation.strategy_battle import StrategyBattle
 
 
@@ -39,14 +41,14 @@ class ImprovedYamlGeneticTrainer:
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
 
-    def save_temp_strategy(self, strategy: Dict[str, Any], identifier: str) -> Path:
+    def save_temp_strategy(self, strategy: dict[str, Any], identifier: str) -> Path:
         """Save a strategy to a temporary file and return the path"""
         filepath = self.temp_dir / f"{identifier}.yaml"
         with open(filepath, "w") as f:
             yaml.dump(strategy, f)
         return filepath
 
-    def evaluate_strategy(self, strategy: Dict[str, Any], identifier: str) -> float:
+    def evaluate_strategy(self, strategy: dict[str, Any], identifier: str) -> float:
         """Evaluate a strategy by playing games against base strategies"""
         # Use the identifier as the strategy name for better tracking
         strategy["strategy"]["metadata"]["name"] = identifier
@@ -67,9 +69,7 @@ class ImprovedYamlGeneticTrainer:
 
             for opponent in base_strategies:
                 try:
-                    results = self.battle_system.run_battle(
-                        identifier, opponent, num_games=self.games_per_eval
-                    )
+                    results = self.battle_system.run_battle(identifier, opponent, num_games=self.games_per_eval)
                     total_win_rate += results["strategy1_win_rate"]
                     games_played += 1
                 except Exception as e:
@@ -86,7 +86,7 @@ class ImprovedYamlGeneticTrainer:
                 strategy_path.unlink()
             return 0.0
 
-    def create_random_strategy(self, strategy_id: int) -> Dict[str, Any]:
+    def create_random_strategy(self, strategy_id: int) -> dict[str, Any]:
         """Create a random strategy with proper structure"""
         strategy = {
             "strategy": {
@@ -120,31 +120,23 @@ class ImprovedYamlGeneticTrainer:
             priority = {"card": card, "priority": round(random.random(), 2)}
             if random.random() < 0.3:
                 if card in ["Silver", "Gold", "Province"]:
-                    priority["condition"] = (
-                        f"my.coins >= {3 if card == 'Silver' else 6 if card == 'Gold' else 8}"
-                    )
+                    priority["condition"] = f"my.coins >= {3 if card == 'Silver' else 6 if card == 'Gold' else 8}"
                 elif card in self.kingdom_cards:
-                    priority["condition"] = (
-                        f"state.turn_number() <= {random.randint(5, 15)}"
-                    )
+                    priority["condition"] = f"state.turn_number() <= {random.randint(5, 15)}"
 
             strategy["strategy"]["gainPriority"].append(priority)
 
         # Add play priorities
         for card in all_cards:
-            strategy["strategy"]["play_priorities"]["default"][card] = round(
-                random.random(), 2
-            )
+            strategy["strategy"]["play_priorities"]["default"][card] = round(random.random(), 2)
 
         return strategy
 
-    def train(self) -> Tuple[Optional[Dict[str, Any]], Dict[str, float]]:
+    def train(self) -> Tuple[Optional[dict[str, Any]], dict[str, float]]:
         """Run the genetic algorithm training process"""
         try:
             print("Initializing population...")
-            population = [
-                self.create_random_strategy(i) for i in range(self.population_size)
-            ]
+            population = [self.create_random_strategy(i) for i in range(self.population_size)]
 
             best_strategy = None
             best_fitness = 0.0
@@ -187,8 +179,8 @@ class ImprovedYamlGeneticTrainer:
             self.cleanup()
 
     def create_next_generation(
-        self, population: List[Dict[str, Any]], fitness_scores: List[float]
-    ) -> List[Dict[str, Any]]:
+        self, population: list[dict[str, Any]], fitness_scores: list[float]
+    ) -> list[dict[str, Any]]:
         """Create the next generation through selection, crossover, and mutation"""
         new_population = []
 
@@ -208,18 +200,14 @@ class ImprovedYamlGeneticTrainer:
 
         return new_population
 
-    def _tournament_select(
-        self, population: List[Dict[str, Any]], fitness_scores: List[float]
-    ) -> Dict[str, Any]:
+    def _tournament_select(self, population: list[dict[str, Any]], fitness_scores: list[float]) -> dict[str, Any]:
         """Select a strategy using tournament selection"""
         tournament_size = min(3, len(population))
         tournament_indices = random.sample(range(len(population)), tournament_size)
         winner_idx = max(tournament_indices, key=lambda i: fitness_scores[i])
         return copy.deepcopy(population[winner_idx])
 
-    def _crossover(
-        self, parent1: Dict[str, Any], parent2: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _crossover(self, parent1: dict[str, Any], parent2: dict[str, Any]) -> dict[str, Any]:
         """Create a new strategy by combining two parent strategies"""
         child = copy.deepcopy(parent1)
         child_data = child["strategy"]
@@ -234,24 +222,17 @@ class ImprovedYamlGeneticTrainer:
 
         # Crossover play priorities
         for card in child_data["play_priorities"]["default"]:
-            if (
-                random.random() < 0.5
-                and card in parent2_data["play_priorities"]["default"]
-            ):
-                child_data["play_priorities"]["default"][card] = parent2_data[
-                    "play_priorities"
-                ]["default"][card]
+            if random.random() < 0.5 and card in parent2_data["play_priorities"]["default"]:
+                child_data["play_priorities"]["default"][card] = parent2_data["play_priorities"]["default"][card]
 
         # Crossover weights
         for weight_type in child_data["weights"]:
             if random.random() < 0.5:
-                child_data["weights"][weight_type] = parent2_data["weights"][
-                    weight_type
-                ]
+                child_data["weights"][weight_type] = parent2_data["weights"][weight_type]
 
         return child
 
-    def _mutate(self, strategy: Dict[str, Any]) -> Dict[str, Any]:
+    def _mutate(self, strategy: dict[str, Any]) -> dict[str, Any]:
         """Mutate a strategy"""
         strategy_data = strategy["strategy"]
 
@@ -259,9 +240,7 @@ class ImprovedYamlGeneticTrainer:
         for priority in strategy_data["gainPriority"]:
             if random.random() < self.mutation_rate:
                 priority["priority"] = round(
-                    max(
-                        0, min(1, priority["priority"] + (random.random() - 0.5) * 0.4)
-                    ),
+                    max(0, min(1, priority["priority"] + (random.random() - 0.5) * 0.4)),
                     2,
                 )
 
@@ -273,8 +252,7 @@ class ImprovedYamlGeneticTrainer:
                         0,
                         min(
                             1,
-                            strategy_data["play_priorities"]["default"][card]
-                            + (random.random() - 0.5) * 0.4,
+                            strategy_data["play_priorities"]["default"][card] + (random.random() - 0.5) * 0.4,
                         ),
                     ),
                     2,
@@ -288,8 +266,7 @@ class ImprovedYamlGeneticTrainer:
                         0.1,
                         min(
                             1,
-                            strategy_data["weights"][weight_type]
-                            + (random.random() - 0.5) * 0.4,
+                            strategy_data["weights"][weight_type] + (random.random() - 0.5) * 0.4,
                         ),
                     ),
                     2,

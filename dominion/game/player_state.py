@@ -1,6 +1,7 @@
-from dataclasses import dataclass, field
-from ..cards.base_card import Card
 import random
+from dataclasses import dataclass, field
+
+from ..cards.base_card import Card
 from ..cards.registry import get_card
 
 
@@ -30,9 +31,7 @@ class PlayerState:
         """Set up starting deck (7 Coppers, 3 Estates) and draw initial hand."""
 
         # Create starting deck: 7 Coppers and 3 Estates
-        self.deck = [get_card("Copper") for _ in range(7)] + [
-            get_card("Estate") for _ in range(3)
-        ]
+        self.deck = [get_card("Copper") for _ in range(7)] + [get_card("Estate") for _ in range(3)]
 
         # Shuffle the deck
         random.shuffle(self.deck)
@@ -85,9 +84,7 @@ class PlayerState:
         """Count total copies of named card across all piles."""
         return sum(
             1
-            for card in (
-                self.hand + self.deck + self.discard + self.in_play + self.duration
-            )
+            for card in (self.hand + self.deck + self.discard + self.in_play + self.duration)
             if card.name == card_name
         )
 
@@ -95,7 +92,5 @@ class PlayerState:
         """Calculate total victory points."""
         return sum(
             card.get_victory_points(self)
-            for card in (
-                self.hand + self.deck + self.discard + self.in_play + self.duration
-            )
+            for card in (self.hand + self.deck + self.discard + self.in_play + self.duration)
         )

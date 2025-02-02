@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
-from ..cards.registry import get_card
 from ..cards.base_card import Card
+from ..cards.registry import get_card
 from .player_state import PlayerState
 
 
@@ -66,10 +66,7 @@ class GameState:
         for player in self.players:
             player.initialize()
 
-        self.log_callback(
-            "Game initialized with players: "
-            + ", ".join(str(p.ai) for p in self.players)
-        )
+        self.log_callback("Game initialized with players: " + ", ".join(str(p.ai) for p in self.players))
         self.log_callback("Kingdom cards: " + ", ".join(c.name for c in kingdom_cards))
 
     def setup_supply(self, kingdom_cards: list[Card]):
@@ -126,9 +123,7 @@ class GameState:
         # Process duration cards that were played last turn
         for card in player.duration[:]:
             # Log duration card effect
-            self.log_callback(
-                ("action", player.ai.name, f"resolves duration effect of {card}", {})
-            )
+            self.log_callback(("action", player.ai.name, f"resolves duration effect of {card}", {}))
 
             # Apply duration effects
             card.on_duration(self)
@@ -169,8 +164,7 @@ class GameState:
             # Update metrics for actions played
             if self.logger:
                 self.logger.current_metrics.actions_played[player.ai.name] = (
-                    self.logger.current_metrics.actions_played.get(player.ai.name, 0)
-                    + 1
+                    self.logger.current_metrics.actions_played.get(player.ai.name, 0) + 1
                 )
                 self.logger.current_metrics.cards_played[choice.name] = (
                     self.logger.current_metrics.cards_played.get(choice.name, 0) + 1
@@ -215,9 +209,7 @@ class GameState:
                 "coins_before": player.coins,
                 "coins_added": choice.stats.coins,
                 "coins_after": player.coins + choice.stats.coins,
-                "remaining_treasures": [
-                    c.name for c in player.hand if c != choice and c.is_treasure
-                ],
+                "remaining_treasures": [c.name for c in player.hand if c != choice and c.is_treasure],
             }
             self.log_callback(("action", player.ai.name, f"plays {choice}", context))
 
@@ -232,9 +224,7 @@ class GameState:
         player = self.current_player
 
         while player.buys > 0:
-            affordable = [
-                c for c in self._get_affordable_cards(player) if c is not None
-            ]
+            affordable = [c for c in self._get_affordable_cards(player) if c is not None]
 
             if not affordable:
                 break
@@ -259,9 +249,7 @@ class GameState:
 
             # Update supply
             self.supply[choice.name] -= 1
-            self.log_callback(
-                ("supply_change", choice.name, -1, self.supply[choice.name])
-            )
+            self.log_callback(("supply_change", choice.name, -1, self.supply[choice.name]))
 
             # Complete purchase
             player.buys -= 1
@@ -278,11 +266,7 @@ class GameState:
         for card_name, count in self.supply.items():
             if count > 0:
                 card = get_card(card_name)
-                if (
-                    card.cost.coins <= player.coins
-                    and card.cost.potions <= player.potions
-                    and card.may_be_bought(self)
-                ):
+                if card.cost.coins <= player.coins and card.cost.potions <= player.potions and card.may_be_bought(self):
                     affordable.append(card)
         return affordable
 
@@ -318,9 +302,7 @@ class GameState:
 
         # Move to next player
         if not self.extra_turn:
-            self.current_player_index = (self.current_player_index + 1) % len(
-                self.players
-            )
+            self.current_player_index = (self.current_player_index + 1) % len(self.players)
             if self.current_player_index == 0:
                 self.turn_number += 1
 
@@ -387,12 +369,7 @@ class GameState:
         has_treasures = any(card.is_treasure for card in player.hand)
         can_buy_copper = self.supply.get("Copper", 0) > 0
 
-        total_cards = (
-            len(player.hand)
-            + len(player.deck)
-            + len(player.discard)
-            + len(player.in_play)
-        )
+        total_cards = len(player.hand) + len(player.deck) + len(player.discard) + len(player.in_play)
         has_cards_to_draw = total_cards > 0
 
         return not (has_actions or has_treasures or can_buy_copper or has_cards_to_draw)
@@ -403,9 +380,7 @@ class GameState:
 
     def give_curse_to_player(self, player):
         """Give a curse card to a player. GameState has access to registry so can create cards."""
-        from ..cards.registry import (
-            get_card,
-        )  # Import here to avoid circular dependency
+        from ..cards.registry import get_card  # Import here to avoid circular dependency
 
         if self.supply.get("Curse", 0) > 0:
             curse = get_card("Curse")

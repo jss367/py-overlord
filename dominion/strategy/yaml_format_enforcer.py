@@ -1,8 +1,9 @@
-from typing import Dict, Any, List
-import yaml
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+from typing import Any, dict, list
+
 import jsonschema
+import yaml
 
 
 class YAMLFormatEnforcer:
@@ -149,7 +150,7 @@ class YAMLFormatEnforcer:
                         return False
         return True  # Allow other conditions by default
 
-    def validate_strategy(self, strategy_data: Dict[str, Any]) -> List[str]:
+    def validate_strategy(self, strategy_data: dict[str, Any]) -> list[str]:
         """Validate a strategy against the schema and return any errors."""
         errors = []
 
@@ -163,9 +164,7 @@ class YAMLFormatEnforcer:
 
         # Validate card references
         all_valid_cards = (
-            self.standard_cards["treasures"]
-            + self.standard_cards["victory"]
-            + self.standard_cards["kingdom"]
+            self.standard_cards["treasures"] + self.standard_cards["victory"] + self.standard_cards["kingdom"]
         )
 
         # Check gain priority cards
@@ -173,14 +172,10 @@ class YAMLFormatEnforcer:
             if priority["card"] not in all_valid_cards:
                 errors.append(f"Invalid card in gainPriority: {priority['card']}")
             if not 0 <= priority["priority"] <= 1:
-                errors.append(
-                    f"Priority value for {priority['card']} must be between 0 and 1"
-                )
+                errors.append(f"Priority value for {priority['card']} must be between 0 and 1")
             if "condition" in priority:
                 if not self.validate_condition(priority["condition"]):
-                    errors.append(
-                        f"Invalid condition in gainPriority: {priority['condition']}"
-                    )
+                    errors.append(f"Invalid condition in gainPriority: {priority['condition']}")
 
         # Check phases if they exist
         if "phases" in strategy:
@@ -188,9 +183,7 @@ class YAMLFormatEnforcer:
                 if "conditions" in phase:
                     for cond_name, condition in phase["conditions"].items():
                         if not self.validate_condition(str(condition)):
-                            errors.append(
-                                f"Invalid condition in phase {phase_name}: {condition}"
-                            )
+                            errors.append(f"Invalid condition in phase {phase_name}: {condition}")
 
         # Check play priorities
         for card, priority in strategy["play_priorities"]["default"].items():
@@ -205,13 +198,8 @@ class YAMLFormatEnforcer:
                 if isinstance(value, dict):
                     # Check both default and endgame values if present
                     for subtype, subvalue in value.items():
-                        if (
-                            not isinstance(subvalue, (int, float))
-                            or not 0 <= subvalue <= 1
-                        ):
-                            errors.append(
-                                f"Victory {subtype} weight must be between 0 and 1"
-                            )
+                        if not isinstance(subvalue, (int, float)) or not 0 <= subvalue <= 1:
+                            errors.append(f"Victory {subtype} weight must be between 0 and 1")
                 else:
                     # Check direct value
                     if not isinstance(value, (int, float)) or not 0 <= value <= 1:
@@ -228,7 +216,7 @@ class YAMLFormatEnforcer:
 
         return errors
 
-    def format_strategy(self, strategy_data: Dict[str, Any]) -> Dict[str, Any]:
+    def format_strategy(self, strategy_data: dict[str, Any]) -> dict[str, Any]:
         """Format a strategy to ensure consistent structure and defaults."""
         if "strategy" not in strategy_data:
             strategy_data = {"strategy": strategy_data}
@@ -253,17 +241,11 @@ class YAMLFormatEnforcer:
         existing_priorities = {p["card"]: p for p in strategy.get("gainPriority", [])}
         strategy["gainPriority"] = []
 
-        for card in (
-            self.standard_cards["treasures"]
-            + self.standard_cards["victory"]
-            + self.standard_cards["kingdom"]
-        ):
+        for card in self.standard_cards["treasures"] + self.standard_cards["victory"] + self.standard_cards["kingdom"]:
             if card in existing_priorities:
                 strategy["gainPriority"].append(existing_priorities[card])
             else:
-                strategy["gainPriority"].append(
-                    {"card": card, "priority": 0.5}  # Default priority
-                )
+                strategy["gainPriority"].append({"card": card, "priority": 0.5})  # Default priority
 
         # Ensure play priorities exist
         if "play_priorities" not in strategy:
@@ -272,11 +254,7 @@ class YAMLFormatEnforcer:
         if "default" not in strategy["play_priorities"]:
             strategy["play_priorities"]["default"] = {}
 
-        for card in (
-            self.standard_cards["treasures"]
-            + self.standard_cards["victory"]
-            + self.standard_cards["kingdom"]
-        ):
+        for card in self.standard_cards["treasures"] + self.standard_cards["victory"] + self.standard_cards["kingdom"]:
             strategy["play_priorities"]["default"].setdefault(card, 0.5)
 
         # Ensure weights exist
@@ -291,7 +269,7 @@ class YAMLFormatEnforcer:
 
         return strategy_data
 
-    def enforce_file(self, filepath: Path) -> tuple[bool, List[str]]:
+    def enforce_file(self, filepath: Path) -> tuple[bool, list[str]]:
         """Validate and format a strategy file, saving the formatted version."""
         try:
             with open(filepath, "r", encoding="utf-8") as f:
@@ -314,7 +292,7 @@ class YAMLFormatEnforcer:
         except Exception as e:
             return False, [f"Error processing file: {str(e)}"]
 
-    def enforce_directory(self, directory: Path) -> Dict[str, List[str]]:
+    def enforce_directory(self, directory: Path) -> dict[str, list[str]]:
         """Process all YAML files in a directory."""
         results = {}
 

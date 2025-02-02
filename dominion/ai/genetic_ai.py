@@ -1,8 +1,9 @@
 from typing import Optional
+
+from dominion.ai.base_ai import AI
 from dominion.cards.base_card import Card
 from dominion.game.game_state import GameState
 from dominion.strategy.strategy import Strategy
-from dominion.ai.base_ai import AI
 
 
 class GeneticAI(AI):
@@ -16,9 +17,7 @@ class GeneticAI(AI):
     def name(self) -> str:
         return self._name
 
-    def choose_action(
-        self, state: GameState, choices: list[Optional[Card]]
-    ) -> Optional[Card]:
+    def choose_action(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         """Choose an action card to play using improved action sequencing."""
         valid_choices = [c for c in choices if c is not None]
         if not valid_choices:
@@ -37,9 +36,7 @@ class GeneticAI(AI):
         values.sort(key=lambda x: x[0], reverse=True)
         return values[0][1] if values[0][0] > 0 else None
 
-    def choose_treasure(
-        self, state: GameState, choices: list[Optional[Card]]
-    ) -> Optional[Card]:
+    def choose_treasure(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         """Choose a treasure card to play."""
         # Always play treasures in descending order of value
         valid_choices = [c for c in choices if c is not None and c.is_treasure]
@@ -51,14 +48,10 @@ class GeneticAI(AI):
         treasures.sort(key=lambda x: x[0], reverse=True)
         return treasures[0][1]  # Always play highest value treasure
 
-    def choose_buy(
-        self, state: GameState, choices: list[Optional[Card]]
-    ) -> Optional[Card]:
+    def choose_buy(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         """Choose a card to buy using improved strategy."""
         available_coins = state.current_player.coins
-        valid_choices = [
-            c for c in choices if c is not None and c.cost.coins <= available_coins
-        ]
+        valid_choices = [c for c in choices if c is not None and c.cost.coins <= available_coins]
 
         if not valid_choices:
             return None
@@ -105,9 +98,7 @@ class GeneticAI(AI):
 
             # Card draw value adjustments
             if len(player.hand) <= 2:
-                value += (
-                    card.stats.cards * 1.0
-                )  # Card draw more valuable with small hand
+                value += card.stats.cards * 1.0  # Card draw more valuable with small hand
             elif len(player.hand) >= 7:
                 value -= card.stats.cards * 0.5  # Less valuable with large hand
 
@@ -115,9 +106,7 @@ class GeneticAI(AI):
             if card.name == "Chapel" and self.should_trash_cards(state):
                 value += 3.0  # High priority for deck thinning
             elif card.name == "Witch" and not any(
-                any(c.name == "Moat" for c in p.hand)
-                for p in state.players
-                if p != state.current_player
+                any(c.name == "Moat" for c in p.hand) for p in state.players if p != state.current_player
             ):
                 value += 2.0  # Attack more valuable if opponent can't block
             elif card.name == "Mine" and any(c.name == "Copper" for c in player.hand):
@@ -134,9 +123,7 @@ class GeneticAI(AI):
         if player.actions == 1:  # Last action
             if card.stats.actions == 0:  # Terminal action
                 # Reduce value if we have other actions in hand we want to play
-                remaining_actions = [
-                    c for c in player.hand if c != card and c.is_action
-                ]
+                remaining_actions = [c for c in player.hand if c != card and c.is_action]
                 value -= len(remaining_actions) * 0.5
 
         return value
@@ -158,9 +145,7 @@ class GeneticAI(AI):
                 return 7.0  # Second highest early priority
             elif card.is_action:
                 # Value engine components highly early
-                action_count = sum(
-                    1 for c in player.deck + player.hand + player.discard if c.is_action
-                )
+                action_count = sum(1 for c in player.deck + player.hand + player.discard if c.is_action)
                 if action_count < 3:  # First few actions are valuable
                     if card.stats.actions > 0:  # Villages
                         value += 6.0
@@ -176,9 +161,7 @@ class GeneticAI(AI):
             action_count = sum(1 for c in all_cards if c.is_action)
             treasure_value = sum(c.stats.coins for c in all_cards if c.is_treasure)
             village_count = sum(1 for c in all_cards if c.stats.actions > 0)
-            terminal_count = sum(
-                1 for c in all_cards if c.is_action and c.stats.actions == 0
-            )
+            terminal_count = sum(1 for c in all_cards if c.is_action and c.stats.actions == 0)
 
             # Engine building considerations
             if action_count < 8:  # Still building engine
@@ -194,9 +177,7 @@ class GeneticAI(AI):
                 if card.name == "Gold":
                     value += 6.0
                 elif card.name == "Silver":
-                    value += 4.0 - (
-                        treasure_value * 0.1
-                    )  # Less valuable as we get richer
+                    value += 4.0 - (treasure_value * 0.1)  # Less valuable as we get richer
                 elif card.name == "Copper":
                     value = -1.0  # Actively avoid buying copper
 
@@ -226,9 +207,7 @@ class GeneticAI(AI):
 
         # Factor in cost efficiency
         if card.cost.coins > 0:
-            value = value * (
-                1.0 + (1.0 / card.cost.coins)
-            )  # Slight bonus for cheaper cards
+            value = value * (1.0 + (1.0 / card.cost.coins))  # Slight bonus for cheaper cards
 
         return value
 
@@ -277,19 +256,11 @@ class GeneticAI(AI):
         player = state.current_player
 
         # Count total treasure value
-        total_treasure = sum(
-            c.stats.coins
-            for c in player.deck + player.hand + player.discard
-            if c.is_treasure
-        )
+        total_treasure = sum(c.stats.coins for c in player.deck + player.hand + player.discard if c.is_treasure)
 
         # Count number of copper and estates
-        coppers = sum(
-            bool(c.name == "Copper") for c in player.deck + player.hand + player.discard
-        )
-        estates = sum(
-            bool(c.name == "Estate") for c in player.deck + player.hand + player.discard
-        )
+        coppers = sum(bool(c.name == "Copper") for c in player.deck + player.hand + player.discard)
+        estates = sum(bool(c.name == "Estate") for c in player.deck + player.hand + player.discard)
 
         # Early game trashing
         if state.turn_number <= 10:
@@ -298,9 +269,7 @@ class GeneticAI(AI):
         # Mid game trashing
         return coppers > 2 and total_treasure >= 10
 
-    def choose_card_to_trash(
-        self, state: GameState, choices: list[Card]
-    ) -> Optional[Card]:
+    def choose_card_to_trash(self, state: GameState, choices: list[Card]) -> Optional[Card]:
         """Choose a card to trash from the available choices."""
         if not choices:
             return None
@@ -329,16 +298,8 @@ class GeneticAI(AI):
             return 10.0  # Always trash Curses
         elif card.name == "Copper":
             # Value trashing Copper based on economy
-            total_treasure = sum(
-                c.stats.coins
-                for c in player.deck + player.hand + player.discard
-                if c.is_treasure
-            )
-            copper_count = sum(
-                1
-                for c in player.deck + player.hand + player.discard
-                if c.name == "Copper"
-            )
+            total_treasure = sum(c.stats.coins for c in player.deck + player.hand + player.discard if c.is_treasure)
+            copper_count = sum(1 for c in player.deck + player.hand + player.discard if c.name == "Copper")
             if early_game or copper_count > 4:
                 return 8.0 if total_treasure >= 6 else 4.0
         elif card.name == "Estate":

@@ -29,9 +29,7 @@ class CardType(Enum):
 
 
 class Card:
-    def __init__(
-        self, name: str, cost: CardCost, stats: CardStats, types: list[CardType]
-    ):
+    def __init__(self, name: str, cost: CardCost, stats: CardStats, types: list[CardType]):
         self.name = name
         self.cost = cost
         self.stats = stats
@@ -39,9 +37,7 @@ class Card:
 
         # Debug validation
         if not isinstance(types, list):
-            raise ValueError(
-                f"Card {name} initialized with types that's not a list: {types}"
-            )
+            raise ValueError(f"Card {name} initialized with types that's not a list: {types}")
         for t in types:
             if not isinstance(t, CardType):
                 raise ValueError(f"Card {name} initialized with invalid type: {t}")

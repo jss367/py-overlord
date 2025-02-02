@@ -1,11 +1,11 @@
-from typing import Optional
-from dominion.game.game_state import GameState
-from dominion.ai.base_ai import AI
-from dominion.cards.registry import get_card
-from dominion.simulation.game_logger import GameLogger
-from typing import Union
 from pathlib import Path
+from typing import Optional, Union
+
+from dominion.ai.base_ai import AI
 from dominion.ai.genetic_ai import GeneticAI
+from dominion.cards.registry import get_card
+from dominion.game.game_state import GameState
+from dominion.simulation.game_logger import GameLogger
 from dominion.strategy.strategy import Strategy as GeneticStrategy
 from dominion.strategy.strategy_ai import StrategyAI
 from dominion.strategy.strategy_parser import StrategyLoader
@@ -51,9 +51,7 @@ class GameRunner:
         # Set up game state
         game_state = GameState(players=[], supply={})
         game_state.log_callback = lambda msg: (
-            self.logger.file_logger.info(msg)
-            if self.logger.should_log_to_file
-            else print(msg)
+            self.logger.file_logger.info(msg) if self.logger.should_log_to_file else print(msg)
         )
 
         # Initialize game
@@ -65,12 +63,8 @@ class GameRunner:
             game_state.play_turn()
 
         # Get results
-        scores = {
-            p.ai.name: p.get_victory_points(game_state) for p in game_state.players
-        }
-        winner = max(
-            game_state.players, key=lambda p: p.get_victory_points(game_state)
-        ).ai
+        scores = {p.ai.name: p.get_victory_points(game_state) for p in game_state.players}
+        winner = max(game_state.players, key=lambda p: p.get_victory_points(game_state)).ai
 
         # End game logging
         self.logger.end_game(winner.name, scores, game_state.supply)

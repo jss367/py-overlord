@@ -1,7 +1,8 @@
-from typing import Optional, List
+from typing import Optional, list
+
+from dominion.ai.base_ai import AI
 from dominion.cards.base_card import Card
 from dominion.game.game_state import GameState
-from dominion.ai.base_ai import AI
 from dominion.strategy.strategy_runner import StrategyRunner
 
 
@@ -16,9 +17,7 @@ class StrategyAI(AI):
     def name(self) -> str:
         return self._name
 
-    def choose_action(
-        self, state: GameState, choices: List[Optional[Card]]
-    ) -> Optional[Card]:
+    def choose_action(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         """Choose an action based on strategy"""
         valid_choices = [c for c in choices if c is not None]
         if not valid_choices:
@@ -34,9 +33,7 @@ class StrategyAI(AI):
         # For other actions, play in order encountered
         return valid_choices[0]
 
-    def choose_buy(
-        self, state: GameState, choices: List[Optional[Card]]
-    ) -> Optional[Card]:
+    def choose_buy(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         """Choose a buy based on strategy's gain priority"""
         valid_choices = [c for c in choices if c is not None]
         if not valid_choices:
@@ -44,18 +41,14 @@ class StrategyAI(AI):
 
         return self.runner.get_card_to_gain(state, state.current_player, valid_choices)
 
-    def choose_treasure(
-        self, state: GameState, choices: List[Optional[Card]]
-    ) -> Optional[Card]:
+    def choose_treasure(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         """Play treasures in descending order of value"""
         valid_choices = [c for c in choices if c is not None and c.is_treasure]
         if not valid_choices:
             return None
         return max(valid_choices, key=lambda c: c.stats.coins)
 
-    def choose_card_to_trash(
-        self, state: GameState, choices: List[Card]
-    ) -> Optional[Card]:
+    def choose_card_to_trash(self, state: GameState, choices: list[Card]) -> Optional[Card]:
         """For Rebuild, use rebuild priority. Otherwise use basic priority."""
         if not choices:
             return None
@@ -64,9 +57,7 @@ class StrategyAI(AI):
         if state.current_player.actions_played > 0:
             last_played = state.current_player.in_play[-1]
             if last_played.name == "Rebuild":
-                return self.runner.get_rebuild_target(
-                    state, state.current_player, choices
-                )
+                return self.runner.get_rebuild_target(state, state.current_player, choices)
 
         # Basic priority: Curse > Estate > Copper
         priority_order = ["Curse", "Estate", "Copper"]
