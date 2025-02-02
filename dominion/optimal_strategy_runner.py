@@ -3,7 +3,7 @@ import random
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, Tuple, dict, list
+from typing import Any, Optional
 
 import yaml
 
@@ -132,7 +132,7 @@ class ImprovedYamlGeneticTrainer:
 
         return strategy
 
-    def train(self) -> Tuple[Optional[dict[str, Any]], dict[str, float]]:
+    def train(self) -> tuple[Optional[dict[str, Any]], dict[str, float]]:
         """Run the genetic algorithm training process"""
         try:
             print("Initializing population...")

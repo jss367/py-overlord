@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-from typing import Any, dict
+from typing import Any
 
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState

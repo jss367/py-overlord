@@ -1,6 +1,6 @@
 from datetime import datetime
 from pathlib import Path
-from typing import Any, dict, list
+from typing import Any
 
 import jsonschema
 import yaml

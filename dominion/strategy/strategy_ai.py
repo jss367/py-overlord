@@ -1,4 +1,4 @@
-from typing import Optional, list
+from typing import Optional
 
 from dominion.ai.base_ai import AI
 from dominion.cards.base_card import Card
