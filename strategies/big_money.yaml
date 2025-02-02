@@ -1,71 +1,20 @@
 strategy:
+  actionPriority:
+    - card: Gold
+    - card: Silver
+    - card: Copper
+  
+  gainPriority:
+    - card: Province
+      condition: "my.coins >= 8"
+    - card: Gold
+      condition: "my.coins >= 6"
+    - card: Silver
+      condition: "my.coins >= 3"
+    - card: Copper
+      condition: "my.coins < 3"
+  
   metadata:
     name: BigMoney
     description: Basic Big Money strategy
     version: '1.0'
-    creation_date: '2025-01-24'
-  author:
-  - System
-  requires: []
-  gainPriority:
-  - card: Copper
-    priority: 0.1
-  - card: Silver
-    condition: my.coins >= 3
-    priority: 0.8
-  - card: Gold
-    condition: my.coins >= 6
-    priority: 0.9
-  - card: Estate
-    priority: 0.5
-  - card: Duchy
-    priority: 0.5
-  - card: Province
-    condition: my.coins >= 8
-    priority: 1.0
-  - card: Curse
-    priority: 0.5
-  - card: Village
-    priority: 0.5
-  - card: Smithy
-    priority: 0.5
-  - card: Market
-    priority: 0.5
-  - card: Festival
-    priority: 0.5
-  - card: Laboratory
-    priority: 0.5
-  - card: Mine
-    priority: 0.5
-  - card: Witch
-    priority: 0.5
-  - card: Moat
-    priority: 0.5
-  - card: Workshop
-    priority: 0.5
-  - card: Chapel
-    priority: 0.5
-  play_priorities:
-    default:
-      Gold: 1.0
-      Silver: 0.9
-      Copper: 0.8
-      Province: 0.0
-      Duchy: 0.0
-      Estate: 0.0
-      Curse: 0.5
-      Village: 0.5
-      Smithy: 0.5
-      Market: 0.5
-      Festival: 0.5
-      Laboratory: 0.5
-      Mine: 0.5
-      Witch: 0.5
-      Moat: 0.5
-      Workshop: 0.5
-      Chapel: 0.5
-  weights:
-    action: 0.2
-    treasure: 0.9
-    victory: 0.4
-    engine: 0.1

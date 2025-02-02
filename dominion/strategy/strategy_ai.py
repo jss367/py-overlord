@@ -1,69 +1,45 @@
-from typing import Optional
+from typing import List, Optional
 
 from dominion.ai.base_ai import AI
 from dominion.cards.base_card import Card
 from dominion.game.game_state import GameState
-from dominion.strategy.strategy_runner import StrategyRunner
+from dominion.strategy.enhanced_strategy import EnhancedStrategy
 
 
 class StrategyAI(AI):
     """AI that uses YAML-defined strategies"""
 
-    def __init__(self, strategy_runner: StrategyRunner):
-        self.runner = strategy_runner
-        self._name = f"{strategy_runner.strategy.name}-AI"
+    def __init__(self, strategy: EnhancedStrategy):
+        self.strategy = strategy
+        self._name = f"{strategy.name}-AI"
 
     @property
     def name(self) -> str:
         return self._name
 
-    def choose_action(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
-        """Choose an action based on strategy"""
+    def choose_action(self, state: GameState, choices: List[Optional[Card]]) -> Optional[Card]:
         valid_choices = [c for c in choices if c is not None]
         if not valid_choices:
             return None
 
-        # Special handling for Rebuild
-        rebuild_choices = [c for c in valid_choices if c.name == "Rebuild"]
-        if rebuild_choices:
-            if self.runner.should_play_rebuild(state, state.current_player):
-                return rebuild_choices[0]
-            return None
+        return self.strategy.choose_action(state, state.current_player, valid_choices)
 
-        # For other actions, play in order encountered
-        return valid_choices[0]
-
-    def choose_buy(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
-        """Choose a buy based on strategy's gain priority"""
+    def choose_buy(self, state: GameState, choices: List[Optional[Card]]) -> Optional[Card]:
         valid_choices = [c for c in choices if c is not None]
         if not valid_choices:
             return None
 
-        return self.runner.get_card_to_gain(state, state.current_player, valid_choices)
+        return self.strategy.choose_gain(state, state.current_player, valid_choices)
 
-    def choose_treasure(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
-        """Play treasures in descending order of value"""
+    def choose_treasure(self, state: GameState, choices: List[Optional[Card]]) -> Optional[Card]:
         valid_choices = [c for c in choices if c is not None and c.is_treasure]
         if not valid_choices:
             return None
-        return max(valid_choices, key=lambda c: c.stats.coins)
 
-    def choose_card_to_trash(self, state: GameState, choices: list[Card]) -> Optional[Card]:
-        """For Rebuild, use rebuild priority. Otherwise use basic priority."""
+        return self.strategy.choose_treasure(state, state.current_player, valid_choices)
+
+    def choose_card_to_trash(self, state: GameState, choices: List[Card]) -> Optional[Card]:
         if not choices:
             return None
 
-        # Check if this is for Rebuild
-        if state.current_player.actions_played > 0:
-            last_played = state.current_player.in_play[-1]
-            if last_played.name == "Rebuild":
-                return self.runner.get_rebuild_target(state, state.current_player, choices)
-
-        # Basic priority: Curse > Estate > Copper
-        priority_order = ["Curse", "Estate", "Copper"]
-        for card_name in priority_order:
-            for card in choices:
-                if card.name == card_name:
-                    return card
-
-        return None
+        return self.strategy.choose_trash(state, state.current_player, choices)

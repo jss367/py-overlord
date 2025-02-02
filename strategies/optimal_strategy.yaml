@@ -1,75 +1,40 @@
 strategy:
+  actionPriority:
+    - card: Chapel
+    - card: Festival
+    - card: Village
+    - card: Laboratory
+    - card: Market
+    - card: Mine
+    - card: Moat
+    - card: Smithy
+    - card: Workshop
+    - card: Witch
+  
   gainPriority:
-  - card: Copper
-    priority: 0.5
-  - card: Silver
-    condition: my.coins >= 3
-    priority: 0.87
-  - card: Gold
-    condition: my.coins >= 6
-    priority: 0.11
-  - card: Estate
-    priority: 0.89
-  - card: Duchy
-    priority: 0.05
-  - card: Province
-    priority: 0.61
-  - card: Curse
-    priority: 0.5
-  - card: Village
-    condition: state.turn_number() <= 12
-    priority: 0.2
-  - card: Smithy
-    priority: 0.58
-  - card: Market
-    priority: 0.8
-  - card: Festival
-    priority: 0.44
-  - card: Laboratory
-    condition: state.turn_number() <= 14
-    priority: 0.14
-  - card: Mine
-    priority: 0.89
-  - card: Witch
-    priority: 0.37
-  - card: Moat
-    condition: state.turn_number() <= 15
-    priority: 0.55
-  - card: Workshop
-    condition: state.turn_number() <= 8
-    priority: 0.97
-  - card: Chapel
-    condition: state.turn_number() <= 14
-    priority: 0.62
+    - card: Workshop
+      condition: "state.turn_number() <= 8"
+    - card: Chapel
+      condition: "state.turn_number() <= 14"
+    - card: Province
+      condition: "my.coins >= 8"
+    - card: Gold
+      condition: "my.coins >= 6"
+    - card: Mine
+    - card: Laboratory
+      condition: "state.turn_number() <= 14"
+    - card: Market
+    - card: Smithy
+    - card: Village
+      condition: "state.turn_number() <= 12"
+    - card: Silver
+      condition: "my.coins >= 3"
+    - card: Moat
+      condition: "state.turn_number() <= 15"
+    - card: Estate
+      condition: "state.provinces_left() <= 2"
+  
   metadata:
-    creation_date: '2025-02-01'
-    description: Genetically evolved strategy
-    name: gen3-strat0
+    name: Optimized Engine
+    description: Genetically optimized engine strategy
     version: '1.0'
-  play_priorities:
-    default:
-      Chapel: 0.91
-      Copper: 0.59
-      Duchy: 0.5
-      Estate: 0.61
-      Festival: 0.89
-      Gold: 0.55
-      Laboratory: 0.62
-      Market: 0.01
-      Mine: 0.77
-      Moat: 0.63
-      Province: 0.01
-      Silver: 0.86
-      Smithy: 0
-      Village: 0.71
-      Witch: 0.02
-      Workshop: 0.45
-      Curse: 0.5
-  weights:
-    action: 0.87
-    engine: 0.92
-    treasure: 0.47
-    victory: 0.32
-  author:
-  - Unknown
-  requires: []

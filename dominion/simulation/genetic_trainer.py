@@ -1,170 +1,110 @@
 import random
+from typing import List
 
-from ..ai.genetic_ai import GeneticAI, Strategy
-from .game_logger import GameLogger
-from .game_runner import GameRunner
+from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 
 class GeneticTrainer:
     """Trains Dominion strategies using a genetic algorithm."""
 
-    def __init__(
-        self,
-        kingdom_cards: list[str],
-        population_size: int = 50,
-        generations: int = 100,
-        mutation_rate: float = 0.1,
-        games_per_eval: int = 10,
-        log_folder: str = "training_logs",
-    ):
-        self.kingdom_cards = kingdom_cards
-        self.population_size = population_size
-        self.generations = generations
-        self.mutation_rate = mutation_rate
-        self.games_per_eval = games_per_eval
-        self.logger = GameLogger(log_folder)
-        self.game_runner = GameRunner(kingdom_cards, logger=self.logger)
+    def create_random_strategy(self) -> EnhancedStrategy:
+        """Create a random strategy with smart defaults"""
+        strategy = EnhancedStrategy()
 
-    def train(self) -> tuple[Strategy, dict[str, float]]:
-        """Run the genetic algorithm training process."""
-        # Initialize progress tracking
-        self.logger.start_training(self.generations)
+        # Add basic action priorities
+        strategy.action_priority = [
+            PriorityRule("Chapel"),  # Early game priority
+            PriorityRule("Village", "my.actions < 2"),  # Need actions
+            PriorityRule("Laboratory"),  # Always good
+            PriorityRule("Smithy", "my.actions >= 1"),  # If we have actions
+            PriorityRule("Market"),  # Flexible card
+        ]
 
-        # Create initial population
-        population = [Strategy.create_random(self.kingdom_cards) for _ in range(self.population_size)]
+        # Add basic gain priorities
+        strategy.gain_priority = [
+            PriorityRule("Province", "my.coins >= 8"),
+            PriorityRule("Gold", "my.coins >= 6"),
+            PriorityRule("Silver", "my.coins >= 3"),
+            PriorityRule("Laboratory", "state.turn_number() <= 12"),
+            PriorityRule("Village", "state.turn_number() <= 10"),
+        ]
 
-        best_strategy = None
-        best_fitness = 0.0
+        # Add trash priorities
+        strategy.trash_priority = [
+            PriorityRule("Curse"),  # Always trash
+            PriorityRule("Copper", "my.countInDeck('Silver') >= 3"),
+            PriorityRule("Estate", "state.turn_number() <= 10"),
+        ]
 
-        # Run generations
-        for gen in range(self.generations):
-            # Evaluate current population
-            fitness_scores = self.evaluate_population(population)
+        # Add treasure priorities
+        strategy.treasure_priority = [
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
+            PriorityRule("Copper"),
+        ]
 
-            # Track best strategy
-            max_fitness = max(fitness_scores)
-            avg_fitness = sum(fitness_scores) / len(fitness_scores)
+        return strategy
 
-            if max_fitness > best_fitness:
-                best_fitness = max_fitness
-                best_strategy = population[fitness_scores.index(max_fitness)]
+    def mutate_strategy(self, strategy: EnhancedStrategy, mutation_rate: float) -> EnhancedStrategy:
+        """Create a mutated copy of the strategy"""
+        new_strategy = EnhancedStrategy()
 
-            # Update progress
-            self.logger.update_training(gen, max_fitness, avg_fitness)
+        def mutate_rules(rules: List[PriorityRule]) -> List[PriorityRule]:
+            mutated = []
+            for rule in rules:
+                if random.random() < mutation_rate:
+                    # Possible mutations:
+                    # 1. Remove condition
+                    # 2. Add condition
+                    # 3. Modify condition
+                    # 4. Change position
+                    if rule.condition and random.random() < 0.3:
+                        # Remove condition
+                        mutated.append(PriorityRule(rule.card_name))
+                    elif not rule.condition and random.random() < 0.3:
+                        # Add condition
+                        conditions = [
+                            "my.actions < 2",
+                            "my.coins >= 6",
+                            "state.turn_number() <= 10",
+                            f"my.countInDeck('{rule.card_name}') < 2",
+                        ]
+                        mutated.append(PriorityRule(rule.card_name, random.choice(conditions)))
+                    else:
+                        # Keep as is
+                        mutated.append(rule)
+                else:
+                    mutated.append(rule)
 
-            # Create next generation
-            population = self.create_next_generation(population, fitness_scores)
+            # Randomly shuffle a portion of the list
+            if random.random() < mutation_rate:
+                split_point = random.randint(0, len(mutated))
+                shuffled_portion = mutated[split_point:]
+                random.shuffle(shuffled_portion)
+                mutated = mutated[:split_point] + shuffled_portion
 
-        # Final evaluation of best strategy
-        metrics = self.evaluate_strategy(best_strategy)
+            return mutated
 
-        # Clean up progress bar
-        self.logger.end_training()
+        # Mutate each priority list
+        new_strategy.action_priority = mutate_rules(strategy.action_priority)
+        new_strategy.gain_priority = mutate_rules(strategy.gain_priority)
+        new_strategy.trash_priority = mutate_rules(strategy.trash_priority)
+        new_strategy.treasure_priority = mutate_rules(strategy.treasure_priority)
 
-        # Log final results
-        print("\nTraining Complete!")
-        print(f"Final metrics: {metrics}")
-        print("\nBest strategy priorities:")
-        for card, priority in sorted(best_strategy.gain_priorities.items(), key=lambda x: x[1], reverse=True)[
-            :10
-        ]:  # Show top 10 priorities
-            print(f"{card}: {priority:.3f}")
+        return new_strategy
 
-        return best_strategy, metrics
+    def crossover(self, parent1: EnhancedStrategy, parent2: EnhancedStrategy) -> EnhancedStrategy:
+        """Create a new strategy by combining two parents"""
+        child = EnhancedStrategy()
 
-    def evaluate_population(self, population: list[Strategy]) -> list[float]:
-        """Evaluate fitness of all strategies in population."""
-        return [self.evaluate_strategy(s)["win_rate"] for s in population]
+        def crossover_rules(rules1: List[PriorityRule], rules2: List[PriorityRule]) -> List[PriorityRule]:
+            crossover_point = random.randint(0, min(len(rules1), len(rules2)))
+            return rules1[:crossover_point] + rules2[crossover_point:]
 
-    def evaluate_strategy(self, strategy: Strategy) -> dict[str, float]:
-        """Evaluate a single strategy by playing games."""
-        ai = GeneticAI(strategy)
-        wins = 0
-        total_score = 0
+        # Crossover each priority list
+        child.action_priority = crossover_rules(parent1.action_priority, parent2.action_priority)
+        child.gain_priority = crossover_rules(parent1.gain_priority, parent2.gain_priority)
+        child.trash_priority = crossover_rules(parent1.trash_priority, parent2.trash_priority)
+        child.treasure_priority = crossover_rules(parent1.treasure_priority, parent2.treasure_priority)
 
-        # Play multiple games
-        for _ in range(self.games_per_eval):
-            # Create opponent with random strategy
-            opponent = GeneticAI(Strategy.create_random(self.kingdom_cards))
-
-            # Run game
-            winner, scores = self.game_runner.run_game(ai, opponent)
-
-            # Track results
-            if winner == ai:
-                wins += 1
-            total_score += scores[ai.name]
-            # Note: Would need to modify GameRunner to track turns
-
-        return {
-            "win_rate": wins / self.games_per_eval * 100,
-            "avg_score": total_score / self.games_per_eval,
-        }
-
-    def create_next_generation(self, population: list[Strategy], fitness_scores: list[float]) -> list[Strategy]:
-        """Create new generation through selection, crossover, and mutation."""
-        new_population = []
-
-        # Sort strategies by fitness
-        sorted_pop = [x for _, x in sorted(zip(fitness_scores, population), key=lambda pair: pair[0], reverse=True)]
-
-        # Keep best strategies
-        elite_count = max(1, self.population_size // 10)
-        new_population.extend(sorted_pop[:elite_count])
-
-        # Fill rest with crossover + mutation
-        while len(new_population) < self.population_size:
-            # Select parents
-            parent1 = self.select_parent(sorted_pop)
-            parent2 = self.select_parent(sorted_pop)
-
-            # Create child through crossover
-            child = Strategy.crossover(parent1, parent2)
-
-            # Mutate
-            child.mutate(self.mutation_rate)
-
-            new_population.append(child)
-
-        return new_population
-
-    def select_parent(self, sorted_population: list[Strategy]) -> Strategy:
-        """Select parent using tournament selection."""
-        tournament_size = 3
-        tournament = random.sample(sorted_population, tournament_size)
-        return tournament[0]  # Already sorted by fitness
-
-
-# Example usage
-if __name__ == "__main__":
-    # Example kingdom cards
-    kingdom_cards = [
-        "Village",
-        "Smithy",
-        "Market",
-        "Festival",
-        "Laboratory",
-        "Mine",
-        "Witch",
-        "Moat",
-        "Workshop",
-        "Chapel",
-    ]
-
-    # Create trainer
-    trainer = GeneticTrainer(
-        kingdom_cards=kingdom_cards,
-        population_size=50,
-        generations=100,
-        mutation_rate=0.1,
-        games_per_eval=10,
-    )
-
-    # Run training
-    best_strategy, metrics = trainer.train()
-
-    print("\nTraining complete!")
-    print(f"Final metrics: {metrics}")
-    print("\nBest strategy card priorities:")
-    for card, priority in best_strategy.gain_priorities.items():
-        print(f"{card}: {priority:.3f}")
+        return child

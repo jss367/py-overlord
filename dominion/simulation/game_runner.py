@@ -9,7 +9,7 @@ from dominion.simulation.game_logger import GameLogger
 from dominion.strategy.strategy import Strategy as GeneticStrategy
 from dominion.strategy.strategy_ai import StrategyAI
 from dominion.strategy.strategy_parser import StrategyLoader
-from dominion.strategy.strategy_runner import StrategyRunner
+from dominion.strategy.enhanced_strategy import StrategyRunner
 
 
 class GameRunner:
