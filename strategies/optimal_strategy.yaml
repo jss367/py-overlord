@@ -1,5 +1,20 @@
 strategy:
   gainPriority:
+  - card: Copper
+    priority: 0.57
+  - card: Silver
+    condition: my.coins >= 3
+    priority: 0.78
+  - card: Gold
+    priority: 0.93
+  - card: Estate
+    priority: 0.62
+  - card: Duchy
+    priority: 0.64
+  - card: Province
+    priority: 0.55
+  - card: Curse
+    priority: 0.5
   - card: Village
     priority: 0.01
   - card: Smithy
@@ -24,19 +39,6 @@ strategy:
   - card: Chapel
     condition: state.turn_number() <= 11
     priority: 0.01
-  - card: Copper
-    priority: 0.57
-  - card: Silver
-    condition: my.coins >= 3
-    priority: 0.78
-  - card: Gold
-    priority: 0.93
-  - card: Estate
-    priority: 0.62
-  - card: Duchy
-    priority: 0.64
-  - card: Province
-    priority: 0.55
   metadata:
     creation_date: '2025-02-01'
     description: Genetically evolved strategy
@@ -60,8 +62,12 @@ strategy:
       Village: 0.2
       Witch: 0.17
       Workshop: 0.64
+      Curse: 0.5
   weights:
     action: 0.83
     engine: 0.67
     treasure: 0.52
     victory: 0.29
+  author:
+  - Unknown
+  requires: []

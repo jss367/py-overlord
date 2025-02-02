@@ -1,4 +1,4 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 import yaml
 from pathlib import Path
 from datetime import datetime
@@ -274,7 +274,7 @@ class YAMLFormatEnforcer:
     def enforce_file(self, filepath: Path) -> tuple[bool, List[str]]:
         """Validate and format a strategy file, saving the formatted version."""
         try:
-            with open(filepath, "r") as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 strategy_data = yaml.safe_load(f)
 
             # Format the strategy
