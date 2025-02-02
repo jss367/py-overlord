@@ -175,3 +175,4 @@ cython_debug/
 /game_logs
 /training_logs
 /battle_logs
+/optimal_strategy_logs
