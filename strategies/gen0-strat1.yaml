@@ -1,0 +1,73 @@
+strategy:
+  gainPriority:
+  - card: Copper
+    priority: 0.11
+  - card: Silver
+    priority: 0.27
+  - card: Gold
+    condition: my.coins >= 6
+    priority: 0.05
+  - card: Estate
+    priority: 0.65
+  - card: Duchy
+    priority: 0.78
+  - card: Province
+    priority: 0.76
+  - card: Curse
+    priority: 0.5
+  - card: Village
+    priority: 0.47
+  - card: Smithy
+    priority: 0.94
+  - card: Market
+    priority: 0.75
+  - card: Festival
+    condition: state.turn_number() <= 11
+    priority: 0.43
+  - card: Laboratory
+    condition: state.turn_number() <= 11
+    priority: 0.02
+  - card: Mine
+    priority: 0.14
+  - card: Witch
+    priority: 0.75
+  - card: Moat
+    priority: 0.46
+  - card: Workshop
+    condition: state.turn_number() <= 10
+    priority: 0.11
+  - card: Chapel
+    condition: state.turn_number() <= 8
+    priority: 0.93
+  metadata:
+    creation_date: '2025-02-01'
+    description: Genetically evolved strategy
+    name: gen0-strat1
+    version: '1.0'
+  play_priorities:
+    default:
+      Chapel: 0.84
+      Copper: 0.3
+      Duchy: 0.61
+      Estate: 0.92
+      Festival: 0.15
+      Gold: 0.23
+      Laboratory: 0.86
+      Market: 0.78
+      Mine: 0.52
+      Moat: 0.98
+      Province: 0.03
+      Silver: 0.35
+      Smithy: 0.25
+      Village: 0.52
+      Witch: 0.26
+      Workshop: 0.7
+      Curse: 0.5
+  weights:
+    action: 0.85
+    engine: 0.89
+    treasure: 0.59
+    victory: 0.3
+  author:
+  - Unknown
+  requires: []

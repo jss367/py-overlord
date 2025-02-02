@@ -201,8 +201,25 @@ class YAMLFormatEnforcer:
 
         # Check weights
         for weight_type, value in strategy["weights"].items():
-            if not 0 <= value <= 1:
-                errors.append(f"Weight {weight_type} must be between 0 and 1")
+            if weight_type == "victory":
+                if isinstance(value, dict):
+                    # Check both default and endgame values if present
+                    for subtype, subvalue in value.items():
+                        if (
+                            not isinstance(subvalue, (int, float))
+                            or not 0 <= subvalue <= 1
+                        ):
+                            errors.append(
+                                f"Victory {subtype} weight must be between 0 and 1"
+                            )
+                else:
+                    # Check direct value
+                    if not isinstance(value, (int, float)) or not 0 <= value <= 1:
+                        errors.append(f"Victory weight must be between 0 and 1")
+            else:
+                # Other weights are always direct values
+                if not isinstance(value, (int, float)) or not 0 <= value <= 1:
+                    errors.append(f"Weight {weight_type} must be between 0 and 1")
 
         # Check required cards are in kingdom cards
         for card in strategy["requires"]:
