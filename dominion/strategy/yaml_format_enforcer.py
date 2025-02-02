@@ -9,6 +9,7 @@ class YAMLFormatEnforcer:
     """Enforces consistent format and structure for Dominion strategy YAML files."""
 
     # Schema definition for strategy YAML files
+
     STRATEGY_SCHEMA = {
         "type": "object",
         "required": ["strategy"],
@@ -16,9 +17,6 @@ class YAMLFormatEnforcer:
             "strategy": {
                 "type": "object",
                 "required": [
-                    "metadata",
-                    "author",
-                    "requires",
                     "gainPriority",
                     "play_priorities",
                     "weights",
@@ -26,7 +24,6 @@ class YAMLFormatEnforcer:
                 "properties": {
                     "metadata": {
                         "type": "object",
-                        "required": ["name", "description", "version", "creation_date"],
                         "properties": {
                             "name": {"type": "string"},
                             "description": {"type": "string"},
@@ -34,8 +31,14 @@ class YAMLFormatEnforcer:
                             "creation_date": {"type": "string"},
                         },
                     },
-                    "author": {"type": "array", "items": {"type": "string"}},
-                    "requires": {"type": "array", "items": {"type": "string"}},
+                    "author": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                    },
+                    "requires": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                    },
                     "gainPriority": {
                         "type": "array",
                         "items": {
