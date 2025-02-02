@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from dominion.ai.base_ai import AI
 from dominion.cards.base_card import Card
@@ -17,28 +17,28 @@ class StrategyAI(AI):
     def name(self) -> str:
         return self._name
 
-    def choose_action(self, state: GameState, choices: List[Optional[Card]]) -> Optional[Card]:
+    def choose_action(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         valid_choices = [c for c in choices if c is not None]
         if not valid_choices:
             return None
 
         return self.strategy.choose_action(state, state.current_player, valid_choices)
 
-    def choose_buy(self, state: GameState, choices: List[Optional[Card]]) -> Optional[Card]:
+    def choose_buy(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         valid_choices = [c for c in choices if c is not None]
         if not valid_choices:
             return None
 
         return self.strategy.choose_gain(state, state.current_player, valid_choices)
 
-    def choose_treasure(self, state: GameState, choices: List[Optional[Card]]) -> Optional[Card]:
+    def choose_treasure(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         valid_choices = [c for c in choices if c is not None and c.is_treasure]
         if not valid_choices:
             return None
 
         return self.strategy.choose_treasure(state, state.current_player, valid_choices)
 
-    def choose_card_to_trash(self, state: GameState, choices: List[Card]) -> Optional[Card]:
+    def choose_card_to_trash(self, state: GameState, choices: list[Card]) -> Optional[Card]:
         if not choices:
             return None
 

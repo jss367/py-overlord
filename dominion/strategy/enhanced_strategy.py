@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from dominion.cards.base_card import Card
 from dominion.game.game_state import GameState
@@ -12,7 +12,7 @@ class PriorityRule:
 
     card_name: str
     condition: Optional[str] = None
-    context: Optional[Dict[str, Any]] = None
+    context: Optional[dict[str, Any]] = None
 
 
 class StateWrapper:
@@ -73,32 +73,41 @@ class EnhancedStrategy:
 
     def __init__(self):
         self.name: str = "Unnamed Strategy"
-        self.action_priority: List[PriorityRule] = []
-        self.gain_priority: List[PriorityRule] = []
-        self.treasure_priority: List[PriorityRule] = []
-        self.trash_priority: List[PriorityRule] = []
+        self.action_priority: list[PriorityRule] = []
+        self.gain_priority: list[PriorityRule] = []
+        self.treasure_priority: list[PriorityRule] = []
+        self.trash_priority: list[PriorityRule] = []
 
     @classmethod
-    def from_yaml(cls, yaml_data: Dict[str, Any]) -> 'EnhancedStrategy':
+    def from_yaml(cls, yaml_data: dict[str, Any]) -> 'EnhancedStrategy':
         """Create strategy from YAML configuration"""
         strategy = cls()
+
         if 'metadata' in yaml_data:
             strategy.name = yaml_data['metadata'].get('name', 'Unnamed Strategy')
 
-        # Parse action priorities
-        if 'actionPriority' in yaml_data:
-            for rule in yaml_data['actionPriority']:
+        def parse_rules(rules_list):
+            result = []
+            for rule in rules_list:
                 if isinstance(rule, dict):
-                    strategy.action_priority.append(
+                    result.append(
                         PriorityRule(
                             card_name=rule['card'], condition=rule.get('condition'), context=rule.get('context', {})
                         )
                     )
                 else:
-                    # Simple string entry
-                    strategy.action_priority.append(PriorityRule(card_name=rule))
+                    result.append(PriorityRule(card_name=rule))
+            return result
 
-        # Similar parsing for other priority types...
+        if 'actionPriority' in yaml_data:
+            strategy.action_priority = parse_rules(yaml_data['actionPriority'])
+        if 'gainPriority' in yaml_data:
+            strategy.gain_priority = parse_rules(yaml_data['gainPriority'])
+        if 'treasurePriority' in yaml_data:
+            strategy.treasure_priority = parse_rules(yaml_data['treasurePriority'])
+        if 'trashPriority' in yaml_data:
+            strategy.trash_priority = parse_rules(yaml_data['trashPriority'])
+
         return strategy
 
     def evaluate_condition(self, rule: PriorityRule, state: GameState, player: PlayerState) -> bool:
@@ -127,7 +136,7 @@ class EnhancedStrategy:
             print(f"Error evaluating condition '{rule.condition}': {e}")
             return False
 
-    def choose_action(self, state: GameState, player: PlayerState, choices: List[Card]) -> Optional[Card]:
+    def choose_action(self, state: GameState, player: PlayerState, choices: list[Card]) -> Optional[Card]:
         """Choose an action card following priority rules"""
         choice_map = {card.name: card for card in choices if card}
 
@@ -138,7 +147,7 @@ class EnhancedStrategy:
 
         return None
 
-    def choose_gain(self, state: GameState, player: PlayerState, choices: List[Card]) -> Optional[Card]:
+    def choose_gain(self, state: GameState, player: PlayerState, choices: list[Card]) -> Optional[Card]:
         """Choose a card to gain following priority rules"""
         choice_map = {card.name: card for card in choices if card}
 
@@ -148,9 +157,22 @@ class EnhancedStrategy:
 
         return None
 
+    def choose_treasure(self, state: GameState, player: PlayerState, choices: list[Card]) -> Optional[Card]:
+        """Choose a treasure card following priority rules"""
+        choice_map = {card.name: card for card in choices if card}
 
-class StrategyRunner:
-    """Executes strategy decisions in game context"""
+        for rule in self.treasure_priority:
+            if rule.card_name in choice_map and self.evaluate_condition(rule, state, player):
+                return choice_map[rule.card_name]
 
-    def __init__(self, strategy: EnhancedStrategy):
-        self.strategy = strategy
+        return None
+
+    def choose_trash(self, state: GameState, player: PlayerState, choices: list[Card]) -> Optional[Card]:
+        """Choose a card to trash following priority rules"""
+        choice_map = {card.name: card for card in choices if card}
+
+        for rule in self.trash_priority:
+            if rule.card_name in choice_map and self.evaluate_condition(rule, state, player):
+                return choice_map[rule.card_name]
+
+        return None

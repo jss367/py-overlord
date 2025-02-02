@@ -1,5 +1,4 @@
 import random
-from typing import List
 
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
@@ -49,7 +48,7 @@ class GeneticTrainer:
         """Create a mutated copy of the strategy"""
         new_strategy = EnhancedStrategy()
 
-        def mutate_rules(rules: List[PriorityRule]) -> List[PriorityRule]:
+        def mutate_rules(rules: list[PriorityRule]) -> list[PriorityRule]:
             mutated = []
             for rule in rules:
                 if random.random() < mutation_rate:
@@ -97,7 +96,7 @@ class GeneticTrainer:
         """Create a new strategy by combining two parents"""
         child = EnhancedStrategy()
 
-        def crossover_rules(rules1: List[PriorityRule], rules2: List[PriorityRule]) -> List[PriorityRule]:
+        def crossover_rules(rules1: list[PriorityRule], rules2: list[PriorityRule]) -> list[PriorityRule]:
             crossover_point = random.randint(0, min(len(rules1), len(rules2)))
             return rules1[:crossover_point] + rules2[crossover_point:]
 
