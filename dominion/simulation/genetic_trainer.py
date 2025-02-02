@@ -9,6 +9,7 @@ class GeneticTrainer:
     def create_random_strategy(self) -> EnhancedStrategy:
         """Create a random strategy with smart defaults"""
         strategy = EnhancedStrategy()
+        strategy.name = f"Generated-{id(strategy)}"
 
         # Add basic action priorities
         strategy.action_priority = [
@@ -47,6 +48,7 @@ class GeneticTrainer:
     def mutate_strategy(self, strategy: EnhancedStrategy, mutation_rate: float) -> EnhancedStrategy:
         """Create a mutated copy of the strategy"""
         new_strategy = EnhancedStrategy()
+        new_strategy.name = f"Mutated-{strategy.name}"
 
         def mutate_rules(rules: list[PriorityRule]) -> list[PriorityRule]:
             mutated = []
