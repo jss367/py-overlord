@@ -1,7 +1,4 @@
-import json
-import os
 import random
-from pathlib import Path
 
 
 class Strategy:
@@ -157,77 +154,3 @@ class Strategy:
         )
 
         return child
-
-    def to_dict(self) -> dict:
-        """Convert strategy to dictionary for serialization."""
-        return {
-            "metadata": {
-                "name": self.name,
-                "description": self.description,
-                "version": self.version,
-                "creation_date": self.creation_date,
-            },
-            "priorities": {"gain": self.gain_priorities, "play": self.play_priorities},
-            "weights": {
-                "action": self.action_weight,
-                "treasure": self.treasure_weight,
-                "victory": self.victory_weight,
-                "engine": self.engine_weight,
-            },
-        }
-
-    @classmethod
-    def from_dict(cls, data: dict) -> "Strategy":
-        """Create strategy from dictionary representation."""
-        strategy = cls()  # Get default priorities first
-
-        # Load metadata
-        metadata = data.get("metadata", {})
-        strategy.name = metadata.get("name")
-        strategy.description = metadata.get("description")
-        strategy.version = metadata.get("version", "1.0")
-        strategy.creation_date = metadata.get("creation_date")
-
-        # Load priorities, falling back to defaults if missing
-        priorities = data.get("priorities", {})
-        loaded_gain = priorities.get("gain", {})
-        loaded_play = priorities.get("play", {})
-
-        # Update defaults with loaded values
-        strategy.gain_priorities.update(loaded_gain)
-        strategy.play_priorities.update(loaded_play)
-
-        # Load weights with defaults
-        weights = data.get("weights", {})
-        strategy.action_weight = weights.get("action", 0.7)
-        strategy.treasure_weight = weights.get("treasure", 0.6)
-        strategy.victory_weight = weights.get("victory", 0.3)
-        strategy.engine_weight = weights.get("engine", 0.8)
-
-        return strategy
-
-    def save(self, filepath: str):
-        """Save strategy to JSON file."""
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        with open(filepath, "w") as f:
-            json.dump(self.to_dict(), f, indent=2)
-
-    @classmethod
-    def load(cls, filepath: str) -> "Strategy":
-        """Load strategy from JSON file."""
-        with open(filepath, "r") as f:
-            data = json.load(f)
-        return cls.from_dict(data)
-
-    @staticmethod
-    def list_available_strategies(strategies_dir: str = "strategies") -> list[str]:
-        """List all available strategy files in the strategies directory."""
-        strategy_files = []
-        strategies_path = Path(strategies_dir)
-
-        if strategies_path.exists():
-            strategy_files = [
-                f.stem for f in strategies_path.glob("*.json") if f.is_file()
-            ]
-
-        return sorted(strategy_files)

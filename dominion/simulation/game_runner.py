@@ -83,13 +83,3 @@ class GameRunner:
             self.logger.file_logger.info(message)
         if not self.quiet:
             print(message)
-
-    def is_game_over(self, game_state: GameState) -> bool:
-        """Check if the game is over."""
-        # Game ends if Province pile is empty
-        if game_state.supply.get("Province", 0) == 0:
-            return True
-
-        # Or if any three supply piles are empty
-        empty_piles = sum(1 for count in game_state.supply.values() if count == 0)
-        return empty_piles >= 3

@@ -47,9 +47,3 @@ def get_card(name: str) -> Card:
     if name not in CARD_TYPES:
         raise ValueError(f"Unknown card: {name}")
     return CARD_TYPES[name]()
-
-
-# Need to update base_card.py to support 'get_card' method
-def get_card_by_name(name: str) -> Card:
-    """Get a new instance of a card by name."""
-    return get_card(name)

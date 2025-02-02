@@ -215,7 +215,7 @@ class YAMLFormatEnforcer:
                 else:
                     # Check direct value
                     if not isinstance(value, (int, float)) or not 0 <= value <= 1:
-                        errors.append(f"Victory weight must be between 0 and 1")
+                        errors.append("Victory weight must be between 0 and 1")
             else:
                 # Other weights are always direct values
                 if not isinstance(value, (int, float)) or not 0 <= value <= 1:

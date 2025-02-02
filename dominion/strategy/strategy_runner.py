@@ -1,4 +1,3 @@
-from typing import Dict, Any
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
 from dominion.cards.base_card import Card

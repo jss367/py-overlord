@@ -344,25 +344,36 @@ class GameState:
             self.handle_cleanup_phase()
 
     def is_game_over(self) -> bool:
-        """Check if the game is over."""
+        """Check if the game is over.
+
+        The game ends if:
+        1. Province pile is empty
+        2. Any three supply piles are empty
+        3. Maximum turns (100) reached to prevent infinite games
+
+        Returns:
+            bool: True if the game is over, False otherwise
+        """
         # Update turn count in metrics
         if self.logger:
             self.logger.current_metrics.turn_count = self.turn_number
 
-        # Game ends if Province pile is empty
+        # Check win conditions in order of precedence
+
+        # 1. Province pile empty
         if self.supply.get("Province", 0) == 0:
             self._update_final_metrics()
             self.log_callback("Game over: Provinces depleted")
             return True
 
-        # Or if any three supply piles are empty
+        # 2. Three supply piles empty
         empty_piles = sum(1 for count in self.supply.values() if count == 0)
         if empty_piles >= 3:
             self._update_final_metrics()
             self.log_callback("Game over: Three piles depleted")
             return True
 
-        # Hard turn limit to prevent infinite games
+        # 3. Hard turn limit
         if self.turn_number > 100:
             self._update_final_metrics()
             self.log_callback("Game over: Maximum turns reached")
