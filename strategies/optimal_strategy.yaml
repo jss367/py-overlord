@@ -1,65 +1,67 @@
 strategy:
   gainPriority:
   - card: Village
-    priority: 0.21
+    priority: 0.01
   - card: Smithy
-    priority: 0.46
+    priority: 0.94
   - card: Market
-    priority: 0.93
+    priority: 0.48
   - card: Festival
-    condition: state.turn_number() <= 10
-    priority: 0.72
+    condition: state.turn_number() <= 5
+    priority: 0.33
   - card: Laboratory
-    priority: 0.6
+    priority: 0.03
   - card: Mine
-    priority: 0.08
+    condition: state.turn_number() <= 5
+    priority: 0.13
   - card: Witch
-    priority: 0.76
+    priority: 0.39
   - card: Moat
-    priority: 0.66
+    priority: 0.71
   - card: Workshop
-    priority: 0.17
+    condition: state.turn_number() <= 6
+    priority: 0.7
   - card: Chapel
-    condition: state.turn_number() <= 7
-    priority: 0.66
+    condition: state.turn_number() <= 11
+    priority: 0.01
   - card: Copper
-    priority: 0.62
+    priority: 0.57
   - card: Silver
     condition: my.coins >= 3
-    priority: 0.8
+    priority: 0.78
   - card: Gold
-    priority: 0.15
+    priority: 0.93
   - card: Estate
-    priority: 0.96
+    priority: 0.62
   - card: Duchy
-    priority: 0.27
+    priority: 0.64
   - card: Province
-    priority: 0.31
+    priority: 0.55
   metadata:
     creation_date: '2025-02-01'
     description: Genetically evolved strategy
-    name: gen3-strat0
+    name: gen2-strat0
     version: '1.0'
   play_priorities:
     default:
-      Chapel: 0.65
-      Copper: 0.98
-      Duchy: 0.3
-      Estate: 0.95
-      Festival: 0.71
-      Gold: 0.87
-      Laboratory: 0.23
-      Market: 0.9
-      Mine: 0.81
-      Moat: 0.92
-      Province: 0.95
-      Silver: 0.19
-      Smithy: 0.1
-      Village: 0.41
-      Witch: 0.96
-      Workshop: 0.08
+      Chapel: 0.03
+      Copper: 0.21
+      Duchy: 0.33
+      Estate: 0.7
+      Festival: 0.8
+      Gold: 0.03
+      Laboratory: 0.11
+      Market: 0.09
+      Mine: 0.94
+      Moat: 0.64
+      Province: 0.77
+      Silver: 0.13
+      Smithy: 0.76
+      Village: 0.2
+      Witch: 0.17
+      Workshop: 0.64
   weights:
-    action: 0.7
-    engine: 0.96
-    treasure: 0.45
-    victory: 0.31
+    action: 0.83
+    engine: 0.67
+    treasure: 0.52
+    victory: 0.29
