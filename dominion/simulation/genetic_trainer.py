@@ -1,12 +1,12 @@
 import copy
 import random
 import shutil
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
 import yaml
 
+from dominion.cards.registry import get_card
 from dominion.simulation.strategy_battle import StrategyBattle
 
 
@@ -55,30 +55,51 @@ class GeneticTrainer:
                 },
                 "actionPriority": [],
                 "gainPriority": [],
+                "treasurePriority": [],
             }
         }
 
+        # Create list of all potential cards
+        all_cards = (
+            self.kingdom_cards
+            + ["Copper", "Silver", "Gold"]  # Treasures
+            + ["Estate", "Duchy", "Province"]  # Victory cards
+        )
+
         # Add gain priorities for all cards
-        for card in self.kingdom_cards + ["Copper", "Silver", "Gold", "Estate", "Duchy", "Province"]:
-            priority = {"card": card, "priority": round(random.random(), 2)}
+        for card_name in all_cards:
+            card = get_card(card_name)
+            priority = {"card": card_name, "priority": round(random.random(), 2)}
+
+            # Add conditions for certain cards
             if random.random() < 0.3:
-                if card in ["Silver", "Gold", "Province"]:
-                    priority["condition"] = f"my.coins >= {3 if card == 'Silver' else 6 if card == 'Gold' else 8}"
-                elif card in self.kingdom_cards:
+                if card.is_treasure and card_name != "Copper":
+                    priority["condition"] = f"my.coins >= {card.cost.coins}"
+                elif card_name == "Province":
+                    priority["condition"] = "my.coins >= 8"
+                elif card.is_action:
                     priority["condition"] = f"state.turn_number() <= {random.randint(5, 15)}"
+
             strategy["strategy"]["gainPriority"].append(priority)
 
-        # Add action priorities
-        for card in self.kingdom_cards:
-            priority = {"card": card, "priority": round(random.random(), 2)}
-            # Maybe add conditions for certain cards
-            if random.random() < 0.3:
-                if card in ["Village", "Festival"]:
-                    priority["condition"] = "my.actions < 2"
-                elif card in ["Smithy", "Laboratory"]:
-                    priority["condition"] = "my.actions >= 1"
+        # Add action priorities for kingdom cards
+        for card_name in self.kingdom_cards:
+            card = get_card(card_name)
+            if card.is_action:
+                priority = {"card": card_name, "priority": round(random.random(), 2)}
+                # Optionally add conditions for action cards
+                if random.random() < 0.3:
+                    if card_name in ["Village", "Festival"]:
+                        priority["condition"] = "my.actions < 2"
+                    elif card_name in ["Smithy", "Laboratory"]:
+                        priority["condition"] = "my.actions >= 1"
+                strategy["strategy"]["actionPriority"].append(priority)
 
-            strategy["strategy"]["actionPriority"].append(priority)
+        # Add treasure priorities
+        for card_name in ["Gold", "Silver", "Copper"]:
+            card = get_card(card_name)
+            assert card.is_treasure
+            strategy["strategy"]["treasurePriority"].append({"card": card_name, "priority": round(random.random(), 2)})
 
         return strategy
 

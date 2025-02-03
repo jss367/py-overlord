@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 
-from ..cards.base_card import Card
-from ..cards.registry import get_card
-from .player_state import PlayerState
+from dominion.cards.base_card import Card
+from dominion.cards.registry import get_card
+from dominion.game.player_state import PlayerState
 
 
 @dataclass

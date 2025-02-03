@@ -1,8 +1,8 @@
 import random
 from dataclasses import dataclass, field
 
-from ..cards.base_card import Card
-from ..cards.registry import get_card
+from dominion.cards.base_card import Card
+from dominion.cards.registry import get_card
 
 
 @dataclass
