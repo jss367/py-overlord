@@ -22,20 +22,19 @@ def train_optimal_strategy():
         "Chapel",
     ]
 
-    # Set up paths
+    # Set up paths and loader
     strategies_dir = Path("strategies")
-    optimal_strategy_path = strategies_dir / "optimal_strategy.yaml"
+    strategies_dir.mkdir(exist_ok=True)
 
-    # Load existing optimal strategy if it exists
     loader = StrategyLoader()
-    existing_optimal = None
-    if optimal_strategy_path.exists():
-        try:
-            with open(optimal_strategy_path, 'r') as f:
-                existing_optimal = yaml.safe_load(f)
-            print("\nLoaded existing optimal strategy")
-        except Exception as e:
-            print(f"\nError loading existing optimal strategy: {e}")
+    loader.load_directory(strategies_dir)
+
+    # Try to get existing optimal strategy
+    existing_optimal = loader.get_strategy("optimal_strategy")
+    if existing_optimal:
+        print("\nLoaded existing optimal strategy")
+    else:
+        print("\nNo existing optimal strategy found")
 
     # Create trainer with existing optimal strategy in initial population
     trainer = GeneticTrainer(
@@ -58,7 +57,9 @@ def train_optimal_strategy():
         # Battle new strategy against existing optimal
         battle = StrategyBattle(kingdom_cards)
         results = battle.run_battle(
-            new_strategy["strategy"]["metadata"]["name"], existing_optimal["strategy"]["metadata"]["name"], num_games=20
+            new_strategy["strategy"]["metadata"]["name"],
+            "optimal_strategy",  # Use the strategy name instead of the data
+            num_games=20,
         )
 
         # Only save if new strategy is better
@@ -67,11 +68,13 @@ def train_optimal_strategy():
             save_strategy = new_strategy
         else:
             print(f"\nNew strategy not superior. Win rate vs old: {results['strategy1_win_rate']:.1f}%")
-            save_strategy = existing_optimal
+            # Get the YAML representation of the existing strategy
+            save_strategy = loader.strategies["optimal_strategy"].to_yaml()
     else:
         save_strategy = new_strategy
 
     # Save the best strategy
+    optimal_strategy_path = strategies_dir / "optimal_strategy.yaml"
     with open(optimal_strategy_path, 'w') as f:
         yaml.dump(save_strategy, f)
 
