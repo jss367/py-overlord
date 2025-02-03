@@ -15,7 +15,7 @@ class StrategyBattle:
     def __init__(self, kingdom_cards: list[str], log_folder: str = "battle_logs"):
         self.kingdom_cards = kingdom_cards
         self.logger = GameLogger(log_folder=log_folder)
-        self.strategy_loader = StrategyLoader()  # Initialize the strategy loader
+        self.strategy_loader = StrategyLoader()
 
         # Load initial strategies
         strategies_dir = Path("strategies")

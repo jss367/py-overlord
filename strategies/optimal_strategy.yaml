@@ -1,40 +1,58 @@
 strategy:
   actionPriority:
-    - card: Chapel
-    - card: Festival
-    - card: Village
-    - card: Laboratory
-    - card: Market
-    - card: Mine
-    - card: Moat
-    - card: Smithy
-    - card: Workshop
-    - card: Witch
-  
+  - card: Village
+  - card: Smithy
+  - card: Market
+  - card: Festival
+  - card: Laboratory
+  - card: Mine
+  - card: Witch
+  - card: Moat
+  - card: Workshop
+  - card: Chapel
+  - card: Copper
+  - card: Silver
+  - card: Gold
   gainPriority:
-    - card: Workshop
-      condition: "state.turn_number() <= 8"
-    - card: Chapel
-      condition: "state.turn_number() <= 14"
-    - card: Province
-      condition: "my.coins >= 8"
-    - card: Gold
-      condition: "my.coins >= 6"
-    - card: Mine
-    - card: Laboratory
-      condition: "state.turn_number() <= 14"
-    - card: Market
-    - card: Smithy
-    - card: Village
-      condition: "state.turn_number() <= 12"
-    - card: Silver
-      condition: "my.coins >= 3"
-    - card: Moat
-      condition: "state.turn_number() <= 15"
-    - card: Estate
-      condition: "state.provinces_left() <= 2"
-  
+  - card: Village
+    condition: state.turn_number() <= 8
+    priority: 0.59
+  - card: Smithy
+    condition: state.turn_number() <= 9
+    priority: 0.63
+  - card: Market
+    condition: state.turn_number() <= 15
+    priority: 0.18
+  - card: Festival
+    priority: 0.44
+  - card: Laboratory
+    condition: state.turn_number() <= 6
+    priority: 0.99
+  - card: Mine
+    priority: 0.75
+  - card: Witch
+    priority: 0.73
+  - card: Moat
+    priority: 0.66
+  - card: Workshop
+    condition: state.turn_number() <= 7
+    priority: 0.96
+  - card: Chapel
+    condition: state.turn_number() <= 8
+    priority: 0.68
+  - card: Copper
+    priority: 0.18
+  - card: Silver
+    priority: 0.55
+  - card: Gold
+    priority: 0.39
+  - card: Estate
+    priority: 0.43
+  - card: Duchy
+    priority: 0.57
+  - card: Province
+    priority: 0.33
   metadata:
-    name: Optimized Engine
-    description: Genetically optimized engine strategy
+    description: Genetically evolved strategy
+    name: gen3-strat0
     version: '1.0'

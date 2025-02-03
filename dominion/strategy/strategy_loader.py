@@ -3,7 +3,7 @@ from typing import Dict, Optional
 
 import yaml
 
-from dominion.strategy.enhanced_strategy import EnhancedStrategy
+from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 
 class StrategyLoader:
@@ -33,17 +33,46 @@ class StrategyLoader:
             with open(file_path, 'r') as f:
                 yaml_data = yaml.safe_load(f)
 
-            # Create strategy from YAML
-            strategy = EnhancedStrategy.from_yaml(yaml_data)
+            if not isinstance(yaml_data, dict) or 'strategy' not in yaml_data:
+                raise ValueError(f"Invalid strategy format in {file_path}")
 
-            # Store strategy using its name as key
+            strategy_data = yaml_data['strategy']
+
+            # Create new strategy
+            strategy = EnhancedStrategy()
+
+            # Set metadata
+            if 'metadata' in strategy_data:
+                strategy.name = strategy_data['metadata'].get('name', file_path.stem)
+
+            # Convert action priorities
+            if 'actionPriority' in strategy_data:
+                strategy.action_priority = [
+                    PriorityRule(
+                        card_name=rule['card'] if isinstance(rule, dict) else rule,
+                        condition=rule.get('condition') if isinstance(rule, dict) else None,
+                    )
+                    for rule in strategy_data['actionPriority']
+                ]
+
+            # Convert gain priorities
+            if 'gainPriority' in strategy_data:
+                strategy.gain_priority = [
+                    PriorityRule(
+                        card_name=rule['card'] if isinstance(rule, dict) else rule,
+                        condition=rule.get('condition') if isinstance(rule, dict) else None,
+                    )
+                    for rule in strategy_data['gainPriority']
+                ]
+
+            # Store strategy
             self.strategies[strategy.name] = strategy
-
+            print(f"Successfully loaded strategy: {strategy.name}")
             return strategy
 
         except Exception as e:
             print(f"Error loading strategy file {file_path}: {e}")
-            return None
+            raise
 
     def get_strategy(self, name: str) -> Optional[EnhancedStrategy]:
         """Get a strategy by name."""
