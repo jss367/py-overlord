@@ -267,3 +267,14 @@ class GeneticTrainer:
             strategy_data["actionPriority"] = actions[:split_point] + shuffled_portion
 
         return strategy
+
+    def inject_strategy(self, strategy: dict):
+        """Inject an existing strategy into the initial population.
+        This should be called before train() is called."""
+        # Replace a random member of the initial population with this strategy
+        if hasattr(self, '_initial_population'):
+            replace_idx = random.randint(0, len(self._initial_population) - 1)
+            self._initial_population[replace_idx] = strategy
+        else:
+            # Store strategy to be injected when population is created
+            self._strategy_to_inject = strategy
