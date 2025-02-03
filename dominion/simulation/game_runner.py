@@ -6,10 +6,8 @@ from dominion.ai.genetic_ai import GeneticAI
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.simulation.game_logger import GameLogger
-from dominion.strategy.strategy import Strategy as GeneticStrategy
 from dominion.strategy.strategy_ai import StrategyAI
-from dominion.strategy.strategy_parser import StrategyLoader
-from dominion.strategy.enhanced_strategy import StrategyRunner
+from dominion.strategy.strategy_loader import StrategyLoader
 
 
 class GameRunner:
@@ -25,8 +23,8 @@ class GameRunner:
         if strategies_dir.exists():
             self.strategy_loader.load_directory(strategies_dir)
 
-    def create_ai(self, strategy: Union[str, GeneticStrategy]) -> AI:
-        """Create an AI from either a strategy name (YAML) or GeneticStrategy"""
+    def create_ai(self, strategy: Union[str]) -> AI:
+        """Create an AI from either a strategy name (YAML)"""
         if not isinstance(strategy, str):
             # Use genetic strategy
             return GeneticAI(strategy)
@@ -37,8 +35,8 @@ class GameRunner:
 
     def run_game(
         self,
-        strategy1: Union[str, GeneticStrategy],
-        strategy2: Union[str, GeneticStrategy],
+        strategy1: Union[str],
+        strategy2: Union[str],
     ) -> tuple[AI, dict[str, int]]:
         """Run a single game between two strategies and return winner and scores."""
         # Create AIs from strategies

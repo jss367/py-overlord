@@ -2,13 +2,11 @@ import argparse
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from dominion.ai.genetic_ai import GeneticAI
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.simulation.game_logger import GameLogger
-from dominion.strategy.enhanced_strategy import EnhancedStrategy
+from dominion.strategy.strategy_loader import StrategyLoader
 
 
 class StrategyBattle:
@@ -17,21 +15,26 @@ class StrategyBattle:
     def __init__(self, kingdom_cards: list[str], log_folder: str = "battle_logs"):
         self.kingdom_cards = kingdom_cards
         self.logger = GameLogger(log_folder=log_folder)
+        self.strategy_loader = StrategyLoader()  # Initialize the strategy loader
 
-    def load_strategy(self, filepath: Path) -> EnhancedStrategy:
-        """Load a strategy from a YAML file"""
-        with open(filepath, 'r') as f:
-            yaml_data = yaml.safe_load(f)
-        return EnhancedStrategy.from_yaml(yaml_data)
+        # Load initial strategies
+        strategies_dir = Path("strategies")
+        if strategies_dir.exists():
+            self.strategy_loader.load_directory(strategies_dir)
 
-    def run_battle(
-        self, strategy1: EnhancedStrategy, strategy2: EnhancedStrategy, num_games: int = 100
-    ) -> dict[str, Any]:
+    def run_battle(self, strategy1_name: str, strategy2_name: str, num_games: int = 100) -> dict[str, Any]:
         """Run multiple games between two strategies"""
+        # Get strategies from loader
+        strategy1 = self.strategy_loader.get_strategy(strategy1_name)
+        strategy2 = self.strategy_loader.get_strategy(strategy2_name)
+
+        if not strategy1 or not strategy2:
+            raise ValueError(f"Could not find strategies: {strategy1_name} and/or {strategy2_name}")
+
         # Initialize results tracking
         results = {
-            "strategy1_name": strategy1.name,
-            "strategy2_name": strategy2.name,
+            "strategy1_name": strategy1_name,
+            "strategy2_name": strategy2_name,
             "strategy1_wins": 0,
             "strategy2_wins": 0,
             "strategy1_total_score": 0,
@@ -42,8 +45,8 @@ class StrategyBattle:
 
         # Run the games
         print(f"\nRunning {num_games} games between:")
-        print(f"Strategy 1: {strategy1.name}")
-        print(f"Strategy 2: {strategy2.name}\n")
+        print(f"Strategy 1: {strategy1_name}")
+        print(f"Strategy 2: {strategy2_name}\n")
 
         for game_num in range(num_games):
             print(f"Playing game {game_num + 1}/{num_games}...")
@@ -61,7 +64,7 @@ class StrategyBattle:
             # Record results
             game_result = {
                 "game_number": game_num + 1,
-                "winner": strategy1.name if winner == ai1 else strategy2.name,
+                "winner": strategy1_name if winner == ai1 else strategy2_name,
                 "strategy1_score": scores[ai1.name],
                 "strategy2_score": scores[ai2.name],
                 "margin": abs(scores[ai1.name] - scores[ai2.name]),

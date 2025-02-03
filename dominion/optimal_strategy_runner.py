@@ -33,7 +33,7 @@ class ImprovedYamlGeneticTrainer:
         self.temp_dir.mkdir(exist_ok=True)
         self.strategies_dir.mkdir(exist_ok=True)
 
-        # Initialize battle system
+        # Initialize battle system and ensure strategies directory exists
         self.battle_system = StrategyBattle(kingdom_cards, log_folder)
 
     def cleanup(self):
@@ -50,17 +50,17 @@ class ImprovedYamlGeneticTrainer:
 
     def evaluate_strategy(self, strategy: dict[str, Any], identifier: str) -> float:
         """Evaluate a strategy by playing games against base strategies"""
-        # Use the identifier as the strategy name for better tracking
+        # Set the strategy name for tracking
         strategy["strategy"]["metadata"]["name"] = identifier
 
-        # Save strategy to strategies directory so it's properly loaded
-        strategy_path = Path("strategies") / f"{identifier}.yaml"
+        # Save strategy to strategies directory
+        strategy_path = self.strategies_dir / f"{identifier}.yaml"
         try:
             with open(strategy_path, "w") as f:
                 yaml.dump(strategy, f)
 
-            # Force reload of strategies to pick up the new one
-            self.battle_system.strategy_loader.load_directory(Path("strategies"))
+            # Reload strategies to pick up the new one
+            self.battle_system.strategy_loader.load_directory(self.strategies_dir)
 
             # Battle against basic strategies
             base_strategies = ["BigMoney"]
@@ -80,6 +80,7 @@ class ImprovedYamlGeneticTrainer:
             strategy_path.unlink()
 
             return total_win_rate / max(1, games_played) if games_played > 0 else 0.0
+
         except Exception as e:
             print(f"Error evaluating strategy {identifier}: {e}")
             if strategy_path.exists():
