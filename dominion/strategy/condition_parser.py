@@ -1,8 +1,7 @@
 import operator
-from dataclasses import dataclass
-from typing import Any, Callable, Optional
+from typing import Callable
 
-from lark import Lark, Token, Transformer, Tree
+from lark import Lark, Transformer, v_args
 
 
 class GameContext:
@@ -76,37 +75,36 @@ class ConditionParser:
             raise ValueError(f"Failed to parse condition '{condition}': {str(e)}")
 
 
+@v_args(inline=True)
 class ConditionTransformer(Transformer):
-    """Transforms parse tree into callable functions"""
-
-    def lt(self, _):
+    def lt(self):
         return operator.lt
 
-    def le(self, _):
+    def le(self):
         return operator.le
 
-    def gt(self, _):
+    def gt(self):
         return operator.gt
 
-    def ge(self, _):
+    def ge(self):
         return operator.ge
 
-    def eq(self, _):
+    def eq(self):
         return operator.eq
 
-    def ne(self, _):
+    def ne(self):
         return operator.ne
 
-    def number(self, items):
-        return int(items[0])
+    def number(self, token):
+        return int(token)
 
-    def STATE_REF(self, items):
-        ref = str(items[0])
-        print(f"Processing state ref: {ref}, type: {type(ref)}")  # Debug print
-        ref_type = ref.split('.')[-1]  # Get last part after dot
+    def STATE_REF(self, token):
+        ref = token.value  # Use the full string (e.g., "state.turn_number")
+        print(f"Processing state ref: {ref}, type: {type(ref)}")
+        ref_type = ref.split('.')[-1]
 
         def get_state_value(context: GameContext) -> int:
-            print(f"Getting state value for: {ref_type}")  # Debug print
+            print(f"Getting state value for: {ref_type}")
             if ref_type == "turn_number":
                 return context.state.turn_number
             elif ref_type == "provinces_left":
@@ -117,13 +115,13 @@ class ConditionTransformer(Transformer):
 
         return get_state_value
 
-    def PLAYER_REF(self, items):
-        ref = str(items[0])
-        print(f"Processing player ref: {ref}, type: {type(ref)}")  # Debug print
-        ref_type = ref.split('.')[-1]  # Get last part after dot
+    def PLAYER_REF(self, token):
+        ref = token.value  # Use the full string (e.g., "my.coins")
+        print(f"Processing player ref: {ref}, type: {type(ref)}")
+        ref_type = ref.split('.')[-1]
 
         def get_player_value(context: GameContext) -> int:
-            print(f"Getting player value for: {ref_type}")  # Debug print
+            print(f"Getting player value for: {ref_type}")
             if ref_type == "coins":
                 return context.my.coins
             elif ref_type == "actions":
@@ -136,22 +134,20 @@ class ConditionTransformer(Transformer):
 
         return get_player_value
 
-    def CARD_NAME(self, items):
-        return str(items[0])
+    def CARD_NAME(self, token):
+        return token.value  # e.g., "Copper"
 
-    def comparison(self, items):
-        get_value, op_func, number = items
-
+    def comparison(self, get_value, op_func, number):
         def evaluate(context: GameContext) -> bool:
             try:
-                print(f"Evaluating comparison with: get_value={get_value}")  # Debug print
+                print(f"Evaluating comparison with: get_value={get_value}")
                 value = get_value(context)
-                print(f"Got value: {value}")  # Debug print
+                print(f"Got value: {value}")
                 result = op_func(value, number)
-                print(f"Comparison result: {value} {op_func.__name__} {number} = {result}")  # Debug print
+                print(f"Comparison result: {value} {op_func.__name__} {number} = {result}")
                 return result
             except Exception as e:
-                print(f"Error in comparison: {str(e)}")  # Debug print
+                print(f"Error in comparison: {str(e)}")
                 raise ValueError(
                     f"Failed to evaluate comparison - "
                     f"op={op_func.__name__}, "
@@ -161,9 +157,7 @@ class ConditionTransformer(Transformer):
 
         return evaluate
 
-    def count_expr(self, items):
-        card_name, op_func, number = items
-
+    def count_expr(self, card_name, op_func, number):
         def evaluate(context: GameContext) -> bool:
             try:
                 count = context.my.count_in_deck(card_name)
@@ -173,23 +167,30 @@ class ConditionTransformer(Transformer):
 
         return evaluate
 
-    def or_expr(self, items):
-        if len(items) == 1:
-            return items[0]
+    def or_expr(self, *conditions):
+        if len(conditions) == 1:
+            return conditions[0]
 
         def evaluate(context: GameContext) -> bool:
-            return any(condition(context) for condition in items)
+            return any(condition(context) for condition in conditions)
 
         return evaluate
 
-    def and_expr(self, items):
-        if len(items) == 1:
-            return items[0]
+    def and_expr(self, *conditions):
+        if len(conditions) == 1:
+            return conditions[0]
 
         def evaluate(context: GameContext) -> bool:
-            return all(condition(context) for condition in items)
+            return all(condition(context) for condition in conditions)
 
         return evaluate
+
+    # Optionally, if you have wrapper rules:
+    def expr(self, condition):
+        return condition
+
+    def start(self, condition):
+        return condition
 
 
 def test_parser():
