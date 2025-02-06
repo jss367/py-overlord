@@ -1,7 +1,8 @@
 import operator
-from typing import Callable
+from dataclasses import dataclass
+from typing import Any, Callable, Optional
 
-from lark import Lark, Transformer
+from lark import Lark, Token, Transformer, Tree
 
 
 class GameContext:
@@ -21,42 +22,46 @@ class ConditionParser:
     ?expr: or_expr
     
     ?or_expr: and_expr (OR and_expr)*
-    ?and_expr: primary (AND primary)*
+    ?and_expr: atom (AND atom)*
     
-    ?primary: comparison
-           | count_check
-           | "(" expr ")"
+    ?atom: comparison
+        | count_expr
+        | "(" expr ")"
     
-    comparison: state_ref OPERATOR number
-              | player_ref OPERATOR number
+    comparison: (STATE_REF | PLAYER_REF) op number
     
-    count_check: "my.count(" card_name ")" OPERATOR number
+    count_expr: "my.count(" CARD_NAME ")" op number
     
-    state_ref: "state.turn_number"
+    STATE_REF: "state.turn_number"
              | "state.provinces_left"
              | "state.empty_piles"
     
-    player_ref: "my.coins"
+    PLAYER_REF: "my.coins"
               | "my.actions"
               | "my.buys"
               | "my.hand_size"
     
-    card_name: CNAME
-    number: NUMBER
+    CARD_NAME: /[A-Z][a-zA-Z]*/
     
-    OPERATOR: "<" | "<=" | ">" | ">=" | "==" | "!="
+    ?op: "<" -> lt
+       | "<=" -> le
+       | ">" -> gt
+       | ">=" -> ge
+       | "==" -> eq
+       | "!=" -> ne
+    
+    number: NUMBER
     
     AND: "AND"
     OR: "OR"
     
-    %import common.CNAME
     %import common.NUMBER
     %import common.WS
     %ignore WS
     """
 
     def __init__(self):
-        self.parser = Lark(self.GRAMMAR)
+        self.parser = Lark(self.GRAMMAR, parser='lalr', debug=True)
         self.transformer = ConditionTransformer()
 
     def parse(self, condition: str) -> Callable[[GameContext], bool]:
@@ -68,73 +73,103 @@ class ConditionParser:
             tree = self.parser.parse(condition)
             return self.transformer.transform(tree)
         except Exception as e:
-            raise ValueError(f"Invalid condition syntax: {condition}") from e
+            raise ValueError(f"Failed to parse condition '{condition}': {str(e)}")
 
 
 class ConditionTransformer(Transformer):
     """Transforms parse tree into callable functions"""
 
-    OPERATORS = {
-        '<': operator.lt,
-        '<=': operator.le,
-        '>': operator.gt,
-        '>=': operator.ge,
-        '==': operator.eq,
-        '!=': operator.ne,
-    }
+    def lt(self, _):
+        return operator.lt
+
+    def le(self, _):
+        return operator.le
+
+    def gt(self, _):
+        return operator.gt
+
+    def ge(self, _):
+        return operator.ge
+
+    def eq(self, _):
+        return operator.eq
+
+    def ne(self, _):
+        return operator.ne
 
     def number(self, items):
         return int(items[0])
 
-    def card_name(self, items):
-        return str(items[0])
-
-    def state_ref(self, items):
+    def STATE_REF(self, items):
         ref = str(items[0])
+        print(f"Processing state ref: {ref}, type: {type(ref)}")  # Debug print
+        ref_type = ref.split('.')[-1]  # Get last part after dot
 
         def get_state_value(context: GameContext) -> int:
-            if ref == "state.turn_number":
+            print(f"Getting state value for: {ref_type}")  # Debug print
+            if ref_type == "turn_number":
                 return context.state.turn_number
-            elif ref == "state.provinces_left":
+            elif ref_type == "provinces_left":
                 return context.state.supply.get("Province", 0)
-            elif ref == "state.empty_piles":
+            elif ref_type == "empty_piles":
                 return sum(1 for count in context.state.supply.values() if count == 0)
-            raise ValueError(f"Unknown state reference: {ref}")
+            raise ValueError(f"Unknown state reference type: {ref_type} (from {ref})")
 
         return get_state_value
 
-    def player_ref(self, items):
+    def PLAYER_REF(self, items):
         ref = str(items[0])
+        print(f"Processing player ref: {ref}, type: {type(ref)}")  # Debug print
+        ref_type = ref.split('.')[-1]  # Get last part after dot
 
         def get_player_value(context: GameContext) -> int:
-            if ref == "my.coins":
+            print(f"Getting player value for: {ref_type}")  # Debug print
+            if ref_type == "coins":
                 return context.my.coins
-            elif ref == "my.actions":
+            elif ref_type == "actions":
                 return context.my.actions
-            elif ref == "my.buys":
+            elif ref_type == "buys":
                 return context.my.buys
-            elif ref == "my.hand_size":
+            elif ref_type == "hand_size":
                 return len(context.my.hand)
-            raise ValueError(f"Unknown player reference: {ref}")
+            raise ValueError(f"Unknown player reference type: {ref_type} (from {ref})")
 
         return get_player_value
 
+    def CARD_NAME(self, items):
+        return str(items[0])
+
     def comparison(self, items):
-        get_value, op, number = items
-        op_func = self.OPERATORS[str(op)]
+        get_value, op_func, number = items
 
         def evaluate(context: GameContext) -> bool:
-            return op_func(get_value(context), number)
+            try:
+                print(f"Evaluating comparison with: get_value={get_value}")  # Debug print
+                value = get_value(context)
+                print(f"Got value: {value}")  # Debug print
+                result = op_func(value, number)
+                print(f"Comparison result: {value} {op_func.__name__} {number} = {result}")  # Debug print
+                return result
+            except Exception as e:
+                print(f"Error in comparison: {str(e)}")  # Debug print
+                raise ValueError(
+                    f"Failed to evaluate comparison - "
+                    f"op={op_func.__name__}, "
+                    f"number={number}, "
+                    f"error: {str(e)}"
+                )
 
         return evaluate
 
-    def count_check(self, items):
-        card_name, op, number = items
-        op_func = self.OPERATORS[str(op)]
+    def count_expr(self, items):
+        card_name, op_func, number = items
 
         def evaluate(context: GameContext) -> bool:
-            count = context.my.count_in_deck(card_name)
-            return op_func(count, number)
+            try:
+                count = context.my.count_in_deck(card_name)
+                return op_func(count, number)
+            except Exception as e:
+                raise ValueError(f"Failed to evaluate count expression: {str(e)}")
 
         return evaluate
 
@@ -157,12 +192,12 @@ class ConditionTransformer(Transformer):
         return evaluate
 
 
-# Example usage:
 def test_parser():
     parser = ConditionParser()
 
-    # Test simple conditions
-    conditions = [
+    # First test: parsing only
+    print("\n=== Testing Parser ===")
+    test_conditions = [
         "my.coins < 3",
         "state.turn_number > 10",
         "my.count(Village) <= 2",
@@ -172,12 +207,48 @@ def test_parser():
         "my.count(Copper) > 4 OR my.count(Silver) > 2",
     ]
 
-    for condition in conditions:
+    for condition in test_conditions:
+        try:
+            parser.parse(condition)
+            print(f"✓ Successfully parsed: {condition}")
+        except Exception as e:
+            print(f"✗ Error parsing {condition}: {str(e)}")
+
+    # Second test: evaluation with tracing
+    print("\n=== Testing Evaluation ===")
+
+    class MockState:
+        def __init__(self):
+            self.turn_number = 5
+            self.supply = {"Province": 8}
+            print(f"Created MockState with turn_number={self.turn_number}")
+
+    class MockPlayer:
+        def __init__(self):
+            self.coins = 3
+            self.actions = 1
+            self.hand = ["Copper", "Copper", "Estate"]
+            print(f"Created MockPlayer with coins={self.coins}, actions={self.actions}")
+
+        def count_in_deck(self, card_name):
+            count = 2 if card_name == "Copper" else 0
+            print(f"count_in_deck({card_name}) = {count}")
+            return count
+
+    mock_context = GameContext(MockState(), MockPlayer())
+
+    test_evaluations = ["my.coins >= 3", "state.turn_number < 10", "my.count(Copper) == 2", "my.hand_size == 3"]
+
+    print("\nRunning evaluations:")
+    for condition in test_evaluations:
+        print(f"\nTesting condition: {condition}")
         try:
             evaluator = parser.parse(condition)
-            print(f"Successfully parsed: {condition}")
+            print("Successfully parsed, now evaluating...")
+            result = evaluator(mock_context)
+            print(f"✓ Final result: {condition} = {result}")
         except Exception as e:
-            print(f"Error parsing {condition}: {e}")
+            print(f"✗ Error: {str(e)}")
 
 
 if __name__ == "__main__":
