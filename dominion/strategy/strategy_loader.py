@@ -31,12 +31,14 @@ class StrategyLoader:
         """Load a single strategy file and return the strategy."""
         try:
             with open(file_path, 'r') as f:
-                yaml_data = yaml.safe_load(f)
+                strategy_data = yaml.safe_load(f)
 
-            if not isinstance(yaml_data, dict) or 'strategy' not in yaml_data:
+            if not isinstance(strategy_data, dict):
                 raise ValueError(f"Invalid strategy format in {file_path}")
 
-            strategy_data = yaml_data['strategy']
+            # Handle both old format with 'strategy' wrapper and new direct format
+            if 'strategy' in strategy_data:
+                strategy_data = strategy_data['strategy']
 
             # Create new strategy
             strategy = EnhancedStrategy()
@@ -63,6 +65,16 @@ class StrategyLoader:
                         condition=rule.get('condition') if isinstance(rule, dict) else None,
                     )
                     for rule in strategy_data['gainPriority']
+                ]
+
+            # Convert treasure priorities
+            if 'treasurePriority' in strategy_data:
+                strategy.treasure_priority = [
+                    PriorityRule(
+                        card_name=rule['card'] if isinstance(rule, dict) else rule,
+                        condition=rule.get('condition') if isinstance(rule, dict) else None,
+                    )
+                    for rule in strategy_data['treasurePriority']
                 ]
 
             # Store strategy

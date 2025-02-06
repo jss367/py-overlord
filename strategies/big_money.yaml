@@ -11,3 +11,8 @@ gainPriority:
     condition: "my.coins >= 3"
   - card: Copper
     condition: "my.coins < 3"
+actionPriority: []
+treasurePriority:
+  - card: Gold
+  - card: Silver
+  - card: Copper
