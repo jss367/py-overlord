@@ -171,5 +171,27 @@ def main():
     print_results(results)
 
 
-if __name__ == "__main__":
-    main()
+def main():
+    parser = argparse.ArgumentParser(description="Run a battle between two Dominion strategies")
+    parser.add_argument("strategy1_name", help="Name of first strategy")
+    parser.add_argument("strategy2_name", help="Name of second strategy")
+    parser.add_argument("--games", type=int, default=100, help="Number of games to play")
+    args = parser.parse_args()
+
+    # Default kingdom cards - could be made configurable
+    kingdom_cards = [
+        "Village",
+        "Smithy",
+        "Market",
+        "Festival",
+        "Laboratory",
+        "Mine",
+        "Witch",
+        "Moat",
+        "Workshop",
+        "Chapel",
+    ]
+
+    battle = StrategyBattle(kingdom_cards)
+    results = battle.run_battle(args.strategy1_name, args.strategy2_name, args.games)
+    print_results(results)
