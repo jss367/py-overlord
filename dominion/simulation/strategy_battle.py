@@ -142,43 +142,12 @@ def print_results(results: dict[str, Any]):
 
 def main():
     parser = argparse.ArgumentParser(description="Run a battle between two Dominion strategies")
-    parser.add_argument("strategy1_file", help="Path to first strategy YAML file")
-    parser.add_argument("strategy2_file", help="Path to second strategy YAML file")
-    parser.add_argument("--games", type=int, default=100, help="Number of games to play")
-    args = parser.parse_args()
-
-    # Default kingdom cards - could be made configurable
-    kingdom_cards = [
-        "Village",
-        "Smithy",
-        "Market",
-        "Festival",
-        "Laboratory",
-        "Mine",
-        "Witch",
-        "Moat",
-        "Workshop",
-        "Chapel",
-    ]
-
-    battle = StrategyBattle(kingdom_cards)
-
-    # Load strategies from files
-    strategy1 = battle.load_strategy(Path(args.strategy1_file))
-    strategy2 = battle.load_strategy(Path(args.strategy2_file))
-
-    results = battle.run_battle(strategy1, strategy2, args.games)
-    print_results(results)
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Run a battle between two Dominion strategies")
     parser.add_argument("strategy1_name", help="Name of first strategy")
     parser.add_argument("strategy2_name", help="Name of second strategy")
     parser.add_argument("--games", type=int, default=100, help="Number of games to play")
     args = parser.parse_args()
 
-    # Default kingdom cards - could be made configurable
+    # Default kingdom cards
     kingdom_cards = [
         "Village",
         "Smithy",
@@ -192,6 +161,43 @@ def main():
         "Chapel",
     ]
 
+    print(f"\nInitializing battle between {args.strategy1_name} and {args.strategy2_name}...")
+
     battle = StrategyBattle(kingdom_cards)
-    results = battle.run_battle(args.strategy1_name, args.strategy2_name, args.games)
-    print_results(results)
+
+    # Print available strategies
+    print("\nAvailable strategies:", ", ".join(battle.strategy_loader.list_strategies()))
+
+    # Get strategy names without .yaml extension
+    strategy1_name = Path(args.strategy1_name).stem
+    strategy2_name = Path(args.strategy2_name).stem
+
+    print(f"\nRunning {args.games} games...")
+    results = battle.run_battle(strategy1_name, strategy2_name, args.games)
+
+    if results:
+        print("\n=== Battle Results ===")
+        print(f"\nGames played: {results['games_played']}")
+        print(f"\n{results['strategy1_name']}:")
+        print(f"  Wins: {results['strategy1_wins']} ({results['strategy1_win_rate']:.1f}%)")
+        print(f"  Average Score: {results['strategy1_avg_score']:.1f}")
+        print(f"\n{results['strategy2_name']}:")
+        print(f"  Wins: {results['strategy2_wins']} ({results['strategy2_win_rate']:.1f}%)")
+        print(f"  Average Score: {results['strategy2_avg_score']:.1f}")
+
+        print("\nDetailed game results:")
+        for game in results["detailed_results"]:
+            print(f"\nGame {game['game_number']}:")
+            print(f"  Winner: {game['winner']}")
+            print(
+                f"  Scores: {results['strategy1_name']}={game['strategy1_score']}, "
+                f"{results['strategy2_name']}={game['strategy2_score']}"
+            )
+            print(f"  Margin: {game['margin']}")
+            print(f"  Turns: {game['turns']}")
+    else:
+        print("\nError: No results generated from battle")
+
+
+if __name__ == "__main__":
+    main()
