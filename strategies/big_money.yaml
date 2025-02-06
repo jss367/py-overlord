@@ -4,13 +4,9 @@ metadata:
   version: '1.0'
 gainPriority:
   - card: Province
-    condition: "my.coins >= 8"
   - card: Gold
-    condition: "my.coins >= 6"
   - card: Silver
-    condition: "my.coins >= 3"
   - card: Copper
-    condition: "my.coins < 3"
 actionPriority: []
 treasurePriority:
   - card: Gold
