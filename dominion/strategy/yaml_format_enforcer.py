@@ -9,19 +9,14 @@ import yaml
 class YAMLFormatEnforcer:
     """Enforces consistent format and structure for Dominion strategy YAML files."""
 
-    # Schema definition for strategy YAML files
-
+    # Schema definition matching actual code usage
     STRATEGY_SCHEMA = {
         "type": "object",
         "required": ["strategy"],
         "properties": {
             "strategy": {
                 "type": "object",
-                "required": [
-                    "gainPriority",
-                    "play_priorities",
-                    "weights",
-                ],
+                "required": ["actionPriority", "gainPriority", "treasurePriority"],
                 "properties": {
                     "metadata": {
                         "type": "object",
@@ -29,22 +24,13 @@ class YAMLFormatEnforcer:
                             "name": {"type": "string"},
                             "description": {"type": "string"},
                             "version": {"type": "string"},
-                            "creation_date": {"type": "string"},
                         },
                     },
-                    "author": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                    },
-                    "requires": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                    },
-                    "gainPriority": {
+                    "actionPriority": {
                         "type": "array",
                         "items": {
                             "type": "object",
-                            "required": ["card", "priority"],
+                            "required": ["card"],
                             "properties": {
                                 "card": {"type": "string"},
                                 "priority": {"type": "number"},
@@ -52,57 +38,39 @@ class YAMLFormatEnforcer:
                             },
                         },
                     },
-                    "play_priorities": {
-                        "type": "object",
-                        "required": ["default"],
-                        "properties": {
-                            "default": {
-                                "type": "object",
-                                "additionalProperties": {"type": "number"},
-                            }
-                        },
-                    },
-                    "weights": {
-                        "type": "object",
-                        "required": ["action", "treasure", "victory", "engine"],
-                        "properties": {
-                            "action": {"type": "number"},
-                            "treasure": {"type": "number"},
-                            "victory": {
-                                "oneOf": [
-                                    {"type": "number"},
-                                    {
-                                        "type": "object",
-                                        "properties": {
-                                            "default": {"type": "number"},
-                                            "endgame": {"type": "number"},
-                                        },
-                                    },
-                                ]
-                            },
-                            "engine": {"type": "number"},
-                        },
-                    },
-                    "phases": {
-                        "type": "object",
-                        "additionalProperties": {
+                    "gainPriority": {
+                        "type": "array",
+                        "items": {
                             "type": "object",
+                            "required": ["card"],
                             "properties": {
-                                "conditions": {"type": "object"},
-                                "priorities": {"type": "object"},
+                                "card": {"type": "string"},
+                                "priority": {"type": "number"},
+                                "condition": {"type": "string"},
                             },
                         },
                     },
-                    "conditional_rules": {
-                        "type": "object",
-                        "additionalProperties": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "conditions": {"type": "object"},
-                                    "priorities": {"type": "object"},
-                                },
+                    "treasurePriority": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["card"],
+                            "properties": {
+                                "card": {"type": "string"},
+                                "priority": {"type": "number"},
+                                "condition": {"type": "string"},
+                            },
+                        },
+                    },
+                    "trashPriority": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": ["card"],
+                            "properties": {
+                                "card": {"type": "string"},
+                                "priority": {"type": "number"},
+                                "condition": {"type": "string"},
                             },
                         },
                     },
@@ -131,24 +99,37 @@ class YAMLFormatEnforcer:
         }
 
     def validate_condition(self, condition: str) -> bool:
-        """Safely validate a condition string."""
-        # Basic string comparisons
-        for op in ["<=", ">=", "<", ">", "=="]:
-            if op in condition:
-                parts = condition.split(op)
-                if len(parts) == 2:
-                    try:
-                        # Convert any numeric values for comparison
-                        left = parts[0].strip()
-                        right = parts[1].strip()
-                        # If both are numeric, ensure comparison is valid
-                        if left.isdigit() and right.isdigit():
-                            return True
-                        # Otherwise, assume it's a valid variable comparison
-                        return True
-                    except:
-                        return False
-        return True  # Allow other conditions by default
+        """Validate condition string syntax."""
+        if not condition:
+            return True
+
+        # List of valid variable prefixes
+        valid_prefixes = ["my.", "state."]
+
+        # List of valid function calls
+        valid_functions = [
+            "countInDeck",
+            "countInHand",
+            "turn_number",
+            "provinces_left",
+            "countInSupply",
+        ]
+
+        try:
+            # Check for valid prefixes
+            has_valid_prefix = any(condition.startswith(prefix) for prefix in valid_prefixes)
+            if not has_valid_prefix and not any(op in condition for op in ["<=", ">=", "<", ">", "=="]):
+                return False
+
+            # Check for valid function calls
+            if "(" in condition:
+                function_name = condition.split("(")[0].split(".")[-1]
+                if function_name not in valid_functions:
+                    return False
+
+            return True
+        except:
+            return False
 
     def validate_strategy(self, strategy_data: dict[str, Any]) -> list[str]:
         """Validate a strategy against the schema and return any errors."""
@@ -161,58 +142,34 @@ class YAMLFormatEnforcer:
             return errors
 
         strategy = strategy_data["strategy"]
-
-        # Validate card references
         all_valid_cards = (
             self.standard_cards["treasures"] + self.standard_cards["victory"] + self.standard_cards["kingdom"]
         )
 
-        # Check gain priority cards
-        for priority in strategy["gainPriority"]:
-            if priority["card"] not in all_valid_cards:
-                errors.append(f"Invalid card in gainPriority: {priority['card']}")
-            if not 0 <= priority["priority"] <= 1:
-                errors.append(f"Priority value for {priority['card']} must be between 0 and 1")
-            if "condition" in priority:
-                if not self.validate_condition(priority["condition"]):
-                    errors.append(f"Invalid condition in gainPriority: {priority['condition']}")
+        # Validate each priority list
+        priority_lists = {
+            "actionPriority": self.standard_cards["kingdom"],
+            "gainPriority": all_valid_cards,
+            "treasurePriority": self.standard_cards["treasures"],
+            "trashPriority": all_valid_cards,
+        }
 
-        # Check phases if they exist
-        if "phases" in strategy:
-            for phase_name, phase in strategy["phases"].items():
-                if "conditions" in phase:
-                    for cond_name, condition in phase["conditions"].items():
-                        if not self.validate_condition(str(condition)):
-                            errors.append(f"Invalid condition in phase {phase_name}: {condition}")
+        for list_name, valid_cards in priority_lists.items():
+            if list_name in strategy:
+                for priority in strategy[list_name]:
+                    # Validate card name
+                    if priority["card"] not in valid_cards:
+                        errors.append(f"Invalid card in {list_name}: {priority['card']}")
 
-        # Check play priorities
-        for card, priority in strategy["play_priorities"]["default"].items():
-            if card not in all_valid_cards:
-                errors.append(f"Invalid card in play_priorities: {card}")
-            if not 0 <= priority <= 1:
-                errors.append(f"Play priority for {card} must be between 0 and 1")
+                    # Validate priority value if present
+                    if "priority" in priority:
+                        if not isinstance(priority["priority"], (int, float)) or not 0 <= priority["priority"] <= 1:
+                            errors.append(f"Priority value for {priority['card']} must be between 0 and 1")
 
-        # Check weights
-        for weight_type, value in strategy["weights"].items():
-            if weight_type == "victory":
-                if isinstance(value, dict):
-                    # Check both default and endgame values if present
-                    for subtype, subvalue in value.items():
-                        if not isinstance(subvalue, (int, float)) or not 0 <= subvalue <= 1:
-                            errors.append(f"Victory {subtype} weight must be between 0 and 1")
-                else:
-                    # Check direct value
-                    if not isinstance(value, (int, float)) or not 0 <= value <= 1:
-                        errors.append("Victory weight must be between 0 and 1")
-            else:
-                # Other weights are always direct values
-                if not isinstance(value, (int, float)) or not 0 <= value <= 1:
-                    errors.append(f"Weight {weight_type} must be between 0 and 1")
-
-        # Check required cards are in kingdom cards
-        for card in strategy["requires"]:
-            if card not in self.standard_cards["kingdom"]:
-                errors.append(f"Required card {card} is not a valid kingdom card")
+                    # Validate condition if present
+                    if "condition" in priority:
+                        if not self.validate_condition(priority["condition"]):
+                            errors.append(f"Invalid condition in {list_name}: {priority['condition']}")
 
         return errors
 
@@ -223,7 +180,7 @@ class YAMLFormatEnforcer:
 
         strategy = strategy_data["strategy"]
 
-        # Ensure metadata exists and has all required fields
+        # Ensure metadata exists with required fields
         if "metadata" not in strategy:
             strategy["metadata"] = {}
 
@@ -231,43 +188,44 @@ class YAMLFormatEnforcer:
         metadata.setdefault("name", "Unnamed Strategy")
         metadata.setdefault("description", "No description provided")
         metadata.setdefault("version", "1.0")
-        metadata.setdefault("creation_date", datetime.now().strftime("%Y-%m-%d"))
 
-        # Ensure basic lists exist
-        strategy.setdefault("author", ["Unknown"])
-        strategy.setdefault("requires", [])
+        # Ensure all priority lists exist with default values
+        if "actionPriority" not in strategy:
+            strategy["actionPriority"] = [
+                {"card": card, "priority": 0.5}
+                for card in self.standard_cards["kingdom"]
+                if any(t in ["action", "attack", "reaction"] for t in self._get_card_types(card))
+            ]
 
-        # Ensure gain priorities exist for all standard cards
-        existing_priorities = {p["card"]: p for p in strategy.get("gainPriority", [])}
-        strategy["gainPriority"] = []
+        if "gainPriority" not in strategy:
+            strategy["gainPriority"] = [
+                {"card": card, "priority": 0.5}
+                for card in (
+                    self.standard_cards["treasures"] + self.standard_cards["victory"] + self.standard_cards["kingdom"]
+                )
+            ]
 
-        for card in self.standard_cards["treasures"] + self.standard_cards["victory"] + self.standard_cards["kingdom"]:
-            if card in existing_priorities:
-                strategy["gainPriority"].append(existing_priorities[card])
-            else:
-                strategy["gainPriority"].append({"card": card, "priority": 0.5})  # Default priority
-
-        # Ensure play priorities exist
-        if "play_priorities" not in strategy:
-            strategy["play_priorities"] = {"default": {}}
-
-        if "default" not in strategy["play_priorities"]:
-            strategy["play_priorities"]["default"] = {}
-
-        for card in self.standard_cards["treasures"] + self.standard_cards["victory"] + self.standard_cards["kingdom"]:
-            strategy["play_priorities"]["default"].setdefault(card, 0.5)
-
-        # Ensure weights exist
-        if "weights" not in strategy:
-            strategy["weights"] = {}
-
-        weights = strategy["weights"]
-        weights.setdefault("action", 0.7)
-        weights.setdefault("treasure", 0.6)
-        weights.setdefault("victory", 0.3)
-        weights.setdefault("engine", 0.8)
+        if "treasurePriority" not in strategy:
+            strategy["treasurePriority"] = [
+                {"card": card, "priority": 0.5} for card in self.standard_cards["treasures"]
+            ]
 
         return strategy_data
+
+    def _get_card_types(self, card_name: str) -> list[str]:
+        """Helper method to determine card types."""
+        if card_name in self.standard_cards["treasures"]:
+            return ["treasure"]
+        elif card_name in self.standard_cards["victory"]:
+            return ["victory"]
+        else:
+            # For kingdom cards, return appropriate types
+            # This is a simplified version - in practice, you might want to load this from a registry
+            if card_name in ["Witch"]:
+                return ["action", "attack"]
+            elif card_name in ["Moat"]:
+                return ["action", "reaction"]
+            return ["action"]
 
     def enforce_file(self, filepath: Path) -> tuple[bool, list[str]]:
         """Validate and format a strategy file, saving the formatted version."""
@@ -283,8 +241,8 @@ class YAMLFormatEnforcer:
 
             if not errors:
                 # Save the formatted version
-                with open(filepath, "w") as f:
-                    yaml.dump(formatted_strategy, f, sort_keys=False)
+                with open(filepath, "w", encoding="utf-8") as f:
+                    yaml.dump(formatted_strategy, f, sort_keys=False, allow_unicode=True)
                 return True, []
 
             return False, errors
@@ -325,3 +283,7 @@ def main():
         print(f"\n{filename}:")
         for error in errors:
             print(f"  {'✓' if error == 'OK' else '✗'} {error}")
+
+
+if __name__ == "__main__":
+    main()

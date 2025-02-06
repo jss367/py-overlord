@@ -1,0 +1,35 @@
+metadata:
+  name: ChapelWitch
+  requires:
+    - Chapel
+    - Witch
+gainPriority:
+  - card: Colony
+    condition: my.countInDeck("Platinum") > 0
+  - card: Province
+    condition: state.countInSupply("Colony") <= 6
+  - card: Witch
+    condition: my.countInDeck("Witch") == 0
+  - card: Duchy
+    condition: "0 < state.gainsToEndGame() <= 5"
+  - card: Estate
+    condition: "0 < state.gainsToEndGame() <= 2"
+  - card: Platinum
+    condition: ""
+  - card: Gold
+    condition: ""
+  - card: Chapel
+    condition: my.coins <= 3 and my.countInDeck("Chapel") == 0 and my.turnsTaken <= 2
+  - card: Silver
+    condition: ""
+  - card: Copper
+    condition: state.gainsToEndGame() <= 3
+trashPriority:
+  - card: Curse
+    condition: ""
+  - card: Estate
+    condition: state.gainsToEndGame() > 4
+  - card: Copper
+    condition: my.getTotalMoney() > 4 and not (my.countInDeck("Witch") == 0 and my.getTreasureInHand() == 5)
+  - card: Estate
+    condition: state.gainsToEndGame() > 2

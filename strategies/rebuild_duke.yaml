@@ -1,0 +1,36 @@
+metadata:
+  name: RebuildDuke
+  requires:
+    - Rebuild
+    - Duke
+gainPriority:
+  - card: Rebuild
+    condition: my.countInDeck("Rebuild") < 2
+  - card: Duchy
+    condition: ""
+  - card: Province
+    condition: ""
+  - card: Duke
+    condition: ""
+  - card: Estate
+    condition: my.countInDeck("Estate") == 0 and my.countInDeck("Rebuild") >= 2
+  - card: Estate
+    condition: state.countInSupply("Duchy") == 0
+  - card: Rebuild
+    condition: ""
+  - card: Silver
+    condition: ""
+wantsToRebuild:
+  condition: state.countInSupply("Province") > 0
+rebuildPriority:
+  - card: Duchy
+    condition: ""
+  - card: Province
+    condition: ""
+  - card: Duke
+    condition: ""
+  - card: Estate
+    condition: ""
+nameVPPriority:
+  - card: Duchy
+    condition: ""

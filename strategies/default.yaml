@@ -1,7 +1,5 @@
 metadata:
-  name: BigMoney
-  description: Basic Big Money strategy
-  version: '1.0'
+  name: Default
 gainPriority:
   - card: Province
     condition: "my.coins >= 8"
@@ -11,3 +9,9 @@ gainPriority:
     condition: "my.coins >= 3"
   - card: Copper
     condition: "my.coins < 3"
+discardPriority:
+  - card: Colony
+  - card: Province
+  - card: Duchy
+  - card: Estate
+  - card: Curse

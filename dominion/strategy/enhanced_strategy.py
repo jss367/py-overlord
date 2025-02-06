@@ -176,3 +176,13 @@ class EnhancedStrategy:
                 return choice_map[rule.card_name]
 
         return None
+
+    def choose_discard(self, state: GameState, player: PlayerState, choices: list[Card]) -> Optional[Card]:
+        """Choose a card to discard following priority rules"""
+        choice_map = {card.name: card for card in choices if card}
+
+        for rule in self.discard_priority:
+            if rule.card_name in choice_map and self.evaluate_condition(rule, state, player):
+                return choice_map[rule.card_name]
+
+        return None
