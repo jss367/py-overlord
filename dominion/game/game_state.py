@@ -66,7 +66,18 @@ class GameState:
         for player in self.players:
             player.initialize()
 
-        self.log_callback("Game initialized with players: " + ", ".join(str(p.ai) for p in self.players))
+        # Create a more readable player list for logging
+        player_descriptions = []
+        for player in self.players:
+            # Access the strategy name from the AI's strategy
+            # Get the full ID number from the AI name
+            ai_id = player.ai.name.split('-')[1]
+            # Take last 4 digits to ensure uniqueness
+            short_id = ai_id[-4:]
+            strategy_name = getattr(player.ai.strategy, 'name', 'Unknown Strategy')
+            player_descriptions.append(f"Player {short_id} ({strategy_name})")
+
+        self.log_callback("Game initialized with players: " + ", ".join(player_descriptions))
         self.log_callback("Kingdom cards: " + ", ".join(c.name for c in kingdom_cards))
 
     def setup_supply(self, kingdom_cards: list[Card]):

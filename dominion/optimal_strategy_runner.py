@@ -1,12 +1,10 @@
 from pathlib import Path
-from typing import Optional
 
 import yaml
 
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
-from dominion.strategy.strategy_loader import StrategyLoader
 
 
 def convert_to_priority_rules(priority_list: list) -> list[PriorityRule]:

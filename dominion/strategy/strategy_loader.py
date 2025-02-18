@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 import yaml
 
@@ -10,7 +10,7 @@ class StrategyLoader:
     """Handles loading and managing Dominion game strategies from YAML files."""
 
     def __init__(self):
-        self.strategies: Dict[str, EnhancedStrategy] = {}
+        self.strategies: dict[str, EnhancedStrategy] = {}
 
     def load_directory(self, directory: Path) -> None:
         """Load all YAML strategy files from a directory."""
@@ -30,7 +30,7 @@ class StrategyLoader:
     def load_file(self, file_path: Path) -> Optional[EnhancedStrategy]:
         """Load a single strategy file and return the strategy."""
         try:
-            with open(file_path, 'r') as f:
+            with open(file_path, 'r', encoding='utf-8') as f:
                 strategy_data = yaml.safe_load(f)
 
             if not isinstance(strategy_data, dict):

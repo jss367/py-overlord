@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any
 
 import jsonschema
+import yaml
 
 
 class YAMLFormatEnforcer:
