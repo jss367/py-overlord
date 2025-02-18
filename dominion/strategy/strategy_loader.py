@@ -1,95 +1,69 @@
+import importlib.util
+import inspect
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Type
 
-import yaml
-
-from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+from dominion.strategy.enhanced_strategy import EnhancedStrategy as BaseStrategy
 
 
 class StrategyLoader:
-    """Handles loading and managing Dominion game strategies from YAML files."""
+    """Handles loading and managing Dominion game strategies."""
 
     def __init__(self):
-        self.strategies: dict[str, EnhancedStrategy] = {}
+        self.strategies: dict[str, Type[BaseStrategy]] = {}
+        self._load_all_strategies()
 
-    def load_directory(self, directory: Path) -> None:
-        """Load all YAML strategy files from a directory."""
-        if not directory.exists():
-            directory.mkdir(parents=True)
+    def _load_all_strategies(self) -> None:
+        """Automatically load all strategy classes from the strategies directory."""
+        # Get the strategies directory within the strategy package
+        strategies_dir = Path(__file__).parent / 'strategies'
 
-        # Clear existing strategies
-        self.strategies.clear()
+        if not strategies_dir.exists():
+            print(f"Strategies directory not found at {strategies_dir}")
+            return
 
-        # Load all YAML files
-        for file_path in directory.glob("*.yaml"):
+        # Get all Python files in the strategies directory
+        strategy_files = [f for f in strategies_dir.glob('*.py') if f.stem != '__init__']
+
+        for file_path in strategy_files:
             try:
-                self.load_file(file_path)
+                # Create the module name in the correct package
+                module_name = f"dominion.strategy.strategies.{file_path.stem}"
+
+                # Load module using file path
+                spec = importlib.util.spec_from_file_location(module_name, file_path)
+                if spec is None or spec.loader is None:
+                    print(f"Could not load spec for {file_path}")
+                    continue
+
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+
+                # Find all strategy classes in the module
+                for name, obj in inspect.getmembers(module):
+                    if inspect.isclass(obj) and issubclass(obj, BaseStrategy) and obj != BaseStrategy:
+                        self.register_strategy(obj.__name__, obj)
+
             except Exception as e:
                 print(f"Error loading strategy from {file_path}: {e}")
 
-    def load_file(self, file_path: Path) -> Optional[EnhancedStrategy]:
-        """Load a single strategy file and return the strategy."""
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                strategy_data = yaml.safe_load(f)
+    def register_strategy(self, name: str, strategy_class: Type[BaseStrategy]) -> None:
+        """Register a new strategy class."""
+        self.strategies[name] = strategy_class
+        print(f"Registered strategy: {name}")
 
-            if not isinstance(strategy_data, dict):
-                raise ValueError(f"Invalid strategy format in {file_path}")
-
-            # Handle both old format with 'strategy' wrapper and new direct format
-            if 'strategy' in strategy_data:
-                strategy_data = strategy_data['strategy']
-
-            # Create new strategy
-            strategy = EnhancedStrategy()
-
-            # Set metadata
-            if 'metadata' in strategy_data:
-                strategy.name = strategy_data['metadata'].get('name', file_path.stem)
-
-            # Convert action priorities
-            if 'actionPriority' in strategy_data:
-                strategy.action_priority = [
-                    PriorityRule(
-                        card_name=rule['card'] if isinstance(rule, dict) else rule,
-                        condition=rule.get('condition') if isinstance(rule, dict) else None,
-                    )
-                    for rule in strategy_data['actionPriority']
-                ]
-
-            # Convert gain priorities
-            if 'gainPriority' in strategy_data:
-                strategy.gain_priority = [
-                    PriorityRule(
-                        card_name=rule['card'] if isinstance(rule, dict) else rule,
-                        condition=rule.get('condition') if isinstance(rule, dict) else None,
-                    )
-                    for rule in strategy_data['gainPriority']
-                ]
-
-            # Convert treasure priorities
-            if 'treasurePriority' in strategy_data:
-                strategy.treasure_priority = [
-                    PriorityRule(
-                        card_name=rule['card'] if isinstance(rule, dict) else rule,
-                        condition=rule.get('condition') if isinstance(rule, dict) else None,
-                    )
-                    for rule in strategy_data['treasurePriority']
-                ]
-
-            # Store strategy
-            self.strategies[strategy.name] = strategy
-            print(f"Successfully loaded strategy: {strategy.name}")
-            return strategy
-
-        except Exception as e:
-            print(f"Error loading strategy file {file_path}: {e}")
-            raise
-
-    def get_strategy(self, name: str) -> Optional[EnhancedStrategy]:
-        """Get a strategy by name."""
-        return self.strategies.get(name)
+    def get_strategy(self, name: str) -> Optional[BaseStrategy]:
+        """Get a new instance of a strategy by name."""
+        strategy_class = self.strategies.get(name)
+        if strategy_class is None:
+            return None
+        return strategy_class()
 
     def list_strategies(self) -> list[str]:
-        """Get list of all loaded strategy names."""
+        """Get list of all registered strategy names."""
         return list(self.strategies.keys())
+
+    def clear_strategies(self) -> None:
+        """Clear all registered strategies and reload them."""
+        self.strategies.clear()
+        self._load_all_strategies()

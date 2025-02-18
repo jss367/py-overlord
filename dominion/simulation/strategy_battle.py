@@ -15,12 +15,7 @@ class StrategyBattle:
     def __init__(self, kingdom_cards: list[str], log_folder: str = "battle_logs"):
         self.kingdom_cards = kingdom_cards
         self.logger = GameLogger(log_folder=log_folder)
-        self.strategy_loader = StrategyLoader()
-
-        # Load initial strategies
-        strategies_dir = Path("strategies")
-        if strategies_dir.exists():
-            self.strategy_loader.load_directory(strategies_dir)
+        self.strategy_loader = StrategyLoader()  # Now automatically loads all strategies
 
     def run_battle(self, strategy1_name: str, strategy2_name: str, num_games: int = 100) -> dict[str, Any]:
         """Run multiple games between two strategies"""
@@ -51,9 +46,9 @@ class StrategyBattle:
         for game_num in range(num_games):
             print(f"Playing game {game_num + 1}/{num_games}...")
 
-            # Create fresh AIs for each game
-            ai1 = GeneticAI(strategy1)
-            ai2 = GeneticAI(strategy2)
+            # Create fresh AIs for each game using new strategy instances
+            ai1 = GeneticAI(self.strategy_loader.get_strategy(strategy1_name))
+            ai2 = GeneticAI(self.strategy_loader.get_strategy(strategy2_name))
 
             # Alternate who goes first
             if game_num % 2 == 0:
@@ -117,29 +112,6 @@ class StrategyBattle:
         return winner, scores
 
 
-def print_results(results: dict[str, Any]):
-    """Print battle results in a readable format."""
-    print("\n=== Strategy Battle Results ===")
-    print(f"\nGames played: {results['games_played']}")
-
-    print(f"\n{results['strategy1_name']}:")
-    print(f"  Wins: {results['strategy1_wins']} ({results['strategy1_win_rate']:.1f}%)")
-    print(f"  Average Score: {results['strategy1_avg_score']:.1f}")
-
-    print(f"\n{results['strategy2_name']}:")
-    print(f"  Wins: {results['strategy2_wins']} ({results['strategy2_win_rate']:.1f}%)")
-    print(f"  Average Score: {results['strategy2_avg_score']:.1f}")
-
-    print("\nSample Game Results:")
-    for game in results["detailed_results"][:5]:  # Show first 5 games
-        print(f"\nGame {game['game_number']}:")
-        print(f"  Winner: {game['winner']}")
-        print(f"  {results['strategy1_name']} Score: {game['strategy1_score']}")
-        print(f"  {results['strategy2_name']} Score: {game['strategy2_score']}")
-        print(f"  Margin: {game['margin']}")
-        print(f"  Turns: {game['turns']}")
-
-
 def main():
     parser = argparse.ArgumentParser(description="Run a battle between two Dominion strategies")
     parser.add_argument("strategy1_name", help="Name of first strategy")
@@ -168,35 +140,38 @@ def main():
     # Print available strategies
     print("\nAvailable strategies:", ", ".join(battle.strategy_loader.list_strategies()))
 
-    # Get strategy names without .yaml extension
-    strategy1_name = Path(args.strategy1_name).stem
-    strategy2_name = Path(args.strategy2_name).stem
-
     print(f"\nRunning {args.games} games...")
-    results = battle.run_battle(strategy1_name, strategy2_name, args.games)
+    results = battle.run_battle(args.strategy1_name, args.strategy2_name, args.games)
 
     if results:
-        print("\n=== Battle Results ===")
-        print(f"\nGames played: {results['games_played']}")
-        print(f"\n{results['strategy1_name']}:")
-        print(f"  Wins: {results['strategy1_wins']} ({results['strategy1_win_rate']:.1f}%)")
-        print(f"  Average Score: {results['strategy1_avg_score']:.1f}")
-        print(f"\n{results['strategy2_name']}:")
-        print(f"  Wins: {results['strategy2_wins']} ({results['strategy2_win_rate']:.1f}%)")
-        print(f"  Average Score: {results['strategy2_avg_score']:.1f}")
-
-        print("\nDetailed game results:")
-        for game in results["detailed_results"]:
-            print(f"\nGame {game['game_number']}:")
-            print(f"  Winner: {game['winner']}")
-            print(
-                f"  Scores: {results['strategy1_name']}={game['strategy1_score']}, "
-                f"{results['strategy2_name']}={game['strategy2_score']}"
-            )
-            print(f"  Margin: {game['margin']}")
-            print(f"  Turns: {game['turns']}")
+        print_results(results)
     else:
         print("\nError: No results generated from battle")
+
+
+def print_results(results: dict[str, Any]):
+    """Print battle results in a readable format."""
+    print("\n=== Strategy Battle Results ===")
+    print(f"\nGames played: {results['games_played']}")
+
+    print(f"\n{results['strategy1_name']}:")
+    print(f"  Wins: {results['strategy1_wins']} ({results['strategy1_win_rate']:.1f}%)")
+    print(f"  Average Score: {results['strategy1_avg_score']:.1f}")
+
+    print(f"\n{results['strategy2_name']}:")
+    print(f"  Wins: {results['strategy2_wins']} ({results['strategy2_win_rate']:.1f}%)")
+    print(f"  Average Score: {results['strategy2_avg_score']:.1f}")
+
+    print("\nDetailed game results:")
+    for game in results["detailed_results"]:
+        print(f"\nGame {game['game_number']}:")
+        print(f"  Winner: {game['winner']}")
+        print(
+            f"  Scores: {results['strategy1_name']}={game['strategy1_score']}, "
+            f"{results['strategy2_name']}={game['strategy2_score']}"
+        )
+        print(f"  Margin: {game['margin']}")
+        print(f"  Turns: {game['turns']}")
 
 
 if __name__ == "__main__":
