@@ -1,5 +1,5 @@
 metadata:
-  name: ChapelWitch
+  name: ChapelWitchTest
   description: Chapel/Witch engine strategy
   version: '2.0'
 
@@ -9,7 +9,7 @@ gainPriority:
   - card: Witch
     condition: "my.count(Witch) == 0"
   - card: Chapel
-    condition: "state.turn_number <= 2 AND my.count(Chapel) == 0"
+    condition: "state.turn_number <= 5 AND my.count(Chapel) == 0"
   - card: Gold
     condition: "my.coins >= 6"
   - card: Silver

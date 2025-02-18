@@ -27,7 +27,7 @@
             },
             "args": [
                 "ChapelWitch",
-                "BigMoney",
+                "ChapelWitchTest",
                 "--games",
                 "10"
             ]
