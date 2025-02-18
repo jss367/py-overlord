@@ -1,35 +1,36 @@
 metadata:
   name: ChapelWitch
-  requires:
-    - Chapel
-    - Witch
+  description: Chapel/Witch engine strategy
+  version: '2.0'
+
 gainPriority:
-  - card: Colony
-    condition: my.countInDeck("Platinum") > 0
   - card: Province
-    condition: state.countInSupply("Colony") <= 6
+    condition: "my.coins >= 8"
   - card: Witch
-    condition: my.countInDeck("Witch") == 0
-  - card: Duchy
-    condition: "0 < state.gainsToEndGame() <= 5"
-  - card: Estate
-    condition: "0 < state.gainsToEndGame() <= 2"
-  - card: Platinum
-    condition: ""
-  - card: Gold
-    condition: ""
+    condition: "my.count(Witch) == 0"
   - card: Chapel
-    condition: my.coins <= 3 and my.countInDeck("Chapel") == 0 and my.turnsTaken <= 2
+    condition: "state.turn_number <= 2 AND my.count(Chapel) == 0"
+  - card: Gold
+    condition: "my.coins >= 6"
   - card: Silver
-    condition: ""
+    condition: "my.coins >= 3"
   - card: Copper
-    condition: state.gainsToEndGame() <= 3
+
+actionPriority:
+  - card: Chapel
+    condition: "my.count(Estate) > 0 OR my.count(Copper) > 4"
+  - card: Witch
+  - card: Village
+    condition: "my.actions < 2"
+
 trashPriority:
   - card: Curse
-    condition: ""
   - card: Estate
-    condition: state.gainsToEndGame() > 4
+    condition: "state.provinces_left > 4"
   - card: Copper
-    condition: my.getTotalMoney() > 4 and not (my.countInDeck("Witch") == 0 and my.getTreasureInHand() == 5)
-  - card: Estate
-    condition: state.gainsToEndGame() > 2
+    condition: "my.count(Silver) + my.count(Gold) >= 3"
+
+treasurePriority:
+  - card: Gold
+  - card: Silver
+  - card: Copper

@@ -4,6 +4,7 @@ from typing import Any, Optional
 from dominion.cards.base_card import Card
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
+from dominion.strategy.condition_parser import ConditionParser, GameContext
 
 
 @dataclass
@@ -12,64 +13,10 @@ class PriorityRule:
 
     card_name: str
     condition: Optional[str] = None
-    context: Optional[dict[str, Any]] = None
-
-
-class StateWrapper:
-    """Safe wrapper for GameState to use in condition evaluation"""
-
-    def __init__(self, state: GameState):
-        self._state = state
-
-    def countInSupply(self, card_name: str) -> int:
-        return self._state.supply.get(card_name, 0)
-
-    def turn_number(self) -> int:
-        return self._state.turn_number
-
-
-class PlayerWrapper:
-    """Safe wrapper for PlayerState to use in condition evaluation"""
-
-    def __init__(self, player: PlayerState):
-        self._player = player
-
-    def countInHand(self, card_name: str) -> int:
-        return sum(1 for c in self._player.hand if c.name == card_name)
-
-    def countInDeck(self, card_name: str) -> int:
-        return self._player.count_in_deck(card_name)
-
-    def actions(self) -> int:
-        return self._player.actions
-
-    def coins(self) -> int:
-        return self._player.coins
-
-    @property
-    def hand_size(self) -> int:
-        return len(self._player.hand)
-
-
-class GameContext:
-    """Provides safe access to game state for condition evaluation"""
-
-    def __init__(self, state: GameState, player: PlayerState):
-        self.state = state
-        self.my = PlayerWrapper(player)
-
-    def turn_number(self) -> int:
-        return self.state.turn_number
-
-    def provinces_left(self) -> int:
-        return self.state.supply.get("Province", 0)
-
-    def countInSupply(self, card_name: str) -> int:
-        return self.state.supply.get(card_name, 0)
 
 
 class EnhancedStrategy:
-    """Enhanced strategy implementation supporting ordered rules with conditions"""
+    """Enhanced strategy implementation using the new condition parser"""
 
     def __init__(self):
         self.name: str = "Unnamed Strategy"
@@ -77,6 +24,7 @@ class EnhancedStrategy:
         self.gain_priority: list[PriorityRule] = []
         self.treasure_priority: list[PriorityRule] = []
         self.trash_priority: list[PriorityRule] = []
+        self.condition_parser = ConditionParser()
 
     @classmethod
     def from_yaml(cls, yaml_data: dict[str, Any]) -> 'EnhancedStrategy':
@@ -90,12 +38,9 @@ class EnhancedStrategy:
             result = []
             for rule in rules_list:
                 if isinstance(rule, dict):
-                    result.append(
-                        PriorityRule(
-                            card_name=rule['card'], condition=rule.get('condition'), context=rule.get('context', {})
-                        )
-                    )
+                    result.append(PriorityRule(card_name=rule['card'], condition=rule.get('condition')))
                 else:
+                    # Handle simple string case for backward compatibility
                     result.append(PriorityRule(card_name=rule))
             return result
 
@@ -111,27 +56,14 @@ class EnhancedStrategy:
         return strategy
 
     def evaluate_condition(self, rule: PriorityRule, state: GameState, player: PlayerState) -> bool:
-        """Safely evaluate a rule's condition"""
+        """Evaluate a rule's condition using the parser"""
         if not rule.condition:
             return True
 
-        context = GameContext(state, player)
         try:
-            # Create restricted globals for safe evaluation
-            restricted_globals = {
-                '__builtins__': {
-                    'abs': abs,
-                    'len': len,
-                    'max': max,
-                    'min': min,
-                    'sum': sum,
-                }
-            }
-
-            # Make context available to condition
-            eval_locals = {'state': context, 'my': context.my}
-
-            return bool(eval(rule.condition, restricted_globals, eval_locals))
+            context = GameContext(state, player)
+            condition_func = self.condition_parser.parse(rule.condition)
+            return condition_func(context)
         except Exception as e:
             print(f"Error evaluating condition '{rule.condition}': {e}")
             return False
@@ -177,12 +109,23 @@ class EnhancedStrategy:
 
         return None
 
-    def choose_discard(self, state: GameState, player: PlayerState, choices: list[Card]) -> Optional[Card]:
-        """Choose a card to discard following priority rules"""
-        choice_map = {card.name: card for card in choices if card}
+    def to_yaml(self) -> dict[str, Any]:
+        """Convert strategy to YAML format"""
+        yaml_data = {'metadata': {'name': self.name, 'version': '2.0'}}
 
-        for rule in self.discard_priority:
-            if rule.card_name in choice_map and self.evaluate_condition(rule, state, player):
-                return choice_map[rule.card_name]
+        def convert_rules(rules):
+            return [
+                {'card': rule.card_name, 'condition': rule.condition} if rule.condition else rule.card_name
+                for rule in rules
+            ]
 
-        return None
+        if self.action_priority:
+            yaml_data['actionPriority'] = convert_rules(self.action_priority)
+        if self.gain_priority:
+            yaml_data['gainPriority'] = convert_rules(self.gain_priority)
+        if self.treasure_priority:
+            yaml_data['treasurePriority'] = convert_rules(self.treasure_priority)
+        if self.trash_priority:
+            yaml_data['trashPriority'] = convert_rules(self.trash_priority)
+
+        return yaml_data
