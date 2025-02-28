@@ -1,12 +1,12 @@
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 
-class ChapelWitchStrategy(EnhancedStrategy):
+class ChapelWitchTestStrategy(EnhancedStrategy):
     """Chapel/Witch engine strategy implementation"""
 
     def __init__(self):
         super().__init__()
-        self.name = "ChapelWitch"  # This is what will show up in the registry
+        self.name = "ChapelWitchTest"  # This is what will show up in the registry
         self.description = "Chapel/Witch engine strategy"
         self.version = "2.0"
 
@@ -14,7 +14,7 @@ class ChapelWitchStrategy(EnhancedStrategy):
         self.gain_priority = [
             PriorityRule("Province", "my.coins >= 8"),
             PriorityRule("Witch", "my.count(Witch) == 0"),
-            PriorityRule("Chapel", "state.turn_number <= 2 AND my.count(Chapel) == 0"),
+            PriorityRule("Chapel", "state.turn_number <= 5 AND my.count(Chapel) == 0"),
             PriorityRule("Gold", "my.coins >= 6"),
             PriorityRule("Silver", "my.coins >= 3"),
             PriorityRule("Copper"),
@@ -22,7 +22,7 @@ class ChapelWitchStrategy(EnhancedStrategy):
 
         # Define action priorities
         self.action_priority = [
-            PriorityRule("Chapel", "my.count(Estate) > 0 OR my.count(Copper) > 4"),
+            PriorityRule("Chapel", "my.count(Estate) > 0 OR my.count(Copper) > 3"),
             PriorityRule("Witch"),
         ]
 

@@ -1,131 +1,151 @@
-from dataclasses import dataclass
-from typing import Any, Optional
-
-from dominion.cards.base_card import Card
-from dominion.game.game_state import GameState
-from dominion.game.player_state import PlayerState
-from dominion.strategy.condition_parser import ConditionParser, GameContext
+from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 
-@dataclass
-class PriorityRule:
-    """Represents a single priority rule in a strategy"""
+def create_big_money_strategy() -> EnhancedStrategy:
+    """Classic Big Money strategy focusing on treasure acquisition."""
+    strategy = EnhancedStrategy()
+    strategy.name = "BigMoney"
 
-    card_name: str
-    condition: Optional[str] = None
+    # Gain priorities
+    strategy.gain_priority = [
+        # Buy Province if we can afford it
+        PriorityRule("Province", PriorityRule.can_afford(8)),
+        # Buy Duchy late game
+        PriorityRule("Duchy", PriorityRule.and_(PriorityRule.provinces_left("<=", 4), PriorityRule.can_afford(5))),
+        # Buy Gold if we can afford it
+        PriorityRule("Gold", PriorityRule.can_afford(6)),
+        # Buy Silver if we can afford it and it's not too late
+        PriorityRule("Silver", PriorityRule.and_(PriorityRule.can_afford(3), PriorityRule.provinces_left(">", 2))),
+    ]
+
+    # Simple treasure playing order
+    strategy.treasure_priority = [
+        PriorityRule("Gold"),
+        PriorityRule("Silver"),
+        PriorityRule("Copper"),
+    ]
+
+    return strategy
 
 
-class EnhancedStrategy:
-    """Enhanced strategy implementation using the new condition parser"""
+def create_chapel_witch_strategy() -> EnhancedStrategy:
+    """Chapel/Witch engine strategy."""
+    strategy = EnhancedStrategy()
+    strategy.name = "ChapelWitch"
 
-    def __init__(self):
-        self.name: str = "Unnamed Strategy"
-        self.action_priority: list[PriorityRule] = []
-        self.gain_priority: list[PriorityRule] = []
-        self.treasure_priority: list[PriorityRule] = []
-        self.trash_priority: list[PriorityRule] = []
-        self.condition_parser = ConditionParser()
+    # Action priorities
+    strategy.action_priority = [
+        # Chapel early for deck thinning
+        PriorityRule(
+            "Chapel",
+            PriorityRule.and_(
+                PriorityRule.turn_number("<=", 6),
+                PriorityRule.or_(PriorityRule.has_cards(["Copper"], 1), PriorityRule.has_cards(["Estate"], 1)),
+            ),
+        ),
+        # Village for actions
+        PriorityRule("Village", PriorityRule.resources("actions", "<", 2)),
+        # Witch for attacks
+        PriorityRule(
+            "Witch", PriorityRule.and_(PriorityRule.turn_number(">=", 3), PriorityRule.resources("actions", ">=", 1))
+        ),
+        # Laboratory for draw
+        PriorityRule("Laboratory", PriorityRule.always_true),
+    ]
 
-    @classmethod
-    def from_yaml(cls, yaml_data: dict[str, Any]) -> 'EnhancedStrategy':
-        """Create strategy from YAML configuration"""
-        strategy = cls()
+    # Gain priorities
+    strategy.gain_priority = [
+        # Victory cards
+        PriorityRule("Province", PriorityRule.can_afford(8)),
+        PriorityRule("Duchy", PriorityRule.and_(PriorityRule.provinces_left("<=", 5), PriorityRule.can_afford(5))),
+        # Engine pieces
+        PriorityRule(
+            "Witch",
+            PriorityRule.and_(
+                PriorityRule.turn_number("<", 15), PriorityRule.has_cards(["Witch"], 0), PriorityRule.can_afford(5)
+            ),
+        ),
+        PriorityRule(
+            "Chapel",
+            PriorityRule.and_(
+                PriorityRule.turn_number("<=", 4), PriorityRule.has_cards(["Chapel"], 0), PriorityRule.can_afford(2)
+            ),
+        ),
+        PriorityRule(
+            "Laboratory",
+            PriorityRule.and_(
+                PriorityRule.turn_number("<", 12),
+                PriorityRule.resources("actions", ">=", 1),
+                PriorityRule.can_afford(5),
+            ),
+        ),
+        PriorityRule(
+            "Village",
+            PriorityRule.and_(
+                PriorityRule.turn_number("<", 12),
+                PriorityRule.has_cards(["Village", "Laboratory", "Witch"], 2),
+                PriorityRule.can_afford(3),
+            ),
+        ),
+        # Treasure
+        PriorityRule("Gold", PriorityRule.can_afford(6)),
+        PriorityRule("Silver", PriorityRule.and_(PriorityRule.turn_number("<", 10), PriorityRule.can_afford(3))),
+    ]
 
-        if 'metadata' in yaml_data:
-            strategy.name = yaml_data['metadata'].get('name', 'Unnamed Strategy')
+    # Treasure priorities
+    strategy.treasure_priority = [
+        PriorityRule("Gold"),
+        PriorityRule("Silver"),
+        PriorityRule("Copper"),
+    ]
 
-        def parse_rules(rules_list):
-            result = []
-            for rule in rules_list:
-                if isinstance(rule, dict):
-                    result.append(PriorityRule(card_name=rule['card'], condition=rule.get('condition')))
-                else:
-                    # Handle simple string case for backward compatibility
-                    result.append(PriorityRule(card_name=rule))
-            return result
+    # Trash priorities
+    strategy.trash_priority = [
+        PriorityRule("Curse"),
+        PriorityRule("Estate", PriorityRule.provinces_left(">", 4)),
+        PriorityRule(
+            "Copper",
+            PriorityRule.and_(PriorityRule.has_cards(["Silver", "Gold"], 3), PriorityRule.turn_number("<", 10)),
+        ),
+    ]
 
-        if 'actionPriority' in yaml_data:
-            strategy.action_priority = parse_rules(yaml_data['actionPriority'])
-        if 'gainPriority' in yaml_data:
-            strategy.gain_priority = parse_rules(yaml_data['gainPriority'])
-        if 'treasurePriority' in yaml_data:
-            strategy.treasure_priority = parse_rules(yaml_data['treasurePriority'])
-        if 'trashPriority' in yaml_data:
-            strategy.trash_priority = parse_rules(yaml_data['trashPriority'])
+    return strategy
 
-        return strategy
 
-    def evaluate_condition(self, rule: PriorityRule, state: GameState, player: PlayerState) -> bool:
-        """Evaluate a rule's condition using the parser"""
-        if not rule.condition:
-            return True
+def create_village_smithy_lab_strategy() -> EnhancedStrategy:
+    """Village/Smithy/Laboratory engine strategy."""
+    strategy = EnhancedStrategy()
+    strategy.name = "VillageSmithyLab"
 
-        try:
-            context = GameContext(state, player)
-            condition_func = self.condition_parser.parse(rule.condition)
-            return condition_func(context)
-        except Exception as e:
-            print(f"Error evaluating condition '{rule.condition}': {e}")
-            return False
+    # Action priorities
+    strategy.action_priority = [
+        # Village first if low on actions
+        PriorityRule("Village", PriorityRule.resources("actions", "<", 2)),
+        # Laboratory for efficient draw
+        PriorityRule("Laboratory", PriorityRule.resources("actions", ">=", 1)),
+        # Smithy for draw
+        PriorityRule("Smithy", PriorityRule.resources("actions", ">=", 1)),
+    ]
 
-    def choose_action(self, state: GameState, player: PlayerState, choices: list[Card]) -> Optional[Card]:
-        """Choose an action card following priority rules"""
-        choice_map = {card.name: card for card in choices if card}
+    # Gain priorities
+    strategy.gain_priority = [
+        # Victory cards
+        PriorityRule("Province", PriorityRule.can_afford(8)),
+        PriorityRule("Duchy", PriorityRule.and_(PriorityRule.provinces_left("<=", 4), PriorityRule.can_afford(5))),
+        # Engine pieces
+        PriorityRule("Laboratory", PriorityRule.and_(PriorityRule.turn_number("<", 15), PriorityRule.can_afford(5))),
+        PriorityRule("Village", PriorityRule.and_(PriorityRule.turn_number("<", 12), PriorityRule.can_afford(3))),
+        PriorityRule("Smithy", PriorityRule.and_(PriorityRule.turn_number("<", 12), PriorityRule.can_afford(4))),
+        # Treasure
+        PriorityRule("Gold", PriorityRule.can_afford(6)),
+        PriorityRule("Silver", PriorityRule.and_(PriorityRule.turn_number("<", 8), PriorityRule.can_afford(3))),
+    ]
 
-        # Go through priority rules in order
-        for rule in self.action_priority:
-            if rule.card_name in choice_map and self.evaluate_condition(rule, state, player):
-                return choice_map[rule.card_name]
+    # Treasure priorities
+    strategy.treasure_priority = [
+        PriorityRule("Gold"),
+        PriorityRule("Silver"),
+        PriorityRule("Copper"),
+    ]
 
-        return None
-
-    def choose_gain(self, state: GameState, player: PlayerState, choices: list[Card]) -> Optional[Card]:
-        """Choose a card to gain following priority rules"""
-        choice_map = {card.name: card for card in choices if card}
-
-        for rule in self.gain_priority:
-            if rule.card_name in choice_map and self.evaluate_condition(rule, state, player):
-                return choice_map[rule.card_name]
-
-        return None
-
-    def choose_treasure(self, state: GameState, player: PlayerState, choices: list[Card]) -> Optional[Card]:
-        """Choose a treasure card following priority rules"""
-        choice_map = {card.name: card for card in choices if card}
-
-        for rule in self.treasure_priority:
-            if rule.card_name in choice_map and self.evaluate_condition(rule, state, player):
-                return choice_map[rule.card_name]
-
-        return None
-
-    def choose_trash(self, state: GameState, player: PlayerState, choices: list[Card]) -> Optional[Card]:
-        """Choose a card to trash following priority rules"""
-        choice_map = {card.name: card for card in choices if card}
-
-        for rule in self.trash_priority:
-            if rule.card_name in choice_map and self.evaluate_condition(rule, state, player):
-                return choice_map[rule.card_name]
-
-        return None
-
-    def to_yaml(self) -> dict[str, Any]:
-        """Convert strategy to YAML format"""
-        yaml_data = {'metadata': {'name': self.name, 'version': '2.0'}}
-
-        def convert_rules(rules):
-            return [
-                {'card': rule.card_name, 'condition': rule.condition} if rule.condition else rule.card_name
-                for rule in rules
-            ]
-
-        if self.action_priority:
-            yaml_data['actionPriority'] = convert_rules(self.action_priority)
-        if self.gain_priority:
-            yaml_data['gainPriority'] = convert_rules(self.gain_priority)
-        if self.treasure_priority:
-            yaml_data['treasurePriority'] = convert_rules(self.treasure_priority)
-        if self.trash_priority:
-            yaml_data['trashPriority'] = convert_rules(self.trash_priority)
-
-        return yaml_data
+    return strategy
