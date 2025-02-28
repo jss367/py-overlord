@@ -1,10 +1,11 @@
-from dataclasses import dataclass, field
-from typing import Optional, Any
-from datetime import datetime
-import os
 import json
-from enum import Enum, auto
 import logging
+import os
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum, auto
+from typing import Any, Optional
+
 from tqdm import tqdm
 
 
@@ -72,9 +73,7 @@ class GameLogger:
             # Set up file handler for this game
             log_path = os.path.join(self.log_folder, f"{self.current_game_id}.log")
             file_handler = logging.FileHandler(log_path)
-            formatter = logging.Formatter(
-                "%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S"
-            )
+            formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S")
             file_handler.setFormatter(formatter)
             self.file_logger.addHandler(file_handler)
 
@@ -90,21 +89,15 @@ class GameLogger:
             return f"AI-{name.split('-')[1][:4]}"  # Show only first 4 digits of id
         return name
 
-    def log_turn_header(
-        self, player_name: str, turn_number: int, resources: dict[str, int]
-    ):
+    def log_turn_header(self, player_name: str, turn_number: int, resources: dict[str, int]):
         """Log formatted turn header with player state."""
         if not self.should_log_to_file:
             return
 
         self.file_logger.info("\n" + "=" * 40)
+        self.file_logger.info(f"Turn {turn_number} - {self.format_player_name(player_name)}")
         self.file_logger.info(
-            f"Turn {turn_number} - {self.format_player_name(player_name)}"
-        )
-        self.file_logger.info(
-            f"Resources: {resources['actions']} actions, "
-            f"{resources['buys']} buys, "
-            f"{resources['coins']} coins"
+            f"Resources: {resources['actions']} actions, " f"{resources['buys']} buys, " f"{resources['coins']} coins"
         )
         if resources.get("hand"):
             self.file_logger.info(f"Hand: {', '.join(resources['hand'])}")
@@ -135,14 +128,9 @@ class GameLogger:
         if not self.should_log_to_file:
             return
 
-        self.file_logger.info(
-            f"Supply: {card_name} {'gained' if count < 0 else 'added'} "
-            f"({remaining} remaining)"
-        )
+        self.file_logger.info(f"Supply: {card_name} {'gained' if count < 0 else 'added'} " f"({remaining} remaining)")
 
-    def end_game(
-        self, winner: str, scores: dict[str, int], supply_state: dict[str, int]
-    ):
+    def end_game(self, winner: str, scores: dict[str, int], supply_state: dict[str, int]):
         """End the current game with enhanced final state logging."""
         if self.should_log_to_file:
             # Log final game state
@@ -163,9 +151,7 @@ class GameLogger:
             self.file_logger.info("=" * 60 + "\n")
 
             # Save metrics
-            metrics_path = os.path.join(
-                self.log_folder, "metrics", f"{self.current_game_id}_metrics.json"
-            )
+            metrics_path = os.path.join(self.log_folder, "metrics", f"{self.current_game_id}_metrics.json")
             with open(metrics_path, "w") as f:
                 json.dump(self.current_metrics.to_dict(), f, indent=2)
 
@@ -183,8 +169,7 @@ class GameLogger:
         self.training_progress = tqdm(
             total=total_generations,
             desc="Training Progress",
-            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} "
-            "[{elapsed}<{remaining}, {rate_fmt}{postfix}]",
+            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} " "[{elapsed}<{remaining}, {rate_fmt}{postfix}]",
         )
 
     def update_training(self, generation: int, best_fitness: float, avg_fitness: float):
@@ -202,9 +187,7 @@ class GameLogger:
             # Log detailed metrics every 10 generations
             if generation % 10 == 0 and self.should_log_to_file:
                 self.file_logger.info("\n" + "=" * 40)
-                self.file_logger.info(
-                    f"Training Progress - Generation {generation + 1}"
-                )
+                self.file_logger.info(f"Training Progress - Generation {generation + 1}")
                 self.file_logger.info(f"Best Fitness: {best_fitness:.3f}")
                 self.file_logger.info(f"Average Fitness: {avg_fitness:.3f}")
                 self.file_logger.info("=" * 40)

@@ -30,9 +30,13 @@ def main():
 
     print("\nTraining complete!")
     print(f"Final metrics: {metrics}")
-    print("\nBest strategy card priorities:")
-    for card, priority in best_strategy.gain_priorities.items():
-        print(f"{card}: {priority:.3f}")
+
+    if best_strategy is None:
+        print("\nNo viable strategy was found.")
+    else:
+        print("\nBest strategy card priorities:")
+        for card, priority in best_strategy.gain_priorities.items():
+            print(f"{card}: {priority:.3f}")
 
 
 if __name__ == "__main__":

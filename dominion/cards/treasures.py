@@ -1,4 +1,3 @@
-# dominion/cards/treasures.py
 from .base_card import Card, CardCost, CardStats, CardType
 
 

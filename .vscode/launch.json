@@ -26,8 +26,8 @@
                 "PYTHONPATH": "${workspaceFolder}"
             },
             "args": [
-                "${workspaceFolder}/strategies/big_money.json",
-                "${workspaceFolder}/strategies/village_smithy_lab.json",
+                "ChapelWitch",
+                "ChapelWitchTest",
                 "--games",
                 "10"
             ]

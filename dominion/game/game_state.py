@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 
-from ..cards.registry import get_card
-from ..cards.base_card import Card
-from .player_state import PlayerState
+from dominion.cards.base_card import Card
+from dominion.cards.registry import get_card
+from dominion.game.player_state import PlayerState
 
 
 @dataclass
@@ -66,10 +66,18 @@ class GameState:
         for player in self.players:
             player.initialize()
 
-        self.log_callback(
-            "Game initialized with players: "
-            + ", ".join(str(p.ai) for p in self.players)
-        )
+        # Create a more readable player list for logging
+        player_descriptions = []
+        for player in self.players:
+            # Access the strategy name from the AI's strategy
+            # Get the full ID number from the AI name
+            ai_id = player.ai.name.split('-')[1]
+            # Take last 4 digits to ensure uniqueness
+            short_id = ai_id[-4:]
+            strategy_name = getattr(player.ai.strategy, 'name', 'Unknown Strategy')
+            player_descriptions.append(f"Player {short_id} ({strategy_name})")
+
+        self.log_callback("Game initialized with players: " + ", ".join(player_descriptions))
         self.log_callback("Kingdom cards: " + ", ".join(c.name for c in kingdom_cards))
 
     def setup_supply(self, kingdom_cards: list[Card]):
@@ -126,9 +134,7 @@ class GameState:
         # Process duration cards that were played last turn
         for card in player.duration[:]:
             # Log duration card effect
-            self.log_callback(
-                ("action", player.ai.name, f"resolves duration effect of {card}", {})
-            )
+            self.log_callback(("action", player.ai.name, f"resolves duration effect of {card}", {}))
 
             # Apply duration effects
             card.on_duration(self)
@@ -166,22 +172,21 @@ class GameState:
             if choice is None:
                 break
 
+            # Update metrics for actions played
+            if self.logger:
+                self.logger.current_metrics.actions_played[player.ai.name] = (
+                    self.logger.current_metrics.actions_played.get(player.ai.name, 0) + 1
+                )
+                self.logger.current_metrics.cards_played[choice.name] = (
+                    self.logger.current_metrics.cards_played.get(choice.name, 0) + 1
+                )
+
             # Log action play with context
             context = {
                 "remaining_actions": player.actions - 1,
                 "hand": [c.name for c in player.hand if c != choice],
             }
             self.log_callback(("action", player.ai.name, f"plays {choice}", context))
-
-            # Update metrics
-            if self.logger:
-                self.logger.current_metrics.actions_played[player.ai.name] = (
-                    self.logger.current_metrics.actions_played.get(player.ai.name, 0)
-                    + 1
-                )
-                self.logger.current_metrics.cards_played[choice.name] = (
-                    self.logger.current_metrics.cards_played.get(choice.name, 0) + 1
-                )
 
             player.actions -= 1
             player.actions_played += 1
@@ -204,34 +209,24 @@ class GameState:
             if choice is None:
                 break
 
+            # Update metrics for treasures played
+            if self.logger:
+                self.logger.current_metrics.cards_played[choice.name] = (
+                    self.logger.current_metrics.cards_played.get(choice.name, 0) + 1
+                )
+
             # Log treasure play with context
             context = {
                 "coins_before": player.coins,
                 "coins_added": choice.stats.coins,
                 "coins_after": player.coins + choice.stats.coins,
-                "remaining_treasures": [
-                    c.name for c in player.hand if c != choice and c.is_treasure
-                ],
+                "remaining_treasures": [c.name for c in player.hand if c != choice and c.is_treasure],
             }
             self.log_callback(("action", player.ai.name, f"plays {choice}", context))
 
-            # Update game state
             player.hand.remove(choice)
             player.in_play.append(choice)
             choice.on_play(self)
-
-        # Log end of treasure phase
-        self.log_callback(
-            (
-                "phase_end",
-                "treasure",
-                player.ai.name,
-                {
-                    "final_coins": player.coins,
-                    "remaining_hand": [c.name for c in player.hand],
-                },
-            )
-        )
 
         self.phase = "buy"
 
@@ -240,29 +235,20 @@ class GameState:
         player = self.current_player
 
         while player.buys > 0:
-            affordable = [
-                c for c in self._get_affordable_cards(player) if c is not None
-            ]
+            affordable = [c for c in self._get_affordable_cards(player) if c is not None]
 
             if not affordable:
                 break
 
-            # Log available purchases
-            self.log_callback(
-                (
-                    "buy_options",
-                    player.ai.name,
-                    {
-                        "coins": player.coins,
-                        "buys": player.buys,
-                        "affordable": [c.name for c in affordable],
-                    },
-                )
-            )
-
             choice = player.ai.choose_buy(self, affordable + [None])
             if choice is None:
                 break
+
+            # Update metrics for cards bought
+            if self.logger:
+                self.logger.current_metrics.cards_bought[choice.name] = (
+                    self.logger.current_metrics.cards_bought.get(choice.name, 0) + 1
+                )
 
             # Log buy with context
             context = {
@@ -274,9 +260,7 @@ class GameState:
 
             # Update supply
             self.supply[choice.name] -= 1
-            self.log_callback(
-                ("supply_change", choice.name, -1, self.supply[choice.name])
-            )
+            self.log_callback(("supply_change", choice.name, -1, self.supply[choice.name]))
 
             # Complete purchase
             player.buys -= 1
@@ -293,11 +277,7 @@ class GameState:
         for card_name, count in self.supply.items():
             if count > 0:
                 card = get_card(card_name)
-                if (
-                    card.cost.coins <= player.coins
-                    and card.cost.potions <= player.potions
-                    and card.may_be_bought(self)
-                ):
+                if card.cost.coins <= player.coins and card.cost.potions <= player.potions and card.may_be_bought(self):
                     affordable.append(card)
         return affordable
 
@@ -333,9 +313,7 @@ class GameState:
 
         # Move to next player
         if not self.extra_turn:
-            self.current_player_index = (self.current_player_index + 1) % len(
-                self.players
-            )
+            self.current_player_index = (self.current_player_index + 1) % len(self.players)
             if self.current_player_index == 0:
                 self.turn_number += 1
 
@@ -359,31 +337,39 @@ class GameState:
             self.handle_cleanup_phase()
 
     def is_game_over(self) -> bool:
-        """Check if the game is over."""
-        # Game ends if Province pile is empty
+        """Check if the game is over.
+
+        The game ends if:
+        1. Province pile is empty
+        2. Any three supply piles are empty
+        3. Maximum turns (100) reached to prevent infinite games
+
+        Returns:
+            bool: True if the game is over, False otherwise
+        """
+        # Update turn count in metrics
+        if self.logger:
+            self.logger.current_metrics.turn_count = self.turn_number
+
+        # Check win conditions in order of precedence
+
+        # 1. Province pile empty
         if self.supply.get("Province", 0) == 0:
+            self._update_final_metrics()
             self.log_callback("Game over: Provinces depleted")
             return True
 
-        # Or if any three supply piles are empty
+        # 2. Three supply piles empty
         empty_piles = sum(1 for count in self.supply.values() if count == 0)
         if empty_piles >= 3:
+            self._update_final_metrics()
             self.log_callback("Game over: Three piles depleted")
             return True
 
-        # Hard turn limit to prevent infinite games
+        # 3. Hard turn limit
         if self.turn_number > 100:
+            self._update_final_metrics()
             self.log_callback("Game over: Maximum turns reached")
-            return True
-
-        # Check if all players are truly stuck
-        stuck_players = 0
-        for player in self.players:
-            if self.player_is_stuck(player):
-                stuck_players += 1
-
-        if stuck_players == len(self.players):
-            self.log_callback("Game over: All players truly stuck")
             return True
 
         return False
@@ -394,12 +380,7 @@ class GameState:
         has_treasures = any(card.is_treasure for card in player.hand)
         can_buy_copper = self.supply.get("Copper", 0) > 0
 
-        total_cards = (
-            len(player.hand)
-            + len(player.deck)
-            + len(player.discard)
-            + len(player.in_play)
-        )
+        total_cards = len(player.hand) + len(player.deck) + len(player.discard) + len(player.in_play)
         has_cards_to_draw = total_cards > 0
 
         return not (has_actions or has_treasures or can_buy_copper or has_cards_to_draw)
@@ -410,9 +391,7 @@ class GameState:
 
     def give_curse_to_player(self, player):
         """Give a curse card to a player. GameState has access to registry so can create cards."""
-        from ..cards.registry import (
-            get_card,
-        )  # Import here to avoid circular dependency
+        from ..cards.registry import get_card  # Import here to avoid circular dependency
 
         if self.supply.get("Curse", 0) > 0:
             curse = get_card("Curse")
@@ -421,3 +400,13 @@ class GameState:
             curse.on_gain(self, player)
             return True
         return False
+
+    def _update_final_metrics(self):
+        """Update final game metrics including victory points."""
+        if not self.logger:
+            return
+
+        # Calculate and store final victory points for each player
+        for player in self.players:
+            vp = player.get_victory_points(self)
+            self.logger.current_metrics.victory_points[player.ai.name] = vp

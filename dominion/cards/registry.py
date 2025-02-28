@@ -1,24 +1,12 @@
-# dominion/cards/registry.py
-from typing import Dict, Type
+from typing import Type
 
 from dominion.cards.base_card import Card
-from dominion.cards.treasures import Copper, Silver, Gold
-from dominion.cards.victory import Estate, Duchy, Province, Curse
-from dominion.cards.base_set import (
-    Village,
-    Smithy,
-    Market,
-    Festival,
-    Laboratory,
-    Mine,
-    Witch,
-    Moat,
-    Workshop,
-    Chapel,
-)
+from dominion.cards.base_set import Chapel, Festival, Laboratory, Market, Mine, Moat, Smithy, Village, Witch, Workshop
+from dominion.cards.treasures import Copper, Gold, Silver
+from dominion.cards.victory import Curse, Duchy, Estate, Province
 
 # Updated registry of all card types
-CARD_TYPES: Dict[str, Type[Card]] = {
+CARD_TYPES: dict[str, Type[Card]] = {
     # Treasure cards
     "Copper": Copper,
     "Silver": Silver,
@@ -47,9 +35,3 @@ def get_card(name: str) -> Card:
     if name not in CARD_TYPES:
         raise ValueError(f"Unknown card: {name}")
     return CARD_TYPES[name]()
-
-
-# Need to update base_card.py to support 'get_card' method
-def get_card_by_name(name: str) -> Card:
-    """Get a new instance of a card by name."""
-    return get_card(name)

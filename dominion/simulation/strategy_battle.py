@@ -1,160 +1,177 @@
-import json
 import argparse
-from dominion.simulation.game_runner import GameRunner
+from pathlib import Path
+from typing import Any
+
 from dominion.ai.genetic_ai import GeneticAI
-from dominion.strategies.strategy import Strategy
+from dominion.cards.registry import get_card
+from dominion.game.game_state import GameState
 from dominion.simulation.game_logger import GameLogger
+from dominion.strategy.strategy_loader import StrategyLoader
 
 
-def load_strategy_from_file(filepath: str) -> Strategy:
-    """Load a strategy from a JSON file."""
-    with open(filepath, "r") as f:
-        data = json.load(f)
+class StrategyBattle:
+    """System for running battles between strategies."""
 
-    strategy = Strategy()
+    def __init__(self, kingdom_cards: list[str], log_folder: str = "battle_logs"):
+        self.kingdom_cards = kingdom_cards
+        self.logger = GameLogger(log_folder=log_folder)
+        self.strategy_loader = StrategyLoader()  # Now automatically loads all strategies
 
-    # Load gain and play priorities
-    if "priorities" in data:
-        if "gain" in data["priorities"]:
-            strategy.gain_priorities = data["priorities"]["gain"]
-        if "play" in data["priorities"]:
-            strategy.play_priorities = data["priorities"]["play"]
+    def run_battle(self, strategy1_name: str, strategy2_name: str, num_games: int = 100) -> dict[str, Any]:
+        """Run multiple games between two strategies"""
+        # Get strategies from loader
+        strategy1 = self.strategy_loader.get_strategy(strategy1_name)
+        strategy2 = self.strategy_loader.get_strategy(strategy2_name)
 
-    # Load weights
-    if "weights" in data:
-        weights = data["weights"]
-        strategy.action_weight = weights.get("action", 0.5)
-        strategy.treasure_weight = weights.get("treasure", 0.5)
-        strategy.victory_weight = (
-            weights.get("victory", 0.5)
-            if isinstance(weights.get("victory"), float)
-            else 0.5
-        )
-        strategy.engine_weight = weights.get("engine", 0.5)
+        if not strategy1 or not strategy2:
+            raise ValueError(f"Could not find strategies: {strategy1_name} and/or {strategy2_name}")
 
-    return strategy
-
-
-def run_strategy_battle(
-    strategy1_path: str,
-    strategy2_path: str,
-    num_games: int = 100,
-    kingdom_cards: list[str] = None,
-) -> dict:
-    """Run multiple games between two strategies and return statistics."""
-
-    # Default kingdom cards if none provided
-    if kingdom_cards is None:
-        kingdom_cards = [
-            "Village",
-            "Smithy",
-            "Market",
-            "Festival",
-            "Laboratory",
-            "Mine",
-            "Witch",
-            "Moat",
-            "Workshop",
-            "Chapel",
-        ]
-
-    # Load strategies
-    strategy1 = load_strategy_from_file(strategy1_path)
-    strategy2 = load_strategy_from_file(strategy2_path)
-
-    # Create AIs
-    ai1 = GeneticAI(strategy1)
-    ai2 = GeneticAI(strategy2)
-
-    # Set up game runner with logger
-    logger = GameLogger(log_folder="battle_logs")
-    game_runner = GameRunner(kingdom_cards, logger=logger)
-
-    # Track results
-    results = {
-        "strategy1_wins": 0,
-        "strategy2_wins": 0,
-        "strategy1_total_score": 0,
-        "strategy2_total_score": 0,
-        "games_played": num_games,
-        "detailed_results": [],
-    }
-
-    # Run games
-    print(f"\nRunning {num_games} games between strategies...")
-    print(f"Strategy 1: {strategy1_path}")
-    print(f"Strategy 2: {strategy2_path}\n")
-
-    for game_num in range(num_games):
-        print(f"Playing game {game_num + 1}/{num_games}...")
-
-        # Alternate who goes first
-        if game_num % 2 == 0:
-            winner, scores = game_runner.run_game(ai1, ai2)
-        else:
-            winner, scores = game_runner.run_game(ai2, ai1)
-
-        # Record results
-        game_result = {
-            "game_number": game_num + 1,
-            "winner": "strategy1" if winner == ai1 else "strategy2",
-            "strategy1_score": scores[ai1.name],
-            "strategy2_score": scores[ai2.name],
-            "margin": abs(scores[ai1.name] - scores[ai2.name]),
+        # Initialize results tracking
+        results = {
+            "strategy1_name": strategy1_name,
+            "strategy2_name": strategy2_name,
+            "strategy1_wins": 0,
+            "strategy2_wins": 0,
+            "strategy1_total_score": 0,
+            "strategy2_total_score": 0,
+            "games_played": num_games,
+            "detailed_results": [],
         }
-        results["detailed_results"].append(game_result)
 
-        if winner == ai1:
-            results["strategy1_wins"] += 1
-        else:
-            results["strategy2_wins"] += 1
+        # Run the games
+        print(f"\nRunning {num_games} games between:")
+        print(f"Strategy 1: {strategy1_name}")
+        print(f"Strategy 2: {strategy2_name}\n")
 
-        results["strategy1_total_score"] += scores[ai1.name]
-        results["strategy2_total_score"] += scores[ai2.name]
+        for game_num in range(num_games):
+            print(f"Playing game {game_num + 1}/{num_games}...")
 
-    # Calculate averages
-    results["strategy1_win_rate"] = results["strategy1_wins"] / num_games * 100
-    results["strategy2_win_rate"] = results["strategy2_wins"] / num_games * 100
-    results["strategy1_avg_score"] = results["strategy1_total_score"] / num_games
-    results["strategy2_avg_score"] = results["strategy2_total_score"] / num_games
+            # Create fresh AIs for each game using new strategy instances
+            ai1 = GeneticAI(self.strategy_loader.get_strategy(strategy1_name))
+            ai2 = GeneticAI(self.strategy_loader.get_strategy(strategy2_name))
 
-    return results
+            # Alternate who goes first
+            if game_num % 2 == 0:
+                winner, scores = self._run_game(ai1, ai2)
+            else:
+                winner, scores = self._run_game(ai2, ai1)
 
+            # Record results
+            game_result = {
+                "game_number": game_num + 1,
+                "winner": strategy1_name if winner == ai1 else strategy2_name,
+                "strategy1_score": scores[ai1.name],
+                "strategy2_score": scores[ai2.name],
+                "margin": abs(scores[ai1.name] - scores[ai2.name]),
+                "turns": self.logger.current_metrics.turn_count,
+            }
+            results["detailed_results"].append(game_result)
 
-def print_results(results: dict):
-    """Print battle results in a readable format."""
-    print("\n=== Strategy Battle Results ===")
-    print(f"\nGames played: {results['games_played']}")
-    print("\nStrategy 1:")
-    print(f"  Wins: {results['strategy1_wins']} ({results['strategy1_win_rate']:.1f}%)")
-    print(f"  Average Score: {results['strategy1_avg_score']:.1f}")
-    print("\nStrategy 2:")
-    print(f"  Wins: {results['strategy2_wins']} ({results['strategy2_win_rate']:.1f}%)")
-    print(f"  Average Score: {results['strategy2_avg_score']:.1f}")
+            if winner == ai1:
+                results["strategy1_wins"] += 1
+            else:
+                results["strategy2_wins"] += 1
 
-    # Print some detailed game results
-    print("\nSample Game Results:")
-    for game in results["detailed_results"][:5]:  # Show first 5 games
-        print(f"\nGame {game['game_number']}:")
-        print(f"  Winner: Strategy {game['winner'][-1]}")
-        print(f"  Strategy 1 Score: {game['strategy1_score']}")
-        print(f"  Strategy 2 Score: {game['strategy2_score']}")
-        print(f"  Margin: {game['margin']}")
+            results["strategy1_total_score"] += scores[ai1.name]
+            results["strategy2_total_score"] += scores[ai2.name]
+
+        # Calculate final statistics
+        results["strategy1_win_rate"] = results["strategy1_wins"] / num_games * 100
+        results["strategy2_win_rate"] = results["strategy2_wins"] / num_games * 100
+        results["strategy1_avg_score"] = results["strategy1_total_score"] / num_games
+        results["strategy2_avg_score"] = results["strategy2_total_score"] / num_games
+
+        return results
+
+    def _run_game(self, ai1: GeneticAI, ai2: GeneticAI) -> tuple[GeneticAI, dict[str, int]]:
+        """Run a single game between two AIs."""
+        # Start game logging
+        self.logger.start_game([ai1.name, ai2.name])
+
+        # Set up game state
+        game_state = GameState(players=[], supply={})
+        game_state.log_callback = lambda msg: (
+            self.logger.file_logger.info(msg) if self.logger.should_log_to_file else print(msg)
+        )
+
+        # Initialize game
+        kingdom_cards = [get_card(name) for name in self.kingdom_cards]
+        game_state.initialize_game([ai1, ai2], kingdom_cards)
+
+        # Run game
+        while not game_state.is_game_over():
+            game_state.play_turn()
+
+        # Get results
+        scores = {p.ai.name: p.get_victory_points(game_state) for p in game_state.players}
+        winner = max(game_state.players, key=lambda p: p.get_victory_points(game_state)).ai
+
+        # End game logging
+        self.logger.end_game(winner.name, scores, game_state.supply)
+
+        return winner, scores
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Run a battle between two Dominion strategies."
-    )
-    parser.add_argument("strategy1", help="Path to first strategy JSON file")
-    parser.add_argument("strategy2", help="Path to second strategy JSON file")
-    parser.add_argument(
-        "--games", type=int, default=100, help="Number of games to play"
-    )
+    parser = argparse.ArgumentParser(description="Run a battle between two Dominion strategies")
+    parser.add_argument("strategy1_name", help="Name of first strategy")
+    parser.add_argument("strategy2_name", help="Name of second strategy")
+    parser.add_argument("--games", type=int, default=100, help="Number of games to play")
     args = parser.parse_args()
 
-    results = run_strategy_battle(args.strategy1, args.strategy2, args.games)
-    print_results(results)
+    # Default kingdom cards
+    kingdom_cards = [
+        "Village",
+        "Smithy",
+        "Market",
+        "Festival",
+        "Laboratory",
+        "Mine",
+        "Witch",
+        "Moat",
+        "Workshop",
+        "Chapel",
+    ]
+
+    print(f"\nInitializing battle between {args.strategy1_name} and {args.strategy2_name}...")
+
+    battle = StrategyBattle(kingdom_cards)
+
+    # Print available strategies
+    print("\nAvailable strategies:", ", ".join(battle.strategy_loader.list_strategies()))
+
+    print(f"\nRunning {args.games} games...")
+    results = battle.run_battle(args.strategy1_name, args.strategy2_name, args.games)
+
+    if results:
+        print_results(results)
+    else:
+        print("\nError: No results generated from battle")
+
+
+def print_results(results: dict[str, Any]):
+    """Print battle results in a readable format."""
+    print("\n=== Strategy Battle Results ===")
+    print(f"\nGames played: {results['games_played']}")
+
+    print(f"\n{results['strategy1_name']}:")
+    print(f"  Wins: {results['strategy1_wins']} ({results['strategy1_win_rate']:.1f}%)")
+    print(f"  Average Score: {results['strategy1_avg_score']:.1f}")
+
+    print(f"\n{results['strategy2_name']}:")
+    print(f"  Wins: {results['strategy2_wins']} ({results['strategy2_win_rate']:.1f}%)")
+    print(f"  Average Score: {results['strategy2_avg_score']:.1f}")
+
+    print("\nDetailed game results:")
+    for game in results["detailed_results"]:
+        print(f"\nGame {game['game_number']}:")
+        print(f"  Winner: {game['winner']}")
+        print(
+            f"  Scores: {results['strategy1_name']}={game['strategy1_score']}, "
+            f"{results['strategy2_name']}={game['strategy2_score']}"
+        )
+        print(f"  Margin: {game['margin']}")
+        print(f"  Turns: {game['turns']}")
 
 
 if __name__ == "__main__":
