@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from dominion.simulation.strategy_battle import StrategyBattle
+from dominion.reporting.html_report import generate_leaderboard_html
 
 
 def run_full_battle(
@@ -15,6 +16,8 @@ def run_full_battle(
     Returns aggregated results keyed by strategy name.
     """
     battle = StrategyBattle(use_shelters=use_shelters)
+    # Avoid spamming stdout with detailed logs by writing each game to a file
+    battle.logger.log_frequency = 1
 
     strategy_names = battle.strategy_loader.list_strategies()
     aggregated: Dict[str, Dict[str, Any]] = {
@@ -41,27 +44,6 @@ def run_full_battle(
 
     return aggregated
 
-
-def generate_leaderboard_report(
-    results: Dict[str, Dict[str, Any]], output_path: Path
-) -> None:
-    """Write a simple markdown leaderboard sorted by win rate."""
-    lines = [
-        "# Strategy Leaderboard",
-        "",
-        "| Strategy | Wins | Losses | Win Rate |",
-        "| --- | --- | --- | --- |",
-    ]
-    for name, stats in sorted(
-        results.items(), key=lambda i: i[1]["win_rate"], reverse=True
-    ):
-        lines.append(
-            f"| {name} | {stats['wins']} | {stats['losses']} | {stats['win_rate']:.1f}% |"
-        )
-    output_path.write_text("\n".join(lines))
-    print(f"Leaderboard written to {output_path}")
-
-
 def main() -> None:
     import argparse
 
@@ -75,13 +57,13 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("leaderboard.md"),
-        help="Output markdown file",
+        default=Path("leaderboard.html"),
+        help="Output HTML file",
     )
     args = parser.parse_args()
 
     results = run_full_battle(num_games=args.games, use_shelters=args.use_shelters)
-    generate_leaderboard_report(results, args.output)
+    generate_leaderboard_html(results, args.output)
 
 
 if __name__ == "__main__":
