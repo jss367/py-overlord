@@ -81,7 +81,11 @@ class Card:
     def on_play(self, game_state):
         """Execute this card's effects when played."""
         player = game_state.current_player
-        player.actions += self.stats.actions
+        if player.ignore_action_bonuses:
+            added_actions = 0
+        else:
+            added_actions = self.stats.actions
+        player.actions += added_actions
         player.coins += self.stats.coins
         player.potions += self.stats.potions
         player.buys += self.stats.buys
@@ -106,8 +110,9 @@ class Card:
         pass
 
     def on_gain(self, game_state, player):
-        """Effects that happen when card is gained. Override in subclasses."""
-        pass
+        """Effects that happen when card is gained."""
+        if self.is_action and getattr(player, "collection_played", 0) > 0:
+            player.vp_tokens += player.collection_played
 
     def on_trash(self, game_state, player):
         """Effects that happen when card is trashed. Override in subclasses."""

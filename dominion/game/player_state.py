@@ -23,6 +23,12 @@ class PlayerState:
     duration: list[Card] = field(default_factory=list)
     multiplied_durations: list[Card] = field(default_factory=list)
 
+    # Misc counters
+    vp_tokens: int = 0
+    miser_coppers: int = 0
+    ignore_action_bonuses: bool = False
+    collection_played: int = 0
+
     # Turn tracking
     turns_taken: int = 0
     actions_played: int = 0
@@ -48,6 +54,10 @@ class PlayerState:
         self.buys = 1
         self.coins = 0
         self.potions = 0
+        self.vp_tokens = 0
+        self.miser_coppers = 0
+        self.ignore_action_bonuses = False
+        self.collection_played = 0
         self.turns_taken = 0
         self.actions_played = 0
 
@@ -90,7 +100,12 @@ class PlayerState:
 
     def get_victory_points(self, game_state) -> int:
         """Calculate total victory points."""
-        return sum(
-            card.get_victory_points(self)
-            for card in (self.hand + self.deck + self.discard + self.in_play + self.duration)
+        return (
+            sum(
+                card.get_victory_points(self)
+                for card in (
+                    self.hand + self.deck + self.discard + self.in_play + self.duration
+                )
+            )
+            + self.vp_tokens
         )

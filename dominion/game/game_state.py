@@ -105,6 +105,10 @@ class GameState:
         if not self.extra_turn:
             self.current_player.turns_taken += 1
 
+        # Reset per-turn flags
+        self.current_player.ignore_action_bonuses = False
+        self.current_player.collection_played = 0
+
         # Log turn header with complete state
         resources = {
             "actions": self.current_player.actions,
@@ -310,6 +314,8 @@ class GameState:
         player.buys = 1
         player.coins = 0
         player.potions = 0
+        player.ignore_action_bonuses = False
+        player.collection_played = 0
 
         # Move to next player
         if not self.extra_turn:
