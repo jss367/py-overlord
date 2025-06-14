@@ -43,8 +43,9 @@ class GameLogger:
         self.log_folder = log_folder
         self.log_frequency = log_frequency
         self.current_game_id: Optional[str] = None
+        self.current_log_path: Optional[str] = None
         self.current_metrics = GameMetrics()
-        self.game_logs: list[str] = []
+        self.game_logs: list[Optional[str]] = []
         self.game_count = 0
         self.should_log_to_file = False
         self.training_progress: Optional[tqdm] = None
@@ -72,6 +73,7 @@ class GameLogger:
 
             # Set up file handler for this game
             log_path = os.path.join(self.log_folder, f"{self.current_game_id}.log")
+            self.current_log_path = log_path
             file_handler = logging.FileHandler(log_path)
             formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S")
             file_handler.setFormatter(formatter)
@@ -130,8 +132,11 @@ class GameLogger:
 
         self.file_logger.info(f"Supply: {card_name} {'gained' if count < 0 else 'added'} " f"({remaining} remaining)")
 
-    def end_game(self, winner: str, scores: dict[str, int], supply_state: dict[str, int]):
-        """End the current game with enhanced final state logging."""
+    def end_game(self, winner: str, scores: dict[str, int], supply_state: dict[str, int]) -> Optional[str]:
+        """End the current game with enhanced final state logging.
+
+        Returns the path to the log file for this game if one was created."""
+        log_path = self.current_log_path
         if self.should_log_to_file:
             # Log final game state
             self.file_logger.info("\n" + "=" * 60)
@@ -159,10 +164,18 @@ class GameLogger:
             for handler in self.file_logger.handlers[:]:
                 self.file_logger.removeHandler(handler)
 
+            # Track log path for reporting
+            self.game_logs.append(log_path)
+        else:
+            self.game_logs.append(None)
+
         # Reset game state
         self.current_game_id = None
+        self.current_log_path = None
         self.current_metrics = GameMetrics()
         self.should_log_to_file = False
+
+        return log_path
 
     def start_training(self, total_generations: int):
         """Initialize training progress tracking."""

@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from dominion.ai.genetic_ai import GeneticAI
 from dominion.cards.registry import get_card
@@ -52,9 +52,9 @@ class StrategyBattle:
 
             # Alternate who goes first
             if game_num % 2 == 0:
-                winner, scores = self._run_game(ai1, ai2)
+                winner, scores, log_path = self._run_game(ai1, ai2)
             else:
-                winner, scores = self._run_game(ai2, ai1)
+                winner, scores, log_path = self._run_game(ai2, ai1)
 
             # Record results
             game_result = {
@@ -64,6 +64,7 @@ class StrategyBattle:
                 "strategy2_score": scores[ai2.name],
                 "margin": abs(scores[ai1.name] - scores[ai2.name]),
                 "turns": self.logger.current_metrics.turn_count,
+                "log_path": log_path,
             }
             results["detailed_results"].append(game_result)
 
@@ -81,9 +82,11 @@ class StrategyBattle:
         results["strategy1_avg_score"] = results["strategy1_total_score"] / num_games
         results["strategy2_avg_score"] = results["strategy2_total_score"] / num_games
 
+        results["log_paths"] = list(self.logger.game_logs)
+
         return results
 
-    def _run_game(self, ai1: GeneticAI, ai2: GeneticAI) -> tuple[GeneticAI, dict[str, int]]:
+    def _run_game(self, ai1: GeneticAI, ai2: GeneticAI) -> tuple[GeneticAI, dict[str, int], Optional[str]]:
         """Run a single game between two AIs."""
         # Start game logging
         self.logger.start_game([ai1.name, ai2.name])
@@ -106,10 +109,10 @@ class StrategyBattle:
         scores = {p.ai.name: p.get_victory_points(game_state) for p in game_state.players}
         winner = max(game_state.players, key=lambda p: p.get_victory_points(game_state)).ai
 
-        # End game logging
-        self.logger.end_game(winner.name, scores, game_state.supply)
+        # End game logging and capture log path if any
+        log_path = self.logger.end_game(winner.name, scores, game_state.supply)
 
-        return winner, scores
+        return winner, scores, log_path
 
 
 def main():
@@ -172,6 +175,8 @@ def print_results(results: dict[str, Any]):
         )
         print(f"  Margin: {game['margin']}")
         print(f"  Turns: {game['turns']}")
+        if game.get("log_path"):
+            print(f"  Log: {game['log_path']}")
 
 
 if __name__ == "__main__":

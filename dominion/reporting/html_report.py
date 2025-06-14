@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import io
 from pathlib import Path
+import os
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -106,6 +107,15 @@ def generate_html_report(results: dict, output_path: Path) -> None:
     margin_scatter = fig_to_base64(fig4)
     plt.close(fig4)
 
+    log_items = ""
+    for game in results["detailed_results"]:
+        log_path = game.get("log_path")
+        if log_path:
+            rel = os.path.relpath(log_path, output_path.parent)
+            log_items += f'<li><a href="{rel}">Game {game["game_number"]}</a></li>'
+        else:
+            log_items += f'<li>Game {game["game_number"]}: No log available</li>'
+
     html = f"""
     <html>
     <head>
@@ -128,6 +138,8 @@ def generate_html_report(results: dict, output_path: Path) -> None:
     <img src="data:image/png;base64,{margin_hist}" />
     <h2>Margin by Game</h2>
     <img src="data:image/png;base64,{margin_scatter}" />
+    <h2>Game Logs</h2>
+    <ul>{log_items}</ul>
     </body>
     </html>
     """
