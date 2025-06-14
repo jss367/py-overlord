@@ -12,10 +12,13 @@ from dominion.strategy.strategy_loader import StrategyLoader
 class StrategyBattle:
     """System for running battles between strategies."""
 
-    def __init__(self, kingdom_cards: list[str], log_folder: str = "battle_logs"):
+    def __init__(
+        self, kingdom_cards: list[str], log_folder: str = "battle_logs", use_shelters: bool = False
+    ):
         self.kingdom_cards = kingdom_cards
         self.logger = GameLogger(log_folder=log_folder)
         self.strategy_loader = StrategyLoader()  # Now automatically loads all strategies
+        self.use_shelters = use_shelters
 
     def run_battle(self, strategy1_name: str, strategy2_name: str, num_games: int = 100) -> dict[str, Any]:
         """Run multiple games between two strategies"""
@@ -96,7 +99,7 @@ class StrategyBattle:
 
         # Initialize game
         kingdom_cards = [get_card(name) for name in self.kingdom_cards]
-        game_state.initialize_game([ai1, ai2], kingdom_cards)
+        game_state.initialize_game([ai1, ai2], kingdom_cards, use_shelters=self.use_shelters)
 
         # Run game
         while not game_state.is_game_over():
@@ -117,6 +120,11 @@ def main():
     parser.add_argument("strategy1_name", help="Name of first strategy")
     parser.add_argument("strategy2_name", help="Name of second strategy")
     parser.add_argument("--games", type=int, default=100, help="Number of games to play")
+    parser.add_argument(
+        "--use-shelters",
+        action="store_true",
+        help="Start games with Shelters instead of Estates",
+    )
     args = parser.parse_args()
 
     # Default kingdom cards
@@ -135,7 +143,7 @@ def main():
 
     print(f"\nInitializing battle between {args.strategy1_name} and {args.strategy2_name}...")
 
-    battle = StrategyBattle(kingdom_cards)
+    battle = StrategyBattle(kingdom_cards, use_shelters=args.use_shelters)
 
     # Print available strategies
     print("\nAvailable strategies:", ", ".join(battle.strategy_loader.list_strategies()))

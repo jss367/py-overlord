@@ -56,7 +56,9 @@ class GameState:
     def current_player(self) -> PlayerState:
         return self.players[self.current_player_index]
 
-    def initialize_game(self, ais: list, kingdom_cards: list[Card]):
+    def initialize_game(
+        self, ais: list, kingdom_cards: list[Card], use_shelters: bool = False
+    ):
         """Set up the game with given AIs and kingdom cards."""
         # Create PlayerState objects for each AI
         self.players = [PlayerState(ai) for ai in ais]
@@ -64,7 +66,7 @@ class GameState:
 
         # Initialize players
         for player in self.players:
-            player.initialize()
+            player.initialize(use_shelters)
 
         # Create a more readable player list for logging
         player_descriptions = []

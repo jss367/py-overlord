@@ -33,11 +33,23 @@ class PlayerState:
     turns_taken: int = 0
     actions_played: int = 0
 
-    def initialize(self):
-        """Set up starting deck (7 Coppers, 3 Estates) and draw initial hand."""
+    def initialize(self, use_shelters: bool = False):
+        """Set up starting deck and draw initial hand.
 
-        # Create starting deck: 7 Coppers and 3 Estates
-        self.deck = [get_card("Copper") for _ in range(7)] + [get_card("Estate") for _ in range(3)]
+        If ``use_shelters`` is ``True``, start with Necropolis, Hovel and
+        Overgrown Estate instead of three Estates as in the Dark Ages expansion.
+        """
+
+        # Create starting deck
+        self.deck = [get_card("Copper") for _ in range(7)]
+        if use_shelters:
+            self.deck += [
+                get_card("Necropolis"),
+                get_card("Hovel"),
+                get_card("Overgrown Estate"),
+            ]
+        else:
+            self.deck += [get_card("Estate") for _ in range(3)]
 
         # Shuffle the deck
         random.shuffle(self.deck)
