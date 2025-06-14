@@ -68,7 +68,9 @@ class GameLogger:
         self.should_log_to_file = self.game_count % self.log_frequency == 0
 
         if self.should_log_to_file:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            # Include microseconds to avoid filename collisions when multiple
+            # games start within the same second.
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
             self.current_game_id = f"game_{timestamp}"
 
             # Set up file handler for this game
