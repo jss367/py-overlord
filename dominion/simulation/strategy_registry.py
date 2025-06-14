@@ -4,6 +4,9 @@ from dominion.strategy.strategies.base_strategy import BaseStrategy
 from dominion.strategy.strategies.big_money import BigMoneyStrategy
 from dominion.strategy.strategies.chapel_witch import ChapelWitchStrategy
 from dominion.strategy.strategies.village_smithy_lab import VillageSmithyLabStrategy
+from dominion.strategy.strategies.wharf_bridge_chapel_village import (
+    WharfBridgeChapelVillageStrategy,
+)
 
 
 class StrategyRegistry:
@@ -18,6 +21,9 @@ class StrategyRegistry:
         self.register_strategy("BigMoney", BigMoneyStrategy)
         self.register_strategy("ChapelWitch", ChapelWitchStrategy)
         self.register_strategy("VillageSmithyLab", VillageSmithyLabStrategy)
+        self.register_strategy(
+            "WharfBridgeChapelVillage", WharfBridgeChapelVillageStrategy
+        )
 
     def register_strategy(self, name: str, strategy_class: Type[BaseStrategy]):
         """Register a new strategy class"""
