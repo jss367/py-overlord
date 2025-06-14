@@ -171,8 +171,7 @@ cython_debug/
 .pypirc
 */.DS_Store
 .DS_Store
-.DS_Store
-/game_logs
-/training_logs
-/battle_logs
-/optimal_strategy_logs
+# /game_logs
+# /training_logs
+# /battle_logs
+# /optimal_strategy_logs

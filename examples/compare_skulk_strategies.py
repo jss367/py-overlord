@@ -29,7 +29,7 @@ def main():
         "Skulk Rebuild", "Skulk Rebuild Improved", num_games=100
     )
 
-    generate_html_report(results, Path("skulk_report.html"))
+    generate_html_report(results, Path("reports/skulk_report.html"))
 
 
 if __name__ == "__main__":
