@@ -35,3 +35,7 @@ class ChapelWitchStrategy(EnhancedStrategy):
 
         # Define treasure priorities
         self.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+
+def create_chapel_witch() -> EnhancedStrategy:
+    return ChapelWitchStrategy()

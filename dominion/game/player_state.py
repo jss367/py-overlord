@@ -98,6 +98,10 @@ class PlayerState:
             if card.name == card_name
         )
 
+    # Alias used by strategy condition evaluation
+    def count(self, card_name: str) -> int:
+        return self.count_in_deck(card_name)
+
     def get_victory_points(self, game_state) -> int:
         """Calculate total victory points."""
         return (

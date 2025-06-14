@@ -1,5 +1,4 @@
 from ..base_card import Card, CardCost, CardStats, CardType
-from ..registry import get_card
 
 
 class Beggar(Card):
@@ -12,6 +11,8 @@ class Beggar(Card):
         )
 
     def play_effect(self, game_state):
+        from ..registry import get_card
+
         player = game_state.current_player
         for _ in range(3):
             if game_state.supply.get("Copper", 0) > 0:

@@ -20,3 +20,10 @@ class BigMoneyStrategy(BaseStrategy):
 
         # Define treasure priorities
         self.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+
+from dominion.strategy.enhanced_strategy import EnhancedStrategy
+
+
+def create_big_money() -> EnhancedStrategy:
+    return BigMoneyStrategy()

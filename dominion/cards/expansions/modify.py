@@ -1,5 +1,4 @@
 from ..base_card import Card, CardCost, CardStats, CardType
-from ..registry import get_card
 
 
 class Modify(Card):
@@ -12,6 +11,8 @@ class Modify(Card):
         )
 
     def play_effect(self, game_state):
+        from ..registry import get_card
+
         player = game_state.current_player
         if not player.hand:
             return

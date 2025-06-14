@@ -1,5 +1,4 @@
 from ..base_card import Card, CardCost, CardStats, CardType
-from ..registry import get_card
 
 
 class Skulk(Card):
@@ -14,6 +13,8 @@ class Skulk(Card):
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
         if game_state.supply.get("Gold", 0) > 0:
+            from ..registry import get_card
+
             game_state.supply["Gold"] -= 1
             gold = get_card("Gold")
             player.discard.append(gold)

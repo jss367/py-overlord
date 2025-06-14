@@ -1,5 +1,4 @@
 from ..base_card import Card, CardCost, CardStats, CardType
-from ..registry import get_card
 
 
 class Rats(Card):

@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 from dominion.simulation.game_logger import GameLogger
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.strategy.enhanced_strategy import PriorityRule
-from strategies.base_strategy import BaseStrategy
+from dominion.strategy.strategies.base_strategy import BaseStrategy
 
 
 class GeneticTrainer:

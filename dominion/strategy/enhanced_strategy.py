@@ -24,6 +24,10 @@ class PriorityRule:
     card: str
     condition: Optional[str] = None
 
+    @property
+    def card_name(self) -> str:
+        return self.card
+
     # Helper constructors -------------------------------------------------
     @staticmethod
     def can_afford(amount: int) -> str:
@@ -74,6 +78,70 @@ class EnhancedStrategy:
         self.action_priority: list[PriorityRule] = []
         self.trash_priority: list[PriorityRule] = []
         self.treasure_priority: list[PriorityRule] = []
+
+    # ------------------------------------------------------------------
+    # Basic decision helpers
+    def _eval_condition(self, condition: Optional[str], state, player) -> bool:
+        """Very small evaluator for priority rule conditions."""
+        if not condition:
+            return True
+
+        expr = condition
+
+        # Replace logical operators
+        expr = expr.replace("AND", "and").replace("OR", "or")
+
+        # Support my.count(Card)
+        import re
+
+        def repl(match):
+            name = match.group(1)
+            return f'count("{name}")'
+
+        expr = re.sub(r"my\.count\(([^)]+)\)", repl, expr)
+
+        # Map basic references
+        expr = expr.replace("my.coins", "player.coins")
+        expr = expr.replace("my.actions", "player.actions")
+        expr = expr.replace("my.buys", "player.buys")
+        expr = expr.replace("my.hand_size", "len(player.hand)")
+        expr = expr.replace("state.turn_number", "state.turn_number")
+        expr = expr.replace(
+            "state.provinces_left", 'state.supply.get("Province", 0)'
+        )
+        expr = expr.replace(
+            "state.empty_piles",
+            'sum(1 for v in state.supply.values() if v == 0)'
+        )
+
+        def count(name_str: str) -> int:
+            names = [n.strip() for n in name_str.split("/")]
+            return sum(player.count_in_deck(n) for n in names)
+
+        try:
+            return bool(eval(expr, {}, {"player": player, "state": state, "count": count}))
+        except Exception:
+            return False
+
+    def _choose_from_priority(self, priority, choices, state, player):
+        for rule in priority:
+            for card in choices:
+                if card is not None and card.name == rule.card and self._eval_condition(rule.condition, state, player):
+                    return card
+        return None
+
+    # ------------------------------------------------------------------
+    def choose_action(self, state, player, choices):
+        return self._choose_from_priority(self.action_priority, choices, state, player)
+
+    def choose_treasure(self, state, player, choices):
+        return self._choose_from_priority(self.treasure_priority, choices, state, player)
+
+    def choose_gain(self, state, player, choices):
+        return self._choose_from_priority(self.gain_priority, choices, state, player)
+
+    def choose_trash(self, state, player, choices):
+        return self._choose_from_priority(self.trash_priority, choices, state, player)
 
 
 def create_big_money_strategy() -> EnhancedStrategy:

@@ -9,8 +9,11 @@ from dominion.strategy.enhanced_strategy import EnhancedStrategy
 class StrategyLoader:
     """Handles loading and managing Dominion game strategies."""
 
-    def __init__(self, strategies_dir: str = "strategies"):
-        self.strategies_dir = Path(strategies_dir)
+    def __init__(self, strategies_dir: Optional[str] = None):
+        if strategies_dir is None:
+            self.strategies_dir = Path(__file__).parent / "strategies"
+        else:
+            self.strategies_dir = Path(strategies_dir)
         self.strategies: Dict[str, Callable[[], EnhancedStrategy]] = {}
         self._load_all_strategies()
 
@@ -25,7 +28,7 @@ class StrategyLoader:
         for file_path in strategy_files:
             try:
                 # Import the module
-                module_name = f"strategies.{file_path.stem}"
+                module_name = f"dominion.strategy.strategies.{file_path.stem}"
                 spec = importlib.util.spec_from_file_location(module_name, file_path)
                 if spec is None or spec.loader is None:
                     continue
