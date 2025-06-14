@@ -9,6 +9,14 @@ python -m dominion.simulation.strategy_battle ChapelWitch BigMoney --games 2
 Pass `--use-shelters` to start each player with Necropolis, Hovel and
 Overgrown Estate instead of three Estates.
 
+To run every strategy against each other and produce a leaderboard:
+
+```
+python compare_all_strategies.py --games 5
+```
+
+The leaderboard will be written to `leaderboard.md` by default.
+
 Example reports can be generated using the script in the `examples` folder:
 
 ```
@@ -16,4 +24,5 @@ python examples/compare_skulk_strategies.py
 ```
 
 Reports are written to the `reports` directory.
+
 
