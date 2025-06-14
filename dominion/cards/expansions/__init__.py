@@ -9,6 +9,7 @@ from .collection import Collection
 from .beggar import Beggar
 from .modify import Modify
 from .rebuild import Rebuild
+from .crypt import Crypt
 
 __all__ = [
     'Patrician',
@@ -22,4 +23,5 @@ __all__ = [
     'Beggar',
     'Modify',
     'Rebuild',
+    'Crypt',
 ]

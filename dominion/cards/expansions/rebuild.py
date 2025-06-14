@@ -1,5 +1,4 @@
 from ..base_card import Card, CardCost, CardStats, CardType
-from ..registry import get_card
 
 
 class Rebuild(Card):
@@ -12,6 +11,8 @@ class Rebuild(Card):
         )
 
     def play_effect(self, game_state):
+        from ..registry import get_card
+
         player = game_state.current_player
         # Simplified: trash an Estate from deck/discard if possible, gain a Duchy
         for pile in [player.hand, player.deck, player.discard]:

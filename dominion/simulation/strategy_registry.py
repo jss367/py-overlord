@@ -1,9 +1,9 @@
 from typing import Dict, Type
 
-from strategies.base_strategy import BaseStrategy
-from strategies.big_money import BigMoneyStrategy
-from strategies.chapel_witch import ChapelWitchStrategy
-from strategies.village_smithy_lab import VillageSmithyLabStrategy
+from dominion.strategy.strategies.base_strategy import BaseStrategy
+from dominion.strategy.strategies.big_money import BigMoneyStrategy
+from dominion.strategy.strategies.chapel_witch import ChapelWitchStrategy
+from dominion.strategy.strategies.village_smithy_lab import VillageSmithyLabStrategy
 
 
 class StrategyRegistry:

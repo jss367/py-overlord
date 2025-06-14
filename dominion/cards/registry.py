@@ -23,6 +23,7 @@ from dominion.cards.expansions import (
     Patrician,
     Rats,
     Rebuild,
+    Crypt,
     Skulk,
     SnowyVillage,
 )
@@ -63,6 +64,7 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Beggar": Beggar,
     "Modify": Modify,
     "Rebuild": Rebuild,
+    "Crypt": Crypt,
 }
 
 
