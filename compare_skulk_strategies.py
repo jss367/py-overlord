@@ -22,8 +22,8 @@ def main():
 
     battle = StrategyBattle(kingdom_cards)
 
-    # Reduce logging to keep console output clean
-    battle.logger.log_frequency = 1000
+    # Log every game so detailed logs are saved
+    battle.logger.log_frequency = 1
 
     results = battle.run_battle(
         "Skulk Rebuild", "Skulk Rebuild Improved", num_games=100
