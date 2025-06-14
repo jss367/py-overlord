@@ -10,6 +10,7 @@ from .beggar import Beggar
 from .modify import Modify
 from .rebuild import Rebuild
 from .crypt import Crypt
+from .shelters import Hovel, Necropolis, OvergrownEstate
 
 __all__ = [
     'Patrician',
@@ -24,4 +25,7 @@ __all__ = [
     'Modify',
     'Rebuild',
     'Crypt',
+    'Hovel',
+    'Necropolis',
+    'OvergrownEstate',
 ]

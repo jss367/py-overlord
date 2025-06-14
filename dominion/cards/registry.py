@@ -26,6 +26,9 @@ from dominion.cards.expansions import (
     Crypt,
     Skulk,
     SnowyVillage,
+    Hovel,
+    Necropolis,
+    OvergrownEstate,
 )
 from dominion.cards.treasures import Copper, Gold, Silver
 from dominion.cards.victory import Curse, Duchy, Estate, Province
@@ -65,6 +68,9 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Modify": Modify,
     "Rebuild": Rebuild,
     "Crypt": Crypt,
+    "Hovel": Hovel,
+    "Necropolis": Necropolis,
+    "Overgrown Estate": OvergrownEstate,
 }
 
 
