@@ -146,3 +146,50 @@ def generate_html_report(results: dict, output_path: Path) -> None:
 
     output_path.write_text(html)
     print(f"Report written to {output_path}")
+
+def generate_leaderboard_html(results: dict[str, dict[str, any]], output_path: Path) -> None:
+    """Create an HTML leaderboard report for many strategies."""
+    sns.set_theme(style="whitegrid")
+    sorted_items = sorted(results.items(), key=lambda i: i[1]["win_rate"], reverse=True)
+    strategies = [name for name, _ in sorted_items]
+    win_rates = [stats["win_rate"] for _, stats in sorted_items]
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    sns.barplot(x=strategies, y=win_rates, ax=ax)
+    ax.set_ylabel("Win Rate (%)")
+    ax.set_xlabel("Strategy")
+    ax.set_title("Strategy Win Rates")
+    plt.xticks(rotation=45, ha="right")
+    bar_png = fig_to_base64(fig)
+    plt.close(fig)
+
+    rows = "\n".join(
+        f"<tr><td>{name}</td><td>{stats['wins']}</td><td>{stats['losses']}</td><td>{stats['win_rate']:.1f}%</td></tr>"
+        for name, stats in sorted_items
+    )
+
+    html = f"""
+    <html>
+    <head>
+        <title>Strategy Leaderboard</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; margin: 40px; }}
+            h1 {{ text-align: center; }}
+            img {{ max-width: 800px; display: block; margin: 20px auto; }}
+            table {{ margin: auto; border-collapse: collapse; }}
+            th, td {{ border: 1px solid #ccc; padding: 4px 8px; }}
+        </style>
+    </head>
+    <body>
+    <h1>Strategy Leaderboard</h1>
+    <img src="data:image/png;base64,{bar_png}" />
+    <table>
+        <tr><th>Strategy</th><th>Wins</th><th>Losses</th><th>Win Rate</th></tr>
+        {rows}
+    </table>
+    </body>
+    </html>
+    """
+    output_path.write_text(html)
+    print(f"Report written to {output_path}")
+

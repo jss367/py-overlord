@@ -15,7 +15,7 @@ To run every strategy against each other and produce a leaderboard:
 python compare_all_strategies.py --games 5
 ```
 
-The leaderboard will be written to `leaderboard.md` by default.
+The leaderboard will be written to `leaderboard.html` by default.
 
 Example reports can be generated using the script in the `examples` folder:
 
