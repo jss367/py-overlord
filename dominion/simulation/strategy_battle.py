@@ -8,14 +8,30 @@ from dominion.game.game_state import GameState
 from dominion.simulation.game_logger import GameLogger
 from dominion.strategy.strategy_loader import StrategyLoader
 
+DEFAULT_KINGDOM_CARDS = [
+    "Village",
+    "Smithy",
+    "Market",
+    "Festival",
+    "Laboratory",
+    "Mine",
+    "Witch",
+    "Moat",
+    "Workshop",
+    "Chapel",
+]
+
 
 class StrategyBattle:
     """System for running battles between strategies."""
 
     def __init__(
-        self, kingdom_cards: list[str], log_folder: str = "battle_logs", use_shelters: bool = False
+        self,
+        kingdom_cards: Optional[list[str]] = None,
+        log_folder: str = "battle_logs",
+        use_shelters: bool = False,
     ):
-        self.kingdom_cards = kingdom_cards
+        self.kingdom_cards = kingdom_cards or DEFAULT_KINGDOM_CARDS
         self.logger = GameLogger(log_folder=log_folder)
         self.strategy_loader = StrategyLoader()  # Now automatically loads all strategies
         self.use_shelters = use_shelters
@@ -130,23 +146,11 @@ def main():
     )
     args = parser.parse_args()
 
-    # Default kingdom cards
-    kingdom_cards = [
-        "Village",
-        "Smithy",
-        "Market",
-        "Festival",
-        "Laboratory",
-        "Mine",
-        "Witch",
-        "Moat",
-        "Workshop",
-        "Chapel",
-    ]
+    print(
+        f"\nInitializing battle between {args.strategy1_name} and {args.strategy2_name}..."
+    )
 
-    print(f"\nInitializing battle between {args.strategy1_name} and {args.strategy2_name}...")
-
-    battle = StrategyBattle(kingdom_cards, use_shelters=args.use_shelters)
+    battle = StrategyBattle(use_shelters=args.use_shelters)
 
     # Print available strategies
     print("\nAvailable strategies:", ", ".join(battle.strategy_loader.list_strategies()))
