@@ -1,4 +1,79 @@
-from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+"""Minimal strategy framework used by the tests.
+
+The original project had a much more feature rich implementation, but for the
+purposes of the tests bundled with this kata we only require a light-weight
+definition of :class:`EnhancedStrategy` and :class:`PriorityRule` along with a
+few helper constructors.  The strategy creation functions at the bottom of this
+file build on these classes.
+"""
+
+from dataclasses import dataclass
+from typing import Iterable, Optional
+
+
+@dataclass
+class PriorityRule:
+    """Represents a single priority rule.
+
+    The ``condition`` field is stored as a simple string; the surrounding code
+    does not evaluate these expressions so there is no need for a full parser
+    here.  Helper static methods are provided to build commonly used
+    conditions.
+    """
+
+    card: str
+    condition: Optional[str] = None
+
+    # Helper constructors -------------------------------------------------
+    @staticmethod
+    def can_afford(amount: int) -> str:
+        return f"my.coins >= {amount}"
+
+    @staticmethod
+    def provinces_left(op: str, amount: int) -> str:
+        return f"state.provinces_left {op} {amount}"
+
+    @staticmethod
+    def turn_number(op: str, amount: int) -> str:
+        return f"state.turn_number {op} {amount}"
+
+    @staticmethod
+    def resources(res: str, op: str, amount: int) -> str:
+        return f"my.{res} {op} {amount}"
+
+    @staticmethod
+    def has_cards(cards: Iterable[str], amount: int) -> str:
+        return f"count({'/'.join(cards)}) >= {amount}"
+
+    @staticmethod
+    def always_true() -> str:
+        return "True"
+
+    @staticmethod
+    def and_(*conds: Optional[str]) -> str:
+        return " and ".join(c for c in conds if c)
+
+    @staticmethod
+    def or_(*conds: Optional[str]) -> str:
+        return " or ".join(c for c in conds if c)
+
+
+class EnhancedStrategy:
+    """Base strategy container.
+
+    It simply keeps ordered lists of :class:`PriorityRule` objects that the
+    engine can later interpret.
+    """
+
+    def __init__(self) -> None:
+        self.name: str = "Unnamed"
+        self.description: str = ""
+        self.version: str = "1.0"
+
+        self.gain_priority: list[PriorityRule] = []
+        self.action_priority: list[PriorityRule] = []
+        self.trash_priority: list[PriorityRule] = []
+        self.treasure_priority: list[PriorityRule] = []
 
 
 def create_big_money_strategy() -> EnhancedStrategy:

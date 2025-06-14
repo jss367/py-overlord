@@ -1,7 +1,31 @@
 from typing import Type
 
 from dominion.cards.base_card import Card
-from dominion.cards.base_set import Chapel, Festival, Laboratory, Market, Mine, Moat, Smithy, Village, Witch, Workshop
+from dominion.cards.base_set import (
+    Chapel,
+    Festival,
+    Laboratory,
+    Market,
+    Mine,
+    Moat,
+    Smithy,
+    Village,
+    Witch,
+    Workshop,
+)
+from dominion.cards.expansions import (
+    Beggar,
+    Collection,
+    Emporium,
+    Forager,
+    Miser,
+    Modify,
+    Patrician,
+    Rats,
+    Rebuild,
+    Skulk,
+    SnowyVillage,
+)
 from dominion.cards.treasures import Copper, Gold, Silver
 from dominion.cards.victory import Curse, Duchy, Estate, Province
 
@@ -27,6 +51,18 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Moat": Moat,
     "Workshop": Workshop,
     "Chapel": Chapel,
+    # Expansion cards
+    "Patrician": Patrician,
+    "Emporium": Emporium,
+    "Forager": Forager,
+    "Snowy Village": SnowyVillage,
+    "Miser": Miser,
+    "Rats": Rats,
+    "Skulk": Skulk,
+    "Collection": Collection,
+    "Beggar": Beggar,
+    "Modify": Modify,
+    "Rebuild": Rebuild,
 }
 
 
