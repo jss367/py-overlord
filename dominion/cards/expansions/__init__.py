@@ -38,6 +38,14 @@ from ..prosperity.watchtower import Watchtower
 from ..prosperity.workers_village import WorkersVillage
 from ..prosperity.platinum import Platinum
 from ..prosperity.colony import Colony
+from ..hinterlands.trail import Trail
+from ..renaissance.acting_troupe import ActingTroupe
+from ..allies.taskmaster import Taskmaster
+from ..hinterlands.trader import Trader
+from ..intrigue.torturer import Torturer
+from ..intrigue.patrol import Patrol
+from ..hinterlands.inn import Inn
+from ..plunder.first_mate import FirstMate
 from ..plunder import (
     Amphora,
     Doubloons,
@@ -100,6 +108,14 @@ __all__ = [
     'WorkersVillage',
     'Platinum',
     'Colony',
+    'Trail',
+    'ActingTroupe',
+    'Taskmaster',
+    'Trader',
+    'Torturer',
+    'Patrol',
+    'Inn',
+    'FirstMate',
     'Amphora',
     'Doubloons',
     'EndlessChalice',
