@@ -12,7 +12,7 @@ class City(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        empty_piles = sum(1 for count in game_state.supply.values() if count == 0)
+        empty_piles = game_state.empty_piles
 
         if empty_piles >= 1:
             game_state.draw_cards(player, 1)

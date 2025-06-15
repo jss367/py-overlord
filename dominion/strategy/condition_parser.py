@@ -110,7 +110,7 @@ class ConditionTransformer(Transformer):
             elif ref_type == "provinces_left":
                 return context.state.supply.get("Province", 0)
             elif ref_type == "empty_piles":
-                return sum(1 for count in context.state.supply.values() if count == 0)
+                return context.state.empty_piles
             raise ValueError(f"Unknown state reference type: {ref_type} (from {ref})")
 
         return get_state_value
