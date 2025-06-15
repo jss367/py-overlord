@@ -107,8 +107,8 @@ class StrategyBattle:
 
     def _run_game(self, ai1: GeneticAI, ai2: GeneticAI) -> tuple[GeneticAI, dict[str, int], Optional[str]]:
         """Run a single game between two AIs."""
-        # Start game logging
-        self.logger.start_game([ai1.name, ai2.name])
+        # Start game logging with actual AI objects for better descriptions
+        self.logger.start_game([ai1, ai2])
 
         # Set up game state
         game_state = GameState(players=[], supply={})
