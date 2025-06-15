@@ -5,3 +5,4 @@ seaborn
 scipy
 tqdm
 lark
+pytest
