@@ -80,12 +80,31 @@ class GeneticTrainer:
         return strategy
 
     def evaluate_strategy(self, strategy: BaseStrategy) -> float:
-        """Evaluate a strategy by playing against BigMoney"""
+        """Evaluate a strategy by playing a series of games against Big Money."""
         try:
-            results = self.battle_system.run_battle(
-                strategy, self.battle_system.registry.get_strategy("BigMoney"), self.games_per_eval
-            )
-            return results["strategy1_win_rate"]
+            big_money = self.battle_system.strategy_loader.get_strategy("Big Money")
+            if not big_money:
+                raise ValueError("Big Money strategy not found")
+
+            kingdom_card_names = self.battle_system._determine_kingdom_cards(strategy, big_money)
+
+            from dominion.ai.genetic_ai import GeneticAI
+
+            wins = 0
+            for game_num in range(self.games_per_eval):
+                ai1 = GeneticAI(strategy)
+                ai2 = GeneticAI(big_money)
+
+                if game_num % 2 == 0:
+                    winner, _scores, _log = self.battle_system._run_game(ai1, ai2, kingdom_card_names)
+                    if winner == ai1:
+                        wins += 1
+                else:
+                    winner, _scores, _log = self.battle_system._run_game(ai2, ai1, kingdom_card_names)
+                    if winner == ai2:
+                        wins += 1
+
+            return wins / self.games_per_eval * 100
         except Exception as e:
             print(f"Error evaluating strategy: {e}")
             return 0.0
