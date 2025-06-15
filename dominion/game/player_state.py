@@ -35,6 +35,7 @@ class PlayerState:
     actions_played: int = 0
     actions_this_turn: int = 0
     bought_this_turn: list[str] = field(default_factory=list)
+    banned_buys: list[str] = field(default_factory=list)
 
     def initialize(self, use_shelters: bool = False):
         """Set up starting deck and draw initial hand.
@@ -78,6 +79,7 @@ class PlayerState:
         self.actions_played = 0
         self.actions_this_turn = 0
         self.bought_this_turn = []
+        self.banned_buys = []
 
         # Draw initial hand of 5 cards
         self.draw_cards(5)

@@ -123,6 +123,7 @@ class GameState:
         self.current_player.collection_played = 0
         self.current_player.actions_this_turn = 0
         self.current_player.bought_this_turn = []
+        self.current_player.banned_buys = []
 
         # Resolve project effects that occur at the start of the turn
         for project in self.current_player.projects:
@@ -310,6 +311,7 @@ class GameState:
                     card.cost.coins <= player.coins
                     and card.cost.potions <= player.potions
                     and card.may_be_bought(self)
+                    and card_name not in player.banned_buys
                 ):
                     affordable.append(card)
 

@@ -13,5 +13,14 @@ class Bishop(Card):
         )
 
     def play_effect(self, game_state):
-        # TODO: implement trash for VP tokens
-        pass
+        player = game_state.current_player
+        if not player.hand:
+            return
+
+        card_to_trash = player.ai.choose_card_to_trash(game_state, player.hand)
+        if card_to_trash is None:
+            card_to_trash = player.hand[0]
+
+        player.hand.remove(card_to_trash)
+        game_state.trash.append(card_to_trash)
+        player.vp_tokens += card_to_trash.cost.coins // 2
