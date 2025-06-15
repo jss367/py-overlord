@@ -6,13 +6,13 @@ class CustomBoardBestStrategy(EnhancedStrategy):
 
     def __init__(self) -> None:
         super().__init__()
-        self.name = "CustomBoardBest"
+        self.name = "CustomBoardBest3"
         self.description = "Optimized engine for Patrician/Emporium/Collection board"
-        self.version = "1.0"
+        self.version = "3.0"
 
         # Gain priorities
         self.gain_priority = [
-            PriorityRule("Province", PriorityRule.can_afford(8)),
+            PriorityRule("Province"),
             PriorityRule("Emporium", "my.count(Snowy Village) > 0"),  # Only if you can activate
             PriorityRule("Patrician"),
             PriorityRule("Snowy Village", "my.count(Snowy Village) < 3"),
@@ -21,7 +21,7 @@ class CustomBoardBestStrategy(EnhancedStrategy):
             PriorityRule("Collection", "my.count(Collection) < 2"),
             PriorityRule("Duchy", PriorityRule.provinces_left("<=", 4)),
             PriorityRule("Estate", PriorityRule.provinces_left("<=", 2)),
-            PriorityRule("Silver", PriorityRule.can_afford(3)),
+            PriorityRule("Silver"),
         ]
 
         # Action priorities
