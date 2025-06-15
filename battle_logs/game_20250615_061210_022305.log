@@ -1,0 +1,665 @@
+06:12:10 - INFO - ============================================================
+06:12:10 - INFO - Starting Game 10
+06:12:10 - INFO - Players: Player 1 (CustomBoard), Player 2 (CustomBoard)
+06:12:10 - INFO - ============================================================
+06:12:10 - INFO - Supply initialized: {'Copper': 46, 'Silver': 40, 'Gold': 30, 'Estate': 8, 'Duchy': 8, 'Province': 8, 'Curse': 10, 'Collection': 10, 'Emporium': 10, 'Forager': 10, 'Miser': 10, 'Modify': 10, 'Patrician': 10, 'Rats': 10, 'Rebuild': 10, 'Skulk': 10, 'Snowy Village': 10}
+06:12:10 - INFO - Game initialized with players: Player 1 (CustomBoard), Player 2 (CustomBoard)
+06:12:10 - INFO - Kingdom cards: Collection, Emporium, Forager, Miser, Modify, Patrician, Rats, Rebuild, Skulk, Snowy Village
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 1 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Estate, Estate, Copper, Copper, Estate
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Patrician (cost: 2; remaining_coins: 0; remaining_buys: 0)
+06:12:10 - INFO - Supply: Patrician gained (9 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 0 actions and bought Patrician
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 1 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Estate, Copper, Estate, Estate, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Patrician (cost: 2; remaining_coins: 0; remaining_buys: 0)
+06:12:10 - INFO - Supply: Patrician gained (8 remaining)
+06:12:10 - INFO - Summary: Player 2 (CustomBoard) played 0 actions and bought Patrician
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 2 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Copper, Copper, Copper, Copper, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Emporium (cost: 5; remaining_coins: 0; remaining_buys: 0)
+06:12:10 - INFO - Supply: Emporium gained (9 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 0 actions and bought Emporium
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 2 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Copper, Copper, Copper, Copper, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Patrician (cost: 2; remaining_coins: 3; remaining_buys: 0)
+06:12:10 - INFO - Supply: Patrician gained (7 remaining)
+06:12:10 - INFO - Summary: Player 2 (CustomBoard) played 0 actions and bought Patrician
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 3 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Copper, Emporium, Copper, Estate, Estate
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 0; hand: Copper, Copper, Estate, Estate)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Copper, Copper; new_hand: Copper, Copper, Estate, Estate, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Patrician (cost: 2; remaining_coins: 2; remaining_buys: 0)
+06:12:10 - INFO - Supply: Patrician gained (6 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 1 action and bought Patrician
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 3 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Estate, Copper, Estate, Patrician, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Estate, Copper, Estate, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Estate, Copper, Estate, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Patrician (cost: 2; remaining_coins: 1; remaining_buys: 0)
+06:12:10 - INFO - Supply: Patrician gained (5 remaining)
+06:12:10 - INFO - Summary: Player 2 (CustomBoard) played 1 action and bought Patrician
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 4 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Copper, Copper, Patrician, Estate, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Copper, Estate, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Estate; new_hand: Copper, Copper, Estate, Copper, Estate)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Patrician (cost: 2; remaining_coins: 1; remaining_buys: 0)
+06:12:10 - INFO - Supply: Patrician gained (4 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 1 action and bought Patrician
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 4 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Copper, Copper, Copper, Patrician, Estate
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Copper, Copper, Estate)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Copper, Copper, Estate, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Patrician (cost: 2; remaining_coins: 2; remaining_buys: 0)
+06:12:10 - INFO - Supply: Patrician gained (3 remaining)
+06:12:10 - INFO - Summary: Player 2 (CustomBoard) played 1 action and bought Patrician
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 5 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Copper, Estate, Copper, Patrician, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Estate, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Estate, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 0; hand: Copper, Estate, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Estate, Patrician; new_hand: Copper, Estate, Copper, Copper, Copper, Estate, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 1; hand: Copper, Estate, Copper, Copper, Copper, Estate)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Patrician; new_hand: Copper, Estate, Copper, Copper, Copper, Estate, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 1; hand: Copper, Estate, Copper, Copper, Copper, Estate)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Estate, Copper, Copper, Copper, Estate, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Emporium (cost: 5; remaining_coins: 0; remaining_buys: 0)
+06:12:10 - INFO - Supply: Emporium gained (8 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 4 actions and bought Emporium
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 5 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Estate, Patrician, Patrician, Estate, Patrician
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Estate, Patrician, Estate, Patrician)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Estate, Patrician, Estate, Patrician, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Estate, Estate, Patrician, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Estate, Estate, Patrician, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Estate, Estate, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Estate; new_hand: Estate, Estate, Copper, Copper, Estate)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Patrician (cost: 2; remaining_coins: 0; remaining_buys: 0)
+06:12:10 - INFO - Supply: Patrician gained (2 remaining)
+06:12:10 - INFO - Summary: Player 2 (CustomBoard) played 3 actions and bought Patrician
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 6 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Copper, Copper, Estate, Estate, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Patrician (cost: 2; remaining_coins: 1; remaining_buys: 0)
+06:12:10 - INFO - Supply: Patrician gained (1 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 0 actions and bought Patrician
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 6 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Copper, Copper, Patrician, Copper, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Patrician (cost: 2; remaining_coins: 3; remaining_buys: 0)
+06:12:10 - INFO - Supply: Patrician gained (0 remaining)
+06:12:10 - INFO - Summary: Player 2 (CustomBoard) played 1 action and bought Patrician
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 7 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Estate, Emporium, Patrician, Patrician, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Estate, Emporium, Patrician, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Patrician; new_hand: Estate, Emporium, Patrician, Copper, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Estate, Emporium, Copper, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Estate, Emporium, Copper, Patrician, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Estate, Emporium, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Estate, Emporium, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 0; hand: Estate, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Copper, Emporium; new_hand: Estate, Copper, Copper, Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 1; hand: Estate, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Estate, Patrician; new_hand: Estate, Copper, Copper, Copper, Copper, Estate, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 2; hand: Estate, Copper, Copper, Copper, Copper, Estate)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Estate, Copper, Copper, Copper, Copper, Estate, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Emporium (cost: 5; remaining_coins: 0; remaining_buys: 0)
+06:12:10 - INFO - Supply: Emporium gained (7 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 6 actions and bought Emporium
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 7 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Copper, Copper, Copper, Patrician, Estate
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Copper, Copper, Estate)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Copper, Copper, Estate, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Forager (cost: 3; remaining_coins: 1; remaining_buys: 0)
+06:12:10 - INFO - Supply: Forager gained (9 remaining)
+06:12:10 - INFO - Summary: Player 2 (CustomBoard) played 1 action and bought Forager
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 8 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Copper, Estate, Copper, Patrician, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Estate, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Emporium; new_hand: Copper, Estate, Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 0; hand: Copper, Estate, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Estate, Patrician; new_hand: Copper, Estate, Copper, Copper, Estate, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 1; hand: Copper, Estate, Copper, Copper, Estate)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Estate, Copper, Copper, Estate, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 1; hand: Copper, Estate, Copper, Copper, Estate, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Emporium, Patrician; new_hand: Copper, Estate, Copper, Copper, Estate, Copper, Emporium, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 2; hand: Copper, Estate, Copper, Copper, Estate, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Estate, Copper, Copper, Estate, Copper, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 2; hand: Copper, Estate, Copper, Copper, Estate, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Copper, Copper; new_hand: Copper, Estate, Copper, Copper, Estate, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Emporium (cost: 5; remaining_coins: 2; remaining_buys: 0)
+06:12:10 - INFO - Supply: Emporium gained (6 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 6 actions and bought Emporium
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 8 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Copper, Estate, Patrician, Estate, Patrician
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Estate, Estate, Patrician)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Patrician; new_hand: Copper, Estate, Estate, Patrician, Patrician)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Estate, Estate, Patrician)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Estate, Estate, Patrician, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Estate, Estate, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Estate, Estate, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Forager (cost: 3; remaining_coins: 0; remaining_buys: 0)
+06:12:10 - INFO - Supply: Forager gained (8 remaining)
+06:12:10 - INFO - Summary: Player 2 (CustomBoard) played 3 actions and bought Forager
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 9 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Estate, Patrician, Estate, Copper, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Estate, Estate, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Estate, Estate, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Forager (cost: 3; remaining_coins: 0; remaining_buys: 0)
+06:12:10 - INFO - Supply: Forager gained (7 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 1 action and bought Forager
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 9 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Patrician, Patrician, Patrician, Copper, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Patrician, Patrician, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Patrician, Patrician, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Patrician, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Patrician, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Emporium (cost: 5; remaining_coins: 0; remaining_buys: 0)
+06:12:10 - INFO - Supply: Emporium gained (5 remaining)
+06:12:10 - INFO - Summary: Player 2 (CustomBoard) played 3 actions and bought Emporium
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 10 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Copper, Patrician, Emporium, Estate, Patrician
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Emporium, Estate, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Emporium; new_hand: Copper, Emporium, Estate, Patrician, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Emporium, Estate, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Emporium, Estate, Emporium, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 0; hand: Copper, Estate, Emporium, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Copper, Patrician; new_hand: Copper, Estate, Emporium, Emporium, Copper, Copper, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 1; hand: Copper, Estate, Emporium, Emporium, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Estate, Emporium, Emporium, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 1; hand: Copper, Estate, Emporium, Copper, Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Forager, Copper; new_hand: Copper, Estate, Emporium, Copper, Copper, Copper, Emporium, Forager, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Forager (remaining_actions: 2; hand: Copper, Estate, Emporium, Copper, Copper, Copper, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 2; hand: Copper, Copper, Copper, Copper, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Patrician, Copper; new_hand: Copper, Copper, Copper, Copper, Emporium, Copper, Patrician, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 3; hand: Copper, Copper, Copper, Copper, Emporium, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Estate; new_hand: Copper, Copper, Copper, Copper, Emporium, Copper, Copper, Estate)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 3; hand: Copper, Copper, Copper, Copper, Copper, Copper, Estate)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Copper, Estate; new_hand: Copper, Copper, Copper, Copper, Copper, Copper, Estate, Copper, Estate)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Emporium (cost: 5; remaining_coins: 2; remaining_buys: 1)
+06:12:10 - INFO - Supply: Emporium gained (4 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 9 actions and bought Emporium
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 10 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Forager, Forager, Estate, Patrician, Patrician
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Forager (remaining_actions: 0; hand: Forager, Estate, Patrician, Patrician)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Forager (remaining_actions: 0; hand: Patrician, Patrician)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: )
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Copper (cost: 0; remaining_coins: 1; remaining_buys: 2)
+06:12:10 - INFO - Supply: Copper gained (45 remaining)
+06:12:10 - INFO - Player 2 (CustomBoard): buys Copper (cost: 0; remaining_coins: 1; remaining_buys: 1)
+06:12:10 - INFO - Supply: Copper gained (44 remaining)
+06:12:10 - INFO - Player 2 (CustomBoard): buys Copper (cost: 0; remaining_coins: 1; remaining_buys: 0)
+06:12:10 - INFO - Supply: Copper gained (43 remaining)
+06:12:10 - INFO - Summary: Player 2 (CustomBoard) played 3 actions and bought Copper, Copper, Copper
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 11 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Emporium, Patrician, Copper, Emporium, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Emporium, Copper, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Patrician; new_hand: Emporium, Copper, Emporium, Copper, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Emporium, Copper, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Emporium, Copper, Emporium, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 0; hand: Copper, Emporium, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Patrician, Patrician; new_hand: Copper, Emporium, Copper, Copper, Patrician, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 1; hand: Copper, Emporium, Copper, Copper, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Emporium, Copper, Copper, Patrician, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 1; hand: Copper, Emporium, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Emporium, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 1; hand: Copper, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Estate, Emporium; new_hand: Copper, Copper, Copper, Copper, Copper, Estate, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 2; hand: Copper, Copper, Copper, Copper, Copper, Estate)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Estate, Emporium; new_hand: Copper, Copper, Copper, Copper, Copper, Estate, Estate, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 3; hand: Copper, Copper, Copper, Copper, Copper, Estate, Estate)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Emporium, Copper; new_hand: Copper, Copper, Copper, Copper, Copper, Estate, Estate, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 4; hand: Copper, Copper, Copper, Copper, Copper, Estate, Estate, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Copper, Forager; new_hand: Copper, Copper, Copper, Copper, Copper, Estate, Estate, Copper, Copper, Forager)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Forager (remaining_actions: 5; hand: Copper, Copper, Copper, Copper, Copper, Estate, Estate, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Emporium (cost: 5; remaining_coins: 2; remaining_buys: 1)
+06:12:10 - INFO - Supply: Emporium gained (3 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 10 actions and bought Emporium
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 11 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Estate, Estate, Patrician, Copper, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Estate, Estate, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Estate, Estate, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Forager (cost: 3; remaining_coins: 0; remaining_buys: 0)
+06:12:10 - INFO - Supply: Forager gained (6 remaining)
+06:12:10 - INFO - Summary: Player 2 (CustomBoard) played 1 action and bought Forager
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 12 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Patrician, Emporium, Emporium, Copper, Emporium
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Emporium, Emporium, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Emporium, Emporium, Copper, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 0; hand: Emporium, Copper, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Copper, Patrician; new_hand: Emporium, Copper, Emporium, Copper, Copper, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 1; hand: Emporium, Copper, Emporium, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Emporium; new_hand: Emporium, Copper, Emporium, Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 1; hand: Copper, Emporium, Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Patrician, Forager; new_hand: Copper, Emporium, Copper, Copper, Emporium, Patrician, Forager)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Forager (remaining_actions: 2; hand: Copper, Emporium, Copper, Copper, Emporium, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 2; hand: Emporium, Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Estate; new_hand: Emporium, Copper, Copper, Emporium, Estate)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 2; hand: Copper, Copper, Emporium, Estate, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Copper, Copper; new_hand: Copper, Copper, Emporium, Estate, Emporium, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 3; hand: Copper, Copper, Estate, Emporium, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Emporium, Copper; new_hand: Copper, Copper, Estate, Emporium, Copper, Copper, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 4; hand: Copper, Copper, Estate, Copper, Copper, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Copper, Patrician; new_hand: Copper, Copper, Estate, Copper, Copper, Emporium, Copper, Copper, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 5; hand: Copper, Copper, Estate, Copper, Copper, Emporium, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 5; hand: Copper, Copper, Estate, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Emporium (cost: 5; remaining_coins: 2; remaining_buys: 1)
+06:12:10 - INFO - Supply: Emporium gained (2 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 11 actions and bought Emporium
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 12 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Patrician, Copper, Copper, Copper, Patrician
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Copper, Copper, Patrician)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Copper, Copper, Patrician, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Emporium (remaining_actions: 0; hand: Copper, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 2 cards (drawn_cards: Forager, Forager; new_hand: Copper, Copper, Copper, Copper, Copper, Forager, Forager)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Forager (remaining_actions: 1; hand: Copper, Copper, Copper, Copper, Copper, Forager)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Forager (remaining_actions: 1; hand: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Emporium (cost: 5; remaining_coins: 0; remaining_buys: 2)
+06:12:10 - INFO - Supply: Emporium gained (1 remaining)
+06:12:10 - INFO - Player 2 (CustomBoard): buys Copper (cost: 0; remaining_coins: 0; remaining_buys: 1)
+06:12:10 - INFO - Supply: Copper gained (42 remaining)
+06:12:10 - INFO - Player 2 (CustomBoard): buys Copper (cost: 0; remaining_coins: 0; remaining_buys: 0)
+06:12:10 - INFO - Supply: Copper gained (41 remaining)
+06:12:10 - INFO - Summary: Player 2 (CustomBoard) played 5 actions and bought Emporium, Copper, Copper
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 13 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Emporium, Emporium, Copper, Patrician, Patrician
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Emporium, Emporium, Copper, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Patrician; new_hand: Emporium, Emporium, Copper, Patrician, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Emporium, Emporium, Copper, Patrician, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Emporium; new_hand: Emporium, Emporium, Copper, Patrician, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Emporium, Emporium, Copper, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Forager; new_hand: Emporium, Emporium, Copper, Emporium, Emporium, Forager)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Forager (remaining_actions: 0; hand: Emporium, Emporium, Copper, Emporium, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 0; hand: Emporium, Emporium, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Copper, Emporium; new_hand: Emporium, Emporium, Emporium, Emporium, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 1; hand: Emporium, Emporium, Emporium, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Copper, Copper; new_hand: Emporium, Emporium, Emporium, Copper, Emporium, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 2; hand: Emporium, Emporium, Copper, Emporium, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Estate, Copper; new_hand: Emporium, Emporium, Copper, Emporium, Copper, Copper, Estate, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 3; hand: Emporium, Copper, Emporium, Copper, Copper, Estate, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Patrician, Copper; new_hand: Emporium, Copper, Emporium, Copper, Copper, Estate, Copper, Patrician, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 4; hand: Emporium, Copper, Emporium, Copper, Copper, Estate, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Emporium; new_hand: Emporium, Copper, Emporium, Copper, Copper, Estate, Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 4; hand: Copper, Emporium, Copper, Copper, Estate, Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 5; hand: Copper, Copper, Copper, Estate, Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 6; hand: Copper, Copper, Copper, Estate, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Emporium (cost: 5; remaining_coins: 1; remaining_buys: 1)
+06:12:10 - INFO - Supply: Emporium gained (0 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 12 actions and bought Emporium
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 13 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Patrician, Copper, Copper, Patrician, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Copper, Patrician, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Patrician; new_hand: Copper, Copper, Patrician, Copper, Patrician)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Copper, Copper, Patrician)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Copper, Copper, Patrician, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Forager (cost: 3; remaining_coins: 2; remaining_buys: 0)
+06:12:10 - INFO - Supply: Forager gained (5 remaining)
+06:12:10 - INFO - Summary: Player 2 (CustomBoard) played 3 actions and bought Forager
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 14 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Estate, Patrician, Emporium, Patrician, Emporium
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Estate, Emporium, Patrician, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Forager; new_hand: Estate, Emporium, Patrician, Emporium, Forager)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Forager (remaining_actions: 0; hand: Estate, Emporium, Patrician, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Emporium, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Patrician; new_hand: Emporium, Emporium, Emporium, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Emporium, Emporium, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Emporium, Emporium, Emporium, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 0; hand: Emporium, Emporium, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Copper, Emporium; new_hand: Emporium, Emporium, Emporium, Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 1; hand: Emporium, Emporium, Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Emporium, Emporium; new_hand: Emporium, Emporium, Copper, Copper, Emporium, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 2; hand: Emporium, Copper, Copper, Emporium, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Patrician, Copper; new_hand: Emporium, Copper, Copper, Emporium, Emporium, Emporium, Patrician, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 3; hand: Emporium, Copper, Copper, Emporium, Emporium, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Emporium, Copper, Copper, Emporium, Emporium, Emporium, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 3; hand: Copper, Copper, Emporium, Emporium, Emporium, Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Copper, Copper, Emporium, Emporium, Emporium, Copper, Copper, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 4; hand: Copper, Copper, Emporium, Emporium, Copper, Copper, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 5; hand: Copper, Copper, Emporium, Copper, Copper, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 6; hand: Copper, Copper, Copper, Copper, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 7; hand: Copper, Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Forager (cost: 3; remaining_coins: 3; remaining_buys: 1)
+06:12:10 - INFO - Supply: Forager gained (4 remaining)
+06:12:10 - INFO - Player 1 (CustomBoard): buys Forager (cost: 3; remaining_coins: 0; remaining_buys: 0)
+06:12:10 - INFO - Supply: Forager gained (3 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 13 actions and bought Forager, Forager
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 14 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Estate, Copper, Emporium, Patrician, Forager
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Forager (remaining_actions: 0; hand: Estate, Copper, Emporium, Patrician)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Emporium)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Forager; new_hand: Copper, Emporium, Forager)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Forager (remaining_actions: 0; hand: Copper, Emporium, Emporium)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Emporium (remaining_actions: 0; hand: Emporium)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 2 cards (drawn_cards: Patrician, Estate; new_hand: Emporium, Patrician, Estate)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 1; hand: Emporium, Estate)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Emporium, Estate, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Emporium (remaining_actions: 1; hand: Estate, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 2 cards (drawn_cards: Copper, Copper; new_hand: Estate, Copper, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Forager (cost: 3; remaining_coins: 2; remaining_buys: 2)
+06:12:10 - INFO - Supply: Forager gained (2 remaining)
+06:12:10 - INFO - Player 2 (CustomBoard): buys Copper (cost: 0; remaining_coins: 2; remaining_buys: 1)
+06:12:10 - INFO - Supply: Copper gained (40 remaining)
+06:12:10 - INFO - Player 2 (CustomBoard): buys Copper (cost: 0; remaining_coins: 2; remaining_buys: 0)
+06:12:10 - INFO - Supply: Copper gained (39 remaining)
+06:12:10 - INFO - Summary: Player 2 (CustomBoard) played 6 actions and bought Forager, Copper, Copper
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 15 - Player 1 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Emporium, Emporium, Emporium, Emporium, Emporium
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 0; hand: Emporium, Emporium, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Forager, Copper; new_hand: Emporium, Emporium, Emporium, Emporium, Forager, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Forager (remaining_actions: 1; hand: Emporium, Emporium, Emporium, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 1; hand: Emporium, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Copper, Forager; new_hand: Emporium, Emporium, Emporium, Copper, Forager)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Forager (remaining_actions: 2; hand: Emporium, Emporium, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 2; hand: Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Emporium, Patrician; new_hand: Emporium, Emporium, Emporium, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 3; hand: Emporium, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Emporium, Emporium, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 3; hand: Emporium, Emporium, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Patrician, Forager; new_hand: Emporium, Emporium, Copper, Emporium, Patrician, Forager)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Forager (remaining_actions: 4; hand: Emporium, Emporium, Copper, Emporium, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 4; hand: Emporium, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Patrician; new_hand: Emporium, Emporium, Emporium, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 4; hand: Emporium, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Patrician; new_hand: Emporium, Emporium, Emporium, Patrician)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Patrician (remaining_actions: 4; hand: Emporium, Emporium, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 1 card (drawn_cards: Copper; new_hand: Emporium, Emporium, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 4; hand: Emporium, Emporium, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): draws 2 cards (drawn_cards: Copper, Emporium; new_hand: Emporium, Emporium, Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 5; hand: Emporium, Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 6; hand: Copper, Copper, Emporium)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Emporium (remaining_actions: 7; hand: Copper, Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+06:12:10 - INFO - Player 1 (CustomBoard): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+06:12:10 - INFO - Player 1 (CustomBoard): buys Forager (cost: 3; remaining_coins: 2; remaining_buys: 3)
+06:12:10 - INFO - Supply: Forager gained (1 remaining)
+06:12:10 - INFO - Summary: Player 1 (CustomBoard) played 15 actions and bought Forager
+06:12:10 - INFO - 
+========================================
+06:12:10 - INFO - Turn 15 - Player 2 (CustomBoard)
+06:12:10 - INFO - Resources: 1 actions, 1 buys, 0 coins
+06:12:10 - INFO - Hand: Forager, Copper, Patrician, Copper, Copper
+06:12:10 - INFO - ----------------------------------------
+06:12:10 - INFO - Player 2 (CustomBoard): plays Forager (remaining_actions: 0; hand: Copper, Patrician, Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Patrician (remaining_actions: 0; hand: Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): draws 1 card (drawn_cards: Forager; new_hand: Copper, Copper, Forager)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Forager (remaining_actions: 0; hand: Copper, Copper)
+06:12:10 - INFO - Player 2 (CustomBoard): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+06:12:10 - INFO - Player 2 (CustomBoard): buys Forager (cost: 3; remaining_coins: 0; remaining_buys: 2)
+06:12:10 - INFO - Supply: Forager gained (0 remaining)
+06:12:10 - INFO - Player 2 (CustomBoard): buys Copper (cost: 0; remaining_coins: 0; remaining_buys: 1)
+06:12:10 - INFO - Supply: Copper gained (38 remaining)
+06:12:10 - INFO - Player 2 (CustomBoard): buys Copper (cost: 0; remaining_coins: 0; remaining_buys: 0)
+06:12:10 - INFO - Supply: Copper gained (37 remaining)
+06:12:10 - INFO - Game over: Three piles depleted
+06:12:10 - INFO - 
+============================================================
+06:12:10 - INFO - Game Over!
+06:12:10 - INFO - Winner: Player 1 (CustomBoard)
+06:12:10 - INFO - 
+Final Scores:
+06:12:10 - INFO -   Player 1 (CustomBoard): 30
+06:12:10 - INFO -     Emporium x8 -> 16 VP
+06:12:10 - INFO -     VP Tokens: 14
+06:12:10 - INFO -   Player 2 (CustomBoard): 9
+06:12:10 - INFO -     Estate x1 -> 1 VP
+06:12:10 - INFO -     Emporium x2 -> 4 VP
+06:12:10 - INFO -     VP Tokens: 4
+06:12:10 - INFO - 
+Final Supply State:
+06:12:10 - INFO -   Copper: 37 remaining
+06:12:10 - INFO -   Silver: 40 remaining
+06:12:10 - INFO -   Gold: 30 remaining
+06:12:10 - INFO -   Estate: 8 remaining
+06:12:10 - INFO -   Duchy: 8 remaining
+06:12:10 - INFO -   Province: 8 remaining
+06:12:10 - INFO -   Curse: 10 remaining
+06:12:10 - INFO -   Collection: 10 remaining
+06:12:10 - INFO -   Emporium: Empty
+06:12:10 - INFO -   Forager: Empty
+06:12:10 - INFO -   Miser: 10 remaining
+06:12:10 - INFO -   Modify: 10 remaining
+06:12:10 - INFO -   Patrician: Empty
+06:12:10 - INFO -   Rats: 10 remaining
+06:12:10 - INFO -   Rebuild: 10 remaining
+06:12:10 - INFO -   Skulk: 10 remaining
+06:12:10 - INFO -   Snowy Village: 10 remaining
+06:12:10 - INFO - ============================================================
+
