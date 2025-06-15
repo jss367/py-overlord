@@ -6,6 +6,8 @@ from datetime import datetime
 from enum import Enum, auto
 from typing import Any, Optional, List
 
+from dominion.game.player_state import PlayerState
+
 from dominion.ai.genetic_ai import GeneticAI
 
 from tqdm import tqdm
@@ -164,7 +166,13 @@ class GameLogger:
             buy_part = "bought nothing"
         self.file_logger.info(f"Summary: {player} played {action_part} and {buy_part}")
 
-    def end_game(self, winner: str, scores: dict[str, int], supply_state: dict[str, int]) -> Optional[str]:
+    def end_game(
+        self,
+        winner: str,
+        scores: dict[str, int],
+        supply_state: dict[str, int],
+        players: List["PlayerState"],
+    ) -> Optional[str]:
         """End the current game with enhanced final state logging.
 
         Returns the path to the log file for this game if one was created."""
@@ -175,8 +183,22 @@ class GameLogger:
             self.file_logger.info("Game Over!")
             self.file_logger.info(f"Winner: {self.format_player_name(winner)}")
             self.file_logger.info("\nFinal Scores:")
+            # Build a lookup for PlayerState objects by AI name
+            player_lookup = {p.ai.name: p for p in players}
             for player, score in scores.items():
                 self.file_logger.info(f"  {self.format_player_name(player)}: {score}")
+                ps = player_lookup.get(player)
+                if ps:
+                    breakdown = ps.get_vp_breakdown()
+                    for card_name, data in breakdown.items():
+                        count = data.get("count")
+                        vp = data.get("vp")
+                        if card_name == "VP Tokens":
+                            self.file_logger.info(f"    {card_name}: {vp}")
+                        else:
+                            self.file_logger.info(
+                                f"    {card_name} x{count} -> {vp} VP"
+                            )
 
             self.file_logger.info("\nFinal Supply State:")
             for card, count in supply_state.items():
