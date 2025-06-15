@@ -1,10 +1,9 @@
-from ..base_card import Card, CardCost, CardStats, CardType
-from ..split_pile import SplitPileMixin
+from ..base_card import CardCost, CardStats, CardType
+from ..split_pile import BottomSplitPileCard
 
 
-class Emporium(SplitPileMixin, Card):
+class Emporium(BottomSplitPileCard):
     partner_card_name = "Patrician"
-    bottom = True
     def __init__(self):
         super().__init__(
             name="Emporium",

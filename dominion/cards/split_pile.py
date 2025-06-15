@@ -15,3 +15,15 @@ class SplitPileMixin(Card):
         if self.bottom and game_state.supply.get(self.partner_card_name, 0) > 0:
             return False
         return super().may_be_bought(game_state)
+
+
+class TopSplitPileCard(SplitPileMixin):
+    """Base class for the top card in a split pile."""
+
+    bottom = False
+
+
+class BottomSplitPileCard(SplitPileMixin):
+    """Base class for the bottom card in a split pile."""
+
+    bottom = True
