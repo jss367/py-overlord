@@ -72,6 +72,11 @@ from dominion.cards.expansions import (
     Staff,
     Sword,
 )
+from dominion.cards.hinterlands import Trail, Trader, Inn
+from dominion.cards.renaissance import ActingTroupe
+from dominion.cards.allies import Taskmaster
+from dominion.cards.intrigue import Torturer, Patrol
+from dominion.cards.plunder import FirstMate
 from dominion.cards.treasures import Copper, Gold, Silver
 from dominion.cards.victory import Curse, Duchy, Estate, Province
 
@@ -155,6 +160,14 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Spell Scroll": SpellScroll,
     "Staff": Staff,
     "Sword": Sword,
+    "Trail": Trail,
+    "Acting Troupe": ActingTroupe,
+    "Taskmaster": Taskmaster,
+    "Trader": Trader,
+    "Torturer": Torturer,
+    "Patrol": Patrol,
+    "Inn": Inn,
+    "First Mate": FirstMate,
 }
 
 
