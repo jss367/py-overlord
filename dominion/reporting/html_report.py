@@ -116,10 +116,12 @@ def generate_html_report(results: dict, output_path: Path) -> None:
         else:
             log_items += f'<li>Game {game["game_number"]}: No log available</li>'
 
+    title = f"{strat1} vs {strat2}"
+
     html = f"""
     <html>
     <head>
-        <title>Skulk Strategy Comparison</title>
+        <title>{title} Comparison</title>
         <style>
             body {{ font-family: Arial, sans-serif; margin: 40px; }}
             h1 {{ text-align: center; }}
@@ -127,7 +129,7 @@ def generate_html_report(results: dict, output_path: Path) -> None:
         </style>
     </head>
     <body>
-    <h1>Skulk Strategy Comparison</h1>
+    <h1>{title} Comparison</h1>
     <p>Games played: {results['games_played']}</p>
     <p>Confidence the win-rate difference is real: {confidence:.1%} (p={win_p:.4f})</p>
     <h2>Win Counts</h2>
