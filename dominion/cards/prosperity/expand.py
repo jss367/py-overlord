@@ -22,7 +22,7 @@ class Expand(Card):
             card_to_trash = player.hand[0]
 
         player.hand.remove(card_to_trash)
-        game_state.trash.append(card_to_trash)
+        game_state.trash_card(player, card_to_trash)
 
         max_cost = card_to_trash.cost.coins + 3
         gains = [
