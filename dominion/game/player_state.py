@@ -26,6 +26,7 @@ class PlayerState:
 
     # Misc counters
     vp_tokens: int = 0
+    villagers: int = 0
     miser_coppers: int = 0
     ignore_action_bonuses: bool = False
     collection_played: int = 0
@@ -39,6 +40,8 @@ class PlayerState:
     delayed_cards: list[Card] = field(default_factory=list)
     seize_the_day_used: bool = False
     topdeck_gains: bool = False
+    gained_five_this_turn: bool = False
+    gained_five_last_turn: bool = False
 
     def initialize(self, use_shelters: bool = False):
         """Set up starting deck and draw initial hand.
@@ -75,6 +78,7 @@ class PlayerState:
         self.coins = 0
         self.potions = 0
         self.vp_tokens = 0
+        self.villagers = 0
         self.miser_coppers = 0
         self.ignore_action_bonuses = False
         self.collection_played = 0
@@ -86,6 +90,8 @@ class PlayerState:
         self.delayed_cards = []
         self.seize_the_day_used = False
         self.topdeck_gains = False
+        self.gained_five_this_turn = False
+        self.gained_five_last_turn = False
 
         # Draw initial hand of 5 cards
         self.draw_cards(5)

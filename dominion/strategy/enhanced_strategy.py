@@ -105,10 +105,7 @@ class EnhancedStrategy:
         expr = expr.replace(
             "state.provinces_left", 'state.supply.get("Province", 0)'
         )
-        expr = expr.replace(
-            "state.empty_piles",
-            'sum(1 for v in state.supply.values() if v == 0)'
-        )
+        expr = expr.replace("state.empty_piles", "state.empty_piles")
 
         def count(name_str: str) -> int:
             names = [n.strip() for n in name_str.split("/")]

@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 
 from dominion.cards.base_card import Card
 from dominion.cards.registry import get_card
+from dominion.cards.split_pile import SplitPileMixin
 from dominion.game.player_state import PlayerState
 
 
@@ -114,11 +115,40 @@ class GameState:
         for card in kingdom_cards:
             self.supply[card.name] = card.starting_supply(self)
 
+            # Automatically add split pile partner cards
+            if isinstance(card, SplitPileMixin):
+                partner = get_card(card.partner_card_name)
+                if partner.name not in self.supply:
+                    self.supply[partner.name] = partner.starting_supply(self)
+
         self.log_callback(f"Supply initialized: {self.supply}")
+
+    @property
+    def empty_piles(self) -> int:
+        """Return number of empty supply piles, counting split piles once."""
+        counted: set[str] = set()
+        empties = 0
+        for name in list(self.supply.keys()):
+            if name in counted:
+                continue
+            card = get_card(name)
+            if isinstance(card, SplitPileMixin):
+                partner = card.partner_card_name
+                counted.add(name)
+                counted.add(partner)
+                if self.supply.get(name, 0) == 0 and self.supply.get(partner, 0) == 0:
+                    empties += 1
+            else:
+                counted.add(name)
+                if self.supply.get(name, 0) == 0:
+                    empties += 1
+        return empties
 
     def handle_start_phase(self):
         """Handle the start of turn phase."""
         self.current_player.turns_taken += 1
+        self.current_player.gained_five_last_turn = self.current_player.gained_five_this_turn
+        self.current_player.gained_five_this_turn = False
 
         # Reset per-turn flags
         self.current_player.ignore_action_bonuses = False
@@ -196,11 +226,26 @@ class GameState:
         """Handle the action phase of a turn."""
         player = self.current_player
 
-        while player.actions > 0:
+        while True:
             action_cards = [card for card in player.hand if card.is_action]
 
             if not action_cards:
                 break
+
+            if player.actions == 0:
+                if player.villagers > 0:
+                    player.villagers -= 1
+                    player.actions += 1
+                    self.log_callback(
+                        (
+                            "action",
+                            player.ai.name,
+                            "spends a Villager for +1 Action",
+                            {"villagers_remaining": player.villagers},
+                        )
+                    )
+                else:
+                    break
 
             choice = player.ai.choose_action(self, action_cards + [None])
             if choice is None:
@@ -447,7 +492,7 @@ class GameState:
             return True
 
         # 2. Three supply piles empty
-        empty_piles = sum(1 for count in self.supply.values() if count == 0)
+        empty_piles = self.empty_piles
         if empty_piles >= 3:
             self._update_final_metrics()
             self.log_callback("Game over: Three piles depleted")
