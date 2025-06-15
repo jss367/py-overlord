@@ -1,7 +1,10 @@
 from ..base_card import Card, CardCost, CardStats, CardType
+from ..split_pile import SplitPileMixin
 
 
-class Patrician(Card):
+class Patrician(SplitPileMixin, Card):
+    partner_card_name = "Emporium"
+    bottom = False
     def __init__(self):
         super().__init__(
             name="Patrician",
@@ -9,6 +12,7 @@ class Patrician(Card):
             stats=CardStats(cards=1, actions=1),
             types=[CardType.ACTION],
         )
+
 
     def play_effect(self, game_state):
         player = game_state.current_player
