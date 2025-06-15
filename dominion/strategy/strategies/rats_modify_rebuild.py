@@ -12,17 +12,17 @@ class RatsModifyRebuildStrategy(EnhancedStrategy):
 
         # Gain priorities
         self.gain_priority = [
-            PriorityRule("Province", PriorityRule.can_afford(8)),
+            PriorityRule("Province"),
             PriorityRule("Rebuild", "my.count(Rebuild) < 3"),
-            PriorityRule("Emporium", PriorityRule.can_afford(5)),
+            PriorityRule("Emporium"),
             PriorityRule("Duchy"),
             PriorityRule("Patrician", "my.count(Patrician) < 2"),
             PriorityRule("Modify", "my.count(Modify) < 2"),
-            PriorityRule("Skulk", PriorityRule.can_afford(4)),
-            PriorityRule("Rats", PriorityRule.can_afford(4)),
+            PriorityRule("Skulk"),
+            PriorityRule("Rats"),
             PriorityRule("Forager", "my.count(Forager) < 1"),
-            PriorityRule("Gold", PriorityRule.can_afford(6)),
-            PriorityRule("Silver", PriorityRule.can_afford(3)),
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
             PriorityRule("Estate", PriorityRule.provinces_left("<=", 2)),
             PriorityRule("Copper"),
         ]
