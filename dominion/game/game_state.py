@@ -10,6 +10,8 @@ class GameState:
     players: list[PlayerState]
     supply: dict[str, int] = field(default_factory=dict)
     trash: list[Card] = field(default_factory=list)
+    events: list = field(default_factory=list)
+    projects: list = field(default_factory=list)
     current_player_index: int = 0
     phase: str = "start"
     turn_number: int = 1
@@ -60,12 +62,19 @@ class GameState:
         return self.players[self.current_player_index]
 
     def initialize_game(
-        self, ais: list, kingdom_cards: list[Card], use_shelters: bool = False
+        self,
+        ais: list,
+        kingdom_cards: list[Card],
+        use_shelters: bool = False,
+        events: list = None,
+        projects: list = None,
     ):
         """Set up the game with given AIs and kingdom cards."""
         # Create PlayerState objects for each AI
         self.players = [PlayerState(ai) for ai in ais]
         self.setup_supply(kingdom_cards)
+        self.events = events or []
+        self.projects = projects or []
 
         # Initialize players
         for player in self.players:
@@ -114,6 +123,10 @@ class GameState:
         self.current_player.collection_played = 0
         self.current_player.actions_this_turn = 0
         self.current_player.bought_this_turn = []
+
+        # Resolve project effects that occur at the start of the turn
+        for project in self.current_player.projects:
+            project.on_turn_start(self, self.current_player)
 
         # Log turn header with complete state
         resources = {
@@ -255,13 +268,12 @@ class GameState:
             if choice is None:
                 break
 
-            # Update metrics for cards bought
+            # Update metrics for cards bought or purchased items
             if self.logger:
                 self.logger.current_metrics.cards_bought[choice.name] = (
                     self.logger.current_metrics.cards_bought.get(choice.name, 0) + 1
                 )
 
-            # Log buy with context
             context = {
                 "cost": choice.cost.coins,
                 "remaining_coins": player.coins - choice.cost.coins,
@@ -269,28 +281,55 @@ class GameState:
             }
             self.log_callback(("action", player.ai.name, f"buys {choice}", context))
 
-            # Update supply
-            self.supply[choice.name] -= 1
-            self.log_callback(("supply_change", choice.name, -1, self.supply[choice.name]))
-
-            # Complete purchase
             player.bought_this_turn.append(choice.name)
             player.buys -= 1
             player.coins -= choice.cost.coins
-            player.discard.append(choice)
-            choice.on_buy(self)
-            choice.on_gain(self, player)
+
+            if getattr(choice, "is_event", False):
+                choice.on_buy(self, player)
+            elif getattr(choice, "is_project", False):
+                # Add a copy of the project to the player's owned projects
+                player.projects.append(choice)
+                choice.on_buy(self, player)
+            else:
+                self.supply[choice.name] -= 1
+                self.log_callback(("supply_change", choice.name, -1, self.supply[choice.name]))
+                player.discard.append(choice)
+                choice.on_buy(self)
+                choice.on_gain(self, player)
 
         self.phase = "cleanup"
 
     def _get_affordable_cards(self, player):
-        """Helper to get list of affordable cards."""
+        """Helper to get list of affordable cards, events and projects."""
         affordable = []
         for card_name, count in self.supply.items():
             if count > 0:
                 card = get_card(card_name)
-                if card.cost.coins <= player.coins and card.cost.potions <= player.potions and card.may_be_bought(self):
+                if (
+                    card.cost.coins <= player.coins
+                    and card.cost.potions <= player.potions
+                    and card.may_be_bought(self)
+                ):
                     affordable.append(card)
+
+        for event in self.events:
+            if (
+                event.cost.coins <= player.coins
+                and event.cost.potions <= player.potions
+                and event.may_be_bought(self, player)
+            ):
+                affordable.append(event)
+
+        for project in self.projects:
+            if (
+                project not in player.projects
+                and project.cost.coins <= player.coins
+                and project.cost.potions <= player.potions
+                and project.may_be_bought(self, player)
+            ):
+                affordable.append(project)
+
         return affordable
 
     def _complete_purchase(self, player, card):

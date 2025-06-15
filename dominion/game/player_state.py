@@ -22,6 +22,7 @@ class PlayerState:
     in_play: list[Card] = field(default_factory=list)
     duration: list[Card] = field(default_factory=list)
     multiplied_durations: list[Card] = field(default_factory=list)
+    projects: list = field(default_factory=list)
 
     # Misc counters
     vp_tokens: int = 0
@@ -62,6 +63,7 @@ class PlayerState:
         self.in_play = []
         self.duration = []
         self.multiplied_durations = []
+        self.projects = []
 
         # Reset resources
         self.actions = 1
