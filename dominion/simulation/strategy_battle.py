@@ -165,11 +165,9 @@ class StrategyBattle:
         # Start game logging with actual AI objects for better descriptions
         self.logger.start_game([ai1, ai2])
 
-        # Set up game state
+        # Set up game state and attach logger for structured logging
         game_state = GameState(players=[], supply={})
-        game_state.log_callback = lambda msg: (
-            self.logger.file_logger.info(msg) if self.logger.should_log_to_file else print(msg)
-        )
+        game_state.set_logger(self.logger)
 
         # Initialize game
         kingdom_cards = [get_card(name) for name in kingdom_card_names]

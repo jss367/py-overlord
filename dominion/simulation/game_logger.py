@@ -51,6 +51,7 @@ class GameLogger:
         self.game_count = 0
         self.should_log_to_file = False
         self.training_progress: Optional[tqdm] = None
+        self.name_map: dict[str, str] = {}
 
         # Create log directories
         os.makedirs(log_folder, exist_ok=True)
@@ -83,13 +84,16 @@ class GameLogger:
             file_handler.setFormatter(formatter)
             self.file_logger.addHandler(file_handler)
 
-            # Create readable player descriptions
+            # Create readable player descriptions and map them for later use
             descriptions = []
+            self.name_map = {}
             for ai in players:
                 ai_id = ai.name.split("-")[1]
                 short_id = ai_id[-4:]
                 strategy_name = getattr(ai.strategy, "name", "Unknown Strategy")
-                descriptions.append(f"Player {short_id} ({strategy_name})")
+                friendly = f"Player {short_id} ({strategy_name})"
+                self.name_map[ai.name] = friendly
+                descriptions.append(friendly)
 
             # Enhanced game start logging
             self.file_logger.info("=" * 60)
@@ -99,8 +103,10 @@ class GameLogger:
 
     def format_player_name(self, name: str) -> str:
         """Format player name to be more readable."""
+        if name in self.name_map:
+            return self.name_map[name]
         if "GeneticAI-" in name:
-            return f"AI-{name.split('-')[1][:4]}"  # Show only first 4 digits of id
+            return f"AI-{name.split('-')[1][:4]}"
         return name
 
     def log_turn_header(self, player_name: str, turn_number: int, resources: dict[str, int]):
