@@ -16,8 +16,7 @@ class Rats(Card):
         if game_state.supply.get("Rats", 0) > 0:
             gained = Rats()
             game_state.supply["Rats"] -= 1
-            player.discard.append(gained)
-            gained.on_gain(game_state, player)
+            game_state.gain_card(player, gained)
         # Trash a non-Rats card from hand if possible
         choices = [c for c in player.hand if c.name != "Rats"]
         if choices:

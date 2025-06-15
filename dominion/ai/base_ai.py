@@ -36,3 +36,7 @@ class AI(ABC):
     def choose_way(self, state: GameState, card: Card, ways: list) -> Optional[object]:
         """Choose a Way to use when playing a card. Default is none."""
         return None
+
+    def use_amphora_now(self, state: GameState) -> bool:
+        """Decide whether to take Amphora's bonus immediately."""
+        return True

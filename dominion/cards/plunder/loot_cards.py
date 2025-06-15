@@ -18,7 +18,27 @@ class Loot(Card):
 
 class Amphora(Loot):
     def __init__(self):
-        super().__init__("Amphora", CardStats(coins=3, buys=1))
+        super().__init__("Amphora", CardStats())
+        self.types.append(CardType.DURATION)
+        self.delayed = False
+
+    def play_effect(self, game_state):
+        player = game_state.current_player
+        use_now = True
+        if hasattr(player.ai, "use_amphora_now"):
+            use_now = player.ai.use_amphora_now(game_state)
+        if use_now:
+            player.coins += 3
+            player.buys += 1
+        else:
+            self.delayed = True
+            player.duration.append(self)
+
+    def on_duration(self, game_state):
+        if self.delayed:
+            player = game_state.current_player
+            player.coins += 3
+            player.buys += 1
 
 
 class Doubloons(Loot):
@@ -32,18 +52,35 @@ class Doubloons(Loot):
 
             game_state.supply["Gold"] -= 1
             gold = get_card("Gold")
-            player.discard.append(gold)
-            gold.on_gain(game_state, player)
+            game_state.gain_card(player, gold)
 
 
 class EndlessChalice(Loot):
     def __init__(self):
         super().__init__("Endless Chalice", CardStats(coins=1, buys=1))
+        self.types.append(CardType.DURATION)
+        self.duration_persistent = True
+
+    def play_effect(self, game_state):
+        player = game_state.current_player
+        player.duration.append(self)
+
+    def on_duration(self, game_state):
+        player = game_state.current_player
+        player.coins += 1
+        player.buys += 1
 
 
 class Figurehead(Loot):
     def __init__(self):
         super().__init__("Figurehead", CardStats(coins=3))
+        self.types.append(CardType.DURATION)
+
+    def play_effect(self, game_state):
+        game_state.current_player.duration.append(self)
+
+    def on_duration(self, game_state):
+        game_state.draw_cards(game_state.current_player, 2)
 
 
 class Hammer(Loot):
@@ -62,23 +99,53 @@ class Hammer(Loot):
         if affordable:
             gain = get_card(affordable[0])
             game_state.supply[gain.name] -= 1
-            player.discard.append(gain)
-            gain.on_gain(game_state, player)
+            game_state.gain_card(player, gain)
 
 
 class Insignia(Loot):
     def __init__(self):
         super().__init__("Insignia", CardStats(coins=3))
 
+    def play_effect(self, game_state):
+        game_state.current_player.topdeck_gains = True
+
 
 class Jewels(Loot):
     def __init__(self):
         super().__init__("Jewels", CardStats(coins=3, buys=1))
+        self.types.append(CardType.DURATION)
+        self.duration_persistent = True
+
+    def play_effect(self, game_state):
+        game_state.current_player.duration.append(self)
+
+    def on_duration(self, game_state):
+        player = game_state.current_player
+        if self in player.duration:
+            player.duration.remove(self)
+        player.deck.insert(0, self)
 
 
 class Orb(Loot):
     def __init__(self):
         super().__init__("Orb", CardStats())
+
+    def play_effect(self, game_state):
+        player = game_state.current_player
+        actions = [c for c in player.discard if c.is_action]
+        treasures = [c for c in player.discard if c.is_treasure]
+        chosen = None
+        if actions:
+            chosen = player.ai.choose_action(game_state, actions + [None])
+        if not chosen and treasures:
+            chosen = player.ai.choose_treasure(game_state, treasures + [None])
+        if chosen:
+            player.discard.remove(chosen)
+            player.in_play.append(chosen)
+            chosen.on_play(game_state)
+        else:
+            player.coins += 3
+            player.buys += 1
 
 
 class PrizeGoat(Loot):
@@ -98,10 +165,32 @@ class PuzzleBox(Loot):
     def __init__(self):
         super().__init__("Puzzle Box", CardStats(coins=3, buys=1))
 
+    def play_effect(self, game_state):
+        player = game_state.current_player
+        if not player.hand:
+            return
+        choice = player.ai.choose_action(game_state, player.hand + [None])
+        if choice:
+            player.hand.remove(choice)
+            player.delayed_cards.append(choice)
+
 
 class Sextant(Loot):
     def __init__(self):
         super().__init__("Sextant", CardStats(coins=3, buys=1))
+
+    def play_effect(self, game_state):
+        player = game_state.current_player
+        peek = []
+        for _ in range(min(5, len(player.deck))):
+            peek.append(player.deck.pop())
+        to_keep = []
+        for card in peek:
+            if card.is_victory or card.name == "Curse":
+                player.discard.append(card)
+            else:
+                to_keep.append(card)
+        player.deck.extend(reversed(to_keep))
 
 
 class Shield(Loot):
@@ -113,6 +202,33 @@ class Shield(Loot):
 class SpellScroll(Loot):
     def __init__(self):
         super().__init__("Spell Scroll", CardStats())
+        self.types.append(CardType.ACTION)
+
+    def play_effect(self, game_state):
+        player = game_state.current_player
+        # Trash this
+        if self in player.in_play:
+            player.in_play.remove(self)
+        game_state.trash_card(player, self)
+
+        from ..registry import get_card
+        affordable = [
+            name
+            for name, count in game_state.supply.items()
+            if count > 0 and get_card(name).cost.coins < 7
+        ]
+        if not affordable:
+            return
+        gain = player.ai.choose_buy(game_state, [get_card(n) for n in affordable])
+        if gain is None:
+            gain = get_card(affordable[0])
+        game_state.supply[gain.name] -= 1
+        game_state.gain_card(player, gain)
+        if gain.is_action or gain.is_treasure:
+            if gain in player.discard:
+                player.discard.remove(gain)
+            player.in_play.append(gain)
+            gain.on_play(game_state)
 
 
 class Staff(Loot):

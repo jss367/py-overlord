@@ -78,41 +78,85 @@ class EnhancedStrategy:
     # ------------------------------------------------------------------
     # Basic decision helpers
     def _eval_condition(self, condition: Optional[str], state, player) -> bool:
-        """Very small evaluator for priority rule conditions."""
+        """Evaluate a priority rule condition without using ``eval`` on untrusted code."""
         if not condition:
             return True
+
+        import ast
+        import re
 
         expr = condition
 
         # Replace logical operators
         expr = expr.replace("AND", "and").replace("OR", "or")
 
-        # Support my.count(Card)
-        import re
-
-        def repl(match):
+        # Substitute card counts directly into the expression
+        def repl(match: re.Match) -> str:
             name = match.group(1)
-            return f'count("{name}")'
+            names = [n.strip() for n in name.split("/")]
+            total = sum(player.count_in_deck(n) for n in names)
+            return str(total)
 
         expr = re.sub(r"my\.count\(([^)]+)\)", repl, expr)
 
-        # Map basic references
-        expr = expr.replace("my.coins", "player.coins")
-        expr = expr.replace("my.actions", "player.actions")
-        expr = expr.replace("my.buys", "player.buys")
-        expr = expr.replace("my.hand_size", "len(player.hand)")
-        expr = expr.replace("state.turn_number", "state.turn_number")
-        expr = expr.replace(
-            "state.provinces_left", 'state.supply.get("Province", 0)'
-        )
-        expr = expr.replace("state.empty_piles", "state.empty_piles")
+        # Map known references to variable names.  These variables will be
+        # provided when evaluating the expression, avoiding use of object
+        # attributes inside the parsed AST.
+        expr = expr.replace("my.coins", "coins")
+        expr = expr.replace("my.actions", "actions")
+        expr = expr.replace("my.buys", "buys")
+        expr = expr.replace("my.hand_size", "hand_size")
+        expr = expr.replace("state.turn_number", "turn_number")
+        expr = expr.replace("state.provinces_left", "provinces_left")
+        expr = expr.replace("state.empty_piles", "empty_piles")
 
-        def count(name_str: str) -> int:
-            names = [n.strip() for n in name_str.split("/")]
-            return sum(player.count_in_deck(n) for n in names)
+        variables = {
+            "coins": player.coins,
+            "actions": player.actions,
+            "buys": player.buys,
+            "hand_size": len(player.hand),
+            "turn_number": state.turn_number,
+            "provinces_left": state.supply.get("Province", 0),
+            "empty_piles": state.empty_piles,
+        }
 
         try:
-            return bool(eval(expr, {}, {"player": player, "state": state, "count": count}))
+            tree = ast.parse(expr, mode="eval")
+        except Exception:
+            return False
+
+        allowed_nodes = (
+            ast.Expression,
+            ast.BoolOp,
+            ast.BinOp,
+            ast.UnaryOp,
+            ast.Compare,
+            ast.Constant,
+            ast.Num,
+            ast.And,
+            ast.Or,
+            ast.Add,
+            ast.Sub,
+            ast.UAdd,
+            ast.USub,
+            ast.Eq,
+            ast.NotEq,
+            ast.Lt,
+            ast.LtE,
+            ast.Gt,
+            ast.GtE,
+        )
+
+        for node in ast.walk(tree):
+            if not isinstance(node, allowed_nodes):
+                return False
+            if isinstance(node, ast.Name) and node.id not in variables:
+                return False
+            if isinstance(node, (ast.Call, ast.Attribute)):
+                return False
+
+        try:
+            return bool(eval(compile(tree, "<condition>", "eval"), {"__builtins__": None}, variables))
         except Exception:
             return False
 

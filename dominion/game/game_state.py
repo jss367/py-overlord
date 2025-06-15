@@ -153,9 +153,11 @@ class GameState:
         # Reset per-turn flags
         self.current_player.ignore_action_bonuses = False
         self.current_player.collection_played = 0
+        self.current_player.goons_played = 0
         self.current_player.actions_this_turn = 0
         self.current_player.bought_this_turn = []
         self.current_player.banned_buys = []
+        self.current_player.topdeck_gains = False
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
@@ -200,9 +202,10 @@ class GameState:
             # Apply duration effects
             card.on_duration(self)
 
-            # Move to discard after duration effect resolves
-            player.duration.remove(card)
-            player.discard.append(card)
+            # Move to discard after duration effect resolves unless it stays in play
+            if not getattr(card, "duration_persistent", False):
+                player.duration.remove(card)
+                player.discard.append(card)
 
         # Process any cards that were multiplied (e.g. by Throne Room)
         for card in player.multiplied_durations[:]:
@@ -217,7 +220,8 @@ class GameState:
             card.on_duration(self)
 
             player.multiplied_durations.remove(card)
-            player.discard.append(card)
+            if not getattr(card, "duration_persistent", False):
+                player.discard.append(card)
 
     def handle_action_phase(self):
         """Handle the action phase of a turn."""
@@ -337,16 +341,17 @@ class GameState:
                     self.logger.current_metrics.cards_bought.get(choice.name, 0) + 1
                 )
 
+            cost = self.get_card_cost(player, choice)
             context = {
-                "cost": choice.cost.coins,
-                "remaining_coins": player.coins - choice.cost.coins,
+                "cost": cost,
+                "remaining_coins": player.coins - cost,
                 "remaining_buys": player.buys - 1,
             }
             self.log_callback(("action", player.ai.name, f"buys {choice}", context))
 
             player.bought_this_turn.append(choice.name)
             player.buys -= 1
-            player.coins -= choice.cost.coins
+            player.coins -= cost
 
             if getattr(choice, "is_event", False):
                 choice.on_buy(self, player)
@@ -357,11 +362,26 @@ class GameState:
             else:
                 self.supply[choice.name] -= 1
                 self.log_callback(("supply_change", choice.name, -1, self.supply[choice.name]))
-                player.discard.append(choice)
                 choice.on_buy(self)
-                choice.on_gain(self, player)
+                self.gain_card(player, choice)
+
+                if player.goons_played:
+                    player.vp_tokens += player.goons_played
 
         self.phase = "cleanup"
+
+    def get_card_cost(self, player: PlayerState, card: Card) -> int:
+        """Return the coin cost of a card after modifiers."""
+        cost = card.cost.coins
+
+        if hasattr(card, "cost_modifier"):
+            cost += card.cost_modifier(self, player)
+
+        quarry_discount = sum(1 for c in player.in_play if c.name == "Quarry")
+        if quarry_discount and card.is_action:
+            cost -= 2 * quarry_discount
+
+        return max(0, cost)
 
     def _get_affordable_cards(self, player):
         """Helper to get list of affordable cards, events and projects."""
@@ -369,8 +389,9 @@ class GameState:
         for card_name, count in self.supply.items():
             if count > 0:
                 card = get_card(card_name)
+                cost = self.get_card_cost(player, card)
                 if (
-                    card.cost.coins <= player.coins
+                    cost <= player.coins
                     and card.cost.potions <= player.potions
                     and card.may_be_bought(self)
                     and card_name not in player.banned_buys
@@ -398,14 +419,17 @@ class GameState:
 
     def _complete_purchase(self, player, card):
         """Helper to complete a card purchase."""
+        cost = self.get_card_cost(player, card)
         player.buys -= 1
-        player.coins -= card.cost.coins
+        player.coins -= cost
         player.potions -= card.cost.potions
         self.supply[card.name] -= 1
 
         card.on_buy(self)
-        player.discard.append(card)
-        card.on_gain(self, player)
+        self.gain_card(player, card)
+
+        if player.goons_played:
+            player.vp_tokens += player.goons_played
 
     def handle_cleanup_phase(self):
         """Handle the cleanup phase of a turn."""
@@ -440,6 +464,8 @@ class GameState:
         player.potions = 0
         player.ignore_action_bonuses = False
         player.collection_played = 0
+        player.goons_played = 0
+        player.topdeck_gains = False
 
         # Move to next player
         if not self.extra_turn:
@@ -540,11 +566,18 @@ class GameState:
 
         if self.supply.get("Curse", 0) > 0:
             curse = get_card("Curse")
-            player.discard.append(curse)
             self.supply["Curse"] -= 1
-            curse.on_gain(self, player)
+            self.gain_card(player, curse)
             return True
         return False
+
+    def gain_card(self, player: PlayerState, card: Card, to_deck: bool = False) -> None:
+        """Add a card to a player's discard or deck, honoring topdeck effects."""
+        if to_deck or getattr(player, "topdeck_gains", False):
+            player.deck.insert(0, card)
+        else:
+            player.discard.append(card)
+        card.on_gain(self, player)
 
     def player_has_shield(self, player: PlayerState) -> bool:
         """Check if the player has a Shield card in hand."""

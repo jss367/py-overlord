@@ -32,5 +32,4 @@ class Workshop(Card):
             if chosen_card:
                 # Gain the chosen card
                 game_state.supply[chosen_card.name] -= 1
-                player.discard.append(chosen_card)
-                chosen_card.on_gain(game_state, player)
+                game_state.gain_card(player, chosen_card)

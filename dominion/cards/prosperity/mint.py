@@ -25,8 +25,7 @@ class Mint(Card):
         if game_state.supply.get(chosen.name, 0) > 0:
             game_state.supply[chosen.name] -= 1
             gained = get_card(chosen.name)
-            player.discard.append(gained)
-            gained.on_gain(game_state, player)
+            game_state.gain_card(player, gained)
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)

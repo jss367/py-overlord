@@ -30,6 +30,7 @@ class PlayerState:
     miser_coppers: int = 0
     ignore_action_bonuses: bool = False
     collection_played: int = 0
+    goons_played: int = 0
 
     # Turn tracking
     turns_taken: int = 0
@@ -39,6 +40,7 @@ class PlayerState:
     banned_buys: list[str] = field(default_factory=list)
     delayed_cards: list[Card] = field(default_factory=list)
     seize_the_day_used: bool = False
+    topdeck_gains: bool = False
     gained_five_this_turn: bool = False
     gained_five_last_turn: bool = False
 
@@ -81,6 +83,7 @@ class PlayerState:
         self.miser_coppers = 0
         self.ignore_action_bonuses = False
         self.collection_played = 0
+        self.goons_played = 0
         self.turns_taken = 0
         self.actions_played = 0
         self.actions_this_turn = 0
@@ -88,6 +91,7 @@ class PlayerState:
         self.banned_buys = []
         self.delayed_cards = []
         self.seize_the_day_used = False
+        self.topdeck_gains = False
         self.gained_five_this_turn = False
         self.gained_five_last_turn = False
 
