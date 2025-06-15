@@ -77,6 +77,7 @@ from dominion.cards.renaissance import ActingTroupe
 from dominion.cards.allies import Taskmaster
 from dominion.cards.intrigue import Torturer, Patrol
 from dominion.cards.plunder import FirstMate
+
 from dominion.cards.treasures import Copper, Gold, Silver
 from dominion.cards.victory import Curse, Duchy, Estate, Province
 

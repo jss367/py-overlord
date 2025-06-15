@@ -15,15 +15,15 @@ class CollectionPatricianRebuildStrategy(EnhancedStrategy):
 
         # Gain priorities
         self.gain_priority = [
-            PriorityRule("Province", PriorityRule.can_afford(8)),
+            PriorityRule("Province"),
             PriorityRule("Rebuild", "my.count(Rebuild) < 1"),
             PriorityRule("Modify", "my.count(Modify) < 1"),
             PriorityRule("Collection", "my.count(Collection) < 1"),
             PriorityRule("Forager", "my.count(Forager) < 2"),
-            PriorityRule("Skulk", PriorityRule.and_(PriorityRule.can_afford(4), "my.count(Skulk) < 3")),
+            PriorityRule("Skulk", "my.count(Skulk) < 3"),
             PriorityRule("Patrician", "my.count(Collection) >= 1"),
-            PriorityRule("Gold", PriorityRule.can_afford(6)),
-            PriorityRule("Silver", PriorityRule.can_afford(3)),
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
             PriorityRule("Estate", PriorityRule.provinces_left("<=", 2)),
             PriorityRule("Copper"),
         ]
