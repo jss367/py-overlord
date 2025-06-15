@@ -1,0 +1,146 @@
+
+Initializing battle between Chapel Witch and Big Money...
+Registered strategy: Skulk Rebuild Improved
+Registered strategy: Wharf Bridge Chapel Village
+Registered strategy: Skulk Rebuild
+Registered strategy: Chapel Witch
+Registered strategy: Big Money
+Registered strategy: Village Smithy Lab
+Registered strategy: Ultimate Dominion
+Registered strategy: Collection Patrician Rebuild
+Registered strategy: Rats Modify Rebuild
+
+Available strategies: Big Money, Chapel Witch, Collection Patrician Rebuild, Rats Modify Rebuild, Skulk Rebuild, Skulk Rebuild Improved, Ultimate Dominion, Village Smithy Lab, Wharf Bridge Chapel Village
+
+Running 10 games...
+
+Running 10 games between:
+Strategy 1: Chapel Witch
+Strategy 2: Big Money
+
+Using kingdom cards: Chapel, Witch
+Playing game 1/10...
+Supply initialized: {'Copper': 46, 'Silver': 40, 'Gold': 30, 'Estate': 8, 'Duchy': 8, 'Province': 8, 'Curse': 10, 'Chapel': 10, 'Witch': 10}
+Game initialized with players: Player 0576 (ChapelWitch), Player 1008 (BigMoney)
+Kingdom cards: Chapel, Witch
+Game over: Provinces depleted
+Playing game 2/10...
+Supply initialized: {'Copper': 46, 'Silver': 40, 'Gold': 30, 'Estate': 8, 'Duchy': 8, 'Province': 8, 'Curse': 10, 'Chapel': 10, 'Witch': 10}
+Game initialized with players: Player 6128 (BigMoney), Player 5696 (ChapelWitch)
+Kingdom cards: Chapel, Witch
+Game over: Provinces depleted
+Playing game 3/10...
+Supply initialized: {'Copper': 46, 'Silver': 40, 'Gold': 30, 'Estate': 8, 'Duchy': 8, 'Province': 8, 'Curse': 10, 'Chapel': 10, 'Witch': 10}
+Game initialized with players: Player 3120 (ChapelWitch), Player 3024 (BigMoney)
+Kingdom cards: Chapel, Witch
+Game over: Provinces depleted
+Playing game 4/10...
+Supply initialized: {'Copper': 46, 'Silver': 40, 'Gold': 30, 'Estate': 8, 'Duchy': 8, 'Province': 8, 'Curse': 10, 'Chapel': 10, 'Witch': 10}
+Game initialized with players: Player 7072 (BigMoney), Player 5584 (ChapelWitch)
+Kingdom cards: Chapel, Witch
+Game over: Provinces depleted
+Playing game 5/10...
+Supply initialized: {'Copper': 46, 'Silver': 40, 'Gold': 30, 'Estate': 8, 'Duchy': 8, 'Province': 8, 'Curse': 10, 'Chapel': 10, 'Witch': 10}
+Game initialized with players: Player 8784 (ChapelWitch), Player 9600 (BigMoney)
+Kingdom cards: Chapel, Witch
+Game over: Provinces depleted
+Playing game 6/10...
+Supply initialized: {'Copper': 46, 'Silver': 40, 'Gold': 30, 'Estate': 8, 'Duchy': 8, 'Province': 8, 'Curse': 10, 'Chapel': 10, 'Witch': 10}
+Game initialized with players: Player 2880 (BigMoney), Player 0272 (ChapelWitch)
+Kingdom cards: Chapel, Witch
+Game over: Provinces depleted
+Playing game 7/10...
+Supply initialized: {'Copper': 46, 'Silver': 40, 'Gold': 30, 'Estate': 8, 'Duchy': 8, 'Province': 8, 'Curse': 10, 'Chapel': 10, 'Witch': 10}
+Game initialized with players: Player 3984 (ChapelWitch), Player 7600 (BigMoney)
+Kingdom cards: Chapel, Witch
+Game over: Provinces depleted
+Playing game 8/10...
+Supply initialized: {'Copper': 46, 'Silver': 40, 'Gold': 30, 'Estate': 8, 'Duchy': 8, 'Province': 8, 'Curse': 10, 'Chapel': 10, 'Witch': 10}
+Game initialized with players: Player 6352 (BigMoney), Player 1856 (ChapelWitch)
+Kingdom cards: Chapel, Witch
+Game over: Provinces depleted
+Playing game 9/10...
+Supply initialized: {'Copper': 46, 'Silver': 40, 'Gold': 30, 'Estate': 8, 'Duchy': 8, 'Province': 8, 'Curse': 10, 'Chapel': 10, 'Witch': 10}
+Game initialized with players: Player 5584 (ChapelWitch), Player 5680 (BigMoney)
+Kingdom cards: Chapel, Witch
+Game over: Provinces depleted
+Playing game 10/10...
+Supply initialized: {'Copper': 46, 'Silver': 40, 'Gold': 30, 'Estate': 8, 'Duchy': 8, 'Province': 8, 'Curse': 10, 'Chapel': 10, 'Witch': 10}
+Game initialized with players: Player 3504 (BigMoney), Player 1968 (ChapelWitch)
+Kingdom cards: Chapel, Witch
+Game over: Provinces depleted
+
+=== Strategy Battle Results ===
+
+Games played: 10
+
+Chapel Witch:
+  Wins: 8 (80.0%)
+  Average Score: 29.0
+
+Big Money:
+  Wins: 2 (20.0%)
+  Average Score: 19.4
+
+Detailed game results:
+
+Game 1:
+  Winner: Big Money
+  Scores: Chapel Witch=19, Big Money=32
+  Margin: 13
+  Turns: 0
+
+Game 2:
+  Winner: Chapel Witch
+  Scores: Chapel Witch=37, Big Money=11
+  Margin: 26
+  Turns: 0
+
+Game 3:
+  Winner: Chapel Witch
+  Scores: Chapel Witch=30, Big Money=17
+  Margin: 13
+  Turns: 0
+
+Game 4:
+  Winner: Chapel Witch
+  Scores: Chapel Witch=26, Big Money=22
+  Margin: 4
+  Turns: 0
+
+Game 5:
+  Winner: Chapel Witch
+  Scores: Chapel Witch=31, Big Money=18
+  Margin: 13
+  Turns: 0
+
+Game 6:
+  Winner: Chapel Witch
+  Scores: Chapel Witch=26, Big Money=23
+  Margin: 3
+  Turns: 0
+
+Game 7:
+  Winner: Chapel Witch
+  Scores: Chapel Witch=36, Big Money=9
+  Margin: 27
+  Turns: 0
+
+Game 8:
+  Winner: Chapel Witch
+  Scores: Chapel Witch=31, Big Money=19
+  Margin: 12
+  Turns: 0
+
+Game 9:
+  Winner: Big Money
+  Scores: Chapel Witch=24, Big Money=25
+  Margin: 1
+  Turns: 0
+
+Game 10:
+  Winner: Chapel Witch
+  Scores: Chapel Witch=30, Big Money=18
+  Margin: 12
+  Turns: 0
+  Log: battle_logs/game_20250615_013012_566439.log
