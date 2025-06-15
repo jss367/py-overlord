@@ -1,0 +1,27 @@
+{
+  "turn_count": 24,
+  "cards_played": {
+    "Copper": 125,
+    "Silver": 85,
+    "Chapel": 7,
+    "Witch": 5,
+    "Gold": 26
+  },
+  "victory_points": {
+    "GeneticAI-140107186973552": 28,
+    "GeneticAI-140107186973600": 42,
+    "GeneticAI-140107186973648": 28
+  },
+  "actions_played": {
+    "GeneticAI-140107186973600": 12
+  },
+  "cards_bought": {
+    "Silver": 28,
+    "Witch": 1,
+    "Copper": 8,
+    "Chapel": 1,
+    "Duchy": 10,
+    "Gold": 11,
+    "Province": 12
+  }
+}

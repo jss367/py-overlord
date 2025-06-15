@@ -1,0 +1,876 @@
+01:47:06 - INFO - ============================================================
+01:47:06 - INFO - Starting Game 1
+01:47:06 - INFO - Players: Player 3552 (BigMoney), Player 3600 (ChapelWitch), Player 3648 (SkulkRebuild)
+01:47:06 - INFO - ============================================================
+01:47:06 - INFO - Supply initialized: {'Copper': 39, 'Silver': 40, 'Gold': 30, 'Estate': 12, 'Duchy': 12, 'Province': 12, 'Curse': 20, 'Village': 10, 'Smithy': 10, 'Market': 10, 'Festival': 10, 'Laboratory': 10, 'Mine': 10, 'Witch': 10, 'Moat': 10, 'Workshop': 10, 'Chapel': 10}
+01:47:06 - INFO - Game initialized with players: Player 3552 (BigMoney), Player 3600 (ChapelWitch), Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Kingdom cards: Village, Smithy, Market, Festival, Laboratory, Mine, Witch, Moat, Workshop, Chapel
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 1 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Copper, Copper, Copper, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (39 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 1 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Copper, Copper, Copper, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Witch (cost: 5; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Witch gained (9 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 1 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Estate, Estate, Copper, Copper, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Silver (cost: 3; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (38 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 2 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Estate, Estate, Copper, Estate
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Copper (cost: 0; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Copper gained (38 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 2 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Estate, Copper, Estate, Estate
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Chapel (cost: 2; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Chapel gained (9 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 2 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Estate, Copper, Copper, Copper, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Silver (cost: 3; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (37 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 3 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Estate, Copper, Copper, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (36 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 3 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Copper, Copper, Estate, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (35 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 3 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Copper, Copper, Copper, Estate
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Silver (cost: 3; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (34 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 4 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Estate, Estate, Copper, Copper, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Silver (cost: 3; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (33 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 4 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Witch, Copper, Chapel, Estate, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Chapel (remaining_actions: 0; hand: Witch, Copper, Estate, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): trashes 1 cards (trashed_cards: Estate; remaining_hand: Witch, Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Copper (cost: 0; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Copper gained (37 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 4 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Silver, Copper, Estate, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Silver, Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Duchy (cost: 5; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Duchy gained (11 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 5 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Copper, Silver, Silver, Estate
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Silver)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Gold (cost: 6; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Gold gained (29 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 5 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Estate, Copper, Copper, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (32 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 5 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Estate, Silver, Copper, Duchy
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Silver (cost: 3; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (31 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 6 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Copper, Silver, Estate, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (30 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 6 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Witch, Estate, Copper, Chapel, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Chapel (remaining_actions: 0; hand: Witch, Estate, Copper, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): trashes 1 cards (trashed_cards: Estate; remaining_hand: Witch, Copper, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (29 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 6 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Estate, Estate, Copper, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Silver (cost: 3; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (28 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 7 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Estate, Copper, Copper, Copper, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (27 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 7 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Copper, Copper, Copper, Chapel
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Chapel (remaining_actions: 0; hand: Copper, Copper, Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): trashes 4 cards (trashed_cards: Copper, Copper, Copper, Copper; remaining_hand: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Copper (cost: 0; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Copper gained (36 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 7 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Copper, Copper, Copper, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper, Silver)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Duchy (cost: 5; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Duchy gained (10 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 8 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Copper, Copper, Estate, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (26 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 8 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Estate, Witch, Copper, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Witch (remaining_actions: 0; hand: Copper, Estate, Copper, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): draws 2 cards (drawn_cards: Copper, Silver; new_hand: Copper, Estate, Copper, Silver, Copper, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): gives curse to GeneticAI-140107186973552 (curses_remaining: 19)
+01:47:06 - INFO - Player 3600 (ChapelWitch): gives curse to GeneticAI-140107186973648 (curses_remaining: 18)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Gold (cost: 6; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Gold gained (28 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 8 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Estate, Copper, Estate, Silver, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Silver)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Duchy (cost: 5; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Duchy gained (9 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 9 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Copper, Gold, Estate, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Copper, Silver)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Copper, Silver)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 5; coins_added: 2; coins_after: 7; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 7; coins_added: 1; coins_after: 8; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Province (cost: 8; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Province gained (11 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 9 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Silver, Copper, Copper, Chapel
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Chapel (remaining_actions: 0; hand: Copper, Silver, Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): trashes 3 cards (trashed_cards: Copper, Copper, Copper; remaining_hand: Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Copper (cost: 0; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Copper gained (35 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 9 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Copper, Duchy, Estate, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Silver (cost: 3; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (25 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 10 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Silver, Copper, Copper, Estate
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (24 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 10 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Copper, Estate, Gold, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Gold (cost: 6; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Gold gained (27 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 10 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Copper, Copper, Duchy, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Duchy (cost: 5; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Duchy gained (8 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 11 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Curse, Silver, Province, Copper, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Silver)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (23 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 11 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Witch, Silver, Estate, Copper, Gold
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Witch (remaining_actions: 0; hand: Silver, Estate, Copper, Gold)
+01:47:06 - INFO - Player 3600 (ChapelWitch): draws 2 cards (drawn_cards: Copper, Silver; new_hand: Silver, Estate, Copper, Gold, Copper, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): gives curse to GeneticAI-140107186973552 (curses_remaining: 17)
+01:47:06 - INFO - Player 3600 (ChapelWitch): gives curse to GeneticAI-140107186973648 (curses_remaining: 16)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Copper, Copper, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Copper, Copper, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 5; coins_added: 2; coins_after: 7; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 7; coins_added: 1; coins_after: 8; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 8; coins_added: 1; coins_after: 9; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Province (cost: 8; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Province gained (10 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 11 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Curse, Duchy, Copper, Estate
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Silver (cost: 3; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (22 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 12 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Copper, Silver, Estate, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (21 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 12 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Copper, Chapel, Gold, Witch
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Chapel (remaining_actions: 0; hand: Silver, Copper, Gold, Witch)
+01:47:06 - INFO - Player 3600 (ChapelWitch): trashes 1 cards (trashed_cards: Copper; remaining_hand: Silver, Gold, Witch)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (20 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 12 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Estate, Copper, Copper, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Duchy (cost: 5; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Duchy gained (7 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 13 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Gold, Estate, Silver, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Silver, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Silver, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 5; coins_added: 2; coins_after: 7; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 7; coins_added: 1; coins_after: 8; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Province (cost: 8; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Province gained (9 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 13 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Estate, Copper, Gold, Province
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Gold (cost: 6; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Gold gained (26 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 13 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Estate, Silver, Duchy, Silver, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Silver, Silver)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Silver)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 4; coins_added: 2; coins_after: 6; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Duchy (cost: 5; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Duchy gained (6 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 14 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Copper, Gold, Copper, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Copper, Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Copper, Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 7; coins_added: 1; coins_after: 8; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Province (cost: 8; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Province gained (8 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 14 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Silver, Gold, Silver, Gold
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Copper, Silver, Silver, Gold)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 3; coins_added: 3; coins_after: 6; remaining_treasures: Copper, Silver, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 6; coins_added: 2; coins_after: 8; remaining_treasures: Copper, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 8; coins_added: 2; coins_after: 10; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 10; coins_added: 1; coins_after: 11; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Province (cost: 8; remaining_coins: 3; remaining_buys: 0)
+01:47:06 - INFO - Supply: Province gained (7 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 14 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Duchy, Silver, Copper, Duchy, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Silver)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Duchy (cost: 5; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Duchy gained (5 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 15 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Estate, Silver, Silver, Copper, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Silver, Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Gold (cost: 6; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Gold gained (25 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 15 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Gold, Chapel, Witch, Copper, Province
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Chapel (remaining_actions: 0; hand: Gold, Witch, Copper, Province)
+01:47:06 - INFO - Player 3600 (ChapelWitch): trashes 1 cards (trashed_cards: Copper; remaining_hand: Gold, Witch, Province)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (19 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 15 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Duchy, Silver, Curse, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Silver, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Duchy (cost: 5; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Duchy gained (4 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 16 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Silver, Copper, Copper, Province
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Silver, Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Gold (cost: 6; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Gold gained (24 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 16 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Silver, Estate, Chapel, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Chapel (remaining_actions: 0; hand: Silver, Silver, Estate, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): trashes 1 cards (trashed_cards: Estate; remaining_hand: Silver, Silver, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Silver, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 4; coins_added: 2; coins_after: 6; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Gold (cost: 6; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Gold gained (23 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 16 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Estate, Silver, Duchy, Curse, Duchy
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Copper (cost: 0; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Copper gained (34 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 17 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Curse, Silver, Copper, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Silver, Copper, Silver)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper, Silver)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 4; coins_added: 2; coins_after: 6; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Gold (cost: 6; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Gold gained (22 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 17 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Gold, Gold, Gold, Witch, Province
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Witch (remaining_actions: 0; hand: Gold, Gold, Gold, Province)
+01:47:06 - INFO - Player 3600 (ChapelWitch): draws 2 cards (drawn_cards: Province, Silver; new_hand: Gold, Gold, Gold, Province, Province, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): gives curse to GeneticAI-140107186973552 (curses_remaining: 15)
+01:47:06 - INFO - Player 3600 (ChapelWitch): gives curse to GeneticAI-140107186973648 (curses_remaining: 14)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Gold, Gold, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 3; coins_added: 3; coins_after: 6; remaining_treasures: Gold, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 6; coins_added: 3; coins_after: 9; remaining_treasures: Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 9; coins_added: 2; coins_after: 11; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Province (cost: 8; remaining_coins: 3; remaining_buys: 0)
+01:47:06 - INFO - Supply: Province gained (6 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 17 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Estate, Copper, Copper, Duchy
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Silver (cost: 3; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (18 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 18 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Province, Silver, Estate, Estate, Curse
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Copper (cost: 0; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Copper gained (33 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 18 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Silver, Province, Gold, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Copper, Silver, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Copper, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 5; coins_added: 2; coins_after: 7; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 7; coins_added: 1; coins_after: 8; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Province (cost: 8; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Province gained (5 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 18 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Silver, Copper, Copper, Estate
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Silver, Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Duchy (cost: 5; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Duchy gained (3 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 19 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Province, Copper, Gold, Estate
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Gold (cost: 6; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Gold gained (21 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 19 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Province, Silver, Silver, Gold, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Silver, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Silver, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 5; coins_added: 2; coins_after: 7; remaining_treasures: Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 7; coins_added: 2; coins_after: 9; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Province (cost: 8; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Province gained (4 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 19 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Curse, Curse, Duchy, Duchy, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Copper (cost: 0; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Copper gained (32 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 20 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Copper, Curse, Province, Curse
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Copper (cost: 0; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Copper gained (31 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 20 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Witch, Province, Gold, Chapel, Gold
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Witch (remaining_actions: 0; hand: Province, Gold, Chapel, Gold)
+01:47:06 - INFO - Player 3600 (ChapelWitch): draws 2 cards (drawn_cards: Silver, Gold; new_hand: Province, Gold, Chapel, Gold, Silver, Gold)
+01:47:06 - INFO - Player 3600 (ChapelWitch): gives curse to GeneticAI-140107186973552 (curses_remaining: 13)
+01:47:06 - INFO - Player 3600 (ChapelWitch): gives curse to GeneticAI-140107186973648 (curses_remaining: 12)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Gold, Silver, Gold)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 3; coins_added: 3; coins_after: 6; remaining_treasures: Silver, Gold)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 6; coins_added: 3; coins_after: 9; remaining_treasures: Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 9; coins_added: 2; coins_after: 11; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Province (cost: 8; remaining_coins: 3; remaining_buys: 0)
+01:47:06 - INFO - Supply: Province gained (3 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 20 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Silver, Duchy, Silver, Duchy
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Silver)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Duchy (cost: 5; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Duchy gained (2 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 21 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Silver, Estate, Silver, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Silver, Silver, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Silver, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 4; coins_added: 2; coins_after: 6; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Gold (cost: 6; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Gold gained (20 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 21 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Gold, Silver, Province, Province, Silver
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 5; coins_added: 2; coins_after: 7; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Gold (cost: 6; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Gold gained (19 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 21 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Duchy, Copper, Copper, Silver, Estate
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Silver (cost: 3; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (17 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 22 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Province, Silver, Silver, Gold, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Silver, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Silver, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 5; coins_added: 2; coins_after: 7; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 7; coins_added: 1; coins_after: 8; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Province (cost: 8; remaining_coins: 0; remaining_buys: 0)
+01:47:06 - INFO - Supply: Province gained (2 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 22 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Silver, Province, Province, Silver, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Silver, Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (16 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 22 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Estate, Copper, Copper, Silver, Curse
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Silver (cost: 3; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (15 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 23 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Gold, Silver, Gold, Copper, Copper
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Gold, Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Gold (coins_before: 3; coins_added: 3; coins_after: 6; remaining_treasures: Silver, Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 6; coins_added: 2; coins_after: 8; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 8; coins_added: 1; coins_after: 9; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 9; coins_added: 1; coins_after: 10; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Province (cost: 8; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Province gained (1 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 23 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Gold, Province, Province, Chapel
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (14 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 23 - Player 3648 (SkulkRebuild)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Copper, Duchy, Copper, Silver, Duchy
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3648 (SkulkRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:47:06 - INFO - Player 3648 (SkulkRebuild): buys Silver (cost: 3; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (13 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 24 - Player 3552 (BigMoney)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Curse, Copper, Silver, Copper, Estate
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3552 (BigMoney): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:47:06 - INFO - Player 3552 (BigMoney): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:47:06 - INFO - Player 3552 (BigMoney): buys Silver (cost: 3; remaining_coins: 1; remaining_buys: 0)
+01:47:06 - INFO - Supply: Silver gained (12 remaining)
+01:47:06 - INFO - 
+========================================
+01:47:06 - INFO - Turn 24 - Player 3600 (ChapelWitch)
+01:47:06 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:47:06 - INFO - Hand: Witch, Silver, Province, Gold, Gold
+01:47:06 - INFO - ----------------------------------------
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Witch (remaining_actions: 0; hand: Silver, Province, Gold, Gold)
+01:47:06 - INFO - Player 3600 (ChapelWitch): draws 2 cards (drawn_cards: Silver, Province; new_hand: Silver, Province, Gold, Gold, Silver, Province)
+01:47:06 - INFO - Player 3600 (ChapelWitch): gives curse to GeneticAI-140107186973552 (curses_remaining: 11)
+01:47:06 - INFO - Player 3600 (ChapelWitch): gives curse to GeneticAI-140107186973648 (curses_remaining: 10)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Gold, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Gold (coins_before: 3; coins_added: 3; coins_after: 6; remaining_treasures: Silver, Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 6; coins_added: 2; coins_after: 8; remaining_treasures: Silver)
+01:47:06 - INFO - Player 3600 (ChapelWitch): plays Silver (coins_before: 8; coins_added: 2; coins_after: 10; remaining_treasures: )
+01:47:06 - INFO - Player 3600 (ChapelWitch): buys Province (cost: 8; remaining_coins: 2; remaining_buys: 0)
+01:47:06 - INFO - Supply: Province gained (0 remaining)
+01:47:06 - INFO - Game over: Provinces depleted
+01:47:06 - INFO - 
+============================================================
+01:47:06 - INFO - Game Over!
+01:47:06 - INFO - Winner: Player 3600 (ChapelWitch)
+01:47:06 - INFO - 
+Final Scores:
+01:47:06 - INFO -   Player 3552 (BigMoney): 28
+01:47:06 - INFO -   Player 3600 (ChapelWitch): 42
+01:47:06 - INFO -   Player 3648 (SkulkRebuild): 28
+01:47:06 - INFO - 
+Final Supply State:
+01:47:06 - INFO -   Copper: 31 remaining
+01:47:06 - INFO -   Silver: 12 remaining
+01:47:06 - INFO -   Gold: 19 remaining
+01:47:06 - INFO -   Estate: 12 remaining
+01:47:06 - INFO -   Duchy: 2 remaining
+01:47:06 - INFO -   Province: Empty
+01:47:06 - INFO -   Curse: 10 remaining
+01:47:06 - INFO -   Village: 10 remaining
+01:47:06 - INFO -   Smithy: 10 remaining
+01:47:06 - INFO -   Market: 10 remaining
+01:47:06 - INFO -   Festival: 10 remaining
+01:47:06 - INFO -   Laboratory: 10 remaining
+01:47:06 - INFO -   Mine: 10 remaining
+01:47:06 - INFO -   Witch: 9 remaining
+01:47:06 - INFO -   Moat: 10 remaining
+01:47:06 - INFO -   Workshop: 10 remaining
+01:47:06 - INFO -   Chapel: 9 remaining
+01:47:06 - INFO - ============================================================
+
