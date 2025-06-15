@@ -18,6 +18,15 @@ def test_initialize_no_shelters():
     assert player.buys == 1
 
 
+    
+def test_vp_breakdown_initial_deck():
+    player = PlayerState(DummyAI())
+    player.initialize(use_shelters=False)
+    breakdown = player.get_vp_breakdown()
+    assert breakdown["Estate"]["count"] == 3
+    assert breakdown["Estate"]["vp"] == 3
+
+    
 def test_initialize_with_shelters():
     player = PlayerState(DummyAI())
     player.initialize(use_shelters=True)

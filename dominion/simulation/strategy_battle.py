@@ -182,7 +182,9 @@ class StrategyBattle:
         winner = max(game_state.players, key=lambda p: p.get_victory_points(game_state)).ai
 
         # End game logging and capture log path if any
-        log_path = self.logger.end_game(winner.name, scores, game_state.supply)
+        log_path = self.logger.end_game(
+            winner.name, scores, game_state.supply, game_state.players
+        )
 
         return winner, scores, log_path
 

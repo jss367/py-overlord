@@ -129,3 +129,26 @@ class PlayerState:
             )
             + self.vp_tokens
         )
+
+    def all_cards(self) -> list[Card]:
+        """Return a list of all cards the player possesses."""
+        return self.hand + self.deck + self.discard + self.in_play + self.duration
+
+    def get_vp_breakdown(self) -> dict[str, dict[str, int]]:
+        """Return a breakdown of victory points by card name."""
+        from collections import defaultdict
+
+        counts: dict[str, int] = defaultdict(int)
+        points: dict[str, int] = defaultdict(int)
+
+        for card in self.all_cards():
+            vp = card.get_victory_points(self)
+            if vp != 0 or card.is_victory or card.name == "Curse":
+                counts[card.name] += 1
+                points[card.name] += vp
+
+        if self.vp_tokens:
+            points["VP Tokens"] += self.vp_tokens
+
+        breakdown = {name: {"count": counts.get(name, 0), "vp": vp} for name, vp in points.items()}
+        return breakdown
