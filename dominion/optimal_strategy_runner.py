@@ -1,24 +1,9 @@
 from pathlib import Path
-
-import yaml
+import importlib.util
 
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
-
-
-def convert_to_priority_rules(priority_list: list) -> list[PriorityRule]:
-    """Convert a list of priority dictionaries to PriorityRule objects."""
-    rules = []
-    for item in priority_list:
-        if isinstance(item, dict):
-            rules.append(
-                PriorityRule(card_name=item['card'], condition=item.get('condition'), context=item.get('context', {}))
-            )
-        else:
-            # Handle simple string entries
-            rules.append(PriorityRule(card_name=item))
-    return rules
 
 
 def train_optimal_strategy():
@@ -39,43 +24,18 @@ def train_optimal_strategy():
     # Set up paths
     strategies_dir = Path("strategies")
     strategies_dir.mkdir(exist_ok=True)
-    optimal_strategy_path = strategies_dir / "optimal_strategy.yaml"
+    optimal_strategy_path = strategies_dir / "optimal_strategy.py"
 
     # Load existing optimal strategy if it exists
     existing_optimal = None
     if optimal_strategy_path.exists():
         try:
-            with open(optimal_strategy_path, 'r') as f:
-                yaml_data = yaml.safe_load(f)
-                if yaml_data:
-                    # Handle case where strategy is the root
-                    strategy_data = yaml_data.get('strategy', yaml_data)
-
-                    # Create new EnhancedStrategy
-                    existing_optimal = EnhancedStrategy()
-
-                    # Set name if exists
-                    if 'metadata' in strategy_data:
-                        existing_optimal.name = strategy_data['metadata'].get('name', 'Unnamed Strategy')
-
-                    # Convert each priority list if it exists
-                    if 'gainPriority' in strategy_data:
-                        existing_optimal.gain_priority = convert_to_priority_rules(strategy_data['gainPriority'])
-
-                    if 'actionPriority' in strategy_data:
-                        existing_optimal.action_priority = convert_to_priority_rules(strategy_data['actionPriority'])
-
-                    if 'treasurePriority' in strategy_data:
-                        existing_optimal.treasure_priority = convert_to_priority_rules(
-                            strategy_data['treasurePriority']
-                        )
-
-                    if 'trashPriority' in strategy_data:
-                        existing_optimal.trash_priority = convert_to_priority_rules(strategy_data['trashPriority'])
-
-                    if 'discardPriority' in strategy_data:
-                        existing_optimal.discard_priority = convert_to_priority_rules(strategy_data['discardPriority'])
-
+            spec = importlib.util.spec_from_file_location("optimal_strategy", optimal_strategy_path)
+            if spec and spec.loader:
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                if hasattr(module, "create_optimal_strategy"):
+                    existing_optimal = module.create_optimal_strategy()
                     print("\nLoaded existing optimal strategy")
         except Exception as e:
             print(f"\nError loading existing optimal strategy: {e}")
@@ -97,23 +57,8 @@ def train_optimal_strategy():
     print("\nStarting training process...")
     new_strategy, metrics = trainer.train()
 
-    # Convert new strategy to EnhancedStrategy if needed
-    if isinstance(new_strategy, dict):
-        strategy_data = new_strategy.get('strategy', new_strategy)
-        new_strategy_obj = EnhancedStrategy()
-
-        if 'metadata' in strategy_data:
-            new_strategy_obj.name = strategy_data['metadata'].get('name', 'Unnamed Strategy')
-
-        for priority_type in ['gainPriority', 'actionPriority', 'treasurePriority', 'trashPriority', 'discardPriority']:
-            if priority_type in strategy_data:
-                setattr(
-                    new_strategy_obj,
-                    priority_type.replace('Priority', '_priority'),
-                    convert_to_priority_rules(strategy_data[priority_type]),
-                )
-
-        new_strategy = new_strategy_obj
+    # ``GeneticTrainer.train`` returns a BaseStrategy which already extends ``EnhancedStrategy``
+    # so no conversion is necessary here.
 
     if existing_optimal:
         # Battle new strategy against existing optimal
@@ -130,30 +75,55 @@ def train_optimal_strategy():
     else:
         save_strategy = new_strategy
 
-    # Convert strategy to YAML format
-    strategy_yaml = {'strategy': {'metadata': {'name': 'optimal_strategy'}}}
+    def save_strategy_as_python(strategy: EnhancedStrategy, path: Path) -> None:
+        """Serialize an :class:`EnhancedStrategy` as a Python module."""
 
-    # Add each priority list that exists
-    for attr, yaml_key in [
-        ('gain_priority', 'gainPriority'),
-        ('action_priority', 'actionPriority'),
-        ('treasure_priority', 'treasurePriority'),
-        ('trash_priority', 'trashPriority'),
-        ('discard_priority', 'discardPriority'),
-    ]:
-        priority_list = getattr(save_strategy, attr, None)
-        if priority_list:
-            strategy_yaml['strategy'][yaml_key] = [
-                {'card': rule.card_name, 'condition': rule.condition} for rule in priority_list
-            ]
+        def format_list(name: str, rules: list[PriorityRule]) -> list[str]:
+            lines = [f"        self.{name} = ["]
+            for rule in rules:
+                if rule.condition:
+                    lines.append(
+                        f"            PriorityRule({rule.card_name!r}, {rule.condition!r}),"
+                    )
+                else:
+                    lines.append(f"            PriorityRule({rule.card_name!r}),")
+            lines.append("        ]")
+            return lines
 
-    # Save strategy
-    with open(optimal_strategy_path, 'w') as f:
-        yaml.dump(strategy_yaml, f, sort_keys=False)
+        lines = [
+            "from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule",
+            "",
+            "",
+            "class OptimalStrategy(EnhancedStrategy):",
+            "    def __init__(self) -> None:",
+            "        super().__init__()",
+            f"        self.name = {strategy.name!r}",
+        ]
+
+        if strategy.gain_priority:
+            lines.extend(format_list("gain_priority", strategy.gain_priority))
+        if strategy.action_priority:
+            lines.extend(format_list("action_priority", strategy.action_priority))
+        if strategy.treasure_priority:
+            lines.extend(format_list("treasure_priority", strategy.treasure_priority))
+        if strategy.trash_priority:
+            lines.extend(format_list("trash_priority", strategy.trash_priority))
+        if getattr(strategy, "discard_priority", None):
+            lines.extend(format_list("discard_priority", strategy.discard_priority))
+
+        lines.append("")
+        lines.append("def create_optimal_strategy() -> EnhancedStrategy:")
+        lines.append("    return OptimalStrategy()")
+
+        path.write_text("\n".join(lines), encoding="utf-8")
+
+    # Save strategy to Python file
+    save_strategy_as_python(save_strategy, optimal_strategy_path)
 
     print(f"\nFinal strategy win rate vs BigMoney: {metrics['win_rate']:.1f}%")
-    print("\nOptimal Strategy priorities:")
-    print(yaml.dump(strategy_yaml['strategy'].get('gainPriority', []), indent=2))
+    print("\nOptimal Strategy gain priorities:")
+    for rule in save_strategy.gain_priority:
+        print(f"  - {rule.card_name}: {rule.condition}")
 
     return save_strategy, metrics
 
