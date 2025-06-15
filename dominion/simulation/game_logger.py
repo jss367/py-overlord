@@ -68,7 +68,10 @@ class GameLogger:
     def start_game(self, players: List[GeneticAI]):
         """Start tracking a new game with enhanced initial state logging."""
         self.game_count += 1
-        self.should_log_to_file = self.game_count % self.log_frequency == 0
+        # Log the first game, then every ``log_frequency`` games thereafter
+        # ``game_count`` starts at 1 for the first game, so subtract 1 when
+        # computing the modulus to ensure game 1 is logged.
+        self.should_log_to_file = (self.game_count - 1) % self.log_frequency == 0
 
         if self.should_log_to_file:
             # Include microseconds to avoid filename collisions when multiple
