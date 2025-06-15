@@ -12,6 +12,7 @@ class GameState:
     trash: list[Card] = field(default_factory=list)
     events: list = field(default_factory=list)
     projects: list = field(default_factory=list)
+    ways: list = field(default_factory=list)
     current_player_index: int = 0
     phase: str = "start"
     turn_number: int = 1
@@ -68,6 +69,7 @@ class GameState:
         use_shelters: bool = False,
         events: list = None,
         projects: list = None,
+        ways: list = None,
     ):
         """Set up the game with given AIs and kingdom cards."""
         # Create PlayerState objects for each AI
@@ -75,6 +77,7 @@ class GameState:
         self.setup_supply(kingdom_cards)
         self.events = events or []
         self.projects = projects or []
+        self.ways = ways or []
 
         # Initialize players
         for player in self.players:
@@ -196,6 +199,10 @@ class GameState:
             if choice is None:
                 break
 
+            way = None
+            if self.ways:
+                way = player.ai.choose_way(self, choice, self.ways + [None])
+
             # Update metrics for actions played
             if self.logger:
                 self.logger.current_metrics.actions_played[player.ai.name] = (
@@ -210,14 +217,20 @@ class GameState:
                 "remaining_actions": player.actions - 1,
                 "hand": [c.name for c in player.hand if c != choice],
             }
-            self.log_callback(("action", player.ai.name, f"plays {choice}", context))
+            action_desc = f"plays {choice}"
+            if way:
+                action_desc += f" using {way.name}"
+            self.log_callback(("action", player.ai.name, action_desc, context))
 
             player.actions -= 1
             player.actions_played += 1
             player.actions_this_turn += 1
             player.hand.remove(choice)
             player.in_play.append(choice)
-            choice.on_play(self)
+            if way:
+                way.apply(self, choice)
+            else:
+                choice.on_play(self)
 
         self.phase = "treasure"
 
