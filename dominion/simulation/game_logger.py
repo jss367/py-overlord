@@ -73,6 +73,17 @@ class GameLogger:
         # computing the modulus to ensure game 1 is logged.
         self.should_log_to_file = (self.game_count - 1) % self.log_frequency == 0
 
+        # Create readable player descriptions and map them for later use. This
+        # mapping is useful even when we aren't logging to file so that any
+        # console messages use the friendly names as well.
+        descriptions = []
+        self.name_map = {}
+        for idx, ai in enumerate(players, start=1):
+            strategy_name = getattr(ai.strategy, "name", "Unknown Strategy")
+            friendly = f"Player {idx} ({strategy_name})"
+            self.name_map[ai.name] = friendly
+            descriptions.append(friendly)
+
         if self.should_log_to_file:
             # Include microseconds to avoid filename collisions when multiple
             # games start within the same second.
@@ -83,18 +94,11 @@ class GameLogger:
             log_path = os.path.join(self.log_folder, f"{self.current_game_id}.log")
             self.current_log_path = log_path
             file_handler = logging.FileHandler(log_path)
-            formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S")
+            formatter = logging.Formatter(
+                "%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S"
+            )
             file_handler.setFormatter(formatter)
             self.file_logger.addHandler(file_handler)
-
-            # Create readable player descriptions and map them for later use
-            descriptions = []
-            self.name_map = {}
-            for idx, ai in enumerate(players, start=1):
-                strategy_name = getattr(ai.strategy, "name", "Unknown Strategy")
-                friendly = f"Player {idx} ({strategy_name})"
-                self.name_map[ai.name] = friendly
-                descriptions.append(friendly)
 
             # Enhanced game start logging
             self.file_logger.info("=" * 60)
