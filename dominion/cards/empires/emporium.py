@@ -1,7 +1,10 @@
 from ..base_card import Card, CardCost, CardStats, CardType
+from ..split_pile import SplitPileMixin
 
 
-class Emporium(Card):
+class Emporium(SplitPileMixin, Card):
+    partner_card_name = "Patrician"
+    bottom = True
     def __init__(self):
         super().__init__(
             name="Emporium",
@@ -9,6 +12,7 @@ class Emporium(Card):
             stats=CardStats(actions=2, cards=2, vp=2),
             types=[CardType.ACTION, CardType.VICTORY],
         )
+
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
