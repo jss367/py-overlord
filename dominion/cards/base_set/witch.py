@@ -22,11 +22,16 @@ class Witch(Card):
                     game_state.give_curse_to_player(player)
 
                     # Log the curse
+                    target_name = (
+                        game_state.logger.format_player_name(player.ai.name)
+                        if game_state.logger
+                        else player.ai.name
+                    )
                     game_state.log_callback(
                         (
                             "action",
                             current_player.ai.name,
-                            f"gives curse to {player.ai.name}",
+                            f"gives curse to {target_name}",
                             {"curses_remaining": game_state.supply.get("Curse", 0)},
                         )
                     )
