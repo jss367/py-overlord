@@ -17,27 +17,25 @@ class CustomBoardStrategy4(EnhancedStrategy):
             # Early Collection priority
             PriorityRule("Collection", PriorityRule.and_("my.coins >= 5", "my.count(Collection) == 0")),
             # Looting at 6 coins
-            PriorityRule("Looting", "my.coins >= 6"),
+            PriorityRule("Looting"),
             # When Collection is in play, buy small actions with remaining money
-            PriorityRule("Patrician", PriorityRule.and_("my.count(Collection) > 0", "my.coins >= 2")),
-            PriorityRule("Forager", PriorityRule.and_("my.count(Collection) > 0", "my.coins >= 3")),
+            PriorityRule("Patrician", "my.count(Collection) > 0"),
+            PriorityRule("Forager", "my.count(Collection) > 0"),
             # Patrician with 2 coins when provinces > 2
             PriorityRule("Patrician", PriorityRule.and_(PriorityRule.provinces_left(">", 2), "my.coins == 2")),
             # Skulk at 4 coins (to trash with Forager)
-            PriorityRule("Skulk", "my.coins >= 4"),
+            PriorityRule("Skulk"),
             # Get two Foragers, especially if bought Skulk
-            PriorityRule("Forager", PriorityRule.and_("my.coins >= 3", "my.count(Forager) < 2")),
-            PriorityRule(
-                "Forager", PriorityRule.and_("my.coins >= 3", "my.count(Skulk) > 0 and my.count(Forager) < 2")
-            ),
+            PriorityRule("Forager", "my.count(Forager) < 2"),
+            PriorityRule("Forager", "my.count(Skulk) > 0 and my.count(Forager) < 2"),
             # Silver at 3 coins if already have one Forager
-            PriorityRule("Silver", PriorityRule.and_("my.coins >= 3", "my.count(Forager) >= 1")),
+            PriorityRule("Silver", "my.count(Forager) >= 1"),
             PriorityRule("Emporium"),
             # Late game victory
             PriorityRule("Duchy", PriorityRule.provinces_left("<=", 4)),
             PriorityRule("Estate", PriorityRule.provinces_left("<=", 2)),
             # Basic treasures
-            PriorityRule("Silver", "my.coins >= 3"),
+            PriorityRule("Silver"),
         ]
 
         # Action priorities - +1 card +1 action cards first
