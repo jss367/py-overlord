@@ -39,3 +39,13 @@ class TrashFirstAI(BuyEventAI):
 
     def choose_card_to_trash(self, state: GameState, choices: list[Card]) -> Optional[Card]:
         return choices[0] if choices else None
+
+
+class ChooseFirstActionAI(BuyEventAI):
+    """AI that always plays the first available action."""
+
+    def choose_action(self, state: GameState, choices: list[Optional[Card]]):
+        for ch in choices:
+            if ch is not None:
+                return ch
+        return None

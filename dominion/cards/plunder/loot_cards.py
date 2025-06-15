@@ -107,6 +107,7 @@ class Sextant(Loot):
 class Shield(Loot):
     def __init__(self):
         super().__init__("Shield", CardStats(coins=3, buys=1))
+        self.types.append(CardType.REACTION)
 
 
 class SpellScroll(Loot):
@@ -136,12 +137,16 @@ class Sword(Loot):
 
     def play_effect(self, game_state):
         player = game_state.current_player
+
+        def discard_to_four(target):
+            while len(target.hand) > 4:
+                discard = target.hand.pop(0)
+                target.discard.append(discard)
+
         for other in game_state.players:
             if other is player:
                 continue
-            while len(other.hand) > 4:
-                discard = other.hand.pop(0)
-                other.discard.append(discard)
+            game_state.attack_player(other, discard_to_four)
 
 
 LOOT_CARD_NAMES = [
