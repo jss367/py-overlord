@@ -502,6 +502,18 @@ class GameState:
             return True
         return False
 
+    def player_has_shield(self, player: PlayerState) -> bool:
+        """Check if the player has a Shield card in hand."""
+        return any(card.name == "Shield" for card in player.hand)
+
+    def attack_player(self, target: PlayerState, attack_fn) -> None:
+        """Apply an attack to a player unless blocked by Shield."""
+        if self.player_has_shield(target):
+            self.log_callback(("action", target.ai.name, "reveals Shield to block the attack", {}))
+            return
+
+        attack_fn(target)
+
     def trash_card(self, player: PlayerState, card: Card) -> None:
         """Move a card to the trash and trigger related effects."""
         self.trash.append(card)
