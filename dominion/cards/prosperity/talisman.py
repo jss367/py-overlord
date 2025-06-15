@@ -27,5 +27,4 @@ class Talisman(Card):
             gain_card = get_card(affordable[0])
 
         game_state.supply[gain_card.name] -= 1
-        player.discard.append(gain_card)
-        gain_card.on_gain(game_state, player)
+        game_state.gain_card(player, gain_card)

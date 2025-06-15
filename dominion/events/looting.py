@@ -14,5 +14,4 @@ class Looting(Event):
     def on_buy(self, game_state, player) -> None:
         loot_name = random.choice(LOOT_CARD_NAMES)
         loot = get_card(loot_name)
-        player.discard.append(loot)
-        loot.on_gain(game_state, player)
+        game_state.gain_card(player, loot)

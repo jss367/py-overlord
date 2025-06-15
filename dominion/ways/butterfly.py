@@ -27,6 +27,5 @@ class WayOfTheButterfly(Way):
                 and candidate.cost.potions == card.cost.potions
             ):
                 game_state.supply[name] -= 1
-                player.discard.append(candidate)
-                candidate.on_gain(game_state, player)
+                game_state.gain_card(player, candidate)
                 break

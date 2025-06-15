@@ -11,5 +11,4 @@ class GainSilver(Event):
 
     def on_buy(self, game_state, player) -> None:
         silver = get_card("Silver")
-        player.discard.append(silver)
-        silver.on_gain(game_state, player)
+        game_state.gain_card(player, silver)
