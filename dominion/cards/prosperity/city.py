@@ -11,5 +11,13 @@ class City(Card):
         )
 
     def play_effect(self, game_state):
-        # TODO: add bonuses for empty piles
-        pass
+        player = game_state.current_player
+        empty_piles = sum(1 for count in game_state.supply.values() if count == 0)
+
+        if empty_piles >= 1:
+            game_state.draw_cards(player, 1)
+            player.coins += 1
+
+        if empty_piles >= 2:
+            player.buys += 1
+            player.coins += 1
