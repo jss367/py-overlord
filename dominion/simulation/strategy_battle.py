@@ -7,6 +7,7 @@ from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.simulation.game_logger import GameLogger
 from dominion.strategy.strategy_loader import StrategyLoader
+from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 DEFAULT_KINGDOM_CARDS = [
     "Village",
@@ -21,6 +22,23 @@ DEFAULT_KINGDOM_CARDS = [
     "Chapel",
 ]
 
+# Cards that should not be included in the kingdom supply when extracting
+# names from strategies. These are part of the base supply or starting cards
+# and are automatically handled by ``GameState.setup_supply``.
+BASIC_CARDS = {
+    "Copper",
+    "Silver",
+    "Gold",
+    "Estate",
+    "Duchy",
+    "Province",
+    "Curse",
+    # Shelters are never part of the normal supply
+    "Hovel",
+    "Necropolis",
+    "Overgrown Estate",
+}
+
 
 class StrategyBattle:
     """System for running battles between strategies."""
@@ -31,10 +49,39 @@ class StrategyBattle:
         log_folder: str = "battle_logs",
         use_shelters: bool = False,
     ):
-        self.kingdom_cards = kingdom_cards or DEFAULT_KINGDOM_CARDS
+        # ``kingdom_cards`` allows explicitly providing the supply. If omitted
+        # the supply will be dynamically determined from the strategies used in
+        # each battle.
+        self.kingdom_cards = kingdom_cards
         self.logger = GameLogger(log_folder=log_folder)
         self.strategy_loader = StrategyLoader()  # Now automatically loads all strategies
         self.use_shelters = use_shelters
+
+    def _extract_cards_from_strategy(self, strat: EnhancedStrategy) -> set[str]:
+        """Return all card names referenced by a strategy's priority lists."""
+        cards: set[str] = set()
+        for priority_list in [
+            strat.gain_priority,
+            strat.action_priority,
+            strat.trash_priority,
+            strat.treasure_priority,
+        ]:
+            for rule in priority_list:
+                if isinstance(rule, PriorityRule):
+                    cards.add(rule.card_name)
+        return cards
+
+    def _determine_kingdom_cards(
+        self, strat1: EnhancedStrategy, strat2: EnhancedStrategy
+    ) -> list[str]:
+        """Compute kingdom cards from both strategies if not explicitly set."""
+        if self.kingdom_cards is not None:
+            return self.kingdom_cards
+
+        all_cards = self._extract_cards_from_strategy(strat1) | self._extract_cards_from_strategy(
+            strat2
+        )
+        return sorted(c for c in all_cards if c not in BASIC_CARDS)
 
     def run_battle(self, strategy1_name: str, strategy2_name: str, num_games: int = 100) -> dict[str, Any]:
         """Run multiple games between two strategies"""
@@ -62,6 +109,9 @@ class StrategyBattle:
         print(f"Strategy 1: {strategy1_name}")
         print(f"Strategy 2: {strategy2_name}\n")
 
+        kingdom_card_names = self._determine_kingdom_cards(strategy1, strategy2)
+        print("Using kingdom cards:", ", ".join(kingdom_card_names))
+
         for game_num in range(num_games):
             print(f"Playing game {game_num + 1}/{num_games}...")
 
@@ -71,9 +121,9 @@ class StrategyBattle:
 
             # Alternate who goes first
             if game_num % 2 == 0:
-                winner, scores, log_path = self._run_game(ai1, ai2)
+                winner, scores, log_path = self._run_game(ai1, ai2, kingdom_card_names)
             else:
-                winner, scores, log_path = self._run_game(ai2, ai1)
+                winner, scores, log_path = self._run_game(ai2, ai1, kingdom_card_names)
 
             # Record results
             game_result = {
@@ -105,7 +155,12 @@ class StrategyBattle:
 
         return results
 
-    def _run_game(self, ai1: GeneticAI, ai2: GeneticAI) -> tuple[GeneticAI, dict[str, int], Optional[str]]:
+    def _run_game(
+        self,
+        ai1: GeneticAI,
+        ai2: GeneticAI,
+        kingdom_card_names: list[str],
+    ) -> tuple[GeneticAI, dict[str, int], Optional[str]]:
         """Run a single game between two AIs."""
         # Start game logging
         self.logger.start_game([ai1.name, ai2.name])
@@ -117,7 +172,7 @@ class StrategyBattle:
         )
 
         # Initialize game
-        kingdom_cards = [get_card(name) for name in self.kingdom_cards]
+        kingdom_cards = [get_card(name) for name in kingdom_card_names]
         game_state.initialize_game([ai1, ai2], kingdom_cards, use_shelters=self.use_shelters)
 
         # Run game
