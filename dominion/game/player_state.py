@@ -26,6 +26,7 @@ class PlayerState:
 
     # Misc counters
     vp_tokens: int = 0
+    villagers: int = 0
     miser_coppers: int = 0
     ignore_action_bonuses: bool = False
     collection_played: int = 0
@@ -74,6 +75,7 @@ class PlayerState:
         self.coins = 0
         self.potions = 0
         self.vp_tokens = 0
+        self.villagers = 0
         self.miser_coppers = 0
         self.ignore_action_bonuses = False
         self.collection_played = 0

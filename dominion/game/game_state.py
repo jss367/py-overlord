@@ -221,11 +221,26 @@ class GameState:
         """Handle the action phase of a turn."""
         player = self.current_player
 
-        while player.actions > 0:
+        while True:
             action_cards = [card for card in player.hand if card.is_action]
 
             if not action_cards:
                 break
+
+            if player.actions == 0:
+                if player.villagers > 0:
+                    player.villagers -= 1
+                    player.actions += 1
+                    self.log_callback(
+                        (
+                            "action",
+                            player.ai.name,
+                            "spends a Villager for +1 Action",
+                            {"villagers_remaining": player.villagers},
+                        )
+                    )
+                else:
+                    break
 
             choice = player.ai.choose_action(self, action_cards + [None])
             if choice is None:
