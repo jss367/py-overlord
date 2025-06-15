@@ -394,8 +394,23 @@ class GameState:
         return not (has_actions or has_treasures or can_buy_copper or has_cards_to_draw)
 
     def draw_cards(self, player: PlayerState, count: int) -> list[Card]:
-        """Draw cards for a player, delegating to the player's draw_cards method."""
-        return player.draw_cards(count)
+        """Draw cards for a player and log the result."""
+        drawn = player.draw_cards(count)
+        if drawn:
+            context = {
+                "drawn_cards": [c.name for c in drawn],
+                "new_hand": [c.name for c in player.hand],
+            }
+            card_desc = "card" if len(drawn) == 1 else "cards"
+            self.log_callback(
+                (
+                    "action",
+                    player.ai.name,
+                    f"draws {len(drawn)} {card_desc}",
+                    context,
+                )
+            )
+        return drawn
 
     def give_curse_to_player(self, player):
         """Give a curse card to a player. GameState has access to registry so can create cards."""
