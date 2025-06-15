@@ -100,11 +100,9 @@ class ConditionTransformer(Transformer):
 
     def STATE_REF(self, token):
         ref = token.value  # Use the full string (e.g., "state.turn_number")
-        print(f"Processing state ref: {ref}, type: {type(ref)}")
         ref_type = ref.split('.')[-1]
 
         def get_state_value(context: GameContext) -> int:
-            print(f"Getting state value for: {ref_type}")
             if ref_type == "turn_number":
                 return context.state.turn_number
             elif ref_type == "provinces_left":
@@ -117,11 +115,9 @@ class ConditionTransformer(Transformer):
 
     def PLAYER_REF(self, token):
         ref = token.value  # Use the full string (e.g., "my.coins")
-        print(f"Processing player ref: {ref}, type: {type(ref)}")
         ref_type = ref.split('.')[-1]
 
         def get_player_value(context: GameContext) -> int:
-            print(f"Getting player value for: {ref_type}")
             if ref_type == "coins":
                 return context.my.coins
             elif ref_type == "actions":
@@ -140,14 +136,10 @@ class ConditionTransformer(Transformer):
     def comparison(self, get_value, op_func, number):
         def evaluate(context: GameContext) -> bool:
             try:
-                print(f"Evaluating comparison with: get_value={get_value}")
                 value = get_value(context)
-                print(f"Got value: {value}")
                 result = op_func(value, number)
-                print(f"Comparison result: {value} {op_func.__name__} {number} = {result}")
                 return result
             except Exception as e:
-                print(f"Error in comparison: {str(e)}")
                 raise ValueError(
                     f"Failed to evaluate comparison - "
                     f"op={op_func.__name__}, "
@@ -193,64 +185,4 @@ class ConditionTransformer(Transformer):
         return condition
 
 
-def test_parser():
-    parser = ConditionParser()
 
-    # First test: parsing only
-    print("\n=== Testing Parser ===")
-    test_conditions = [
-        "my.coins < 3",
-        "state.turn_number > 10",
-        "my.count(Village) <= 2",
-        "my.hand_size >= 5",
-        "state.provinces_left == 0",
-        "(my.coins >= 8) AND (state.provinces_left > 0)",
-        "my.count(Copper) > 4 OR my.count(Silver) > 2",
-    ]
-
-    for condition in test_conditions:
-        try:
-            parser.parse(condition)
-            print(f"✓ Successfully parsed: {condition}")
-        except Exception as e:
-            print(f"✗ Error parsing {condition}: {str(e)}")
-
-    # Second test: evaluation with tracing
-    print("\n=== Testing Evaluation ===")
-
-    class MockState:
-        def __init__(self):
-            self.turn_number = 5
-            self.supply = {"Province": 8}
-            print(f"Created MockState with turn_number={self.turn_number}")
-
-    class MockPlayer:
-        def __init__(self):
-            self.coins = 3
-            self.actions = 1
-            self.hand = ["Copper", "Copper", "Estate"]
-            print(f"Created MockPlayer with coins={self.coins}, actions={self.actions}")
-
-        def count_in_deck(self, card_name):
-            count = 2 if card_name == "Copper" else 0
-            print(f"count_in_deck({card_name}) = {count}")
-            return count
-
-    mock_context = GameContext(MockState(), MockPlayer())
-
-    test_evaluations = ["my.coins >= 3", "state.turn_number < 10", "my.count(Copper) == 2", "my.hand_size == 3"]
-
-    print("\nRunning evaluations:")
-    for condition in test_evaluations:
-        print(f"\nTesting condition: {condition}")
-        try:
-            evaluator = parser.parse(condition)
-            print("Successfully parsed, now evaluating...")
-            result = evaluator(mock_context)
-            print(f"✓ Final result: {condition} = {result}")
-        except Exception as e:
-            print(f"✗ Error: {str(e)}")
-
-
-if __name__ == "__main__":
-    test_parser()
