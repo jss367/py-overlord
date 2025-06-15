@@ -12,7 +12,7 @@ class CustomBoardStrategy2(EnhancedStrategy):
 
         # Gain priorities
         self.gain_priority = [
-            PriorityRule("Province", PriorityRule.can_afford(8)),
+            PriorityRule("Province"),
             PriorityRule("Emporium"),
             PriorityRule("Patrician"),
             PriorityRule("Forager"),
@@ -22,10 +22,10 @@ class CustomBoardStrategy2(EnhancedStrategy):
             PriorityRule("Collection"),
             PriorityRule("Skulk"),
             PriorityRule("Miser"),
-            PriorityRule("Looting", PriorityRule.can_afford(5)),
+            PriorityRule("Looting"),
             PriorityRule("Duchy", PriorityRule.provinces_left("<=", 4)),
-            PriorityRule("Gold", PriorityRule.can_afford(6)),
-            PriorityRule("Silver", PriorityRule.can_afford(3)),
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
             PriorityRule("Estate", PriorityRule.provinces_left("<=", 2)),
         ]
 

@@ -30,10 +30,6 @@ class PriorityRule:
 
     # Helper constructors -------------------------------------------------
     @staticmethod
-    def can_afford(amount: int) -> str:
-        return f"my.coins >= {amount}"
-
-    @staticmethod
     def provinces_left(op: str, amount: int) -> str:
         return f"state.provinces_left {op} {amount}"
 
@@ -152,13 +148,13 @@ def create_big_money_strategy() -> EnhancedStrategy:
     # Gain priorities
     strategy.gain_priority = [
         # Buy Province if we can afford it
-        PriorityRule("Province", PriorityRule.can_afford(8)),
+        PriorityRule("Province"),
         # Buy Duchy late game
-        PriorityRule("Duchy", PriorityRule.and_(PriorityRule.provinces_left("<=", 4), PriorityRule.can_afford(5))),
+        PriorityRule("Duchy", PriorityRule.provinces_left("<=", 4)),
         # Buy Gold if we can afford it
-        PriorityRule("Gold", PriorityRule.can_afford(6)),
+        PriorityRule("Gold"),
         # Buy Silver if we can afford it and it's not too late
-        PriorityRule("Silver", PriorityRule.and_(PriorityRule.can_afford(3), PriorityRule.provinces_left(">", 2))),
+        PriorityRule("Silver", PriorityRule.provinces_left(">", 2)),
     ]
 
     # Simple treasure playing order
@@ -199,19 +195,19 @@ def create_chapel_witch_strategy() -> EnhancedStrategy:
     # Gain priorities
     strategy.gain_priority = [
         # Victory cards
-        PriorityRule("Province", PriorityRule.can_afford(8)),
-        PriorityRule("Duchy", PriorityRule.and_(PriorityRule.provinces_left("<=", 5), PriorityRule.can_afford(5))),
+        PriorityRule("Province"),
+        PriorityRule("Duchy", PriorityRule.provinces_left("<=", 5)),
         # Engine pieces
         PriorityRule(
             "Witch",
             PriorityRule.and_(
-                PriorityRule.turn_number("<", 15), PriorityRule.has_cards(["Witch"], 0), PriorityRule.can_afford(5)
+                PriorityRule.turn_number("<", 15), PriorityRule.has_cards(["Witch"], 0)
             ),
         ),
         PriorityRule(
             "Chapel",
             PriorityRule.and_(
-                PriorityRule.turn_number("<=", 4), PriorityRule.has_cards(["Chapel"], 0), PriorityRule.can_afford(2)
+                PriorityRule.turn_number("<=", 4), PriorityRule.has_cards(["Chapel"], 0)
             ),
         ),
         PriorityRule(
@@ -219,7 +215,6 @@ def create_chapel_witch_strategy() -> EnhancedStrategy:
             PriorityRule.and_(
                 PriorityRule.turn_number("<", 12),
                 PriorityRule.resources("actions", ">=", 1),
-                PriorityRule.can_afford(5),
             ),
         ),
         PriorityRule(
@@ -227,12 +222,11 @@ def create_chapel_witch_strategy() -> EnhancedStrategy:
             PriorityRule.and_(
                 PriorityRule.turn_number("<", 12),
                 PriorityRule.has_cards(["Village", "Laboratory", "Witch"], 2),
-                PriorityRule.can_afford(3),
             ),
         ),
         # Treasure
-        PriorityRule("Gold", PriorityRule.can_afford(6)),
-        PriorityRule("Silver", PriorityRule.and_(PriorityRule.turn_number("<", 10), PriorityRule.can_afford(3))),
+        PriorityRule("Gold"),
+        PriorityRule("Silver", PriorityRule.turn_number("<", 10)),
     ]
 
     # Treasure priorities
@@ -273,15 +267,15 @@ def create_village_smithy_lab_strategy() -> EnhancedStrategy:
     # Gain priorities
     strategy.gain_priority = [
         # Victory cards
-        PriorityRule("Province", PriorityRule.can_afford(8)),
-        PriorityRule("Duchy", PriorityRule.and_(PriorityRule.provinces_left("<=", 4), PriorityRule.can_afford(5))),
+        PriorityRule("Province"),
+        PriorityRule("Duchy", PriorityRule.provinces_left("<=", 4)),
         # Engine pieces
-        PriorityRule("Laboratory", PriorityRule.and_(PriorityRule.turn_number("<", 15), PriorityRule.can_afford(5))),
-        PriorityRule("Village", PriorityRule.and_(PriorityRule.turn_number("<", 12), PriorityRule.can_afford(3))),
-        PriorityRule("Smithy", PriorityRule.and_(PriorityRule.turn_number("<", 12), PriorityRule.can_afford(4))),
+        PriorityRule("Laboratory", PriorityRule.turn_number("<", 15)),
+        PriorityRule("Village", PriorityRule.turn_number("<", 12)),
+        PriorityRule("Smithy", PriorityRule.turn_number("<", 12)),
         # Treasure
-        PriorityRule("Gold", PriorityRule.can_afford(6)),
-        PriorityRule("Silver", PriorityRule.and_(PriorityRule.turn_number("<", 8), PriorityRule.can_afford(3))),
+        PriorityRule("Gold"),
+        PriorityRule("Silver", PriorityRule.turn_number("<", 8)),
     ]
 
     # Treasure priorities
