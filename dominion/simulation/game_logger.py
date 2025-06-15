@@ -4,7 +4,9 @@ import os
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Optional
+from typing import Any, Optional, List
+
+from dominion.ai.genetic_ai import GeneticAI
 
 from tqdm import tqdm
 
@@ -62,7 +64,7 @@ class GameLogger:
         self.file_logger = logging.getLogger("DominionGameFile")
         self.file_logger.setLevel(logging.DEBUG)
 
-    def start_game(self, players: list[str]):
+    def start_game(self, players: List[GeneticAI]):
         """Start tracking a new game with enhanced initial state logging."""
         self.game_count += 1
         self.should_log_to_file = self.game_count % self.log_frequency == 0
@@ -81,10 +83,18 @@ class GameLogger:
             file_handler.setFormatter(formatter)
             self.file_logger.addHandler(file_handler)
 
+            # Create readable player descriptions
+            descriptions = []
+            for ai in players:
+                ai_id = ai.name.split("-")[1]
+                short_id = ai_id[-4:]
+                strategy_name = getattr(ai.strategy, "name", "Unknown Strategy")
+                descriptions.append(f"Player {short_id} ({strategy_name})")
+
             # Enhanced game start logging
             self.file_logger.info("=" * 60)
             self.file_logger.info(f"Starting Game {self.game_count}")
-            self.file_logger.info(f"Players: {', '.join(players)}")
+            self.file_logger.info(f"Players: {', '.join(descriptions)}")
             self.file_logger.info("=" * 60)
 
     def format_player_name(self, name: str) -> str:
