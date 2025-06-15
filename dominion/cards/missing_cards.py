@@ -25,9 +25,9 @@ class Taskmaster(Card):
     def __init__(self):
         super().__init__(
             name="Taskmaster",
-            cost=CardCost(coins=4),
-            stats=CardStats(),
-            types=[CardType.ACTION],
+            cost=CardCost(coins=3),
+            stats=CardStats(actions=1, coins=1),
+            types=[CardType.ACTION, CardType.DURATION],
         )
 
 

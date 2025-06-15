@@ -113,6 +113,8 @@ class Card:
         """Effects that happen when card is gained."""
         if self.is_action and getattr(player, "collection_played", 0) > 0:
             player.vp_tokens += player.collection_played
+        if self.cost.coins == 5:
+            player.gained_five_this_turn = True
 
     def on_trash(self, game_state, player):
         """Effects that happen when card is trashed. Override in subclasses."""
