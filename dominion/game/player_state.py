@@ -30,6 +30,7 @@ class PlayerState:
     miser_coppers: int = 0
     ignore_action_bonuses: bool = False
     collection_played: int = 0
+    goons_played: int = 0
 
     # Turn tracking
     turns_taken: int = 0
@@ -79,6 +80,7 @@ class PlayerState:
         self.miser_coppers = 0
         self.ignore_action_bonuses = False
         self.collection_played = 0
+        self.goons_played = 0
         self.turns_taken = 0
         self.actions_played = 0
         self.actions_this_turn = 0

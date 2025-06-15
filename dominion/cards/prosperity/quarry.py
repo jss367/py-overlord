@@ -11,5 +11,5 @@ class Quarry(Card):
         )
 
     def play_effect(self, game_state):
-        # TODO: reduce cost of action cards
+        # Cost reduction is applied in GameState.get_card_cost while this card is in play
         pass
