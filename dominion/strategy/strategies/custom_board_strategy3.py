@@ -1,12 +1,12 @@
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 
-class CustomBoardBestStrategy(EnhancedStrategy):
+class CustomBoardStrategy3(EnhancedStrategy):
     """Optimized strategy for Patrician/Emporium board with engine focus."""
 
     def __init__(self) -> None:
         super().__init__()
-        self.name = "CustomBoardBest3"
+        self.name = "CustomBoard3"
         self.description = "Optimized engine for Patrician/Emporium/Collection board"
         self.version = "3.0"
 
@@ -50,5 +50,5 @@ class CustomBoardBestStrategy(EnhancedStrategy):
         ]
 
 
-def create_custom_board_best_strategy() -> EnhancedStrategy:
-    return CustomBoardBestStrategy()
+def create_custom_board_strategy3() -> EnhancedStrategy:
+    return CustomBoardStrategy3()
