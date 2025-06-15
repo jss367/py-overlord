@@ -11,5 +11,23 @@ class Mountebank(Card):
         )
 
     def play_effect(self, game_state):
-        # TODO: give others Curse and Copper unless they discard a Curse
-        pass
+        player = game_state.current_player
+        for other in game_state.players:
+            if other is player:
+                continue
+            curse = next((c for c in other.hand if c.name == "Curse"), None)
+            if curse:
+                other.hand.remove(curse)
+                other.discard.append(curse)
+            else:
+                from ..registry import get_card
+                if game_state.supply.get("Curse", 0) > 0:
+                    game_state.supply["Curse"] -= 1
+                    gained = get_card("Curse")
+                    other.discard.append(gained)
+                    gained.on_gain(game_state, other)
+                if game_state.supply.get("Copper", 0) > 0:
+                    game_state.supply["Copper"] -= 1
+                    copper = get_card("Copper")
+                    other.discard.append(copper)
+                    copper.on_gain(game_state, other)

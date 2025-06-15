@@ -11,5 +11,14 @@ class Loan(Card):
         )
 
     def play_effect(self, game_state):
-        # TODO: reveal cards until a treasure is revealed and trash it
-        pass
+        player = game_state.current_player
+        revealed = []
+        while player.deck or player.discard:
+            if not player.deck:
+                player.shuffle_discard_into_deck()
+            card = player.deck.pop()
+            if card.is_treasure:
+                game_state.trash.append(card)
+                break
+            revealed.append(card)
+        player.discard.extend(revealed)

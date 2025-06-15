@@ -11,5 +11,5 @@ class Peddler(Card):
         )
 
     def cost_modifier(self, game_state, player) -> int:
-        # TODO: reduce cost based on actions in play
-        return 0
+        actions_in_play = sum(1 for c in player.in_play if c.is_action)
+        return -2 * actions_in_play

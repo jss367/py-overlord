@@ -11,5 +11,5 @@ class Monument(Card):
         )
 
     def play_effect(self, game_state):
-        # TODO: gain a victory token
-        pass
+        player = game_state.current_player
+        player.vp_tokens += 1
