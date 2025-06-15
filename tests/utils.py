@@ -29,7 +29,9 @@ class BuyEventAI(DummyAI):
 
     def choose_buy(self, state: GameState, choices: list[Optional[Card]]):
         for choice in choices:
-            if getattr(choice, "is_event", False) or getattr(choice, "is_project", False):
+            if (
+                getattr(choice, "is_event", False) or getattr(choice, "is_project", False)
+            ) and choice.name not in state.current_player.bought_this_turn:
                 return choice
         return None
 

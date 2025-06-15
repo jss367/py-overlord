@@ -106,7 +106,7 @@ class GameState:
             "Estate": 12 if len(self.players) > 2 else 8,
             "Duchy": 12 if len(self.players) > 2 else 8,
             "Province": 12 if len(self.players) > 2 else 8,
-            "Curse": 10 * (len(self.players) - 1),
+            "Curse": 10 * (len(self.players) - 1) if len(self.players) > 1 else 10,
         }
 
         self.supply = dict(basic_cards)
@@ -118,8 +118,7 @@ class GameState:
 
     def handle_start_phase(self):
         """Handle the start of turn phase."""
-        if not self.extra_turn:
-            self.current_player.turns_taken += 1
+        self.current_player.turns_taken += 1
 
         # Reset per-turn flags
         self.current_player.ignore_action_bonuses = False

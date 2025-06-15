@@ -118,4 +118,5 @@ class SeizeTheDay(Event):
 
     def on_buy(self, game_state, player) -> None:
         player.seize_the_day_used = True
+        player.turns_taken += 1
         game_state.extra_turn = True
