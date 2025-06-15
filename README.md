@@ -17,10 +17,10 @@ python compare_all_strategies.py --games 5
 
 The leaderboard will be written to `leaderboard.html` by default.
 
-Example reports can be generated using the script in the `examples` folder:
+Example reports can be generated using the generic comparison runner:
 
 ```
-python examples/compare_skulk_strategies.py
+python compare_strategies.py ChapelWitch BigMoney --games 50
 ```
 
 Reports are written to the `reports` directory.

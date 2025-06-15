@@ -20,3 +20,10 @@ def test_setup_supply_two_players():
 
     # Kingdom card supply default is 10
     assert state.supply["Village"] == 10
+
+
+def test_player_is_stuck_no_cards_no_supply():
+    player = PlayerState(DummyAI())
+    state = GameState([player])
+    state.supply = {"Copper": 0}
+    assert state.player_is_stuck(player)
