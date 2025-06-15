@@ -128,6 +128,11 @@ class GameState:
         self.current_player.bought_this_turn = []
         self.current_player.banned_buys = []
 
+        # Return any cards delayed by the Delay event
+        if self.current_player.delayed_cards:
+            self.current_player.hand.extend(self.current_player.delayed_cards)
+            self.current_player.delayed_cards = []
+
         # Resolve project effects that occur at the start of the turn
         for project in self.current_player.projects:
             project.on_turn_start(self, self.current_player)
