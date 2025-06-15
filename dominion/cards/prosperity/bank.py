@@ -13,5 +13,6 @@ class Bank(Card):
         )
 
     def play_effect(self, game_state):
-        # TODO: add effect based on treasures in play
-        pass
+        player = game_state.current_player
+        treasures_in_play = sum(1 for c in player.in_play if c.is_treasure)
+        player.coins += treasures_in_play
