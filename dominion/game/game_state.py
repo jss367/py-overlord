@@ -114,6 +114,7 @@ class GameState:
         self.current_player.collection_played = 0
         self.current_player.actions_this_turn = 0
         self.current_player.bought_this_turn = []
+        self.current_player.banned_buys = []
 
         # Log turn header with complete state
         resources = {
@@ -289,7 +290,12 @@ class GameState:
         for card_name, count in self.supply.items():
             if count > 0:
                 card = get_card(card_name)
-                if card.cost.coins <= player.coins and card.cost.potions <= player.potions and card.may_be_bought(self):
+                if (
+                    card.cost.coins <= player.coins
+                    and card.cost.potions <= player.potions
+                    and card.may_be_bought(self)
+                    and card_name not in player.banned_buys
+                ):
                     affordable.append(card)
         return affordable
 
