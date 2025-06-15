@@ -18,7 +18,7 @@ class Loan(Card):
                 player.shuffle_discard_into_deck()
             card = player.deck.pop()
             if card.is_treasure:
-                game_state.trash.append(card)
+                game_state.trash_card(player, card)
                 break
             revealed.append(card)
         player.discard.extend(revealed)

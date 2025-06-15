@@ -33,4 +33,4 @@ class Mint(Card):
         treasures = [c for c in player.in_play if c.is_treasure]
         for t in treasures:
             player.in_play.remove(t)
-            game_state.trash.append(t)
+            game_state.trash_card(player, t)
