@@ -15,7 +15,7 @@ class SkulkRebuildImprovedStrategy(EnhancedStrategy):
         # Gain priorities
         self.gain_priority = [
             # Province when affordable
-            PriorityRule("Province", PriorityRule.can_afford(8)),
+            PriorityRule("Province"),
             # Rebuild up to three copies early
             PriorityRule(
                 "Rebuild",
@@ -24,15 +24,15 @@ class SkulkRebuildImprovedStrategy(EnhancedStrategy):
             # Duchies for points
             PriorityRule("Duchy"),
             # Pick up Skulks for Gold gain
-            PriorityRule("Skulk", PriorityRule.can_afford(4)),
+            PriorityRule("Skulk"),
             # Two Foragers to accelerate trashing
             PriorityRule("Forager", "my.count(Forager) < 2"),
             # Gain Gold if affordable
-            PriorityRule("Gold", PriorityRule.can_afford(6)),
+            PriorityRule("Gold"),
             # Silver only early
             PriorityRule(
                 "Silver",
-                PriorityRule.and_(PriorityRule.provinces_left(">", 3), PriorityRule.can_afford(3)),
+                PriorityRule.provinces_left(">", 3),
             ),
             # Estates once Provinces are nearly gone
             PriorityRule("Estate", PriorityRule.provinces_left("<=", 2)),

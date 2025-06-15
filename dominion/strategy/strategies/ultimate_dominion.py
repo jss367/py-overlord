@@ -14,21 +14,21 @@ class UltimateDominionStrategy(BaseStrategy):
         # Gain priorities
         self.gain_priority = [
             # Victory points
-            PriorityRule("Province", PriorityRule.can_afford(8)),
+            PriorityRule("Province"),
             # Early trashing
             PriorityRule(
                 "Chapel",
                 PriorityRule.and_(PriorityRule.turn_number("<=", 2), "my.count(Chapel) == 0"),
             ),
             # Draw and actions
-            PriorityRule("Laboratory", PriorityRule.can_afford(5)),
+            PriorityRule("Laboratory"),
             PriorityRule("Village", PriorityRule.resources("actions", "<", 2)),
-            PriorityRule("Market", PriorityRule.can_afford(5)),
-            PriorityRule("Festival", PriorityRule.can_afford(5)),
+            PriorityRule("Market"),
+            PriorityRule("Festival"),
             PriorityRule("Witch", PriorityRule.and_(PriorityRule.turn_number("<=", 10), "my.count(Witch) < 2")),
             # Economy
-            PriorityRule("Gold", PriorityRule.can_afford(6)),
-            PriorityRule("Silver", PriorityRule.can_afford(3)),
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
             PriorityRule("Copper"),
         ]
 
