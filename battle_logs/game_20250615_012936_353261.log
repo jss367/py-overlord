@@ -1,0 +1,602 @@
+01:29:36 - INFO - ============================================================
+01:29:36 - INFO - Starting Game 10
+01:29:36 - INFO - Players: Player 7856 (CollectionPatricianRebuild), Player 7136 (ChapelWitch)
+01:29:36 - INFO - ============================================================
+01:29:36 - INFO - Supply initialized: {'Copper': 46, 'Silver': 40, 'Gold': 30, 'Estate': 8, 'Duchy': 8, 'Province': 8, 'Curse': 10, 'Chapel': 10, 'Collection': 10, 'Forager': 10, 'Modify': 10, 'Patrician': 10, 'Rebuild': 10, 'Skulk': 10, 'Witch': 10}
+01:29:36 - INFO - Game initialized with players: Player 7856 (CollectionPatricianRebuild), Player 7136 (ChapelWitch)
+01:29:36 - INFO - Kingdom cards: Chapel, Collection, Forager, Modify, Patrician, Rebuild, Skulk, Witch
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 1 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Estate, Copper, Copper, Estate
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Forager (cost: 3; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Forager gained (9 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 1 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Copper, Estate, Copper, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Chapel (cost: 2; remaining_coins: 2; remaining_buys: 0)
+01:29:36 - INFO - Supply: Chapel gained (9 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 2 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Estate, Copper, Copper, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Forager (cost: 3; remaining_coins: 1; remaining_buys: 0)
+01:29:36 - INFO - Supply: Forager gained (8 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 2 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Estate, Copper, Copper, Copper, Estate
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Silver gained (39 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 3 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Forager, Copper, Estate, Copper, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Forager (remaining_actions: 0; hand: Copper, Estate, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Silver (cost: 3; remaining_coins: 0; remaining_buys: 1)
+01:29:36 - INFO - Supply: Silver gained (38 remaining)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Copper (cost: 0; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Copper gained (45 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 3 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Silver, Copper, Estate, Copper, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Witch (cost: 5; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Witch gained (9 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 4 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Copper, Copper, Estate, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Skulk (cost: 4; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Skulk gained (9 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 4 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Estate, Copper, Copper, Copper, Estate
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Silver gained (37 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 5 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Estate, Forager, Copper, Copper, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Forager (remaining_actions: 0; hand: Estate, Copper, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Silver (cost: 3; remaining_coins: 0; remaining_buys: 1)
+01:29:36 - INFO - Supply: Silver gained (36 remaining)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Copper (cost: 0; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Copper gained (44 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 5 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Chapel, Copper, Silver, Witch, Estate
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Chapel (remaining_actions: 0; hand: Copper, Silver, Witch, Estate)
+01:29:36 - INFO - Player 7136 (ChapelWitch): trashes 1 cards (trashed_cards: Estate; remaining_hand: Copper, Silver, Witch)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Silver gained (35 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 6 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Gold, Forager, Copper, Estate, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Forager (remaining_actions: 0; hand: Gold, Copper, Estate, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Rebuild (cost: 5; remaining_coins: 0; remaining_buys: 1)
+01:29:36 - INFO - Supply: Rebuild gained (9 remaining)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Copper (cost: 0; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Copper gained (43 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 6 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Estate, Copper, Silver, Copper, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 0)
+01:29:36 - INFO - Supply: Silver gained (34 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 7 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Skulk, Copper, Silver, Copper, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Skulk (remaining_actions: 0; hand: Copper, Silver, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Modify (cost: 5; remaining_coins: 2; remaining_buys: 1)
+01:29:36 - INFO - Supply: Modify gained (9 remaining)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Copper (cost: 0; remaining_coins: 2; remaining_buys: 0)
+01:29:36 - INFO - Supply: Copper gained (42 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 7 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Copper, Estate, Copper, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 1; remaining_buys: 0)
+01:29:36 - INFO - Supply: Silver gained (33 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 8 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Rebuild, Copper, Gold, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Rebuild (remaining_actions: 0; hand: Copper, Copper, Gold, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Collection (cost: 5; remaining_coins: 1; remaining_buys: 0)
+01:29:36 - INFO - Supply: Collection gained (9 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 8 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Chapel, Estate, Silver, Copper, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Chapel (remaining_actions: 0; hand: Estate, Silver, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): trashes 3 cards (trashed_cards: Estate, Copper, Copper; remaining_hand: Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Copper (cost: 0; remaining_coins: 2; remaining_buys: 0)
+01:29:36 - INFO - Supply: Copper gained (41 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 9 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Modify, Silver, Copper, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Modify (remaining_actions: 0; hand: Copper, Silver, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Skulk (cost: 4; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Skulk gained (8 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 9 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Silver, Silver, Copper, Witch, Silver
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Witch (remaining_actions: 0; hand: Silver, Silver, Copper, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): draws 2 cards (drawn_cards: Copper, Copper; new_hand: Silver, Silver, Copper, Silver, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): gives curse to GeneticAI-139684053967856 (curses_remaining: 9)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Silver, Copper, Silver, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper, Silver, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 4; coins_added: 2; coins_after: 6; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 7; coins_added: 1; coins_after: 8; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 8; coins_added: 1; coins_after: 9; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Province (cost: 8; remaining_coins: 1; remaining_buys: 0)
+01:29:36 - INFO - Supply: Province gained (7 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 10 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Copper, Copper, Skulk, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Skulk (remaining_actions: 0; hand: Copper, Copper, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Skulk (cost: 4; remaining_coins: 2; remaining_buys: 1)
+01:29:36 - INFO - Supply: Skulk gained (7 remaining)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Patrician (cost: 2; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Patrician gained (8 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 10 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Chapel, Estate, Copper, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Chapel (remaining_actions: 0; hand: Copper, Estate, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): trashes 4 cards (trashed_cards: Estate, Copper, Copper, Copper; remaining_hand: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Copper (cost: 0; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Copper gained (40 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 11 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Forager, Silver, Forager, Copper, Skulk
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Forager (remaining_actions: 0; hand: Silver, Forager, Copper, Skulk)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Forager (remaining_actions: 0; hand: Silver, Skulk)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Skulk (cost: 4; remaining_coins: 0; remaining_buys: 2)
+01:29:36 - INFO - Supply: Skulk gained (6 remaining)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Copper (cost: 0; remaining_coins: 0; remaining_buys: 1)
+01:29:36 - INFO - Supply: Copper gained (39 remaining)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Copper (cost: 0; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Copper gained (38 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 11 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Silver, Silver, Silver, Silver, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Silver, Silver, Silver, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Silver, Silver, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 4; coins_added: 2; coins_after: 6; remaining_treasures: Silver, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 6; coins_added: 2; coins_after: 8; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 8; coins_added: 1; coins_after: 9; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Province (cost: 8; remaining_coins: 1; remaining_buys: 0)
+01:29:36 - INFO - Supply: Province gained (6 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 12 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Collection, Copper, Rebuild, Copper, Gold
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Rebuild (remaining_actions: 0; hand: Collection, Copper, Copper, Gold)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Collection (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Gold)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Gold (coins_before: 2; coins_added: 3; coins_after: 5; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Patrician (cost: 2; remaining_coins: 5; remaining_buys: 1)
+01:29:36 - INFO - Supply: Patrician gained (7 remaining)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Patrician (cost: 2; remaining_coins: 3; remaining_buys: 0)
+01:29:36 - INFO - Supply: Patrician gained (6 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 12 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Witch, Province, Copper, Silver
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Witch (remaining_actions: 0; hand: Copper, Province, Copper, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): draws 2 cards (drawn_cards: Copper, Chapel; new_hand: Copper, Province, Copper, Silver, Copper, Chapel)
+01:29:36 - INFO - Player 7136 (ChapelWitch): gives curse to GeneticAI-139684053967856 (curses_remaining: 8)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 0)
+01:29:36 - INFO - Supply: Silver gained (32 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 13 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Curse, Copper, Patrician, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Patrician (remaining_actions: 0; hand: Copper, Curse, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): draws 1 card (drawn_cards: Copper; new_hand: Copper, Curse, Copper, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Patrician (cost: 2; remaining_coins: 2; remaining_buys: 0)
+01:29:36 - INFO - Supply: Patrician gained (5 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 13 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Silver, Silver, Copper, Silver, Province
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Silver, Copper, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 4; coins_added: 2; coins_after: 6; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Gold (cost: 6; remaining_coins: 1; remaining_buys: 0)
+01:29:36 - INFO - Supply: Gold gained (25 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 14 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Skulk, Copper, Patrician, Skulk, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Skulk (remaining_actions: 0; hand: Copper, Patrician, Skulk, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Patrician (cost: 2; remaining_coins: 2; remaining_buys: 1)
+01:29:36 - INFO - Supply: Patrician gained (4 remaining)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Patrician (cost: 2; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Patrician gained (3 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 14 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Silver, Witch, Copper, Province
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Witch (remaining_actions: 0; hand: Copper, Silver, Copper, Province)
+01:29:36 - INFO - Player 7136 (ChapelWitch): draws 2 cards (drawn_cards: Copper, Silver; new_hand: Copper, Silver, Copper, Province, Copper, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): gives curse to GeneticAI-139684053967856 (curses_remaining: 7)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Gold (cost: 6; remaining_coins: 1; remaining_buys: 0)
+01:29:36 - INFO - Supply: Gold gained (24 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 15 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Gold, Silver, Modify, Gold
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Modify (remaining_actions: 0; hand: Copper, Gold, Silver, Gold)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Gold)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Gold (coins_before: 3; coins_added: 3; coins_after: 6; remaining_treasures: Silver)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Silver (coins_before: 6; coins_added: 2; coins_after: 8; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Province (cost: 8; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Province gained (5 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 15 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Chapel, Silver, Gold, Province, Silver
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 5; coins_added: 2; coins_after: 7; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Gold (cost: 6; remaining_coins: 1; remaining_buys: 0)
+01:29:36 - INFO - Supply: Gold gained (23 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 16 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Gold, Curse, Skulk, Skulk, Curse
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Skulk (remaining_actions: 0; hand: Gold, Curse, Skulk, Curse)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Gold (coins_before: 2; coins_added: 3; coins_after: 5; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Patrician (cost: 2; remaining_coins: 3; remaining_buys: 1)
+01:29:36 - INFO - Supply: Patrician gained (1 remaining)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Patrician (cost: 2; remaining_coins: 1; remaining_buys: 0)
+01:29:36 - INFO - Supply: Patrician gained (0 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 16 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Witch, Silver, Silver, Silver
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Witch (remaining_actions: 0; hand: Copper, Silver, Silver, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): draws 2 cards (drawn_cards: Copper, Copper; new_hand: Copper, Silver, Silver, Silver, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): gives curse to GeneticAI-139684053967856 (curses_remaining: 6)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Silver, Silver, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 2; coins_added: 2; coins_after: 4; remaining_treasures: Copper, Silver, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 4; coins_added: 2; coins_after: 6; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 6; coins_added: 1; coins_after: 7; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 7; coins_added: 1; coins_after: 8; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 8; coins_added: 1; coins_after: 9; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Province (cost: 8; remaining_coins: 1; remaining_buys: 0)
+01:29:36 - INFO - Supply: Province gained (4 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 17 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Copper, Copper, Copper, Copper, Forager
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Forager (remaining_actions: 0; hand: Copper, Copper, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 1; coins_added: 1; coins_after: 2; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Silver (cost: 3; remaining_coins: 1; remaining_buys: 1)
+01:29:36 - INFO - Supply: Silver gained (31 remaining)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Copper (cost: 0; remaining_coins: 1; remaining_buys: 0)
+01:29:36 - INFO - Supply: Copper gained (37 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 17 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Province, Gold, Silver, Copper, Silver
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Copper, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Copper, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 5; coins_added: 2; coins_after: 7; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 7; coins_added: 1; coins_after: 8; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Province (cost: 8; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Province gained (3 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 18 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Gold, Silver, Collection, Copper, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Collection (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Gold, Silver, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Gold (coins_before: 2; coins_added: 3; coins_after: 5; remaining_treasures: Silver, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Silver (coins_before: 5; coins_added: 2; coins_after: 7; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 7; coins_added: 1; coins_after: 8; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 8; coins_added: 1; coins_after: 9; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Province (cost: 8; remaining_coins: 1; remaining_buys: 1)
+01:29:36 - INFO - Supply: Province gained (2 remaining)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Copper (cost: 0; remaining_coins: 1; remaining_buys: 0)
+01:29:36 - INFO - Supply: Copper gained (36 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 18 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Silver, Gold, Witch, Silver, Province
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Witch (remaining_actions: 0; hand: Silver, Gold, Silver, Province)
+01:29:36 - INFO - Player 7136 (ChapelWitch): draws 2 cards (drawn_cards: Chapel, Silver; new_hand: Silver, Gold, Silver, Province, Chapel, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): gives curse to GeneticAI-139684053967856 (curses_remaining: 5)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Silver, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Silver, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 5; coins_added: 2; coins_after: 7; remaining_treasures: Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 7; coins_added: 2; coins_after: 9; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Province (cost: 8; remaining_coins: 1; remaining_buys: 0)
+01:29:36 - INFO - Supply: Province gained (1 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 19 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Curse, Rebuild, Patrician, Patrician, Patrician
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Rebuild (remaining_actions: 0; hand: Curse, Patrician, Patrician, Patrician)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Patrician (remaining_actions: 0; hand: Curse, Patrician, Patrician)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): draws 1 card (drawn_cards: Modify; new_hand: Curse, Patrician, Patrician, Modify)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Modify (remaining_actions: 0; hand: Curse, Patrician, Patrician, Gold)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Patrician (remaining_actions: 0; hand: Patrician, Gold)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): draws 1 card (drawn_cards: Patrician; new_hand: Patrician, Gold, Patrician)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Patrician (remaining_actions: 0; hand: Gold, Patrician)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): draws 1 card (drawn_cards: Copper; new_hand: Gold, Patrician, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Patrician (remaining_actions: 0; hand: Gold, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): draws 1 card (drawn_cards: Skulk; new_hand: Gold, Copper, Skulk)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Skulk (remaining_actions: 0; hand: Gold, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Gold (coins_before: 2; coins_added: 3; coins_after: 5; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 5; coins_added: 1; coins_after: 6; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Gold (cost: 6; remaining_coins: 0; remaining_buys: 1)
+01:29:36 - INFO - Supply: Gold gained (22 remaining)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Copper (cost: 0; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Copper gained (35 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 19 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Province, Silver, Copper, Copper, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 0; coins_added: 2; coins_after: 2; remaining_treasures: Copper, Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 2; coins_added: 1; coins_after: 3; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 0)
+01:29:36 - INFO - Supply: Silver gained (30 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 20 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Patrician, Silver, Patrician, Copper, Copper
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Patrician (remaining_actions: 0; hand: Silver, Patrician, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): draws 1 card (drawn_cards: Copper; new_hand: Silver, Patrician, Copper, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Patrician (remaining_actions: 0; hand: Silver, Copper, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): draws 1 card (drawn_cards: Forager; new_hand: Silver, Copper, Copper, Copper, Forager)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Forager (remaining_actions: 0; hand: Silver, Copper, Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Silver (coins_before: 1; coins_added: 2; coins_after: 3; remaining_treasures: Copper, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 3; coins_added: 1; coins_after: 4; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 4; coins_added: 1; coins_after: 5; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 1)
+01:29:36 - INFO - Supply: Silver gained (29 remaining)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Estate (cost: 2; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Estate gained (6 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 20 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Gold, Province, Province, Silver, Witch
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Witch (remaining_actions: 0; hand: Gold, Province, Province, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): draws 2 cards (drawn_cards: Province, Province; new_hand: Gold, Province, Province, Silver, Province, Province)
+01:29:36 - INFO - Player 7136 (ChapelWitch): gives curse to GeneticAI-139684053967856 (curses_remaining: 4)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Silver (cost: 3; remaining_coins: 2; remaining_buys: 0)
+01:29:36 - INFO - Supply: Silver gained (28 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 21 - Player 7856 (CollectionPatricianRebuild)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Patrician, Patrician, Gold, Province, Modify
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Modify (remaining_actions: 0; hand: Patrician, Patrician, Gold, Province)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Patrician (remaining_actions: 0; hand: Patrician, Province)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): draws 1 card (drawn_cards: Province; new_hand: Patrician, Province, Province)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Patrician (remaining_actions: 0; hand: Province, Province)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): draws 1 card (drawn_cards: Patrician; new_hand: Province, Province, Patrician)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Patrician (remaining_actions: 0; hand: Province, Province)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): draws 1 card (drawn_cards: Copper; new_hand: Province, Province, Copper)
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): plays Copper (coins_before: 0; coins_added: 1; coins_after: 1; remaining_treasures: )
+01:29:36 - INFO - Player 7856 (CollectionPatricianRebuild): buys Copper (cost: 0; remaining_coins: 1; remaining_buys: 0)
+01:29:36 - INFO - Supply: Copper gained (34 remaining)
+01:29:36 - INFO - 
+========================================
+01:29:36 - INFO - Turn 21 - Player 7136 (ChapelWitch)
+01:29:36 - INFO - Resources: 1 actions, 1 buys, 0 coins
+01:29:36 - INFO - Hand: Silver, Gold, Copper, Silver, Chapel
+01:29:36 - INFO - ----------------------------------------
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Gold (coins_before: 0; coins_added: 3; coins_after: 3; remaining_treasures: Silver, Copper, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 3; coins_added: 2; coins_after: 5; remaining_treasures: Copper, Silver)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Silver (coins_before: 5; coins_added: 2; coins_after: 7; remaining_treasures: Copper)
+01:29:36 - INFO - Player 7136 (ChapelWitch): plays Copper (coins_before: 7; coins_added: 1; coins_after: 8; remaining_treasures: )
+01:29:36 - INFO - Player 7136 (ChapelWitch): buys Province (cost: 8; remaining_coins: 0; remaining_buys: 0)
+01:29:36 - INFO - Supply: Province gained (0 remaining)
+01:29:36 - INFO - Game over: Provinces depleted
+01:29:36 - INFO - 
+============================================================
+01:29:36 - INFO - Game Over!
+01:29:36 - INFO - Winner: Player 7136 (ChapelWitch)
+01:29:36 - INFO - 
+Final Scores:
+01:29:36 - INFO -   Player 7856 (CollectionPatricianRebuild): 12
+01:29:36 - INFO -   Player 7136 (ChapelWitch): 36
+01:29:36 - INFO - 
+Final Supply State:
+01:29:36 - INFO -   Copper: 34 remaining
+01:29:36 - INFO -   Silver: 28 remaining
+01:29:36 - INFO -   Gold: 22 remaining
+01:29:36 - INFO -   Estate: 5 remaining
+01:29:36 - INFO -   Duchy: 8 remaining
+01:29:36 - INFO -   Province: Empty
+01:29:36 - INFO -   Curse: 4 remaining
+01:29:36 - INFO -   Chapel: 9 remaining
+01:29:36 - INFO -   Collection: 9 remaining
+01:29:36 - INFO -   Forager: 8 remaining
+01:29:36 - INFO -   Modify: 9 remaining
+01:29:36 - INFO -   Patrician: Empty
+01:29:36 - INFO -   Rebuild: 9 remaining
+01:29:36 - INFO -   Skulk: 6 remaining
+01:29:36 - INFO -   Witch: 9 remaining
+01:29:36 - INFO - ============================================================
+
