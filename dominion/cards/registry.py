@@ -72,16 +72,11 @@ from dominion.cards.expansions import (
     Staff,
     Sword,
 )
-from dominion.cards.missing_cards import (
-    Trail,
-    ActingTroupe,
-    Taskmaster,
-    Trader,
-    Torturer,
-    Patrol,
-    Inn,
-    FirstMate,
-)
+from dominion.cards.hinterlands import Trail, Trader, Inn
+from dominion.cards.renaissance import ActingTroupe
+from dominion.cards.allies import Taskmaster
+from dominion.cards.intrigue import Torturer, Patrol
+from dominion.cards.plunder import FirstMate
 from dominion.cards.treasures import Copper, Gold, Silver
 from dominion.cards.victory import Curse, Duchy, Estate, Province
 
