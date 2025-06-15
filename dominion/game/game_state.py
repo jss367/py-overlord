@@ -484,6 +484,16 @@ class GameState:
             return True
         return False
 
+    def trash_card(self, player: PlayerState, card: Card) -> None:
+        """Move a card to the trash and trigger related effects."""
+        self.trash.append(card)
+        card.on_trash(self, player)
+
+        # Resolve project triggers for trashing
+        for project in player.projects:
+            if hasattr(project, "on_trash"):
+                project.on_trash(self, player, card)
+
     def _update_final_metrics(self):
         """Update final game metrics including victory points."""
         if not self.logger:

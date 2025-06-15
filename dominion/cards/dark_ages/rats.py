@@ -24,7 +24,7 @@ class Rats(Card):
             trash_choice = player.ai.choose_card_to_trash(game_state, choices)
             if trash_choice:
                 player.hand.remove(trash_choice)
-                game_state.trash.append(trash_choice)
+                game_state.trash_card(player, trash_choice)
 
     def on_trash(self, game_state, player):
         player.draw_cards(1)
