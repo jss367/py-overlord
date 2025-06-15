@@ -110,6 +110,7 @@ class GameState:
         # Reset per-turn flags
         self.current_player.ignore_action_bonuses = False
         self.current_player.collection_played = 0
+        self.current_player.cost_reduction = 0
 
         # Log turn header with complete state
         resources = {
@@ -258,8 +259,8 @@ class GameState:
 
             # Log buy with context
             context = {
-                "cost": choice.cost.coins,
-                "remaining_coins": player.coins - choice.cost.coins,
+                "cost": max(0, choice.cost.coins - player.cost_reduction),
+                "remaining_coins": player.coins - max(0, choice.cost.coins - player.cost_reduction),
                 "remaining_buys": player.buys - 1,
             }
             self.log_callback(("action", player.ai.name, f"buys {choice}", context))
@@ -270,7 +271,8 @@ class GameState:
 
             # Complete purchase
             player.buys -= 1
-            player.coins -= choice.cost.coins
+            actual_cost = max(0, choice.cost.coins - player.cost_reduction)
+            player.coins -= actual_cost
             player.discard.append(choice)
             choice.on_buy(self)
             choice.on_gain(self, player)
@@ -283,14 +285,16 @@ class GameState:
         for card_name, count in self.supply.items():
             if count > 0:
                 card = get_card(card_name)
-                if card.cost.coins <= player.coins and card.cost.potions <= player.potions and card.may_be_bought(self):
+                discounted = max(0, card.cost.coins - player.cost_reduction)
+                if discounted <= player.coins and card.cost.potions <= player.potions and card.may_be_bought(self):
                     affordable.append(card)
         return affordable
 
     def _complete_purchase(self, player, card):
         """Helper to complete a card purchase."""
         player.buys -= 1
-        player.coins -= card.cost.coins
+        actual_cost = max(0, card.cost.coins - player.cost_reduction)
+        player.coins -= actual_cost
         player.potions -= card.cost.potions
         self.supply[card.name] -= 1
 
@@ -318,6 +322,7 @@ class GameState:
         player.potions = 0
         player.ignore_action_bonuses = False
         player.collection_played = 0
+        player.cost_reduction = 0
 
         # Move to next player
         if not self.extra_turn:
