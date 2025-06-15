@@ -23,13 +23,11 @@ class Mountebank(Card):
                 if game_state.supply.get("Curse", 0) > 0:
                     game_state.supply["Curse"] -= 1
                     gained = get_card("Curse")
-                    target.discard.append(gained)
-                    gained.on_gain(game_state, target)
+                    game_state.gain_card(target, gained)
                 if game_state.supply.get("Copper", 0) > 0:
                     game_state.supply["Copper"] -= 1
                     copper = get_card("Copper")
-                    target.discard.append(copper)
-                    copper.on_gain(game_state, target)
+                    game_state.gain_card(target, copper)
 
         for other in game_state.players:
             if other is player:

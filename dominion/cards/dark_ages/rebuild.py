@@ -23,6 +23,5 @@ class Rebuild(Card):
                 if game_state.supply.get("Duchy", 0) > 0:
                     game_state.supply["Duchy"] -= 1
                     duchy = get_card("Duchy")
-                    player.discard.append(duchy)
-                    duchy.on_gain(game_state, player)
+                    game_state.gain_card(player, duchy)
                 return

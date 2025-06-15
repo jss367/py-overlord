@@ -31,5 +31,4 @@ class Modify(Card):
             gain = player.ai.choose_buy(game_state, [get_card(n) for n in choices])
             if gain:
                 game_state.supply[gain.name] -= 1
-                player.discard.append(gain)
-                gain.on_gain(game_state, player)
+                game_state.gain_card(player, gain)

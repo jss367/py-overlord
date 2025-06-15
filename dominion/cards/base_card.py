@@ -34,6 +34,7 @@ class Card:
         self.cost = cost
         self.stats = stats
         self.types = types
+        self.duration_persistent = False
 
         # Debug validation
         if not isinstance(types, list):
