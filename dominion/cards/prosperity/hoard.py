@@ -17,5 +17,4 @@ class Hoard(Card):
             game_state.supply["Gold"] -= 1
             gold = get_card("Gold")
             player = game_state.current_player
-            player.discard.append(gold)
-            gold.on_gain(game_state, player)
+            game_state.gain_card(player, gold)

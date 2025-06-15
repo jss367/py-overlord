@@ -88,8 +88,7 @@ class Enhance(Event):
         if affordable:
             gain = get_card(affordable[0])
             game_state.supply[gain.name] -= 1
-            player.discard.append(gain)
-            gain.on_gain(game_state, player)
+            game_state.gain_card(player, gain)
 
 
 class Delay(Event):
