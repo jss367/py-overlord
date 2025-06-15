@@ -87,11 +87,9 @@ class GameLogger:
             # Create readable player descriptions and map them for later use
             descriptions = []
             self.name_map = {}
-            for ai in players:
-                ai_id = ai.name.split("-")[1]
-                short_id = ai_id[-4:]
+            for idx, ai in enumerate(players, start=1):
                 strategy_name = getattr(ai.strategy, "name", "Unknown Strategy")
-                friendly = f"Player {short_id} ({strategy_name})"
+                friendly = f"Player {idx} ({strategy_name})"
                 self.name_map[ai.name] = friendly
                 descriptions.append(friendly)
 
@@ -149,6 +147,19 @@ class GameLogger:
             return
 
         self.file_logger.info(f"Supply: {card_name} {'gained' if count < 0 else 'added'} " f"({remaining} remaining)")
+
+    def log_turn_summary(self, player_name: str, actions_played: int, cards_bought: list[str]):
+        """Log a concise summary at the end of each turn."""
+        if not self.should_log_to_file:
+            return
+
+        player = self.format_player_name(player_name)
+        action_part = f"{actions_played} action" + ("s" if actions_played != 1 else "")
+        if cards_bought:
+            buy_part = f"bought {', '.join(cards_bought)}"
+        else:
+            buy_part = "bought nothing"
+        self.file_logger.info(f"Summary: {player} played {action_part} and {buy_part}")
 
     def end_game(self, winner: str, scores: dict[str, int], supply_state: dict[str, int]) -> Optional[str]:
         """End the current game with enhanced final state logging.

@@ -32,6 +32,8 @@ class PlayerState:
     # Turn tracking
     turns_taken: int = 0
     actions_played: int = 0
+    actions_this_turn: int = 0
+    bought_this_turn: list[str] = field(default_factory=list)
 
     def initialize(self, use_shelters: bool = False):
         """Set up starting deck and draw initial hand.
@@ -72,6 +74,8 @@ class PlayerState:
         self.collection_played = 0
         self.turns_taken = 0
         self.actions_played = 0
+        self.actions_this_turn = 0
+        self.bought_this_turn = []
 
         # Draw initial hand of 5 cards
         self.draw_cards(5)

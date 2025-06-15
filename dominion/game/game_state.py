@@ -45,6 +45,9 @@ class GameState:
             elif msg_type == "supply_change":
                 # (supply_change, card_name, count, remaining)
                 self.logger.log_supply_change(message[1], message[2], message[3])
+            elif msg_type == "turn_summary":
+                # (turn_summary, player_name, actions_played, cards_bought)
+                self.logger.log_turn_summary(message[1], message[2], message[3])
         else:
             # Legacy string message support
             if self.logger and self.logger.should_log_to_file:
@@ -70,14 +73,13 @@ class GameState:
 
         # Create a more readable player list for logging
         player_descriptions = []
-        for player in self.players:
-            # Access the strategy name from the AI's strategy
-            # Get the full ID number from the AI name
-            ai_id = player.ai.name.split('-')[1]
-            # Take last 4 digits to ensure uniqueness
-            short_id = ai_id[-4:]
-            strategy_name = getattr(player.ai.strategy, 'name', 'Unknown Strategy')
-            player_descriptions.append(f"Player {short_id} ({strategy_name})")
+        for idx, player in enumerate(self.players, start=1):
+            if self.logger:
+                friendly = self.logger.format_player_name(player.ai.name)
+            else:
+                strategy_name = getattr(player.ai.strategy, 'name', 'Unknown Strategy')
+                friendly = f"Player {idx} ({strategy_name})"
+            player_descriptions.append(friendly)
 
         self.log_callback("Game initialized with players: " + ", ".join(player_descriptions))
         self.log_callback("Kingdom cards: " + ", ".join(c.name for c in kingdom_cards))
@@ -110,6 +112,8 @@ class GameState:
         # Reset per-turn flags
         self.current_player.ignore_action_bonuses = False
         self.current_player.collection_played = 0
+        self.current_player.actions_this_turn = 0
+        self.current_player.bought_this_turn = []
 
         # Log turn header with complete state
         resources = {
@@ -196,6 +200,7 @@ class GameState:
 
             player.actions -= 1
             player.actions_played += 1
+            player.actions_this_turn += 1
             player.hand.remove(choice)
             player.in_play.append(choice)
             choice.on_play(self)
@@ -269,6 +274,7 @@ class GameState:
             self.log_callback(("supply_change", choice.name, -1, self.supply[choice.name]))
 
             # Complete purchase
+            player.bought_this_turn.append(choice.name)
             player.buys -= 1
             player.coins -= choice.cost.coins
             player.discard.append(choice)
@@ -301,6 +307,19 @@ class GameState:
     def handle_cleanup_phase(self):
         """Handle the cleanup phase of a turn."""
         player = self.current_player
+
+        # Log turn summary before resetting state
+        self.log_callback(
+            (
+                "turn_summary",
+                player.ai.name,
+                player.actions_this_turn,
+                list(player.bought_this_turn),
+            )
+        )
+
+        player.actions_this_turn = 0
+        player.bought_this_turn = []
 
         # Discard hand and in-play cards
         player.discard.extend(player.hand)
