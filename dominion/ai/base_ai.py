@@ -32,3 +32,7 @@ class AI(ABC):
     def choose_card_to_trash(self, state: GameState, choices: list[Card]) -> Optional[Card]:
         """Choose a card to trash from available choices."""
         pass
+
+    def choose_way(self, state: GameState, card: Card, ways: list) -> Optional[object]:
+        """Choose a Way to use when playing a card. Default is none."""
+        return None
