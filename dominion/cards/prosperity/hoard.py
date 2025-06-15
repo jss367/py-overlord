@@ -11,5 +11,11 @@ class Hoard(Card):
         )
 
     def on_buy(self, game_state):
-        # TODO: gain a Gold when buying a victory card
-        pass
+        from ..registry import get_card
+
+        if game_state.supply.get("Gold", 0) > 0:
+            game_state.supply["Gold"] -= 1
+            gold = get_card("Gold")
+            player = game_state.current_player
+            player.discard.append(gold)
+            gold.on_gain(game_state, player)

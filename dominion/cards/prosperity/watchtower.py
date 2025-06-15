@@ -11,10 +11,14 @@ class Watchtower(Card):
         )
 
     def play_effect(self, game_state):
-        # TODO: discard cards for coins
-        pass
+        player = game_state.current_player
+        discard_count = len(player.hand)
+        player.discard.extend(player.hand)
+        player.hand = []
+        player.coins += discard_count
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
-        # TODO: may place gained card on deck or trash it
-        pass
+        if self in player.discard:
+            player.discard.remove(self)
+            player.deck.append(self)

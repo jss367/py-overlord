@@ -11,5 +11,7 @@ class GrandMarket(Card):
         )
 
     def may_be_bought(self, game_state) -> bool:
-        # TODO: cannot be bought if player has Copper in play
+        player = game_state.current_player
+        if any(card.name == "Copper" for card in player.in_play):
+            return False
         return super().may_be_bought(game_state)

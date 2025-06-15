@@ -11,5 +11,8 @@ class CountingHouse(Card):
         )
 
     def play_effect(self, game_state):
-        # TODO: draw coppers from discard
-        pass
+        player = game_state.current_player
+        coppers = [c for c in player.discard if c.name == "Copper"]
+        for copper in coppers:
+            player.discard.remove(copper)
+            player.hand.append(copper)

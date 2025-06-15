@@ -11,5 +11,18 @@ class Vault(Card):
         )
 
     def play_effect(self, game_state):
-        # TODO: discard for coins, others may discard for card
-        pass
+        player = game_state.current_player
+
+        discard_count = len(player.hand)
+        player.discard.extend(player.hand)
+        player.hand = []
+        player.coins += discard_count
+
+        for other in game_state.players:
+            if other is player or not other.hand:
+                continue
+            discard = other.hand[:1]
+            other.discard.extend(discard)
+            for c in discard:
+                other.hand.remove(c)
+            other.draw_cards(1)
