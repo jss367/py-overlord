@@ -18,7 +18,7 @@ class Forager(Card):
         if card_to_trash is None:
             card_to_trash = player.hand[0]
         player.hand.remove(card_to_trash)
-        game_state.trash.append(card_to_trash)
+        game_state.trash_card(player, card_to_trash)
 
         # Count different treasures in trash
         treasure_names = {c.name for c in game_state.trash if c.is_treasure}

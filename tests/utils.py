@@ -32,3 +32,10 @@ class BuyEventAI(DummyAI):
             if getattr(choice, "is_event", False) or getattr(choice, "is_project", False):
                 return choice
         return None
+
+
+class TrashFirstAI(BuyEventAI):
+    """AI that always trashes the first available card."""
+
+    def choose_card_to_trash(self, state: GameState, choices: list[Card]) -> Optional[Card]:
+        return choices[0] if choices else None

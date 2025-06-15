@@ -15,6 +15,9 @@ class Project:
     def on_turn_start(self, game_state, player) -> None:
         pass
 
+    def on_trash(self, game_state, player, card) -> None:
+        pass
+
     @property
     def is_project(self) -> bool:
         return True

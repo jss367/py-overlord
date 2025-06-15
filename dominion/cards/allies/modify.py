@@ -20,7 +20,7 @@ class Modify(Card):
         if not to_trash:
             return
         player.hand.remove(to_trash)
-        game_state.trash.append(to_trash)
+        game_state.trash_card(player, to_trash)
         max_cost = to_trash.cost.coins + 2
         choices = [
             name

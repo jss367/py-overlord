@@ -27,7 +27,7 @@ class Chapel(Card):
 
             if card_to_trash:
                 player.hand.remove(card_to_trash)
-                game_state.trash.append(card_to_trash)
+                game_state.trash_card(player, card_to_trash)
                 cards_to_trash.append(card_to_trash)
             else:
                 # AI chose to stop trashing

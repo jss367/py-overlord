@@ -19,7 +19,7 @@ class Rebuild(Card):
             estate = next((c for c in pile if c.name == "Estate"), None)
             if estate:
                 pile.remove(estate)
-                game_state.trash.append(estate)
+                game_state.trash_card(player, estate)
                 if game_state.supply.get("Duchy", 0) > 0:
                     game_state.supply["Duchy"] -= 1
                     duchy = get_card("Duchy")

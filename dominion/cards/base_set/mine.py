@@ -26,7 +26,7 @@ class Mine(Card):
         if treasure_to_trash:
             # Remove from hand and add to trash
             player.hand.remove(treasure_to_trash)
-            game_state.trash.append(treasure_to_trash)
+            game_state.trash_card(player, treasure_to_trash)
 
             # Find treasures that can be gained
             possible_gains = [
