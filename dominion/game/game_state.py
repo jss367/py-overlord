@@ -147,6 +147,8 @@ class GameState:
     def handle_start_phase(self):
         """Handle the start of turn phase."""
         self.current_player.turns_taken += 1
+        self.current_player.gained_five_last_turn = self.current_player.gained_five_this_turn
+        self.current_player.gained_five_this_turn = False
 
         # Reset per-turn flags
         self.current_player.ignore_action_bonuses = False

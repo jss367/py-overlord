@@ -39,6 +39,8 @@ class PlayerState:
     banned_buys: list[str] = field(default_factory=list)
     delayed_cards: list[Card] = field(default_factory=list)
     seize_the_day_used: bool = False
+    gained_five_this_turn: bool = False
+    gained_five_last_turn: bool = False
 
     def initialize(self, use_shelters: bool = False):
         """Set up starting deck and draw initial hand.
@@ -86,6 +88,8 @@ class PlayerState:
         self.banned_buys = []
         self.delayed_cards = []
         self.seize_the_day_used = False
+        self.gained_five_this_turn = False
+        self.gained_five_last_turn = False
 
         # Draw initial hand of 5 cards
         self.draw_cards(5)
