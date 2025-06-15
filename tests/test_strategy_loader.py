@@ -8,3 +8,8 @@ def test_strategy_loader_basic():
 
     strategy = loader.get_strategy('Big Money')
     assert strategy.name == 'BigMoney'
+
+
+def test_strategy_loader_unknown_returns_none():
+    loader = StrategyLoader()
+    assert loader.get_strategy('No Such Strategy') is None
