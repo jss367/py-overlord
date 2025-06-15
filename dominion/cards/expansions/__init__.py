@@ -38,6 +38,24 @@ from ..prosperity.watchtower import Watchtower
 from ..prosperity.workers_village import WorkersVillage
 from ..prosperity.platinum import Platinum
 from ..prosperity.colony import Colony
+from ..plunder import (
+    Amphora,
+    Doubloons,
+    EndlessChalice,
+    Figurehead,
+    Hammer,
+    Insignia,
+    Jewels,
+    Orb,
+    PrizeGoat,
+    PuzzleBox,
+    Sextant,
+    Shield,
+    SpellScroll,
+    Staff,
+    Sword,
+    LOOT_CARD_NAMES,
+)
 
 __all__ = [
     'Patrician',
@@ -82,4 +100,20 @@ __all__ = [
     'WorkersVillage',
     'Platinum',
     'Colony',
+    'Amphora',
+    'Doubloons',
+    'EndlessChalice',
+    'Figurehead',
+    'Hammer',
+    'Insignia',
+    'Jewels',
+    'Orb',
+    'PrizeGoat',
+    'PuzzleBox',
+    'Sextant',
+    'Shield',
+    'SpellScroll',
+    'Staff',
+    'Sword',
+    'LOOT_CARD_NAMES',
 ]

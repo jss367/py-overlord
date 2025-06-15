@@ -30,7 +30,10 @@ def test_project_card_draw():
     assert len(player.hand) == 6
 
 
-def test_event_looting_gain_gold():
+from dominion.cards.plunder import LOOT_CARD_NAMES
+
+
+def test_event_looting_gain_loot():
     ai = BuyEventAI()
     state = GameState(players=[])
     state.initialize_game([ai], [get_card("Village")], events=[Looting()])
@@ -38,7 +41,7 @@ def test_event_looting_gain_gold():
     player.coins = 5
     state.phase = "buy"
     state.handle_buy_phase()
-    assert any(card.name == "Gold" for card in player.discard)
+    assert any(card.name in LOOT_CARD_NAMES for card in player.discard)
 
 
 def test_project_sewers_trash_extra():

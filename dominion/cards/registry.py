@@ -56,6 +56,21 @@ from dominion.cards.expansions import (
     WorkersVillage,
     Platinum,
     Colony,
+    Amphora,
+    Doubloons,
+    EndlessChalice,
+    Figurehead,
+    Hammer,
+    Insignia,
+    Jewels,
+    Orb,
+    PrizeGoat,
+    PuzzleBox,
+    Sextant,
+    Shield,
+    SpellScroll,
+    Staff,
+    Sword,
 )
 from dominion.cards.treasures import Copper, Gold, Silver
 from dominion.cards.victory import Curse, Duchy, Estate, Province
@@ -125,6 +140,21 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Workers' Village": WorkersVillage,
     "Platinum": Platinum,
     "Colony": Colony,
+    "Amphora": Amphora,
+    "Doubloons": Doubloons,
+    "Endless Chalice": EndlessChalice,
+    "Figurehead": Figurehead,
+    "Hammer": Hammer,
+    "Insignia": Insignia,
+    "Jewels": Jewels,
+    "Orb": Orb,
+    "Prize Goat": PrizeGoat,
+    "Puzzle Box": PuzzleBox,
+    "Sextant": Sextant,
+    "Shield": Shield,
+    "Spell Scroll": SpellScroll,
+    "Staff": Staff,
+    "Sword": Sword,
 }
 
 
