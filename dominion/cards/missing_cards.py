@@ -75,7 +75,7 @@ class FirstMate(Card):
     def __init__(self):
         super().__init__(
             name="First Mate",
-            cost=CardCost(coins=4),
+            cost=CardCost(coins=5),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.DURATION],
+            types=[CardType.ACTION],
         )
