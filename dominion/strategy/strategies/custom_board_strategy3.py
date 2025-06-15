@@ -1,62 +1,53 @@
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 
-class CustomBoardStrategy2(EnhancedStrategy):
-    """Strategy generated from genetic algorithm for a custom Patrician board."""
+class CustomBoardBestStrategy(EnhancedStrategy):
+    """Optimized strategy for Patrician/Emporium board with engine focus."""
 
     def __init__(self) -> None:
         super().__init__()
-        self.name = "CustomBoard"
-        self.description = "Genetic algorithm result for Patrician/Emporium board"
-        self.version = "3.0"
+        self.name = "CustomBoardBest"
+        self.description = "Optimized engine for Patrician/Emporium/Collection board"
+        self.version = "1.0"
 
         # Gain priorities
         self.gain_priority = [
             PriorityRule("Province", PriorityRule.can_afford(8)),
-            PriorityRule("Emporium"),
+            PriorityRule("Emporium", "my.count(Snowy Village) > 0"),  # Only if you can activate
             PriorityRule("Patrician"),
-            PriorityRule("Forager"),
-            PriorityRule("Snowy Village", PriorityRule.turn_number("<=", 10)),
-            PriorityRule("Rebuild"),
-            PriorityRule("Modify"),
-            PriorityRule("Collection"),
-            PriorityRule("Skulk"),
-            PriorityRule("Miser"),
-            PriorityRule("Looting", PriorityRule.can_afford(5)),
+            PriorityRule("Snowy Village", "my.count(Snowy Village) < 3"),
+            PriorityRule("Forager", "my.count(Forager) < 2"),
+            PriorityRule("Modify", "my.count(Modify) < 2"),
+            PriorityRule("Collection", "my.count(Collection) < 2"),
             PriorityRule("Duchy", PriorityRule.provinces_left("<=", 4)),
-            PriorityRule("Gold", PriorityRule.can_afford(6)),
-            PriorityRule("Silver", PriorityRule.can_afford(3)),
             PriorityRule("Estate", PriorityRule.provinces_left("<=", 2)),
+            PriorityRule("Silver", PriorityRule.can_afford(3)),
         ]
 
         # Action priorities
         self.action_priority = [
-            PriorityRule("Forager"),
-            PriorityRule("Modify"),
-            PriorityRule("Rebuild"),
             PriorityRule("Patrician"),
             PriorityRule("Emporium"),
+            PriorityRule("Forager"),
+            PriorityRule("Modify"),
             PriorityRule("Snowy Village"),
-            PriorityRule("Skulk"),
-            PriorityRule("Miser"),
-            PriorityRule("Rats"),
         ]
 
         # Trash priorities
         self.trash_priority = [
             PriorityRule("Curse"),
-            PriorityRule("Rats"),
             PriorityRule("Estate"),
             PriorityRule("Copper"),
-        ]
-
-        # Treasure play order
-        self.treasure_priority = [
-            PriorityRule("Gold"),
             PriorityRule("Silver"),
+        ]
+
+        # Treasure play order (play Coppers before Silvers/Golds for Collection)
+        self.treasure_priority = [
             PriorityRule("Copper"),
+            PriorityRule("Silver"),
+            PriorityRule("Gold"),
         ]
 
 
-def create_custom_board_strategy2() -> EnhancedStrategy:
-    return CustomBoardStrategy2()
+def create_custom_board_best_strategy() -> EnhancedStrategy:
+    return CustomBoardBestStrategy()
