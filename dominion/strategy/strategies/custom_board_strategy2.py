@@ -22,7 +22,6 @@ class CustomBoardStrategy2(EnhancedStrategy):
             PriorityRule("Collection"),
             PriorityRule("Skulk"),
             PriorityRule("Miser"),
-            PriorityRule("Looting"),
             PriorityRule("Duchy", PriorityRule.provinces_left("<=", 4)),
             PriorityRule("Gold"),
             PriorityRule("Silver"),

@@ -1,0 +1,27 @@
+{
+  "turn_count": 101,
+  "cards_played": {
+    "Copper": 83,
+    "Patrician": 459,
+    "Forager": 206,
+    "Snowy Village": 29,
+    "Silver": 13,
+    "Emporium": 245
+  },
+  "victory_points": {
+    "GeneticAI-139792715907488": 0,
+    "GeneticAI-139792715875920": 12
+  },
+  "actions_played": {
+    "GeneticAI-139792715907488": 128,
+    "GeneticAI-139792715875920": 811
+  },
+  "cards_bought": {
+    "Patrician": 10,
+    "Forager": 8,
+    "Snowy Village": 10,
+    "Silver": 4,
+    "Emporium": 3,
+    "Province": 3
+  }
+}
