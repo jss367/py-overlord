@@ -1,0 +1,24 @@
+{
+  "turn_count": 18,
+  "cards_played": {
+    "Copper": 146,
+    "Patrician": 66,
+    "Emporium": 79,
+    "Forager": 15
+  },
+  "victory_points": {
+    "GeneticAI-140713158898848": 1,
+    "GeneticAI-140713158900432": 55
+  },
+  "actions_played": {
+    "GeneticAI-140713158898848": 43,
+    "GeneticAI-140713158900432": 117
+  },
+  "cards_bought": {
+    "Patrician": 10,
+    "Emporium": 10,
+    "Forager": 10,
+    "Copper": 14,
+    "Province": 3
+  }
+}
