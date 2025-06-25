@@ -1,0 +1,59 @@
+# Dominion Kingdom Configuration
+# This file contains the kingdom cards to use for genetic training
+
+kingdom_cards:
+  - "Village"
+  - "Smithy"
+  - "Market"
+  - "Festival"
+  - "Laboratory"
+  - "Mine"
+  - "Witch"
+  - "Moat"
+  - "Workshop"
+  - "Chapel"
+
+# Optional training parameters (these can be overridden by command line arguments)
+training_parameters:
+  population_size: 20
+  generations: 25
+  mutation_rate: 0.15
+  games_per_eval: 15
+
+# Alternative kingdom sets for different strategies
+alternative_kingdoms:
+  big_money_counter:
+    - "Chapel"
+    - "Witch"
+    - "Laboratory" 
+    - "Village"
+    - "Market"
+    - "Militia"
+    - "Council Room"
+    - "Festival"
+    - "Library"
+    - "Adventurer"
+    
+  engine_focused:
+    - "Village"
+    - "Smithy"
+    - "Laboratory"
+    - "Market"
+    - "Festival"
+    - "Council Room"
+    - "Library"
+    - "Witch"
+    - "Throne Room"
+    - "King's Court"
+    
+  trashing_focus:
+    - "Chapel"
+    - "Steward"
+    - "Sentry"
+    - "Remodel"
+    - "Mine"
+    - "Market"
+    - "Village"
+    - "Smithy"
+    - "Laboratory"
+    - "Witch" 

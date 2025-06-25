@@ -31,6 +31,32 @@
                 "--games",
                 "10"
             ]
+        },
+        {
+            "name": "Python: TorturerEngine vs ChapelWitch",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/dominion/simulation/strategy_battle.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "/opt/anaconda3/envs/all/bin/python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "args": [
+                "TorturerEngine",
+                "ChapelWitch",
+                "--games",
+                "1"
+            ]
         }
-    ]
+    ],
+    // "inputs": [
+    //     {
+    //         "id": "numGames",
+    //         "type": "promptString",
+    //         "description": "Number of games to run between TorturerEngine and ChapelWitch",
+    //         "default": "1"
+    //     }
+    // ]
 }

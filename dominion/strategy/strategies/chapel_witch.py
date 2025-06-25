@@ -12,25 +12,34 @@ class ChapelWitchStrategy(EnhancedStrategy):
 
         # Define gain priorities
         self.gain_priority = [
-            PriorityRule("Province", "my.coins >= 8"),
-            PriorityRule("Witch", "my.count(Witch) == 0"),
-            PriorityRule("Chapel", "state.turn_number <= 2 AND my.count(Chapel) == 0"),
-            PriorityRule("Gold", "my.coins >= 6"),
-            PriorityRule("Silver", "my.coins >= 3"),
+            PriorityRule("Province", PriorityRule.resources("coins", ">=", 8)),
+            PriorityRule("Witch", lambda _s, me: me.count_in_deck("Witch") == 0),
+            PriorityRule(
+                "Chapel",
+                lambda s, me: s.turn_number <= 2 and me.count_in_deck("Chapel") == 0,
+            ),
+            PriorityRule("Gold", PriorityRule.resources("coins", ">=", 6)),
+            PriorityRule("Silver", PriorityRule.resources("coins", ">=", 3)),
             PriorityRule("Copper"),
         ]
 
         # Define action priorities
         self.action_priority = [
-            PriorityRule("Chapel", "my.count(Estate) > 0 OR my.count(Copper) > 4"),
+            PriorityRule(
+                "Chapel",
+                lambda _s, me: me.count_in_deck("Estate") > 0 or me.count_in_deck("Copper") > 4,
+            ),
             PriorityRule("Witch"),
         ]
 
         # Define trash priorities
         self.trash_priority = [
             PriorityRule("Curse"),
-            PriorityRule("Estate", "state.provinces_left > 4"),
-            PriorityRule("Copper", "my.count(Silver) + my.count(Gold) >= 3"),
+            PriorityRule("Estate", lambda s, _me: s.supply.get("Province", 0) > 4),
+            PriorityRule(
+                "Copper",
+                lambda _s, me: me.count_in_deck("Silver") + me.count_in_deck("Gold") >= 3,
+            ),
         ]
 
         # Define treasure priorities

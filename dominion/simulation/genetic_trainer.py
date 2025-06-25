@@ -96,11 +96,11 @@ class GeneticTrainer:
                 ai2 = GeneticAI(big_money)
 
                 if game_num % 2 == 0:
-                    winner, _scores, _log = self.battle_system._run_game(ai1, ai2, kingdom_card_names)
+                    winner, _scores, _log = self.battle_system.run_game(ai1, ai2, kingdom_card_names)
                     if winner == ai1:
                         wins += 1
                 else:
-                    winner, _scores, _log = self.battle_system._run_game(ai2, ai1, kingdom_card_names)
+                    winner, _scores, _log = self.battle_system.run_game(ai2, ai1, kingdom_card_names)
                     if winner == ai2:
                         wins += 1
 

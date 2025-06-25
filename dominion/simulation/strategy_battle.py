@@ -1,13 +1,21 @@
 import argparse
+import logging
+from logging import getLogger
 from pathlib import Path
 from typing import Any, Optional
+
+import coloredlogs
 
 from dominion.ai.genetic_ai import GeneticAI
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.simulation.game_logger import GameLogger
-from dominion.strategy.strategy_loader import StrategyLoader
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+from dominion.strategy.strategy_loader import StrategyLoader
+
+logger = getLogger(__name__)
+
+coloredlogs.install(level="INFO", logger=logger)
 
 DEFAULT_KINGDOM_CARDS = [
     "Village",
@@ -38,6 +46,9 @@ BASIC_CARDS = {
     "Necropolis",
     "Overgrown Estate",
 }
+
+# Set up module-level logger
+logger = logging.getLogger(__name__)
 
 
 class StrategyBattle:
@@ -71,16 +82,12 @@ class StrategyBattle:
                     cards.add(rule.card_name)
         return cards
 
-    def _determine_kingdom_cards(
-        self, strat1: EnhancedStrategy, strat2: EnhancedStrategy
-    ) -> list[str]:
+    def _determine_kingdom_cards(self, strat1: EnhancedStrategy, strat2: EnhancedStrategy) -> list[str]:
         """Compute kingdom cards from both strategies if not explicitly set."""
         if self.kingdom_cards is not None:
             return self.kingdom_cards
 
-        all_cards = self._extract_cards_from_strategy(strat1) | self._extract_cards_from_strategy(
-            strat2
-        )
+        all_cards = self._extract_cards_from_strategy(strat1) | self._extract_cards_from_strategy(strat2)
         return sorted(c for c in all_cards if c not in BASIC_CARDS)
 
     def run_battle(self, strategy1_name: str, strategy2_name: str, num_games: int = 100) -> dict[str, Any]:
@@ -89,8 +96,14 @@ class StrategyBattle:
         strategy1 = self.strategy_loader.get_strategy(strategy1_name)
         strategy2 = self.strategy_loader.get_strategy(strategy2_name)
 
-        if not strategy1 or not strategy2:
-            raise ValueError(f"Could not find strategies: {strategy1_name} and/or {strategy2_name}")
+        missing = []
+        if not strategy1:
+            missing.append(strategy1_name)
+        if not strategy2:
+            missing.append(strategy2_name)
+        if missing:
+            logger.warning("Could not find strategies: %s", ', '.join(missing))
+            raise ValueError(f"Could not find strategies: {', '.join(missing)}")
 
         # Initialize results tracking
         results = {
@@ -105,25 +118,25 @@ class StrategyBattle:
         }
 
         # Run the games
-        print(f"\nRunning {num_games} games between:")
-        print(f"Strategy 1: {strategy1_name}")
-        print(f"Strategy 2: {strategy2_name}\n")
+        logger.info("\nRunning %d games between:", num_games)
+        logger.info("Strategy 1: %s", strategy1_name)
+        logger.info("Strategy 2: %s\n", strategy2_name)
 
         kingdom_card_names = self._determine_kingdom_cards(strategy1, strategy2)
-        print("Using kingdom cards:", ", ".join(kingdom_card_names))
+        logger.info("Using kingdom cards: %s", ", ".join(kingdom_card_names))
 
         for game_num in range(num_games):
-            print(f"Playing game {game_num + 1}/{num_games}...")
+            logger.info("Playing game %d/%d...", game_num + 1, num_games)
 
             # Create fresh AIs for each game using new strategy instances
-            ai1 = GeneticAI(self.strategy_loader.get_strategy(strategy1_name))
-            ai2 = GeneticAI(self.strategy_loader.get_strategy(strategy2_name))
+            ai1 = GeneticAI(strategy1)
+            ai2 = GeneticAI(strategy2)
 
             # Alternate who goes first
             if game_num % 2 == 0:
-                winner, scores, log_path = self._run_game(ai1, ai2, kingdom_card_names)
+                winner, scores, log_path = self.run_game(ai1, ai2, kingdom_card_names)
             else:
-                winner, scores, log_path = self._run_game(ai2, ai1, kingdom_card_names)
+                winner, scores, log_path = self.run_game(ai2, ai1, kingdom_card_names)
 
             # Record results
             game_result = {
@@ -155,13 +168,13 @@ class StrategyBattle:
 
         return results
 
-    def _run_game(
+    def run_game(
         self,
         ai1: GeneticAI,
         ai2: GeneticAI,
         kingdom_card_names: list[str],
     ) -> tuple[GeneticAI, dict[str, int], Optional[str]]:
-        """Run a single game between two AIs."""
+        """Run a single game between two AIs. TODO: This shouldn't be within this class."""
         # Start game logging with actual AI objects for better descriptions
         self.logger.start_game([ai1, ai2])
 
@@ -182,9 +195,7 @@ class StrategyBattle:
         winner = max(game_state.players, key=lambda p: p.get_victory_points(game_state)).ai
 
         # End game logging and capture log path if any
-        log_path = self.logger.end_game(
-            winner.name, scores, game_state.supply, game_state.players
-        )
+        log_path = self.logger.end_game(winner.name, scores, game_state.supply, game_state.players)
 
         return winner, scores, log_path
 
@@ -201,49 +212,50 @@ def main():
     )
     args = parser.parse_args()
 
-    print(
-        f"\nInitializing battle between {args.strategy1_name} and {args.strategy2_name}..."
-    )
+    logger.info("\nInitializing battle between %s and %s...", args.strategy1_name, args.strategy2_name)
 
     battle = StrategyBattle(use_shelters=args.use_shelters)
 
     # Print available strategies
-    print("\nAvailable strategies:", ", ".join(battle.strategy_loader.list_strategies()))
+    logger.info("\nAvailable strategies: %s", ", ".join(battle.strategy_loader.list_strategies()))
 
-    print(f"\nRunning {args.games} games...")
+    logger.info("\nRunning %d games...", args.games)
     results = battle.run_battle(args.strategy1_name, args.strategy2_name, args.games)
 
     if results:
         print_results(results)
     else:
-        print("\nError: No results generated from battle")
+        logger.error("\nError: No results generated from battle")
 
 
 def print_results(results: dict[str, Any]):
     """Print battle results in a readable format."""
-    print("\n=== Strategy Battle Results ===")
-    print(f"\nGames played: {results['games_played']}")
+    logger.info("\n=== Strategy Battle Results ===")
+    logger.info("\nGames played: %d", results['games_played'])
 
-    print(f"\n{results['strategy1_name']}:")
-    print(f"  Wins: {results['strategy1_wins']} ({results['strategy1_win_rate']:.1f}%)")
-    print(f"  Average Score: {results['strategy1_avg_score']:.1f}")
+    logger.info("\n%s:", results['strategy1_name'])
+    logger.info("  Wins: %d (%.1f%%)", results['strategy1_wins'], results['strategy1_win_rate'])
+    logger.info("  Average Score: %.1f", results['strategy1_avg_score'])
 
-    print(f"\n{results['strategy2_name']}:")
-    print(f"  Wins: {results['strategy2_wins']} ({results['strategy2_win_rate']:.1f}%)")
-    print(f"  Average Score: {results['strategy2_avg_score']:.1f}")
+    logger.info("\n%s:", results['strategy2_name'])
+    logger.info("  Wins: %d (%.1f%%)", results['strategy2_wins'], results['strategy2_win_rate'])
+    logger.info("  Average Score: %.1f", results['strategy2_avg_score'])
 
-    print("\nDetailed game results:")
+    logger.info("\nDetailed game results:")
     for game in results["detailed_results"]:
-        print(f"\nGame {game['game_number']}:")
-        print(f"  Winner: {game['winner']}")
-        print(
-            f"  Scores: {results['strategy1_name']}={game['strategy1_score']}, "
-            f"{results['strategy2_name']}={game['strategy2_score']}"
+        logger.info("\nGame %d:", game['game_number'])
+        logger.info("  Winner: %s", game['winner'])
+        logger.info(
+            "  Scores: %s=%d, %s=%d",
+            results['strategy1_name'],
+            game['strategy1_score'],
+            results['strategy2_name'],
+            game['strategy2_score'],
         )
-        print(f"  Margin: {game['margin']}")
-        print(f"  Turns: {game['turns']}")
+        logger.info("  Margin: %d", game['margin'])
+        logger.info("  Turns: %d", game['turns'])
         if game.get("log_path"):
-            print(f"  Log: {game['log_path']}")
+            logger.info("  Log: %s", game['log_path'])
 
 
 if __name__ == "__main__":

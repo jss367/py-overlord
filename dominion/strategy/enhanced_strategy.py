@@ -8,7 +8,11 @@ file build on these classes.
 """
 
 from dataclasses import dataclass
-from typing import Iterable, Optional
+from typing import Callable, Iterable, Optional
+
+from dominion.game.card import Card
+from dominion.game.game_state import GameState
+from dominion.game.player_state import PlayerState
 
 
 @dataclass
@@ -22,40 +26,73 @@ class PriorityRule:
     """
 
     card: str
-    condition: Optional[str] = None
+    # Condition is an optional callable that receives (state, player) and returns a bool.
+    condition: Optional[Callable[["GameState", "PlayerState"], bool]] = None
 
     @property
     def card_name(self) -> str:
         return self.card
 
     # Helper constructors -------------------------------------------------
-    @staticmethod
-    def provinces_left(op: str, amount: int) -> str:
-        return f"state.provinces_left {op} {amount}"
+    import operator as _op
+
+    _OP_MAP: dict[str, Callable[[int, int], bool]] = {
+        "<": _op.lt,
+        "<=": _op.le,
+        ">": _op.gt,
+        ">=": _op.ge,
+        "==": _op.eq,
+        "!=": _op.ne,
+    }
 
     @staticmethod
-    def turn_number(op: str, amount: int) -> str:
-        return f"state.turn_number {op} {amount}"
+    def provinces_left(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        cmp = PriorityRule._OP_MAP[op]
+        return lambda s, _me, _amount=amount, _cmp=cmp: _cmp(s.supply.get("Province", 0), _amount)
 
     @staticmethod
-    def resources(res: str, op: str, amount: int) -> str:
-        return f"my.{res} {op} {amount}"
+    def turn_number(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        cmp = PriorityRule._OP_MAP[op]
+        return lambda s, _me, _amount=amount, _cmp=cmp: _cmp(s.turn_number, _amount)
 
     @staticmethod
-    def has_cards(cards: Iterable[str], amount: int) -> str:
-        return f"count({'/'.join(cards)}) >= {amount}"
+    def resources(res: str, op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        cmp = PriorityRule._OP_MAP[op]
+
+        def _get(me, res_name: str):
+            if res_name == "hand_size":
+                return len(me.hand)
+            return getattr(me, res_name)
+
+        return lambda s, me, _amount=amount, _cmp=cmp, _res=res: _cmp(_get(me, _res), _amount)
 
     @staticmethod
-    def always_true() -> str:
-        return "True"
+    def has_cards(cards: Iterable[str], amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        card_list = list(cards)
+        return lambda _s, me, _amount=amount, _cards=card_list: sum(me.count_in_deck(c) for c in _cards) >= _amount
 
     @staticmethod
-    def and_(*conds: Optional[str]) -> str:
-        return " and ".join(c for c in conds if c)
+    def always_true() -> Callable[["GameState", "PlayerState"], bool]:
+        return lambda *_: True
+
+    # Logical combinators -------------------------------------------------
+    @staticmethod
+    def and_(*conds: Optional[Callable[["GameState", "PlayerState"], bool]]):
+        conds = [c for c in conds if c]
+
+        if not conds:
+            return PriorityRule.always_true()
+
+        return lambda s, me: all(c(s, me) for c in conds)
 
     @staticmethod
-    def or_(*conds: Optional[str]) -> str:
-        return " or ".join(c for c in conds if c)
+    def or_(*conds: Optional[Callable[["GameState", "PlayerState"], bool]]):
+        conds = [c for c in conds if c]
+
+        if not conds:
+            return PriorityRule.always_true()
+
+        return lambda s, me: any(c(s, me) for c in conds)
 
 
 class EnhancedStrategy:
@@ -76,95 +113,39 @@ class EnhancedStrategy:
         self.treasure_priority: list[PriorityRule] = []
 
     # ------------------------------------------------------------------
-    # Basic decision helpers
-    def _eval_condition(self, condition: Optional[str], state, player) -> bool:
-        """Evaluate a priority rule condition without using ``eval`` on untrusted code."""
-        if not condition:
-            return True
+    def _choose_from_priority(
+        self, priority: list[PriorityRule], choices: list[Card], state: GameState, player: PlayerState
+    ) -> Optional[Card]:
+        """Return the first card whose rule condition evaluates to True.
 
-        import ast
-        import re
+        The rule condition may be one of the following:
+        1. ``None`` – always true
+        2. A ``Callable[[GameState, PlayerState], bool]`` – evaluated directly
+        3. A legacy ``str`` expression – evaluated via the internal DSL parser
+        """
 
-        expr = condition
-
-        # Replace logical operators
-        expr = expr.replace("AND", "and").replace("OR", "or")
-
-        # Substitute card counts directly into the expression
-        def repl(match: re.Match) -> str:
-            name = match.group(1)
-            names = [n.strip() for n in name.split("/")]
-            total = sum(player.count_in_deck(n) for n in names)
-            return str(total)
-
-        expr = re.sub(r"my\.count\(([^)]+)\)", repl, expr)
-
-        # Map known references to variable names.  These variables will be
-        # provided when evaluating the expression, avoiding use of object
-        # attributes inside the parsed AST.
-        expr = expr.replace("my.coins", "coins")
-        expr = expr.replace("my.actions", "actions")
-        expr = expr.replace("my.buys", "buys")
-        expr = expr.replace("my.hand_size", "hand_size")
-        expr = expr.replace("state.turn_number", "turn_number")
-        expr = expr.replace("state.provinces_left", "provinces_left")
-        expr = expr.replace("state.empty_piles", "empty_piles")
-
-        variables = {
-            "coins": player.coins,
-            "actions": player.actions,
-            "buys": player.buys,
-            "hand_size": len(player.hand),
-            "turn_number": state.turn_number,
-            "provinces_left": state.supply.get("Province", 0),
-            "empty_piles": state.empty_piles,
-        }
-
-        try:
-            tree = ast.parse(expr, mode="eval")
-        except Exception:
-            return False
-
-        allowed_nodes = (
-            ast.Expression,
-            ast.BoolOp,
-            ast.BinOp,
-            ast.UnaryOp,
-            ast.Compare,
-            ast.Constant,
-            ast.Num,
-            ast.And,
-            ast.Or,
-            ast.Add,
-            ast.Sub,
-            ast.UAdd,
-            ast.USub,
-            ast.Eq,
-            ast.NotEq,
-            ast.Lt,
-            ast.LtE,
-            ast.Gt,
-            ast.GtE,
-        )
-
-        for node in ast.walk(tree):
-            if not isinstance(node, allowed_nodes):
-                return False
-            if isinstance(node, ast.Name) and node.id not in variables:
-                return False
-            if isinstance(node, (ast.Call, ast.Attribute)):
-                return False
-
-        try:
-            return bool(eval(compile(tree, "<condition>", "eval"), {"__builtins__": None}, variables))
-        except Exception:
-            return False
-
-    def _choose_from_priority(self, priority, choices, state, player):
         for rule in priority:
             for card in choices:
-                if card is not None and card.name == rule.card and self._eval_condition(rule.condition, state, player):
+                if card is None or card.name != rule.card:
+                    continue
+
+                cond = rule.condition
+                passes: bool
+
+                if cond is None:
+                    passes = True
+                elif callable(cond):
+                    try:
+                        passes = bool(cond(state, player))
+                    except Exception:
+                        passes = False
+                else:
+                    # Legacy string conditions are no longer supported
+                    passes = False
+
+                if passes:
                     return card
+
         return None
 
     # ------------------------------------------------------------------
@@ -241,15 +222,11 @@ def create_chapel_witch_strategy() -> EnhancedStrategy:
         # Engine pieces
         PriorityRule(
             "Witch",
-            PriorityRule.and_(
-                PriorityRule.turn_number("<", 15), PriorityRule.has_cards(["Witch"], 0)
-            ),
+            PriorityRule.and_(PriorityRule.turn_number("<", 15), PriorityRule.has_cards(["Witch"], 0)),
         ),
         PriorityRule(
             "Chapel",
-            PriorityRule.and_(
-                PriorityRule.turn_number("<=", 4), PriorityRule.has_cards(["Chapel"], 0)
-            ),
+            PriorityRule.and_(PriorityRule.turn_number("<=", 4), PriorityRule.has_cards(["Chapel"], 0)),
         ),
         PriorityRule(
             "Laboratory",
