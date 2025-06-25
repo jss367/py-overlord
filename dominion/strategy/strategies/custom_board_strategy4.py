@@ -13,23 +13,44 @@ class CustomBoardStrategy4(EnhancedStrategy):
         # Gain priorities
         self.gain_priority = [
             # Province only after getting 4 loots
-            PriorityRule("Province", PriorityRule.and_("my.coins >= 8", "my.count(Looting) >= 4")),
+            PriorityRule(
+                "Province",
+                PriorityRule.and_(
+                    PriorityRule.resources("coins", ">=", 8),
+                    lambda _s, me: me.count_in_deck("Looting") >= 4,
+                ),
+            ),
             # Early Collection priority
-            PriorityRule("Collection", PriorityRule.and_("my.coins >= 5", "my.count(Collection) == 0")),
+            PriorityRule(
+                "Collection",
+                PriorityRule.and_(
+                    PriorityRule.resources("coins", ">=", 5),
+                    lambda _s, me: me.count_in_deck("Collection") == 0,
+                ),
+            ),
             # Looting at 6 coins
             PriorityRule("Looting"),
             # When Collection is in play, buy small actions with remaining money
-            PriorityRule("Patrician", "my.count(Collection) > 0"),
-            PriorityRule("Forager", "my.count(Collection) > 0"),
+            PriorityRule("Patrician", lambda _s, me: me.count_in_deck("Collection") > 0),
+            PriorityRule("Forager", lambda _s, me: me.count_in_deck("Collection") > 0),
             # Patrician with 2 coins when provinces > 2
-            PriorityRule("Patrician", PriorityRule.and_(PriorityRule.provinces_left(">", 2), "my.coins == 2")),
+            PriorityRule(
+                "Patrician",
+                PriorityRule.and_(
+                    PriorityRule.provinces_left(">", 2),
+                    PriorityRule.resources("coins", "==", 2),
+                ),
+            ),
             # Skulk at 4 coins (to trash with Forager)
             PriorityRule("Skulk"),
             # Get two Foragers, especially if bought Skulk
-            PriorityRule("Forager", "my.count(Forager) < 2"),
-            PriorityRule("Forager", "my.count(Skulk) > 0 and my.count(Forager) < 2"),
+            PriorityRule("Forager", lambda _s, me: me.count_in_deck("Forager") < 2),
+            PriorityRule(
+                "Forager",
+                lambda _s, me: me.count_in_deck("Skulk") > 0 and me.count_in_deck("Forager") < 2,
+            ),
             # Silver at 3 coins if already have one Forager
-            PriorityRule("Silver", "my.count(Forager) >= 1"),
+            PriorityRule("Silver", lambda _s, me: me.count_in_deck("Forager") >= 1),
             PriorityRule("Emporium"),
             # Late game victory
             PriorityRule("Duchy", PriorityRule.provinces_left("<=", 4)),

@@ -13,9 +13,9 @@ class Strategy20250615_102030(EnhancedStrategy):
             PriorityRule('Smithy'),
             PriorityRule('Market'),
             PriorityRule('Festival'),
-            PriorityRule('Laboratory', 'state.turn_number <= 7'),
+            PriorityRule('Laboratory', PriorityRule.turn_number('<=', 7)),
             PriorityRule('Mine'),
-            PriorityRule('Witch', 'state.turn_number <= 9'),
+            PriorityRule('Witch', PriorityRule.turn_number('<=', 9)),
             PriorityRule('Moat'),
             PriorityRule('Workshop'),
             PriorityRule('Chapel'),
@@ -46,8 +46,8 @@ class Strategy20250615_102030(EnhancedStrategy):
 
         self.trash_priority = [
             PriorityRule('Curse'),
-            PriorityRule('Estate', 'state.provinces_left > 4'),
-            PriorityRule('Copper', 'my.count(Silver) + my.count(Gold) >= 3'),
+            PriorityRule('Estate', PriorityRule.provinces_left('>', 4)),
+            PriorityRule('Copper', lambda _s, me: me.count_in_deck('Silver') + me.count_in_deck('Gold') >= 3),
         ]
 
 def create_strategy20250615_102030() -> EnhancedStrategy:

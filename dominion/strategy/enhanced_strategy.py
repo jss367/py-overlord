@@ -8,7 +8,7 @@ file build on these classes.
 """
 
 from dataclasses import dataclass
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable, Optional, ClassVar
 
 from dominion.game.card import Card
 from dominion.game.game_state import GameState
@@ -36,7 +36,7 @@ class PriorityRule:
     # Helper constructors -------------------------------------------------
     import operator as _op
 
-    _OP_MAP: dict[str, Callable[[int, int], bool]] = {
+    _OP_MAP: ClassVar[dict[str, Callable[[int, int], bool]]] = {
         "<": _op.lt,
         "<=": _op.le,
         ">": _op.gt,

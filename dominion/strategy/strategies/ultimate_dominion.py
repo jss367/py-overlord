@@ -18,14 +18,23 @@ class UltimateDominionStrategy(BaseStrategy):
             # Early trashing
             PriorityRule(
                 "Chapel",
-                PriorityRule.and_(PriorityRule.turn_number("<=", 2), "my.count(Chapel) == 0"),
+                PriorityRule.and_(
+                    PriorityRule.turn_number("<=", 2),
+                    lambda _s, me: me.count_in_deck("Chapel") == 0,
+                ),
             ),
             # Draw and actions
             PriorityRule("Laboratory"),
             PriorityRule("Village", PriorityRule.resources("actions", "<", 2)),
             PriorityRule("Market"),
             PriorityRule("Festival"),
-            PriorityRule("Witch", PriorityRule.and_(PriorityRule.turn_number("<=", 10), "my.count(Witch) < 2")),
+            PriorityRule(
+                "Witch",
+                PriorityRule.and_(
+                    PriorityRule.turn_number("<=", 10),
+                    lambda _s, me: me.count_in_deck("Witch") < 2,
+                ),
+            ),
             # Economy
             PriorityRule("Gold"),
             PriorityRule("Silver"),
@@ -34,7 +43,10 @@ class UltimateDominionStrategy(BaseStrategy):
 
         # Action priorities
         self.action_priority = [
-            PriorityRule("Chapel", "my.count(Estate) > 0 or my.count(Copper) > 2"),
+            PriorityRule(
+                "Chapel",
+                lambda _s, me: me.count_in_deck("Estate") > 0 or me.count_in_deck("Copper") > 2,
+            ),
             PriorityRule("Witch"),
             PriorityRule("Village"),
             PriorityRule("Market"),
@@ -46,7 +58,10 @@ class UltimateDominionStrategy(BaseStrategy):
         self.trash_priority = [
             PriorityRule("Curse"),
             PriorityRule("Estate", PriorityRule.provinces_left(">", 4)),
-            PriorityRule("Copper", "my.count(Silver) + my.count(Gold) >= 3"),
+            PriorityRule(
+                "Copper",
+                lambda _s, me: me.count_in_deck("Silver") + me.count_in_deck("Gold") >= 3,
+            ),
         ]
 
         # Treasure play order

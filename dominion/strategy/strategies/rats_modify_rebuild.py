@@ -13,14 +13,14 @@ class RatsModifyRebuildStrategy(EnhancedStrategy):
         # Gain priorities
         self.gain_priority = [
             PriorityRule("Province"),
-            PriorityRule("Rebuild", "my.count(Rebuild) < 3"),
+            PriorityRule("Rebuild", lambda _s, me: me.count_in_deck("Rebuild") < 3),
             PriorityRule("Emporium"),
             PriorityRule("Duchy"),
-            PriorityRule("Patrician", "my.count(Patrician) < 2"),
-            PriorityRule("Modify", "my.count(Modify) < 2"),
+            PriorityRule("Patrician", lambda _s, me: me.count_in_deck("Patrician") < 2),
+            PriorityRule("Modify", lambda _s, me: me.count_in_deck("Modify") < 2),
             PriorityRule("Skulk"),
             PriorityRule("Rats"),
-            PriorityRule("Forager", "my.count(Forager) < 1"),
+            PriorityRule("Forager", lambda _s, me: me.count_in_deck("Forager") < 1),
             PriorityRule("Gold"),
             PriorityRule("Silver"),
             PriorityRule("Estate", PriorityRule.provinces_left("<=", 2)),

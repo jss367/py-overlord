@@ -12,10 +12,10 @@ class SkulkRebuildStrategy(EnhancedStrategy):
         # Gain priorities
         self.gain_priority = [
             PriorityRule("Province"),
-            PriorityRule("Rebuild", "my.count(Rebuild) < 3"),
-            PriorityRule("Duchy", ""),
+            PriorityRule("Rebuild", lambda _s, me: me.count_in_deck("Rebuild") < 3),
+            PriorityRule("Duchy"),
             PriorityRule("Skulk"),
-            PriorityRule("Forager", "my.count(Forager) < 1"),
+            PriorityRule("Forager", lambda _s, me: me.count_in_deck("Forager") < 1),
             PriorityRule("Gold"),
             PriorityRule("Silver"),
             PriorityRule("Estate", PriorityRule.provinces_left("<=", 2)),
