@@ -13,13 +13,13 @@ class CustomBoardStrategy3(EnhancedStrategy):
         # Gain priorities
         self.gain_priority = [
             PriorityRule("Province"),
-            PriorityRule("Emporium", "my.count(Snowy Village) > 0"),  # Only if you can activate
+            PriorityRule("Emporium", lambda _s, me: me.count_in_deck("Snowy Village") > 0),  # Only if you can activate
             PriorityRule("Gold"),
             PriorityRule("Patrician"),
-            PriorityRule("Snowy Village", "my.count(Snowy Village) < 3"),
-            PriorityRule("Forager", "my.count(Forager) < 2"),
-            PriorityRule("Collection", "my.count(Collection) < 5"),
-            PriorityRule("Modify", "my.count(Modify) < 2"),
+            PriorityRule("Snowy Village", lambda _s, me: me.count_in_deck("Snowy Village") < 3),
+            PriorityRule("Forager", lambda _s, me: me.count_in_deck("Forager") < 2),
+            PriorityRule("Collection", lambda _s, me: me.count_in_deck("Collection") < 5),
+            PriorityRule("Modify", lambda _s, me: me.count_in_deck("Modify") < 2),
             PriorityRule("Duchy", PriorityRule.provinces_left("<=", 4)),
             PriorityRule("Estate", PriorityRule.provinces_left("<=", 2)),
             PriorityRule("Silver"),

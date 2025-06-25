@@ -12,19 +12,31 @@ class WharfBridgeChapelVillageStrategy(BaseStrategy):
 
         # Gain priorities
         self.gain_priority = [
-            PriorityRule("Province", "my.coins >= 8"),
-            PriorityRule("Chapel", "state.turn_number <= 2 AND my.count(Chapel) == 0"),
-            PriorityRule("Wharf", "my.count(Wharf) < 2"),
-            PriorityRule("Village", "my.count(Bridge) + my.count(Wharf) > my.count(Village)"),
-            PriorityRule("Bridge", "my.coins >= 4"),
-            PriorityRule("Gold", "my.coins >= 6"),
-            PriorityRule("Silver", "my.coins >= 3"),
+            PriorityRule("Province", PriorityRule.resources("coins", ">=", 8)),
+            PriorityRule(
+                "Chapel",
+                PriorityRule.and_(
+                    PriorityRule.turn_number("<=", 2),
+                    lambda _s, me: me.count_in_deck("Chapel") == 0,
+                ),
+            ),
+            PriorityRule("Wharf", lambda _s, me: me.count_in_deck("Wharf") < 2),
+            PriorityRule(
+                "Village",
+                lambda _s, me: me.count_in_deck("Bridge") + me.count_in_deck("Wharf") > me.count_in_deck("Village"),
+            ),
+            PriorityRule("Bridge", PriorityRule.resources("coins", ">=", 4)),
+            PriorityRule("Gold", PriorityRule.resources("coins", ">=", 6)),
+            PriorityRule("Silver", PriorityRule.resources("coins", ">=", 3)),
             PriorityRule("Copper"),
         ]
 
         # Action priorities
         self.action_priority = [
-            PriorityRule("Chapel", "my.count(Estate) > 0 OR my.count(Copper) > 3"),
+            PriorityRule(
+                "Chapel",
+                lambda _s, me: me.count_in_deck("Estate") > 0 or me.count_in_deck("Copper") > 3,
+            ),
             PriorityRule("Wharf"),
             PriorityRule("Bridge"),
             PriorityRule("Village"),
@@ -33,8 +45,11 @@ class WharfBridgeChapelVillageStrategy(BaseStrategy):
         # Trash priorities
         self.trash_priority = [
             PriorityRule("Curse"),
-            PriorityRule("Estate", "state.turn_number <= 12"),
-            PriorityRule("Copper", "my.count(Silver) + my.count(Gold) >= 2"),
+            PriorityRule("Estate", PriorityRule.turn_number("<=", 12)),
+            PriorityRule(
+                "Copper",
+                lambda _s, me: me.count_in_deck("Silver") + me.count_in_deck("Gold") >= 2,
+            ),
         ]
 
         # Treasure priorities

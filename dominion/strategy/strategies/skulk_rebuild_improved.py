@@ -19,14 +19,17 @@ class SkulkRebuildImprovedStrategy(EnhancedStrategy):
             # Rebuild up to three copies early
             PriorityRule(
                 "Rebuild",
-                PriorityRule.and_(PriorityRule.provinces_left(">", 2), "my.count(Rebuild) < 3"),
+                PriorityRule.and_(
+                    PriorityRule.provinces_left(">", 2),
+                    lambda _s, me: me.count_in_deck("Rebuild") < 3,
+                ),
             ),
             # Duchies for points
             PriorityRule("Duchy"),
             # Pick up Skulks for Gold gain
             PriorityRule("Skulk"),
             # Two Foragers to accelerate trashing
-            PriorityRule("Forager", "my.count(Forager) < 2"),
+            PriorityRule("Forager", lambda _s, me: me.count_in_deck("Forager") < 2),
             # Gain Gold if affordable
             PriorityRule("Gold"),
             # Silver only early

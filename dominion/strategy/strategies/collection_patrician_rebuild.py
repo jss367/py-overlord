@@ -16,12 +16,12 @@ class CollectionPatricianRebuildStrategy(EnhancedStrategy):
         # Gain priorities
         self.gain_priority = [
             PriorityRule("Province"),
-            PriorityRule("Rebuild", "my.count(Rebuild) < 1"),
-            PriorityRule("Modify", "my.count(Modify) < 1"),
-            PriorityRule("Collection", "my.count(Collection) < 1"),
-            PriorityRule("Forager", "my.count(Forager) < 2"),
-            PriorityRule("Skulk", "my.count(Skulk) < 3"),
-            PriorityRule("Patrician", "my.count(Collection) >= 1"),
+            PriorityRule("Rebuild", lambda _s, me: me.count_in_deck("Rebuild") < 1),
+            PriorityRule("Modify", lambda _s, me: me.count_in_deck("Modify") < 1),
+            PriorityRule("Collection", lambda _s, me: me.count_in_deck("Collection") < 1),
+            PriorityRule("Forager", lambda _s, me: me.count_in_deck("Forager") < 2),
+            PriorityRule("Skulk", lambda _s, me: me.count_in_deck("Skulk") < 3),
+            PriorityRule("Patrician", lambda _s, me: me.count_in_deck("Collection") >= 1),
             PriorityRule("Gold"),
             PriorityRule("Silver"),
             PriorityRule("Estate", PriorityRule.provinces_left("<=", 2)),
@@ -42,10 +42,13 @@ class CollectionPatricianRebuildStrategy(EnhancedStrategy):
             PriorityRule("Curse"),
             PriorityRule("Estate"),
             PriorityRule("Copper"),
-            PriorityRule("Skulk", "my.count(Skulk) > 2"),
+            PriorityRule("Skulk", lambda _s, me: me.count_in_deck("Skulk") > 2),
             PriorityRule(
                 "Gold",
-                PriorityRule.and_(PriorityRule.provinces_left("<=", 2), "my.count(Modify) >= 1"),
+                PriorityRule.and_(
+                    PriorityRule.provinces_left("<=", 2),
+                    lambda _s, me: me.count_in_deck("Modify") >= 1,
+                ),
             ),
         ]
 
