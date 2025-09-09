@@ -54,9 +54,12 @@ class GameState:
                 self.logger.log_turn_summary(message[1], message[2], message[3])
         else:
             # Legacy string message support
-            if self.logger and self.logger.should_log_to_file:
-                self.logger.file_logger.info(message)
-            print(message)
+            if self.logger:
+                # Only write to file logger if enabled; avoid stdout spam
+                if self.logger.should_log_to_file:
+                    self.logger.file_logger.info(message)
+            else:
+                print(message)
             self.logs.append(message)
 
     @property

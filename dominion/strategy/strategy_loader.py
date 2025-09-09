@@ -1,5 +1,6 @@
 import importlib.util
 import inspect
+import logging
 from pathlib import Path
 from typing import Callable, Dict, Optional
 
@@ -28,7 +29,7 @@ class StrategyLoader:
     def _load_all_strategies(self) -> None:
         """Automatically load all strategy factory functions from the strategies directory."""
         if not self.strategies_dir.exists():
-            print(f"Strategies directory not found at {self.strategies_dir}")
+            logging.getLogger(__name__).warning("Strategies directory not found at %s", self.strategies_dir)
             return
 
         strategy_files = [f for f in self.strategies_dir.glob('*.py') if f.stem != '__init__']
@@ -59,7 +60,7 @@ class StrategyLoader:
                         self.register_strategy(strategy_name, obj)
 
             except Exception as e:
-                print(f"Error loading strategy from {file_path}: {e}")
+                logging.getLogger(__name__).exception("Error loading strategy from %s: %s", file_path, e)
 
     def register_strategy(self, name: str, strategy_factory: Callable[[], EnhancedStrategy]) -> None:
         """Register a new strategy factory function.
@@ -82,8 +83,8 @@ class StrategyLoader:
             # Do not overwrite an existing mapping if one is already present
             self.strategies.setdefault(alias, strategy_factory)
 
-        # Print registration information (optional for debugging)
-        print(f"Registered strategy: {name} (aliases: {', '.join({slug, dash_slug})})")
+        # Log registration once per display name at debug level
+        logging.getLogger(__name__).debug("Registered strategy: %s (aliases: %s)", name, ", ".join({slug, dash_slug}))
 
     def get_strategy(self, name: str) -> Optional[EnhancedStrategy]:
         """Get a new instance of a strategy by name or any of its aliases."""

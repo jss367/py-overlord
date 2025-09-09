@@ -1,7 +1,6 @@
 import argparse
 import logging
 from logging import getLogger
-from pathlib import Path
 from typing import Any, Optional
 
 import coloredlogs
@@ -134,9 +133,9 @@ class StrategyBattle:
 
             # Alternate who goes first
             if game_num % 2 == 0:
-                winner, scores, log_path = self.run_game(ai1, ai2, kingdom_card_names)
+                winner, scores, log_path, turns = self.run_game(ai1, ai2, kingdom_card_names)
             else:
-                winner, scores, log_path = self.run_game(ai2, ai1, kingdom_card_names)
+                winner, scores, log_path, turns = self.run_game(ai2, ai1, kingdom_card_names)
 
             # Record results
             game_result = {
@@ -145,7 +144,7 @@ class StrategyBattle:
                 "strategy1_score": scores[ai1.name],
                 "strategy2_score": scores[ai2.name],
                 "margin": abs(scores[ai1.name] - scores[ai2.name]),
-                "turns": self.logger.current_metrics.turn_count,
+                "turns": turns,
                 "log_path": log_path,
             }
             results["detailed_results"].append(game_result)
@@ -173,7 +172,7 @@ class StrategyBattle:
         ai1: GeneticAI,
         ai2: GeneticAI,
         kingdom_card_names: list[str],
-    ) -> tuple[GeneticAI, dict[str, int], Optional[str]]:
+    ) -> tuple[GeneticAI, dict[str, int], Optional[str], int]:
         """Run a single game between two AIs. TODO: This shouldn't be within this class."""
         # Start game logging with actual AI objects for better descriptions
         self.logger.start_game([ai1, ai2])
@@ -191,13 +190,14 @@ class StrategyBattle:
             game_state.play_turn()
 
         # Get results
+        final_turns = game_state.turn_number
         scores = {p.ai.name: p.get_victory_points(game_state) for p in game_state.players}
         winner = max(game_state.players, key=lambda p: p.get_victory_points(game_state)).ai
 
         # End game logging and capture log path if any
         log_path = self.logger.end_game(winner.name, scores, game_state.supply, game_state.players)
 
-        return winner, scores, log_path
+        return winner, scores, log_path, final_turns
 
 
 def main():
