@@ -3,6 +3,7 @@
 from pathlib import Path
 import argparse
 
+from dominion.boards.loader import load_board
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.reporting.html_report import generate_html_report
 
@@ -25,9 +26,15 @@ def main() -> None:
         default=Path("reports/strategy_report.html"),
         help="Output HTML file",
     )
+    parser.add_argument("--board", help="Board definition file to enforce kingdom and landscapes")
+
     args = parser.parse_args()
 
-    battle = StrategyBattle(use_shelters=args.use_shelters)
+    board_config = None
+    if args.board:
+        board_config = load_board(args.board)
+
+    battle = StrategyBattle(use_shelters=args.use_shelters, board_config=board_config)
     battle.logger.log_frequency = 1
 
     results = battle.run_battle(args.strategy1, args.strategy2, args.games)
