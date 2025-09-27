@@ -31,6 +31,9 @@ class PlayerState:
     ignore_action_bonuses: bool = False
     collection_played: int = 0
     goons_played: int = 0
+    cost_reduction: int = 0
+    innovation_used: bool = False
+    journey_token_face_up: bool = True
 
     # Turn tracking
     turns_taken: int = 0
@@ -84,6 +87,9 @@ class PlayerState:
         self.ignore_action_bonuses = False
         self.collection_played = 0
         self.goons_played = 0
+        self.cost_reduction = 0
+        self.innovation_used = False
+        self.journey_token_face_up = True
         self.turns_taken = 0
         self.actions_played = 0
         self.actions_this_turn = 0

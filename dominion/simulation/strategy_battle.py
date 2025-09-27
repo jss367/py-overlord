@@ -3,10 +3,17 @@ import logging
 from logging import getLogger
 from typing import Any, Optional
 
-import coloredlogs
+try:  # pragma: no cover - optional dependency for nicer logging
+    import coloredlogs
+except ImportError:  # pragma: no cover
+    coloredlogs = None
 
 from dominion.ai.genetic_ai import GeneticAI
+from dominion.boards.loader import BoardConfig
 from dominion.cards.registry import get_card
+from dominion.events.registry import get_event
+from dominion.projects.registry import get_project
+from dominion.ways.registry import get_way
 from dominion.game.game_state import GameState
 from dominion.simulation.game_logger import GameLogger
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
@@ -14,7 +21,8 @@ from dominion.strategy.strategy_loader import StrategyLoader
 
 logger = getLogger(__name__)
 
-coloredlogs.install(level="INFO", logger=logger)
+if coloredlogs:  # pragma: no cover - harmless when library unavailable
+    coloredlogs.install(level="INFO", logger=logger)
 
 DEFAULT_KINGDOM_CARDS = [
     "Village",
@@ -58,11 +66,16 @@ class StrategyBattle:
         kingdom_cards: Optional[list[str]] = None,
         log_folder: str = "battle_logs",
         use_shelters: bool = False,
+        board_config: Optional[BoardConfig] = None,
     ):
         # ``kingdom_cards`` allows explicitly providing the supply. If omitted
         # the supply will be dynamically determined from the strategies used in
         # each battle.
-        self.kingdom_cards = kingdom_cards
+        self.board_config = board_config
+        if board_config and kingdom_cards and board_config.kingdom_cards != kingdom_cards:
+            raise ValueError("kingdom_cards and board_config.kingdom_cards must match when both provided")
+
+        self.kingdom_cards = board_config.kingdom_cards if board_config else kingdom_cards
         self.logger = GameLogger(log_folder=log_folder)
         self.strategy_loader = StrategyLoader()  # Now automatically loads all strategies
         self.use_shelters = use_shelters
@@ -88,6 +101,22 @@ class StrategyBattle:
 
         all_cards = self._extract_cards_from_strategy(strat1) | self._extract_cards_from_strategy(strat2)
         return sorted(c for c in all_cards if c not in BASIC_CARDS)
+
+    def _prepare_board_components(self, kingdom_card_names: list[str]):
+        """Instantiate cards and landscape components for a game."""
+
+        kingdom_cards = [get_card(name) for name in kingdom_card_names]
+
+        events = []
+        projects = []
+        ways = []
+
+        if self.board_config:
+            events = [get_event(name) for name in self.board_config.events]
+            projects = [get_project(name) for name in self.board_config.projects]
+            ways = [get_way(name) for name in self.board_config.ways]
+
+        return kingdom_cards, events, projects, ways
 
     def run_battle(self, strategy1_name: str, strategy2_name: str, num_games: int = 100) -> dict[str, Any]:
         """Run multiple games between two strategies"""
@@ -123,6 +152,22 @@ class StrategyBattle:
 
         kingdom_card_names = self._determine_kingdom_cards(strategy1, strategy2)
         logger.info("Using kingdom cards: %s", ", ".join(kingdom_card_names))
+
+        if self.board_config:
+            logger.info(
+                "Board configuration: %s",
+                ", ".join(
+                    filter(
+                        None,
+                        [
+                            f"Ways={len(self.board_config.ways)}" if self.board_config.ways else "",
+                            f"Projects={len(self.board_config.projects)}" if self.board_config.projects else "",
+                            f"Events={len(self.board_config.events)}" if self.board_config.events else "",
+                        ],
+                    ),
+                )
+                or "(no landscapes)",
+            )
 
         for game_num in range(num_games):
             logger.info("Playing game %d/%d...", game_num + 1, num_games)
@@ -182,8 +227,15 @@ class StrategyBattle:
         game_state.set_logger(self.logger)
 
         # Initialize game
-        kingdom_cards = [get_card(name) for name in kingdom_card_names]
-        game_state.initialize_game([ai1, ai2], kingdom_cards, use_shelters=self.use_shelters)
+        kingdom_cards, events, projects, ways = self._prepare_board_components(kingdom_card_names)
+        game_state.initialize_game(
+            [ai1, ai2],
+            kingdom_cards,
+            use_shelters=self.use_shelters,
+            events=events,
+            projects=projects,
+            ways=ways,
+        )
 
         # Run game
         while not game_state.is_game_over():

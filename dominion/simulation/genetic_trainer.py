@@ -3,6 +3,7 @@ from copy import deepcopy
 from typing import Optional, Tuple
 
 from dominion.simulation.game_logger import GameLogger
+from dominion.boards.loader import BoardConfig
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.strategy.enhanced_strategy import PriorityRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
@@ -19,13 +20,23 @@ class GeneticTrainer:
         mutation_rate: float = 0.1,
         games_per_eval: int = 10,
         log_folder: str = "training_logs",
+        board_config: Optional[BoardConfig] = None,
     ):
+        if kingdom_cards is None:
+            if board_config is None:
+                kingdom_cards = []
+            else:
+                kingdom_cards = board_config.kingdom_cards
+
         self.kingdom_cards = kingdom_cards
         self.population_size = population_size
         self.generations = generations
         self.mutation_rate = mutation_rate
         self.games_per_eval = games_per_eval
-        self.battle_system = StrategyBattle(kingdom_cards, log_folder)
+        self.board_config = board_config
+        self.battle_system = StrategyBattle(kingdom_cards, log_folder, board_config=board_config)
+        if not self.kingdom_cards:
+            raise ValueError("kingdom_cards cannot be empty")
         self.current_generation = 0
         self.logger = GameLogger(log_folder)
         self._strategy_to_inject = None
@@ -96,11 +107,11 @@ class GeneticTrainer:
                 ai2 = GeneticAI(big_money)
 
                 if game_num % 2 == 0:
-                    winner, _scores, _log = self.battle_system.run_game(ai1, ai2, kingdom_card_names)
+                    winner, _scores, _log, _turns = self.battle_system.run_game(ai1, ai2, kingdom_card_names)
                     if winner == ai1:
                         wins += 1
                 else:
-                    winner, _scores, _log = self.battle_system.run_game(ai2, ai1, kingdom_card_names)
+                    winner, _scores, _log, _turns = self.battle_system.run_game(ai2, ai1, kingdom_card_names)
                     if winner == ai2:
                         wins += 1
 

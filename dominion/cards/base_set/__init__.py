@@ -9,16 +9,18 @@ from .witch import Witch
 from .moat import Moat
 from .workshop import Workshop
 from .chapel import Chapel
+from .council_room import CouncilRoom
 
 __all__ = [
-    'Village', 
-    'Smithy', 
-    'Market', 
+    'Village',
+    'Smithy',
+    'Market',
     'Festival', 
     'Laboratory', 
-    'Mine', 
-    'Witch', 
-    'Moat', 
-    'Workshop', 
-    'Chapel'
+    'Mine',
+    'Witch',
+    'Moat',
+    'Workshop',
+    'Chapel',
+    'CouncilRoom'
 ]
