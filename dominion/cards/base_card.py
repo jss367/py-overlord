@@ -121,6 +121,10 @@ class Card:
         """Effects that happen when card is trashed. Override in subclasses."""
         pass
 
+    def get_additional_piles(self) -> dict[str, int]:
+        """Return additional supply piles required by this card."""
+        return {}
+
     def __str__(self) -> str:
         return self.name
 

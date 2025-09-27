@@ -1,13 +1,13 @@
-bridge
-ironmonger
-mauauder
-mill
-barbarian
-council room
-giant
-mint
-tragic hero
-nobles
+Bridge
+Ironmonger
+Marauder
+Mill
+Barbarian
+Council Room
+Giant
+Mint
+Tragic Hero
+Nobles
 
 Way: Way of the Butterfly
 Project: Innovation

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import yaml
 
+from dominion.boards.loader import BoardConfig, load_board
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
@@ -92,17 +93,35 @@ def main():
     parser.add_argument(
         "--games-per-eval", type=int, default=10, help="Number of games to play per strategy evaluation (default: 10)"
     )
+    parser.add_argument("--board", help="Board definition file containing kingdom cards and landscapes")
 
     args = parser.parse_args()
 
     # Determine kingdom cards from arguments, config file, or defaults
     kingdom_cards = None
+    board_config: BoardConfig | None = None
     training_params = {}
+
+    if args.board:
+        try:
+            board_config = load_board(args.board)
+            kingdom_cards = board_config.kingdom_cards
+            print(f"Using board {args.board}: {', '.join(kingdom_cards)}")
+            if board_config.ways:
+                print("  Ways: " + ", ".join(board_config.ways))
+            if board_config.projects:
+                print("  Projects: " + ", ".join(board_config.projects))
+            if board_config.events:
+                print("  Events: " + ", ".join(board_config.events))
+        except (FileNotFoundError, ValueError) as exc:
+            print(f"Error loading board: {exc}")
+            sys.exit(1)
 
     if args.kingdom_cards:
         kingdom_cards = args.kingdom_cards
         print(f"Using kingdom cards from command line: {', '.join(kingdom_cards)}")
-    elif args.config:
+        board_config = None
+    elif args.config and not board_config:
         try:
             kingdom_cards, training_params = load_kingdom_cards_from_yaml(args.config)
             print(f"Using kingdom cards from {args.config}: {', '.join(kingdom_cards)}")
@@ -111,7 +130,7 @@ def main():
         except (FileNotFoundError, ValueError) as e:
             print(f"Error loading config file: {e}")
             sys.exit(1)
-    else:
+    if kingdom_cards is None:
         # Default kingdom cards
         kingdom_cards = [
             "Village",
@@ -140,6 +159,7 @@ def main():
         generations=generations,
         mutation_rate=mutation_rate,
         games_per_eval=games_per_eval,
+        board_config=board_config,
     )
 
     print("\nTraining parameters:")

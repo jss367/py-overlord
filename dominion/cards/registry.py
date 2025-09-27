@@ -3,6 +3,7 @@ from typing import Type
 from dominion.cards.base_card import Card
 from dominion.cards.base_set import (
     Chapel,
+    CouncilRoom,
     Festival,
     Laboratory,
     Market,
@@ -72,11 +73,14 @@ from dominion.cards.expansions import (
     Staff,
     Sword,
 )
-from dominion.cards.hinterlands import Trail, Trader, Inn
+from dominion.cards.hinterlands import Trail, Trader, Inn, Mill
 from dominion.cards.renaissance import ActingTroupe
 from dominion.cards.allies import Taskmaster
-from dominion.cards.intrigue import Torturer, Patrol
-from dominion.cards.plunder import FirstMate
+from dominion.cards.intrigue import Torturer, Patrol, Bridge, Nobles
+from dominion.cards.plunder import FirstMate, Barbarian
+from dominion.cards.dark_ages import Ironmonger, Marauder, Spoils, Ruins
+from dominion.cards.adventures import Giant
+from dominion.cards.nocturne import TragicHero
 
 from dominion.cards.treasures import Copper, Gold, Silver
 from dominion.cards.victory import Curse, Duchy, Estate, Province
@@ -103,6 +107,7 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Moat": Moat,
     "Workshop": Workshop,
     "Chapel": Chapel,
+    "Council Room": CouncilRoom,
     # Expansion cards
     "Patrician": Patrician,
     "Emporium": Emporium,
@@ -162,13 +167,23 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Staff": Staff,
     "Sword": Sword,
     "Trail": Trail,
+    "Mill": Mill,
     "Acting Troupe": ActingTroupe,
     "Taskmaster": Taskmaster,
     "Trader": Trader,
     "Torturer": Torturer,
     "Patrol": Patrol,
+    "Bridge": Bridge,
+    "Nobles": Nobles,
     "Inn": Inn,
     "First Mate": FirstMate,
+    "Barbarian": Barbarian,
+    "Ironmonger": Ironmonger,
+    "Marauder": Marauder,
+    "Spoils": Spoils,
+    "Ruins": Ruins,
+    "Giant": Giant,
+    "Tragic Hero": TragicHero,
 }
 
 

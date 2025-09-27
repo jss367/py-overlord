@@ -124,6 +124,11 @@ class GameState:
                 if partner.name not in self.supply:
                     self.supply[partner.name] = partner.starting_supply(self)
 
+            extras = card.get_additional_piles()
+            for name, count in extras.items():
+                if name not in self.supply:
+                    self.supply[name] = count
+
         self.log_callback(f"Supply initialized: {self.supply}")
 
     @property
@@ -157,6 +162,8 @@ class GameState:
         self.current_player.ignore_action_bonuses = False
         self.current_player.collection_played = 0
         self.current_player.goons_played = 0
+        self.current_player.cost_reduction = 0
+        self.current_player.innovation_used = False
         self.current_player.actions_this_turn = 0
         self.current_player.bought_this_turn = []
         self.current_player.banned_buys = []
@@ -380,6 +387,9 @@ class GameState:
         if hasattr(card, "cost_modifier"):
             cost += card.cost_modifier(self, player)
 
+        if getattr(player, "cost_reduction", 0):
+            cost -= player.cost_reduction
+
         quarry_discount = sum(1 for c in player.in_play if c.name == "Quarry")
         if quarry_discount and card.is_action:
             cost -= 2 * quarry_discount
@@ -469,6 +479,8 @@ class GameState:
         player.collection_played = 0
         player.goons_played = 0
         player.topdeck_gains = False
+        player.cost_reduction = 0
+        player.innovation_used = False
 
         # Move to next player
         if not self.extra_turn:
@@ -581,6 +593,10 @@ class GameState:
         else:
             player.discard.append(card)
         card.on_gain(self, player)
+
+        for project in player.projects:
+            if hasattr(project, "on_gain"):
+                project.on_gain(self, player, card)
 
     def player_has_shield(self, player: PlayerState) -> bool:
         """Check if the player has a Shield card in hand."""

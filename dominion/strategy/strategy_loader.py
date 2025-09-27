@@ -27,17 +27,32 @@ class StrategyLoader:
         return name.replace("-", " ").replace("_", " ").lower().replace(" ", "_")
 
     def _load_all_strategies(self) -> None:
-        """Automatically load all strategy factory functions from the strategies directory."""
-        if not self.strategies_dir.exists():
-            logging.getLogger(__name__).warning("Strategies directory not found at %s", self.strategies_dir)
-            return
+        """Automatically load strategy factory functions from known directories."""
+        directories = [(self.strategies_dir, "dominion.strategy.strategies")]
 
-        strategy_files = [f for f in self.strategies_dir.glob('*.py') if f.stem != '__init__']
+        generated_dir = Path("generated_strategies")
+        if generated_dir.exists():
+            directories.append((generated_dir, generated_dir.name))
+
+        loaded_any = False
+        for directory, module_prefix in directories:
+            if not directory.exists():
+                continue
+            loaded_any = True
+            self._load_from_directory(directory, module_prefix)
+
+        if not loaded_any:
+            logging.getLogger(__name__).warning("No strategy directories found; expected %s", self.strategies_dir)
+
+    def _load_from_directory(self, directory: Path, module_prefix: str) -> None:
+        """Load strategies from *directory* using *module_prefix* for import names."""
+
+        strategy_files = [f for f in directory.glob("*.py") if f.stem != "__init__"]
 
         for file_path in strategy_files:
             try:
                 # Import the module
-                module_name = f"dominion.strategy.strategies.{file_path.stem}"
+                module_name = f"{module_prefix}.{file_path.stem}"
                 spec = importlib.util.spec_from_file_location(module_name, file_path)
                 if spec is None or spec.loader is None:
                     continue
