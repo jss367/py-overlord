@@ -1,0 +1,14 @@
+Poor house
+Bishop
+Flagship
+Inventor
+Trader
+Bazaar
+Council room
+Count
+Inn
+Souk
+
+
+Landmark: Arena
+Event: Annex
