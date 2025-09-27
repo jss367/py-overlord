@@ -17,6 +17,7 @@ from .loot_cards import (
     LOOT_CARD_NAMES,
 )
 from .first_mate import FirstMate
+from .barbarian import Barbarian
 
 __all__ = [
     'Amphora',
@@ -35,5 +36,6 @@ __all__ = [
     'Staff',
     'Sword',
     'FirstMate',
+    'Barbarian',
     'LOOT_CARD_NAMES',
 ]
