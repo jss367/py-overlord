@@ -1,0 +1,13 @@
+City quarter
+Armory
+Gardens
+Messenger
+Smithy
+Artificer
+Trading post
+Trickster
+Wharf
+Destrier
+
+Event: Seize the Day
+Trait: Shy (Armory)

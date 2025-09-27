@@ -1,0 +1,14 @@
+Native village
+Pawn
+Lookout
+Investment
+City
+Highwayman
+Laboratory
+Mastermind
+Paddock
+Wealthy village
+
+Money: Colonies and Platnium
+
+Project: Sewers
