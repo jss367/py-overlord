@@ -1,6 +1,7 @@
-matplotlib
-seaborn
-scipy
-tqdm
+coloredlogs
 lark
+matplotlib
 pytest
+scipy
+seaborn
+tqdm
