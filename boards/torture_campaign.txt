@@ -1,0 +1,14 @@
+Patrician
+Emporium
+Acting Troupe
+Snowy Village
+Taskmaster
+Trader
+Trail
+First Mate
+Inn
+Patrol
+Torturer
+
+Event: Ride
+Way: Way of the Butterfly
