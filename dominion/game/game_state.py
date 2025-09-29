@@ -164,6 +164,7 @@ class GameState:
         self.current_player.goons_played = 0
         self.current_player.cost_reduction = 0
         self.current_player.innovation_used = False
+        self.current_player.groundskeeper_bonus = 0
         self.current_player.actions_this_turn = 0
         self.current_player.bought_this_turn = []
         self.current_player.banned_buys = []
@@ -478,6 +479,7 @@ class GameState:
         player.ignore_action_bonuses = False
         player.collection_played = 0
         player.goons_played = 0
+        player.groundskeeper_bonus = 0
         player.topdeck_gains = False
         player.cost_reduction = 0
         player.innovation_used = False
@@ -617,6 +619,9 @@ class GameState:
         for project in player.projects:
             if hasattr(project, "on_gain"):
                 project.on_gain(self, player, actual_card)
+
+        if getattr(player, "groundskeeper_bonus", 0) and actual_card.is_victory:
+            player.vp_tokens += player.groundskeeper_bonus
 
         self._trigger_invest_draw(actual_card.name, player)
 
