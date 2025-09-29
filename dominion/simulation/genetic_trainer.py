@@ -2,8 +2,8 @@ import random
 from copy import deepcopy
 from typing import Optional, Tuple
 
-from dominion.simulation.game_logger import GameLogger
 from dominion.boards.loader import BoardConfig
+from dominion.simulation.game_logger import GameLogger
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.strategy.enhanced_strategy import PriorityRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
@@ -113,7 +113,7 @@ class GeneticTrainer:
                 else:
                     winner, _scores, _log, _turns = self.battle_system.run_game(ai2, ai1, kingdom_card_names)
                     if winner == ai1:
-
+                        wins += 1
             return wins / self.games_per_eval * 100
         except Exception as e:
             print(f"Error evaluating strategy: {e}")
