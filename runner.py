@@ -1,19 +1,24 @@
 import argparse
+import logging
 import sys
 from datetime import datetime
 from pathlib import Path
 
+import coloredlogs
 import yaml
 
 from dominion.boards.loader import BoardConfig, load_board
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
+logger = logging.getLogger(__name__)
+coloredlogs.install(level="INFO", logger=logger)
+
 
 def load_kingdom_cards_from_yaml(yaml_path: str) -> tuple[list[str], dict]:
     """Load kingdom cards and optional training parameters from a YAML file."""
     try:
-        with open(yaml_path, 'r') as file:
+        with open(yaml_path, 'r', encoding="utf-8") as file:
             data = yaml.safe_load(file)
             if 'kingdom_cards' not in data:
                 raise ValueError("YAML file must contain 'kingdom_cards' key")
@@ -106,29 +111,29 @@ def main():
         try:
             board_config = load_board(args.board)
             kingdom_cards = board_config.kingdom_cards
-            print(f"Using board {args.board}: {', '.join(kingdom_cards)}")
+            logger.info("Using board %s: %s", args.board, ", ".join(kingdom_cards))
             if board_config.ways:
-                print("  Ways: " + ", ".join(board_config.ways))
+                logger.info("  Ways: %s", ", ".join(board_config.ways))
             if board_config.projects:
-                print("  Projects: " + ", ".join(board_config.projects))
+                logger.info("  Projects: %s", ", ".join(board_config.projects))
             if board_config.events:
-                print("  Events: " + ", ".join(board_config.events))
+                logger.info("  Events: %s", ", ".join(board_config.events))
         except (FileNotFoundError, ValueError) as exc:
-            print(f"Error loading board: {exc}")
+            logger.error("Error loading board: %s", exc)
             sys.exit(1)
 
     if args.kingdom_cards:
         kingdom_cards = args.kingdom_cards
-        print(f"Using kingdom cards from command line: {', '.join(kingdom_cards)}")
+        logger.info("Using kingdom cards from command line: %s", ", ".join(kingdom_cards))
         board_config = None
     elif args.config and not board_config:
         try:
             kingdom_cards, training_params = load_kingdom_cards_from_yaml(args.config)
-            print(f"Using kingdom cards from {args.config}: {', '.join(kingdom_cards)}")
+            logger.info("Using kingdom cards from %s: %s", args.config, ", ".join(kingdom_cards))
             if training_params:
-                print("Loaded training parameters from config file")
+                logger.info("Loaded training parameters from config file")
         except (FileNotFoundError, ValueError) as e:
-            print(f"Error loading config file: {e}")
+            logger.error("Error loading config file: %s", e)
             sys.exit(1)
     if kingdom_cards is None:
         # Default kingdom cards
@@ -144,7 +149,7 @@ def main():
             "Workshop",
             "Chapel",
         ]
-        print(f"Using default kingdom cards: {', '.join(kingdom_cards)}")
+        logger.info("Using default kingdom cards: %s", ", ".join(kingdom_cards))
 
     # Use parameters from command line args, falling back to YAML config, then defaults
     population_size = args.population_size or training_params.get('population_size', 5)
@@ -162,25 +167,25 @@ def main():
         board_config=board_config,
     )
 
-    print("\nTraining parameters:")
-    print(f"  Population size: {population_size}")
-    print(f"  Generations: {generations}")
-    print(f"  Mutation rate: {mutation_rate}")
-    print(f"  Games per evaluation: {games_per_eval}")
+    logger.info("Training parameters:")
+    logger.info("  Population size: %d", population_size)
+    logger.info("  Generations: %d", generations)
+    logger.info("  Mutation rate: %s", mutation_rate)
+    logger.info("  Games per evaluation: %d", games_per_eval)
 
     # Run training
     best_strategy, metrics = trainer.train()
 
-    print("\nTraining complete!")
-    print(f"Final metrics: {metrics}")
+    logger.info("Training complete!")
+    logger.info("Final metrics: %s", metrics)
 
     if best_strategy is None:
-        print("\nNo viable strategy was found.")
+        logger.info("No viable strategy was found.")
     else:
-        print("\nBest strategy card priorities:")
+        logger.info("Best strategy card priorities:")
         for rule in best_strategy.gain_priority:
             condition_str = f" (condition: {rule.condition})" if rule.condition else ""
-            print(f"  {rule.card_name}{condition_str}")
+            logger.info("  %s%s", rule.card_name, condition_str)
 
         # Automatically save the strategy as a Python class
         strategies_dir = Path("generated_strategies")
@@ -195,11 +200,11 @@ def main():
         # Save the strategy
         try:
             save_strategy_as_python(best_strategy, strategy_path, class_name)
-            print(f"\n✅ Strategy automatically saved to: {strategy_path}")
-            print(f"Class name: {class_name}")
-            print(f"Win rate vs BigMoney: {metrics.get('win_rate', 'Unknown'):.1f}%")
-        except Exception as e:
-            print(f"\n❌ Error saving strategy: {e}")
+            logger.info("✅ Strategy automatically saved to: %s", strategy_path)
+            logger.info("Class name: %s", class_name)
+            logger.info("Win rate vs BigMoney: %.1f%%", metrics.get('win_rate', 0.0))
+        except Exception:
+            logger.exception("❌ Error saving strategy")
 
 
 if __name__ == "__main__":

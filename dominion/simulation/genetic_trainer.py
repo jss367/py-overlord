@@ -1,12 +1,18 @@
+import logging
 import random
 from copy import deepcopy
 from typing import Optional, Tuple
+
+import coloredlogs
 
 from dominion.boards.loader import BoardConfig
 from dominion.simulation.game_logger import GameLogger
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.strategy.enhanced_strategy import PriorityRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
+
+log = logging.getLogger(__name__)
+coloredlogs.install(level="INFO", logger=log)
 
 
 class GeneticTrainer:
@@ -116,7 +122,7 @@ class GeneticTrainer:
                         wins += 1
             return wins / self.games_per_eval * 100
         except Exception as e:
-            print(f"Error evaluating strategy: {e}")
+            log.exception("Error evaluating strategy %s. Got error: %s", strategy.name, e)
             return 0.0
 
     def _crossover(self, parent1: BaseStrategy, parent2: BaseStrategy) -> BaseStrategy:
@@ -227,7 +233,7 @@ class GeneticTrainer:
     def train(self) -> Tuple[Optional[BaseStrategy], dict]:
         """Run the genetic algorithm training process"""
         try:
-            print("Initializing population...")
+            log.info("Initializing population...")
             population = [self.create_random_strategy() for _ in range(self.population_size)]
 
             # Inject strategy if one was provided
@@ -244,7 +250,7 @@ class GeneticTrainer:
 
             for gen in range(self.generations):
                 self.current_generation = gen
-                print(f"\nGeneration {gen + 1}/{self.generations}")
+                log.info("Generation %d/%d", gen + 1, self.generations)
 
                 # Evaluate population
                 fitness_scores = []
@@ -255,7 +261,7 @@ class GeneticTrainer:
                     if fitness > best_fitness:
                         best_fitness = fitness
                         best_strategy = deepcopy(strategy)
-                        print(f"New best fitness: {best_fitness:.2f}")
+                        log.info("New best fitness: %.2f", best_fitness)
 
                 # Calculate generation statistics
                 avg_fitness = sum(fitness_scores) / len(fitness_scores)
@@ -278,7 +284,7 @@ class GeneticTrainer:
             return best_strategy, metrics
 
         except Exception as e:
-            print(f"Error during training: {e}")
+            log.exception("Error during training")
             return None, {"error": str(e)}
 
     def inject_strategy(self, strategy: BaseStrategy):
