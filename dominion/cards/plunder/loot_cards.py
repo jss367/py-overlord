@@ -187,7 +187,7 @@ class Sextant(Loot):
         to_keep = []
         for card in peek:
             if card.is_victory or card.name == "Curse":
-                player.discard.append(card)
+                game_state.discard_card(player, card)
             else:
                 to_keep.append(card)
         player.deck.extend(reversed(to_keep))
@@ -257,7 +257,7 @@ class Sword(Loot):
         def discard_to_four(target):
             while len(target.hand) > 4:
                 discard = target.hand.pop(0)
-                target.discard.append(discard)
+                game_state.discard_card(target, discard)
 
         for other in game_state.players:
             if other is player:

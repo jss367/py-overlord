@@ -28,4 +28,4 @@ class BustlingVillage(BottomSplitPileCard):
             if card.is_action:
                 player.hand.append(card)
             else:
-                player.discard.append(card)
+                game_state.discard_card(player, card)

@@ -17,7 +17,7 @@ class Goons(Card):
         def attack_target(target):
             while len(target.hand) > 3:
                 card = target.hand.pop()
-                target.discard.append(card)
+                game_state.discard_card(target, card)
 
         for other in game_state.players:
             if other is player:

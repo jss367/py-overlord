@@ -40,6 +40,6 @@ class Ironmonger(Card):
             should_discard = True
 
         if should_discard:
-            player.discard.append(revealed)
+            game_state.discard_card(player, revealed)
         else:
             player.deck.append(revealed)
