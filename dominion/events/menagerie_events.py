@@ -119,3 +119,23 @@ class SeizeTheDay(Event):
         player.seize_the_day_used = True
         player.turns_taken += 1
         game_state.extra_turn = True
+
+
+class Ride(Event):
+    """+1 Buy, gain a Horse if available."""
+
+    def __init__(self):
+        super().__init__("Ride", CardCost(coins=2))
+
+    def on_buy(self, game_state, player) -> None:
+        player.buys += 1
+
+        try:
+            horse = get_card("Horse")
+        except ValueError:
+            return
+
+        if game_state.supply.get("Horse", 0) > 0:
+            game_state.supply["Horse"] -= 1
+
+        game_state.gain_card(player, horse)

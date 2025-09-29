@@ -7,6 +7,7 @@ from .menagerie_events import (
     Enhance,
     Gamble,
     March,
+    Ride,
     SeizeTheDay,
     Toil,
 )
@@ -22,6 +23,7 @@ __all__ = [
     "Toil",
     "Enhance",
     "Delay",
+    "Ride",
     "SeizeTheDay",
     "get_event",
     "EVENT_TYPES",
