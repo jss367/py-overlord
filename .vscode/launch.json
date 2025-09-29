@@ -49,6 +49,64 @@
                 "--games",
                 "1"
             ]
+        },
+        {
+            "name": "Python: Train strategy (torture_campaign)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/runner.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "--board",
+                "${workspaceFolder}/boards/torture_campaign.txt",
+                "--population-size",
+                "20",
+                "--generations",
+                "10",
+                "--games-per-eval",
+                "15"
+            ],
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Compare two strategies (torture_campaign)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/compare_strategies.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "${input:strategy1}",
+                "${input:strategy2}",
+                "--games",
+                "${input:numGames}",
+                "--board",
+                "${workspaceFolder}/boards/torture_campaign.txt",
+                "--output",
+                "${workspaceFolder}/reports/torture_campaign_report.html"
+            ],
+            "justMyCode": true
+        }
+    ],
+    "inputs": [
+        {
+            "id": "strategy1",
+            "description": "First strategy name (e.g. Big Money)",
+            "type": "promptString",
+            "default": "Big Money"
+        },
+        {
+            "id": "strategy2",
+            "description": "Second strategy name",
+            "type": "promptString",
+            "default": "Skulk"
+        },
+        {
+            "id": "numGames",
+            "description": "Number of games to play",
+            "type": "promptString",
+            "default": "200"
         }
     ],
     // "inputs": [
