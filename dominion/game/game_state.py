@@ -575,18 +575,33 @@ class GameState:
             )
         return drawn
 
-    def give_curse_to_player(self, player):
-        """Give a curse card to a player. GameState has access to registry so can create cards."""
+    def give_curse_to_player(self, player, *, to_hand: bool = False):
+        """Give a curse card to a player.
+
+        When ``to_hand`` is ``True`` the gained Curse is moved directly to the
+        player's hand after resolving standard gain effects.
+        """
+
         from ..cards.registry import get_card  # Import here to avoid circular dependency
 
-        if self.supply.get("Curse", 0) > 0:
-            curse = get_card("Curse")
-            self.supply["Curse"] -= 1
-            self.gain_card(player, curse)
-            return True
-        return False
+        if self.supply.get("Curse", 0) <= 0:
+            return False
 
-    def gain_card(self, player: PlayerState, card: Card, to_deck: bool = False) -> None:
+        curse = get_card("Curse")
+        self.supply["Curse"] -= 1
+        gained = self.gain_card(player, curse)
+
+        if to_hand and gained:
+            if gained in player.discard:
+                player.discard.remove(gained)
+            elif gained in player.deck:
+                player.deck.remove(gained)
+            if gained not in player.hand:
+                player.hand.append(gained)
+
+        return True
+
+    def gain_card(self, player: PlayerState, card: Card, to_deck: bool = False) -> Card:
         """Add a card to a player's discard or deck, honoring topdeck effects.
 
         If the player has a matching card on their Exile mat, that card is
@@ -619,6 +634,8 @@ class GameState:
                 project.on_gain(self, player, actual_card)
 
         self._trigger_invest_draw(actual_card.name, player)
+
+        return actual_card
 
     def _trigger_invest_draw(self, card_name: str, gainer: PlayerState) -> None:
         """Resolve Invest event reactions for other players."""
