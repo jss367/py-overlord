@@ -12,6 +12,19 @@ class Inn(Card):
             types=[CardType.ACTION],
         )
 
+    def play_effect(self, game_state):
+        """Discard the player's hand and draw the same number of cards."""
+
+        player = game_state.current_player
+
+        if not player.hand:
+            return
+
+        discard_count = len(player.hand)
+        player.discard.extend(player.hand)
+        player.hand = []
+        game_state.draw_cards(player, discard_count)
+
     def on_gain(self, game_state, player):
         """Shuffle any Actions from the discard pile back into the deck."""
 
