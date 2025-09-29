@@ -5,7 +5,7 @@ class Trail(Card):
     def __init__(self):
         super().__init__(
             name="Trail",
-            cost=CardCost(coins=2),
+            cost=CardCost(coins=4),
             stats=CardStats(),
             types=[CardType.ACTION],
         )
