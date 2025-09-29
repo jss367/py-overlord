@@ -36,6 +36,7 @@ class PlayerState:
     cost_reduction: int = 0
     innovation_used: bool = False
     journey_token_face_up: bool = True
+    groundskeeper_bonus: int = 0
 
     # Turn tracking
     turns_taken: int = 0
@@ -94,6 +95,7 @@ class PlayerState:
         self.cost_reduction = 0
         self.innovation_used = False
         self.journey_token_face_up = True
+        self.groundskeeper_bonus = 0
         self.turns_taken = 0
         self.actions_played = 0
         self.actions_this_turn = 0
