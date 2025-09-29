@@ -112,8 +112,7 @@ class GeneticTrainer:
                         wins += 1
                 else:
                     winner, _scores, _log, _turns = self.battle_system.run_game(ai2, ai1, kingdom_card_names)
-                    if winner == ai2:
-                        wins += 1
+                    if winner == ai1:
 
             return wins / self.games_per_eval * 100
         except Exception as e:
