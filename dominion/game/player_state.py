@@ -37,6 +37,10 @@ class PlayerState:
     innovation_used: bool = False
     journey_token_face_up: bool = True
     groundskeeper_bonus: int = 0
+    crossroads_played: int = 0
+    fools_gold_played: int = 0
+    actions_gained_this_turn: int = 0
+    cauldron_triggered: bool = False
 
     # Turn tracking
     turns_taken: int = 0
@@ -96,6 +100,10 @@ class PlayerState:
         self.innovation_used = False
         self.journey_token_face_up = True
         self.groundskeeper_bonus = 0
+        self.crossroads_played = 0
+        self.fools_gold_played = 0
+        self.actions_gained_this_turn = 0
+        self.cauldron_triggered = False
         self.turns_taken = 0
         self.actions_played = 0
         self.actions_this_turn = 0

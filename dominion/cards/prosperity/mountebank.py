@@ -17,7 +17,7 @@ class Mountebank(Card):
             curse = next((c for c in target.hand if c.name == "Curse"), None)
             if curse:
                 target.hand.remove(curse)
-                target.discard.append(curse)
+                game_state.discard_card(target, curse)
             else:
                 from ..registry import get_card
                 if game_state.supply.get("Curse", 0) > 0:

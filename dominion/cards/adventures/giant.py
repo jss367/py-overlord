@@ -34,7 +34,7 @@ class Giant(Card):
             if 3 <= cost <= 6:
                 game_state.trash_card(target, revealed)
             else:
-                target.discard.append(revealed)
+                game_state.discard_card(target, revealed)
                 game_state.give_curse_to_player(target)
 
         for other in game_state.players:

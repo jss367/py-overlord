@@ -15,4 +15,4 @@ class RoyalBlacksmith(Card):
         coppers = [card for card in player.hand if card.name == "Copper"]
         for copper in coppers:
             player.hand.remove(copper)
-            player.discard.append(copper)
+            game_state.discard_card(player, copper)
