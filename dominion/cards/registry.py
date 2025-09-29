@@ -81,6 +81,7 @@ from dominion.cards.plunder import FirstMate, Barbarian
 from dominion.cards.dark_ages import Ironmonger, Marauder, Spoils, Ruins
 from dominion.cards.adventures import Giant
 from dominion.cards.nocturne import TragicHero
+from dominion.cards.menagerie import Horse
 
 from dominion.cards.treasures import Copper, Gold, Silver
 from dominion.cards.victory import Curse, Duchy, Estate, Province
@@ -184,6 +185,7 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Ruins": Ruins,
     "Giant": Giant,
     "Tragic Hero": TragicHero,
+    "Horse": Horse,
 }
 
 

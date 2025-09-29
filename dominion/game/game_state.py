@@ -587,16 +587,53 @@ class GameState:
         return False
 
     def gain_card(self, player: PlayerState, card: Card, to_deck: bool = False) -> None:
-        """Add a card to a player's discard or deck, honoring topdeck effects."""
+        """Add a card to a player's discard or deck, honoring topdeck effects.
+
+        If the player has a matching card on their Exile mat, that card is
+        reclaimed instead of the newly gained copy.
+        """
+
+        reclaimed = None
+        for idx, exiled in enumerate(player.exile):
+            if exiled.name == card.name:
+                reclaimed = player.exile.pop(idx)
+                if exiled in player.invested_exile:
+                    player.invested_exile.remove(exiled)
+                break
+
+        actual_card = reclaimed or card
+
+        if reclaimed and card.name in self.supply:
+            # Caller already decremented the supply; restore it since the
+            # Exiled card is being used instead.
+            self.supply[card.name] = self.supply.get(card.name, 0) + 1
+
         if to_deck or getattr(player, "topdeck_gains", False):
-            player.deck.insert(0, card)
+            player.deck.insert(0, actual_card)
         else:
-            player.discard.append(card)
-        card.on_gain(self, player)
+            player.discard.append(actual_card)
+        actual_card.on_gain(self, player)
 
         for project in player.projects:
             if hasattr(project, "on_gain"):
-                project.on_gain(self, player, card)
+                project.on_gain(self, player, actual_card)
+
+        self._trigger_invest_draw(actual_card.name, player)
+
+    def _trigger_invest_draw(self, card_name: str, gainer: PlayerState) -> None:
+        """Resolve Invest event reactions for other players."""
+
+        for other in self.players:
+            if other is gainer:
+                continue
+            matches = [card for card in other.invested_exile if card.name == card_name]
+            for _ in matches:
+                self.draw_cards(other, 2)
+
+    def notify_invest(self, card_name: str, investing_player: PlayerState) -> None:
+        """Notify players that an Invest event occurred for ``card_name``."""
+
+        self._trigger_invest_draw(card_name, investing_player)
 
     def player_has_shield(self, player: PlayerState) -> bool:
         """Check if the player has a Shield card in hand."""
