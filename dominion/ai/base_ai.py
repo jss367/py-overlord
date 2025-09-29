@@ -3,6 +3,7 @@ from typing import Optional
 
 from dominion.cards.base_card import Card
 from dominion.game.game_state import GameState
+from dominion.game.player_state import PlayerState
 
 
 class AI(ABC):
@@ -40,3 +41,28 @@ class AI(ABC):
     def use_amphora_now(self, state: GameState) -> bool:
         """Decide whether to take Amphora's bonus immediately."""
         return True
+
+    def choose_torturer_attack(self, state: GameState, player: PlayerState) -> bool:
+        """Choose whether to discard two cards or gain a Curse from Torturer.
+
+        The default heuristic discards when at least two low-value cards are
+        present (Curses, Estates, or Coppers). Otherwise, it keeps the valuable
+        hand and accepts the Curse.
+        """
+
+        hand = list(player.hand)
+
+        if len(hand) < 2:
+            return False
+
+        def is_low_value(card: Card) -> bool:
+            if card.name == "Curse":
+                return True
+            if card.name == "Copper":
+                return True
+            if card.is_victory and not card.is_action and card.cost.coins <= 2:
+                return True
+            return False
+
+        low_value_cards = [card for card in hand if is_low_value(card)]
+        return len(low_value_cards) >= 2
