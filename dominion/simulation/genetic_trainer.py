@@ -283,9 +283,9 @@ class GeneticTrainer:
 
             return best_strategy, metrics
 
-        except Exception as e:
+        except Exception as exc:
             log.exception("Error during training")
-            return None, {"error": str(e)}
+            return None, {"error": str(exc)}
 
     def inject_strategy(self, strategy: BaseStrategy):
         """Inject an existing strategy into the initial population.
