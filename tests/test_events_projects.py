@@ -5,6 +5,7 @@ from dominion.events import (
     Looting,
     Desperation,
     Delay,
+    Ride,
     SeizeTheDay,
 )
 from dominion.projects import CardDraw, Sewers
@@ -115,3 +116,14 @@ def test_event_delay_returns_card():
     state.handle_cleanup_phase()
     state.handle_start_phase()
     assert first in player.hand
+
+
+def test_event_ride_grants_buy():
+    ai = BuyEventAI()
+    state = GameState(players=[])
+    state.initialize_game([ai], [get_card("Village")], events=[Ride()])
+    player = state.players[0]
+    player.coins = 2
+    state.phase = "buy"
+    state.handle_buy_phase()
+    assert player.buys >= 1

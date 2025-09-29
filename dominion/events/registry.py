@@ -11,6 +11,7 @@ from .menagerie_events import (
     Enhance,
     Gamble,
     March,
+    Ride,
     SeizeTheDay,
     Toil,
 )
@@ -24,6 +25,7 @@ EVENT_TYPES: dict[str, Type[Event]] = {
     "Toil": Toil,
     "Enhance": Enhance,
     "Delay": Delay,
+    "Ride": Ride,
     "Seize the Day": SeizeTheDay,
 }
 
