@@ -6,7 +6,7 @@ class Modify(Card):
         super().__init__(
             name="Modify",
             cost=CardCost(coins=5),
-            stats=CardStats(actions=1),
+            stats=CardStats(),
             types=[CardType.ACTION],
         )
 
@@ -17,18 +17,36 @@ class Modify(Card):
         if not player.hand:
             return
         to_trash = player.ai.choose_card_to_trash(game_state, player.hand)
-        if not to_trash:
+        if to_trash is None or to_trash not in player.hand:
+            to_trash = min(player.hand, key=lambda card: (card.cost.coins, card.name))
+
+        if to_trash not in player.hand:
             return
+
         player.hand.remove(to_trash)
         game_state.trash_card(player, to_trash)
+
         max_cost = to_trash.cost.coins + 2
-        choices = [
-            name
-            for name, count in game_state.supply.items()
-            if count > 0 and get_card(name).cost.coins <= max_cost
-        ]
-        if choices:
-            gain = player.ai.choose_buy(game_state, [get_card(n) for n in choices])
-            if gain:
-                game_state.supply[gain.name] -= 1
-                game_state.gain_card(player, gain)
+        gainable_cards = []
+        for name, count in game_state.supply.items():
+            if count <= 0:
+                continue
+            candidate = get_card(name)
+            if candidate.cost.coins <= max_cost:
+                gainable_cards.append(candidate)
+
+        chosen_gain = None
+        if gainable_cards:
+            choice = player.ai.choose_buy(game_state, gainable_cards + [None])
+            if choice is not None:
+                chosen_gain = choice
+
+        if chosen_gain is None:
+            if not player.ignore_action_bonuses:
+                player.actions += 1
+            game_state.draw_cards(player, 1)
+        else:
+            if game_state.supply.get(chosen_gain.name, 0) <= 0:
+                return
+            game_state.supply[chosen_gain.name] -= 1
+            game_state.gain_card(player, chosen_gain)
