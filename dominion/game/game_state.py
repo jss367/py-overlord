@@ -50,8 +50,8 @@ class GameState:
                 # (supply_change, card_name, count, remaining)
                 self.logger.log_supply_change(message[1], message[2], message[3])
             elif msg_type == "turn_summary":
-                # (turn_summary, player_name, actions_played, cards_bought)
-                self.logger.log_turn_summary(message[1], message[2], message[3])
+                # (turn_summary, player_name, actions_played, cards_bought, coins)
+                self.logger.log_turn_summary(message[1], message[2], message[3], message[4])
         else:
             # Legacy string message support
             if self.logger:
@@ -464,6 +464,7 @@ class GameState:
                 player.ai.name,
                 player.actions_this_turn,
                 list(player.bought_this_turn),
+                player.coins,
             )
         )
 
@@ -685,9 +686,7 @@ class GameState:
         destination_is_deck = to_deck or getattr(player, "topdeck_gains", False)
 
         if not reclaimed:
-            actual_card = self._handle_trader_exchange(
-                player, card, actual_card, destination_is_deck
-            )
+            actual_card = self._handle_trader_exchange(player, card, actual_card, destination_is_deck)
 
         if reclaimed and card.name in self.supply:
             # Caller already decremented the supply; restore it since the
@@ -740,9 +739,7 @@ class GameState:
             "replaced": original_card.name,
             "destination": "deck" if to_deck else "discard",
         }
-        self.log_callback(
-            ("action", player.ai.name, "reveals Trader", context)
-        )
+        self.log_callback(("action", player.ai.name, "reveals Trader", context))
         return replacement
 
     def _trigger_invest_draw(self, card_name: str, gainer: PlayerState) -> None:

@@ -1,5 +1,7 @@
 import argparse
 import logging
+import re
+from datetime import datetime
 from logging import getLogger
 from pathlib import Path
 from typing import Any, Optional
@@ -267,7 +269,7 @@ def main():
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path("reports/strategy_report.html"),
+        default=None,
         help="Output HTML file for report",
     )
     parser.add_argument("--print", dest="do_print", action="store_true", help="Print results to console")
@@ -294,7 +296,26 @@ def main():
         print_results(results)
 
     if not args.no_report:
-        generate_html_report(results, args.output)
+        # Determine output path: auto-generate if not provided
+        if args.output is None:
+
+            def _slugify_filename(name: str) -> str:
+                slug = name.replace("-", " ").replace("_", " ").lower().replace(" ", "_")
+                return re.sub(r"[^a-z0-9_]+", "", slug)
+
+            strat1 = results["strategy1_name"]
+            strat2 = results["strategy2_name"]
+            games = results["games_played"]
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            filename = (
+                f"{_slugify_filename(strat1)}_vs_{_slugify_filename(strat2)}_" f"{games}games_{timestamp}_report.html"
+            )
+            output_path = Path("reports") / filename
+        else:
+            output_path = args.output
+
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        generate_html_report(results, output_path)
 
 
 def print_results(results: dict[str, Any]):
