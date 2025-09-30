@@ -14,17 +14,30 @@ class TradingPost(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if len(player.hand) < 2:
+        if not player.hand:
             return
 
-        choices = player.ai.choose_cards_to_trash(game_state, list(player.hand), 2)
-        while len(choices) < 2 and player.hand:
-            fallback = min(player.hand, key=lambda c: (c.cost.coins, c.name))
-            if fallback not in choices:
-                choices.append(fallback)
+        trash_target = min(2, len(player.hand))
+        requested = player.ai.choose_cards_to_trash(
+            game_state, list(player.hand), trash_target
+        )
+
+        selected: list[Card] = []
+        for card in requested:
+            if card in player.hand and card not in selected:
+                selected.append(card)
+            if len(selected) == trash_target:
+                break
+
+        while len(selected) < trash_target:
+            remaining = [card for card in player.hand if card not in selected]
+            if not remaining:
+                break
+            fallback = min(remaining, key=lambda c: (c.cost.coins, c.name))
+            selected.append(fallback)
 
         trashed = 0
-        for card in choices[:2]:
+        for card in selected:
             if card in player.hand:
                 player.hand.remove(card)
                 game_state.trash_card(player, card)
