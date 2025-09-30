@@ -9,6 +9,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+from matplotlib.ticker import MaxNLocator
 from scipy.stats import binomtest
 
 
@@ -84,6 +85,7 @@ def generate_html_report(results: dict, output_path: Path, *, verbose: bool = Fa
     ax3.set_xlabel("Victory Margin")
     ax3.set_ylabel("Games")
     ax3.set_title("Margin of Victory")
+    ax3.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax3.legend()
     margin_hist = fig_to_base64(fig3)
     plt.close(fig3)
@@ -94,6 +96,7 @@ def generate_html_report(results: dict, output_path: Path, *, verbose: bool = Fa
     ax4.set_xlabel("Game Number")
     ax4.set_ylabel("Margin of Victory")
     ax4.set_title("Margin by Game")
+    ax4.yaxis.set_major_locator(MaxNLocator(integer=True))
     margin_scatter = fig_to_base64(fig4)
     plt.close(fig4)
 

@@ -8,25 +8,49 @@ class TorturerEngine(EnhancedStrategy):
         super().__init__()
         self.name = "TorturerEngine2"
         self.description = "Engine strategy with Torturer attack and Trail defense"
-        self.version = "2.1"
+        self.version = "2.3"
+
+        # Helper predicate for smarter village cap
+        def need_more_villages(_s, me):
+            terminals = me.count_in_deck("Torturer") + me.count_in_deck("Patrol") + me.count_in_deck("Inn")
+            sv = me.count_in_deck("Snowy Village")
+            troupe = me.count_in_deck("Acting Troupe")
+            # Treat one Troupe ≈ two virtual actions banked early
+            return sv + (2 * troupe) < terminals
 
         # Gain priorities
         self.gain_priority = [
-            # Provinces – begin at 8 coins once the game is underway
+            # Provinces normally at 8+
             PriorityRule(
                 "Province",
                 PriorityRule.and_(
                     PriorityRule.resources("coins", ">=", 8),
-                    PriorityRule.or_(PriorityRule.provinces_left("<=", 6), PriorityRule.turn_number(">=", 12)),
+                    lambda s, me: True,
                 ),
             ),
-            # Engine cards – keep Torturers roughly equal to total village effects
+            # Engine cards - early priorities
             PriorityRule(
                 "Torturer",
                 PriorityRule.and_(
                     PriorityRule.resources("coins", ">=", 5),
-                    lambda _s, me: me.count_in_deck("Torturer")
-                    < me.count_in_deck("Snowy Village") + me.count_in_deck("Inn") + me.count_in_deck("Acting Troupe"),
+                    lambda _s, me: me.count_in_deck("Torturer") < 2,
+                ),
+            ),
+            # Early economy smoothing: force one Silver before first $5
+            PriorityRule(
+                "Silver",
+                PriorityRule.and_(
+                    PriorityRule.resources("coins", ">=", 3),
+                    lambda _s, me: me.count_in_deck("Silver") == 0,
+                    lambda _s, me: me.count_in_deck("Torturer") == 0,
+                ),
+            ),
+            # Early Torturer rush to 3 copies
+            PriorityRule(
+                "Torturer",
+                PriorityRule.and_(
+                    PriorityRule.resources("coins", ">=", 5),
+                    lambda _s, me: me.count_in_deck("Torturer") < 3,
                 ),
             ),
             PriorityRule(
@@ -36,21 +60,30 @@ class TorturerEngine(EnhancedStrategy):
                     lambda _s, me: me.count_in_deck("Inn") == 0,
                 ),
             ),
+            # Acting Troupe first; bank villagers early
+            PriorityRule(
+                "Acting Troupe",
+                PriorityRule.and_(
+                    PriorityRule.resources("coins", ">=", 3),
+                    lambda _s, me: me.count_in_deck("Acting Troupe") < 1,
+                ),
+            ),
+            # Snowy Village only as needed to support terminals
             PriorityRule(
                 "Snowy Village",
                 PriorityRule.and_(
                     PriorityRule.resources("coins", ">=", 4),
-                    lambda _s, me: me.count_in_deck("Snowy Village") < 3,
+                    need_more_villages,
                 ),
             ),
             PriorityRule(
                 "Patrol",
                 PriorityRule.and_(
                     PriorityRule.resources("coins", ">=", 5),
-                    lambda _s, me: me.count_in_deck("Patrol") < 2,
+                    lambda _s, me: me.count_in_deck("Patrol") < 3,
                 ),
             ),
-            # Trails for defense against Torturer – aim for up to two copies
+            # Trail for defense against Torturer attacks
             PriorityRule(
                 "Trail",
                 PriorityRule.and_(
@@ -58,12 +91,20 @@ class TorturerEngine(EnhancedStrategy):
                     lambda _s, me: me.count_in_deck("Trail") < 2,
                 ),
             ),
-            # Taskmaster to play multiple Torturers
+            # Taskmaster to play multiple Torturers - first one earlier, second later
             PriorityRule(
                 "Taskmaster",
                 PriorityRule.and_(
                     PriorityRule.resources("coins", ">=", 5),
                     lambda _s, me: me.count_in_deck("Torturer") >= 1,
+                    lambda _s, me: me.count_in_deck("Taskmaster") < 1,
+                ),
+            ),
+            PriorityRule(
+                "Taskmaster",
+                PriorityRule.and_(
+                    PriorityRule.resources("coins", ">=", 5),
+                    lambda _s, me: me.count_in_deck("Torturer") >= 2,
                     lambda _s, me: me.count_in_deck("Taskmaster") < 2,
                 ),
             ),
@@ -72,60 +113,53 @@ class TorturerEngine(EnhancedStrategy):
                 "Emporium",
                 PriorityRule.and_(
                     PriorityRule.resources("coins", ">=", 5),
-                    lambda _s, me: me.count_in_deck("Snowy Village") >= 2,
+                    # Use actions played this turn as a proxy for actions in play
+                    lambda s, me: me.actions_this_turn >= 5,
                 ),
             ),
-            # Acting Troupe if we need more villages
-            PriorityRule(
-                "Acting Troupe",
-                PriorityRule.and_(
-                    PriorityRule.resources("coins", ">=", 3),
-                    lambda _s, me: me.count_in_deck("Snowy Village") < 2,
-                    lambda _s, me: me.count_in_deck("Acting Troupe") == 0,
-                ),
-            ),
-            # Patrician at exactly 2 coins
+            # Patrician at 2 coins
             PriorityRule("Patrician", PriorityRule.resources("coins", "==", 2)),
             # Additional engine support
-            PriorityRule("Snowy Village", PriorityRule.resources("coins", ">=", 4)),  # More villages
-            # Late-game victory cards
+            PriorityRule("Torturer", PriorityRule.resources("coins", ">=", 5)),  # More Torturers if needed
+            # Greening & pile control
             PriorityRule(
                 "Duchy",
-                PriorityRule.and_(
-                    PriorityRule.resources("coins", ">=", 5),
-                    PriorityRule.provinces_left("<=", 2),
+                PriorityRule.or_(
+                    PriorityRule.provinces_left("<=", 6),
+                    lambda s, _me: s.supply.get("Patrician", 0) <= 2,
+                    lambda s, _me: s.supply.get("Snowy Village", 0) <= 2,
                 ),
             ),
-            PriorityRule("Estate", lambda s, _me: s.empty_piles >= 2),
+            PriorityRule(
+                "Estate",
+                PriorityRule.or_(
+                    PriorityRule.provinces_left("<=", 3),
+                    PriorityRule.and_(
+                        lambda s, _me: (
+                            (1 if s.supply.get("Estate", 99) <= 1 else 0)
+                            + (1 if s.supply.get("Patrician", 99) <= 1 else 0)
+                            + (1 if s.supply.get("Snowy Village", 99) <= 1 else 0)
+                            + (1 if s.supply.get("Trail", 99) <= 1 else 0)
+                        )
+                        >= 2,
+                        lambda _s, _me: True,
+                    ),
+                ),
+            ),
             # Basic treasures
-            PriorityRule(
-                "Silver",
-                PriorityRule.and_(
-                    PriorityRule.resources("coins", "==", 3),
-                    PriorityRule.turn_number("<=", 6),
-                ),
-            ),
-            PriorityRule(
-                "Gold",
-                PriorityRule.and_(
-                    PriorityRule.resources("coins", ">=", 6),
-                    lambda _s, me: me.count_in_deck("Torturer") >= 2,
-                ),
-            ),
+            PriorityRule("Gold", PriorityRule.resources("coins", ">=", 6)),
         ]
 
         # Action priorities - village effects first, then draw, then attacks
         self.action_priority = [
-            PriorityRule("Acting Troupe"),  # +4 actions
             PriorityRule("Patrician"),  # +1 card +1 action
-            PriorityRule(
-                "Snowy Village", PriorityRule.resources("actions", "<=", 1)
-            ),  # +1 card +3 actions when extra actions needed
+            PriorityRule("Acting Troupe"),  # Bank villagers before doubling
             PriorityRule("Inn"),  # +2 cards +2 actions
-            PriorityRule("Patrol"),  # +3 cards
+            PriorityRule("Snowy Village"),
             PriorityRule("Taskmaster"),  # Play other actions multiple times
-            PriorityRule("Torturer"),  # Attack last
+            PriorityRule("Patrol"),  # +3 cards
             PriorityRule("Emporium"),  # Treasure/Action
+            PriorityRule("Torturer"),  # Attack last
         ]
 
         # Trash priorities - get rid of junk
