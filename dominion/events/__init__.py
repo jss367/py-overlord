@@ -11,6 +11,7 @@ from .menagerie_events import (
     SeizeTheDay,
     Toil,
 )
+from .prosperity_events import Investment
 from .registry import EVENT_TYPES, get_event
 
 __all__ = [
@@ -25,6 +26,7 @@ __all__ = [
     "Delay",
     "Ride",
     "SeizeTheDay",
+    "Investment",
     "get_event",
     "EVENT_TYPES",
 ]

@@ -5,7 +5,9 @@ from dominion.cards.base_set import (
     Chapel,
     CouncilRoom,
     Festival,
+    Gardens,
     Laboratory,
+    Library,
     Market,
     Mine,
     Moat,
@@ -138,14 +140,24 @@ from dominion.cards.hinterlands import (
     Wheelwright,
     WitchsHut,
 )
-from dominion.cards.renaissance import ActingTroupe
-from dominion.cards.allies import Taskmaster
-from dominion.cards.intrigue import Torturer, Patrol, Bridge, Nobles
-from dominion.cards.plunder import FirstMate, Barbarian
-from dominion.cards.dark_ages import Ironmonger, Marauder, Spoils, Ruins
-from dominion.cards.adventures import Giant
+from dominion.cards.renaissance import ActingTroupe, Inventor
+from dominion.cards.allies import Taskmaster, WealthyVillage
+from dominion.cards.intrigue import (
+    Torturer,
+    Patrol,
+    Bridge,
+    Nobles,
+    WishingWell,
+    Conspirator,
+    Ironworks,
+    Pawn,
+)
+from dominion.cards.plunder import Barbarian, FirstMate, Flagship, Highwayman, Trickster
+from dominion.cards.dark_ages import Armory, Count, Ironmonger, Marauder, PoorHouse, Spoils, Ruins
+from dominion.cards.seaside import Bazaar, Lookout, NativeVillage, TradingPost, Wharf
+from dominion.cards.adventures import Artificer, Giant
 from dominion.cards.nocturne import TragicHero
-from dominion.cards.menagerie import Horse
+from dominion.cards.menagerie import Destrier, Horse, Mastermind, Paddock
 
 from dominion.cards.treasures import Copper, Gold, Silver
 from dominion.cards.victory import Curse, Duchy, Estate, Province
@@ -161,6 +173,7 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Duchy": Duchy,
     "Province": Province,
     "Curse": Curse,
+    "Gardens": Gardens,
     # Action cards
     "Village": Village,
     "Smithy": Smithy,
@@ -173,6 +186,8 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Workshop": Workshop,
     "Chapel": Chapel,
     "Council Room": CouncilRoom,
+    "Council room": CouncilRoom,
+    "Library": Library,
     # Expansion cards
     "Archive": Archive,
     "Bustling Village": BustlingVillage,
@@ -190,8 +205,12 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Skulk": Skulk,
     "Collection": Collection,
     "Beggar": Beggar,
+    "Poor House": PoorHouse,
+    "Poor house": PoorHouse,
     "Modify": Modify,
     "Rebuild": Rebuild,
+    "Count": Count,
+    "Armory": Armory,
     "Crypt": Crypt,
     "Hovel": Hovel,
     "Necropolis": Necropolis,
@@ -207,6 +226,7 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Bishop": Bishop,
     "City": City,
     "City Quarter": CityQuarter,
+    "City quarter": CityQuarter,
     "Contraband": Contraband,
     "Counting House": CountingHouse,
     "Expand": Expand,
@@ -294,20 +314,41 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Wheelwright": Wheelwright,
     "Witch's Hut": WitchsHut,
     "Acting Troupe": ActingTroupe,
+    "Inventor": Inventor,
     "Taskmaster": Taskmaster,
+    "Wealthy Village": WealthyVillage,
+    "Wealthy village": WealthyVillage,
     "Torturer": Torturer,
     "Patrol": Patrol,
     "Bridge": Bridge,
     "Nobles": Nobles,
+    "Wishing Well": WishingWell,
+    "Conspirator": Conspirator,
+    "Ironworks": Ironworks,
+    "Pawn": Pawn,
+    "Bazaar": Bazaar,
+    "Trading Post": TradingPost,
+    "Trading post": TradingPost,
+    "Wharf": Wharf,
+    "Native Village": NativeVillage,
+    "Native village": NativeVillage,
+    "Lookout": Lookout,
     "First Mate": FirstMate,
     "Barbarian": Barbarian,
+    "Flagship": Flagship,
+    "Trickster": Trickster,
+    "Highwayman": Highwayman,
     "Ironmonger": Ironmonger,
     "Marauder": Marauder,
     "Spoils": Spoils,
     "Ruins": Ruins,
     "Giant": Giant,
+    "Artificer": Artificer,
     "Tragic Hero": TragicHero,
     "Horse": Horse,
+    "Destrier": Destrier,
+    "Mastermind": Mastermind,
+    "Paddock": Paddock,
 }
 
 
