@@ -28,4 +28,4 @@ class Crypt(Card):
         player.crypt_set_aside = []
         if self in player.duration:
             player.duration.remove(self)
-        player.discard.append(self)
+        game_state.discard_card(player, self)

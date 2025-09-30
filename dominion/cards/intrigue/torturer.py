@@ -53,7 +53,7 @@ class Torturer(Card):
                 cards_to_discard = sorted(target.hand, key=discard_priority)[:2]
                 for card in cards_to_discard:
                     target.hand.remove(card)
-                    target.discard.append(card)
+                    game_state.discard_card(target, card)
                 game_state.log_callback(
                     (
                         "action",

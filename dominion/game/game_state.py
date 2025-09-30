@@ -165,6 +165,10 @@ class GameState:
         self.current_player.cost_reduction = 0
         self.current_player.innovation_used = False
         self.current_player.groundskeeper_bonus = 0
+        self.current_player.crossroads_played = 0
+        self.current_player.fools_gold_played = 0
+        self.current_player.actions_gained_this_turn = 0
+        self.current_player.cauldron_triggered = False
         self.current_player.actions_this_turn = 0
         self.current_player.bought_this_turn = []
         self.current_player.banned_buys = []
@@ -379,6 +383,8 @@ class GameState:
                 if player.goons_played:
                     player.vp_tokens += player.goons_played
 
+                self._trigger_haggler_bonus(player, choice)
+
         self.phase = "cleanup"
 
     def get_card_cost(self, player: PlayerState, card: Card) -> int:
@@ -445,6 +451,8 @@ class GameState:
         if player.goons_played:
             player.vp_tokens += player.goons_played
 
+        self._trigger_haggler_bonus(player, card)
+
     def handle_cleanup_phase(self):
         """Handle the cleanup phase of a turn."""
         player = self.current_player
@@ -463,10 +471,28 @@ class GameState:
         player.bought_this_turn = []
 
         # Discard hand and in-play cards
-        player.discard.extend(player.hand)
-        player.discard.extend(player.in_play)
+        scheme_count = sum(1 for card in player.in_play if card.name == "Scheme")
+        if scheme_count:
+            playable_actions = [card for card in player.in_play if card.is_action]
+            for _ in range(scheme_count):
+                if not playable_actions:
+                    break
+                chosen = max(
+                    playable_actions,
+                    key=lambda c: (c.cost.coins, c.stats.cards, c.stats.actions, c.name),
+                )
+                playable_actions.remove(chosen)
+                if chosen in player.in_play:
+                    player.in_play.remove(chosen)
+                player.deck.insert(0, chosen)
+
+        hand_cards = list(player.hand)
         player.hand = []
+        self.discard_cards(player, hand_cards, from_cleanup=True)
+
+        in_play_cards = list(player.in_play)
         player.in_play = []
+        self.discard_cards(player, in_play_cards, from_cleanup=True)
 
         # Draw new hand
         player.draw_cards(5)
@@ -577,6 +603,43 @@ class GameState:
             )
         return drawn
 
+    def discard_card(self, player: PlayerState, card: Card, *, from_cleanup: bool = False) -> None:
+        """Move ``card`` to the discard pile and handle discard reactions."""
+
+        player.discard.append(card)
+        if not from_cleanup:
+            self._handle_discard_reactions(player, card)
+
+    def discard_cards(
+        self,
+        player: PlayerState,
+        cards: list[Card],
+        *,
+        from_cleanup: bool = False,
+    ) -> None:
+        """Discard each card in ``cards`` for ``player``."""
+
+        for card in cards:
+            self.discard_card(player, card, from_cleanup=from_cleanup)
+
+    def _handle_discard_reactions(self, player: PlayerState, card: Card) -> None:
+        """Resolve reactions that trigger when a card is discarded."""
+
+        from ..cards.registry import get_card
+
+        if card.name == "Tunnel" and self.supply.get("Gold", 0) > 0:
+            self.supply["Gold"] -= 1
+            self.gain_card(player, get_card("Gold"))
+        elif card.name == "Weaver":
+            if card in player.discard:
+                player.discard.remove(card)
+            elif card in player.hand:
+                player.hand.remove(card)
+            else:
+                return
+            player.in_play.append(card)
+            card.on_play(self)
+
     def give_curse_to_player(self, player, *, to_hand: bool = False):
         """Give a curse card to a player.
 
@@ -639,6 +702,8 @@ class GameState:
             player.vp_tokens += player.groundskeeper_bonus
 
         self._trigger_invest_draw(actual_card.name, player)
+        self._handle_fools_gold_reactions(player, actual_card)
+        self._track_action_gain(player, actual_card)
 
         return actual_card
 
@@ -657,12 +722,106 @@ class GameState:
 
         self._trigger_invest_draw(card_name, investing_player)
 
+    def _handle_fools_gold_reactions(self, gainer: PlayerState, gained_card: Card) -> None:
+        """Handle Fool's Gold reactions when a Province is gained."""
+
+        if gained_card.name != "Province":
+            return
+
+        from ..cards.registry import get_card
+
+        for other in self.players:
+            if other is gainer:
+                continue
+
+            while True:
+                fools_golds = [card for card in other.hand if card.name == "Fool's Gold"]
+                if not fools_golds:
+                    break
+                if self.supply.get("Gold", 0) <= 0:
+                    return
+                if not self._should_trash_fools_gold(other):
+                    break
+
+                card = fools_golds[0]
+                other.hand.remove(card)
+                self.trash_card(other, card)
+                self.supply["Gold"] -= 1
+                self.gain_card(other, get_card("Gold"), to_deck=True)
+
+    def _should_trash_fools_gold(self, player: PlayerState) -> bool:
+        """Simple heuristic to decide if a player should reveal Fool's Gold."""
+
+        count_in_hand = sum(1 for card in player.hand if card.name == "Fool's Gold")
+        if count_in_hand > 1:
+            return True
+
+        existing_gold = sum(1 for card in player.all_cards() if card.name == "Gold")
+        return existing_gold < 2
+
+    def _maybe_play_guard_dogs(self, player: PlayerState) -> None:
+        guard_dogs = [card for card in list(player.hand) if card.name == "Guard Dog"]
+        for card in guard_dogs:
+            if card in player.hand:
+                player.hand.remove(card)
+                player.in_play.append(card)
+                card.on_play(self)
+
+    def _trigger_haggler_bonus(self, player: PlayerState, bought_card: Card) -> None:
+        """Resolve Haggler gains after ``bought_card`` is purchased."""
+
+        haggler_count = sum(1 for card in player.in_play if card.name == "Haggler")
+        if haggler_count == 0:
+            return
+
+        from ..cards.registry import get_card
+
+        for _ in range(haggler_count):
+            options: list[Card] = []
+            for name, count in self.supply.items():
+                if count <= 0:
+                    continue
+                card = get_card(name)
+                if card.cost.coins < bought_card.cost.coins and not card.is_victory:
+                    options.append(card)
+
+            if not options:
+                break
+
+            choice = player.ai.choose_buy(self, options + [None])
+            if not choice:
+                break
+
+            if self.supply.get(choice.name, 0) <= 0:
+                continue
+
+            self.supply[choice.name] -= 1
+            self.gain_card(player, choice)
+
+    def _track_action_gain(self, player: PlayerState, card: Card) -> None:
+        if not card.is_action:
+            return
+
+        player.actions_gained_this_turn += 1
+
+        if (
+            player.actions_gained_this_turn >= 3
+            and not player.cauldron_triggered
+            and any(card_in_play.name == "Cauldron" for card_in_play in player.in_play)
+        ):
+            for other in self.players:
+                if other is player:
+                    continue
+                self.give_curse_to_player(other)
+            player.cauldron_triggered = True
+
     def player_has_shield(self, player: PlayerState) -> bool:
         """Check if the player has a Shield card in hand."""
         return any(card.name == "Shield" for card in player.hand)
 
     def attack_player(self, target: PlayerState, attack_fn) -> None:
         """Apply an attack to a player unless blocked by Shield."""
+        self._maybe_play_guard_dogs(target)
         if self.player_has_shield(target):
             self.log_callback(("action", target.ai.name, "reveals Shield to block the attack", {}))
             return

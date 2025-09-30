@@ -33,12 +33,25 @@ class FirstMate(Card):
 
         chosen_name = choice.name
 
-        # Play all copies of the chosen card currently in hand.  If the card
-        # draws more copies of itself they will also be played.
+        # Play copies of the chosen card, letting the AI decide after each play
+        # whether to continue.  Newly drawn copies remain eligible to be played
+        # on subsequent iterations.
+        first_iteration = True
         while True:
-            card_to_play = next((c for c in player.hand if c.name == chosen_name), None)
-            if card_to_play is None:
+            matching_cards = [c for c in player.hand if c.name == chosen_name]
+            if not matching_cards:
                 break
+
+            if first_iteration:
+                card_to_play = matching_cards[0]
+                first_iteration = False
+            else:
+                card_to_play = player.ai.choose_action(
+                    game_state, matching_cards + [None]
+                )
+                if card_to_play is None:
+                    break
+
             player.hand.remove(card_to_play)
             player.in_play.append(card_to_play)
             card_to_play.on_play(game_state)

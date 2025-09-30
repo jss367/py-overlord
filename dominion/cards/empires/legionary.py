@@ -16,7 +16,7 @@ class Legionary(Card):
             if any(card.name == "Gold" for card in target.hand):
                 return
             while len(target.hand) > 2:
-                target.discard.append(target.hand.pop())
+                game_state.discard_card(target, target.hand.pop())
 
         for other in game_state.players:
             if other is player:

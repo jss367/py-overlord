@@ -31,7 +31,7 @@ class Catapult(TopSplitPileCard):
 
         def attack(target):
             while len(target.hand) > 3:
-                target.discard.append(target.hand.pop())
+                game_state.discard_card(target, target.hand.pop())
 
         for other in game_state.players:
             if other is player:

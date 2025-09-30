@@ -24,7 +24,7 @@ class Rabble(Card):
 
             to_discard = [c for c in revealed if c.is_action or c.is_treasure]
             for card in to_discard:
-                target.discard.append(card)
+                game_state.discard_card(target, card)
                 revealed.remove(card)
 
             while revealed:

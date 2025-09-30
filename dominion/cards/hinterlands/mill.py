@@ -36,7 +36,7 @@ class Mill(Card):
 
         for card in discards:
             player.hand.remove(card)
-            player.discard.append(card)
+            game_state.discard_card(player, card)
 
         if len(discards) == 2:
             player.coins += 2
