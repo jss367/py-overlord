@@ -34,6 +34,30 @@ class AI(ABC):
         """Choose a card to trash from available choices."""
         pass
 
+    def choose_cards_to_trash(
+        self, state: GameState, choices: list[Card], count: int
+    ) -> list[Card]:
+        """Select up to ``count`` cards to trash, defaulting to single picks."""
+
+        remaining = list(choices)
+        selected: list[Card] = []
+
+        while remaining and len(selected) < count:
+            choice = self.choose_card_to_trash(state, remaining)
+            if choice is None or choice not in remaining:
+                break
+            selected.append(choice)
+            remaining.remove(choice)
+
+        return selected
+
+    def should_reveal_trader(
+        self, state: GameState, player: PlayerState, gained_card: Card, *, to_deck: bool
+    ) -> bool:
+        """Decide whether to reveal Trader to exchange a gain for Silver."""
+
+        return False
+
     def choose_way(self, state: GameState, card: Card, ways: list) -> Optional[object]:
         """Choose a Way to use when playing a card. Default is none."""
         return None
