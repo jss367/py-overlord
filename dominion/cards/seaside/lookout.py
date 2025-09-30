@@ -41,13 +41,13 @@ class Lookout(Card):
     @staticmethod
     def _trash_priority(card):
         if card.name == "Curse":
-            return (0, card.cost.coins)
+            return (0, card.cost.coins, card.name)
         if card.is_victory and not card.is_action:
-            return (1, card.cost.coins)
+            return (1, card.cost.coins, card.name)
         if card.name == "Copper":
-            return (2, card.cost.coins)
-        return (3, -card.cost.coins)
+            return (2, card.cost.coins, card.name)
+        return (3, card.cost.coins, card.name)
 
     @staticmethod
     def _discard_priority(card):
-        return (card.is_action, card.is_treasure, card.cost.coins)
+        return (card.is_action, card.is_treasure, card.cost.coins, card.name)
