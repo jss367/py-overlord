@@ -180,6 +180,9 @@ class GameState:
         player.coins_spent_this_turn = 0
         player.banned_buys = []
         player.topdeck_gains = False
+        player.optional_topdeck_gains = False
+        player.trickster_triggers_available = 0
+        player.end_of_turn_set_aside = []
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
@@ -520,10 +523,22 @@ class GameState:
 
         in_play_cards = list(player.in_play)
         player.in_play = []
-        self.discard_cards(player, in_play_cards, from_cleanup=True)
+        for card in in_play_cards:
+            if getattr(player, "trickster_triggers_available", 0) > 0 and card.is_treasure:
+                if player.ai.should_set_aside_trickster_treasure(self, player, card):
+                    player.trickster_triggers_available -= 1
+                    player.end_of_turn_set_aside.append(card)
+                    continue
+            if card.is_duration and card in player.duration:
+                continue
+            self.discard_card(player, card, from_cleanup=True)
+        player.trickster_triggers_available = 0
 
         # Draw new hand
         player.draw_cards(5)
+        if player.end_of_turn_set_aside:
+            player.hand.extend(player.end_of_turn_set_aside)
+            player.end_of_turn_set_aside = []
 
         # Reset resources
         player.actions = 1
@@ -535,6 +550,8 @@ class GameState:
         player.goons_played = 0
         player.groundskeeper_bonus = 0
         player.topdeck_gains = False
+        player.optional_topdeck_gains = False
+        player.trickster_triggers_available = 0
         player.cost_reduction = 0
         player.innovation_used = False
         player.cards_gained_this_turn = 0
@@ -721,6 +738,13 @@ class GameState:
 
         if not reclaimed:
             actual_card = self._handle_trader_exchange(player, card, actual_card, destination_is_deck)
+
+        if (
+            not destination_is_deck
+            and getattr(player, "optional_topdeck_gains", False)
+            and player.ai.should_topdeck_gain(self, player, actual_card)
+        ):
+            destination_is_deck = True
 
         if reclaimed and card.name in self.supply:
             # Caller already decremented the supply; restore it since the

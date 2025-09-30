@@ -54,12 +54,15 @@ class PlayerState:
     delayed_cards: list[Card] = field(default_factory=list)
     seize_the_day_used: bool = False
     topdeck_gains: bool = False
+    optional_topdeck_gains: bool = False
     gained_five_this_turn: bool = False
     gained_five_last_turn: bool = False
     cards_gained_this_turn: int = 0
     flagship_pending: list[Card] = field(default_factory=list)
     highwayman_attacks: int = 0
     highwayman_blocked_this_turn: bool = False
+    trickster_triggers_available: int = 0
+    end_of_turn_set_aside: list[Card] = field(default_factory=list)
 
     def initialize(self, use_shelters: bool = False):
         """Set up starting deck and draw initial hand.
@@ -121,12 +124,15 @@ class PlayerState:
         self.delayed_cards = []
         self.seize_the_day_used = False
         self.topdeck_gains = False
+        self.optional_topdeck_gains = False
         self.gained_five_this_turn = False
         self.gained_five_last_turn = False
         self.cards_gained_this_turn = 0
         self.flagship_pending = []
         self.highwayman_attacks = 0
         self.highwayman_blocked_this_turn = False
+        self.trickster_triggers_available = 0
+        self.end_of_turn_set_aside = []
 
         # Draw initial hand of 5 cards
         self.draw_cards(5)

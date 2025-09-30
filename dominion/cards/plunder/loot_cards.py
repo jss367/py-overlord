@@ -91,15 +91,24 @@ class Hammer(Loot):
         player = game_state.current_player
         from ..registry import get_card
 
-        affordable = [
-            name
-            for name, count in game_state.supply.items()
-            if count > 0 and get_card(name).cost.coins <= 4
-        ]
-        if affordable:
-            gain = get_card(affordable[0])
-            game_state.supply[gain.name] -= 1
-            game_state.gain_card(player, gain)
+        affordable: list[Card] = []
+        for name, count in game_state.supply.items():
+            if count <= 0:
+                continue
+            card = get_card(name)
+            if card.cost.coins <= 4:
+                affordable.append(card)
+
+        if not affordable:
+            return
+
+        affordable.sort(key=lambda c: (c.cost.coins, c.name))
+        gain = player.ai.choose_buy(game_state, affordable)
+        if gain not in affordable:
+            gain = affordable[0]
+
+        game_state.supply[gain.name] -= 1
+        game_state.gain_card(player, gain)
 
 
 class Insignia(Loot):
@@ -107,7 +116,8 @@ class Insignia(Loot):
         super().__init__("Insignia", CardStats(coins=3))
 
     def play_effect(self, game_state):
-        game_state.current_player.topdeck_gains = True
+        player = game_state.current_player
+        player.optional_topdeck_gains = True
 
 
 class Jewels(Loot):
@@ -123,7 +133,8 @@ class Jewels(Loot):
         player = game_state.current_player
         if self in player.duration:
             player.duration.remove(self)
-        player.deck.insert(0, self)
+        player.deck = [self] + player.deck
+        self.duration_persistent = False
 
 
 class Orb(Loot):
@@ -169,10 +180,12 @@ class PuzzleBox(Loot):
         player = game_state.current_player
         if not player.hand:
             return
-        choice = player.ai.choose_action(game_state, player.hand + [None])
-        if choice:
+        choice = player.ai.choose_card_to_set_aside(
+            game_state, player, list(player.hand), reason="puzzle_box"
+        )
+        if choice and choice in player.hand:
             player.hand.remove(choice)
-            player.delayed_cards.append(choice)
+            player.end_of_turn_set_aside.append(choice)
 
 
 class Sextant(Loot):
@@ -181,16 +194,43 @@ class Sextant(Loot):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        peek = []
-        for _ in range(min(5, len(player.deck))):
+        peek: list[Card] = []
+        for _ in range(5):
+            if not player.deck and player.discard:
+                player.shuffle_discard_into_deck()
+            if not player.deck:
+                break
             peek.append(player.deck.pop())
-        to_keep = []
-        for card in peek:
-            if card.is_victory or card.name == "Curse":
-                game_state.discard_card(player, card)
-            else:
-                to_keep.append(card)
-        player.deck.extend(reversed(to_keep))
+
+        if not peek:
+            return
+
+        chosen_to_discard = player.ai.choose_cards_to_discard(
+            game_state, player, peek.copy(), len(peek), reason="sextant"
+        )
+        discarded: list[Card] = []
+        if chosen_to_discard:
+            for card in chosen_to_discard:
+                if card in peek and card not in discarded:
+                    discarded.append(card)
+
+        for card in discarded:
+            peek.remove(card)
+            game_state.discard_card(player, card)
+
+        if not peek:
+            return
+
+        ordered = player.ai.order_cards_for_sextant(game_state, player, peek.copy())
+        if (
+            not ordered
+            or len(ordered) != len(peek)
+            or {id(card) for card in ordered} != {id(card) for card in peek}
+        ):
+            ordered = peek
+
+        for card in reversed(ordered):
+            player.deck.append(card)
 
 
 class Shield(Loot):
@@ -255,9 +295,30 @@ class Sword(Loot):
         player = game_state.current_player
 
         def discard_to_four(target):
-            while len(target.hand) > 4:
-                discard = target.hand.pop(0)
-                game_state.discard_card(target, discard)
+            excess = len(target.hand) - 4
+            if excess <= 0:
+                return
+
+            chosen = target.ai.choose_cards_to_discard(
+                game_state, target, list(target.hand), excess, reason="sword"
+            )
+            discards: list[Card] = []
+            if chosen:
+                for card in chosen:
+                    if card in target.hand and card not in discards:
+                        discards.append(card)
+
+            while len(discards) < excess:
+                for card in target.hand:
+                    if card not in discards:
+                        discards.append(card)
+                        if len(discards) == excess:
+                            break
+
+            for card in discards:
+                if card in target.hand:
+                    target.hand.remove(card)
+                    game_state.discard_card(target, card)
 
         for other in game_state.players:
             if other is player:

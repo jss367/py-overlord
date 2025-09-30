@@ -96,6 +96,11 @@ class AI(ABC):
 
         return False
 
+    def should_topdeck_gain(self, state: GameState, player: PlayerState, gained_card: Card) -> bool:
+        """Decide whether a gained card should be placed on top of the deck."""
+
+        return True
+
     def choose_way(self, state: GameState, card: Card, ways: list) -> Optional[object]:
         """Choose a Way to use when playing a card. Default is none."""
         return None
@@ -103,6 +108,23 @@ class AI(ABC):
     def use_amphora_now(self, state: GameState) -> bool:
         """Decide whether to take Amphora's bonus immediately."""
         return True
+
+    def should_set_aside_trickster_treasure(self, state: GameState, player: PlayerState, treasure: Card) -> bool:
+        """Decide whether to set aside a Treasure for Trickster's delayed return."""
+
+        return True
+
+    def choose_card_to_set_aside(
+        self,
+        state: GameState,
+        player: PlayerState,
+        cards: list[Card],
+        *,
+        reason: Optional[str] = None,
+    ) -> Optional[Card]:
+        """Choose a card to set aside, or ``None`` to decline."""
+
+        return None
 
     def choose_torturer_attack(self, state: GameState, player: PlayerState) -> bool:
         """Choose whether to discard two cards or gain a Curse from Torturer.
@@ -142,3 +164,8 @@ class AI(ABC):
             return (score, card.stats.cards, card.name)
 
         return sorted(cards, key=priority, reverse=True)
+
+    def order_cards_for_sextant(self, state: GameState, player: PlayerState, cards: list[Card]) -> list[Card]:
+        """Return cards in draw order preference for Sextant."""
+
+        return self.order_cards_for_patrol(state, player, cards)
