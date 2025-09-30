@@ -26,6 +26,7 @@ class CardType(Enum):
     ATTACK = "attack"
     REACTION = "reaction"
     DURATION = "duration"
+    COMMAND = "command"
 
 
 class Card:
@@ -66,6 +67,10 @@ class Card:
     @property
     def is_duration(self) -> bool:
         return CardType.DURATION in self.types
+
+    @property
+    def is_command(self) -> bool:
+        return CardType.COMMAND in self.types
 
     def get_victory_points(self, player) -> int:
         """Get victory points this card provides for the given player."""

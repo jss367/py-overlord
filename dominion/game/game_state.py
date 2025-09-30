@@ -154,29 +154,32 @@ class GameState:
 
     def handle_start_phase(self):
         """Handle the start of turn phase."""
-        self.current_player.turns_taken += 1
-        self.current_player.gained_five_last_turn = self.current_player.gained_five_this_turn
-        self.current_player.gained_five_this_turn = False
+        player = self.current_player
+        player.turns_taken += 1
+        player.gained_five_last_turn = player.gained_five_this_turn
+        player.gained_five_this_turn = False
 
         # Reset per-turn flags
-        self.current_player.ignore_action_bonuses = False
-        self.current_player.collection_played = 0
-        self.current_player.goons_played = 0
-        self.current_player.cost_reduction = 0
-        self.current_player.innovation_used = False
-        self.current_player.groundskeeper_bonus = 0
-        self.current_player.crossroads_played = 0
-        self.current_player.fools_gold_played = 0
-        self.current_player.actions_gained_this_turn = 0
-        self.current_player.cauldron_triggered = False
-        self.current_player.cards_gained_this_turn = 0
-        self.current_player.flagship_pending = False
-        self.current_player.highwayman_blocked_this_turn = False
-        self.current_player.actions_this_turn = 0
-        self.current_player.bought_this_turn = []
-        self.current_player.coins_spent_this_turn = 0
-        self.current_player.banned_buys = []
-        self.current_player.topdeck_gains = False
+        player.ignore_action_bonuses = False
+        player.collection_played = 0
+        player.goons_played = 0
+        player.cost_reduction = 0
+        player.innovation_used = False
+        player.groundskeeper_bonus = 0
+        player.crossroads_played = 0
+        player.fools_gold_played = 0
+        player.actions_gained_this_turn = 0
+        player.cauldron_triggered = False
+        player.cards_gained_this_turn = 0
+        player.flagship_pending = [
+            card for card in player.flagship_pending if card in player.duration
+        ]
+        player.highwayman_blocked_this_turn = False
+        player.actions_this_turn = 0
+        player.bought_this_turn = []
+        player.coins_spent_this_turn = 0
+        player.banned_buys = []
+        player.topdeck_gains = False
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
@@ -302,16 +305,18 @@ class GameState:
             if way:
                 way.apply(self, choice)
             else:
-                extra_plays = False
-                if getattr(player, "flagship_pending", False):
-                    player.flagship_pending = False
-                    extra_plays = True
+                flagships_to_resolve: list[Card] = []
+                pending_flagships = getattr(player, "flagship_pending", [])
+                if pending_flagships and not getattr(choice, "is_command", False):
+                    flagships_to_resolve = list(pending_flagships)
+                    pending_flagships.clear()
+                    for flagship in flagships_to_resolve:
+                        if flagship in player.duration:
+                            player.duration.remove(flagship)
 
-                if extra_plays:
-                    for _ in range(2):
-                        choice.on_play(self)
-
-                choice.on_play(self)
+                plays = 1 + len(flagships_to_resolve)
+                for _ in range(plays):
+                    choice.on_play(self)
 
         self.phase = "treasure"
 
@@ -533,7 +538,9 @@ class GameState:
         player.cost_reduction = 0
         player.innovation_used = False
         player.cards_gained_this_turn = 0
-        player.flagship_pending = False
+        player.flagship_pending = [
+            card for card in player.flagship_pending if card in player.duration
+        ]
         player.highwayman_blocked_this_turn = False
 
         # Move to next player
