@@ -50,7 +50,7 @@ class GameState:
                 # (supply_change, card_name, count, remaining)
                 self.logger.log_supply_change(message[1], message[2], message[3])
             elif msg_type == "turn_summary":
-                # (turn_summary, player_name, actions_played, cards_bought, coins)
+                # (turn_summary, player_name, actions_played, cards_bought, coins_available)
                 self.logger.log_turn_summary(message[1], message[2], message[3], message[4])
         else:
             # Legacy string message support
@@ -467,7 +467,7 @@ class GameState:
                 player.ai.name,
                 player.actions_this_turn,
                 list(player.bought_this_turn),
-                player.coins_spent_this_turn,
+                player.coins_spent_this_turn + player.coins,
             )
         )
 

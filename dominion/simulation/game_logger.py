@@ -154,7 +154,9 @@ class GameLogger:
 
         self.file_logger.info(f"Supply: {card_name} {'gained' if count < 0 else 'added'} " f"({remaining} remaining)")
 
-    def log_turn_summary(self, player_name: str, actions_played: int, cards_bought: list[str], coins: int):
+    def log_turn_summary(
+        self, player_name: str, actions_played: int, cards_bought: list[str], coins_available: int
+    ):
         """Log a concise summary at the end of each turn."""
         if not self.should_log_to_file:
             return
@@ -165,8 +167,10 @@ class GameLogger:
             buy_part = f"bought {', '.join(cards_bought)}"
         else:
             buy_part = "bought nothing"
-        coin_word = "coin" if coins == 1 else "coins"
-        self.file_logger.info(f"Summary: {player} played {action_part} and {buy_part} spending {coins} {coin_word}")
+        coin_word = "coin" if coins_available == 1 else "coins"
+        self.file_logger.info(
+            f"Summary: {player} played {action_part} and had {coins_available} {coin_word} and {buy_part}"
+        )
 
     def end_game(
         self,
