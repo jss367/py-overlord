@@ -11,10 +11,5 @@ class Hoard(Card):
         )
 
     def on_buy(self, game_state):
-        from ..registry import get_card
-
-        if game_state.supply.get("Gold", 0) > 0:
-            game_state.supply["Gold"] -= 1
-            gold = get_card("Gold")
-            player = game_state.current_player
-            game_state.gain_card(player, gold)
+        """Hoard's bonus is handled while resolving purchases in GameState."""
+        pass

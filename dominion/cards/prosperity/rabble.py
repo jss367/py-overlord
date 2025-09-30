@@ -22,13 +22,22 @@ class Rabble(Card):
                     break
                 revealed.append(target.deck.pop())
 
-            to_discard = [c for c in revealed if c.is_action or c.is_treasure]
+            to_discard = [c for c in list(revealed) if c.is_action or c.is_treasure]
             for card in to_discard:
-                game_state.discard_card(target, card)
-                revealed.remove(card)
+                if card in revealed:
+                    revealed.remove(card)
+                    game_state.discard_card(target, card)
 
-            while revealed:
-                target.deck.append(revealed.pop())
+            if revealed:
+                ordered = target.ai.order_cards_for_topdeck(
+                    game_state, target, list(revealed)
+                )
+                if set(ordered) != set(revealed) or len(ordered) != len(revealed):
+                    ordered = revealed
+                for card in reversed(ordered):
+                    if card in revealed:
+                        revealed.remove(card)
+                        target.deck.append(card)
 
         for other in game_state.players:
             if other is player:

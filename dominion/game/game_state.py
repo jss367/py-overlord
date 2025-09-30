@@ -21,8 +21,11 @@ class GameState:
     turn_number: int = 1
     extra_turn: bool = False
     copper_value: int = 1
+    trade_route_tokens_on_piles: dict[str, bool] = field(default_factory=dict)
+    trade_route_mat_tokens: int = 0
     hex_deck: list[str] = field(default_factory=list)
     hex_discard: list[str] = field(default_factory=list)
+      
 
     def __post_init__(self):
         """Initialize with default logger that prints to console."""
@@ -132,6 +135,17 @@ class GameState:
             for name, count in extras.items():
                 if name not in self.supply:
                     self.supply[name] = count
+
+        if any(card.name == "Trade Route" for card in kingdom_cards):
+            self.trade_route_tokens_on_piles = {}
+            self.trade_route_mat_tokens = 0
+            for name in self.supply:
+                card = get_card(name)
+                if card.is_victory:
+                    self.trade_route_tokens_on_piles[name] = True
+        else:
+            self.trade_route_tokens_on_piles = {}
+            self.trade_route_mat_tokens = 0
 
         self.log_callback(f"Supply initialized: {self.supply}")
 
@@ -438,7 +452,9 @@ class GameState:
                 self.supply[choice.name] -= 1
                 self.log_callback(("supply_change", choice.name, -1, self.supply[choice.name]))
                 choice.on_buy(self)
-                self.gain_card(player, choice)
+                gained_card = self.gain_card(player, choice)
+
+                self._handle_on_buy_in_play_effects(player, choice, gained_card)
 
                 if player.goons_played:
                     player.vp_tokens += player.goons_played
@@ -823,6 +839,10 @@ class GameState:
             player.discard.append(actual_card)
         actual_card.on_gain(self, player)
 
+        self._handle_trade_route_token(actual_card)
+        self._handle_watchtower_reaction(player, actual_card)
+        self._handle_royal_seal_reaction(player, actual_card)
+
         for project in player.projects:
             if hasattr(project, "on_gain"):
                 project.on_gain(self, player, actual_card)
@@ -878,6 +898,88 @@ class GameState:
             matches = [card for card in other.invested_exile if card.name == card_name]
             for _ in matches:
                 self.draw_cards(other, 2)
+
+    def _handle_on_buy_in_play_effects(
+        self, player: PlayerState, bought_card: Card, gained_card: Card
+    ) -> None:
+        """Resolve cards like Hoard and Talisman that watch purchases."""
+
+        if not player.in_play:
+            return
+
+        from ..cards.registry import get_card
+
+        hoard_count = sum(1 for card in player.in_play if card.name == "Hoard")
+        if hoard_count and gained_card.is_victory:
+            for _ in range(hoard_count):
+                if self.supply.get("Gold", 0) <= 0:
+                    break
+                self.supply["Gold"] -= 1
+                self.gain_card(player, get_card("Gold"))
+
+        talisman_count = sum(1 for card in player.in_play if card.name == "Talisman")
+        if talisman_count and not bought_card.is_victory and bought_card.cost.coins <= 4:
+            for _ in range(talisman_count):
+                if self.supply.get(bought_card.name, 0) <= 0:
+                    break
+                self.supply[bought_card.name] -= 1
+                self.gain_card(player, get_card(bought_card.name))
+
+    def _handle_trade_route_token(self, gained_card: Card) -> None:
+        """Move Trade Route tokens from piles to the mat when cards are gained."""
+
+        if not self.trade_route_tokens_on_piles:
+            return
+
+        if self.trade_route_tokens_on_piles.get(gained_card.name):
+            self.trade_route_tokens_on_piles[gained_card.name] = False
+            self.trade_route_mat_tokens += 1
+
+    def _handle_watchtower_reaction(self, player: PlayerState, gained_card: Card) -> None:
+        """Offer Watchtower reactions for gains."""
+
+        watchtowers = [card for card in player.hand if card.name == "Watchtower"]
+        if not watchtowers:
+            return
+
+        decision = player.ai.choose_watchtower_reaction(self, player, gained_card)
+        if decision not in {"trash", "topdeck"}:
+            return
+
+        if not self._remove_gained_card_from_zones(player, gained_card):
+            return
+
+        if decision == "trash":
+            self.trash_card(player, gained_card)
+        else:
+            player.deck.append(gained_card)
+
+    def _handle_royal_seal_reaction(self, player: PlayerState, gained_card: Card) -> None:
+        """Allow Royal Seal to topdeck newly gained cards."""
+
+        if not any(card.name == "Royal Seal" for card in player.in_play):
+            return
+
+        if not player.ai.should_topdeck_with_royal_seal(self, player, gained_card):
+            return
+
+        if self._remove_gained_card_from_zones(player, gained_card):
+            player.deck.append(gained_card)
+
+    @staticmethod
+    def _remove_gained_card_from_zones(player: PlayerState, card: Card) -> bool:
+        """Remove ``card`` from hand, discard, or deck if present."""
+
+        if card in player.discard:
+            player.discard.remove(card)
+            return True
+        if card in player.deck:
+            player.deck.remove(card)
+            return True
+        if card in player.hand:
+            player.hand.remove(card)
+            return True
+        return False
 
     def notify_invest(self, card_name: str, investing_player: PlayerState) -> None:
         """Notify players that an Invest event occurred for ``card_name``."""

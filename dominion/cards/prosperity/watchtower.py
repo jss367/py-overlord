@@ -12,13 +12,5 @@ class Watchtower(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        discard_count = len(player.hand)
-        player.discard.extend(player.hand)
-        player.hand = []
-        player.coins += discard_count
-
-    def on_gain(self, game_state, player):
-        super().on_gain(game_state, player)
-        if self in player.discard:
-            player.discard.remove(self)
-            player.deck.append(self)
+        while len(player.hand) < 6:
+            game_state.draw_cards(player, 1)

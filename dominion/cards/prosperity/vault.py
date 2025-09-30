@@ -13,16 +13,37 @@ class Vault(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
 
-        discard_count = len(player.hand)
-        player.discard.extend(player.hand)
-        player.hand = []
-        player.coins += discard_count
+        if player.hand:
+            choices = player.ai.choose_cards_to_discard(
+                game_state, player, list(player.hand), len(player.hand), reason="vault"
+            )
+            discarded: list = []
+            for card in choices:
+                if card in player.hand:
+                    player.hand.remove(card)
+                    game_state.discard_card(player, card)
+                    discarded.append(card)
+            player.coins += len(discarded)
 
         for other in game_state.players:
-            if other is player or not other.hand:
+            if other is player or len(other.hand) < 2:
                 continue
-            discard = other.hand[:1]
-            other.discard.extend(discard)
-            for c in discard:
-                other.hand.remove(c)
-            other.draw_cards(1)
+
+            if not other.ai.should_discard_for_vault(game_state, other):
+                continue
+
+            selected = other.ai.choose_cards_to_discard(
+                game_state, other, list(other.hand), 2, reason="vault"
+            )
+            if len(selected) < 2:
+                continue
+
+            discarded: list = []
+            for card in selected[:2]:
+                if card in other.hand:
+                    other.hand.remove(card)
+                    game_state.discard_card(other, card)
+                    discarded.append(card)
+
+            if len(discarded) == 2:
+                game_state.draw_cards(other, 1)

@@ -96,6 +96,41 @@ class AI(ABC):
 
         return False
 
+    def should_discard_for_vault(self, state: GameState, player: PlayerState) -> bool:
+        """Decide if the player should discard two cards for Vault's reaction."""
+
+        low_value = [
+            card
+            for card in player.hand
+            if card.name == "Copper"
+            or card.name == "Curse"
+            or (card.is_victory and not card.is_action and card.cost.coins <= 2)
+        ]
+        return len(low_value) >= 2
+
+    def choose_watchtower_reaction(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> Optional[str]:
+        """Return 'trash', 'topdeck', or ``None`` when revealing Watchtower."""
+
+        if gained_card.name == "Curse":
+            return "trash"
+        return None
+
+    def should_topdeck_with_royal_seal(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """Decide whether to topdeck a gain thanks to Royal Seal."""
+
+        return False
+
+    def order_cards_for_topdeck(
+        self, state: GameState, player: PlayerState, cards: list[Card]
+    ) -> list[Card]:
+        """Return cards in the order they should be placed back on the deck."""
+
+        return list(cards)
+
     def choose_way(self, state: GameState, card: Card, ways: list) -> Optional[object]:
         """Choose a Way to use when playing a card. Default is none."""
         return None

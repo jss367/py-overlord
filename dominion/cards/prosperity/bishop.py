@@ -14,13 +14,24 @@ class Bishop(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if not player.hand:
-            return
 
-        card_to_trash = player.ai.choose_card_to_trash(game_state, player.hand)
-        if card_to_trash is None:
-            card_to_trash = player.hand[0]
+        # Bishop always awards one VP token on play
+        player.vp_tokens += 1
 
-        player.hand.remove(card_to_trash)
-        game_state.trash_card(player, card_to_trash)
-        player.vp_tokens += card_to_trash.cost.coins // 2
+        if player.hand:
+            trash_choice = player.ai.choose_card_to_trash(
+                game_state, list(player.hand) + [None]
+            )
+            if trash_choice:
+                player.hand.remove(trash_choice)
+                game_state.trash_card(player, trash_choice)
+                player.vp_tokens += trash_choice.cost.coins // 2
+
+        # Each other player may optionally trash a card from their hand
+        for other in game_state.players:
+            if other is player or not other.hand:
+                continue
+            choice = other.ai.choose_card_to_trash(game_state, list(other.hand) + [None])
+            if choice and choice in other.hand:
+                other.hand.remove(choice)
+                game_state.trash_card(other, choice)
