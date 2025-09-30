@@ -665,6 +665,8 @@ class GameState:
                 return
             player.in_play.append(card)
             card.on_play(self)
+        elif hasattr(card, "react_to_discard"):
+            card.react_to_discard(self, player)
 
     def give_curse_to_player(self, player, *, to_hand: bool = False):
         """Give a curse card to a player.
