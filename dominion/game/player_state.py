@@ -27,6 +27,13 @@ class PlayerState:
     exile: list[Card] = field(default_factory=list)
     invested_exile: list[Card] = field(default_factory=list)
 
+    # States and hex penalties
+    deluded: bool = False
+    envious: bool = False
+    misery: int = 0
+    cannot_buy_actions: bool = False
+    envious_effect_active: bool = False
+
     # Misc counters
     vp_tokens: int = 0
     villagers: int = 0
@@ -127,6 +134,11 @@ class PlayerState:
         self.flagship_pending = []
         self.highwayman_attacks = 0
         self.highwayman_blocked_this_turn = False
+        self.deluded = False
+        self.envious = False
+        self.misery = 0
+        self.cannot_buy_actions = False
+        self.envious_effect_active = False
 
         # Draw initial hand of 5 cards
         self.draw_cards(5)
@@ -177,6 +189,7 @@ class PlayerState:
                 for card in (self.hand + self.deck + self.discard + self.in_play + self.duration)
             )
             + self.vp_tokens
+            - 2 * self.misery
         )
 
     def all_cards(self) -> list[Card]:
@@ -198,6 +211,11 @@ class PlayerState:
 
         if self.vp_tokens:
             points["VP Tokens"] += self.vp_tokens
+
+        if self.misery:
+            label = "Miserable" if self.misery == 1 else "Twice Miserable"
+            points[label] -= 2 * self.misery
+            counts[label] = 1
 
         breakdown = {name: {"count": counts.get(name, 0), "vp": vp} for name, vp in points.items()}
         return breakdown

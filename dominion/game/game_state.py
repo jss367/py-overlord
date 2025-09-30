@@ -1,4 +1,6 @@
+import random
 from dataclasses import dataclass, field
+from typing import Optional
 
 from dominion.cards.base_card import Card
 from dominion.cards.registry import get_card
@@ -19,6 +21,8 @@ class GameState:
     turn_number: int = 1
     extra_turn: bool = False
     copper_value: int = 1
+    hex_deck: list[str] = field(default_factory=list)
+    hex_discard: list[str] = field(default_factory=list)
 
     def __post_init__(self):
         """Initialize with default logger that prints to console."""
@@ -180,6 +184,8 @@ class GameState:
         player.coins_spent_this_turn = 0
         player.banned_buys = []
         player.topdeck_gains = False
+        player.cannot_buy_actions = False
+        player.envious_effect_active = False
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
@@ -320,9 +326,26 @@ class GameState:
 
         self.phase = "treasure"
 
+    def _handle_start_of_buy_phase_effects(self) -> None:
+        """Apply state effects that trigger at the start of the buy phase."""
+
+        player = self.current_player
+        player.cannot_buy_actions = False
+        player.envious_effect_active = False
+
+        if player.deluded:
+            player.deluded = False
+            player.cannot_buy_actions = True
+
+        if player.envious:
+            player.envious = False
+            player.envious_effect_active = True
+
     def handle_treasure_phase(self):
         """Handle the treasure phase of a turn."""
         player = self.current_player
+
+        self._handle_start_of_buy_phase_effects()
 
         while True:
             treasures = [card for card in player.hand if card.is_treasure]
@@ -339,25 +362,36 @@ class GameState:
                     self.logger.current_metrics.cards_played.get(choice.name, 0) + 1
                 )
 
-            # Log treasure play with context
-            context = {
-                "coins_before": player.coins,
-                "coins_added": choice.stats.coins,
-                "coins_after": player.coins + choice.stats.coins,
-                "remaining_treasures": [c.name for c in player.hand if c != choice and c.is_treasure],
-            }
-            self.log_callback(("action", player.ai.name, f"plays {choice}", context))
-
+            coins_before = player.coins
             player.hand.remove(choice)
             player.in_play.append(choice)
-            if (
+
+            blocked = (
                 getattr(player, "highwayman_attacks", 0) > 0
                 and not getattr(player, "highwayman_blocked_this_turn", False)
-            ):
+            )
+            if blocked:
                 player.highwayman_blocked_this_turn = True
-                continue
+                coins_after = player.coins
+            else:
+                choice.on_play(self)
+                coins_after = player.coins
+                if (
+                    player.envious_effect_active
+                    and choice.name in {"Silver", "Gold"}
+                    and coins_after > coins_before + 1
+                ):
+                    player.coins = coins_before + 1
+                    coins_after = player.coins
 
-            choice.on_play(self)
+            remaining = [c.name for c in player.hand if c.is_treasure]
+            context = {
+                "coins_before": coins_before,
+                "coins_added": coins_after - coins_before,
+                "coins_after": coins_after,
+                "remaining_treasures": remaining,
+            }
+            self.log_callback(("action", player.ai.name, f"plays {choice}", context))
 
         self.phase = "buy"
 
@@ -441,6 +475,7 @@ class GameState:
                     and card.cost.potions <= player.potions
                     and card.may_be_bought(self)
                     and card_name not in player.banned_buys
+                    and (not player.cannot_buy_actions or not card.is_action)
                 ):
                     affordable.append(card)
 
@@ -541,6 +576,8 @@ class GameState:
         player.goons_played = 0
         player.groundskeeper_bonus = 0
         player.topdeck_gains = False
+        player.cannot_buy_actions = False
+        player.envious_effect_active = False
         player.cost_reduction = 0
         player.innovation_used = False
         player.cards_gained_this_turn = 0
@@ -707,15 +744,52 @@ class GameState:
 
         return True
 
+    def _ensure_hex_deck(self) -> None:
+        from dominion.hexes import create_hex_deck
+
+        if not self.hex_deck:
+            if self.hex_discard:
+                self.hex_deck = list(self.hex_discard)
+                random.shuffle(self.hex_deck)
+                self.hex_discard = []
+            else:
+                self.hex_deck = create_hex_deck()
+
+    def draw_hex(self) -> Optional[str]:
+        """Draw the next Hex name from the Hex deck, shuffling if needed."""
+
+        self._ensure_hex_deck()
+        if not self.hex_deck:
+            return None
+        return self.hex_deck.pop()
+
+    def resolve_hex(self, player: PlayerState, hex_name: str) -> None:
+        """Apply the Hex ``hex_name`` to ``player`` and log the result."""
+
+        if not hex_name:
+            return
+
+        from dominion.hexes import resolve_hex
+
+        self.log_callback(("action", player.ai.name, f"receives Hex: {hex_name}", {}))
+        resolve_hex(hex_name, self, player)
+
+    def discard_hex(self, hex_name: Optional[str]) -> None:
+        """Place a revealed Hex into the Hex discard pile."""
+
+        if hex_name:
+            self.hex_discard.append(hex_name)
+
     def give_hex_to_player(self, player):
-        """Give the targeted player a Hex.
+        """Give the targeted player the next Hex from the Hex deck."""
 
-        The full Hex system is not yet modelled in the simulator. As an
-        approximation, receiving a Hex gives the player a Curse if any remain
-        in the supply.
-        """
+        hex_name = self.draw_hex()
+        if not hex_name:
+            return None
 
-        self.give_curse_to_player(player)
+        self.resolve_hex(player, hex_name)
+        self.discard_hex(hex_name)
+        return hex_name
 
     def gain_card(self, player: PlayerState, card: Card, to_deck: bool = False) -> Card:
         """Add a card to a player's discard or deck, honoring topdeck effects.
