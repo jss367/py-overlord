@@ -23,10 +23,11 @@ class Library(Card):
                 break
 
             card = player.deck.pop()
-            if card.is_action and player.actions <= 0:
+            if card.is_action and not player.ai.should_keep_library_action(game_state, player, card):
                 set_aside.append(card)
-            else:
-                player.hand.append(card)
+                continue
+
+            player.hand.append(card)
 
         if set_aside:
             game_state.discard_cards(player, set_aside)

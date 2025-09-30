@@ -885,13 +885,33 @@ class GameState:
         return any(card.name == "Shield" for card in player.hand)
 
     def attack_player(self, target: PlayerState, attack_fn) -> None:
-        """Apply an attack to a player unless blocked by Shield."""
+        """Apply an attack to a player unless blocked by reactions."""
         self._maybe_play_guard_dogs(target)
-        if self.player_has_shield(target):
-            self.log_callback(("action", target.ai.name, "reveals Shield to block the attack", {}))
+        if self._player_blocks_attack(target):
             return
 
         attack_fn(target)
+
+    def _player_blocks_attack(self, player: PlayerState) -> bool:
+        if self.player_has_shield(player):
+            self.log_callback(("action", player.ai.name, "reveals Shield to block the attack", {}))
+            return True
+
+        if self._maybe_reveal_moat(player):
+            return True
+
+        return False
+
+    def _maybe_reveal_moat(self, player: PlayerState) -> bool:
+        moats = [card for card in player.hand if card.name == "Moat"]
+        if not moats:
+            return False
+
+        if not player.ai.should_reveal_moat(self, player):
+            return False
+
+        self.log_callback(("action", player.ai.name, "reveals Moat to block the attack", {}))
+        return True
 
     def trash_card(self, player: PlayerState, card: Card) -> None:
         """Move a card to the trash and trigger related effects."""
