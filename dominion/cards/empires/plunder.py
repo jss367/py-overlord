@@ -14,7 +14,17 @@ class Plunder(BottomSplitPileCard):
         )
 
     def play_effect(self, game_state):
-        pass
+        player = game_state.current_player
+
+        if game_state.supply.get("Gold", 0) <= 0:
+            return
+
+        game_state.supply["Gold"] -= 1
+
+        from ..registry import get_card
+
+        gold = get_card("Gold")
+        game_state.gain_card(player, gold, to_deck=True)
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
