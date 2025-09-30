@@ -1,9 +1,13 @@
-from typing import Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional
 
 from dominion.ai.base_ai import AI
 from dominion.cards.base_card import Card
-from dominion.game.game_state import GameState
 from dominion.strategy.enhanced_strategy import EnhancedStrategy
+
+if TYPE_CHECKING:  # Avoid circular imports at runtime
+    from dominion.game.game_state import GameState
 
 
 class GeneticAI(AI):

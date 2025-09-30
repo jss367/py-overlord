@@ -4,13 +4,12 @@ import os
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum, auto
-from typing import Any, Optional, List
-
-from dominion.game.player_state import PlayerState
-
-from dominion.ai.genetic_ai import GeneticAI
+from typing import Any, List, Optional
 
 from tqdm import tqdm
+
+from dominion.ai.genetic_ai import GeneticAI
+from dominion.game.player_state import PlayerState
 
 
 class LogLevel(Enum):
@@ -96,9 +95,7 @@ class GameLogger:
             log_path = os.path.join(self.log_folder, f"{self.current_game_id}.log")
             self.current_log_path = log_path
             file_handler = logging.FileHandler(log_path)
-            formatter = logging.Formatter(
-                "%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S"
-            )
+            formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%H:%M:%S")
             file_handler.setFormatter(formatter)
             self.file_logger.addHandler(file_handler)
 
@@ -157,7 +154,7 @@ class GameLogger:
 
         self.file_logger.info(f"Supply: {card_name} {'gained' if count < 0 else 'added'} " f"({remaining} remaining)")
 
-    def log_turn_summary(self, player_name: str, actions_played: int, cards_bought: list[str]):
+    def log_turn_summary(self, player_name: str, actions_played: int, cards_bought: list[str], coins: int):
         """Log a concise summary at the end of each turn."""
         if not self.should_log_to_file:
             return
@@ -168,7 +165,8 @@ class GameLogger:
             buy_part = f"bought {', '.join(cards_bought)}"
         else:
             buy_part = "bought nothing"
-        self.file_logger.info(f"Summary: {player} played {action_part} and {buy_part}")
+        coin_word = "coin" if coins == 1 else "coins"
+        self.file_logger.info(f"Summary: {player} played {action_part} and {buy_part} with {coins} {coin_word}")
 
     def end_game(
         self,
@@ -200,9 +198,7 @@ class GameLogger:
                         if card_name == "VP Tokens":
                             self.file_logger.info(f"    {card_name}: {vp}")
                         else:
-                            self.file_logger.info(
-                                f"    {card_name} x{count} -> {vp} VP"
-                            )
+                            self.file_logger.info(f"    {card_name} x{count} -> {vp} VP")
 
             self.file_logger.info("\nFinal Supply State:")
             for card, count in supply_state.items():

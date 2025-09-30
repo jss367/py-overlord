@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import base64
 import io
-from pathlib import Path
 import os
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -20,35 +20,25 @@ def fig_to_base64(fig: plt.Figure) -> str:
     return base64.b64encode(buf.read()).decode("ascii")
 
 
-def generate_html_report(results: dict, output_path: Path) -> None:
-    """Create an HTML report summarizing battle results."""
+def generate_html_report(results: dict, output_path: Path, *, verbose: bool = False) -> None:
+    """Create an HTML report summarizing battle results.
+
+    Parameters:
+        results: The results dict from a StrategyBattle.
+        output_path: Where to write the HTML file.
+        verbose: If True, print a confirmation message to stdout.
+    """
 
     sns.set_theme(style="whitegrid")
 
     strat1 = results["strategy1_name"]
     strat2 = results["strategy2_name"]
 
-    turns1 = [
-        g["turns"]
-        for g in results["detailed_results"]
-        if g["winner"] == strat1
-    ]
-    turns2 = [
-        g["turns"]
-        for g in results["detailed_results"]
-        if g["winner"] == strat2
-    ]
+    turns1 = [g["turns"] for g in results["detailed_results"] if g["winner"] == strat1]
+    turns2 = [g["turns"] for g in results["detailed_results"] if g["winner"] == strat2]
 
-    margin1 = [
-        g["margin"]
-        for g in results["detailed_results"]
-        if g["winner"] == strat1
-    ]
-    margin2 = [
-        g["margin"]
-        for g in results["detailed_results"]
-        if g["winner"] == strat2
-    ]
+    margin1 = [g["margin"] for g in results["detailed_results"] if g["winner"] == strat1]
+    margin2 = [g["margin"] for g in results["detailed_results"] if g["winner"] == strat2]
 
     game_numbers = [g["game_number"] for g in results["detailed_results"]]
     margins = [g["margin"] for g in results["detailed_results"]]
@@ -147,9 +137,16 @@ def generate_html_report(results: dict, output_path: Path) -> None:
     """
 
     output_path.write_text(html)
-    print(f"Report written to {output_path}")
+    if verbose:
+        print(f"Report written to {output_path}")
 
-def generate_leaderboard_html(results: dict[str, dict[str, any]], output_path: Path) -> None:
+
+def generate_leaderboard_html(
+    results: dict[str, dict[str, any]],
+    output_path: Path,
+    *,
+    verbose: bool = False,
+) -> None:
     """Create an HTML leaderboard report for many strategies."""
     sns.set_theme(style="whitegrid")
     sorted_items = sorted(results.items(), key=lambda i: i[1]["win_rate"], reverse=True)
@@ -193,5 +190,5 @@ def generate_leaderboard_html(results: dict[str, dict[str, any]], output_path: P
     </html>
     """
     output_path.write_text(html)
-    print(f"Report written to {output_path}")
-
+    if verbose:
+        print(f"Report written to {output_path}")

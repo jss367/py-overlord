@@ -1,28 +1,22 @@
 import argparse
 import logging
 from logging import getLogger
+from pathlib import Path
 from typing import Any, Optional
 
-try:  # pragma: no cover - optional dependency for nicer logging
-    import coloredlogs
-except ImportError:  # pragma: no cover
-    coloredlogs = None
-
 from dominion.ai.genetic_ai import GeneticAI
-from dominion.boards.loader import BoardConfig
+from dominion.boards.loader import BoardConfig, load_board
 from dominion.cards.registry import get_card
 from dominion.events.registry import get_event
-from dominion.projects.registry import get_project
-from dominion.ways.registry import get_way
 from dominion.game.game_state import GameState
+from dominion.projects.registry import get_project
+from dominion.reporting.html_report import generate_html_report
 from dominion.simulation.game_logger import GameLogger
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 from dominion.strategy.strategy_loader import StrategyLoader
+from dominion.ways.registry import get_way
 
 logger = getLogger(__name__)
-
-if coloredlogs:  # pragma: no cover - harmless when library unavailable
-    coloredlogs.install(level="INFO", logger=logger)
 
 DEFAULT_KINGDOM_CARDS = [
     "Village",
@@ -67,6 +61,9 @@ class StrategyBattle:
         log_folder: str = "battle_logs",
         use_shelters: bool = False,
         board_config: Optional[BoardConfig] = None,
+        *,
+        verbose: bool = False,
+        log_frequency: int = 10,
     ):
         # ``kingdom_cards`` allows explicitly providing the supply. If omitted
         # the supply will be dynamically determined from the strategies used in
@@ -76,9 +73,10 @@ class StrategyBattle:
             raise ValueError("kingdom_cards and board_config.kingdom_cards must match when both provided")
 
         self.kingdom_cards = board_config.kingdom_cards if board_config else kingdom_cards
-        self.logger = GameLogger(log_folder=log_folder)
+        self.logger = GameLogger(log_folder=log_folder, log_frequency=log_frequency)
         self.strategy_loader = StrategyLoader()  # Now automatically loads all strategies
         self.use_shelters = use_shelters
+        self.verbose = verbose
 
     def _extract_cards_from_strategy(self, strat: EnhancedStrategy) -> set[str]:
         """Return all card names referenced by a strategy's priority lists."""
@@ -146,14 +144,16 @@ class StrategyBattle:
         }
 
         # Run the games
-        logger.info("\nRunning %d games between:", num_games)
-        logger.info("Strategy 1: %s", strategy1_name)
-        logger.info("Strategy 2: %s\n", strategy2_name)
+        if self.verbose:
+            logger.info("\nRunning %d games between:", num_games)
+            logger.info("Strategy 1: %s", strategy1_name)
+            logger.info("Strategy 2: %s\n", strategy2_name)
 
         kingdom_card_names = self._determine_kingdom_cards(strategy1, strategy2)
-        logger.info("Using kingdom cards: %s", ", ".join(kingdom_card_names))
+        if self.verbose:
+            logger.info("Using kingdom cards: %s", ", ".join(kingdom_card_names))
 
-        if self.board_config:
+        if self.board_config and self.verbose:
             logger.info(
                 "Board configuration: %s",
                 ", ".join(
@@ -170,7 +170,8 @@ class StrategyBattle:
             )
 
         for game_num in range(num_games):
-            logger.info("Playing game %d/%d...", game_num + 1, num_games)
+            if self.verbose:
+                logger.info("Playing game %d/%d...", game_num + 1, num_games)
 
             # Create fresh AIs for each game using new strategy instances
             ai1 = GeneticAI(strategy1)
@@ -253,7 +254,7 @@ class StrategyBattle:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Run a battle between two Dominion strategies")
+    parser = argparse.ArgumentParser(description="Run and report a battle between two Dominion strategies")
     parser.add_argument("strategy1_name", help="Name of first strategy")
     parser.add_argument("strategy2_name", help="Name of second strategy")
     parser.add_argument("--games", type=int, default=100, help="Number of games to play")
@@ -262,22 +263,38 @@ def main():
         action="store_true",
         help="Start games with Shelters instead of Estates",
     )
+    parser.add_argument("--board", help="Board definition file to enforce kingdom and landscapes")
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("reports/strategy_report.html"),
+        help="Output HTML file for report",
+    )
+    parser.add_argument("--print", dest="do_print", action="store_true", help="Print results to console")
+    parser.add_argument("--no-report", action="store_true", help="Do not generate an HTML report")
+    parser.add_argument("--log-frequency", type=int, default=10, help="Log every Nth game (1 = every game)")
+
     args = parser.parse_args()
 
-    logger.info("\nInitializing battle between %s and %s...", args.strategy1_name, args.strategy2_name)
+    board_config = load_board(args.board) if args.board else None
 
-    battle = StrategyBattle(use_shelters=args.use_shelters)
+    if args.do_print:
+        logging.basicConfig(level=logging.INFO)
 
-    # Print available strategies
-    logger.info("\nAvailable strategies: %s", ", ".join(battle.strategy_loader.list_strategies()))
+    battle = StrategyBattle(
+        use_shelters=args.use_shelters,
+        board_config=board_config,
+        verbose=args.do_print,
+        log_frequency=args.log_frequency,
+    )
 
-    logger.info("\nRunning %d games...", args.games)
     results = battle.run_battle(args.strategy1_name, args.strategy2_name, args.games)
 
-    if results:
+    if args.do_print:
         print_results(results)
-    else:
-        logger.error("\nError: No results generated from battle")
+
+    if not args.no_report:
+        generate_html_report(results, args.output)
 
 
 def print_results(results: dict[str, Any]):
