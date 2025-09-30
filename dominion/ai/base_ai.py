@@ -132,3 +132,39 @@ class AI(ABC):
             return (score, card.stats.cards, card.name)
 
         return sorted(cards, key=priority, reverse=True)
+
+    def choose_treasures_to_set_aside_for_crypt(
+        self, state: GameState, player: PlayerState, treasures: list[Card]
+    ) -> list[Card]:
+        """Select treasures to set aside when playing Crypt.
+
+        The default behaviour is conservative: keep all treasures in hand.
+        """
+
+        return []
+
+    def choose_treasure_to_return_from_crypt(
+        self, state: GameState, player: PlayerState, treasures: list[Card]
+    ) -> Optional[Card]:
+        """Choose which set-aside treasure to return to hand for Crypt.
+
+        By default this returns the most valuable treasure available.
+        """
+
+        if not treasures:
+            return None
+
+        return max(treasures, key=lambda card: (card.cost.coins, card.name))
+
+    def choose_tragic_hero_treasure(
+        self, state: GameState, player: PlayerState, treasures: list[Card]
+    ) -> Optional[Card]:
+        """Select which treasure to gain from Tragic Hero's trash effect.
+
+        Defaults to taking the most expensive treasure available.
+        """
+
+        if not treasures:
+            return None
+
+        return max(treasures, key=lambda card: (card.cost.coins, card.name))

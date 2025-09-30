@@ -694,6 +694,16 @@ class GameState:
 
         return True
 
+    def give_hex_to_player(self, player):
+        """Give the targeted player a Hex.
+
+        The full Hex system is not yet modelled in the simulator. As an
+        approximation, receiving a Hex gives the player a Curse if any remain
+        in the supply.
+        """
+
+        self.give_curse_to_player(player)
+
     def gain_card(self, player: PlayerState, card: Card, to_deck: bool = False) -> Card:
         """Add a card to a player's discard or deck, honoring topdeck effects.
 

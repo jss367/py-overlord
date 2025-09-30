@@ -13,8 +13,6 @@ class TragicHero(Card):
         )
 
     def play_effect(self, game_state):
-        from ..registry import get_card
-
         player = game_state.current_player
         if len(player.hand) < 8:
             return
@@ -23,10 +21,33 @@ class TragicHero(Card):
             player.in_play.remove(self)
         game_state.trash_card(player, self)
 
-        for treasure_name in ("Gold", "Silver", "Copper"):
-            if game_state.supply.get(treasure_name, 0) > 0:
-                game_state.supply[treasure_name] -= 1
-                treasure = get_card(treasure_name)
-                player.hand.append(treasure)
-                treasure.on_gain(game_state, player)
-                break
+        from ..registry import get_card
+
+        available: list = []
+        for card_name, count in game_state.supply.items():
+            if count <= 0:
+                continue
+            try:
+                candidate = get_card(card_name)
+            except ValueError:
+                continue
+            if candidate.is_treasure:
+                available.append(candidate)
+
+        choice = player.ai.choose_tragic_hero_treasure(game_state, player, available)
+        if choice is None:
+            return
+
+        if game_state.supply.get(choice.name, 0) <= 0:
+            return
+
+        game_state.supply[choice.name] -= 1
+        gained = game_state.gain_card(player, choice)
+
+        if gained:
+            if gained in player.discard:
+                player.discard.remove(gained)
+            elif gained in player.deck:
+                player.deck.remove(gained)
+            if gained not in player.hand:
+                player.hand.append(gained)
