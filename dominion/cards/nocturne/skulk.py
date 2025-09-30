@@ -15,13 +15,21 @@ class Skulk(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
 
-        def attack(target):
-            game_state.give_hex_to_player(target)
+        targets = [other for other in game_state.players if other is not player]
+        if not targets:
+            return
 
-        for other in game_state.players:
-            if other is player:
-                continue
+        hex_name = game_state.draw_hex()
+        if not hex_name:
+            return
+
+        def attack(target):
+            game_state.resolve_hex(target, hex_name)
+
+        for other in targets:
             game_state.attack_player(other, attack)
+
+        game_state.discard_hex(hex_name)
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
