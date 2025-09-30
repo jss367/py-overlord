@@ -518,9 +518,15 @@ class GameState:
         player.hand = []
         self.discard_cards(player, hand_cards, from_cleanup=True)
 
+        # Duration cards remain in play until their lingering effects finish.
         in_play_cards = list(player.in_play)
         player.in_play = []
-        self.discard_cards(player, in_play_cards, from_cleanup=True)
+        durations_to_keep = set(player.duration + player.multiplied_durations)
+        for card in in_play_cards:
+            if card in durations_to_keep:
+                player.in_play.append(card)
+            else:
+                self.discard_card(player, card, from_cleanup=True)
 
         # Draw new hand
         player.draw_cards(5)
