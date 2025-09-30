@@ -12,6 +12,3 @@ class RoyalSeal(Card):
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
-        if self in player.discard:
-            player.discard.remove(self)
-            player.deck.append(self)

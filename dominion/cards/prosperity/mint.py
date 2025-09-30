@@ -27,9 +27,9 @@ class Mint(Card):
             gained = get_card(chosen.name)
             game_state.gain_card(player, gained)
 
-    def on_gain(self, game_state, player):
-        super().on_gain(game_state, player)
-        treasures = [c for c in player.in_play if c.is_treasure]
-        for t in treasures:
-            player.in_play.remove(t)
-            game_state.trash_card(player, t)
+    def on_buy(self, game_state):
+        player = game_state.current_player
+        treasures = [c for c in list(player.in_play) if c.is_treasure]
+        for treasure in treasures:
+            player.in_play.remove(treasure)
+            game_state.trash_card(player, treasure)

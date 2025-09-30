@@ -30,7 +30,7 @@ def test_expand_trashes_card_and_triggers_on_trash():
     assert len(player.hand) == 1  # drew back up to one card
 
 
-def test_mint_on_gain_trashes_treasures_in_play():
+def test_mint_on_buy_trashes_treasures_in_play():
     ai = TrashFirstAI()
     player = PlayerState(ai)
     state = GameState([player])
@@ -38,7 +38,7 @@ def test_mint_on_gain_trashes_treasures_in_play():
 
     player.in_play = [get_card("Copper"), get_card("Silver")]
     mint = get_card("Mint")
-    mint.on_gain(state, player)
+    mint.on_buy(state)
 
     assert len(state.trash) == 2
     assert not player.in_play
