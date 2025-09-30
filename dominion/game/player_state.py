@@ -1,5 +1,6 @@
 import random
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 from dominion.cards.base_card import Card
 from dominion.cards.registry import get_card
@@ -46,6 +47,7 @@ class PlayerState:
     turns_taken: int = 0
     actions_played: int = 0
     actions_this_turn: int = 0
+    coins_spent_this_turn: int = 0
     bought_this_turn: list[str] = field(default_factory=list)
     banned_buys: list[str] = field(default_factory=list)
     delayed_cards: list[Card] = field(default_factory=list)
@@ -107,6 +109,7 @@ class PlayerState:
         self.turns_taken = 0
         self.actions_played = 0
         self.actions_this_turn = 0
+        self.coins_spent_this_turn = 0
         self.bought_this_turn = []
         self.banned_buys = []
         self.delayed_cards = []
@@ -161,9 +164,7 @@ class PlayerState:
         return (
             sum(
                 card.get_victory_points(self)
-                for card in (
-                    self.hand + self.deck + self.discard + self.in_play + self.duration
-                )
+                for card in (self.hand + self.deck + self.discard + self.in_play + self.duration)
             )
             + self.vp_tokens
         )
@@ -190,3 +191,8 @@ class PlayerState:
 
         breakdown = {name: {"count": counts.get(name, 0), "vp": vp} for name, vp in points.items()}
         return breakdown
+
+
+if TYPE_CHECKING:
+    # Only imported for type checking to avoid runtime circular imports
+    from dominion.ai.base_ai import AI

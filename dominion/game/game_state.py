@@ -171,6 +171,7 @@ class GameState:
         self.current_player.cauldron_triggered = False
         self.current_player.actions_this_turn = 0
         self.current_player.bought_this_turn = []
+        self.current_player.coins_spent_this_turn = 0
         self.current_player.banned_buys = []
         self.current_player.topdeck_gains = False
 
@@ -366,6 +367,7 @@ class GameState:
 
             player.bought_this_turn.append(choice.name)
             player.buys -= 1
+            player.coins_spent_this_turn += cost
             player.coins -= cost
 
             if getattr(choice, "is_event", False):
@@ -441,6 +443,7 @@ class GameState:
         """Helper to complete a card purchase."""
         cost = self.get_card_cost(player, card)
         player.buys -= 1
+        player.coins_spent_this_turn += cost
         player.coins -= cost
         player.potions -= card.cost.potions
         self.supply[card.name] -= 1
@@ -464,7 +467,7 @@ class GameState:
                 player.ai.name,
                 player.actions_this_turn,
                 list(player.bought_this_turn),
-                player.coins,
+                player.coins_spent_this_turn,
             )
         )
 

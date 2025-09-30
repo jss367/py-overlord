@@ -166,7 +166,7 @@ class GameLogger:
         else:
             buy_part = "bought nothing"
         coin_word = "coin" if coins == 1 else "coins"
-        self.file_logger.info(f"Summary: {player} played {action_part} and {buy_part} with {coins} {coin_word}")
+        self.file_logger.info(f"Summary: {player} played {action_part} and {buy_part} spending {coins} {coin_word}")
 
     def end_game(
         self,
