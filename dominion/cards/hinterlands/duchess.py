@@ -19,17 +19,6 @@ class Duchess(Card):
                 continue
             self._review_top_card(game_state, other, is_self=False)
 
-    def on_gain(self, game_state, player):
-        super().on_gain(game_state, player)
-
-        from ..registry import get_card
-
-        if game_state.supply.get("Duchy", 0) <= 0:
-            return
-
-        game_state.supply["Duchy"] -= 1
-        game_state.gain_card(player, get_card("Duchy"))
-
     def _review_top_card(self, game_state, target, *, is_self: bool) -> None:
         if not target.deck and target.discard:
             target.shuffle_discard_into_deck()

@@ -16,6 +16,18 @@ class Duchy(Card):
     def starting_supply(self, game_state) -> int:
         return 8 if len(game_state.players) <= 2 else 12
 
+    def on_gain(self, game_state, player):
+        super().on_gain(game_state, player)
+
+        duchess_supply = game_state.supply.get("Duchess", 0)
+        if duchess_supply <= 0:
+            return
+
+        from .registry import get_card
+
+        game_state.supply["Duchess"] = duchess_supply - 1
+        game_state.gain_card(player, get_card("Duchess"))
+
 
 class Province(Card):
     def __init__(self):
