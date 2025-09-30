@@ -25,9 +25,15 @@ def test_marauder_gives_spoils_and_ruins():
     state = make_state(num_players=2, kingdom=[get_card("Marauder")])
     player, opponent = state.players
     marauder = get_card("Marauder")
+    spoils_before = state.supply["Spoils"]
+    ruins_before = state.supply["Ruins"]
+
     marauder.on_play(state)
-    assert any(card.name == "Spoils" for card in player.hand)
+
+    assert any(card.name == "Spoils" for card in player.discard)
     assert any(card.name == "Ruins" for card in opponent.discard)
+    assert state.supply["Spoils"] == spoils_before - 1
+    assert state.supply["Ruins"] == ruins_before - 1
 
 
 def test_innovation_plays_first_gained_action():

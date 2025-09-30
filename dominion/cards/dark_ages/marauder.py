@@ -19,9 +19,16 @@ class Marauder(Card):
         from ..registry import get_card
 
         player = game_state.current_player
-        player.hand.append(get_card("Spoils"))
+
+        if game_state.supply.get("Spoils", 0) > 0:
+            game_state.supply["Spoils"] -= 1
+            game_state.gain_card(player, get_card("Spoils"))
 
         def attack_target(target):
+            if game_state.supply.get("Ruins", 0) <= 0:
+                return
+
+            game_state.supply["Ruins"] -= 1
             ruin = get_card("Ruins")
             game_state.gain_card(target, ruin)
 
