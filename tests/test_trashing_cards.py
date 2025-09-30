@@ -74,3 +74,37 @@ def test_forager_trashes_card():
 
     assert any(c.name == "Rats" for c in state.trash)
     assert len(player.hand) == 1  # Rats drew a card on trash
+
+
+def test_rats_gains_respect_supply():
+    ai = TrashFirstAI()
+    player = PlayerState(ai)
+    state = GameState([player])
+    state.setup_supply([get_card("Rats")])
+
+    player.deck = []
+    player.discard = []
+    player.in_play = []
+    player.hand = [get_card("Rats")]
+
+    rats_supply_before = state.supply["Rats"]
+    play_action(state, player, player.hand[0])
+
+    assert state.supply["Rats"] == rats_supply_before - 1
+    assert player.count("Rats") == 2  # original copy plus the gained one
+
+    other_ai = TrashFirstAI()
+    other_player = PlayerState(other_ai)
+    empty_state = GameState([other_player])
+    empty_state.setup_supply([get_card("Rats")])
+    empty_state.supply["Rats"] = 0
+
+    other_player.deck = []
+    other_player.discard = []
+    other_player.in_play = []
+    other_player.hand = [get_card("Rats")]
+
+    play_action(empty_state, other_player, other_player.hand[0])
+
+    assert empty_state.supply["Rats"] == 0
+    assert other_player.count("Rats") == 1  # only the original copy remains

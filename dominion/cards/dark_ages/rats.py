@@ -14,9 +14,10 @@ class Rats(Card):
         player = game_state.current_player
         # Gain another Rats if available
         if game_state.supply.get("Rats", 0) > 0:
-            gained = Rats()
             game_state.supply["Rats"] -= 1
-            game_state.gain_card(player, gained)
+            from ..registry import get_card
+
+            game_state.gain_card(player, get_card("Rats"))
         # Trash a non-Rats card from hand if possible
         choices = [c for c in player.hand if c.name != "Rats"]
         if choices:
