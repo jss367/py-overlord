@@ -153,7 +153,20 @@ from dominion.cards.intrigue import (
     Pawn,
 )
 from dominion.cards.plunder import Barbarian, FirstMate, Flagship, Highwayman, Trickster
-from dominion.cards.dark_ages import Armory, Count, Ironmonger, Marauder, PoorHouse, Spoils, Ruins
+from dominion.cards.dark_ages import (
+    AbandonedMine,
+    Armory,
+    Count,
+    Ironmonger,
+    Marauder,
+    PoorHouse,
+    RuinedLibrary,
+    RuinedMarket,
+    RuinedVillage,
+    Ruins,
+    Spoils,
+    Survivors,
+)
 from dominion.cards.seaside import Bazaar, Lookout, NativeVillage, TradingPost, Wharf
 from dominion.cards.adventures import Artificer, Giant
 from dominion.cards.nocturne import TragicHero
@@ -342,6 +355,11 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Marauder": Marauder,
     "Spoils": Spoils,
     "Ruins": Ruins,
+    "Abandoned Mine": AbandonedMine,
+    "Ruined Library": RuinedLibrary,
+    "Ruined Market": RuinedMarket,
+    "Ruined Village": RuinedVillage,
+    "Survivors": Survivors,
     "Giant": Giant,
     "Artificer": Artificer,
     "Tragic Hero": TragicHero,

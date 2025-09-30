@@ -44,3 +44,6 @@ class OvergrownEstate(Card):
 
     def starting_supply(self, game_state) -> int:
         return 0
+
+    def on_trash(self, game_state, player):
+        game_state.draw_cards(player, 1)

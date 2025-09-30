@@ -21,7 +21,9 @@ class Rats(Card):
         choices = [c for c in player.hand if c.name != "Rats"]
         if choices:
             trash_choice = player.ai.choose_card_to_trash(game_state, choices)
-            if trash_choice:
+            if trash_choice not in choices:
+                trash_choice = min(choices, key=lambda c: (c.cost.coins, c.name))
+            if trash_choice in player.hand:
                 player.hand.remove(trash_choice)
                 game_state.trash_card(player, trash_choice)
 

@@ -34,6 +34,42 @@ class AI(ABC):
         """Choose a card to trash from available choices."""
         pass
 
+    def choose_count_first_option(
+        self, state: GameState, player: PlayerState, choices: list[str]
+    ) -> str:
+        junk = {"Curse", "Estate", "Hovel", "Copper"}
+        if "discard" in choices and len(player.hand) >= 2:
+            junk_in_hand = sum(1 for card in player.hand if card.name in junk)
+            if junk_in_hand >= 2 or len(player.hand) <= 2:
+                return "discard"
+        if "topdeck" in choices and player.hand:
+            return "topdeck"
+        if "gain_copper" in choices:
+            return "gain_copper"
+        return choices[0]
+
+    def choose_count_second_option(
+        self, state: GameState, player: PlayerState, choices: list[str]
+    ) -> str:
+        if "trash_hand" in choices and player.hand:
+            junk = {"Curse", "Estate", "Hovel", "Copper"}
+            if all(card.name in junk for card in player.hand):
+                return "trash_hand"
+        if "gain_duchy" in choices and state.supply.get("Duchy", 0) > 0:
+            if state.supply.get("Province", 0) <= 4:
+                return "gain_duchy"
+        if "coins" in choices:
+            return "coins"
+        return choices[0]
+
+    def choose_card_to_topdeck(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        if not choices:
+            return None
+
+        return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+
     def choose_cards_to_trash(self, state: GameState, choices: list[Card], count: int) -> list[Card]:
         """Select up to ``count`` cards to trash, defaulting to single picks."""
 
@@ -86,6 +122,20 @@ class AI(ABC):
 
         return False
 
+    def should_discard_ironmonger_reveal(
+        self, state: GameState, player: PlayerState, revealed: Card
+    ) -> bool:
+        if revealed.name == "Curse":
+            return True
+        if revealed.is_victory and not revealed.is_action:
+            return True
+        if revealed.name in {"Ruins", "Hovel"}:
+            return True
+        return False
+
+    def should_react_with_beggar(self, state: GameState, player: PlayerState) -> bool:
+        return state.supply.get("Silver", 0) >= 1
+
     def choose_way(self, state: GameState, card: Card, ways: list) -> Optional[object]:
         """Choose a Way to use when playing a card. Default is none."""
         return None
@@ -132,3 +182,33 @@ class AI(ABC):
             return (score, card.stats.cards, card.name)
 
         return sorted(cards, key=priority, reverse=True)
+
+    def choose_rebuild_name(
+        self, state: GameState, player: PlayerState, options: list[str]
+    ) -> str:
+        for preferred in ("Province", "Duchy", "Estate"):
+            if preferred in options:
+                return preferred
+        return options[0] if options else "Province"
+
+    def should_discard_with_survivors(
+        self, state: GameState, player: PlayerState, cards: list[Card]
+    ) -> bool:
+        def is_junk(card: Card) -> bool:
+            if card.name == "Curse":
+                return True
+            if card.is_victory and not card.is_action and card.cost.coins <= 2:
+                return True
+            return False
+
+        return all(is_junk(card) for card in cards)
+
+    def order_cards_for_survivors(
+        self, state: GameState, player: PlayerState, cards: list[Card]
+    ) -> list[Card]:
+        return self.order_cards_for_patrol(state, player, cards)
+
+    def should_trash_hovel(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        return True

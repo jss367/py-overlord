@@ -15,6 +15,9 @@ class Spoils(Card):
     def may_be_bought(self, game_state) -> bool:  # pragma: no cover - not in supply
         return False
 
+    def starting_supply(self, game_state) -> int:
+        return 15
+
     def play_effect(self, game_state):
         player = game_state.current_player
         if self in player.in_play:

@@ -15,8 +15,17 @@ class Beggar(Card):
 
         player = game_state.current_player
         for _ in range(3):
-            if game_state.supply.get("Copper", 0) > 0:
-                game_state.supply["Copper"] -= 1
-                copper = get_card("Copper")
-                player.hand.append(copper)
-                copper.on_gain(game_state, player)
+            if game_state.supply.get("Copper", 0) <= 0:
+                break
+
+            game_state.supply["Copper"] -= 1
+            copper = get_card("Copper")
+            gained = game_state.gain_card(player, copper)
+
+            if gained in player.discard:
+                player.discard.remove(gained)
+            elif gained in player.deck:
+                player.deck.remove(gained)
+
+            if gained not in player.hand:
+                player.hand.append(gained)

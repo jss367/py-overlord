@@ -12,13 +12,11 @@ class Forager(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if not player.hand:
-            return
-        card_to_trash = player.ai.choose_card_to_trash(game_state, player.hand)
-        if card_to_trash is None:
-            card_to_trash = player.hand[0]
-        player.hand.remove(card_to_trash)
-        game_state.trash_card(player, card_to_trash)
+        if player.hand:
+            card_to_trash = player.ai.choose_card_to_trash(game_state, list(player.hand))
+            if card_to_trash and card_to_trash in player.hand:
+                player.hand.remove(card_to_trash)
+                game_state.trash_card(player, card_to_trash)
 
         # Count different treasures in trash
         treasure_names = {c.name for c in game_state.trash if c.is_treasure}

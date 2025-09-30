@@ -15,18 +15,25 @@ class Armory(Card):
     def play_effect(self, game_state):
         from ..registry import get_card
 
-        options = []
+        player = game_state.current_player
+
+        affordable: list[Card] = []
         for name, count in game_state.supply.items():
             if count <= 0:
                 continue
             card = get_card(name)
             if card.cost.coins <= 4:
-                options.append(card)
+                affordable.append(card)
 
-        if not options:
+        if not affordable:
             return
 
-        options.sort(key=lambda c: (c.cost.coins, c.stats.cards, c.name), reverse=True)
-        gained = options[0]
-        game_state.supply[gained.name] -= 1
-        game_state.gain_card(game_state.current_player, gained, to_deck=True)
+        choice = player.ai.choose_buy(game_state, affordable + [None])
+        if not choice:
+            return
+
+        if game_state.supply.get(choice.name, 0) <= 0:
+            return
+
+        game_state.supply[choice.name] -= 1
+        game_state.gain_card(player, choice, to_deck=True)

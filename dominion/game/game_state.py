@@ -14,6 +14,7 @@ class GameState:
     events: list = field(default_factory=list)
     projects: list = field(default_factory=list)
     ways: list = field(default_factory=list)
+    ruins_pile: list[Card] = field(default_factory=list)
     current_player_index: int = 0
     phase: str = "start"
     turn_number: int = 1
@@ -103,6 +104,7 @@ class GameState:
     def setup_supply(self, kingdom_cards: list[Card]):
         """Set up the initial supply piles."""
         # Add basic cards with proper counts
+        self.ruins_pile = []
         basic_cards = {
             "Copper": 60 - (7 * len(self.players)),
             "Silver": 40,
@@ -125,9 +127,11 @@ class GameState:
                     self.supply[partner.name] = partner.starting_supply(self)
 
             extras = card.get_additional_piles()
-            for name, count in extras.items():
-                if name not in self.supply:
-                    self.supply[name] = count
+            for name in extras:
+                if name in self.supply:
+                    continue
+                extra_card = get_card(name)
+                self.supply[name] = extra_card.starting_supply(self)
 
         self.log_callback(f"Supply initialized: {self.supply}")
 
@@ -740,6 +744,8 @@ class GameState:
         if hasattr(player, "cards_gained_this_turn"):
             player.cards_gained_this_turn += 1
 
+        self._handle_hovel_reactions(player, actual_card)
+
         return actual_card
 
     def _handle_trader_exchange(
@@ -824,6 +830,54 @@ class GameState:
         existing_gold = sum(1 for card in player.all_cards() if card.name == "Gold")
         return existing_gold < 2
 
+    def _handle_hovel_reactions(self, player: PlayerState, gained_card: Card) -> None:
+        if not gained_card.is_victory:
+            return
+
+        hovels = [card for card in list(player.hand) if card.name == "Hovel"]
+        for hovel in hovels:
+            if hovel not in player.hand:
+                continue
+            if not player.ai.should_trash_hovel(self, player, gained_card):
+                continue
+            player.hand.remove(hovel)
+            self.trash_card(player, hovel)
+
+    def _handle_beggar_reactions(self, player: PlayerState) -> None:
+        if not player.hand:
+            return
+
+        if self.supply.get("Silver", 0) <= 0:
+            return
+
+        beggars = [card for card in list(player.hand) if card.name == "Beggar"]
+        for beggar in beggars:
+            if beggar not in player.hand:
+                continue
+            if self.supply.get("Silver", 0) <= 0:
+                break
+            if not player.ai.should_react_with_beggar(self, player):
+                continue
+
+            player.hand.remove(beggar)
+            self.discard_card(player, beggar)
+
+            for gain_to_deck in (False, True):
+                if self.supply.get("Silver", 0) <= 0:
+                    break
+
+                self.supply["Silver"] -= 1
+                silver = get_card("Silver")
+                gained = self.gain_card(player, silver, to_deck=gain_to_deck)
+
+                if not gain_to_deck:
+                    if gained in player.discard:
+                        player.discard.remove(gained)
+                    elif gained in player.deck:
+                        player.deck.remove(gained)
+                    if gained not in player.hand:
+                        player.hand.append(gained)
+
     def _maybe_play_guard_dogs(self, player: PlayerState) -> None:
         guard_dogs = [card for card in list(player.hand) if card.name == "Guard Dog"]
         for card in guard_dogs:
@@ -886,6 +940,7 @@ class GameState:
 
     def attack_player(self, target: PlayerState, attack_fn) -> None:
         """Apply an attack to a player unless blocked by Shield."""
+        self._handle_beggar_reactions(target)
         self._maybe_play_guard_dogs(target)
         if self.player_has_shield(target):
             self.log_callback(("action", target.ai.name, "reveals Shield to block the attack", {}))

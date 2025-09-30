@@ -33,11 +33,9 @@ class Ironmonger(Card):
             game_state.draw_cards(player, 1)
 
         # Basic heuristic: discard obvious junk to cycle, otherwise put it back
-        should_discard = False
-        if revealed.is_victory or revealed.name == "Curse":
-            should_discard = True
-        elif revealed.name == "Ruins":
-            should_discard = True
+        should_discard = player.ai.should_discard_ironmonger_reveal(
+            game_state, player, revealed
+        )
 
         if should_discard:
             game_state.discard_card(player, revealed)
