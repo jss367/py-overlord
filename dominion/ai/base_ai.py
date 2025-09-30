@@ -66,3 +66,19 @@ class AI(ABC):
 
         low_value_cards = [card for card in hand if is_low_value(card)]
         return len(low_value_cards) >= 2
+
+    def order_cards_for_patrol(
+        self, state: GameState, player: PlayerState, cards: list[Card]
+    ) -> list[Card]:
+        """Return cards in draw priority order for Patrol's topdeck effect."""
+
+        def priority(card: Card) -> tuple[int, int, str]:
+            score = 0
+            if card.is_action:
+                score += 200
+            if card.is_treasure:
+                score += 100 + card.cost.coins
+            score += card.cost.coins
+            return (score, card.stats.cards, card.name)
+
+        return sorted(cards, key=priority, reverse=True)
