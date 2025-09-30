@@ -34,9 +34,7 @@ class AI(ABC):
         """Choose a card to trash from available choices."""
         pass
 
-    def choose_cards_to_trash(
-        self, state: GameState, choices: list[Card], count: int
-    ) -> list[Card]:
+    def choose_cards_to_trash(self, state: GameState, choices: list[Card], count: int) -> list[Card]:
         """Select up to ``count`` cards to trash, defaulting to single picks."""
 
         remaining = list(choices)
@@ -51,9 +49,39 @@ class AI(ABC):
 
         return selected
 
-    def should_reveal_trader(
-        self, state: GameState, player: PlayerState, gained_card: Card, *, to_deck: bool
-    ) -> bool:
+    def choose_cards_to_discard(
+        self,
+        state: GameState,
+        player: PlayerState,
+        choices: list[Card],
+        count: int,
+        *,
+        reason: Optional[str] = None,
+    ) -> list[Card]:
+        """Choose up to ``count`` cards to discard from ``choices``.
+
+        Default heuristic prefers to discard obviously low-value cards:
+        Curses, low-cost non-action Victory, then Copper, then by cost.
+
+        ``reason`` can be used by subclasses to tailor decisions (e.g. "torturer").
+        """
+
+        def discard_priority(card: Card) -> tuple[int, int, str]:
+            if card.name == "Curse":
+                return (0, 0, card.name)
+            # Non-action green cards are typically dead in hand; prefer cheaper ones first
+            if card.is_victory and not card.is_action and card.cost.coins <= 2:
+                return (1, card.cost.coins, card.name)
+            if card.name == "Copper":
+                return (2, 0, card.name)
+            # Otherwise rank by coin cost (cheaper first)
+            return (3, card.cost.coins, card.name)
+
+        available = list(choices)
+        ordered = sorted(available, key=discard_priority)
+        return ordered[: max(0, min(count, len(ordered)))]
+
+    def should_reveal_trader(self, state: GameState, player: PlayerState, gained_card: Card, *, to_deck: bool) -> bool:
         """Decide whether to reveal Trader to exchange a gain for Silver."""
 
         return False
@@ -91,9 +119,7 @@ class AI(ABC):
         low_value_cards = [card for card in hand if is_low_value(card)]
         return len(low_value_cards) >= 2
 
-    def order_cards_for_patrol(
-        self, state: GameState, player: PlayerState, cards: list[Card]
-    ) -> list[Card]:
+    def order_cards_for_patrol(self, state: GameState, player: PlayerState, cards: list[Card]) -> list[Card]:
         """Return cards in draw priority order for Patrol's topdeck effect."""
 
         def priority(card: Card) -> tuple[int, int, str]:

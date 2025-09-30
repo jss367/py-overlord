@@ -15,15 +15,6 @@ class Torturer(Card):
 
         player = game_state.current_player
 
-        def discard_priority(card: Card):
-            if card.name == "Curse":
-                return (0, card.name)
-            if card.is_victory and not card.is_action and card.cost.coins <= 2:
-                return (1, card.cost.coins, card.name)
-            if card.name == "Copper":
-                return (2, card.name)
-            return (3, card.cost.coins, card.name)
-
         def attack_target(target):
             hand_size = len(target.hand)
             curses_remaining = game_state.supply.get("Curse", 0)
@@ -50,10 +41,13 @@ class Torturer(Card):
                 choose_discard = True
 
             if choose_discard:
-                cards_to_discard = sorted(target.hand, key=discard_priority)[:2]
+                cards_to_discard = target.ai.choose_cards_to_discard(
+                    game_state, target, list(target.hand), 2, reason="torturer"
+                )
                 for card in cards_to_discard:
-                    target.hand.remove(card)
-                    game_state.discard_card(target, card)
+                    if card in target.hand:
+                        target.hand.remove(card)
+                        game_state.discard_card(target, card)
                 game_state.log_callback(
                     (
                         "action",

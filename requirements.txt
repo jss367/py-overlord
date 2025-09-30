@@ -1,5 +1,4 @@
 coloredlogs
-lark
 matplotlib
 pytest
 scipy
