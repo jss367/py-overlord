@@ -17,33 +17,62 @@ class Artificer(Card):
         if not player.hand:
             return
 
-        discard_choices = player.ai.choose_cards_to_discard(
-            game_state, player, list(player.hand), len(player.hand)
-        )
-        discarded = 0
-        for card in discard_choices:
-            if card in player.hand:
-                player.hand.remove(card)
-                game_state.discard_card(player, card)
-                discarded += 1
-
-        if discarded == 0:
-            return
-
         from ..registry import get_card
 
-        gain_options = []
+        max_discard = len(player.hand)
+        affordable = []
         for name, count in game_state.supply.items():
             if count <= 0:
                 continue
             card = get_card(name)
-            if card.cost.coins <= discarded:
-                gain_options.append(card)
+            if card.cost.potions > 0:
+                continue
+            if card.cost.coins <= max_discard:
+                affordable.append(card)
 
-        if not gain_options:
+        if not affordable:
             return
 
-        gain_options.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
-        target = gain_options[0]
-        game_state.supply[target.name] -= 1
-        game_state.gain_card(player, target, to_deck=True)
+        chosen_gain = player.ai.choose_buy(game_state, affordable + [None])
+        if chosen_gain is None:
+            return
+
+        target_cost = chosen_gain.cost.coins
+        if target_cost > max_discard:
+            return
+
+        cards_to_discard: list = []
+        if target_cost > 0:
+            discard_order = player.ai.choose_cards_to_discard(
+                game_state, player, list(player.hand), target_cost
+            )
+            remaining_hand = list(player.hand)
+            for card in discard_order:
+                if card in remaining_hand and len(cards_to_discard) < target_cost:
+                    cards_to_discard.append(card)
+                    remaining_hand.remove(card)
+
+            while len(cards_to_discard) < target_cost and remaining_hand:
+                fallback = min(remaining_hand, key=lambda c: (c.cost.coins, c.name))
+                cards_to_discard.append(fallback)
+                remaining_hand.remove(fallback)
+
+            if len(cards_to_discard) < target_cost:
+                return
+
+        for card in cards_to_discard:
+            if card in player.hand:
+                player.hand.remove(card)
+                game_state.discard_card(player, card)
+
+        game_state.supply[chosen_gain.name] -= 1
+        gained = game_state.gain_card(player, chosen_gain)
+
+        if gained in player.discard:
+            player.discard.remove(gained)
+            player.hand.append(gained)
+        elif gained in player.deck:
+            player.deck.remove(gained)
+            player.hand.append(gained)
+        elif gained not in player.hand:
+            player.hand.append(gained)
