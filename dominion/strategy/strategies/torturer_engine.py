@@ -98,14 +98,14 @@ class TorturerEngine(EnhancedStrategy):
 
         # Action priorities - village effects first, then draw, then attacks
         self.action_priority = [
-            PriorityRule("Acting Troupe"),  # +4 actions
             PriorityRule("Patrician"),  # +1 card +1 action
-            PriorityRule("Snowy Village"),  # +1 card +3 actions (after Patrician to avoid capping)
-            PriorityRule("Inn"),  # +2 cards +2 actions
-            PriorityRule("Patrol"),  # +3 cards
-            PriorityRule("Taskmaster"),  # Play other actions multiple times
-            PriorityRule("Torturer"),  # Attack last
             PriorityRule("Emporium"),  # Treasure/Action
+            PriorityRule("Inn"),  # +2 cards +2 actions
+            PriorityRule("Taskmaster"),  # Play other actions multiple times
+            PriorityRule("Acting Troupe"),  # +4 actions
+            PriorityRule("Snowy Village"),
+            PriorityRule("Patrol"),  # +3 cards
+            PriorityRule("Torturer"),  # Attack last
         ]
 
         # Trash priorities - get rid of junk

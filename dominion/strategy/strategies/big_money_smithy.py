@@ -1,4 +1,5 @@
-from .base_strategy import BaseStrategy, PriorityRule
+from dominion.strategy.enhanced_strategy import EnhancedStrategy
+from dominion.strategy.strategies.base_strategy import BaseStrategy, PriorityRule
 
 
 class BigMoneySmithyStrategy(BaseStrategy):
@@ -10,8 +11,6 @@ class BigMoneySmithyStrategy(BaseStrategy):
         self.description = "Big Money strategy with Smithy support"
         self.version = "2.0"
 
-        # ``gain_priority`` is unused because buying logic is implemented
-        # dynamically via :meth:`choose_gain`.
         self.gain_priority = []
 
         # Always play Smithy when available
@@ -40,9 +39,6 @@ class BigMoneySmithyStrategy(BaseStrategy):
             return card_lookup["Silver"]
 
         return None
-
-
-from dominion.strategy.enhanced_strategy import EnhancedStrategy
 
 
 def create_big_money_smithy() -> EnhancedStrategy:
