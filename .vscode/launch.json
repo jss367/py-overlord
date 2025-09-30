@@ -29,7 +29,9 @@
                 "ChapelWitch",
                 "ChapelWitchTest",
                 "--games",
-                "10"
+                "10",
+                "--print",
+                "--no-report"
             ]
         },
         {
@@ -73,48 +75,46 @@
             "name": "Python: Compare two strategies (torture_campaign)",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/compare_strategies.py",
+            "program": "${workspaceFolder}/dominion/simulation/strategy_battle.py",
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "args": [
                 "${input:strategy1}",
                 "${input:strategy2}",
                 "--games",
-                "${input:numGames}",
+                "1",
                 "--board",
                 "${workspaceFolder}/boards/torture_campaign.txt",
                 "--output",
-                "${workspaceFolder}/reports/torture_campaign_report.html"
+                "${workspaceFolder}/reports/torture_campaign_report.html",
+                "--log-frequency",
+                "1"
+            ],
+            "justMyCode": true
+        },
+        {
+            "name": "Python: Strategy vs Strategy",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/dominion/simulation/strategy_battle.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "args": [
+                "TorturerEngine",
+                "Big Money Smithy",
+                "--games",
+                "1",
+                "--board",
+                "${workspaceFolder}/boards/torture_campaign.txt",
+                "--output",
+                "${workspaceFolder}/reports/bigmoney_vs_bigmoneysmithy_report.html",
+                "--log-frequency",
+                "1"
             ],
             "justMyCode": true
         }
     ],
-    "inputs": [
-        {
-            "id": "strategy1",
-            "description": "First strategy name (e.g. Big Money)",
-            "type": "promptString",
-            "default": "Big Money"
-        },
-        {
-            "id": "strategy2",
-            "description": "Second strategy name",
-            "type": "promptString",
-            "default": "Skulk"
-        },
-        {
-            "id": "numGames",
-            "description": "Number of games to play",
-            "type": "promptString",
-            "default": "200"
-        }
-    ],
-    // "inputs": [
-    //     {
-    //         "id": "numGames",
-    //         "type": "promptString",
-    //         "description": "Number of games to run between TorturerEngine and ChapelWitch",
-    //         "default": "1"
-    //     }
-    // ]
 }
