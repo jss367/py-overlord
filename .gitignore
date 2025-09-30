@@ -56,7 +56,6 @@ cover/
 *.pot
 
 # Django stuff:
-*.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -173,5 +172,5 @@ cython_debug/
 .DS_Store
 # /game_logs
 # /training_logs
-# /battle_logs
+/battle_logs
 # /optimal_strategy_logs
