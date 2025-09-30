@@ -7,6 +7,9 @@ from .ironmonger import Ironmonger
 from .marauder import Marauder
 from .spoils import Spoils
 from .ruins import Ruins
+from .poor_house import PoorHouse
+from .count import Count
+from .armory import Armory
 
 __all__ = [
     'Beggar',
@@ -20,4 +23,7 @@ __all__ = [
     'Marauder',
     'Spoils',
     'Ruins',
+    'PoorHouse',
+    'Count',
+    'Armory',
 ]

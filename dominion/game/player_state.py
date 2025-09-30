@@ -31,6 +31,7 @@ class PlayerState:
     vp_tokens: int = 0
     villagers: int = 0
     miser_coppers: int = 0
+    native_village_mat: list[Card] = field(default_factory=list)
     ignore_action_bonuses: bool = False
     collection_played: int = 0
     goons_played: int = 0
@@ -55,6 +56,10 @@ class PlayerState:
     topdeck_gains: bool = False
     gained_five_this_turn: bool = False
     gained_five_last_turn: bool = False
+    cards_gained_this_turn: int = 0
+    flagship_pending: bool = False
+    highwayman_attacks: int = 0
+    highwayman_blocked_this_turn: bool = False
 
     def initialize(self, use_shelters: bool = False):
         """Set up starting deck and draw initial hand.
@@ -95,6 +100,7 @@ class PlayerState:
         self.vp_tokens = 0
         self.villagers = 0
         self.miser_coppers = 0
+        self.native_village_mat = []
         self.ignore_action_bonuses = False
         self.collection_played = 0
         self.goons_played = 0
@@ -117,6 +123,10 @@ class PlayerState:
         self.topdeck_gains = False
         self.gained_five_this_turn = False
         self.gained_five_last_turn = False
+        self.cards_gained_this_turn = 0
+        self.flagship_pending = False
+        self.highwayman_attacks = 0
+        self.highwayman_blocked_this_turn = False
 
         # Draw initial hand of 5 cards
         self.draw_cards(5)

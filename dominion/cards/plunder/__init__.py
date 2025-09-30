@@ -18,6 +18,9 @@ from .loot_cards import (
 )
 from .first_mate import FirstMate
 from .barbarian import Barbarian
+from .flagship import Flagship
+from .trickster import Trickster
+from .highwayman import Highwayman
 
 __all__ = [
     'Amphora',
@@ -37,5 +40,8 @@ __all__ = [
     'Sword',
     'FirstMate',
     'Barbarian',
+    'Flagship',
+    'Trickster',
+    'Highwayman',
     'LOOT_CARD_NAMES',
 ]

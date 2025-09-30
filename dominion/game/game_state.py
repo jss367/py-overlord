@@ -169,6 +169,9 @@ class GameState:
         self.current_player.fools_gold_played = 0
         self.current_player.actions_gained_this_turn = 0
         self.current_player.cauldron_triggered = False
+        self.current_player.cards_gained_this_turn = 0
+        self.current_player.flagship_pending = False
+        self.current_player.highwayman_blocked_this_turn = False
         self.current_player.actions_this_turn = 0
         self.current_player.bought_this_turn = []
         self.current_player.coins_spent_this_turn = 0
@@ -299,6 +302,15 @@ class GameState:
             if way:
                 way.apply(self, choice)
             else:
+                extra_plays = False
+                if getattr(player, "flagship_pending", False):
+                    player.flagship_pending = False
+                    extra_plays = True
+
+                if extra_plays:
+                    for _ in range(2):
+                        choice.on_play(self)
+
                 choice.on_play(self)
 
         self.phase = "treasure"
@@ -333,6 +345,13 @@ class GameState:
 
             player.hand.remove(choice)
             player.in_play.append(choice)
+            if (
+                getattr(player, "highwayman_attacks", 0) > 0
+                and not getattr(player, "highwayman_blocked_this_turn", False)
+            ):
+                player.highwayman_blocked_this_turn = True
+                continue
+
             choice.on_play(self)
 
         self.phase = "buy"
@@ -513,6 +532,9 @@ class GameState:
         player.topdeck_gains = False
         player.cost_reduction = 0
         player.innovation_used = False
+        player.cards_gained_this_turn = 0
+        player.flagship_pending = False
+        player.highwayman_blocked_this_turn = False
 
         # Move to next player
         if not self.extra_turn:
@@ -712,6 +734,9 @@ class GameState:
         self._trigger_invest_draw(actual_card.name, player)
         self._handle_fools_gold_reactions(player, actual_card)
         self._track_action_gain(player, actual_card)
+
+        if hasattr(player, "cards_gained_this_turn"):
+            player.cards_gained_this_turn += 1
 
         return actual_card
 

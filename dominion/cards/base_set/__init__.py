@@ -10,6 +10,8 @@ from .moat import Moat
 from .workshop import Workshop
 from .chapel import Chapel
 from .council_room import CouncilRoom
+from .gardens import Gardens
+from .library import Library
 
 __all__ = [
     'Village',
@@ -22,5 +24,7 @@ __all__ = [
     'Moat',
     'Workshop',
     'Chapel',
-    'CouncilRoom'
+    'CouncilRoom',
+    'Gardens',
+    'Library'
 ]
