@@ -682,13 +682,19 @@ class GameState:
                 break
 
         actual_card = reclaimed or card
+        destination_is_deck = to_deck or getattr(player, "topdeck_gains", False)
+
+        if not reclaimed:
+            actual_card = self._handle_trader_exchange(
+                player, card, actual_card, destination_is_deck
+            )
 
         if reclaimed and card.name in self.supply:
             # Caller already decremented the supply; restore it since the
             # Exiled card is being used instead.
             self.supply[card.name] = self.supply.get(card.name, 0) + 1
 
-        if to_deck or getattr(player, "topdeck_gains", False):
+        if destination_is_deck:
             player.deck.insert(0, actual_card)
         else:
             player.discard.append(actual_card)
@@ -706,6 +712,38 @@ class GameState:
         self._track_action_gain(player, actual_card)
 
         return actual_card
+
+    def _handle_trader_exchange(
+        self,
+        player: PlayerState,
+        original_card: Card,
+        actual_card: Card,
+        to_deck: bool,
+    ) -> Card:
+        """Allow Trader reactions to replace a gain with a Silver."""
+
+        if self.supply.get("Silver", 0) <= 0:
+            return actual_card
+
+        if not any(card.name == "Trader" for card in player.hand):
+            return actual_card
+
+        if not player.ai.should_reveal_trader(self, player, original_card, to_deck=to_deck):
+            return actual_card
+
+        if original_card.name in self.supply:
+            self.supply[original_card.name] = self.supply.get(original_card.name, 0) + 1
+
+        self.supply["Silver"] -= 1
+        replacement = get_card("Silver")
+        context = {
+            "replaced": original_card.name,
+            "destination": "deck" if to_deck else "discard",
+        }
+        self.log_callback(
+            ("action", player.ai.name, "reveals Trader", context)
+        )
+        return replacement
 
     def _trigger_invest_draw(self, card_name: str, gainer: PlayerState) -> None:
         """Resolve Invest event reactions for other players."""
