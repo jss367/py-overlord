@@ -30,21 +30,29 @@ class Mine(Card):
             game_state.trash_card(player, treasure_to_trash)
 
             # Find treasures that can be gained
-            possible_gains = [
-                card
-                for card in game_state.supply.keys()
-                if card in ["Copper", "Silver", "Gold"]
-                and game_state.supply[card] > 0
-                and get_card(card).cost.coins <= treasure_to_trash.cost.coins + 3
-            ]
+            possible_gains = []
+            for name, count in game_state.supply.items():
+                if count <= 0:
+                    continue
+                candidate = get_card(name)
+                if not candidate.is_treasure:
+                    continue
+                if candidate.cost.coins > treasure_to_trash.cost.coins + 3:
+                    continue
+                possible_gains.append(candidate)
 
             # Let AI choose what to gain
             if possible_gains:
-                chosen_card = player.ai.choose_buy(
-                    game_state, [get_card(name) for name in possible_gains]
-                )
+                chosen_card = player.ai.choose_buy(game_state, possible_gains)
 
-                if chosen_card:
-                    # Gain the chosen treasure
+                if chosen_card and game_state.supply.get(chosen_card.name, 0) > 0:
+                    # Gain the chosen treasure to hand
                     game_state.supply[chosen_card.name] -= 1
-                    game_state.gain_card(player, chosen_card)
+                    gained_card = game_state.gain_card(player, chosen_card)
+                    if gained_card:
+                        if gained_card in player.discard:
+                            player.discard.remove(gained_card)
+                        elif gained_card in player.deck:
+                            player.deck.remove(gained_card)
+                        if gained_card not in player.hand:
+                            player.hand.append(gained_card)

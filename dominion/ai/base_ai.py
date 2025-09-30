@@ -34,6 +34,16 @@ class AI(ABC):
         """Choose a card to trash from available choices."""
         pass
 
+    def should_reveal_moat(self, state: GameState, player: PlayerState) -> bool:
+        """Decide whether to reveal Moat in response to an attack."""
+
+        return True
+
+    def should_keep_library_action(self, state: GameState, player: PlayerState, card: Card) -> bool:
+        """Decide whether to keep a drawn Action card while resolving Library."""
+
+        return player.actions > 0
+
     def choose_cards_to_trash(self, state: GameState, choices: list[Card], count: int) -> list[Card]:
         """Select up to ``count`` cards to trash, defaulting to single picks."""
 
