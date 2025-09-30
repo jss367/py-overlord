@@ -16,11 +16,12 @@ class Paddock(Card):
         from ..registry import get_card
 
         player = game_state.current_player
-        for _ in range(2):
-            try:
-                horse = get_card("Horse")
-            except ValueError:
-                break
+        try:
+            horse = get_card("Horse")
+        except ValueError:
+            horse = None
+
+        if horse is not None:
             game_state.gain_card(player, horse)
 
         player.actions += game_state.empty_piles

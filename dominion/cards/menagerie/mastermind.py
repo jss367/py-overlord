@@ -25,7 +25,8 @@ class Mastermind(Card):
 
         choice = player.ai.choose_action(game_state, actions + [None])
         if choice is None:
-            choice = actions[0]
+            self.duration_persistent = False
+            return
 
         if choice in player.hand:
             player.hand.remove(choice)
