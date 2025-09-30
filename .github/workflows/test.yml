@@ -20,5 +20,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install -e .
+    - name: Verify pytest collects all tests
+      run: python scripts/ensure_pytest_collection.py
     - name: Run tests
       run: pytest -q
