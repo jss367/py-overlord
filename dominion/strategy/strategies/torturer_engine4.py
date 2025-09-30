@@ -6,7 +6,7 @@ class TorturerEngine(EnhancedStrategy):
 
     def __init__(self) -> None:
         super().__init__()
-        self.name = "TorturerEngine"
+        self.name = "TorturerEngine4"
         self.description = "Optimized Torturer engine: thin/defend with Trader+Trail, bank villagers early, keep Snowy Village light, add Gold payload, then pile Provinces"
         self.version = "2.0"
 

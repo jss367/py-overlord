@@ -257,8 +257,24 @@ class StrategyBattle:
 
 def main():
     parser = argparse.ArgumentParser(description="Run and report a battle between two Dominion strategies")
-    parser.add_argument("strategy1_name", help="Name of first strategy")
-    parser.add_argument("strategy2_name", help="Name of second strategy")
+    parser.add_argument(
+        "strategy1_name",
+        help=(
+            "Strategy identifier (display name or alias). Examples: 'Big Money', 'big_money', "
+            "'big-money', 'bigmoney', 'BigMoney'. This is not a Python class name. It matches "
+            "strategies registered from create_* functions (and also accepts the EnhancedStrategy "
+            "strategy.name value)."
+        ),
+    )
+    parser.add_argument(
+        "strategy2_name",
+        help=(
+            "Strategy identifier (display name or alias). Examples: 'Chapel Witch', 'chapel_witch', "
+            "'chapel-witch', 'chapelwitch', 'ChapelWitch'. This is not a Python class name. It matches "
+            "strategies registered from create_* functions (and also accepts the EnhancedStrategy "
+            "strategy.name value)."
+        ),
+    )
     parser.add_argument("--games", type=int, default=100, help="Number of games to play")
     parser.add_argument(
         "--use-shelters",
@@ -293,7 +309,7 @@ def main():
     results = battle.run_battle(args.strategy1_name, args.strategy2_name, args.games)
 
     if args.do_print:
-        print_results(results)
+        log_results(results)
 
     if not args.no_report:
         # Determine output path: auto-generate if not provided
@@ -318,7 +334,7 @@ def main():
         generate_html_report(results, output_path)
 
 
-def print_results(results: dict[str, Any]):
+def log_results(results: dict[str, Any]):
     """Print battle results in a readable format."""
     logger.info("\n=== Strategy Battle Results ===")
     logger.info("\nGames played: %d", results['games_played'])

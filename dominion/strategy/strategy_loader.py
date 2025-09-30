@@ -74,6 +74,24 @@ class StrategyLoader:
                         strategy_name = name[7:].replace('_', ' ').title()
                         self.register_strategy(strategy_name, obj)
 
+                        # Also register the strategy's internal name (strategy.name)
+                        # as additional aliases so users can pass e.g. "TorturerEngine2".
+                        try:
+                            instance = obj()
+                            internal_name = getattr(instance, 'name', '')
+                        except Exception:
+                            internal_name = ''
+
+                        if internal_name:
+                            # Register several alias forms for convenience
+                            self.strategies.setdefault(internal_name, obj)
+                            self.strategies.setdefault(internal_name.lower(), obj)
+                            slug = self._slugify(internal_name)
+                            mini_slug = slug.replace('_', '')
+                            dash_slug = slug.replace('_', '-')
+                            for alias in {slug, mini_slug, dash_slug}:
+                                self.strategies.setdefault(alias, obj)
+
             except Exception as e:
                 logging.getLogger(__name__).exception("Error loading strategy from %s: %s", file_path, e)
 

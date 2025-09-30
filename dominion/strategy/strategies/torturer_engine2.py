@@ -6,7 +6,7 @@ class TorturerEngine(EnhancedStrategy):
 
     def __init__(self) -> None:
         super().__init__()
-        self.name = "TorturerEngine"
+        self.name = "TorturerEngine2"
         self.description = "Engine strategy with Torturer attack and Trail defense"
         self.version = "2.1"
 
@@ -25,7 +25,8 @@ class TorturerEngine(EnhancedStrategy):
                 "Torturer",
                 PriorityRule.and_(
                     PriorityRule.resources("coins", ">=", 5),
-                    lambda _s, me: me.count_in_deck("Torturer") < me.count_in_deck("Snowy Village") + me.count_in_deck("Inn") + me.count_in_deck("Acting Troupe"),
+                    lambda _s, me: me.count_in_deck("Torturer")
+                    < me.count_in_deck("Snowy Village") + me.count_in_deck("Inn") + me.count_in_deck("Acting Troupe"),
                 ),
             ),
             PriorityRule(
@@ -117,7 +118,9 @@ class TorturerEngine(EnhancedStrategy):
         self.action_priority = [
             PriorityRule("Acting Troupe"),  # +4 actions
             PriorityRule("Patrician"),  # +1 card +1 action
-            PriorityRule("Snowy Village", PriorityRule.resources("actions", "<=", 1)),  # +1 card +3 actions when extra actions needed
+            PriorityRule(
+                "Snowy Village", PriorityRule.resources("actions", "<=", 1)
+            ),  # +1 card +3 actions when extra actions needed
             PriorityRule("Inn"),  # +2 cards +2 actions
             PriorityRule("Patrol"),  # +3 cards
             PriorityRule("Taskmaster"),  # Play other actions multiple times
