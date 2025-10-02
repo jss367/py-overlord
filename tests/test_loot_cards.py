@@ -33,3 +33,20 @@ def test_shield_blocks_witch_attack():
     state.handle_action_phase()
 
     assert not any(c.name == "Curse" for c in p2.discard)
+
+
+def test_jewels_returns_to_bottom_of_deck_after_duration():
+    state = GameState(players=[])
+    state.initialize_game([ChooseFirstActionAI()], [get_card("Village")])
+
+    player = state.players[0]
+    jewels = get_card("Jewels")
+    existing = [get_card("Copper"), get_card("Estate")]
+
+    player.deck = existing.copy()
+    player.duration = [jewels]
+
+    jewels.on_duration(state)
+
+    assert jewels not in player.duration
+    assert player.deck == existing + [jewels]
