@@ -14,6 +14,9 @@ class Trickster(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
+        player.trickster_uses_remaining = getattr(
+            player, "trickster_uses_remaining", 0
+        ) + 1
         for other in game_state.players:
             if other is player:
                 continue

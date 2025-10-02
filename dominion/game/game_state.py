@@ -573,11 +573,38 @@ class GameState:
         in_play_cards = list(player.in_play)
         player.in_play = []
         durations_to_keep = set(player.duration + player.multiplied_durations)
+
+        trickster_selected: list[Card] = []
+        trickster_uses = getattr(player, "trickster_uses_remaining", 0)
+        if trickster_uses > 0:
+            treasures_in_play = [card for card in in_play_cards if card.is_treasure]
+            if treasures_in_play:
+                max_set_aside = min(trickster_uses, len(treasures_in_play))
+                chosen = player.ai.choose_treasures_to_set_aside_with_trickster(
+                    self, player, list(treasures_in_play), max_set_aside
+                )
+                remaining_choices = list(treasures_in_play)
+                for card in chosen:
+                    if card in remaining_choices and card in in_play_cards:
+                        remaining_choices.remove(card)
+                        in_play_cards.remove(card)
+                        trickster_selected.append(card)
+                if trickster_selected:
+                    player.trickster_set_aside.extend(trickster_selected)
+                    player.trickster_uses_remaining = max(
+                        0, player.trickster_uses_remaining - len(trickster_selected)
+                    )
+
         for card in in_play_cards:
             if card in durations_to_keep:
                 player.in_play.append(card)
             else:
                 self.discard_card(player, card, from_cleanup=True)
+
+        if player.trickster_set_aside:
+            player.hand.extend(player.trickster_set_aside)
+            player.trickster_set_aside = []
+        player.trickster_uses_remaining = 0
 
         # Draw new hand
         player.draw_cards(5)
