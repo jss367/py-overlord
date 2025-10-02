@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from dominion.cards.base_card import Card
-from dominion.cards.registry import get_card
+from dominion.cards.registry import get_all_card_names, get_card
 from dominion.cards.split_pile import SplitPileMixin
 from dominion.game.player_state import PlayerState
 
@@ -12,6 +12,7 @@ from dominion.game.player_state import PlayerState
 class GameState:
     players: list[PlayerState]
     supply: dict[str, int] = field(default_factory=dict)
+    black_market_deck: list[str] = field(default_factory=list)
     trash: list[Card] = field(default_factory=list)
     events: list = field(default_factory=list)
     projects: list = field(default_factory=list)
@@ -156,6 +157,33 @@ class GameState:
             self.trade_route_tokens_on_piles = {}
             self.trade_route_mat_tokens = 0
 
+        if any(card.name == "Black Market" for card in kingdom_cards):
+            self._prepare_black_market_deck(kingdom_cards)
+        else:
+            self.black_market_deck = []
+
+    def _prepare_black_market_deck(self, kingdom_cards: list[Card]) -> None:
+        """Build and shuffle the Black Market deck for this game."""
+
+        supply_names = set(self.supply.keys())
+        deck: list[str] = []
+        for name in get_all_card_names():
+            if name in supply_names:
+                continue
+            try:
+                card = get_card(name)
+            except ValueError:
+                continue
+            if getattr(card, "is_event", False) or getattr(card, "is_project", False):
+                continue
+            if card.name in {"Copper", "Silver", "Gold", "Estate", "Duchy", "Province", "Curse", "Platinum", "Colony"}:
+                continue
+            if card.name in {"Horse", "Spoils", "Ruins"}:
+                continue
+            deck.append(card.name)
+        random.shuffle(deck)
+        self.black_market_deck = deck
+
         self.log_callback(f"Supply initialized: {self.supply}")
 
     @property
@@ -196,6 +224,7 @@ class GameState:
         player.groundskeeper_bonus = 0
         player.crossroads_played = 0
         player.fools_gold_played = 0
+        player.walled_villages_played = 0
         player.actions_gained_this_turn = 0
         player.cauldron_triggered = False
         player.cards_gained_this_turn = 0
@@ -672,6 +701,11 @@ class GameState:
         for card in in_play_cards:
             if card in durations_to_keep:
                 player.in_play.append(card)
+            elif (
+                card.name == "Walled Village"
+                and getattr(player, "walled_villages_played", 0) <= 1
+            ):
+                player.deck.insert(0, card)
             else:
                 if card.name == "Capital":
                     player.debt += 6
