@@ -54,6 +54,7 @@ class PlayerState:
     cauldron_triggered: bool = False
     trickster_uses_remaining: int = 0
     trickster_set_aside: list[Card] = field(default_factory=list)
+    charm_next_buy_copies: int = 0
 
     # Turn tracking
     turns_taken: int = 0
@@ -127,6 +128,7 @@ class PlayerState:
         self.cauldron_triggered = False
         self.trickster_uses_remaining = 0
         self.trickster_set_aside = []
+        self.charm_next_buy_copies = 0
         self.turns_taken = 0
         self.actions_played = 0
         self.actions_this_turn = 0

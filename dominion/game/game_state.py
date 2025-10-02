@@ -208,6 +208,7 @@ class GameState:
         player.coins_spent_this_turn = 0
         player.banned_buys = []
         player.topdeck_gains = False
+        player.charm_next_buy_copies = 0
         player.cannot_buy_actions = False
         player.envious_effect_active = False
 
@@ -479,6 +480,15 @@ class GameState:
                     player.coin_tokens += player.merchant_guilds_played
 
                 self._trigger_haggler_bonus(player, choice)
+
+                if getattr(player, "charm_next_buy_copies", 0):
+                    copies_to_gain = min(
+                        player.charm_next_buy_copies, self.supply.get(choice.name, 0)
+                    )
+                    for _ in range(copies_to_gain):
+                        self.supply[choice.name] -= 1
+                        self.gain_card(player, get_card(choice.name))
+                    player.charm_next_buy_copies = 0
 
         self.phase = "cleanup"
 

@@ -9,6 +9,7 @@ Mastermind
 Paddock
 Wealthy village
 
-Money: Colonies and Platnium
+Colony
+Platinum
 
 Project: Sewers

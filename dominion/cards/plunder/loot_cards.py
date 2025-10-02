@@ -91,15 +91,23 @@ class Hammer(Loot):
         player = game_state.current_player
         from ..registry import get_card
 
-        affordable = [
-            name
-            for name, count in game_state.supply.items()
-            if count > 0 and get_card(name).cost.coins <= 4
-        ]
-        if affordable:
-            gain = get_card(affordable[0])
-            game_state.supply[gain.name] -= 1
-            game_state.gain_card(player, gain)
+        affordable_cards = []
+        for name, count in game_state.supply.items():
+            if count <= 0:
+                continue
+            card = get_card(name)
+            if card.cost.coins <= 4:
+                affordable_cards.append(card)
+
+        if not affordable_cards:
+            return
+
+        gain = player.ai.choose_buy(game_state, affordable_cards + [None])
+        if gain not in affordable_cards:
+            gain = affordable_cards[0]
+
+        game_state.supply[gain.name] -= 1
+        game_state.gain_card(player, gain)
 
 
 class Insignia(Loot):
@@ -257,9 +265,34 @@ class Sword(Loot):
         player = game_state.current_player
 
         def discard_to_four(target):
-            while len(target.hand) > 4:
-                discard = target.hand.pop(0)
-                game_state.discard_card(target, discard)
+            if len(target.hand) <= 4:
+                return
+
+            discard_count = len(target.hand) - 4
+            choices = list(target.hand)
+            selected = target.ai.choose_cards_to_discard(
+                game_state,
+                target,
+                choices,
+                discard_count,
+                reason="sword",
+            )
+
+            remaining_choices = list(choices)
+            selected_cards = []
+
+            for card in selected:
+                if card in remaining_choices:
+                    remaining_choices.remove(card)
+                    selected_cards.append(card)
+
+            while len(selected_cards) < discard_count and remaining_choices:
+                selected_cards.append(remaining_choices.pop(0))
+
+            for card in selected_cards:
+                if card in target.hand:
+                    target.hand.remove(card)
+                    game_state.discard_card(target, card)
 
         for other in game_state.players:
             if other is player:
