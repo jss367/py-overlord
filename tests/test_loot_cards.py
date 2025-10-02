@@ -33,3 +33,55 @@ def test_shield_blocks_witch_attack():
     state.handle_action_phase()
 
     assert not any(c.name == "Curse" for c in p2.discard)
+
+
+def test_puzzle_box_sets_aside_non_action_and_returns_next_turn():
+    class DelayCopperAI(ChooseFirstActionAI):
+        def __init__(self):
+            super().__init__()
+            self._puzzle_played = False
+
+        def choose_treasure(self, state, choices):
+            for card in choices:
+                if card is not None and card.name == "Puzzle Box" and not self._puzzle_played:
+                    self._puzzle_played = True
+                    return card
+            return None
+
+        def choose_card_to_delay(self, state, player, choices):
+            for card in choices:
+                if card.name == "Copper":
+                    return card
+            return None
+
+    ai = DelayCopperAI()
+    state = GameState(players=[])
+    state.initialize_game([ai], [get_card("Village")])
+
+    player = state.current_player
+    puzzle_box = get_card("Puzzle Box")
+    copper = get_card("Copper")
+
+    state.phase = "start"
+    state.handle_start_phase()
+
+    player.hand = [puzzle_box, copper]
+    player.deck = [get_card("Estate") for _ in range(5)]
+    player.discard = []
+
+    state.phase = "treasure"
+    state.handle_treasure_phase()
+
+    assert copper not in player.hand
+    assert copper in player.delayed_cards
+
+    state.handle_buy_phase()
+    state.handle_cleanup_phase()
+
+    assert copper not in player.hand
+    assert copper in player.delayed_cards
+
+    state.handle_start_phase()
+
+    assert copper in player.hand
+    assert copper not in player.delayed_cards
