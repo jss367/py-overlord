@@ -11,4 +11,9 @@ class Colony(Card):
         )
 
     def starting_supply(self, game_state) -> int:
-        return 12
+        n_players = len(game_state.players)
+        if n_players <= 2:
+            return 8
+        if n_players <= 4:
+            return 12
+        return 12 + 3 * (n_players - 4)

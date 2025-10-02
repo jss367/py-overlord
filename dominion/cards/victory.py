@@ -37,9 +37,10 @@ class Province(Card):
         n_players = len(game_state.players)
         if n_players <= 2:
             return 8
-        elif n_players <= 4:
+        if n_players <= 4:
             return 12
-        return 15
+        # Official rules add three Provinces for each player beyond four
+        return 12 + 3 * (n_players - 4)
 
 
 class Curse(Card):
@@ -47,4 +48,7 @@ class Curse(Card):
         super().__init__(name="Curse", cost=CardCost(coins=0), stats=CardStats(vp=-1), types=[CardType.CURSE])
 
     def starting_supply(self, game_state) -> int:
-        return 10 * (len(game_state.players) - 1)
+        n_players = len(game_state.players)
+        if n_players <= 1:
+            return 10
+        return 10 * (n_players - 1)

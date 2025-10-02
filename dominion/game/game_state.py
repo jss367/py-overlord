@@ -116,14 +116,24 @@ class GameState:
     def setup_supply(self, kingdom_cards: list[Card]):
         """Set up the initial supply piles."""
         # Add basic cards with proper counts
+        copper_card = get_card("Copper")
+        silver_card = get_card("Silver")
+        gold_card = get_card("Gold")
+        estate_card = get_card("Estate")
+        duchy_card = get_card("Duchy")
+        province_card = get_card("Province")
+        curse_card = get_card("Curse")
+
+        copper_supply = copper_card.starting_supply(self) - (7 * len(self.players))
+
         basic_cards = {
-            "Copper": 60 - (7 * len(self.players)),
-            "Silver": 40,
-            "Gold": 30,
-            "Estate": 12 if len(self.players) > 2 else 8,
-            "Duchy": 12 if len(self.players) > 2 else 8,
-            "Province": 12 if len(self.players) > 2 else 8,
-            "Curse": 10 * (len(self.players) - 1) if len(self.players) > 1 else 10,
+            "Copper": max(0, copper_supply),
+            "Silver": silver_card.starting_supply(self),
+            "Gold": gold_card.starting_supply(self),
+            "Estate": estate_card.starting_supply(self),
+            "Duchy": duchy_card.starting_supply(self),
+            "Province": province_card.starting_supply(self),
+            "Curse": max(0, curse_card.starting_supply(self)),
         }
 
         self.supply = dict(basic_cards)
