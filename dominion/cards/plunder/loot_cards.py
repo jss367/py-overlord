@@ -155,7 +155,9 @@ class PrizeGoat(Loot):
     def play_effect(self, game_state):
         player = game_state.current_player
         if player.hand:
-            card = player.ai.choose_card_to_trash(game_state, player.hand)
+            card = player.ai.choose_card_to_trash(
+                game_state, list(player.hand) + [None]
+            )
             if card:
                 player.hand.remove(card)
                 game_state.trash_card(player, card)
