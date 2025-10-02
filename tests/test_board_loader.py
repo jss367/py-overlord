@@ -69,3 +69,35 @@ def test_board_config_defaults():
     assert config.events == []
     assert config.projects == []
     assert config.ways == []
+
+
+def test_load_board_handles_prosperity_supply(tmp_path):
+    path = write_board(
+        tmp_path,
+        """
+        Bank
+        Grand Market
+        Colony
+        Platinum
+        """,
+    )
+
+    board = load_board(path)
+
+    assert board.kingdom_cards == [
+        "Bank",
+        "Grand Market",
+        "Colony",
+        "Platinum",
+    ]
+    assert board.events == []
+    assert board.projects == []
+    assert board.ways == []
+
+
+def test_wealthy_cities_board_lists_prosperity_supply():
+    board = load_board(Path("boards/wealthy_cities.txt"))
+
+    assert "Colony" in board.kingdom_cards
+    assert "Platinum" in board.kingdom_cards
+    assert all("Money:" not in entry for entry in board.kingdom_cards)
