@@ -145,6 +145,13 @@ class AI(ABC):
 
         return False
 
+    def should_topdeck_with_insignia(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """Decide whether to topdeck a card gained while Insignia is active."""
+
+        return False
+
     def order_cards_for_topdeck(
         self, state: GameState, player: PlayerState, cards: list[Card]
     ) -> list[Card]:

@@ -211,6 +211,7 @@ class GameState:
         player.charm_next_buy_copies = 0
         player.cannot_buy_actions = False
         player.envious_effect_active = False
+        player.insignia_active = False
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
@@ -665,6 +666,7 @@ class GameState:
             card for card in player.flagship_pending if card in player.duration
         ]
         player.highwayman_blocked_this_turn = False
+        player.insignia_active = False
 
         # Move to next player
         if not self.extra_turn:
@@ -887,10 +889,22 @@ class GameState:
                 break
 
         actual_card = reclaimed or card
-        destination_is_deck = to_deck or getattr(player, "topdeck_gains", False)
+        destination_is_deck = to_deck
 
         if not reclaimed:
-            actual_card = self._handle_trader_exchange(player, card, actual_card, destination_is_deck)
+            actual_card = self._handle_trader_exchange(
+                player, card, actual_card, destination_is_deck
+            )
+
+        if not destination_is_deck and getattr(player, "topdeck_gains", False):
+            destination_is_deck = True
+
+        if (
+            not destination_is_deck
+            and getattr(player, "insignia_active", False)
+            and player.ai.should_topdeck_with_insignia(self, player, actual_card)
+        ):
+            destination_is_deck = True
 
         if reclaimed and card.name in self.supply:
             # Caller already decremented the supply; restore it since the

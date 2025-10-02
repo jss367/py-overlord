@@ -72,6 +72,7 @@ class PlayerState:
     flagship_pending: list[Card] = field(default_factory=list)
     highwayman_attacks: int = 0
     highwayman_blocked_this_turn: bool = False
+    insignia_active: bool = False
 
     def initialize(self, use_shelters: bool = False):
         """Set up starting deck and draw initial hand.
@@ -144,6 +145,7 @@ class PlayerState:
         self.flagship_pending = []
         self.highwayman_attacks = 0
         self.highwayman_blocked_this_turn = False
+        self.insignia_active = False
         self.deluded = False
         self.envious = False
         self.misery = 0
