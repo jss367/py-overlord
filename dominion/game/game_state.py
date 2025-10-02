@@ -23,6 +23,7 @@ class GameState:
     copper_value: int = 1
     trade_route_tokens_on_piles: dict[str, bool] = field(default_factory=dict)
     trade_route_mat_tokens: int = 0
+    baker_in_supply: bool = False
     hex_deck: list[str] = field(default_factory=list)
     hex_discard: list[str] = field(default_factory=list)
       
@@ -94,6 +95,10 @@ class GameState:
         for player in self.players:
             player.initialize(use_shelters)
 
+        if self.baker_in_supply:
+            for player in self.players:
+                player.coin_tokens += 1
+
         # Create a more readable player list for logging
         player_descriptions = []
         for idx, player in enumerate(self.players, start=1):
@@ -121,6 +126,7 @@ class GameState:
         }
 
         self.supply = dict(basic_cards)
+        self.baker_in_supply = False
         # Add kingdom cards
         for card in kingdom_cards:
             self.supply[card.name] = card.starting_supply(self)
@@ -135,6 +141,9 @@ class GameState:
             for name, count in extras.items():
                 if name not in self.supply:
                     self.supply[name] = count
+
+            if card.name == "Baker":
+                self.baker_in_supply = True
 
         if any(card.name == "Trade Route" for card in kingdom_cards):
             self.trade_route_tokens_on_piles = {}
@@ -181,6 +190,7 @@ class GameState:
         player.ignore_action_bonuses = False
         player.collection_played = 0
         player.goons_played = 0
+        player.merchant_guilds_played = 0
         player.cost_reduction = 0
         player.innovation_used = False
         player.groundskeeper_bonus = 0
@@ -430,9 +440,14 @@ class GameState:
                 )
 
             cost = self.get_card_cost(player, choice)
+            coins_spent = min(player.coins, cost)
+            tokens_spent = max(0, cost - coins_spent)
+            remaining_coins = player.coins - coins_spent
+            remaining_tokens = player.coin_tokens - tokens_spent
             context = {
                 "cost": cost,
-                "remaining_coins": player.coins - cost,
+                "remaining_coins": remaining_coins,
+                "remaining_coin_tokens": remaining_tokens,
                 "remaining_buys": player.buys - 1,
             }
             self.log_callback(("action", player.ai.name, f"buys {choice}", context))
@@ -440,7 +455,8 @@ class GameState:
             player.bought_this_turn.append(choice.name)
             player.buys -= 1
             player.coins_spent_this_turn += cost
-            player.coins -= cost
+            player.coins -= coins_spent
+            player.coin_tokens -= tokens_spent
 
             if getattr(choice, "is_event", False):
                 choice.on_buy(self, player)
@@ -458,6 +474,9 @@ class GameState:
 
                 if player.goons_played:
                     player.vp_tokens += player.goons_played
+
+                if getattr(player, "merchant_guilds_played", 0) and not getattr(choice, "is_event", False):
+                    player.coin_tokens += player.merchant_guilds_played
 
                 self._trigger_haggler_bonus(player, choice)
 
@@ -482,12 +501,14 @@ class GameState:
     def _get_affordable_cards(self, player):
         """Helper to get list of affordable cards, events and projects."""
         affordable = []
+        available_coins = player.coins + player.coin_tokens
+
         for card_name, count in self.supply.items():
             if count > 0:
                 card = get_card(card_name)
                 cost = self.get_card_cost(player, card)
                 if (
-                    cost <= player.coins
+                    cost <= available_coins
                     and card.cost.potions <= player.potions
                     and card.may_be_bought(self)
                     and card_name not in player.banned_buys
@@ -497,7 +518,7 @@ class GameState:
 
         for event in self.events:
             if (
-                event.cost.coins <= player.coins
+                event.cost.coins <= available_coins
                 and event.cost.potions <= player.potions
                 and event.may_be_bought(self, player)
             ):
@@ -506,7 +527,7 @@ class GameState:
         for project in self.projects:
             if (
                 project not in player.projects
-                and project.cost.coins <= player.coins
+                and project.cost.coins <= available_coins
                 and project.cost.potions <= player.potions
                 and project.may_be_bought(self, player)
             ):
@@ -517,9 +538,12 @@ class GameState:
     def _complete_purchase(self, player, card):
         """Helper to complete a card purchase."""
         cost = self.get_card_cost(player, card)
+        coins_spent = min(player.coins, cost)
+        tokens_spent = max(0, cost - coins_spent)
         player.buys -= 1
         player.coins_spent_this_turn += cost
-        player.coins -= cost
+        player.coins -= coins_spent
+        player.coin_tokens -= tokens_spent
         player.potions -= card.cost.potions
         self.supply[card.name] -= 1
 
@@ -528,6 +552,9 @@ class GameState:
 
         if player.goons_played:
             player.vp_tokens += player.goons_played
+
+        if getattr(player, "merchant_guilds_played", 0):
+            player.coin_tokens += player.merchant_guilds_played
 
         self._trigger_haggler_bonus(player, card)
 
