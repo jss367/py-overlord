@@ -6,7 +6,7 @@ class Talisman(Card):
         super().__init__(
             name="Talisman",
             cost=CardCost(coins=4),
-            stats=CardStats(coins=1, buys=1),
+            stats=CardStats(coins=1),
             types=[CardType.TREASURE],
         )
 

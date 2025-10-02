@@ -6,7 +6,7 @@ class Quarry(Card):
         super().__init__(
             name="Quarry",
             cost=CardCost(coins=4),
-            stats=CardStats(coins=1, buys=1),
+            stats=CardStats(coins=1),
             types=[CardType.TREASURE],
         )
 
