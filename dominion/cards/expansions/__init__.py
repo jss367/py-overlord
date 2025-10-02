@@ -1,4 +1,19 @@
 from ..adventures.miser import Miser
+from ..cornucopia import (
+    Fairgrounds,
+    FarmingVillage,
+    FortuneTeller,
+    Hamlet,
+    Harvest,
+    HornOfPlenty,
+    HorseTraders,
+    HuntingParty,
+    Jester,
+    Menagerie,
+    Remake,
+    Tournament,
+    YoungWitch,
+)
 from ..empires import (
     Archive,
     BustlingVillage,
@@ -39,6 +54,21 @@ from ..dark_ages.shelters import Hovel, Necropolis, OvergrownEstate
 from ..allies.collection import Collection
 from ..allies.modify import Modify
 from ..promo.snowy_village import SnowyVillage
+from ..guilds import (
+    Advisor,
+    Baker,
+    Butcher,
+    CandlestickMaker,
+    Doctor,
+    Herald,
+    Journeyman,
+    Masterpiece,
+    MerchantGuild,
+    Plaza,
+    Soothsayer,
+    Stonemason,
+    Taxman,
+)
 from ..prosperity.bank import Bank
 from ..prosperity.bishop import Bishop
 from ..prosperity.city import City
@@ -129,6 +159,19 @@ from ..plunder import (
 )
 
 __all__ = [
+    'Fairgrounds',
+    'FarmingVillage',
+    'FortuneTeller',
+    'Hamlet',
+    'Harvest',
+    'HornOfPlenty',
+    'HorseTraders',
+    'HuntingParty',
+    'Jester',
+    'Menagerie',
+    'Remake',
+    'Tournament',
+    'YoungWitch',
     'Archive',
     'BustlingVillage',
     'Capital',
@@ -170,6 +213,19 @@ __all__ = [
     'Hovel',
     'Necropolis',
     'OvergrownEstate',
+    'Advisor',
+    'Baker',
+    'Butcher',
+    'CandlestickMaker',
+    'Doctor',
+    'Herald',
+    'Journeyman',
+    'Masterpiece',
+    'MerchantGuild',
+    'Plaza',
+    'Soothsayer',
+    'Stonemason',
+    'Taxman',
     'Bank',
     'Bishop',
     'City',

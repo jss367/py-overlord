@@ -2,6 +2,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Charm(Card):
+
     """Full implementation of Charm's flexible choices."""
 
     COIN_OPTION = "coins"
@@ -14,6 +15,7 @@ class Charm(Card):
             cost=CardCost(coins=5),
             stats=CardStats(buys=1),
             types=[CardType.ACTION],
+
         )
 
     def play_effect(self, game_state):
