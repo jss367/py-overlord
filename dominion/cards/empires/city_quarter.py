@@ -5,7 +5,7 @@ class CityQuarter(Card):
     def __init__(self):
         super().__init__(
             name="City Quarter",
-            cost=CardCost(coins=8),
+            cost=CardCost(debt=8),
             stats=CardStats(actions=2),
             types=[CardType.ACTION],
         )

@@ -2,7 +2,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Capital(Card):
-    """Simplified Capital Treasure that ignores debt effects."""
+    """Capital Treasure that imposes debt when it leaves play."""
 
     def __init__(self):
         super().__init__(

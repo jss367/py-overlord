@@ -15,6 +15,7 @@ class PlayerState:
     buys: int = 1
     coins: int = 0
     potions: int = 0
+    debt: int = 0
 
     # Card collections
     hand: list[Card] = field(default_factory=list)
@@ -106,6 +107,7 @@ class PlayerState:
         self.buys = 1
         self.coins = 0
         self.potions = 0
+        self.debt = 0
         self.vp_tokens = 0
         self.villagers = 0
         self.miser_coppers = 0

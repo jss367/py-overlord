@@ -413,7 +413,27 @@ class GameState:
         """Handle the buy phase of a turn."""
         player = self.current_player
 
-        while player.buys > 0:
+        while True:
+            if player.debt > 0:
+                if player.coins > 0:
+                    paid = min(player.debt, player.coins)
+                    player.coins -= paid
+                    player.coins_spent_this_turn += paid
+                    player.debt -= paid
+                    context = {
+                        "paid_debt": paid,
+                        "remaining_debt": player.debt,
+                        "remaining_coins": player.coins,
+                    }
+                    self.log_callback(
+                        ("action", player.ai.name, f"pays {paid} Debt", context)
+                    )
+                    continue
+                break
+
+            if player.buys <= 0:
+                break
+
             affordable = [c for c in self._get_affordable_cards(player) if c is not None]
 
             if not affordable:
@@ -441,6 +461,7 @@ class GameState:
             player.buys -= 1
             player.coins_spent_this_turn += cost
             player.coins -= cost
+            player.potions -= choice.cost.potions
 
             if getattr(choice, "is_event", False):
                 choice.on_buy(self, player)
@@ -460,6 +481,9 @@ class GameState:
                     player.vp_tokens += player.goons_played
 
                 self._trigger_haggler_bonus(player, choice)
+
+            if choice.cost.debt:
+                player.debt += choice.cost.debt
 
         self.phase = "cleanup"
 
@@ -481,6 +505,10 @@ class GameState:
 
     def _get_affordable_cards(self, player):
         """Helper to get list of affordable cards, events and projects."""
+
+        if player.debt > 0:
+            return []
+
         affordable = []
         for card_name, count in self.supply.items():
             if count > 0:
@@ -521,6 +549,8 @@ class GameState:
         player.coins_spent_this_turn += cost
         player.coins -= cost
         player.potions -= card.cost.potions
+        if card.cost.debt:
+            player.debt += card.cost.debt
         self.supply[card.name] -= 1
 
         card.on_buy(self)
@@ -599,6 +629,15 @@ class GameState:
             if card in durations_to_keep:
                 player.in_play.append(card)
             else:
+                if card.name == "Capital":
+                    player.debt += 6
+                    context = {
+                        "gained_debt": 6,
+                        "total_debt": player.debt,
+                    }
+                    self.log_callback(
+                        ("action", player.ai.name, "gains 6 Debt from Capital", context)
+                    )
                 self.discard_card(player, card, from_cleanup=True)
 
         if player.trickster_set_aside:
