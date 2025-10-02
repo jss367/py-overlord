@@ -182,7 +182,7 @@ class PuzzleBox(Loot):
         player = game_state.current_player
         if not player.hand:
             return
-        choice = player.ai.choose_action(game_state, player.hand + [None])
+        choice = player.ai.choose_card_to_delay(game_state, player, list(player.hand))
         if choice:
             player.hand.remove(choice)
             player.delayed_cards.append(choice)
