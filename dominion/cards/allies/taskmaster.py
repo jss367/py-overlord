@@ -17,8 +17,14 @@ class Taskmaster(Card):
 
     def on_duration(self, game_state):
         player = game_state.current_player
+
+        if not getattr(player, "gained_five_last_turn", False):
+            self.duration_persistent = False
+            return
+
         if not player.ignore_action_bonuses:
             player.actions += 1
         player.coins += 1
 
-        self.duration_persistent = getattr(player, "gained_five_last_turn", False)
+        # Keep Taskmaster in play to potentially trigger again next turn.
+        self.duration_persistent = True
