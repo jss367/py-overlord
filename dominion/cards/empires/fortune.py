@@ -5,7 +5,7 @@ class Fortune(Card):
     def __init__(self):
         super().__init__(
             name="Fortune",
-            cost=CardCost(coins=8),
+            cost=CardCost(debt=8),
             stats=CardStats(buys=1),
             types=[CardType.TREASURE],
         )

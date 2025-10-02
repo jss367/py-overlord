@@ -2,6 +2,7 @@ from typing import Type
 
 from dominion.cards.base_card import Card
 from dominion.cards.base_set import (
+    Adventurer,
     Chapel,
     CouncilRoom,
     Festival,
@@ -9,9 +10,13 @@ from dominion.cards.base_set import (
     Laboratory,
     Library,
     Market,
+    Militia,
     Mine,
     Moat,
+    Remodel,
+    Sentry,
     Smithy,
+    ThroneRoom,
     Village,
     Witch,
     Workshop,
@@ -177,6 +182,7 @@ from dominion.cards.intrigue import (
     Conspirator,
     Ironworks,
     Pawn,
+    Steward,
 )
 from dominion.cards.plunder import Barbarian, FirstMate, Flagship, Highwayman, Trickster
 from dominion.cards.dark_ages import Armory, Count, Ironmonger, Marauder, PoorHouse, Spoils, Ruins
@@ -201,11 +207,13 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Curse": Curse,
     "Gardens": Gardens,
     # Action cards
+    "Adventurer": Adventurer,
     "Village": Village,
     "Smithy": Smithy,
     "Market": Market,
     "Festival": Festival,
     "Laboratory": Laboratory,
+    "Militia": Militia,
     "Mine": Mine,
     "Witch": Witch,
     "Moat": Moat,
@@ -214,6 +222,10 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Council Room": CouncilRoom,
     "Council room": CouncilRoom,
     "Library": Library,
+    "Remodel": Remodel,
+    "Sentry": Sentry,
+    "Throne Room": ThroneRoom,
+    "Throne room": ThroneRoom,
     # Expansion cards
     "Advisor": Advisor,
     "Baker": Baker,
@@ -380,6 +392,7 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Conspirator": Conspirator,
     "Ironworks": Ironworks,
     "Pawn": Pawn,
+    "Steward": Steward,
     "Bazaar": Bazaar,
     "Trading Post": TradingPost,
     "Trading post": TradingPost,

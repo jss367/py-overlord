@@ -208,8 +208,10 @@ class GameState:
         player.coins_spent_this_turn = 0
         player.banned_buys = []
         player.topdeck_gains = False
+        player.charm_next_buy_copies = 0
         player.cannot_buy_actions = False
         player.envious_effect_active = False
+        player.insignia_active = False
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
@@ -424,7 +426,27 @@ class GameState:
         """Handle the buy phase of a turn."""
         player = self.current_player
 
-        while player.buys > 0:
+        while True:
+            if player.debt > 0:
+                if player.coins > 0:
+                    paid = min(player.debt, player.coins)
+                    player.coins -= paid
+                    player.coins_spent_this_turn += paid
+                    player.debt -= paid
+                    context = {
+                        "paid_debt": paid,
+                        "remaining_debt": player.debt,
+                        "remaining_coins": player.coins,
+                    }
+                    self.log_callback(
+                        ("action", player.ai.name, f"pays {paid} Debt", context)
+                    )
+                    continue
+                break
+
+            if player.buys <= 0:
+                break
+
             affordable = [c for c in self._get_affordable_cards(player) if c is not None]
 
             if not affordable:
@@ -456,8 +478,12 @@ class GameState:
             player.bought_this_turn.append(choice.name)
             player.buys -= 1
             player.coins_spent_this_turn += cost
+
+            player.potions -= choice.cost.potions
+
             player.coins -= coins_spent
             player.coin_tokens -= tokens_spent
+
 
             if getattr(choice, "is_event", False):
                 choice.on_buy(self, player)
@@ -481,6 +507,20 @@ class GameState:
 
                 self._trigger_haggler_bonus(player, choice)
 
+
+            if choice.cost.debt:
+                player.debt += choice.cost.debt
+
+            if getattr(player, "charm_next_buy_copies", 0):
+                copies_to_gain = min(
+                    player.charm_next_buy_copies, self.supply.get(choice.name, 0)
+                )
+                for _ in range(copies_to_gain):
+                    self.supply[choice.name] -= 1
+                    self.gain_card(player, get_card(choice.name))
+                player.charm_next_buy_copies = 0
+
+
         self.phase = "cleanup"
 
     def get_card_cost(self, player: PlayerState, card: Card) -> int:
@@ -501,6 +541,10 @@ class GameState:
 
     def _get_affordable_cards(self, player):
         """Helper to get list of affordable cards, events and projects."""
+
+        if player.debt > 0:
+            return []
+
         affordable = []
         available_coins = player.coins + player.coin_tokens
 
@@ -546,6 +590,8 @@ class GameState:
         player.coins -= coins_spent
         player.coin_tokens -= tokens_spent
         player.potions -= card.cost.potions
+        if card.cost.debt:
+            player.debt += card.cost.debt
         self.supply[card.name] -= 1
 
         card.on_buy(self)
@@ -627,6 +673,15 @@ class GameState:
             if card in durations_to_keep:
                 player.in_play.append(card)
             else:
+                if card.name == "Capital":
+                    player.debt += 6
+                    context = {
+                        "gained_debt": 6,
+                        "total_debt": player.debt,
+                    }
+                    self.log_callback(
+                        ("action", player.ai.name, "gains 6 Debt from Capital", context)
+                    )
                 self.discard_card(player, card, from_cleanup=True)
 
         if player.trickster_set_aside:
@@ -657,6 +712,7 @@ class GameState:
             card for card in player.flagship_pending if card in player.duration
         ]
         player.highwayman_blocked_this_turn = False
+        player.insignia_active = False
 
         # Move to next player
         if not self.extra_turn:
@@ -879,10 +935,22 @@ class GameState:
                 break
 
         actual_card = reclaimed or card
-        destination_is_deck = to_deck or getattr(player, "topdeck_gains", False)
+        destination_is_deck = to_deck
 
         if not reclaimed:
-            actual_card = self._handle_trader_exchange(player, card, actual_card, destination_is_deck)
+            actual_card = self._handle_trader_exchange(
+                player, card, actual_card, destination_is_deck
+            )
+
+        if not destination_is_deck and getattr(player, "topdeck_gains", False):
+            destination_is_deck = True
+
+        if (
+            not destination_is_deck
+            and getattr(player, "insignia_active", False)
+            and player.ai.should_topdeck_with_insignia(self, player, actual_card)
+        ):
+            destination_is_deck = True
 
         if reclaimed and card.name in self.supply:
             # Caller already decremented the supply; restore it since the
