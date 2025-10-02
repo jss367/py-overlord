@@ -14,6 +14,7 @@ class PlayerState:
     actions: int = 1
     buys: int = 1
     coins: int = 0
+    coin_tokens: int = 0
     potions: int = 0
 
     # Card collections
@@ -42,6 +43,7 @@ class PlayerState:
     ignore_action_bonuses: bool = False
     collection_played: int = 0
     goons_played: int = 0
+    merchant_guilds_played: int = 0
     cost_reduction: int = 0
     innovation_used: bool = False
     journey_token_face_up: bool = True
@@ -105,6 +107,7 @@ class PlayerState:
         self.actions = 1
         self.buys = 1
         self.coins = 0
+        self.coin_tokens = 0
         self.potions = 0
         self.vp_tokens = 0
         self.villagers = 0
@@ -113,6 +116,7 @@ class PlayerState:
         self.ignore_action_bonuses = False
         self.collection_played = 0
         self.goons_played = 0
+        self.merchant_guilds_played = 0
         self.cost_reduction = 0
         self.innovation_used = False
         self.journey_token_face_up = True

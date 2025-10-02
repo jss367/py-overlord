@@ -39,6 +39,21 @@ from ..dark_ages.shelters import Hovel, Necropolis, OvergrownEstate
 from ..allies.collection import Collection
 from ..allies.modify import Modify
 from ..promo.snowy_village import SnowyVillage
+from ..guilds import (
+    Advisor,
+    Baker,
+    Butcher,
+    CandlestickMaker,
+    Doctor,
+    Herald,
+    Journeyman,
+    Masterpiece,
+    MerchantGuild,
+    Plaza,
+    Soothsayer,
+    Stonemason,
+    Taxman,
+)
 from ..prosperity.bank import Bank
 from ..prosperity.bishop import Bishop
 from ..prosperity.city import City
@@ -170,6 +185,19 @@ __all__ = [
     'Hovel',
     'Necropolis',
     'OvergrownEstate',
+    'Advisor',
+    'Baker',
+    'Butcher',
+    'CandlestickMaker',
+    'Doctor',
+    'Herald',
+    'Journeyman',
+    'Masterpiece',
+    'MerchantGuild',
+    'Plaza',
+    'Soothsayer',
+    'Stonemason',
+    'Taxman',
     'Bank',
     'Bishop',
     'City',
