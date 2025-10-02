@@ -91,15 +91,23 @@ class Hammer(Loot):
         player = game_state.current_player
         from ..registry import get_card
 
-        affordable = [
-            name
-            for name, count in game_state.supply.items()
-            if count > 0 and get_card(name).cost.coins <= 4
-        ]
-        if affordable:
-            gain = get_card(affordable[0])
-            game_state.supply[gain.name] -= 1
-            game_state.gain_card(player, gain)
+        affordable_cards = []
+        for name, count in game_state.supply.items():
+            if count <= 0:
+                continue
+            card = get_card(name)
+            if card.cost.coins <= 4:
+                affordable_cards.append(card)
+
+        if not affordable_cards:
+            return
+
+        gain = player.ai.choose_buy(game_state, affordable_cards + [None])
+        if gain not in affordable_cards:
+            gain = affordable_cards[0]
+
+        game_state.supply[gain.name] -= 1
+        game_state.gain_card(player, gain)
 
 
 class Insignia(Loot):
