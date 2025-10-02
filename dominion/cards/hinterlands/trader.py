@@ -20,7 +20,7 @@ class Trader(Card):
         super().__init__(
             name="Trader",
             cost=CardCost(coins=4),
-            stats=CardStats(actions=1, cards=1),
+            stats=CardStats(),
             types=[CardType.ACTION, CardType.REACTION],
         )
 

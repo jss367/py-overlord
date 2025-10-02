@@ -11,6 +11,8 @@ class Watchtower(Card):
         )
 
     def play_effect(self, game_state):
+        """Draw until the current player has six cards in hand."""
+
         player = game_state.current_player
         while len(player.hand) < 6:
             game_state.draw_cards(player, 1)

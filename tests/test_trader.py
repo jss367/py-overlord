@@ -43,17 +43,21 @@ def test_trader_trashes_and_gains_silvers():
     trader_card = get_card("Trader")
     duchy = get_card("Duchy")
     player.hand = [trader_card, duchy]
+    player.deck = [get_card("Copper")]
+    player.actions = 0
     player.cost_reduction = 1
 
     player.hand.remove(trader_card)
     player.in_play.append(trader_card)
 
-    trader_card.play_effect(state)
+    trader_card.on_play(state)
 
     assert all(card.name != "Duchy" for card in player.hand)
     assert any(card.name == "Duchy" for card in state.trash)
     silvers = [card for card in player.discard if card.name == "Silver"]
     assert len(silvers) == 4
+    assert player.actions == 0
+    assert player.deck and player.deck[-1].name == "Copper"
 
 
 def test_trader_reaction_exchanges_gain_for_silver():

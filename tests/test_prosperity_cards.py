@@ -51,6 +51,11 @@ class WatchtowerTrashAI(DummyAI):
         return "trash"
 
 
+class WatchtowerTopdeckAI(DummyAI):
+    def choose_watchtower_reaction(self, state, player, gained_card):
+        return "topdeck"
+
+
 class RoyalSealTopdeckAI(DummyAI):
     def should_topdeck_with_royal_seal(self, state, player, gained_card):
         return True
@@ -219,4 +224,23 @@ def test_watchtower_draws_to_six_and_can_trash_gains():
     state.gain_card(reactor, get_card("Estate"))
 
     assert any(card.name == "Estate" for card in state.trash)
+
+
+def test_watchtower_can_topdeck_gains():
+    gain_ai = DummyAI()
+    reaction_ai = WatchtowerTopdeckAI()
+
+    player = PlayerState(gain_ai)
+    reactor = PlayerState(reaction_ai)
+    state = GameState([player, reactor])
+    state.setup_supply([get_card("Watchtower"), get_card("Estate")])
+
+    reactor.hand = [get_card("Watchtower")]
+    estate = get_card("Estate")
+
+    state.supply["Estate"] -= 1
+    state.gain_card(reactor, estate)
+
+    assert reactor.deck and reactor.deck[-1].name == "Estate"
+    assert all(card.name != "Estate" for card in reactor.discard)
 
