@@ -36,6 +36,22 @@ def test_shield_blocks_witch_attack():
     assert not any(c.name == "Curse" for c in p2.discard)
 
 
+def test_jewels_returns_to_bottom_of_deck_after_duration():
+    state = GameState(players=[])
+    state.initialize_game([ChooseFirstActionAI()], [get_card("Village")])
+
+    player = state.players[0]
+    jewels = get_card("Jewels")
+    existing = [get_card("Copper"), get_card("Estate")]
+
+    player.deck = existing.copy()
+    player.duration = [jewels]
+
+    jewels.on_duration(state)
+
+    assert jewels not in player.duration
+    assert player.deck == existing + [jewels]
+
 def test_prize_goat_trash_and_decline():
     # Trashing scenario - AI trashes the first available card
     trashing_ai = TrashFirstAI()
@@ -99,3 +115,4 @@ def test_sword_attack_discards_low_value_cards_first():
     assert any(card.name == "Estate" for card in defender_state.discard)
     assert all(card.name != "Gold" for card in defender_state.discard)
     assert any(card.name == "Gold" for card in defender_state.hand)
+

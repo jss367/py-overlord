@@ -131,7 +131,7 @@ class Jewels(Loot):
         player = game_state.current_player
         if self in player.duration:
             player.duration.remove(self)
-        player.deck.insert(0, self)
+        player.deck.append(self)
 
 
 class Orb(Loot):
