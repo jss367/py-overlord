@@ -136,6 +136,13 @@ class AI(ABC):
 
         return False
 
+    def should_discard_deck_with_messenger(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Decide whether to discard the deck when playing Messenger."""
+
+        return False
+
     def order_cards_for_topdeck(
         self, state: GameState, player: PlayerState, cards: list[Card]
     ) -> list[Card]:

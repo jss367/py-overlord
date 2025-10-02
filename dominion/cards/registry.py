@@ -181,7 +181,7 @@ from dominion.cards.intrigue import (
 from dominion.cards.plunder import Barbarian, FirstMate, Flagship, Highwayman, Trickster
 from dominion.cards.dark_ages import Armory, Count, Ironmonger, Marauder, PoorHouse, Spoils, Ruins
 from dominion.cards.seaside import Bazaar, Lookout, NativeVillage, TradingPost, Wharf
-from dominion.cards.adventures import Artificer, Giant
+from dominion.cards.adventures import Artificer, Giant, Messenger
 from dominion.cards.nocturne import TragicHero
 from dominion.cards.menagerie import Destrier, Horse, Mastermind, Paddock
 
@@ -398,6 +398,7 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Ruins": Ruins,
     "Giant": Giant,
     "Artificer": Artificer,
+    "Messenger": Messenger,
     "Tragic Hero": TragicHero,
     "Horse": Horse,
     "Destrier": Destrier,
