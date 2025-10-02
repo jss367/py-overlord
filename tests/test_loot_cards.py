@@ -33,3 +33,30 @@ def test_shield_blocks_witch_attack():
     state.handle_action_phase()
 
     assert not any(c.name == "Curse" for c in p2.discard)
+
+
+def test_sword_attack_discards_low_value_cards_first():
+    attacker = ChooseFirstActionAI()
+    defender = ChooseFirstActionAI()
+    state = GameState(players=[])
+    state.initialize_game([attacker, defender], [get_card("Sword")])
+
+    sword = get_card("Sword")
+    gold = get_card("Gold")
+    province = get_card("Province")
+    silver = get_card("Silver")
+    estate = get_card("Estate")
+    copper = get_card("Copper")
+
+    attacker_state, defender_state = state.players
+    state.current_player_index = 0
+    attacker_state.hand = [sword]
+    defender_state.hand = [gold, province, silver, estate, copper]
+    defender_state.discard = []
+
+    sword.play_effect(state)
+
+    assert len(defender_state.hand) == 4
+    assert any(card.name == "Estate" for card in defender_state.discard)
+    assert all(card.name != "Gold" for card in defender_state.discard)
+    assert any(card.name == "Gold" for card in defender_state.hand)

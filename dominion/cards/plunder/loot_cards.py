@@ -263,9 +263,34 @@ class Sword(Loot):
         player = game_state.current_player
 
         def discard_to_four(target):
-            while len(target.hand) > 4:
-                discard = target.hand.pop(0)
-                game_state.discard_card(target, discard)
+            if len(target.hand) <= 4:
+                return
+
+            discard_count = len(target.hand) - 4
+            choices = list(target.hand)
+            selected = target.ai.choose_cards_to_discard(
+                game_state,
+                target,
+                choices,
+                discard_count,
+                reason="sword",
+            )
+
+            remaining_choices = list(choices)
+            selected_cards = []
+
+            for card in selected:
+                if card in remaining_choices:
+                    remaining_choices.remove(card)
+                    selected_cards.append(card)
+
+            while len(selected_cards) < discard_count and remaining_choices:
+                selected_cards.append(remaining_choices.pop(0))
+
+            for card in selected_cards:
+                if card in target.hand:
+                    target.hand.remove(card)
+                    game_state.discard_card(target, card)
 
         for other in game_state.players:
             if other is player:
