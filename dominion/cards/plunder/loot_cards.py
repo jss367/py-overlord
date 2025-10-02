@@ -107,7 +107,8 @@ class Insignia(Loot):
         super().__init__("Insignia", CardStats(coins=3))
 
     def play_effect(self, game_state):
-        game_state.current_player.topdeck_gains = True
+        player = game_state.current_player
+        player.insignia_active = True
 
 
 class Jewels(Loot):
