@@ -201,6 +201,21 @@ class AI(ABC):
 
         return max(treasures, key=lambda card: (card.cost.coins, card.name))
 
+    def choose_treasures_to_set_aside_with_trickster(
+        self,
+        state: GameState,
+        player: PlayerState,
+        treasures: list[Card],
+        max_count: int,
+    ) -> list[Card]:
+        """Select up to ``max_count`` treasures to keep with Trickster."""
+
+        if max_count <= 0 or not treasures:
+            return []
+
+        ordered = sorted(treasures, key=lambda card: (card.cost.coins, card.name), reverse=True)
+        return ordered[:max_count]
+
     def choose_tragic_hero_treasure(
         self, state: GameState, player: PlayerState, treasures: list[Card]
     ) -> Optional[Card]:

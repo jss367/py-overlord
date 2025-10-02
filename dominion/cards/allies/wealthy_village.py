@@ -23,7 +23,9 @@ class WealthyVillage(Card):
         if len(treasures) < 3:
             return
 
-        available = [name for name in LOOT_CARD_NAMES if game_state.supply.get(name, 10) >= 0]
+        available = [
+            name for name in LOOT_CARD_NAMES if game_state.supply.get(name, 0) > 0
+        ]
         if not available:
             return
 

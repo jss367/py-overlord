@@ -50,6 +50,8 @@ class PlayerState:
     fools_gold_played: int = 0
     actions_gained_this_turn: int = 0
     cauldron_triggered: bool = False
+    trickster_uses_remaining: int = 0
+    trickster_set_aside: list[Card] = field(default_factory=list)
 
     # Turn tracking
     turns_taken: int = 0
@@ -119,6 +121,8 @@ class PlayerState:
         self.fools_gold_played = 0
         self.actions_gained_this_turn = 0
         self.cauldron_triggered = False
+        self.trickster_uses_remaining = 0
+        self.trickster_set_aside = []
         self.turns_taken = 0
         self.actions_played = 0
         self.actions_this_turn = 0
