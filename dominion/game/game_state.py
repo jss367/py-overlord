@@ -571,6 +571,25 @@ class GameState:
 
         # Duration cards remain in play until their lingering effects finish.
         in_play_cards = list(player.in_play)
+        for card in list(in_play_cards):
+            if card.name != "Walled Village":
+                continue
+            other_actions = sum(1 for c in in_play_cards if c.is_action and c is not card)
+            if other_actions > 1:
+                continue
+            if not player.ai.should_topdeck_walled_village(self, player, card):
+                continue
+            in_play_cards.remove(card)
+            player.deck.insert(0, card)
+            self.log_callback(
+                (
+                    "action",
+                    player.ai.name,
+                    "topdecks Walled Village during cleanup",
+                    {"deck_size": len(player.deck)},
+                )
+            )
+
         player.in_play = []
         durations_to_keep = set(player.duration + player.multiplied_durations)
 
@@ -1119,6 +1138,9 @@ class GameState:
         attack_fn(target)
 
     def _player_blocks_attack(self, player: PlayerState) -> bool:
+        if getattr(player, "guardian_active", False):
+            self.log_callback(("action", player.ai.name, "is protected by Guardian", {}))
+            return True
         if self.player_has_shield(player):
             self.log_callback(("action", player.ai.name, "reveals Shield to block the attack", {}))
             return True

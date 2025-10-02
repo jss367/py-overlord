@@ -38,7 +38,21 @@ from ..dark_ages.rebuild import Rebuild
 from ..dark_ages.shelters import Hovel, Necropolis, OvergrownEstate
 from ..allies.collection import Collection
 from ..allies.modify import Modify
-from ..promo.snowy_village import SnowyVillage
+from ..promo import (
+    Avanto,
+    BlackMarket,
+    Captain,
+    Church,
+    Dismantle,
+    Envoy,
+    Governor,
+    Guardian,
+    Prince,
+    Sauna,
+    SnowyVillage,
+    Stash,
+    WalledVillage,
+)
 from ..prosperity.bank import Bank
 from ..prosperity.bishop import Bishop
 from ..prosperity.city import City
@@ -158,7 +172,19 @@ __all__ = [
     'Villa',
     'WildHunt',
     'Forager',
+    'Avanto',
+    'BlackMarket',
+    'Captain',
+    'Church',
+    'Dismantle',
+    'Envoy',
+    'Governor',
+    'Guardian',
+    'Prince',
+    'Sauna',
     'SnowyVillage',
+    'Stash',
+    'WalledVillage',
     'Miser',
     'Rats',
     'Skulk',

@@ -52,6 +52,7 @@ class PlayerState:
     cauldron_triggered: bool = False
     trickster_uses_remaining: int = 0
     trickster_set_aside: list[Card] = field(default_factory=list)
+    guardian_active: bool = False
 
     # Turn tracking
     turns_taken: int = 0
@@ -123,6 +124,7 @@ class PlayerState:
         self.cauldron_triggered = False
         self.trickster_uses_remaining = 0
         self.trickster_set_aside = []
+        self.guardian_active = False
         self.turns_taken = 0
         self.actions_played = 0
         self.actions_this_turn = 0
@@ -172,6 +174,16 @@ class PlayerState:
         self.deck = self.discard[:]
         random.shuffle(self.deck)
         self.discard = []
+
+        stashes = [card for card in self.deck if card.name == "Stash"]
+        if stashes:
+            remaining = [card for card in self.deck if card.name != "Stash"]
+            ordered = self.ai.place_stashes_after_shuffle(remaining, stashes)
+            expected_len = len(remaining) + len(stashes)
+            if len(ordered) == expected_len:
+                self.deck = ordered
+            else:
+                self.deck = list(stashes) + remaining
 
     def count_in_deck(self, card_name: str) -> int:
         """Count total copies of named card across all piles."""
