@@ -13,4 +13,5 @@ class Castle(Card):
         )
 
     def starting_supply(self, game_state) -> int:
-        return 8 if len(game_state.players) <= 2 else 12
+        # The Castles pile always contains the fixed stack of eight Castle cards
+        return 8
