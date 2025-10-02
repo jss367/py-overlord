@@ -79,7 +79,18 @@ from dominion.cards.expansions import (
     Stonemason,
     Skulk,
     YoungWitch,
+    Sauna,
+    Avanto,
+    BlackMarket,
+    Captain,
+    Church,
+    Dismantle,
+    Envoy,
+    Governor,
+    Prince,
     SnowyVillage,
+    Stash,
+    WalledVillage,
     Taxman,
     Temple,
     Villa,
@@ -251,6 +262,17 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Horse Traders": HorseTraders,
     "Hunting Party": HuntingParty,
     "Jester": Jester,
+    "Black Market": BlackMarket,
+    "Captain": Captain,
+    "Church": Church,
+    "Dismantle": Dismantle,
+    "Envoy": Envoy,
+    "Governor": Governor,
+    "Prince": Prince,
+    "Sauna": Sauna,
+    "Avanto": Avanto,
+    "Stash": Stash,
+    "Walled Village": WalledVillage,
     "Snowy Village": SnowyVillage,
     "Menagerie": Menagerie,
     "Miser": Miser,
@@ -425,3 +447,9 @@ def get_card(name: str) -> Card:
     if name not in CARD_TYPES:
         raise ValueError(f"Unknown card: {name}")
     return CARD_TYPES[name]()
+
+
+
+def get_all_card_names() -> list[str]:
+    """Return the names of all registered cards."""
+    return list(CARD_TYPES.keys())

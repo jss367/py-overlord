@@ -56,6 +56,7 @@ class PlayerState:
     trickster_uses_remaining: int = 0
     trickster_set_aside: list[Card] = field(default_factory=list)
     charm_next_buy_copies: int = 0
+    walled_villages_played: int = 0
 
     # Turn tracking
     turns_taken: int = 0
@@ -133,6 +134,7 @@ class PlayerState:
         self.trickster_uses_remaining = 0
         self.trickster_set_aside = []
         self.charm_next_buy_copies = 0
+        self.walled_villages_played = 0
         self.turns_taken = 0
         self.actions_played = 0
         self.actions_this_turn = 0
@@ -180,9 +182,11 @@ class PlayerState:
         return drawn
 
     def shuffle_discard_into_deck(self):
-        """Shuffle discard pile to create new deck."""
-        self.deck = self.discard[:]
-        random.shuffle(self.deck)
+        """Shuffle discard pile to create new deck, respecting Stash."""
+        stash_cards = [card for card in self.discard if card.name == "Stash"]
+        others = [card for card in self.discard if card.name != "Stash"]
+        random.shuffle(others)
+        self.deck = others + stash_cards
         self.discard = []
 
     def count_in_deck(self, card_name: str) -> int:

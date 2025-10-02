@@ -80,6 +80,92 @@ class AI(ABC):
 
         return selected
 
+    def choose_black_market_purchase(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Select a card to buy from the Black Market reveal, if any."""
+
+        affordable = [
+            card
+            for card in choices
+            if card.cost.potions <= player.potions
+            and card.cost.coins <= player.coins + player.coin_tokens
+        ]
+        if not affordable:
+            return None
+        return max(affordable, key=lambda card: (card.cost.coins, card.name))
+
+    def order_cards_for_black_market_bottom(
+        self, state: GameState, player: PlayerState, cards: list[Card]
+    ) -> list[Card]:
+        """Return the order to return unbought Black Market cards."""
+
+        return list(cards)
+
+    def choose_envoy_discard(
+        self, state: GameState, chooser: PlayerState, target: PlayerState, revealed: list[Card]
+    ) -> Optional[Card]:
+        """Select which card the next player should discard from Envoy."""
+
+        if not revealed:
+            return None
+        return max(revealed, key=lambda card: (card.cost.coins, card.stats.cards, card.name))
+
+    def choose_governor_option(
+        self, state: GameState, player: PlayerState, options: list[str]
+    ) -> str:
+        """Choose which Governor mode to use."""
+
+        if "upgrade" in options and any(card.name == "Curse" for card in player.hand):
+            return "upgrade"
+        if "gold" in options and state.supply.get("Gold", 0) > 0:
+            return "gold"
+        return options[0] if options else "cards"
+
+    def choose_prince_target(
+        self, state: GameState, player: PlayerState, choices: list[Optional[Card]]
+    ) -> Optional[Card]:
+        """Select which Action to set aside with Prince."""
+
+        actual_choices = [card for card in choices if card]
+        if not actual_choices:
+            return None
+        return min(actual_choices, key=lambda card: (card.cost.coins, card.name))
+
+    def should_play_avanto_from_sauna(self, state: GameState, player: PlayerState) -> bool:
+        """Decide whether to continue the Sauna/Avanto chain from Sauna."""
+
+        return True
+
+    def should_play_sauna_from_avanto(self, state: GameState, player: PlayerState) -> bool:
+        """Decide whether to continue the Sauna/Avanto chain from Avanto."""
+
+        return True
+
+    def choose_cards_to_set_aside_for_church(
+        self, state: GameState, player: PlayerState, choices: list[Card], max_count: int
+    ) -> list[Card]:
+        """Choose which cards to set aside when playing Church."""
+
+        if max_count <= 0:
+            return []
+        ordered = sorted(
+            choices, key=lambda card: (card.is_action, card.cost.coins, card.name)
+        )
+        return ordered[:max_count]
+
+    def choose_church_trash(
+        self, state: GameState, player: PlayerState
+    ) -> Optional[Card]:
+        """Choose which card to trash after resolving Church."""
+
+        priorities = ["Curse", "Estate", "Hovel", "Overgrown Estate", "Copper"]
+        for name in priorities:
+            for card in player.hand:
+                if card.name == name:
+                    return card
+        return None
+
     def choose_cards_to_discard(
         self,
         state: GameState,

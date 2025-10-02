@@ -53,7 +53,20 @@ from ..dark_ages.rebuild import Rebuild
 from ..dark_ages.shelters import Hovel, Necropolis, OvergrownEstate
 from ..allies.collection import Collection
 from ..allies.modify import Modify
-from ..promo.snowy_village import SnowyVillage
+from ..promo import (
+    Avanto,
+    BlackMarket,
+    Captain,
+    Church,
+    Dismantle,
+    Envoy,
+    Governor,
+    Prince,
+    Sauna,
+    SnowyVillage,
+    Stash,
+    WalledVillage,
+)
 from ..guilds import (
     Advisor,
     Baker,
