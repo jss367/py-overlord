@@ -89,3 +89,21 @@ def test_barbarian_trashes_and_replaces():
     barbarian.on_play(state)
     assert any(card.name == "Copper" for card in opponent.discard)
     assert any(card.name == "Silver" for card in state.trash)
+
+
+def test_barbarian_does_not_curse_without_valid_replacement():
+    state = make_state(num_players=2, kingdom=[get_card("Barbarian")])
+    player, opponent = state.players
+    opponent.deck = [get_card("Gold")]
+    opponent.discard = []
+    barbarian = get_card("Barbarian")
+
+    for name in ["Copper", "Silver", "Gold"]:
+        state.supply[name] = 0
+    state.supply["Curse"] = 10
+
+    barbarian.on_play(state)
+
+    assert not opponent.discard
+    assert state.supply["Curse"] == 10
+    assert any(card.name == "Gold" for card in state.trash)

@@ -31,7 +31,7 @@ class Barbarian(Card):
 
             if cost >= 3:
                 shared_types = set(revealed.types)
-                candidates = []
+                candidates: list[Card] = []
                 for name, count in game_state.supply.items():
                     if count <= 0:
                         continue
@@ -43,8 +43,6 @@ class Barbarian(Card):
                     gain = candidates[0]
                     game_state.supply[gain.name] -= 1
                     game_state.gain_card(target, gain)
-                else:
-                    game_state.give_curse_to_player(target)
             else:
                 game_state.give_curse_to_player(target)
 
