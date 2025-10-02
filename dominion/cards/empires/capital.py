@@ -2,7 +2,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Capital(Card):
-    """Simplified Capital that provides a burst of coins."""
+    """Simplified Capital Treasure that ignores debt effects."""
 
     def __init__(self):
         super().__init__(
@@ -13,5 +13,4 @@ class Capital(Card):
         )
 
     def play_effect(self, game_state):
-        # Debt mechanics are not modelled; no extra handling required.
         pass
