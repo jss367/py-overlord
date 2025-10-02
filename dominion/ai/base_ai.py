@@ -34,6 +34,15 @@ class AI(ABC):
         """Choose a card to trash from available choices."""
         pass
 
+    def choose_charm_option(self, state: GameState, player: PlayerState, options: list[str]) -> str:
+        """Select which of Charm's modes to use when played."""
+
+        if "gain" in options:
+            return "gain"
+        if "coins" in options:
+            return "coins"
+        return options[0] if options else "coins"
+
     def should_trash_engineer_for_extra_gains(
         self, state: GameState, player: PlayerState, engineer: Card
     ) -> bool:
@@ -155,6 +164,13 @@ class AI(ABC):
         self, state: GameState, player: PlayerState, gained_card: Card
     ) -> bool:
         """Decide whether to topdeck a gain thanks to Royal Seal."""
+
+        return False
+
+    def should_topdeck_with_insignia(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """Decide whether to topdeck a card gained while Insignia is active."""
 
         return False
 

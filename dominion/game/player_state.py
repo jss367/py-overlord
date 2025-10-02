@@ -54,6 +54,7 @@ class PlayerState:
     cauldron_triggered: bool = False
     trickster_uses_remaining: int = 0
     trickster_set_aside: list[Card] = field(default_factory=list)
+    charm_next_buy_copies: int = 0
 
     # Turn tracking
     turns_taken: int = 0
@@ -71,6 +72,7 @@ class PlayerState:
     flagship_pending: list[Card] = field(default_factory=list)
     highwayman_attacks: int = 0
     highwayman_blocked_this_turn: bool = False
+    insignia_active: bool = False
 
     def initialize(self, use_shelters: bool = False):
         """Set up starting deck and draw initial hand.
@@ -127,6 +129,7 @@ class PlayerState:
         self.cauldron_triggered = False
         self.trickster_uses_remaining = 0
         self.trickster_set_aside = []
+        self.charm_next_buy_copies = 0
         self.turns_taken = 0
         self.actions_played = 0
         self.actions_this_turn = 0
@@ -142,6 +145,7 @@ class PlayerState:
         self.flagship_pending = []
         self.highwayman_attacks = 0
         self.highwayman_blocked_this_turn = False
+        self.insignia_active = False
         self.deluded = False
         self.envious = False
         self.misery = 0
