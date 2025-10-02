@@ -1,3 +1,5 @@
+from collections import Counter
+
 from ..base_card import Card, CardCost, CardStats, CardType
 
 
@@ -191,16 +193,45 @@ class Sextant(Loot):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        peek = []
+        revealed_cards: list[Card] = []
         for _ in range(min(5, len(player.deck))):
-            peek.append(player.deck.pop())
-        to_keep = []
-        for card in peek:
-            if card.is_victory or card.name == "Curse":
-                game_state.discard_card(player, card)
-            else:
-                to_keep.append(card)
-        player.deck.extend(reversed(to_keep))
+            revealed_cards.append(player.deck.pop())
+
+        if not revealed_cards:
+            return
+
+        to_discard = player.ai.choose_cards_to_discard(
+            game_state,
+            player,
+            list(revealed_cards),
+            len(revealed_cards),
+            reason="sextant",
+        )
+        if not to_discard:
+            to_discard = []
+
+        remaining_cards = list(revealed_cards)
+        discarded_cards: list[Card] = []
+        for card in to_discard:
+            if card in remaining_cards and card not in discarded_cards:
+                remaining_cards.remove(card)
+                discarded_cards.append(card)
+
+        for card in discarded_cards:
+            game_state.discard_card(player, card)
+
+        if not remaining_cards:
+            return
+
+        ordered = player.ai.order_cards_for_topdeck(
+            game_state, player, list(remaining_cards)
+        )
+
+        if Counter(ordered) != Counter(remaining_cards):
+            ordered = remaining_cards
+
+        for card in reversed(ordered):
+            player.deck.append(card)
 
 
 class Shield(Loot):

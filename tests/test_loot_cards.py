@@ -1,3 +1,5 @@
+import pytest
+
 from dominion.cards.registry import get_card
 from dominion.cards.plunder import LOOT_CARD_NAMES
 from dominion.cards.base_card import CardType
@@ -35,6 +37,86 @@ def test_shield_blocks_witch_attack():
 
     assert not any(c.name == "Curse" for c in p2.discard)
 
+
+class SextantDecisionAI(ChooseFirstActionAI):
+    def __init__(self, discard_plan, order_plan):
+        super().__init__()
+        self.discard_plan = list(discard_plan)
+        self.order_plan = list(order_plan)
+
+    def choose_cards_to_discard(self, state, player, choices, count, *, reason=None):
+        available = list(choices)
+        selected = []
+        for name in self.discard_plan:
+            if len(selected) >= count:
+                break
+            for card in list(available):
+                if card.name == name:
+                    selected.append(card)
+                    available.remove(card)
+                    break
+        return selected
+
+    def order_cards_for_topdeck(self, state, player, cards):
+        ordered = []
+        remaining = list(cards)
+        for name in self.order_plan:
+            for card in list(remaining):
+                if card.name == name:
+                    ordered.append(card)
+                    remaining.remove(card)
+                    break
+        ordered.extend(remaining)
+        return ordered
+
+
+@pytest.mark.parametrize(
+    "discard_plan, order_plan, expected_deck, expected_discard",
+    [
+        (
+            [],
+            ["Estate", "Copper", "Gold", "Silver", "Duchy"],
+            ["Province", "Duchy", "Silver", "Gold", "Copper", "Estate"],
+            [],
+        ),
+        (
+            ["Gold", "Estate"],
+            ["Silver", "Copper", "Duchy"],
+            ["Province", "Duchy", "Copper", "Silver"],
+            ["Gold", "Estate"],
+        ),
+        (
+            ["Gold", "Duchy", "Silver", "Estate", "Copper"],
+            [],
+            ["Province"],
+            ["Gold", "Duchy", "Silver", "Estate", "Copper"],
+        ),
+    ],
+)
+def test_sextant_respects_ai_discard_and_order(
+    discard_plan, order_plan, expected_deck, expected_discard
+):
+    ai = SextantDecisionAI(discard_plan, order_plan)
+    state = GameState(players=[])
+    state.initialize_game([ai], [get_card("Sextant")])
+
+    player = state.players[0]
+    player.hand = []
+    player.discard = []
+    player.deck = [
+        get_card("Province"),
+        get_card("Copper"),
+        get_card("Estate"),
+        get_card("Silver"),
+        get_card("Duchy"),
+        get_card("Gold"),
+    ]
+
+    sextant = get_card("Sextant")
+    sextant.play_effect(state)
+
+    assert [card.name for card in player.deck] == expected_deck
+    assert [card.name for card in player.discard] == expected_discard
 
 def test_jewels_returns_to_bottom_of_deck_after_duration():
     state = GameState(players=[])
