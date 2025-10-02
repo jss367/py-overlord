@@ -34,6 +34,18 @@ class AI(ABC):
         """Choose a card to trash from available choices."""
         pass
 
+    def should_trash_engineer_for_extra_gains(
+        self, state: GameState, player: PlayerState, engineer: Card
+    ) -> bool:
+        """Decide whether to trash Engineer to gain two additional cards.
+
+        The default behaviour is conservative and keeps the Engineer in play,
+        ensuring existing AIs retain their previous behaviour unless they
+        explicitly opt in to the extra gains.
+        """
+
+        return False
+
     def should_reveal_moat(self, state: GameState, player: PlayerState) -> bool:
         """Decide whether to reveal Moat in response to an attack."""
 

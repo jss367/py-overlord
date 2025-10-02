@@ -1,4 +1,19 @@
 from ..adventures.miser import Miser
+from ..cornucopia import (
+    Fairgrounds,
+    FarmingVillage,
+    FortuneTeller,
+    Hamlet,
+    Harvest,
+    HornOfPlenty,
+    HorseTraders,
+    HuntingParty,
+    Jester,
+    Menagerie,
+    Remake,
+    Tournament,
+    YoungWitch,
+)
 from ..empires import (
     Archive,
     BustlingVillage,
@@ -144,6 +159,19 @@ from ..plunder import (
 )
 
 __all__ = [
+    'Fairgrounds',
+    'FarmingVillage',
+    'FortuneTeller',
+    'Hamlet',
+    'Harvest',
+    'HornOfPlenty',
+    'HorseTraders',
+    'HuntingParty',
+    'Jester',
+    'Menagerie',
+    'Remake',
+    'Tournament',
+    'YoungWitch',
     'Archive',
     'BustlingVillage',
     'Capital',
