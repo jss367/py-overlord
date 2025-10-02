@@ -14,7 +14,9 @@ class PlayerState:
     actions: int = 1
     buys: int = 1
     coins: int = 0
+    coin_tokens: int = 0
     potions: int = 0
+    debt: int = 0
 
     # Card collections
     hand: list[Card] = field(default_factory=list)
@@ -42,6 +44,7 @@ class PlayerState:
     ignore_action_bonuses: bool = False
     collection_played: int = 0
     goons_played: int = 0
+    merchant_guilds_played: int = 0
     cost_reduction: int = 0
     innovation_used: bool = False
     journey_token_face_up: bool = True
@@ -52,6 +55,7 @@ class PlayerState:
     cauldron_triggered: bool = False
     trickster_uses_remaining: int = 0
     trickster_set_aside: list[Card] = field(default_factory=list)
+    charm_next_buy_copies: int = 0
     guardian_active: bool = False
 
     # Turn tracking
@@ -70,6 +74,7 @@ class PlayerState:
     flagship_pending: list[Card] = field(default_factory=list)
     highwayman_attacks: int = 0
     highwayman_blocked_this_turn: bool = False
+    insignia_active: bool = False
 
     def initialize(self, use_shelters: bool = False):
         """Set up starting deck and draw initial hand.
@@ -106,7 +111,9 @@ class PlayerState:
         self.actions = 1
         self.buys = 1
         self.coins = 0
+        self.coin_tokens = 0
         self.potions = 0
+        self.debt = 0
         self.vp_tokens = 0
         self.villagers = 0
         self.miser_coppers = 0
@@ -114,6 +121,7 @@ class PlayerState:
         self.ignore_action_bonuses = False
         self.collection_played = 0
         self.goons_played = 0
+        self.merchant_guilds_played = 0
         self.cost_reduction = 0
         self.innovation_used = False
         self.journey_token_face_up = True
@@ -124,6 +132,7 @@ class PlayerState:
         self.cauldron_triggered = False
         self.trickster_uses_remaining = 0
         self.trickster_set_aside = []
+        self.charm_next_buy_copies = 0
         self.guardian_active = False
         self.turns_taken = 0
         self.actions_played = 0
@@ -140,6 +149,7 @@ class PlayerState:
         self.flagship_pending = []
         self.highwayman_attacks = 0
         self.highwayman_blocked_this_turn = False
+        self.insignia_active = False
         self.deluded = False
         self.envious = False
         self.misery = 0

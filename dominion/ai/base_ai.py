@@ -34,6 +34,27 @@ class AI(ABC):
         """Choose a card to trash from available choices."""
         pass
 
+    def choose_charm_option(self, state: GameState, player: PlayerState, options: list[str]) -> str:
+        """Select which of Charm's modes to use when played."""
+
+        if "gain" in options:
+            return "gain"
+        if "coins" in options:
+            return "coins"
+        return options[0] if options else "coins"
+
+    def should_trash_engineer_for_extra_gains(
+        self, state: GameState, player: PlayerState, engineer: Card
+    ) -> bool:
+        """Decide whether to trash Engineer to gain two additional cards.
+
+        The default behaviour is conservative and keeps the Engineer in play,
+        ensuring existing AIs retain their previous behaviour unless they
+        explicitly opt in to the extra gains.
+        """
+
+        return False
+
     def should_reveal_moat(self, state: GameState, player: PlayerState) -> bool:
         """Decide whether to reveal Moat in response to an attack."""
 
@@ -91,6 +112,28 @@ class AI(ABC):
         ordered = sorted(available, key=discard_priority)
         return ordered[: max(0, min(count, len(ordered)))]
 
+    def choose_card_to_delay(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Select a card to set aside for effects like Puzzle Box or Delay.
+
+        The default behaviour mirrors previous heuristics by preferring to set
+        aside an Action card if possible and otherwise opting out.
+        """
+
+        if not choices:
+            return None
+
+        action_choices = [card for card in choices if card.is_action]
+        if not action_choices:
+            return None
+
+        selection = self.choose_action(state, action_choices + [None])
+        if selection in action_choices:
+            return selection
+
+        return None
+
     def should_reveal_trader(self, state: GameState, player: PlayerState, gained_card: Card, *, to_deck: bool) -> bool:
         """Decide whether to reveal Trader to exchange a gain for Silver."""
 
@@ -121,6 +164,13 @@ class AI(ABC):
         self, state: GameState, player: PlayerState, gained_card: Card
     ) -> bool:
         """Decide whether to topdeck a gain thanks to Royal Seal."""
+
+        return False
+
+    def should_topdeck_with_insignia(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """Decide whether to topdeck a card gained while Insignia is active."""
 
         return False
 

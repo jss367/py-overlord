@@ -1,4 +1,19 @@
 from ..adventures.miser import Miser
+from ..cornucopia import (
+    Fairgrounds,
+    FarmingVillage,
+    FortuneTeller,
+    Hamlet,
+    Harvest,
+    HornOfPlenty,
+    HorseTraders,
+    HuntingParty,
+    Jester,
+    Menagerie,
+    Remake,
+    Tournament,
+    YoungWitch,
+)
 from ..empires import (
     Archive,
     BustlingVillage,
@@ -52,6 +67,21 @@ from ..promo import (
     SnowyVillage,
     Stash,
     WalledVillage,
+)
+from ..guilds import (
+    Advisor,
+    Baker,
+    Butcher,
+    CandlestickMaker,
+    Doctor,
+    Herald,
+    Journeyman,
+    Masterpiece,
+    MerchantGuild,
+    Plaza,
+    Soothsayer,
+    Stonemason,
+    Taxman,
 )
 from ..prosperity.bank import Bank
 from ..prosperity.bishop import Bishop
@@ -143,6 +173,19 @@ from ..plunder import (
 )
 
 __all__ = [
+    'Fairgrounds',
+    'FarmingVillage',
+    'FortuneTeller',
+    'Hamlet',
+    'Harvest',
+    'HornOfPlenty',
+    'HorseTraders',
+    'HuntingParty',
+    'Jester',
+    'Menagerie',
+    'Remake',
+    'Tournament',
+    'YoungWitch',
     'Archive',
     'BustlingVillage',
     'Capital',
@@ -196,6 +239,19 @@ __all__ = [
     'Hovel',
     'Necropolis',
     'OvergrownEstate',
+    'Advisor',
+    'Baker',
+    'Butcher',
+    'CandlestickMaker',
+    'Doctor',
+    'Herald',
+    'Journeyman',
+    'Masterpiece',
+    'MerchantGuild',
+    'Plaza',
+    'Soothsayer',
+    'Stonemason',
+    'Taxman',
     'Bank',
     'Bishop',
     'City',

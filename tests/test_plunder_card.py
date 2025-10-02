@@ -5,6 +5,19 @@ from dominion.game.player_state import PlayerState
 from tests.utils import DummyAI
 
 
+class InsigniaChoiceAI(DummyAI):
+    def __init__(self, decisions: list[bool]):
+        super().__init__()
+        self.decisions = list(decisions)
+        self.seen_cards: list[str] = []
+
+    def should_topdeck_with_insignia(self, state, player, gained_card):
+        self.seen_cards.append(gained_card.name)
+        if not self.decisions:
+            raise AssertionError("No decision available for Insignia topdeck choice")
+        return self.decisions.pop(0)
+
+
 def _make_state_with_player() -> tuple[GameState, PlayerState]:
     player = PlayerState(DummyAI())
     state = GameState(players=[player])
@@ -82,3 +95,34 @@ def test_trickster_sets_aside_treasure_during_cleanup():
     assert any(card.name == "Gold" for card in player.hand)
     assert all(card.name != "Gold" for card in player.discard)
     assert player.trickster_uses_remaining == 0
+
+
+def test_insignia_respects_optional_topdecking():
+    ai = InsigniaChoiceAI([True, False, True])
+    player = PlayerState(ai)
+    state = GameState(players=[player])
+
+    insignia = get_card("Insignia")
+    insignia.play_effect(state)
+
+    player.deck = [get_card("Copper")]
+
+    for name in ["Silver", "Estate", "Gold"]:
+        state.supply[name] = 1
+
+    state.supply["Silver"] -= 1
+    state.gain_card(player, get_card("Silver"))
+    assert player.deck[0].name == "Silver"
+    assert player.deck[1].name == "Copper"
+    assert not any(card.name == "Silver" for card in player.discard)
+
+    state.supply["Estate"] -= 1
+    state.gain_card(player, get_card("Estate"))
+    assert any(card.name == "Estate" for card in player.discard)
+
+    state.supply["Gold"] -= 1
+    state.gain_card(player, get_card("Gold"))
+    assert player.deck[0].name == "Gold"
+    assert player.deck[1].name == "Silver"
+    assert ai.decisions == []
+    assert ai.seen_cards == ["Silver", "Estate", "Gold"]

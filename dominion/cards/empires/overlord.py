@@ -7,7 +7,7 @@ class Overlord(Card):
     def __init__(self):
         super().__init__(
             name="Overlord",
-            cost=CardCost(coins=8),
+            cost=CardCost(debt=8),
             stats=CardStats(),
             types=[CardType.ACTION],
         )

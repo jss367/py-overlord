@@ -6,6 +6,7 @@ from enum import Enum
 class CardCost:
     coins: int = 0
     potions: int = 0
+    debt: int = 0
 
 
 @dataclass

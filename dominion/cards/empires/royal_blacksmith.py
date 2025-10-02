@@ -5,7 +5,7 @@ class RoyalBlacksmith(Card):
     def __init__(self):
         super().__init__(
             name="Royal Blacksmith",
-            cost=CardCost(coins=8),
+            cost=CardCost(debt=8),
             stats=CardStats(cards=5),
             types=[CardType.ACTION],
         )
