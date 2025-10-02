@@ -167,10 +167,17 @@ class AI(ABC):
 
         return False
 
+
+    def should_discard_deck_with_messenger(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Decide whether to discard the deck when playing Messenger."""
+
     def should_topdeck_with_insignia(
         self, state: GameState, player: PlayerState, gained_card: Card
     ) -> bool:
         """Decide whether to topdeck a card gained while Insignia is active."""
+
 
         return False
 

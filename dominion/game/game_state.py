@@ -358,6 +358,7 @@ class GameState:
         player = self.current_player
         player.cannot_buy_actions = False
         player.envious_effect_active = False
+        player.cards_gained_this_buy_phase = 0
 
         if player.deluded:
             player.deluded = False
@@ -706,6 +707,7 @@ class GameState:
         player.cost_reduction = 0
         player.innovation_used = False
         player.cards_gained_this_turn = 0
+        player.cards_gained_this_buy_phase = 0
         player.flagship_pending = [
             card for card in player.flagship_pending if card in player.duration
         ]
@@ -975,6 +977,13 @@ class GameState:
         self._trigger_invest_draw(actual_card.name, player)
         self._handle_fools_gold_reactions(player, actual_card)
         self._track_action_gain(player, actual_card)
+
+        if (
+            hasattr(player, "cards_gained_this_buy_phase")
+            and player is self.current_player
+            and self.phase == "buy"
+        ):
+            player.cards_gained_this_buy_phase += 1
 
         if hasattr(player, "cards_gained_this_turn"):
             player.cards_gained_this_turn += 1
