@@ -14,6 +14,11 @@ class Charm(Card):
             name="Charm",
             cost=CardCost(coins=5),
             stats=CardStats(buys=1),
+            # Charm is a Treasure card that gives +1 Buy while offering one of its
+            # three options. The implementation previously (incorrectly) labeled
+            # it as an Action, which caused type checks to fail and prevented the
+            # card from interacting with treasure-specific effects. Mark it with
+            # the correct type.
             types=[CardType.TREASURE],
 
         )
