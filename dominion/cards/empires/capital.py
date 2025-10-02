@@ -9,7 +9,7 @@ class Capital(Card):
             name="Capital",
             cost=CardCost(coins=5),
             stats=CardStats(coins=6, buys=1),
-            types=[CardType.ACTION],
+            types=[CardType.TREASURE],
         )
 
     def play_effect(self, game_state):
