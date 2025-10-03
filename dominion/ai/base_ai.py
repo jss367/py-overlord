@@ -122,6 +122,15 @@ class AI(ABC):
             return "gold"
         return options[0] if options else "cards"
 
+    def choose_wild_hunt_option(
+        self, state: GameState, player: PlayerState, options: list[str]
+    ) -> str:
+        """Select which Wild Hunt mode to use when played."""
+
+        if "draw" in options:
+            return "draw"
+        return options[0] if options else "draw"
+
     def choose_prince_target(
         self, state: GameState, player: PlayerState, choices: list[Optional[Card]]
     ) -> Optional[Card]:
