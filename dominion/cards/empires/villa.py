@@ -6,7 +6,7 @@ class Villa(Card):
         super().__init__(
             name="Villa",
             cost=CardCost(coins=4),
-            stats=CardStats(actions=2, coins=2, buys=1),
+            stats=CardStats(actions=2, coins=1, buys=1),
             types=[CardType.ACTION],
         )
 
