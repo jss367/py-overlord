@@ -8,7 +8,7 @@ class Crown(Card):
         super().__init__(
             name="Crown",
             cost=CardCost(coins=5),
-            stats=CardStats(actions=1, coins=1),
+            stats=CardStats(),
             types=[CardType.ACTION, CardType.TREASURE],
         )
 
@@ -31,6 +31,8 @@ class Crown(Card):
 
             for _ in range(2):
                 choice.on_play(game_state)
+
+            player.actions += 1
         else:
             treasures = [card for card in player.hand if card.is_treasure]
             if not treasures:
