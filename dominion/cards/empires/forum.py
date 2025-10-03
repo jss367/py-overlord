@@ -12,6 +12,22 @@ class Forum(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        for _ in range(2):
-            if player.hand:
-                game_state.discard_card(player, player.hand.pop())
+        hand_copy = list(player.hand)
+        preferred_discards = player.ai.choose_cards_to_discard(
+            game_state, player, hand_copy, 2, reason="forum"
+        )
+
+        discarded = 0
+        for card in preferred_discards:
+            if card in player.hand:
+                player.hand.remove(card)
+                game_state.discard_card(player, card)
+                discarded += 1
+                if discarded == 2 or not player.hand:
+                    return
+
+        while discarded < 2 and player.hand:
+            fallback = min(player.hand, key=lambda c: (c.cost.coins, c.name))
+            player.hand.remove(fallback)
+            game_state.discard_card(player, fallback)
+            discarded += 1
