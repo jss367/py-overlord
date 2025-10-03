@@ -15,3 +15,7 @@ class Forum(Card):
         for _ in range(2):
             if player.hand:
                 game_state.discard_card(player, player.hand.pop())
+
+    def on_gain(self, game_state, player):
+        super().on_gain(game_state, player)
+        player.buys += 1
