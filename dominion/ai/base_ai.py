@@ -60,6 +60,30 @@ class AI(ABC):
 
         return True
 
+    def choose_gladiator_reveal_target(
+        self, state: GameState, player: PlayerState
+    ) -> Optional[Card]:
+        """Select which card to reveal when playing Gladiator."""
+
+        if not player.hand:
+            return None
+
+        return max(
+            player.hand,
+            key=lambda card: (card.cost.coins, card.stats.coins, card.name),
+        )
+
+    def should_reveal_matching_gladiator(
+        self,
+        state: GameState,
+        player: PlayerState,
+        card_name: str,
+        opponent: PlayerState,
+    ) -> bool:
+        """Decide whether to reveal a matching card during a Gladiator duel."""
+
+        return True
+
     def should_keep_library_action(self, state: GameState, player: PlayerState, card: Card) -> bool:
         """Decide whether to keep a drawn Action card while resolving Library."""
 
