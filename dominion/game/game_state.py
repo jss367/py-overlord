@@ -27,6 +27,7 @@ class GameState:
     baker_in_supply: bool = False
     hex_deck: list[str] = field(default_factory=list)
     hex_discard: list[str] = field(default_factory=list)
+    wild_hunt_pile_tokens: int = 0
       
 
     def __post_init__(self):
