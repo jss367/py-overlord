@@ -155,6 +155,29 @@ class AI(ABC):
             return "draw"
         return options[0] if options else "draw"
 
+    def choose_farmers_market_option(
+        self,
+        state: GameState,
+        player: PlayerState,
+        options: list[str],
+        pile_tokens: int,
+    ) -> str:
+        """Choose which Farmers' Market mode to use when played."""
+
+        if not options:
+            return "coins"
+
+        if "coins" not in options:
+            return options[0]
+
+        if pile_tokens <= 0:
+            return "coins"
+
+        if "vp" in options and pile_tokens >= 4:
+            return "vp"
+
+        return "coins"
+
     def choose_prince_target(
         self, state: GameState, player: PlayerState, choices: list[Optional[Card]]
     ) -> Optional[Card]:
