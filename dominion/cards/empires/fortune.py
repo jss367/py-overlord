@@ -1,5 +1,4 @@
 from ..base_card import Card, CardCost, CardStats, CardType
-from ..registry import get_card
 
 
 class Fortune(Card):
@@ -18,6 +17,8 @@ class Fortune(Card):
             player.fortune_doubled_this_turn = True
 
     def on_gain(self, game_state, player):
+        from ..registry import get_card
+
         super().on_gain(game_state, player)
 
         if game_state.supply.get("Gold", 0) <= 0:
