@@ -57,6 +57,7 @@ class PlayerState:
     trickster_set_aside: list[Card] = field(default_factory=list)
     charm_next_buy_copies: int = 0
     walled_villages_played: int = 0
+    fortune_doubled_this_turn: bool = False
 
     # Turn tracking
     turns_taken: int = 0
@@ -135,6 +136,7 @@ class PlayerState:
         self.trickster_set_aside = []
         self.charm_next_buy_copies = 0
         self.walled_villages_played = 0
+        self.fortune_doubled_this_turn = False
         self.turns_taken = 0
         self.actions_played = 0
         self.actions_this_turn = 0
