@@ -252,6 +252,7 @@ class GameState:
         player.cannot_buy_actions = False
         player.envious_effect_active = False
         player.insignia_active = False
+        player.fortune_doubled_this_turn = False
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
