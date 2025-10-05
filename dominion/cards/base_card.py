@@ -8,6 +8,10 @@ class CardCost:
     potions: int = 0
     debt: int = 0
 
+    def comparison_tuple(self) -> tuple[int, int, int]:
+        """Return a tuple representation for comparing card costs."""
+        return (self.coins, self.potions, self.debt)
+
 
 @dataclass
 class CardStats:
