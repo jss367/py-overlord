@@ -6,7 +6,7 @@ class Temple(Card):
         super().__init__(
             name="Temple",
             cost=CardCost(coins=4),
-            stats=CardStats(coins=2),
+            stats=CardStats(vp=1),
             types=[CardType.ACTION],
         )
 
@@ -23,4 +23,16 @@ class Temple(Card):
             game_state.trash_card(player, choice)
             trashed += 1
         if trashed:
-            player.vp_tokens += trashed
+            game_state.temple_pile_tokens += trashed
+            if game_state.temple_pile_tokens >= 3:
+                player.vp_tokens += game_state.temple_pile_tokens
+                game_state.temple_pile_tokens = 0
+                if self in player.in_play:
+                    player.in_play.remove(self)
+                game_state.trash_card(player, self)
+
+    def on_gain(self, game_state, player):
+        super().on_gain(game_state, player)
+        if game_state.temple_pile_tokens:
+            player.vp_tokens += game_state.temple_pile_tokens
+            game_state.temple_pile_tokens = 0
