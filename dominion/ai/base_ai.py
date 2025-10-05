@@ -60,6 +60,13 @@ class AI(ABC):
 
         return True
 
+    def should_reveal_gold_for_legionary(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Decide whether to reveal a Gold when playing Legionary."""
+
+        return any(card.name == "Gold" for card in player.hand)
+
     def choose_gladiator_reveal_target(
         self, state: GameState, player: PlayerState
     ) -> Optional[Card]:
