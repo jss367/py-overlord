@@ -29,6 +29,7 @@ class GameState:
     hex_discard: list[str] = field(default_factory=list)
     wild_hunt_pile_tokens: int = 0
     farmers_market_pile_tokens: int = 0
+    temple_pile_tokens: int = 0
       
 
     def __post_init__(self):
