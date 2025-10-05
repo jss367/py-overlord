@@ -34,7 +34,14 @@ class Archive(Card):
     def on_duration(self, game_state):
         player = game_state.current_player
         if self.set_aside:
-            player.hand.append(self.set_aside.pop(0))
+            choice = player.ai.choose_archive_card(
+                game_state, player, list(self.set_aside)
+            )
+            if choice not in self.set_aside:
+                choice = self.set_aside[0]
+
+            self.set_aside.remove(choice)
+            player.hand.append(choice)
 
         if not self.set_aside:
             self.duration_persistent = False

@@ -199,6 +199,16 @@ class AI(ABC):
                     return card
         return None
 
+    def choose_archive_card(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Select which set-aside Archive card to add to hand at the start of turn."""
+
+        if not choices:
+            return None
+
+        return choices[0]
+
     def choose_cards_to_discard(
         self,
         state: GameState,
