@@ -193,11 +193,7 @@ class PlayerState:
 
     def count_in_deck(self, card_name: str) -> int:
         """Count total copies of named card across all piles."""
-        return sum(
-            1
-            for card in (self.hand + self.deck + self.discard + self.in_play + self.duration)
-            if card.name == card_name
-        )
+        return sum(1 for card in self.all_cards() if card.name == card_name)
 
     # Alias used by strategy condition evaluation
     def count(self, card_name: str) -> int:
@@ -206,17 +202,39 @@ class PlayerState:
     def get_victory_points(self, game_state) -> int:
         """Calculate total victory points."""
         return (
-            sum(
-                card.get_victory_points(self)
-                for card in (self.hand + self.deck + self.discard + self.in_play + self.duration)
-            )
+            sum(card.get_victory_points(self) for card in self.all_cards())
             + self.vp_tokens
             - 2 * self.misery
         )
 
     def all_cards(self) -> list[Card]:
         """Return a list of all cards the player possesses."""
-        return self.hand + self.deck + self.discard + self.in_play + self.duration
+        zones = [
+            self.hand,
+            self.deck,
+            self.discard,
+            self.in_play,
+            self.duration,
+            self.multiplied_durations,
+            self.exile,
+            self.invested_exile,
+            self.native_village_mat,
+            self.trickster_set_aside,
+            self.delayed_cards,
+            self.flagship_pending,
+        ]
+
+        cards: list[Card] = []
+        seen_ids: set[int] = set()
+        for zone in zones:
+            for card in zone:
+                card_id = id(card)
+                if card_id in seen_ids:
+                    continue
+                seen_ids.add(card_id)
+                cards.append(card)
+
+        return cards
 
     def get_vp_breakdown(self) -> dict[str, dict[str, int]]:
         """Return a breakdown of victory points by card name."""

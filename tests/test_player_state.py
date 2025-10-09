@@ -1,3 +1,4 @@
+from dominion.cards.registry import get_card
 from dominion.game.player_state import PlayerState
 from tests.utils import DummyAI
 
@@ -38,3 +39,26 @@ def test_initialize_with_shelters():
     assert player.count_in_deck("Hovel") == 1
     assert player.count_in_deck("Overgrown Estate") == 1
     assert len(player.hand) == 5
+
+
+def test_all_cards_includes_additional_zones():
+    player = PlayerState(DummyAI())
+
+    estate = get_card("Estate")
+    province = get_card("Province")
+    duchy_one = get_card("Duchy")
+    duchy_two = get_card("Duchy")
+    copper = get_card("Copper")
+
+    player.exile.append(estate)
+    player.invested_exile.append(estate)
+    player.native_village_mat.append(copper)
+    player.trickster_set_aside.append(province)
+    player.delayed_cards.append(duchy_one)
+    player.flagship_pending.append(duchy_two)
+
+    assert player.count_in_deck("Estate") == 1
+    assert player.count_in_deck("Copper") == 1
+    assert player.count_in_deck("Province") == 1
+    assert player.count_in_deck("Duchy") == 2
+    assert player.get_victory_points(None) == 13
