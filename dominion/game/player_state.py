@@ -203,8 +203,8 @@ class PlayerState:
     def count(self, card_name: str) -> int:
         return self.count_in_deck(card_name)
 
-    def get_victory_points(self, game_state) -> int:
-        """Calculate total victory points."""
+    def get_victory_points(self) -> int:
+        """Calculate total victory points for the player."""
         return (
             sum(
                 card.get_victory_points(self)
