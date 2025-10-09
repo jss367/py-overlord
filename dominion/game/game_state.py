@@ -1308,5 +1308,5 @@ class GameState:
 
         # Calculate and store final victory points for each player
         for player in self.players:
-            vp = player.get_victory_points(self)
+            vp = player.get_victory_points()
             self.logger.current_metrics.victory_points[player.ai.name] = vp

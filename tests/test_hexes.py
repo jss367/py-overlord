@@ -79,7 +79,7 @@ def test_misery_affects_scoring():
     resolve_hex("Misery", state, player)
 
     assert player.misery == 2
-    assert player.get_victory_points(state) == -3
+    assert player.get_victory_points() == -3
 
 
 def test_locusts_trashes_and_gains_cheaper_card():

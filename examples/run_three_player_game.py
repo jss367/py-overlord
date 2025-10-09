@@ -29,8 +29,8 @@ def run_game(strat_names):
     while not state.is_game_over():
         state.play_turn()
 
-    scores = {p.ai.name: p.get_victory_points(state) for p in state.players}
-    winner = max(state.players, key=lambda p: p.get_victory_points(state)).ai
+    scores = {p.ai.name: p.get_victory_points() for p in state.players}
+    winner = max(state.players, key=lambda p: p.get_victory_points()).ai
     log_path = logger.end_game(winner.name, scores, state.supply, state.players)
     print("Winner:", winner.name)
     print("Log file:", log_path)
