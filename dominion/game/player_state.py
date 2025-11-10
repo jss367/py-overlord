@@ -199,8 +199,15 @@ class PlayerState:
     def count(self, card_name: str) -> int:
         return self.count_in_deck(card_name)
 
-    def get_victory_points(self) -> int:
-        """Calculate total victory points for the player."""
+    def get_victory_points(self, _game_state=None) -> int:
+        """Calculate total victory points for the player.
+
+        ``PlayerState.get_victory_points`` is frequently called with an unused
+        ``game_state`` argument throughout the project.  The tests mimic that
+        behaviour and pass ``None`` explicitly, so keep a placeholder
+        parameter to remain compatible with those call sites while ignoring it
+        internally.
+        """
         return (
             sum(card.get_victory_points(self) for card in self.all_cards())
             + self.vp_tokens
