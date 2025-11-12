@@ -231,18 +231,15 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Workshop": Workshop,
     "Chapel": Chapel,
     "Council Room": CouncilRoom,
-    "Council room": CouncilRoom,
     "Library": Library,
     "Remodel": Remodel,
     "Sentry": Sentry,
     "Throne Room": ThroneRoom,
-    "Throne room": ThroneRoom,
     # Expansion cards
     "Advisor": Advisor,
     "Baker": Baker,
     "Butcher": Butcher,
     "Candlestick Maker": CandlestickMaker,
-    "Candlestick maker": CandlestickMaker,
     "Archive": Archive,
     "Fairgrounds": Fairgrounds,
     "Farming Village": FarmingVillage,
@@ -282,7 +279,6 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Doctor": Doctor,
     "Beggar": Beggar,
     "Poor House": PoorHouse,
-    "Poor house": PoorHouse,
     "Modify": Modify,
     "Remake": Remake,
     "Rebuild": Rebuild,
@@ -306,7 +302,6 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Bishop": Bishop,
     "City": City,
     "City Quarter": CityQuarter,
-    "City quarter": CityQuarter,
     "Contraband": Contraband,
     "Counting House": CountingHouse,
     "Expand": Expand,
@@ -343,7 +338,6 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Journeyman": Journeyman,
     "Masterpiece": Masterpiece,
     "Merchant Guild": MerchantGuild,
-    "Merchant guild": MerchantGuild,
     "Plaza": Plaza,
     "Platinum": Platinum,
     "Colony": Colony,
@@ -405,7 +399,6 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Inventor": Inventor,
     "Taskmaster": Taskmaster,
     "Wealthy Village": WealthyVillage,
-    "Wealthy village": WealthyVillage,
     "Torturer": Torturer,
     "Patrol": Patrol,
     "Bridge": Bridge,
@@ -417,10 +410,8 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Steward": Steward,
     "Bazaar": Bazaar,
     "Trading Post": TradingPost,
-    "Trading post": TradingPost,
     "Wharf": Wharf,
     "Native Village": NativeVillage,
-    "Native village": NativeVillage,
     "Lookout": Lookout,
     "First Mate": FirstMate,
     "Barbarian": Barbarian,
@@ -441,12 +432,25 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Paddock": Paddock,
 }
 
+CARD_ALIASES: dict[str, str] = {
+    "Council room": "Council Room",
+    "Throne room": "Throne Room",
+    "Candlestick maker": "Candlestick Maker",
+    "Poor house": "Poor House",
+    "City quarter": "City Quarter",
+    "Merchant guild": "Merchant Guild",
+    "Wealthy village": "Wealthy Village",
+    "Trading post": "Trading Post",
+    "Native village": "Native Village",
+}
+
 
 def get_card(name: str) -> Card:
     """Get a new instance of a card by name."""
-    if name not in CARD_TYPES:
+    canonical_name = CARD_ALIASES.get(name, name)
+    if canonical_name not in CARD_TYPES:
         raise ValueError(f"Unknown card: {name}")
-    return CARD_TYPES[name]()
+    return CARD_TYPES[canonical_name]()
 
 
 
