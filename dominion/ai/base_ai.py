@@ -60,6 +60,13 @@ class AI(ABC):
 
         return True
 
+    def should_play_guard_dog(
+        self, state: GameState, player: PlayerState, card: Card
+    ) -> bool:
+        """Decide whether to play Guard Dog in response to an attack."""
+
+        return True
+
     def should_reveal_gold_for_legionary(
         self, state: GameState, player: PlayerState
     ) -> bool:
@@ -297,6 +304,13 @@ class AI(ABC):
         """Decide whether to reveal Trader to exchange a gain for Silver."""
 
         return False
+
+    def should_play_weaver_on_discard(
+        self, state: GameState, player: PlayerState, card: Card
+    ) -> bool:
+        """Decide whether to play Weaver when it is discarded outside Clean-up."""
+
+        return True
 
     def should_discard_for_vault(self, state: GameState, player: PlayerState) -> bool:
         """Decide if the player should discard two cards for Vault's reaction."""
