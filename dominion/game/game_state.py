@@ -883,6 +883,8 @@ class GameState:
             self.supply["Gold"] -= 1
             self.gain_card(player, get_card("Gold"))
         elif card.name == "Weaver":
+            if not player.ai.should_play_weaver_on_discard(self, player, card):
+                return
             if card in player.discard:
                 player.discard.remove(card)
             elif card in player.hand:
@@ -1205,10 +1207,13 @@ class GameState:
     def _maybe_play_guard_dogs(self, player: PlayerState) -> None:
         guard_dogs = [card for card in list(player.hand) if card.name == "Guard Dog"]
         for card in guard_dogs:
-            if card in player.hand:
-                player.hand.remove(card)
-                player.in_play.append(card)
-                card.on_play(self)
+            if card not in player.hand:
+                continue
+            if not player.ai.should_play_guard_dog(self, player, card):
+                continue
+            player.hand.remove(card)
+            player.in_play.append(card)
+            card.on_play(self)
 
     def _trigger_haggler_bonus(self, player: PlayerState, bought_card: Card) -> None:
         """Resolve Haggler gains after ``bought_card`` is purchased."""
