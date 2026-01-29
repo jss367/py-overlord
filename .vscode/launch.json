@@ -83,13 +83,13 @@
             },
             "args": [
                 "TorturerEngine",
-                "Big Money Smithy",
+                "TorturerEngine2",
                 "--games",
-                "40",
-                "--board",
-                "${workspaceFolder}/boards/torture_campaign.txt",
+                "1000",
+                // "--board",
+                // "${workspaceFolder}/boards/torture_campaign.txt",
                 "--log-frequency",
-                "1"
+                "10"
             ],
             "justMyCode": true
         }
