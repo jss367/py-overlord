@@ -225,6 +225,32 @@ def main():
             condition_str = f" (condition: {rule.condition})" if rule.condition else ""
             logger.info("  %s%s", rule.card_name, condition_str)
 
+        # Validate against baseline before saving
+        if args.baseline_strategy:
+            from dominion.simulation.strategy_battle import StrategyBattle
+            from dominion.ai.genetic_ai import GeneticAI
+
+            logger.info("Validating against baseline (%s) over 100 games...", baseline.name)
+            validation_battle = StrategyBattle(board_config=board_config, log_frequency=1000)
+            validation_kingdom = board_config.kingdom_cards if board_config else kingdom_cards
+            wins = 0
+            n_validation = 100
+            for i in range(n_validation):
+                ai1 = GeneticAI(best_strategy)
+                ai2 = GeneticAI(baseline)
+                if i % 2 == 0:
+                    winner, _, _, _ = validation_battle.run_game(ai1, ai2, validation_kingdom)
+                else:
+                    winner, _, _, _ = validation_battle.run_game(ai2, ai1, validation_kingdom)
+                if winner == ai1:
+                    wins += 1
+            win_rate = wins / n_validation * 100
+            logger.info("Validation result: %.1f%% win rate against baseline", win_rate)
+
+            if win_rate <= 50:
+                logger.info("⏭️  Strategy does not beat baseline (%.1f%%). Not saving.", win_rate)
+                return
+
         # Automatically save the strategy as a Python class
         strategies_dir = Path("generated_strategies")
         strategies_dir.mkdir(exist_ok=True)
