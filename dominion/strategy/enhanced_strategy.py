@@ -88,6 +88,15 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.max_in_deck({card_name!r}, {amount!r})")
 
     @staticmethod
+    def actions_in_play(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when the number of action cards in play satisfies the comparison."""
+        cmp = PriorityRule._OP_MAP[op]
+        fn = lambda _s, me, _amount=amount, _cmp=cmp: _cmp(
+            sum(1 for c in me.in_play if c.is_action), _amount
+        )
+        return PriorityRule._tag_source(fn, f"PriorityRule.actions_in_play({op!r}, {amount!r})")
+
+    @staticmethod
     def always_true() -> Callable[["GameState", "PlayerState"], bool]:
         fn = lambda *_: True
         return PriorityRule._tag_source(fn, "PriorityRule.always_true()")
