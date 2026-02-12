@@ -39,8 +39,9 @@ def save_strategy_as_python(strategy: EnhancedStrategy, path: Path, class_name: 
     def format_list(name: str, rules: list[PriorityRule]) -> list[str]:
         lines = [f"        self.{name} = ["]
         for rule in rules:
-            if rule.condition:
-                lines.append(f"            PriorityRule({rule.card_name!r}, {rule.condition!r}),")
+            cond_source = getattr(rule.condition, "_source", None) if rule.condition else None
+            if cond_source:
+                lines.append(f"            PriorityRule({rule.card_name!r}, {cond_source}),")
             else:
                 lines.append(f"            PriorityRule({rule.card_name!r}),")
         lines.append("        ]")

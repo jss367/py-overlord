@@ -47,6 +47,34 @@ class GeneticTrainer:
         self.logger = GameLogger(log_folder)
         self._strategy_to_inject = None
 
+    @staticmethod
+    def _random_condition() -> "Callable | None":
+        """Return a random callable condition from a diverse vocabulary."""
+        kind = random.choice([
+            "provinces_left", "turn_number", "resources", "has_cards", "none",
+        ])
+        if kind == "provinces_left":
+            op = random.choice(["<=", ">", ">=", "<"])
+            amount = random.randint(2, 8)
+            return PriorityRule.provinces_left(op, amount)
+        if kind == "turn_number":
+            op = random.choice(["<=", ">=", "<", ">"])
+            amount = random.randint(3, 18)
+            return PriorityRule.turn_number(op, amount)
+        if kind == "resources":
+            res = random.choice(["coins", "actions", "buys"])
+            op = random.choice([">=", "<", "<=", ">"])
+            amount = random.randint(1, 8)
+            return PriorityRule.resources(res, op, amount)
+        if kind == "has_cards":
+            cards = random.sample(
+                ["Silver", "Gold", "Copper", "Province", "Duchy", "Estate"],
+                k=random.randint(1, 3),
+            )
+            amount = random.randint(0, 4)
+            return PriorityRule.has_cards(cards, amount)
+        return None
+
     def create_random_strategy(self) -> BaseStrategy:
         """Create a random strategy"""
         strategy = BaseStrategy()
@@ -59,39 +87,57 @@ class GeneticTrainer:
             + ["Estate", "Duchy", "Province"]  # Victory cards
         )
 
-        # Generate gain priorities
+        # Generate gain priorities (random subset in random order)
+        gain_cards = list(all_cards)
+        random.shuffle(gain_cards)
         strategy.gain_priority = []
-        for card in all_cards:
+        for card in gain_cards:
             condition = None
             if random.random() < 0.3:
                 if card in ["Silver", "Gold", "Province"]:
                     cost = {"Silver": 3, "Gold": 6, "Province": 8}[card]
-                    condition = f"my.coins >= {cost}"
+                    condition = PriorityRule.resources("coins", ">=", cost)
                 elif card in self.kingdom_cards:
-                    condition = f"state.turn_number <= {random.randint(5, 15)}"
-
+                    condition = PriorityRule.turn_number("<=", random.randint(5, 15))
+                else:
+                    condition = self._random_condition()
             strategy.gain_priority.append(PriorityRule(card, condition))
 
         # Generate action priorities
         strategy.action_priority = []
-        for card in self.kingdom_cards:
+        action_cards = list(self.kingdom_cards)
+        random.shuffle(action_cards)
+        for card in action_cards:
             if random.random() < 0.7:  # 70% chance to include each action
                 condition = None
                 if random.random() < 0.3:
                     if card in ["Village", "Festival"]:
-                        condition = "my.actions < 2"
+                        condition = PriorityRule.resources("actions", "<", 2)
                     elif card in ["Smithy", "Laboratory"]:
-                        condition = "my.actions >= 1"
+                        condition = PriorityRule.resources("actions", ">=", 1)
+                    else:
+                        condition = self._random_condition()
                 strategy.action_priority.append(PriorityRule(card, condition))
 
-        # Generate treasure priorities
-        strategy.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+        # Generate treasure priorities — include kingdom treasures
+        kingdom_treasures = []
+        for card_name in self.kingdom_cards:
+            try:
+                from dominion.cards.registry import get_card
+                card = get_card(card_name)
+                if card.is_treasure:
+                    kingdom_treasures.append(card_name)
+            except ValueError:
+                pass
+        treasure_list = kingdom_treasures + ["Gold", "Silver", "Copper"]
+        random.shuffle(treasure_list)
+        strategy.treasure_priority = [PriorityRule(t) for t in treasure_list]
 
         # Generate trash priorities
         strategy.trash_priority = [
             PriorityRule("Curse"),
-            PriorityRule("Estate", "state.provinces_left > 4"),
-            PriorityRule("Copper", "my.count(Silver) + my.count(Gold) >= 3"),
+            PriorityRule("Estate", PriorityRule.provinces_left(">", 4)),
+            PriorityRule("Copper", PriorityRule.has_cards(["Silver", "Gold"], 3)),
         ]
 
         return strategy
@@ -154,21 +200,52 @@ class GeneticTrainer:
 
     def _mutate(self, strategy: BaseStrategy) -> BaseStrategy:
         """Mutate a strategy"""
-        # Mutate gain priorities
+        # --- Mutate gain priorities ---
+        # Condition mutations
         for priority in strategy.gain_priority:
             if random.random() < self.mutation_rate:
-                # Possibly add/remove/modify condition
                 if random.random() < 0.3:
                     if priority.condition:
                         priority.condition = None
                     else:
                         if priority.card_name in ["Silver", "Gold", "Province"]:
                             cost = {"Silver": 3, "Gold": 6, "Province": 8}[priority.card_name]
-                            priority.condition = f"my.coins >= {cost}"
+                            priority.condition = PriorityRule.resources("coins", ">=", cost)
                         elif priority.card_name in self.kingdom_cards:
-                            priority.condition = f"state.turn_number <= {random.randint(5, 15)}"
+                            priority.condition = PriorityRule.turn_number("<=", random.randint(5, 15))
+                        else:
+                            priority.condition = self._random_condition()
 
-        # Mutate action priorities
+        # Reorder: swap two adjacent gain rules
+        if random.random() < self.mutation_rate and len(strategy.gain_priority) >= 2:
+            i = random.randint(0, len(strategy.gain_priority) - 2)
+            strategy.gain_priority[i], strategy.gain_priority[i + 1] = (
+                strategy.gain_priority[i + 1],
+                strategy.gain_priority[i],
+            )
+
+        # Occasionally move a random rule to a new position
+        if random.random() < self.mutation_rate * 0.5 and len(strategy.gain_priority) >= 2:
+            i = random.randint(0, len(strategy.gain_priority) - 1)
+            rule = strategy.gain_priority.pop(i)
+            j = random.randint(0, len(strategy.gain_priority))
+            strategy.gain_priority.insert(j, rule)
+
+        # Add a new kingdom card that's missing from the gain list
+        if random.random() < self.mutation_rate * 0.3:
+            existing = {r.card_name for r in strategy.gain_priority}
+            missing = [c for c in self.kingdom_cards if c not in existing]
+            if missing:
+                card = random.choice(missing)
+                pos = random.randint(0, len(strategy.gain_priority))
+                strategy.gain_priority.insert(pos, PriorityRule(card, self._random_condition()))
+
+        # Remove a low-value gain entry (but keep at least 3 rules)
+        if random.random() < self.mutation_rate * 0.2 and len(strategy.gain_priority) > 3:
+            i = random.randint(0, len(strategy.gain_priority) - 1)
+            strategy.gain_priority.pop(i)
+
+        # --- Mutate action priorities ---
         if random.random() < self.mutation_rate:
             if strategy.action_priority:
                 # Shuffle a portion of the action priorities
@@ -184,21 +261,58 @@ class GeneticTrainer:
                             priority.condition = None
                         else:
                             if priority.card_name in ["Village", "Festival"]:
-                                priority.condition = "my.actions < 2"
+                                priority.condition = PriorityRule.resources("actions", "<", 2)
                             elif priority.card_name in ["Smithy", "Laboratory"]:
-                                priority.condition = "my.actions >= 1"
+                                priority.condition = PriorityRule.resources("actions", ">=", 1)
+                            else:
+                                priority.condition = self._random_condition()
 
-        # Mutate trash priorities
+        # Add/remove action cards
+        if random.random() < self.mutation_rate * 0.3:
+            existing = {r.card_name for r in strategy.action_priority}
+            missing = [c for c in self.kingdom_cards if c not in existing]
+            if missing:
+                card = random.choice(missing)
+                pos = random.randint(0, len(strategy.action_priority))
+                strategy.action_priority.insert(pos, PriorityRule(card, self._random_condition()))
+
+        if random.random() < self.mutation_rate * 0.2 and len(strategy.action_priority) > 1:
+            i = random.randint(0, len(strategy.action_priority) - 1)
+            strategy.action_priority.pop(i)
+
+        # --- Mutate treasure priorities ---
+        if random.random() < self.mutation_rate and len(strategy.treasure_priority) >= 2:
+            i = random.randint(0, len(strategy.treasure_priority) - 2)
+            strategy.treasure_priority[i], strategy.treasure_priority[i + 1] = (
+                strategy.treasure_priority[i + 1],
+                strategy.treasure_priority[i],
+            )
+
+        # Add missing kingdom treasures to treasure priority
+        if random.random() < self.mutation_rate * 0.3:
+            existing_treasures = {r.card_name for r in strategy.treasure_priority}
+            for card_name in self.kingdom_cards:
+                if card_name in existing_treasures:
+                    continue
+                try:
+                    from dominion.cards.registry import get_card
+                    card = get_card(card_name)
+                    if card.is_treasure:
+                        pos = random.randint(0, len(strategy.treasure_priority))
+                        strategy.treasure_priority.insert(pos, PriorityRule(card_name))
+                except ValueError:
+                    pass
+
+        # --- Mutate trash priorities ---
         if random.random() < self.mutation_rate:
             if strategy.trash_priority:
-                # Possibly modify conditions
                 for priority in strategy.trash_priority:
                     if random.random() < 0.3:
                         if priority.card_name == "Estate":
-                            priority.condition = f"state.provinces_left > {random.randint(2, 6)}"
+                            priority.condition = PriorityRule.provinces_left(">", random.randint(2, 6))
                         elif priority.card_name == "Copper":
                             min_treasures = random.randint(2, 4)
-                            priority.condition = f"my.count(Silver) + my.count(Gold) >= {min_treasures}"
+                            priority.condition = PriorityRule.has_cards(["Silver", "Gold"], min_treasures)
 
         return strategy
 

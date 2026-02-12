@@ -46,14 +46,22 @@ class PriorityRule:
     }
 
     @staticmethod
+    def _tag_source(fn: Callable, source: str) -> Callable:
+        """Attach a ``_source`` attribute so the lambda can be serialized back to Python."""
+        fn._source = source  # type: ignore[attr-defined]
+        return fn
+
+    @staticmethod
     def provinces_left(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
         cmp = PriorityRule._OP_MAP[op]
-        return lambda s, _me, _amount=amount, _cmp=cmp: _cmp(s.supply.get("Province", 0), _amount)
+        fn = lambda s, _me, _amount=amount, _cmp=cmp: _cmp(s.supply.get("Province", 0), _amount)
+        return PriorityRule._tag_source(fn, f"PriorityRule.provinces_left({op!r}, {amount!r})")
 
     @staticmethod
     def turn_number(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
         cmp = PriorityRule._OP_MAP[op]
-        return lambda s, _me, _amount=amount, _cmp=cmp: _cmp(s.turn_number, _amount)
+        fn = lambda s, _me, _amount=amount, _cmp=cmp: _cmp(s.turn_number, _amount)
+        return PriorityRule._tag_source(fn, f"PriorityRule.turn_number({op!r}, {amount!r})")
 
     @staticmethod
     def resources(res: str, op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
@@ -64,16 +72,19 @@ class PriorityRule:
                 return len(me.hand)
             return getattr(me, res_name)
 
-        return lambda s, me, _amount=amount, _cmp=cmp, _res=res: _cmp(_get(me, _res), _amount)
+        fn = lambda s, me, _amount=amount, _cmp=cmp, _res=res: _cmp(_get(me, _res), _amount)
+        return PriorityRule._tag_source(fn, f"PriorityRule.resources({res!r}, {op!r}, {amount!r})")
 
     @staticmethod
     def has_cards(cards: Iterable[str], amount: int) -> Callable[["GameState", "PlayerState"], bool]:
         card_list = list(cards)
-        return lambda _s, me, _amount=amount, _cards=card_list: sum(me.count_in_deck(c) for c in _cards) >= _amount
+        fn = lambda _s, me, _amount=amount, _cards=card_list: sum(me.count_in_deck(c) for c in _cards) >= _amount
+        return PriorityRule._tag_source(fn, f"PriorityRule.has_cards({card_list!r}, {amount!r})")
 
     @staticmethod
     def always_true() -> Callable[["GameState", "PlayerState"], bool]:
-        return lambda *_: True
+        fn = lambda *_: True
+        return PriorityRule._tag_source(fn, "PriorityRule.always_true()")
 
     # Logical combinators -------------------------------------------------
     @staticmethod
@@ -83,7 +94,9 @@ class PriorityRule:
         if not conds:
             return PriorityRule.always_true()
 
-        return lambda s, me: all(c(s, me) for c in conds)
+        fn = lambda s, me: all(c(s, me) for c in conds)
+        sources = ", ".join(getattr(c, "_source", "None") for c in conds)
+        return PriorityRule._tag_source(fn, f"PriorityRule.and_({sources})")
 
     @staticmethod
     def or_(*conds: Optional[Callable[["GameState", "PlayerState"], bool]]):
@@ -92,7 +105,9 @@ class PriorityRule:
         if not conds:
             return PriorityRule.always_true()
 
-        return lambda s, me: any(c(s, me) for c in conds)
+        fn = lambda s, me: any(c(s, me) for c in conds)
+        sources = ", ".join(getattr(c, "_source", "None") for c in conds)
+        return PriorityRule._tag_source(fn, f"PriorityRule.or_({sources})")
 
 
 class EnhancedStrategy:

@@ -458,3 +458,33 @@ class AI(ABC):
             return None
 
         return max(treasures, key=lambda card: (card.cost.coins, card.name))
+
+    def choose_card_to_topdeck_from_discard(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Choose a card from discard to put on top of deck (Harbinger)."""
+        if not choices:
+            return None
+        return max(choices, key=lambda card: (card.cost.coins, card.name))
+
+    def choose_graverobber_mode(
+        self, state: GameState, player: PlayerState, options: list[str]
+    ) -> str:
+        """Choose Graverobber mode: 'gain_from_trash' or 'upgrade'."""
+        if "gain_from_trash" in options:
+            return "gain_from_trash"
+        return options[0] if options else "upgrade"
+
+    def should_joust_province(self, state: GameState, player: PlayerState) -> bool:
+        """Decide whether to set aside Province for Joust."""
+        return True
+
+    def should_set_aside_cargo_ship(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """Decide whether to set aside a gained card with Cargo Ship."""
+        return gained_card.cost.coins >= 3
+
+    def should_topdeck_treasury(self, state: GameState, player: PlayerState) -> bool:
+        """Decide whether to topdeck Treasury at end of buy phase."""
+        return True
