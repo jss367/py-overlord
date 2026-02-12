@@ -7,7 +7,7 @@ class TorturerEngine(EnhancedStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.name = "TorturerEngine"
-        self.description = "Refined Torturer engine with better payload balance and pile control"
+        self.description = "Hand-tuned Torturer/Inn/Snowy Village engine with Patrol draw"
         self.version = "3.1"
 
         def terminal_need(me) -> int:

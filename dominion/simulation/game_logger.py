@@ -54,12 +54,14 @@ class GameLogger:
         self.training_progress: Optional[tqdm] = None
         self.name_map: dict[str, str] = {}
 
-        # Create log directories
-        os.makedirs(log_folder, exist_ok=True)
-        os.makedirs(os.path.join(log_folder, "metrics"), exist_ok=True)
-
-        # Set up file logger
-        self._setup_file_logger()
+        # Only create log directories and file logger when logging is enabled
+        if log_frequency > 0:
+            os.makedirs(log_folder, exist_ok=True)
+            os.makedirs(os.path.join(log_folder, "metrics"), exist_ok=True)
+            self._setup_file_logger()
+        else:
+            self.file_logger = logging.getLogger("DominionGameFile")
+            self.file_logger.setLevel(logging.DEBUG)
 
     def _setup_file_logger(self):
         """Configure file logging with custom formatting."""
@@ -69,10 +71,12 @@ class GameLogger:
     def start_game(self, players: List[GeneticAI]):
         """Start tracking a new game with enhanced initial state logging."""
         self.game_count += 1
-        # Log the first game, then every ``log_frequency`` games thereafter
-        # ``game_count`` starts at 1 for the first game, so subtract 1 when
-        # computing the modulus to ensure game 1 is logged.
-        self.should_log_to_file = (self.game_count - 1) % self.log_frequency == 0
+        # Log the first game, then every ``log_frequency`` games thereafter.
+        # A ``log_frequency`` of 0 disables file logging entirely.
+        if self.log_frequency <= 0:
+            self.should_log_to_file = False
+        else:
+            self.should_log_to_file = (self.game_count - 1) % self.log_frequency == 0
 
         # Create readable player descriptions and map them for later use. This
         # mapping is useful even when we aren't logging to file so that any

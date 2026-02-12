@@ -165,10 +165,17 @@ def generate_leaderboard_html(
     bar_png = fig_to_base64(fig)
     plt.close(fig)
 
-    rows = "\n".join(
-        f"<tr><td>{name}</td><td>{stats['wins']}</td><td>{stats['losses']}</td><td>{stats['win_rate']:.1f}%</td></tr>"
-        for name, stats in sorted_items
-    )
+    rows = ""
+    for rank, (name, stats) in enumerate(sorted_items, 1):
+        cards = stats.get("cards", [])
+        cards_str = ", ".join(cards) if cards else "-"
+        desc = stats.get("description", "")
+        rows += (
+            f"<tr><td>{rank}</td><td>{name}</td><td class='desc'>{desc}</td>"
+            f"<td>{stats['wins']}</td>"
+            f"<td>{stats['losses']}</td><td>{stats['win_rate']:.1f}%</td>"
+            f"<td class='cards'>{cards_str}</td></tr>\n"
+        )
 
     html = f"""
     <html>
@@ -178,15 +185,19 @@ def generate_leaderboard_html(
             body {{ font-family: Arial, sans-serif; margin: 40px; }}
             h1 {{ text-align: center; }}
             img {{ max-width: 800px; display: block; margin: 20px auto; }}
-            table {{ margin: auto; border-collapse: collapse; }}
-            th, td {{ border: 1px solid #ccc; padding: 4px 8px; }}
+            table {{ margin: auto; border-collapse: collapse; width: 90%; }}
+            th, td {{ border: 1px solid #ccc; padding: 6px 10px; text-align: left; }}
+            th {{ background: #f5f5f5; }}
+            td.cards {{ font-size: 0.85em; color: #555; max-width: 400px; }}
+            td.desc {{ font-size: 0.85em; color: #666; max-width: 300px; }}
+            tr:nth-child(even) {{ background: #fafafa; }}
         </style>
     </head>
     <body>
     <h1>Strategy Leaderboard</h1>
     <img src="data:image/png;base64,{bar_png}" />
     <table>
-        <tr><th>Strategy</th><th>Wins</th><th>Losses</th><th>Win Rate</th></tr>
+        <tr><th>#</th><th>Strategy</th><th>Description</th><th>Wins</th><th>Losses</th><th>Win Rate</th><th>Kingdom Cards Used</th></tr>
         {rows}
     </table>
     </body>

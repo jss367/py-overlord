@@ -18,25 +18,26 @@ class TortureCampaignV21(EnhancedStrategy):
         self.gain_priority = [
             # Torturer is #1 — attack + draw, the core engine piece
             PriorityRule('Torturer', _engine_building_active),
-
             # Taskmasters fill in on cheap turns (4 coins can't buy Torturer)
-            PriorityRule('Taskmaster', PriorityRule.and_(
-                PriorityRule.max_in_deck('Taskmaster', 4),
-                PriorityRule.turn_number('<=', 10),
-            )),
-
+            PriorityRule(
+                'Taskmaster',
+                PriorityRule.and_(
+                    PriorityRule.max_in_deck('Taskmaster', 4),
+                    PriorityRule.turn_number('<=', 10),
+                ),
+            ),
             # Inn for action support when 2+ behind Torturer count
-            PriorityRule('Inn', PriorityRule.and_(
-                _engine_building_active,
-                PriorityRule.deck_count_diff('Inn', 'Torturer', '<=', -2),
-            )),
-
-            # Patrol for draw consistency during greening (max 2)
+            PriorityRule(
+                'Inn',
+                PriorityRule.and_(
+                    _engine_building_active,
+                    PriorityRule.deck_count_diff('Inn', 'Torturer', '<=', -2),
+                ),
+            ),
+            # Patrol for draw consistency (max 2)
             PriorityRule('Patrol', PriorityRule.max_in_deck('Patrol', 2)),
-
             # One Gold for Province buying
             PriorityRule('Gold', PriorityRule.max_in_deck('Gold', 1)),
-
             # Greening
             PriorityRule('Province'),
             PriorityRule('Duchy'),

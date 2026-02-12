@@ -7,7 +7,7 @@ class CustomBoardStrategy2(EnhancedStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.name = "CustomBoard2"
-        self.description = "Genetic algorithm result for Patrician/Emporium board"
+        self.description = "Evolved Province-first Emporium/Patrician engine with Rebuild"
         self.version = "2.0"
 
         # Gain priorities

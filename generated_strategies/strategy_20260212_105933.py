@@ -5,7 +5,7 @@ class Strategy20260212_105933(EnhancedStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.name = 'torture-campaign-v2'
-        self.description = "Auto-generated strategy from genetic training"
+        self.description = "Evolved Torturer/Inn engine with capped Snowy Village and Patrol"
         self.version = "1.0"
 
         self.gain_priority = [

@@ -5,7 +5,7 @@ class Strategy20260212_094841(EnhancedStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.name = 'gen8-5444101776'
-        self.description = "Auto-generated strategy from genetic training"
+        self.description = "Evolved Catapult strategy with early greening and trash-for-benefit"
         self.version = "1.0"
 
         self.gain_priority = [

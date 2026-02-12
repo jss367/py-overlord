@@ -290,7 +290,8 @@ def main():
     )
     parser.add_argument("--print", dest="do_print", action="store_true", help="Print results to console")
     parser.add_argument("--no-report", action="store_true", help="Do not generate an HTML report")
-    parser.add_argument("--log-frequency", type=int, default=10, help="Log every Nth game (1 = every game)")
+    parser.add_argument("--log", action="store_true", help="Write detailed game logs to battle_logs/")
+    parser.add_argument("--log-frequency", type=int, default=10, help="Log every Nth game (1 = every game). Only applies when --log is used.")
 
     args = parser.parse_args()
 
@@ -299,11 +300,14 @@ def main():
     if args.do_print:
         logging.basicConfig(level=logging.INFO)
 
+    # Only write game logs when --log is passed; otherwise disable file logging
+    log_freq = args.log_frequency if args.log else 0
+
     battle = StrategyBattle(
         use_shelters=args.use_shelters,
         board_config=board_config,
         verbose=args.do_print,
-        log_frequency=args.log_frequency,
+        log_frequency=log_freq,
     )
 
     results = battle.run_battle(args.strategy1_name, args.strategy2_name, args.games)
