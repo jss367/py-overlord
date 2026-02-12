@@ -21,8 +21,15 @@ class Inn(Card):
             return
 
         discard_count = len(player.hand)
-        player.discard.extend(player.hand)
+
+        # Sort so cards with discard reactions (e.g. Trail) are discarded first,
+        # giving them a chance to react before the rest of the hand is gone.
+        cards_to_discard = list(player.hand)
+        cards_to_discard.sort(
+            key=lambda c: 0 if hasattr(c, "react_to_discard") else 1
+        )
         player.hand = []
+        game_state.discard_cards(player, cards_to_discard)
         game_state.draw_cards(player, discard_count)
 
     def on_gain(self, game_state, player):
