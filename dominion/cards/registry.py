@@ -7,6 +7,7 @@ from dominion.cards.base_set import (
     CouncilRoom,
     Festival,
     Gardens,
+    Harbinger,
     Laboratory,
     Library,
     Market,
@@ -27,11 +28,16 @@ from dominion.cards.expansions import (
     FortuneTeller,
     Archive,
     Advisor,
+    Astrolabe,
     Beggar,
     Baker,
     Butcher,
     BustlingVillage,
     CandlestickMaker,
+    CargoShip,
+    Coronet,
+    Demesne,
+    Graverobber,
     Hamlet,
     Capital,
     Castle,
@@ -43,20 +49,27 @@ from dominion.cards.expansions import (
     Crown,
     Collection,
     HornOfPlenty,
+    Housecarl,
+    HugeTurnip,
     Emporium,
     Encampment,
     Engineer,
     Herald,
     HorseTraders,
     HuntingParty,
+    ImperialEnvoy,
     Jester,
+    Joust,
     FarmersMarket,
     Forager,
     Forum,
     Fortune,
     Menagerie,
+    Pickaxe,
     Remake,
+    Renown,
     Gladiator,
+    Treasury,
     Groundskeeper,
     Journeyman,
     Legionary,
@@ -195,12 +208,14 @@ from dominion.cards.intrigue import (
     Pawn,
     Steward,
 )
-from dominion.cards.plunder import Barbarian, FirstMate, Flagship, Highwayman, Trickster
-from dominion.cards.dark_ages import Armory, Count, Ironmonger, Marauder, PoorHouse, Spoils, Ruins
-from dominion.cards.seaside import Bazaar, Lookout, NativeVillage, TradingPost, Wharf
+from dominion.cards.plunder import Barbarian, FirstMate, Flagship, Highwayman, Trickster, Astrolabe, Pickaxe
+from dominion.cards.dark_ages import Armory, Count, Ironmonger, Marauder, PoorHouse, Spoils, Ruins, Graverobber
+from dominion.cards.seaside import Bazaar, Lookout, NativeVillage, TradingPost, Wharf, Treasury
 from dominion.cards.adventures import Artificer, Giant, Messenger
 from dominion.cards.nocturne import TragicHero
 from dominion.cards.menagerie import Destrier, Horse, Mastermind, Paddock
+from dominion.cards.rising_sun import ImperialEnvoy
+from dominion.cards.renaissance import CargoShip
 
 from dominion.cards.treasures import Copper, Gold, Silver
 from dominion.cards.victory import Curse, Duchy, Estate, Province
@@ -430,6 +445,19 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Destrier": Destrier,
     "Mastermind": Mastermind,
     "Paddock": Paddock,
+    "Harbinger": Harbinger,
+    "Astrolabe": Astrolabe,
+    "Imperial Envoy": ImperialEnvoy,
+    "Treasury": Treasury,
+    "Cargo Ship": CargoShip,
+    "Pickaxe": Pickaxe,
+    "Graverobber": Graverobber,
+    "Joust": Joust,
+    "Coronet": Coronet,
+    "Demesne": Demesne,
+    "Housecarl": Housecarl,
+    "Huge Turnip": HugeTurnip,
+    "Renown": Renown,
 }
 
 CARD_ALIASES: dict[str, str] = {

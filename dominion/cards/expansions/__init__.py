@@ -9,6 +9,12 @@ from ..cornucopia import (
     HorseTraders,
     HuntingParty,
     Jester,
+    Joust,
+    Coronet,
+    Demesne,
+    Housecarl,
+    HugeTurnip,
+    Renown,
     Menagerie,
     Remake,
     Tournament,
@@ -109,6 +115,10 @@ from ..prosperity.watchtower import Watchtower
 from ..prosperity.workers_village import WorkersVillage
 from ..prosperity.platinum import Platinum
 from ..prosperity.colony import Colony
+from ..base_set.harbinger import Harbinger
+from ..dark_ages.graverobber import Graverobber
+from ..seaside.treasury import Treasury
+from ..rising_sun.imperial_envoy import ImperialEnvoy
 from ..hinterlands import (
     Berserker,
     BorderVillage,
@@ -148,10 +158,13 @@ from ..hinterlands import (
     WitchsHut,
 )
 from ..renaissance.acting_troupe import ActingTroupe
+from ..renaissance.cargo_ship import CargoShip
 from ..allies.taskmaster import Taskmaster
 from ..intrigue.torturer import Torturer
 from ..intrigue.patrol import Patrol
 from ..plunder.first_mate import FirstMate
+from ..plunder.astrolabe import Astrolabe
+from ..plunder.pickaxe import Pickaxe
 from ..plunder import (
     Amphora,
     Doubloons,
@@ -323,4 +336,17 @@ __all__ = [
     'Staff',
     'Sword',
     'LOOT_CARD_NAMES',
+    'Harbinger',
+    'Astrolabe',
+    'Pickaxe',
+    'ImperialEnvoy',
+    'Treasury',
+    'CargoShip',
+    'Graverobber',
+    'Joust',
+    'Coronet',
+    'Demesne',
+    'Housecarl',
+    'HugeTurnip',
+    'Renown',
 ]

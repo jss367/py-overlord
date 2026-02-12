@@ -73,6 +73,7 @@ class PlayerState:
     gained_five_last_turn: bool = False
     cards_gained_this_turn: int = 0
     cards_gained_this_buy_phase: int = 0
+    gained_victory_this_buy_phase: bool = False
     flagship_pending: list[Card] = field(default_factory=list)
     highwayman_attacks: int = 0
     highwayman_blocked_this_turn: bool = False
@@ -154,6 +155,7 @@ class PlayerState:
         self.highwayman_attacks = 0
         self.highwayman_blocked_this_turn = False
         self.insignia_active = False
+        self.gained_victory_this_buy_phase = False
         self.deluded = False
         self.envious = False
         self.misery = 0

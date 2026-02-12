@@ -11,6 +11,8 @@ from .menagerie import Menagerie
 from .remake import Remake
 from .tournament import Tournament
 from .young_witch import YoungWitch
+from .joust import Joust
+from .rewards import Coronet, Demesne, Housecarl, HugeTurnip, Renown
 
 __all__ = [
     "Fairgrounds",
@@ -26,4 +28,10 @@ __all__ = [
     "Remake",
     "Tournament",
     "YoungWitch",
+    "Joust",
+    "Coronet",
+    "Demesne",
+    "Housecarl",
+    "HugeTurnip",
+    "Renown",
 ]

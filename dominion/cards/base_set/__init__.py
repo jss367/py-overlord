@@ -17,6 +17,7 @@ from .throne_room import ThroneRoom
 from .village import Village
 from .witch import Witch
 from .workshop import Workshop
+from .harbinger import Harbinger
 
 __all__ = [
     'Adventurer',
@@ -24,6 +25,7 @@ __all__ = [
     'CouncilRoom',
     'Festival',
     'Gardens',
+    'Harbinger',
     'Laboratory',
     'Library',
     'Market',

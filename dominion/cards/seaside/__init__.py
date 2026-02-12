@@ -5,5 +5,6 @@ from .trading_post import TradingPost
 from .wharf import Wharf
 from .native_village import NativeVillage
 from .lookout import Lookout
+from .treasury import Treasury
 
-__all__ = ['Bazaar', 'TradingPost', 'Wharf', 'NativeVillage', 'Lookout']
+__all__ = ['Bazaar', 'TradingPost', 'Wharf', 'NativeVillage', 'Lookout', 'Treasury']

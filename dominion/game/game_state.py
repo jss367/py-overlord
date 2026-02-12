@@ -241,6 +241,7 @@ class GameState:
         player.actions_gained_this_turn = 0
         player.cauldron_triggered = False
         player.cards_gained_this_turn = 0
+        player.gained_victory_this_buy_phase = False
         player.flagship_pending = [
             card for card in player.flagship_pending if card in player.duration
         ]
@@ -402,6 +403,7 @@ class GameState:
         player.cannot_buy_actions = False
         player.envious_effect_active = False
         player.cards_gained_this_buy_phase = 0
+        player.gained_victory_this_buy_phase = False
 
         if player.deluded:
             player.deluded = False
@@ -564,7 +566,16 @@ class GameState:
                 player.charm_next_buy_copies = 0
 
 
+        self._handle_buy_phase_end(player)
         self.phase = "cleanup"
+
+    def _handle_buy_phase_end(self, player: PlayerState) -> None:
+        """Resolve end-of-buy-phase triggers like Treasury and Joust."""
+        for card in list(player.in_play):
+            if hasattr(card, "on_buy_phase_end"):
+                card.on_buy_phase_end(self)
+            if hasattr(card, "on_cleanup_return_province"):
+                card.on_cleanup_return_province(player)
 
     def get_card_cost(self, player: PlayerState, card: Card) -> int:
         """Return the coin cost of a card after modifiers."""
@@ -756,6 +767,7 @@ class GameState:
         player.innovation_used = False
         player.cards_gained_this_turn = 0
         player.cards_gained_this_buy_phase = 0
+        player.gained_victory_this_buy_phase = False
         player.flagship_pending = [
             card for card in player.flagship_pending if card in player.duration
         ]
@@ -1027,6 +1039,8 @@ class GameState:
         self._trigger_invest_draw(actual_card.name, player)
         self._handle_fools_gold_reactions(player, actual_card)
         self._track_action_gain(player, actual_card)
+        self._handle_cargo_ship_gain(player, actual_card)
+        self._handle_opponent_gain_hooks(player, actual_card)
 
         if (
             hasattr(player, "cards_gained_this_buy_phase")
@@ -1034,6 +1048,9 @@ class GameState:
             and self.phase == "buy"
         ):
             player.cards_gained_this_buy_phase += 1
+
+        if actual_card.is_victory and player is self.current_player and self.phase == "buy":
+            player.gained_victory_this_buy_phase = True
 
         if hasattr(player, "cards_gained_this_turn"):
             player.cards_gained_this_turn += 1
@@ -1305,6 +1322,22 @@ class GameState:
         for project in player.projects:
             if hasattr(project, "on_trash"):
                 project.on_trash(self, player, card)
+
+    def _handle_cargo_ship_gain(self, player: PlayerState, gained_card: Card) -> None:
+        """Check if a Cargo Ship in play wants to set aside the gained card."""
+        for card in list(player.in_play):
+            if hasattr(card, "on_cargo_ship_gain"):
+                if card.on_cargo_ship_gain(self, player, gained_card):
+                    break
+
+    def _handle_opponent_gain_hooks(self, gainer: PlayerState, gained_card: Card) -> None:
+        """Resolve project hooks that trigger when another player gains a card."""
+        for player in self.players:
+            if player is gainer:
+                continue
+            for project in player.projects:
+                if hasattr(project, "on_opponent_gain"):
+                    project.on_opponent_gain(self, player, gained_card)
 
     def _update_final_metrics(self):
         """Update final game metrics including victory points."""

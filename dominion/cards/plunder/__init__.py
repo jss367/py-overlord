@@ -21,6 +21,8 @@ from .barbarian import Barbarian
 from .flagship import Flagship
 from .trickster import Trickster
 from .highwayman import Highwayman
+from .astrolabe import Astrolabe
+from .pickaxe import Pickaxe
 
 __all__ = [
     'Amphora',
@@ -44,4 +46,6 @@ __all__ = [
     'Trickster',
     'Highwayman',
     'LOOT_CARD_NAMES',
+    'Astrolabe',
+    'Pickaxe',
 ]

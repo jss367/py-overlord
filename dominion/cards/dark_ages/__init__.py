@@ -10,6 +10,7 @@ from .ruins import Ruins
 from .poor_house import PoorHouse
 from .count import Count
 from .armory import Armory
+from .graverobber import Graverobber
 
 __all__ = [
     'Beggar',
@@ -26,4 +27,5 @@ __all__ = [
     'PoorHouse',
     'Count',
     'Armory',
+    'Graverobber',
 ]
