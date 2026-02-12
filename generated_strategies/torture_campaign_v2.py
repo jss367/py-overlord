@@ -13,7 +13,13 @@ class TortureCampaignV2(EnhancedStrategy):
             PriorityRule('Inn', PriorityRule.turn_number('<=', 10)),
             PriorityRule('Province', PriorityRule.resources('coins', '>=', 8)),
             PriorityRule('Patrol'),
-            PriorityRule('Snowy Village', PriorityRule.turn_number('<=', 9)),
+            PriorityRule(
+                'Snowy Village',
+                PriorityRule.and_(
+                    PriorityRule.turn_number('<=', 9),
+                    lambda _s, me: me.count_in_deck('Snowy Village') < 1,
+                ),
+            ),
             PriorityRule('Province', PriorityRule.resources('coins', '>=', 8)),
             PriorityRule('Province'),
             PriorityRule('Taskmaster', PriorityRule.turn_number('<=', 11)),
