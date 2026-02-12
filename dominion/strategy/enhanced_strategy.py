@@ -97,6 +97,21 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.actions_in_play({op!r}, {amount!r})")
 
     @staticmethod
+    def card_in_play(card_name: str) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when the named card is currently in play."""
+        fn = lambda _s, me, _card=card_name: any(c.name == _card for c in me.in_play)
+        return PriorityRule._tag_source(fn, f"PriorityRule.card_in_play({card_name!r})")
+
+    @staticmethod
+    def deck_count_diff(card_a: str, card_b: str, op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when (count of card_a in deck) minus (count of card_b in deck) satisfies the comparison."""
+        cmp = PriorityRule._OP_MAP[op]
+        fn = lambda _s, me, _a=card_a, _b=card_b, _amount=amount, _cmp=cmp: _cmp(
+            me.count_in_deck(_a) - me.count_in_deck(_b), _amount
+        )
+        return PriorityRule._tag_source(fn, f"PriorityRule.deck_count_diff({card_a!r}, {card_b!r}, {op!r}, {amount!r})")
+
+    @staticmethod
     def always_true() -> Callable[["GameState", "PlayerState"], bool]:
         fn = lambda *_: True
         return PriorityRule._tag_source(fn, "PriorityRule.always_true()")
