@@ -100,6 +100,16 @@ def main():
         "--games-per-eval", type=int, default=10, help="Number of games to play per strategy evaluation (default: 10)"
     )
     parser.add_argument("--board", help="Board definition file containing kingdom cards and landscapes")
+    parser.add_argument(
+        "--seed-strategy",
+        help="Python module path to a strategy factory function to inject into the initial population "
+        "(e.g. generated_strategies.torture_campaign_v2:create_torture_campaign_v2)",
+    )
+    parser.add_argument(
+        "--baseline-strategy",
+        help="Python module path to a strategy factory function to evaluate against instead of Big Money "
+        "(e.g. generated_strategies.torture_campaign_v2:create_torture_campaign_v2)",
+    )
 
     args = parser.parse_args()
 
@@ -167,6 +177,33 @@ def main():
         games_per_eval=games_per_eval,
         board_config=board_config,
     )
+
+    # Load strategies from module:function paths
+    def _load_strategy(spec: str):
+        module_path, func_name = spec.rsplit(":", 1)
+        import importlib
+        mod = importlib.import_module(module_path)
+        return getattr(mod, func_name)()
+
+    # Inject seed strategy if provided
+    if args.seed_strategy:
+        try:
+            seed = _load_strategy(args.seed_strategy)
+            trainer.inject_strategy(seed)
+            logger.info("Injected seed strategy: %s", seed.name)
+        except Exception as exc:
+            logger.error("Failed to load seed strategy: %s", exc)
+            sys.exit(1)
+
+    # Set baseline strategy if provided
+    if args.baseline_strategy:
+        try:
+            baseline = _load_strategy(args.baseline_strategy)
+            trainer.set_baseline_strategy(baseline)
+            logger.info("Evaluating against baseline: %s", baseline.name)
+        except Exception as exc:
+            logger.error("Failed to load baseline strategy: %s", exc)
+            sys.exit(1)
 
     logger.info("Training parameters:")
     logger.info("  Population size: %d", population_size)
