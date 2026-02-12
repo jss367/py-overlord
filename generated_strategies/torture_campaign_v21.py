@@ -16,11 +16,15 @@ class TortureCampaignV21(EnhancedStrategy):
         self.version = "2.1"
 
         self.gain_priority = [
-            # Phase 1: Get 4 Taskmasters for action/coin duration base
-            PriorityRule('Taskmaster', PriorityRule.max_in_deck('Taskmaster', 4)),
-
-            # Phase 2: Torturer-first engine
+            # Torturer is #1 — attack + draw, the core engine piece
             PriorityRule('Torturer', _engine_building_active),
+
+            # Taskmasters fill in on cheap turns (4 coins can't buy Torturer)
+            PriorityRule('Taskmaster', PriorityRule.and_(
+                PriorityRule.max_in_deck('Taskmaster', 4),
+                PriorityRule.turn_number('<=', 10),
+            )),
+
             # Inn for action support when 2+ behind Torturer count
             PriorityRule('Inn', PriorityRule.and_(
                 _engine_building_active,
