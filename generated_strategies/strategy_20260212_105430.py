@@ -1,25 +1,19 @@
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 
-class TortureCampaignV2(EnhancedStrategy):
+class Strategy20260212_105430(EnhancedStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.name = 'torture-campaign-v2'
-        self.description = "Hand-tuned strategy based on gen14 torture_campaign output"
-        self.version = "2.0"
+        self.description = "Auto-generated strategy from genetic training"
+        self.version = "1.0"
 
         self.gain_priority = [
             PriorityRule('Torturer'),
             PriorityRule('Inn', PriorityRule.turn_number('<=', 10)),
             PriorityRule('Province', PriorityRule.resources('coins', '>=', 8)),
             PriorityRule('Patrol'),
-            PriorityRule(
-                'Snowy Village',
-                PriorityRule.and_(
-                    PriorityRule.turn_number('<=', 9),
-                    PriorityRule.max_in_deck('Snowy Village', 1),
-                ),
-            ),
+            PriorityRule('Snowy Village', PriorityRule.and_(PriorityRule.turn_number('<=', 9), None)),
             PriorityRule('Province', PriorityRule.resources('coins', '>=', 8)),
             PriorityRule('Province'),
             PriorityRule('Taskmaster', PriorityRule.turn_number('<=', 11)),
@@ -58,11 +52,9 @@ class TortureCampaignV2(EnhancedStrategy):
             PriorityRule('Copper', PriorityRule.has_cards(['Silver', 'Gold'], 3)),
         ]
 
-        # Cards to discard first when Inn (or other effects) force discards
         self.discard_priority = [
             PriorityRule('Trail'),
         ]
 
-
-def create_torture_campaign_v2() -> EnhancedStrategy:
-    return TortureCampaignV2()
+def create_strategy20260212_105430() -> EnhancedStrategy:
+    return Strategy20260212_105430()

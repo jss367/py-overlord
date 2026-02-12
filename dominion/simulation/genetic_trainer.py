@@ -46,6 +46,7 @@ class GeneticTrainer:
         self.current_generation = 0
         self.logger = GameLogger(log_folder)
         self._strategy_to_inject = None
+        self._baseline_strategy = None
 
     @staticmethod
     def _random_condition() -> "Callable | None":
@@ -142,21 +143,28 @@ class GeneticTrainer:
 
         return strategy
 
-    def evaluate_strategy(self, strategy: BaseStrategy) -> float:
-        """Evaluate a strategy by playing a series of games against Big Money."""
-        try:
-            big_money = self.battle_system.strategy_loader.get_strategy("Big Money")
-            if not big_money:
-                raise ValueError("Big Money strategy not found")
+    def set_baseline_strategy(self, strategy: BaseStrategy):
+        """Set a custom baseline strategy to evaluate against instead of Big Money."""
+        self._baseline_strategy = strategy
 
-            kingdom_card_names = self.battle_system._determine_kingdom_cards(strategy, big_money)
+    def evaluate_strategy(self, strategy: BaseStrategy) -> float:
+        """Evaluate a strategy by playing a series of games against the baseline."""
+        try:
+            if self._baseline_strategy is not None:
+                opponent = self._baseline_strategy
+            else:
+                opponent = self.battle_system.strategy_loader.get_strategy("Big Money")
+                if not opponent:
+                    raise ValueError("Big Money strategy not found")
+
+            kingdom_card_names = self.battle_system._determine_kingdom_cards(strategy, opponent)
 
             from dominion.ai.genetic_ai import GeneticAI
 
             wins = 0
             for game_num in range(self.games_per_eval):
                 ai1 = GeneticAI(strategy)
-                ai2 = GeneticAI(big_money)
+                ai2 = GeneticAI(opponent)
 
                 if game_num % 2 == 0:
                     winner, _scores, _log, _turns = self.battle_system.run_game(ai1, ai2, kingdom_card_names)

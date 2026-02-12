@@ -82,6 +82,12 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.has_cards({card_list!r}, {amount!r})")
 
     @staticmethod
+    def max_in_deck(card_name: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when the player has strictly fewer than ``amount`` copies of ``card_name``."""
+        fn = lambda _s, me, _amount=amount, _card=card_name: me.count_in_deck(_card) < _amount
+        return PriorityRule._tag_source(fn, f"PriorityRule.max_in_deck({card_name!r}, {amount!r})")
+
+    @staticmethod
     def always_true() -> Callable[["GameState", "PlayerState"], bool]:
         fn = lambda *_: True
         return PriorityRule._tag_source(fn, "PriorityRule.always_true()")
