@@ -10,26 +10,20 @@ class TortureCampaignV4(EnhancedStrategy):
 
         self.gain_priority = [
             PriorityRule('Province'),
-            PriorityRule('Duchy', PriorityRule.provinces_left('<=', 2)),
+            PriorityRule('Duchy', PriorityRule.provinces_left('<=', 3)),
             PriorityRule('Patrol'),
             PriorityRule('Emporium', PriorityRule.actions_in_play('>=', 5)),
             PriorityRule('Gold'),
             PriorityRule('Emporium'),
             PriorityRule('Silver'),
             PriorityRule('Patrician'),
-            PriorityRule('Trail'),
-            PriorityRule('First Mate'),
             PriorityRule('Taskmaster'),
-            PriorityRule('Torturer'),
         ]
 
         self.action_priority = [
-            PriorityRule('First Mate'),
             PriorityRule('Patrician'),
             PriorityRule('Emporium'),
             PriorityRule('Inn'),
-            PriorityRule('Trail'),
-            PriorityRule('Torturer'),
             PriorityRule('Patrol'),
             PriorityRule('Trader'),
         ]
@@ -44,10 +38,6 @@ class TortureCampaignV4(EnhancedStrategy):
             PriorityRule('Curse'),
             PriorityRule('Estate', PriorityRule.provinces_left('>', 4)),
             PriorityRule('Copper', PriorityRule.has_cards(['Silver', 'Gold'], 3)),
-        ]
-
-        self.discard_priority = [
-            PriorityRule('Trail'),
         ]
 
 
