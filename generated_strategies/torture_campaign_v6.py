@@ -1,16 +1,17 @@
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 
-class TortureCampaignV4(EnhancedStrategy):
+class TortureCampaignV6(EnhancedStrategy):
     def __init__(self) -> None:
         super().__init__()
-        self.name = 'torture-campaign-v4'
-        self.description = "Hand-tuned Province rush based on V4 evolved strategy"
-        self.version = "4.0"
+        self.name = 'torture-campaign-v6'
+        self.description = "V4 + max 3 Patrols, early Trail for Torturer defense"
+        self.version = "6.0"
 
         self.gain_priority = [
             PriorityRule('Province'),
             PriorityRule('Duchy', PriorityRule.provinces_left('<=', 3)),
+            PriorityRule('Trail', PriorityRule.max_in_deck('Trail', 1)),
             PriorityRule('Patrol', PriorityRule.max_in_deck('Patrol', 3)),
             PriorityRule('Emporium', PriorityRule.actions_in_play('>=', 5)),
             PriorityRule('Gold'),
@@ -24,6 +25,7 @@ class TortureCampaignV4(EnhancedStrategy):
             PriorityRule('Patrician'),
             PriorityRule('Emporium'),
             PriorityRule('Inn'),
+            PriorityRule('Trail'),
             PriorityRule('Patrol'),
             PriorityRule('Trader'),
         ]
@@ -41,5 +43,5 @@ class TortureCampaignV4(EnhancedStrategy):
         ]
 
 
-def create_torture_campaign_v4() -> EnhancedStrategy:
-    return TortureCampaignV4()
+def create_torture_campaign_v6() -> EnhancedStrategy:
+    return TortureCampaignV6()
