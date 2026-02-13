@@ -1,0 +1,14 @@
+Encampment
+Plunder
+Catapult
+Rocks
+Sage
+Swindler
+Procession
+Sacrifice
+First Mate
+Highway
+Hunting Lodge
+Torturer
+
+Event: Ride
