@@ -48,6 +48,20 @@ class GeneticTrainer:
         self._strategy_to_inject = None
         self._baseline_strategy = None
 
+        # Cache card type lookups for filtering
+        from dominion.cards.registry import get_card
+        self._kingdom_action_cards = []
+        self._kingdom_treasure_cards = []
+        for card_name in self.kingdom_cards:
+            try:
+                card = get_card(card_name)
+                if card.is_action:
+                    self._kingdom_action_cards.append(card_name)
+                if card.is_treasure:
+                    self._kingdom_treasure_cards.append(card_name)
+            except ValueError:
+                pass
+
     @staticmethod
     def _random_condition() -> "Callable | None":
         """Return a random callable condition from a diverse vocabulary."""
@@ -104,9 +118,9 @@ class GeneticTrainer:
                     condition = self._random_condition()
             strategy.gain_priority.append(PriorityRule(card, condition))
 
-        # Generate action priorities
+        # Generate action priorities (only actual action cards)
         strategy.action_priority = []
-        action_cards = list(self.kingdom_cards)
+        action_cards = list(self._kingdom_action_cards)
         random.shuffle(action_cards)
         for card in action_cards:
             if random.random() < 0.7:  # 70% chance to include each action
@@ -121,16 +135,7 @@ class GeneticTrainer:
                 strategy.action_priority.append(PriorityRule(card, condition))
 
         # Generate treasure priorities — include kingdom treasures
-        kingdom_treasures = []
-        for card_name in self.kingdom_cards:
-            try:
-                from dominion.cards.registry import get_card
-                card = get_card(card_name)
-                if card.is_treasure:
-                    kingdom_treasures.append(card_name)
-            except ValueError:
-                pass
-        treasure_list = kingdom_treasures + ["Gold", "Silver", "Copper"]
+        treasure_list = list(self._kingdom_treasure_cards) + ["Gold", "Silver", "Copper"]
         random.shuffle(treasure_list)
         strategy.treasure_priority = [PriorityRule(t) for t in treasure_list]
 
@@ -275,10 +280,10 @@ class GeneticTrainer:
                             else:
                                 priority.condition = self._random_condition()
 
-        # Add/remove action cards
+        # Add/remove action cards (only actual action cards)
         if random.random() < self.mutation_rate * 0.3:
             existing = {r.card_name for r in strategy.action_priority}
-            missing = [c for c in self.kingdom_cards if c not in existing]
+            missing = [c for c in self._kingdom_action_cards if c not in existing]
             if missing:
                 card = random.choice(missing)
                 pos = random.randint(0, len(strategy.action_priority))
@@ -299,17 +304,10 @@ class GeneticTrainer:
         # Add missing kingdom treasures to treasure priority
         if random.random() < self.mutation_rate * 0.3:
             existing_treasures = {r.card_name for r in strategy.treasure_priority}
-            for card_name in self.kingdom_cards:
-                if card_name in existing_treasures:
-                    continue
-                try:
-                    from dominion.cards.registry import get_card
-                    card = get_card(card_name)
-                    if card.is_treasure:
-                        pos = random.randint(0, len(strategy.treasure_priority))
-                        strategy.treasure_priority.insert(pos, PriorityRule(card_name))
-                except ValueError:
-                    pass
+            for card_name in self._kingdom_treasure_cards:
+                if card_name not in existing_treasures:
+                    pos = random.randint(0, len(strategy.treasure_priority))
+                    strategy.treasure_priority.insert(pos, PriorityRule(card_name))
 
         # --- Mutate trash priorities ---
         if random.random() < self.mutation_rate:

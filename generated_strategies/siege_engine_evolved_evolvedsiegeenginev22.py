@@ -1,12 +1,12 @@
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 
-class EvolvedEvolvedsiegeenginev2(EnhancedStrategy):
+class EvolvedEvolvedsiegeenginev22(EnhancedStrategy):
     def __init__(self) -> None:
         super().__init__()
-        self.name = 'gen121-13556720400'
-        self.description = "Auto-generated strategy from genetic training"
-        self.version = "1.0"
+        self.name = 'siege-engine-evolved-v22'
+        self.description = "Evolved Siege Engine v2.2"
+        self.version = "2.2"
 
         self.gain_priority = [
             PriorityRule('Province', PriorityRule.resources('coins', '>=', 8)),
@@ -22,6 +22,7 @@ class EvolvedEvolvedsiegeenginev2(EnhancedStrategy):
         ]
 
         self.action_priority = [
+            PriorityRule('Encampment', PriorityRule.has_cards(['Gold', 'Plunder'], 1)),
             PriorityRule('Highway'),
             PriorityRule('Sage'),
             PriorityRule('Catapult'),
@@ -49,5 +50,5 @@ class EvolvedEvolvedsiegeenginev2(EnhancedStrategy):
         ]
 
 
-def create_evolvedevolvedsiegeenginev2() -> EnhancedStrategy:
-    return EvolvedEvolvedsiegeenginev2()
+def create_evolvedevolvedsiegeenginev22() -> EnhancedStrategy:
+    return EvolvedEvolvedsiegeenginev22()
