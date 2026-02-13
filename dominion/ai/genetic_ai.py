@@ -47,6 +47,11 @@ class GeneticAI(AI):
             return self.strategy.choose_way(state, state.current_player, card, ways)
         return None
 
+    def choose_torturer_attack(self, state: GameState, player) -> bool:
+        if hasattr(self.strategy, 'choose_torturer_response'):
+            return self.strategy.choose_torturer_response(state, player)
+        return super().choose_torturer_attack(state, player)
+
     def choose_card_to_trash(self, state: GameState, choices: list[Card]) -> Optional[Card]:
         if not choices:
             return None

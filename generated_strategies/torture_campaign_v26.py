@@ -1,14 +1,14 @@
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 
-class TortureCampaignV25(EnhancedStrategy):
-    """Tuned Torturer/Inn engine: 5T/4I interspersing, 3 Gold payload."""
+class TortureCampaignV26(EnhancedStrategy):
+    """V25 engine with eager Torturer play: Torturer first when actions>1, Inn to refuel."""
 
     def __init__(self) -> None:
         super().__init__()
-        self.name = "torture-campaign-v25"
-        self.description = "Tuned Torturer/Inn engine: 5T/4I interspersing, 3 Gold payload"
-        self.version = "2.5"
+        self.name = "torture-campaign-v26"
+        self.description = "V25 engine with eager Torturer play: Torturer first when actions>1, Inn to refuel"
+        self.version = "2.6"
 
         self.gain_priority = [
             PriorityRule(
@@ -52,17 +52,15 @@ class TortureCampaignV25(EnhancedStrategy):
             PriorityRule("Province"),
             PriorityRule("Duchy"),
             PriorityRule("Estate", PriorityRule.provinces_left("<=", 3)),
-            PriorityRule("Patrician", PriorityRule.turn_number("<=", 15)),
         ]
 
         self.action_priority = [
-            PriorityRule("Patrician"),
             PriorityRule("Taskmaster"),
             PriorityRule("Torturer", PriorityRule.resources("actions", ">", 1)),
             PriorityRule("Patrol", PriorityRule.resources("actions", ">", 1)),
             PriorityRule("Inn"),
-            PriorityRule("Patrol"),
             PriorityRule("Torturer"),
+            PriorityRule("Patrol"),
         ]
 
         self.treasure_priority = [
@@ -77,10 +75,6 @@ class TortureCampaignV25(EnhancedStrategy):
             PriorityRule("Copper", PriorityRule.has_cards(["Silver", "Gold"], 3)),
         ]
 
-    def choose_torturer_response(self, state, player):
-        """Take curse if hand <= 3 (discarding would gut us), discard if hand >= 4."""
-        return len(player.hand) >= 4
 
-
-def create_torture_campaign_v25() -> EnhancedStrategy:
-    return TortureCampaignV25()
+def create_torture_campaign_v26() -> EnhancedStrategy:
+    return TortureCampaignV26()

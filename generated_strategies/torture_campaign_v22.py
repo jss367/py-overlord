@@ -7,31 +7,38 @@ def _engine_building_active(s, me):
     engine_supply = s.supply.get('Inn', 0) + s.supply.get('Torturer', 0)
     return curses_remain and engine_supply > 4
 
+_engine_building_active._source = "_engine_building_active"
 
-class TortureCampaignV21(EnhancedStrategy):
+
+class TortureCampaignV22(EnhancedStrategy):
     def __init__(self) -> None:
         super().__init__()
-        self.name = 'torture-campaign-v21'
-        self.description = "Taskmaster/Torturer/Inn engine strategy"
-        self.version = "2.1"
+        self.name = 'torture-campaign-v22'
+        self.description = "V21 + Inn-first then alternate Inn/Torturer balance"
+        self.version = "2.2"
 
         self.gain_priority = [
-            # Torturer is #1 — attack + draw, the core engine piece
-            PriorityRule('Torturer', _engine_building_active),
+            # Inn first for action support, then alternate with Torturer
+            PriorityRule(
+                'Inn',
+                PriorityRule.and_(
+                    _engine_building_active,
+                    PriorityRule.deck_count_diff('Inn', 'Torturer', '<=', 0),
+                ),
+            ),
+            PriorityRule(
+                'Torturer',
+                PriorityRule.and_(
+                    _engine_building_active,
+                    PriorityRule.deck_count_diff('Torturer', 'Inn', '<', 0),
+                ),
+            ),
             # Taskmasters fill in on cheap turns (4 coins can't buy Torturer)
             PriorityRule(
                 'Taskmaster',
                 PriorityRule.and_(
                     PriorityRule.max_in_deck('Taskmaster', 4),
                     PriorityRule.turn_number('<=', 10),
-                ),
-            ),
-            # Inn for action support when 2+ behind Torturer count
-            PriorityRule(
-                'Inn',
-                PriorityRule.and_(
-                    _engine_building_active,
-                    PriorityRule.deck_count_diff('Inn', 'Torturer', '<=', -2),
                 ),
             ),
             # Patrol for draw consistency (max 2)
@@ -72,5 +79,5 @@ class TortureCampaignV21(EnhancedStrategy):
         ]
 
 
-def create_torture_campaign_v21() -> EnhancedStrategy:
-    return TortureCampaignV21()
+def create_torture_campaign_v22() -> EnhancedStrategy:
+    return TortureCampaignV22()
