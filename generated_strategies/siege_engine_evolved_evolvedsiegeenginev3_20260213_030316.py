@@ -13,21 +13,13 @@ class EvolvedEvolvedsiegeenginev3(EnhancedStrategy):
             PriorityRule('Gold'),
             PriorityRule('Catapult'),
             PriorityRule('Silver'),
-            PriorityRule('Silver'),
             PriorityRule('Torturer', PriorityRule.turn_number('<=', 14)),
-            PriorityRule('Gold'),
-            PriorityRule('Gold', PriorityRule.resources('coins', '>=', 6)),
-            PriorityRule('Copper', PriorityRule.provinces_left('<=', 7)),
-            PriorityRule('Copper', PriorityRule.provinces_left('<=', 7)),
-            PriorityRule('Copper', PriorityRule.provinces_left('<=', 7)),
             PriorityRule('Copper', PriorityRule.provinces_left('<=', 7)),
             PriorityRule('Plunder', PriorityRule.has_cards(['Duchy', 'Silver', 'Copper'], 2)),
             PriorityRule('Highway'),
             PriorityRule('Torturer'),
             PriorityRule('Rocks', PriorityRule.turn_number('<=', 9)),
-            PriorityRule('Rocks', PriorityRule.turn_number('<=', 9)),
             PriorityRule('First Mate'),
-            PriorityRule('Catapult'),
         ]
 
         self.action_priority = [
@@ -37,13 +29,7 @@ class EvolvedEvolvedsiegeenginev3(EnhancedStrategy):
             PriorityRule('Torturer'),
             PriorityRule('Highway', PriorityRule.provinces_left('<=', 4)),
             PriorityRule('Plunder'),
-            PriorityRule('Torturer'),
-            PriorityRule('Catapult'),
             PriorityRule('Highway'),
-            PriorityRule('Highway', PriorityRule.turn_number('>', 13)),
-            PriorityRule('Highway'),
-            PriorityRule('Torturer', PriorityRule.provinces_left('<', 6)),
-            PriorityRule('Catapult', PriorityRule.turn_number('<', 5)),
         ]
 
         self.treasure_priority = [

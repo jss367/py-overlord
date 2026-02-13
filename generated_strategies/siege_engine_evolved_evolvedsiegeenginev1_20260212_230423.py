@@ -14,20 +14,8 @@ class EvolvedEvolvedsiegeenginev1(EnhancedStrategy):
             PriorityRule('Catapult'),
             PriorityRule('Silver'),
             PriorityRule('Gold'),
-            PriorityRule('Gold', PriorityRule.resources('coins', '>=', 6)),
             PriorityRule('Torturer'),
-            PriorityRule('Torturer', PriorityRule.turn_number('<=', 12)),
             PriorityRule('Rocks'),
-            PriorityRule('Torturer'),
-            PriorityRule('Torturer'),
-            PriorityRule('Torturer', PriorityRule.turn_number('<=', 7)),
-            PriorityRule('Catapult', PriorityRule.turn_number('<=', 14)),
-            PriorityRule('Rocks'),
-            PriorityRule('Rocks', PriorityRule.turn_number('<=', 9)),
-            PriorityRule('Rocks'),
-            PriorityRule('Catapult', PriorityRule.turn_number('<=', 8)),
-            PriorityRule('Catapult', PriorityRule.turn_number('<=', 11)),
-            PriorityRule('Catapult'),
         ]
 
         self.action_priority = [
@@ -38,13 +26,7 @@ class EvolvedEvolvedsiegeenginev1(EnhancedStrategy):
             PriorityRule('Catapult'),
             PriorityRule('Swindler'),
             PriorityRule('Highway'),
-            PriorityRule('Torturer', PriorityRule.has_cards(['Province', 'Silver'], 4)),
-            PriorityRule('Catapult'),
-            PriorityRule('Catapult'),
-            PriorityRule('Torturer'),
             PriorityRule('Encampment'),
-            PriorityRule('Catapult', PriorityRule.has_cards(['Gold'], 1)),
-            PriorityRule('Swindler'),
         ]
 
         self.treasure_priority = [
