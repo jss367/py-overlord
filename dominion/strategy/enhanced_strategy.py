@@ -203,10 +203,29 @@ class EnhancedStrategy:
                 and self._can_butterfly(state)
                 and self._best_butterfly_target(state, player, real[0].cost.coins + 1)):
             return real[0]
-        return self._choose_from_priority(self.action_priority, choices, state, player)
+        result = self._choose_from_priority(self.action_priority, choices, state, player)
+        if result is not None:
+            return result
+
+        # Fallback: play unexpected action cards not covered by any priority rule
+        # (e.g. cards gained via Swindle or other opponent effects).
+        priority_names = {rule.card for rule in self.action_priority}
+        unexpected = [c for c in choices if c is not None and c.name not in priority_names]
+        if not unexpected:
+            return None
+        # Prefer non-terminal actions (+actions) to avoid wasting remaining actions
+        non_terminal = [c for c in unexpected if c.stats.actions >= 1]
+        return non_terminal[0] if non_terminal else unexpected[0]
 
     def choose_treasure(self, state, player, choices):
-        return self._choose_from_priority(self.treasure_priority, choices, state, player)
+        result = self._choose_from_priority(self.treasure_priority, choices, state, player)
+        if result is not None:
+            return result
+
+        # Fallback: play any unexpected treasure not in our priority list
+        priority_names = {rule.card for rule in self.treasure_priority}
+        unexpected = [c for c in choices if c is not None and c.name not in priority_names]
+        return unexpected[0] if unexpected else None
 
     def choose_gain(self, state, player, choices):
         normal = self._choose_from_priority(self.gain_priority, choices, state, player)
