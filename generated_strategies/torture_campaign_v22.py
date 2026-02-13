@@ -49,9 +49,11 @@ class TortureCampaignV22(EnhancedStrategy):
             PriorityRule('Province'),
             PriorityRule('Duchy'),
             PriorityRule('Estate', PriorityRule.provinces_left('<=', 4)),
+            PriorityRule('Patrician', PriorityRule.turn_number('<=', 15)),
         ]
 
         self.action_priority = [
+            PriorityRule('Patrician'),
             # Taskmasters first for +actions/+coins
             PriorityRule('Taskmaster'),
             # Torturer when multiple actions available (save last action for Inn)

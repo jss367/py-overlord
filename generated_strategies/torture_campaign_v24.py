@@ -69,9 +69,11 @@ class TortureCampaignV24(EnhancedStrategy):
             PriorityRule("Province"),
             PriorityRule("Duchy"),
             PriorityRule("Estate", PriorityRule.provinces_left("<=", 3)),
+            PriorityRule("Patrician", PriorityRule.turn_number("<=", 15)),
         ]
 
         self.action_priority = [
+            PriorityRule("Patrician"),
             # Taskmaster first — duration gives actions/coins next turn
             PriorityRule("Taskmaster"),
             # Inn BEFORE Torturer — need actions to play Torturers

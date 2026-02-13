@@ -52,9 +52,11 @@ class TortureCampaignV26(EnhancedStrategy):
             PriorityRule("Province"),
             PriorityRule("Duchy"),
             PriorityRule("Estate", PriorityRule.provinces_left("<=", 3)),
+            PriorityRule("Patrician", PriorityRule.turn_number("<=", 15)),
         ]
 
         self.action_priority = [
+            PriorityRule("Patrician"),
             PriorityRule("Taskmaster"),
             PriorityRule("Torturer", PriorityRule.resources("actions", ">", 1)),
             PriorityRule("Patrol", PriorityRule.resources("actions", ">", 1)),
