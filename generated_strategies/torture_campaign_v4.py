@@ -11,7 +11,7 @@ class TortureCampaignV4(EnhancedStrategy):
         self.gain_priority = [
             PriorityRule('Province'),
             PriorityRule('Duchy', PriorityRule.provinces_left('<=', 3)),
-            PriorityRule('Patrol'),
+            PriorityRule('Patrol', PriorityRule.max_in_deck('Patrol', 4)),
             PriorityRule('Emporium', PriorityRule.actions_in_play('>=', 5)),
             PriorityRule('Gold'),
             PriorityRule('Emporium'),
