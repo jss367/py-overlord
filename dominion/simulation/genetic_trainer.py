@@ -141,7 +141,7 @@ class GeneticTrainer:
             PriorityRule("Copper", PriorityRule.has_cards(["Silver", "Gold"], 3)),
         ]
 
-        return strategy
+        return self._normalize(strategy)
 
     def set_baseline_strategy(self, strategy: BaseStrategy):
         """Set a custom baseline strategy to evaluate against instead of Big Money."""
@@ -324,6 +324,31 @@ class GeneticTrainer:
 
         return strategy
 
+    @staticmethod
+    def _normalize_priority_list(rules: list[PriorityRule]) -> list[PriorityRule]:
+        """Remove unreachable rules from a priority list.
+
+        Once an unconditional rule for a card is seen, all subsequent rules
+        for that card are dead code (the unconditional rule always matches first).
+        """
+        seen_unconditional: set[str] = set()
+        result = []
+        for rule in rules:
+            if rule.card_name in seen_unconditional:
+                continue
+            if rule.condition is None:
+                seen_unconditional.add(rule.card_name)
+            result.append(rule)
+        return result
+
+    def _normalize(self, strategy: BaseStrategy) -> BaseStrategy:
+        """Normalize all priority lists to remove unreachable rules."""
+        strategy.gain_priority = self._normalize_priority_list(strategy.gain_priority)
+        strategy.action_priority = self._normalize_priority_list(strategy.action_priority)
+        strategy.treasure_priority = self._normalize_priority_list(strategy.treasure_priority)
+        strategy.trash_priority = self._normalize_priority_list(strategy.trash_priority)
+        return strategy
+
     def _tournament_select(self, population: list[BaseStrategy], fitness_scores: list[float]) -> BaseStrategy:
         """Select a strategy using tournament selection"""
         tournament_size = min(3, len(population))
@@ -346,6 +371,7 @@ class GeneticTrainer:
 
             child = self._crossover(parent1, parent2)
             child = self._mutate(child)
+            child = self._normalize(child)
             child.name = f"gen{self.current_generation}-{id(child)}"
 
             new_population.append(child)
