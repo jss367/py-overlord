@@ -9,12 +9,12 @@ class EvolvedEvolvedsiegeenginev22(EnhancedStrategy):
         self.version = "2.2"
 
         self.gain_priority = [
-            PriorityRule('Province', PriorityRule.resources('coins', '>=', 8)),
+            PriorityRule('Province'),
             PriorityRule('Gold'),
             PriorityRule('Catapult', PriorityRule.turn_number('<=', 12)),
+            PriorityRule('Rocks'),
             PriorityRule('Silver'),
             PriorityRule('First Mate'),
-            PriorityRule('Rocks'),
             PriorityRule('Swindler'),
             PriorityRule('Plunder'),
             PriorityRule('Highway'),
@@ -46,6 +46,7 @@ class EvolvedEvolvedsiegeenginev22(EnhancedStrategy):
         self.trash_priority = [
             PriorityRule('Curse'),
             PriorityRule('Estate', PriorityRule.provinces_left('>', 4)),
+            PriorityRule('Rocks'),
             PriorityRule('Copper', PriorityRule.has_cards(['Silver', 'Gold'], 3)),
         ]
 
