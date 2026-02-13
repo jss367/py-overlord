@@ -37,7 +37,16 @@ class Trail(Card):
             player.actions_this_turn += 1
 
         player.in_play.append(self)
-        self.on_play(game_state)
+
+        # Offer Way choice just like the normal action phase does
+        way = None
+        if game_state.ways:
+            way = player.ai.choose_way(game_state, self, game_state.ways + [None])
+
+        if way:
+            way.apply(game_state, self)
+        else:
+            self.on_play(game_state)
 
         if origin == "trash":
             if self in player.in_play:

@@ -42,6 +42,11 @@ class GeneticAI(AI):
 
         return self.strategy.choose_gain(state, state.current_player, valid_choices)
 
+    def choose_way(self, state: GameState, card: Card, ways: list) -> Optional[object]:
+        if hasattr(self.strategy, 'choose_way'):
+            return self.strategy.choose_way(state, state.current_player, card, ways)
+        return None
+
     def choose_card_to_trash(self, state: GameState, choices: list[Card]) -> Optional[Card]:
         if not choices:
             return None

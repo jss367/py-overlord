@@ -195,16 +195,88 @@ class EnhancedStrategy:
 
     # ------------------------------------------------------------------
     def choose_action(self, state, player, choices):
+        # Handle Trail reaction trigger: if Trail is the only real option
+        # (on-gain/on-discard/on-trash reaction) and butterfly trick is
+        # available, always play it so the Way fires.
+        real = [c for c in choices if c is not None]
+        if (len(real) == 1 and real[0].name == "Trail"
+                and self._can_butterfly(state)
+                and self._best_butterfly_target(state, player, real[0].cost.coins + 1)):
+            return real[0]
         return self._choose_from_priority(self.action_priority, choices, state, player)
 
     def choose_treasure(self, state, player, choices):
         return self._choose_from_priority(self.treasure_priority, choices, state, player)
 
     def choose_gain(self, state, player, choices):
-        return self._choose_from_priority(self.gain_priority, choices, state, player)
+        normal = self._choose_from_priority(self.gain_priority, choices, state, player)
+
+        # Trail → Butterfly trick: buy Trail at $4 to gain a $5 card
+        trail = next((c for c in choices if c is not None and c.name == "Trail"), None)
+        if not trail or not self._can_butterfly(state):
+            return normal
+
+        target = self._best_butterfly_target(state, player, trail.cost.coins + 1)
+        if not target:
+            return normal
+
+        if normal is None:
+            return trail
+
+        # Buy Trail if the butterfly target is higher priority than normal choice
+        target_idx = self._gain_priority_index(target, state, player)
+        normal_idx = self._gain_priority_index(normal.name, state, player)
+        if target_idx < normal_idx:
+            return trail
+
+        return normal
 
     def choose_trash(self, state, player, choices):
         return self._choose_from_priority(self.trash_priority, choices, state, player)
+
+    def choose_way(self, state, player, card, ways):
+        """Default: butterfly Trail into the highest-priority $5 target."""
+        if card.name != "Trail":
+            return None
+        target = self._best_butterfly_target(state, player, card.cost.coins + 1)
+        if not target:
+            return None
+        for w in ways:
+            if w and getattr(w, "name", None) == "Way of the Butterfly":
+                return w
+        return None
+
+    # -- Butterfly helpers -------------------------------------------------
+    def _can_butterfly(self, state):
+        return any(
+            getattr(w, "name", None) == "Way of the Butterfly"
+            for w in (getattr(state, "ways", None) or [])
+        )
+
+    def _best_butterfly_target(self, state, player, target_cost):
+        """Return the name of the highest-priority card at *target_cost* that
+        is in supply and whose condition passes."""
+        from dominion.cards.registry import get_card
+        for rule in self.gain_priority:
+            if state.supply.get(rule.card, 0) <= 0:
+                continue
+            card_obj = get_card(rule.card)
+            if card_obj is None or card_obj.cost.coins != target_cost:
+                continue
+            cond = rule.condition
+            if cond is None or (callable(cond) and cond(state, player)):
+                return rule.card
+        return None
+
+    def _gain_priority_index(self, card_name, state, player):
+        """Return the index of *card_name* in gain_priority (condition passing), or inf."""
+        for i, rule in enumerate(self.gain_priority):
+            if rule.card != card_name:
+                continue
+            cond = rule.condition
+            if cond is None or (callable(cond) and cond(state, player)):
+                return i
+        return float("inf")
 
 
 def create_big_money_strategy() -> EnhancedStrategy:

@@ -18,6 +18,9 @@ class WayOfTheButterfly(Way):
         game_state.supply[card.name] = game_state.supply.get(card.name, 0) + 1
 
         target_cost = card.cost.coins + 1
+
+        # Collect all gainable cards at the target cost
+        candidates = []
         for name, count in game_state.supply.items():
             if count <= 0:
                 continue
@@ -26,6 +29,17 @@ class WayOfTheButterfly(Way):
                 candidate.cost.coins == target_cost
                 and candidate.cost.potions == card.cost.potions
             ):
-                game_state.supply[name] -= 1
-                game_state.gain_card(player, candidate)
-                break
+                candidates.append(candidate)
+
+        if not candidates:
+            return
+
+        # Let the AI choose which card to gain
+        if len(candidates) == 1:
+            chosen = candidates[0]
+        else:
+            chosen = player.ai.choose_buy(game_state, candidates + [None])
+
+        if chosen is not None:
+            game_state.supply[chosen.name] -= 1
+            game_state.gain_card(player, chosen)
