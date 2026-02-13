@@ -207,13 +207,14 @@ from dominion.cards.intrigue import (
     Ironworks,
     Pawn,
     Steward,
+    Swindler,
 )
 from dominion.cards.plunder import Barbarian, FirstMate, Flagship, Highwayman, Trickster, Astrolabe, Pickaxe
-from dominion.cards.dark_ages import Armory, Count, Ironmonger, Marauder, PoorHouse, Spoils, Ruins, Graverobber
+from dominion.cards.dark_ages import Armory, Count, Ironmonger, Marauder, PoorHouse, Spoils, Ruins, Graverobber, Procession, Sage
 from dominion.cards.seaside import Bazaar, Lookout, NativeVillage, TradingPost, Wharf, Treasury
 from dominion.cards.adventures import Artificer, Giant, Messenger
 from dominion.cards.nocturne import TragicHero
-from dominion.cards.menagerie import Destrier, Horse, Mastermind, Paddock
+from dominion.cards.menagerie import Destrier, Horse, HuntingLodge, Mastermind, Paddock
 from dominion.cards.rising_sun import ImperialEnvoy
 from dominion.cards.renaissance import CargoShip
 
@@ -452,6 +453,10 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Cargo Ship": CargoShip,
     "Pickaxe": Pickaxe,
     "Graverobber": Graverobber,
+    "Hunting Lodge": HuntingLodge,
+    "Procession": Procession,
+    "Sage": Sage,
+    "Swindler": Swindler,
     "Joust": Joust,
     "Coronet": Coronet,
     "Demesne": Demesne,

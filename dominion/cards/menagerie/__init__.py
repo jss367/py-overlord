@@ -4,5 +4,6 @@ from .horse import Horse
 from .destrier import Destrier
 from .mastermind import Mastermind
 from .paddock import Paddock
+from .hunting_lodge import HuntingLodge
 
-__all__ = ["Horse", "Destrier", "Mastermind", "Paddock"]
+__all__ = ["Horse", "Destrier", "Mastermind", "Paddock", "HuntingLodge"]

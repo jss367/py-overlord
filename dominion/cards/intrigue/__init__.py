@@ -7,5 +7,6 @@ from .conspirator import Conspirator
 from .ironworks import Ironworks
 from .pawn import Pawn
 from .steward import Steward
+from .swindler import Swindler
 
-__all__ = ['Torturer', 'Patrol', 'Bridge', 'Nobles', 'WishingWell', 'Conspirator', 'Ironworks', 'Pawn', 'Steward']
+__all__ = ['Torturer', 'Patrol', 'Bridge', 'Nobles', 'WishingWell', 'Conspirator', 'Ironworks', 'Pawn', 'Steward', 'Swindler']

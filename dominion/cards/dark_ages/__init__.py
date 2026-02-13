@@ -11,6 +11,8 @@ from .poor_house import PoorHouse
 from .count import Count
 from .armory import Armory
 from .graverobber import Graverobber
+from .procession import Procession
+from .sage import Sage
 
 __all__ = [
     'Beggar',
@@ -28,4 +30,6 @@ __all__ = [
     'Count',
     'Armory',
     'Graverobber',
+    'Procession',
+    'Sage',
 ]
