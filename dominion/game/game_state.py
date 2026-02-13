@@ -295,10 +295,22 @@ class GameState:
         # Process duration cards that were played last turn
         for card in player.duration[:]:
             # Log duration card effect
-            self.log_callback(("action", player.ai.name, f"resolves duration effect of {card}", {}))
-
-            # Apply duration effects
+            coins_before = player.coins
+            actions_before = player.actions
             card.on_duration(self)
+            coins_after = player.coins
+            actions_after = player.actions
+            context = {
+                "coins_before": coins_before,
+                "coins_after": coins_after,
+                "actions_before": actions_before,
+                "actions_after": actions_after,
+            }
+            self.log_callback(("action", player.ai.name,
+                f"resolves duration effect of {card} "
+                f"(+{coins_after - coins_before} coins, +{actions_after - actions_before} actions; "
+                f"now {coins_after} coins, {actions_after} actions)",
+                context))
 
             # Move to discard after duration effect resolves unless it stays in play
             if not getattr(card, "duration_persistent", False):

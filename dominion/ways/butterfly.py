@@ -42,4 +42,12 @@ class WayOfTheButterfly(Way):
 
         if chosen is not None:
             game_state.supply[chosen.name] -= 1
+            game_state.log_callback(
+                ("supply_change", chosen.name, -1, game_state.supply[chosen.name])
+            )
+            game_state.log_callback(
+                ("action", player.ai.name,
+                 f"gains {chosen.name} via Way of the Butterfly (returned {card.name})",
+                 {})
+            )
             game_state.gain_card(player, chosen)
