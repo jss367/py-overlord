@@ -177,3 +177,4 @@ battle_logs/*
 /reports
 /training_logs
 .worktrees/
+/checkpoints

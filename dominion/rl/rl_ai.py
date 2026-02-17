@@ -1,5 +1,6 @@
 """AI adapter that receives actions from an RL agent."""
 
+import queue
 from typing import Optional
 
 from dominion.ai.base_ai import AI
@@ -13,45 +14,39 @@ class _RLStrategy:
 
 
 class RLAI(AI):
-    """AI that returns pre-set actions from an RL agent.
+    """AI that communicates with the RL environment via queues.
 
-    This adapter allows the RL environment to control game decisions.
-    Before each decision point, the environment sets the action via
-    set_next_action(), then the game engine calls the appropriate
-    choose_* method which returns that action.
+    When the game engine calls a choose_* method, RLAI puts the choices
+    on the choice_queue and blocks until the env provides an action via
+    the action_queue. This allows the game to run in a background thread
+    while the env controls the RL agent's decisions.
     """
 
     def __init__(self, name: str = "RLAI"):
         self._name = name
-        self._pending_action: Optional[Card] = None
         self.strategy = _RLStrategy()
+        # Queues for env <-> game thread communication
+        self.choice_queue: queue.Queue = queue.Queue()
+        self.action_queue: queue.Queue = queue.Queue()
 
     @property
     def name(self) -> str:
         return self._name
 
-    def set_next_action(self, action: Optional[Card]) -> None:
-        """Queue the next action to be returned by choose_* methods."""
-        self._pending_action = action
-
-    def _get_and_clear_action(self) -> Optional[Card]:
-        """Return pending action and clear it."""
-        action = self._pending_action
-        self._pending_action = None
-        return action
+    def _request_decision(self, decision_type: str, state: GameState,
+                          choices: list) -> Optional[Card]:
+        """Put choices on queue and wait for env to provide action."""
+        self.choice_queue.put((decision_type, state, choices))
+        return self.action_queue.get()
 
     def choose_action(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
-        """Return the queued action card."""
-        return self._get_and_clear_action()
+        return self._request_decision("action", state, choices)
 
     def choose_treasure(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
-        """Return the queued treasure card."""
-        return self._get_and_clear_action()
+        return self._request_decision("treasure", state, choices)
 
     def choose_buy(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
-        """Return the queued buy choice."""
-        return self._get_and_clear_action()
+        return self._request_decision("buy", state, choices)
 
     def choose_card_to_trash(self, state: GameState, choices: list[Card]) -> Optional[Card]:
-        """Return the queued card to trash."""
-        return self._get_and_clear_action()
+        return self._request_decision("trash", state, choices)
