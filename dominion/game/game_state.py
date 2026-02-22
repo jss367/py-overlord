@@ -30,6 +30,7 @@ class GameState:
     wild_hunt_pile_tokens: int = 0
     farmers_market_pile_tokens: int = 0
     temple_pile_tokens: int = 0
+    tireless_piles: set = field(default_factory=set)  # card names with Tireless trait
       
 
     def __post_init__(self):
@@ -256,6 +257,7 @@ class GameState:
         player.envious_effect_active = False
         player.insignia_active = False
         player.fortune_doubled_this_turn = False
+        player.harbor_village_pending = 0
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
@@ -390,6 +392,10 @@ class GameState:
             player.actions_this_turn += 1
             player.hand.remove(choice)
             player.in_play.append(choice)
+            # Track coins before play for Harbor Village bonus
+            coins_before_action = player.coins
+            harbor_pending = getattr(player, "harbor_village_pending", 0)
+
             if way:
                 way.apply(self, choice)
             else:
@@ -405,6 +411,18 @@ class GameState:
                 plays = 1 + len(flagships_to_resolve)
                 for _ in range(plays):
                     choice.on_play(self)
+
+            # Training token: +$1 when playing a card from the trained pile
+            training_pile = getattr(player, "training_pile", None)
+            if training_pile and choice.name == training_pile:
+                player.coins += 1
+
+            # Harbor Village bonus: +$1 if the action gave +$
+            if harbor_pending > 0 and choice.name != "Harbor Village":
+                coins_gained = player.coins - coins_before_action
+                if coins_gained > 0:
+                    player.coins += 1
+                player.harbor_village_pending = max(0, harbor_pending - 1)
 
         self.phase = "treasure"
 
@@ -735,6 +753,8 @@ class GameState:
                         0, player.trickster_uses_remaining - len(trickster_selected)
                     )
 
+        tireless_set_aside: list[Card] = []
+
         for card in in_play_cards:
             if card in durations_to_keep:
                 player.in_play.append(card)
@@ -753,7 +773,11 @@ class GameState:
                     self.log_callback(
                         ("action", player.ai.name, "gains 6 Debt from Capital", context)
                     )
-                self.discard_card(player, card, from_cleanup=True)
+                # Tireless trait: set aside instead of discarding
+                if card.name in self.tireless_piles:
+                    tireless_set_aside.append(card)
+                else:
+                    self.discard_card(player, card, from_cleanup=True)
 
         if player.trickster_set_aside:
             player.hand.extend(player.trickster_set_aside)
@@ -762,6 +786,10 @@ class GameState:
 
         # Draw new hand
         player.draw_cards(5)
+
+        # Tireless: put set-aside cards on top of deck after drawing
+        for card in tireless_set_aside:
+            player.deck.insert(0, card)
 
         # Reset resources
         player.actions = 1

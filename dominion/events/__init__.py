@@ -12,6 +12,7 @@ from .menagerie_events import (
     Toil,
 )
 from .prosperity_events import Investment
+from .training import Training
 from .registry import EVENT_TYPES, get_event
 
 __all__ = [
@@ -27,6 +28,7 @@ __all__ = [
     "Ride",
     "SeizeTheDay",
     "Investment",
+    "Training",
     "get_event",
     "EVENT_TYPES",
 ]

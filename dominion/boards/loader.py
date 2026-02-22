@@ -16,6 +16,7 @@ class BoardConfig:
     ways: list[str] = field(default_factory=list)
     landmarks: list[str] = field(default_factory=list)
     allies: list[str] = field(default_factory=list)
+    traits: dict[str, str] = field(default_factory=dict)  # {card_name: trait_name}
 
 
 def _normalise_entry(entry: str) -> str:
@@ -50,6 +51,13 @@ def _parse_special_line(line: str, config: BoardConfig) -> bool:
         config.landmarks.append(value)
     elif key == "ally":
         config.allies.append(value)
+    elif key == "trait":
+        # Format: "Trait: TraitName - CardName"
+        trait_name, _, card_name = value.partition("-")
+        trait_name = trait_name.strip()
+        card_name = card_name.strip()
+        if trait_name and card_name:
+            config.traits[card_name] = trait_name
     else:
         return False
 

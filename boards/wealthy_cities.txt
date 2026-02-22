@@ -1,7 +1,8 @@
 Native village
 Pawn
 Lookout
-Investment
+Workshop
+Event: Investment
 City
 Highwayman
 Laboratory

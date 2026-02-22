@@ -240,6 +240,12 @@ class StrategyBattle:
             ways=ways,
         )
 
+        # Apply traits from board config
+        if self.board_config:
+            for card_name, trait in self.board_config.traits.items():
+                if trait.lower() == "tireless":
+                    game_state.tireless_piles.add(card_name)
+
         # Run game
         while not game_state.is_game_over():
             game_state.play_turn()

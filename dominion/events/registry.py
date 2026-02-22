@@ -22,6 +22,7 @@ from .menagerie_events import (
     Transport,
 )
 from .prosperity_events import Investment
+from .training import Training
 
 EVENT_TYPES: dict[str, Type[Event]] = {
     "Gain Silver": GainSilver,
@@ -41,6 +42,7 @@ EVENT_TYPES: dict[str, Type[Event]] = {
     "Stampede": Stampede,
     "Transport": Transport,
     "Investment": Investment,
+    "Training": Training,
 }
 
 
