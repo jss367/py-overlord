@@ -1,184 +1,10 @@
 import random
-import sys
 import types
-from types import SimpleNamespace
 
-# ---- Minimal fake "dominion" API for the engine to call --------------------
+from dominion.cards.registry import get_card
+from dominion.game.game_state import GameState
+from dominion.game.player_state import PlayerState
 
-
-class Cost:
-    def __init__(self, coins=0, potions=0, debt=0):
-        self.coins = coins
-        self.potions = potions
-        self.debt = debt
-
-
-class Stats:
-    def __init__(self, cards=0, actions=0):
-        self.cards = cards
-        self.actions = actions
-
-
-class FakeCard:
-    """
-    Minimal card stub that covers what GameState/PlayerState read/call.
-    """
-
-    is_action = False
-    is_treasure = False
-    is_victory = False
-    is_event = False
-    is_project = False
-    duration_persistent = False
-    partner_card_name = None
-
-    def __init__(
-        self,
-        name,
-        cost,
-        *,
-        treasure_coins=0,
-        victory_points=0,
-        is_action=False,
-        is_treasure=False,
-        is_victory=False,
-        is_duration=False,
-        split_partner=None,
-    ):
-        self.name = name
-        self.cost = Cost(**cost) if isinstance(cost, dict) else cost
-        self._treasure_coins = treasure_coins
-        self._victory_points = victory_points
-        self.is_action = is_action
-        self.is_treasure = is_treasure
-        self.is_victory = is_victory
-        self.is_duration = is_duration
-        self.stats = Stats(cards=0, actions=0)  # for Scheme heuristic
-        if split_partner:
-
-            # flag that engine checks
-            self.__class__ = type("SplitPileCard", (self.__class__, SplitPileMixin), {})
-            self.partner_card_name = split_partner
-
-    # --- Hooks the engine might call
-    def starting_supply(self, gs):
-        # generous piles so tests don't run out
-        if self.name in {"Estate", "Duchy", "Province"}:
-            return 12
-        if self.name in {"Silver"}:
-            return 40
-        if self.name in {"Gold"}:
-            return 30
-        if self.name in {"Curse"}:
-            return 30
-        if self.name in {"Copper"}:
-            return 60
-        return 10
-
-    def may_be_bought(self, gs, player=None):
-        return True
-
-    def get_victory_points(self, player_state):
-        return self._victory_points
-
-    def on_play(self, gs):
-        # Treasures add coins; actions do nothing by default
-        if self.is_treasure:
-            p = gs.current_player
-            p.coins += self._treasure_coins
-
-    def on_buy(self, *args, **kwargs):
-        pass
-
-    def on_gain(self, gs, player):
-        pass
-
-    def on_trash(self, gs, player):
-        pass
-
-    def __repr__(self):
-        return f"<Card {self.name}>"
-
-
-class SplitPileMixin:
-    pass
-
-
-# Registry
-_REGISTRY = {}
-
-
-def reg(card: FakeCard):
-    _REGISTRY[card.name] = card
-
-
-def get_card(name):
-    # Return a fresh instance with same attributes (engine mutates instances)
-    base = _REGISTRY[name]
-    return FakeCard(
-        base.name,
-        {"coins": base.cost.coins, "potions": base.cost.potions, "debt": base.cost.debt},
-        treasure_coins=base._treasure_coins,
-        victory_points=base._victory_points,
-        is_action=base.is_action,
-        is_treasure=base.is_treasure,
-        is_victory=base.is_victory,
-        is_duration=getattr(base, "is_duration", False),
-        split_partner=getattr(base, "partner_card_name", None),
-    )
-
-
-def get_all_card_names():
-    return list(_REGISTRY.keys())
-
-
-# Basic cards
-reg(FakeCard("Copper", {"coins": 0}, treasure_coins=1, is_treasure=True))
-reg(FakeCard("Silver", {"coins": 3}, treasure_coins=2, is_treasure=True))
-reg(FakeCard("Gold", {"coins": 6}, treasure_coins=3, is_treasure=True))
-reg(FakeCard("Estate", {"coins": 2}, victory_points=1, is_victory=True))
-reg(FakeCard("Duchy", {"coins": 5}, victory_points=3, is_victory=True))
-reg(FakeCard("Province", {"coins": 8}, victory_points=6, is_victory=True))
-reg(FakeCard("Curse", {"coins": 0}, victory_points=-1))
-
-# Reaction/utility cards we need for tests
-# Watchtower: we only need it recognizable by name; reaction is driven via AI hook.
-reg(FakeCard("Watchtower", {"coins": 3}, is_action=True))
-# Trader: recognizable by name; exchange is implemented in engine via name check and AI hook.
-reg(FakeCard("Trader", {"coins": 4}, is_action=True))
-# Scheme: recognizable by name for cleanup topdeck heuristic.
-reg(FakeCard("Scheme", {"coins": 3}, is_action=True))
-# A cheap action to be topdecked by Scheme
-act = FakeCard("Village", {"coins": 3}, is_action=True)
-act.stats = Stats(cards=1, actions=2)
-reg(act)
-
-# ---- Install fakes into the import paths your engine expects ----------------
-# We simulate the package layout the engine imports from.
-
-dominion = types.ModuleType("dominion")
-cards_pkg = types.ModuleType("dominion.cards")
-base_card_mod = types.ModuleType("dominion.cards.base_card")
-registry_mod = types.ModuleType("dominion.cards.registry")
-split_mod = types.ModuleType("dominion.cards.split_pile")
-game_pkg = types.ModuleType("dominion.game")
-
-base_card_mod.Card = FakeCard
-registry_mod.get_card = get_card
-registry_mod.get_all_card_names = get_all_card_names
-split_mod.SplitPileMixin = SplitPileMixin
-
-sys.modules["dominion"] = dominion
-sys.modules["dominion.cards"] = cards_pkg
-sys.modules["dominion.cards.base_card"] = base_card_mod
-sys.modules["dominion.cards.registry"] = registry_mod
-sys.modules["dominion.cards.split_pile"] = split_mod
-sys.modules["dominion.game"] = game_pkg
-
-from dominion.game.game_state import GameState  # your source file
-
-# Now import the engine code under test
-from dominion.game.player_state import PlayerState  # your source file
 
 # ---- Stub AI ---------------------------------------------------------------
 
@@ -249,7 +75,8 @@ def make_game(n_players=2, kingdom=None, seed=0):
     ais = [GreedyAI(f"P{i+1}") for i in range(n_players)]
     gs = GameState(players=[])  # players filled in initialize_game
     kingdom = kingdom or []
-    gs.initialize_game(ais, kingdom_cards=kingdom, use_shelters=False)
+    kingdom_cards = [get_card(name) for name in kingdom] if kingdom else []
+    gs.initialize_game(ais, kingdom_cards=kingdom_cards, use_shelters=False)
     return gs
 
 
@@ -290,7 +117,7 @@ def test_gamestate_end_on_province_depletion():
 
 
 def test_watchtower_topdecks_gained_card():
-    gs = make_game()
+    gs = make_game(kingdom=["Watchtower"])
     p = gs.current_player
     # Put Watchtower in hand and enough money to buy Estate
     p.hand = [get_card("Watchtower")] + [get_card("Silver")]
@@ -307,12 +134,13 @@ def test_watchtower_topdecks_gained_card():
 
 
 def test_trader_replaces_gain_with_silver():
-    gs = make_game()
+    gs = make_game(kingdom=["Trader"])
     p = gs.current_player
     p.hand = [get_card("Trader")]
     gs.phase = "buy"
     pre_estate = gs.supply["Estate"]
     pre_silver = gs.supply["Silver"]
+    gs.supply["Estate"] -= 1
     gained = gs.gain_card(p, get_card("Estate"))
     # Trader should have replaced the gain with Silver
     assert any(c.name == "Silver" for c in p.discard + p.deck + p.hand)
@@ -322,7 +150,7 @@ def test_trader_replaces_gain_with_silver():
 
 
 def test_scheme_topdecks_best_action_on_cleanup():
-    gs = make_game()
+    gs = make_game(kingdom=["Scheme", "Village"])
     p = gs.current_player
     # Put Scheme and Village into in_play so cleanup tries to topdeck an action
     p.in_play = [get_card("Scheme"), get_card("Village")]

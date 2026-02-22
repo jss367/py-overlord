@@ -51,13 +51,38 @@ def run_pytest_collection() -> Tuple[CollectedTests, int | None, str]:
     return collected, reported_total, process.stdout
 
 
-def discover_declared_tests(test_root: Path) -> CollectedTests:
+def _skippable_dirs(test_root: Path, collected: CollectedTests) -> Set[Path]:
+    """Return directories whose conftest conditionally ignores test files.
+
+    A directory is considered skippable when it contains a ``conftest.py``
+    that defines ``collect_ignore_glob`` **and** none of its test files
+    were actually collected by pytest (i.e. the ignore was active).
+    """
+    skippable: Set[Path] = set()
+    for conftest in test_root.rglob("conftest.py"):
+        if "collect_ignore_glob" not in conftest.read_text():
+            continue
+        parent = conftest.parent
+        has_collected = any(
+            Path(p).parent == parent for p in collected
+        )
+        if not has_collected:
+            skippable.add(parent)
+    return skippable
+
+
+def discover_declared_tests(
+    test_root: Path, collected: CollectedTests,
+) -> CollectedTests:
     """Find test functions defined in ``test_root`` using the AST."""
 
+    skip_dirs = _skippable_dirs(test_root, collected)
     discovered: CollectedTests = defaultdict(set)
 
     for file_path in test_root.rglob("*.py"):
-        if file_path.name == "__init__.py":
+        if file_path.name in ("__init__.py", "conftest.py"):
+            continue
+        if any(file_path.is_relative_to(d) for d in skip_dirs):
             continue
 
         module = ast.parse(file_path.read_text(), filename=str(file_path))
@@ -78,7 +103,7 @@ def format_summary(title: str, data: Iterable[Tuple[str, Set[str]]]) -> str:
 
 def main() -> None:
     collected, reported_total, raw_output = run_pytest_collection()
-    declared = discover_declared_tests(Path("tests"))
+    declared = discover_declared_tests(Path("tests"), collected)
 
     missing: Dict[str, Set[str]] = {}
 

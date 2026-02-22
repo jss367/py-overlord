@@ -44,10 +44,15 @@ EXPECTED_TREASURE_CARDS = {
     "Sword",
     "Talisman",
     "Venture",
+    "Astrolabe",
+    "Coronet",
+    "Huge Turnip",
+    "Pickaxe",
 }
 
 MULTI_TYPE_TREASURES = {
     "Amphora": {CardType.TREASURE, CardType.DURATION},
+    "Astrolabe": {CardType.TREASURE, CardType.DURATION},
     "Cauldron": {CardType.TREASURE, CardType.ATTACK},
     "Crown": {CardType.ACTION, CardType.TREASURE},
     "Endless Chalice": {CardType.TREASURE, CardType.DURATION},

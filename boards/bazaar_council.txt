@@ -11,4 +11,3 @@ Souk
 
 
 Landmark: Arena
-Event: Annex
