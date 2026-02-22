@@ -23,6 +23,7 @@ from .trickster import Trickster
 from .highwayman import Highwayman
 from .astrolabe import Astrolabe
 from .pickaxe import Pickaxe
+from .harbor_village import HarborVillage
 
 __all__ = [
     'Amphora',
@@ -48,4 +49,5 @@ __all__ = [
     'LOOT_CARD_NAMES',
     'Astrolabe',
     'Pickaxe',
+    'HarborVillage',
 ]

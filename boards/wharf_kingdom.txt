@@ -1,0 +1,13 @@
+Wharf
+Wealthy Village
+Wild Hunt
+Pirate
+Gatekeeper
+Cauldron
+Cartographer
+Berserker
+Aristocrat
+Harbor Village
+
+Event: Training
+Trait: Tireless - Wild Hunt

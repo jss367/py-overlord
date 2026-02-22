@@ -209,13 +209,13 @@ from dominion.cards.intrigue import (
     Steward,
     Swindler,
 )
-from dominion.cards.plunder import Barbarian, FirstMate, Flagship, Highwayman, Trickster, Astrolabe, Pickaxe
+from dominion.cards.plunder import Barbarian, FirstMate, Flagship, Highwayman, Trickster, Astrolabe, Pickaxe, HarborVillage
 from dominion.cards.dark_ages import Armory, Count, Ironmonger, Marauder, PoorHouse, Spoils, Ruins, Graverobber, Procession, Sage
-from dominion.cards.seaside import Bazaar, Lookout, NativeVillage, TradingPost, Wharf, Treasury
+from dominion.cards.seaside import Bazaar, Lookout, NativeVillage, TradingPost, Wharf, Treasury, Pirate
 from dominion.cards.adventures import Artificer, Giant, Messenger
 from dominion.cards.nocturne import TragicHero
-from dominion.cards.menagerie import Destrier, Horse, HuntingLodge, Mastermind, Paddock
-from dominion.cards.rising_sun import ImperialEnvoy
+from dominion.cards.menagerie import Destrier, Horse, HuntingLodge, Mastermind, Paddock, Gatekeeper
+from dominion.cards.rising_sun import ImperialEnvoy, Aristocrat
 from dominion.cards.renaissance import CargoShip
 
 from dominion.cards.treasures import Copper, Gold, Silver
@@ -463,6 +463,10 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Housecarl": Housecarl,
     "Huge Turnip": HugeTurnip,
     "Renown": Renown,
+    "Pirate": Pirate,
+    "Gatekeeper": Gatekeeper,
+    "Aristocrat": Aristocrat,
+    "Harbor Village": HarborVillage,
 }
 
 CARD_ALIASES: dict[str, str] = {
@@ -475,6 +479,7 @@ CARD_ALIASES: dict[str, str] = {
     "Wealthy village": "Wealthy Village",
     "Trading post": "Trading Post",
     "Native village": "Native Village",
+    "Harbor village": "Harbor Village",
 }
 
 
