@@ -396,8 +396,13 @@ class GameState:
             coins_before_action = player.coins
             harbor_pending = getattr(player, "harbor_village_pending", 0)
 
+            # Training token: +$1 when playing a card from the trained pile
+            training_pile = getattr(player, "training_pile", None)
+
             if way:
                 way.apply(self, choice)
+                if training_pile and choice.name == training_pile:
+                    player.coins += 1
             else:
                 flagships_to_resolve: list[Card] = []
                 pending_flagships = getattr(player, "flagship_pending", [])
@@ -411,11 +416,8 @@ class GameState:
                 plays = 1 + len(flagships_to_resolve)
                 for _ in range(plays):
                     choice.on_play(self)
-
-            # Training token: +$1 when playing a card from the trained pile
-            training_pile = getattr(player, "training_pile", None)
-            if training_pile and choice.name == training_pile:
-                player.coins += 1
+                    if training_pile and choice.name == training_pile:
+                        player.coins += 1
 
             # Harbor Village bonus: +$1 if the action gave +$
             if harbor_pending > 0 and choice.name != "Harbor Village":
@@ -1063,6 +1065,9 @@ class GameState:
             player.deck.insert(0, actual_card)
         else:
             player.discard.append(actual_card)
+
+        self._handle_gatekeeper_exile(player, actual_card, destination_is_deck, reclaimed)
+
         actual_card.on_gain(self, player)
 
         self._handle_trade_route_token(actual_card)
@@ -1096,6 +1101,27 @@ class GameState:
             player.cards_gained_this_turn += 1
 
         return actual_card
+
+    def _handle_gatekeeper_exile(
+        self, player: PlayerState, card: Card, on_deck: bool, reclaimed: "Card | None"
+    ) -> None:
+        """Exile a gained Action/Treasure if the player is under Gatekeeper attack."""
+        if getattr(player, "gatekeeper_attacks", 0) <= 0:
+            return
+        if not (card.is_action or card.is_treasure):
+            return
+        # Skip if player already had a copy in exile (reclaimed counts)
+        if reclaimed or any(c.name == card.name for c in player.exile):
+            return
+
+        # Move card from its current location to exile
+        if on_deck and card in player.deck:
+            player.deck.remove(card)
+        elif card in player.discard:
+            player.discard.remove(card)
+        else:
+            return
+        player.exile.append(card)
 
     def _handle_trader_exchange(
         self,
