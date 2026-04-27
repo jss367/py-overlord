@@ -131,6 +131,13 @@ def main():
         help="Games to validate each evolved strategy (default: 200)",
     )
     parser.add_argument(
+        "--baseline-panel",
+        nargs="+",
+        default=None,
+        help="Optional module:function specs to use as the fitness panel during evolution. "
+        "If omitted, the best seed strategy is used as the single baseline.",
+    )
+    parser.add_argument(
         "--output-dir", type=Path, default=Path("generated_strategies"),
         help="Directory to save evolved strategies (default: generated_strategies/)",
     )
@@ -186,6 +193,13 @@ def main():
 
     baseline = best_seed_factory()
 
+    panel_strategies: list = []
+    if args.baseline_panel:
+        panel_strategies = [_load_factory(spec)() for spec in args.baseline_panel]
+        logger.info("Using fitness panel: %s", ", ".join(p.name for p in panel_strategies))
+    else:
+        logger.info("Using single baseline: %s", best_seed_name)
+
     for seed_name, seed_factory in seeds.items():
         logger.info("\nEvolving from: %s", seed_name)
 
@@ -198,7 +212,10 @@ def main():
             board_config=board_config,
         )
         trainer.inject_strategy(seed_factory())
-        trainer.set_baseline_strategy(baseline)
+        if panel_strategies:
+            trainer.set_baseline_panel(panel_strategies)
+        else:
+            trainer.set_baseline_strategy(baseline)
 
         best_strategy, metrics = trainer.train()
 
