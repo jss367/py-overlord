@@ -15,6 +15,21 @@ log = logging.getLogger(__name__)
 coloredlogs.install(level="INFO", logger=log)
 
 
+def _distribute_games(total_budget: int, n_opponents: int) -> list[int]:
+    """Distribute ``total_budget`` games across ``n_opponents``, preserving the
+    budget exactly when feasible. Each opponent gets ``base`` games and the
+    first ``remainder`` opponents get one extra. If the budget is smaller than
+    the panel (degenerate case), every opponent still gets at least 1 game so
+    no opponent is silently skipped — this overruns the budget but preserves
+    the panel semantic."""
+    if n_opponents <= 0:
+        return []
+    if total_budget < n_opponents:
+        return [1] * n_opponents
+    base, remainder = divmod(total_budget, n_opponents)
+    return [base + (1 if i < remainder else 0) for i in range(n_opponents)]
+
+
 class GeneticTrainer:
     """Trains Dominion strategies using a genetic algorithm"""
 
@@ -209,10 +224,11 @@ class GeneticTrainer:
             panel = self._resolve_panel()
             from dominion.ai.genetic_ai import GeneticAI
 
-            games_per_opp = max(1, self.games_per_eval // len(panel))
+            games_for_opp = _distribute_games(self.games_per_eval, len(panel))
             breakdown: dict[str, float] = {}
             rates: list[float] = []
-            for opponent in panel:
+            for i, opponent in enumerate(panel):
+                games_per_opp = games_for_opp[i]
                 kingdom_card_names = self.battle_system._determine_kingdom_cards(strategy, opponent)
                 wins = 0
                 for game_num in range(games_per_opp):

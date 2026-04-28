@@ -245,17 +245,19 @@ def main():
         if panel:
             from dominion.simulation.strategy_battle import StrategyBattle
             from dominion.ai.genetic_ai import GeneticAI
+            from dominion.simulation.genetic_trainer import _distribute_games
 
             n_validation = 100
-            games_per_opp = max(1, n_validation // len(panel))
+            games_for_opp = _distribute_games(n_validation, len(panel))
             logger.info(
-                "Validating: %d games per opponent across %d-strategy panel...",
-                games_per_opp, len(panel),
+                "Validating: %d games distributed across %d-strategy panel (%s)...",
+                sum(games_for_opp), len(panel), games_for_opp,
             )
             validation_battle = StrategyBattle(board_config=board_config, log_frequency=1000)
             validation_kingdom = board_config.kingdom_cards if board_config else kingdom_cards
             per_opp = {}
-            for opp in panel:
+            for idx, opp in enumerate(panel):
+                games_per_opp = games_for_opp[idx]
                 wins = 0
                 for i in range(games_per_opp):
                     ai1 = GeneticAI(best_strategy)

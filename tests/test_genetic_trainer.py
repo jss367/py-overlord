@@ -429,6 +429,33 @@ class TestPanelEvaluation:
         # 100% vs AlwaysLose, 0% vs AlwaysWin → mean 50%
         assert fitness == 50.0, f"Expected 50.0, got {fitness}"
 
+    def test_panel_evaluation_uses_full_games_budget(self, monkeypatch):
+        """games_per_eval=10 with 3 opponents should run exactly 10 total games
+        (distributed 4+3+3), not 9 from floor division."""
+        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=10)
+        strategy = make_stub_strategy()
+
+        opp_a = _make_dummy_opponent("A")
+        opp_b = _make_dummy_opponent("B")
+        opp_c = _make_dummy_opponent("C")
+        trainer.set_baseline_panel([opp_a, opp_b, opp_c])
+
+        games = {"A": 0, "B": 0, "C": 0}
+
+        def fake_run_game(first_ai, second_ai, kingdom):
+            for ai in (first_ai, second_ai):
+                if ai.strategy.name in games:
+                    games[ai.strategy.name] += 1
+            return first_ai, {}, None, 0
+
+        monkeypatch.setattr(trainer.battle_system, "run_game", fake_run_game)
+        trainer.evaluate_strategy(strategy)
+
+        assert sum(games.values()) == 10, f"Expected 10 total games, got {sum(games.values())}: {games}"
+        # Every opponent gets at least floor(10/3)=3 games
+        for n in games.values():
+            assert n in (3, 4), f"Each opponent should get 3 or 4 games, got {n}"
+
     def test_panel_per_opponent_breakdown_is_exposed(self, monkeypatch):
         trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4)
         strategy = make_stub_strategy()
