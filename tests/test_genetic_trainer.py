@@ -456,6 +456,37 @@ class TestPanelEvaluation:
         for n in games.values():
             assert n in (3, 4), f"Each opponent should get 3 or 4 games, got {n}"
 
+    def test_panel_with_duplicate_opponent_names_preserves_all_rates(self, monkeypatch):
+        """Two panel members sharing a name (e.g. both BigMoneySmithy variants)
+        must both contribute to the breakdown — a dict keyed by name silently
+        loses one of them."""
+        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4)
+        strategy = make_stub_strategy()
+        strategy.name = "Stub"
+
+        opp_a1 = _make_dummy_opponent("Twin")
+        opp_a2 = _make_dummy_opponent("Twin")
+        trainer.set_baseline_panel([opp_a1, opp_a2])
+
+        # opp_a1 always loses to Stub, opp_a2 always beats Stub
+        def fake_run_game(first_ai, second_ai, kingdom):
+            for ai in (first_ai, second_ai):
+                if ai.strategy is opp_a1:
+                    winner = first_ai if first_ai.strategy.name == "Stub" else second_ai
+                    return winner, {}, None, 0
+                if ai.strategy is opp_a2:
+                    winner = first_ai if first_ai.strategy is opp_a2 else second_ai
+                    return winner, {}, None, 0
+            return first_ai, {}, None, 0
+
+        monkeypatch.setattr(trainer.battle_system, "run_game", fake_run_game)
+        trainer.evaluate_strategy(strategy)
+
+        breakdown = trainer.last_eval_breakdown
+        assert len(breakdown) == 2, (
+            f"Expected 2 entries (one per panel member), got {len(breakdown)}: {breakdown}"
+        )
+
     def test_panel_per_opponent_breakdown_is_exposed(self, monkeypatch):
         trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4)
         strategy = make_stub_strategy()
@@ -477,7 +508,7 @@ class TestPanelEvaluation:
         trainer.evaluate_strategy(strategy)
 
         breakdown = trainer.last_eval_breakdown
-        assert breakdown == {"AlwaysLose": 100.0, "AlwaysWin": 0.0}, breakdown
+        assert breakdown == [("AlwaysLose", 100.0), ("AlwaysWin", 0.0)], breakdown
 
 
 def _strategy_with_gain(*card_names: str) -> BaseStrategy:

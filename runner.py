@@ -255,7 +255,9 @@ def main():
             )
             validation_battle = StrategyBattle(board_config=board_config, log_frequency=1000)
             validation_kingdom = board_config.kingdom_cards if board_config else kingdom_cards
-            per_opp = {}
+            # List of (name, rate) so panel members sharing a name (e.g. two
+            # BigMoneySmithy variants) each contribute independently to the mean.
+            per_opp: list[tuple[str, float]] = []
             for idx, opp in enumerate(panel):
                 games_per_opp = games_for_opp[idx]
                 wins = 0
@@ -269,9 +271,9 @@ def main():
                     if winner == ai1:
                         wins += 1
                 rate = wins / games_per_opp * 100
-                per_opp[opp.name] = rate
+                per_opp.append((opp.name, rate))
                 logger.info("  vs %s: %.1f%%", opp.name, rate)
-            mean_rate = sum(per_opp.values()) / len(per_opp)
+            mean_rate = sum(r for _, r in per_opp) / len(per_opp)
             logger.info("Validation mean win rate: %.1f%%", mean_rate)
             if mean_rate <= 50:
                 logger.info("⚠️  Strategy did not beat panel mean (%.1f%%). Saving anyway for inspection.", mean_rate)

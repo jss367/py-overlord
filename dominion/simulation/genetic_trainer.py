@@ -67,7 +67,10 @@ class GeneticTrainer:
         self._strategy_to_inject = None
         self._baseline_strategy = None
         self._baseline_panel: list[BaseStrategy] = []
-        self.last_eval_breakdown: dict[str, float] = {}
+        # List of (opponent_name, win_rate) tuples — list (not dict) so that
+        # multiple panel members sharing a name (e.g. two BigMoneySmithy
+        # variants) each contribute their rate independently.
+        self.last_eval_breakdown: list[tuple[str, float]] = []
 
         # Cache card type lookups for filtering
         from dominion.cards.registry import get_card
@@ -225,8 +228,7 @@ class GeneticTrainer:
             from dominion.ai.genetic_ai import GeneticAI
 
             games_for_opp = _distribute_games(self.games_per_eval, len(panel))
-            breakdown: dict[str, float] = {}
-            rates: list[float] = []
+            breakdown: list[tuple[str, float]] = []
             for i, opponent in enumerate(panel):
                 games_per_opp = games_for_opp[i]
                 kingdom_card_names = self.battle_system._determine_kingdom_cards(strategy, opponent)
@@ -241,10 +243,9 @@ class GeneticTrainer:
                     if winner == ai1:
                         wins += 1
                 rate = wins / games_per_opp * 100
-                breakdown[opponent.name] = rate
-                rates.append(rate)
+                breakdown.append((opponent.name, rate))
             self.last_eval_breakdown = breakdown
-            return sum(rates) / len(rates)
+            return sum(r for _, r in breakdown) / len(breakdown)
         except Exception as e:
             log.exception("Error evaluating strategy %s. Got error: %s", strategy.name, e)
             return 0.0
@@ -528,7 +529,7 @@ class GeneticTrainer:
                         if len(self.last_eval_breakdown) > 1:
                             parts = ", ".join(
                                 f"{name}: {rate:.1f}%"
-                                for name, rate in self.last_eval_breakdown.items()
+                                for name, rate in self.last_eval_breakdown
                             )
                             log.info("  panel breakdown — %s", parts)
 
