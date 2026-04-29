@@ -414,10 +414,16 @@ class GeneticTrainer:
     @staticmethod
     def _strategy_similarity(a: BaseStrategy, b: BaseStrategy) -> float:
         """Top-5 gain card overlap as a fraction in [0, 1].
-        Conditions are ignored — only card identity at the top of the buy menu matters."""
+        Conditions are ignored — only card identity at the top of the buy menu matters.
+
+        The divisor is the larger of the two effective top-rule counts (capped
+        at 5), so identical small strategies (e.g. 3 rules each) still score
+        1.0 instead of being artificially capped at 0.6 and dodging fitness
+        sharing."""
         top_a = {r.card_name for r in a.gain_priority[:5]}
         top_b = {r.card_name for r in b.gain_priority[:5]}
-        return len(top_a & top_b) / 5.0
+        denom = max(1, min(5, max(len(top_a), len(top_b))))
+        return len(top_a & top_b) / denom
 
     @staticmethod
     def _normalize_priority_list(rules: list[PriorityRule]) -> list[PriorityRule]:

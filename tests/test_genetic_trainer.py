@@ -546,6 +546,14 @@ class TestStrategySimilarity:
         # Intersection of first-5: {Province, Gold} → 2/5 = 0.4
         assert GeneticTrainer._strategy_similarity(s1, s2) == 0.4
 
+    def test_short_identical_strategies_get_similarity_one(self):
+        """A 3-rule strategy compared to itself must score 1.0, otherwise
+        identical small strategies dodge fitness sharing (0.6 < 0.8 threshold)."""
+        s1 = _strategy_with_gain("Province", "Gold", "Witch")
+        s2 = _strategy_with_gain("Province", "Gold", "Witch")
+        sim = GeneticTrainer._strategy_similarity(s1, s2)
+        assert sim == 1.0, f"Identical 3-rule strategies should be 1.0, got {sim}"
+
     def test_only_card_name_matters_not_condition(self):
         """Conditions don't affect similarity."""
         s1 = BaseStrategy()
