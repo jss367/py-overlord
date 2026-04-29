@@ -585,6 +585,35 @@ class TestCreateNextGenerationElitism:
         assert next_pop[0].gain_priority[0].card_name == "Province"
 
 
+class TestImmigrantFractionZeroIsHonored:
+    """immigrant_fraction=0 must produce 0 immigrants — currently the
+    max(1, ...) floor silently overrides this."""
+
+    def test_zero_immigrant_fraction_passes_zero_to_next_gen(self, monkeypatch):
+        trainer = GeneticTrainer(
+            ["Village"],
+            population_size=8,
+            generations=1,
+            games_per_eval=2,
+            immigrant_fraction=0.0,
+        )
+        monkeypatch.setattr(trainer, "evaluate_strategy", lambda s: 50.0)
+
+        captured: dict = {}
+        original = trainer.create_next_generation
+
+        def spy(pop, raw, **kwargs):
+            captured["immigrants"] = kwargs.get("immigrant_count", 0)
+            return original(pop, raw, **kwargs)
+
+        monkeypatch.setattr(trainer, "create_next_generation", spy)
+        trainer.train()
+
+        assert captured["immigrants"] == 0, (
+            f"immigrant_fraction=0 should yield 0 immigrants, got {captured['immigrants']}"
+        )
+
+
 class TestTrainWiresDiversityPressure:
     """train() should pass selection_fitness (sharing-adjusted) and a non-zero
     immigrant_count to create_next_generation."""

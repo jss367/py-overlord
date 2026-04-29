@@ -549,8 +549,10 @@ class GeneticTrainer:
                 shared_fitness = self._apply_fitness_sharing(
                     population, fitness_scores, threshold=self.sharing_threshold
                 )
-                immigrants = max(1, int(self.population_size * self.immigrant_fraction)) \
-                    if self.population_size >= 4 else 0
+                if self.population_size < 4 or self.immigrant_fraction <= 0:
+                    immigrants = 0
+                else:
+                    immigrants = max(1, int(self.population_size * self.immigrant_fraction))
 
                 population = self.create_next_generation(
                     population,
