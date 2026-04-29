@@ -92,9 +92,9 @@ def main():
     parser.add_argument("--kingdom-cards", nargs="+", help="List of kingdom cards to use for training")
     parser.add_argument("--config", "-c", help="YAML configuration file containing kingdom cards")
     parser.add_argument(
-        "--population-size", type=int, default=5, help="Population size for genetic algorithm (default: 5)"
+        "--population-size", type=int, default=25, help="Population size for genetic algorithm (default: 25)"
     )
-    parser.add_argument("--generations", type=int, default=10, help="Number of generations to run (default: 10)")
+    parser.add_argument("--generations", type=int, default=40, help="Number of generations to run (default: 40)")
     parser.add_argument("--mutation-rate", type=float, default=0.1, help="Mutation rate (default: 0.1)")
     parser.add_argument(
         "--games-per-eval", type=int, default=10, help="Number of games to play per strategy evaluation (default: 10)"
@@ -109,6 +109,12 @@ def main():
         "--baseline-strategy",
         help="Python module path to a strategy factory function to evaluate against instead of Big Money "
         "(e.g. generated_strategies.torture_campaign_v2:create_torture_campaign_v2)",
+    )
+    parser.add_argument(
+        "--baseline-panel",
+        nargs="+",
+        help="Multiple module:function specs evaluated as a panel of opponents. Games are split "
+        "evenly across the panel; fitness is the mean per-opponent win rate. Overrides --baseline-strategy.",
     )
 
     args = parser.parse_args()
@@ -195,11 +201,21 @@ def main():
             logger.error("Failed to load seed strategy: %s", exc)
             sys.exit(1)
 
-    # Set baseline strategy if provided
-    if args.baseline_strategy:
+    # Set baseline panel (preferred) or single baseline
+    panel: list = []
+    if args.baseline_panel:
+        try:
+            panel = [_load_strategy(spec) for spec in args.baseline_panel]
+            trainer.set_baseline_panel(panel)
+            logger.info("Evaluating against panel: %s", ", ".join(p.name for p in panel))
+        except Exception as exc:
+            logger.error("Failed to load baseline panel: %s", exc)
+            sys.exit(1)
+    elif args.baseline_strategy:
         try:
             baseline = _load_strategy(args.baseline_strategy)
             trainer.set_baseline_strategy(baseline)
+            panel = [baseline]
             logger.info("Evaluating against baseline: %s", baseline.name)
         except Exception as exc:
             logger.error("Failed to load baseline strategy: %s", exc)
@@ -225,31 +241,42 @@ def main():
             condition_str = f" (condition: {rule.condition})" if rule.condition else ""
             logger.info("  %s%s", rule.card_name, condition_str)
 
-        # Validate against baseline before saving
-        if args.baseline_strategy:
+        # Validate against panel (or single baseline) and report — always save.
+        if panel:
             from dominion.simulation.strategy_battle import StrategyBattle
             from dominion.ai.genetic_ai import GeneticAI
+            from dominion.simulation.genetic_trainer import _distribute_games
 
-            logger.info("Validating against baseline (%s) over 100 games...", baseline.name)
+            n_validation = 100
+            games_for_opp = _distribute_games(n_validation, len(panel))
+            logger.info(
+                "Validating: %d games distributed across %d-strategy panel (%s)...",
+                sum(games_for_opp), len(panel), games_for_opp,
+            )
             validation_battle = StrategyBattle(board_config=board_config, log_frequency=1000)
             validation_kingdom = board_config.kingdom_cards if board_config else kingdom_cards
-            wins = 0
-            n_validation = 100
-            for i in range(n_validation):
-                ai1 = GeneticAI(best_strategy)
-                ai2 = GeneticAI(baseline)
-                if i % 2 == 0:
-                    winner, _, _, _ = validation_battle.run_game(ai1, ai2, validation_kingdom)
-                else:
-                    winner, _, _, _ = validation_battle.run_game(ai2, ai1, validation_kingdom)
-                if winner == ai1:
-                    wins += 1
-            win_rate = wins / n_validation * 100
-            logger.info("Validation result: %.1f%% win rate against baseline", win_rate)
-
-            if win_rate <= 50:
-                logger.info("⏭️  Strategy does not beat baseline (%.1f%%). Not saving.", win_rate)
-                return
+            # List of (name, rate) so panel members sharing a name (e.g. two
+            # BigMoneySmithy variants) each contribute independently to the mean.
+            per_opp: list[tuple[str, float]] = []
+            for idx, opp in enumerate(panel):
+                games_per_opp = games_for_opp[idx]
+                wins = 0
+                for i in range(games_per_opp):
+                    ai1 = GeneticAI(best_strategy)
+                    ai2 = GeneticAI(opp)
+                    if i % 2 == 0:
+                        winner, _, _, _ = validation_battle.run_game(ai1, ai2, validation_kingdom)
+                    else:
+                        winner, _, _, _ = validation_battle.run_game(ai2, ai1, validation_kingdom)
+                    if winner == ai1:
+                        wins += 1
+                rate = wins / games_per_opp * 100
+                per_opp.append((opp.name, rate))
+                logger.info("  vs %s: %.1f%%", opp.name, rate)
+            mean_rate = sum(r for _, r in per_opp) / len(per_opp)
+            logger.info("Validation mean win rate: %.1f%%", mean_rate)
+            if mean_rate <= 50:
+                logger.info("⚠️  Strategy did not beat panel mean (%.1f%%). Saving anyway for inspection.", mean_rate)
 
         # Automatically save the strategy as a Python class
         strategies_dir = Path("generated_strategies")

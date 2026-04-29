@@ -29,7 +29,7 @@ class Cartographer(Card):
             else:
                 kept.append((score, card))
 
-        kept.sort()
+        kept.sort(key=lambda pair: pair[0])
         for _, card in kept:
             player.deck.append(card)
 

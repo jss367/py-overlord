@@ -112,6 +112,51 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.deck_count_diff({card_a!r}, {card_b!r}, {op!r}, {amount!r})")
 
     @staticmethod
+    def empty_piles(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when the number of emptied supply piles satisfies the comparison."""
+        cmp = PriorityRule._OP_MAP[op]
+        fn = lambda s, _me, _amount=amount, _cmp=cmp: _cmp(s.empty_piles, _amount)
+        return PriorityRule._tag_source(fn, f"PriorityRule.empty_piles({op!r}, {amount!r})")
+
+    @staticmethod
+    def deck_size(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when the player's total deck size (all zones) satisfies the comparison."""
+        cmp = PriorityRule._OP_MAP[op]
+        fn = lambda _s, me, _amount=amount, _cmp=cmp: _cmp(len(me.all_cards()), _amount)
+        return PriorityRule._tag_source(fn, f"PriorityRule.deck_size({op!r}, {amount!r})")
+
+    @staticmethod
+    def action_density(op: str, percent: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when the percentage of action cards in the deck satisfies the comparison.
+        Empty decks are treated as 0% density."""
+        cmp = PriorityRule._OP_MAP[op]
+
+        def _eval(_s, me, _amount=percent, _cmp=cmp):
+            cards = me.all_cards()
+            if not cards:
+                return _cmp(0, _amount)
+            density = sum(1 for c in cards if c.is_action) * 100 // len(cards)
+            return _cmp(density, _amount)
+
+        return PriorityRule._tag_source(_eval, f"PriorityRule.action_density({op!r}, {percent!r})")
+
+    @staticmethod
+    def score_diff(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when (my VP - max opponent VP) satisfies the comparison.
+        Useful for endgame decisions (e.g. trigger pile-out when ahead)."""
+        cmp = PriorityRule._OP_MAP[op]
+
+        def _eval(s, me, _amount=amount, _cmp=cmp):
+            my_vp = me.get_victory_points(s)
+            opp_vps = [
+                p.get_victory_points(s) for p in s.players if p is not me
+            ]
+            opp_best = max(opp_vps) if opp_vps else 0
+            return _cmp(my_vp - opp_best, _amount)
+
+        return PriorityRule._tag_source(_eval, f"PriorityRule.score_diff({op!r}, {amount!r})")
+
+    @staticmethod
     def always_true() -> Callable[["GameState", "PlayerState"], bool]:
         fn = lambda *_: True
         return PriorityRule._tag_source(fn, "PriorityRule.always_true()")
