@@ -17,6 +17,7 @@ class GameState:
     events: list = field(default_factory=list)
     projects: list = field(default_factory=list)
     ways: list = field(default_factory=list)
+    allies: list = field(default_factory=list)
     current_player_index: int = 0
     phase: str = "start"
     turn_number: int = 1
@@ -87,6 +88,7 @@ class GameState:
         events: list = None,
         projects: list = None,
         ways: list = None,
+        allies: list = None,
     ):
         """Set up the game with given AIs and kingdom cards."""
         # Create PlayerState objects for each AI
@@ -95,6 +97,7 @@ class GameState:
         self.events = events or []
         self.projects = projects or []
         self.ways = ways or []
+        self.allies = allies or []
 
         # Initialize players
         for player in self.players:
@@ -202,14 +205,21 @@ class GameState:
 
     @property
     def empty_piles(self) -> int:
-        """Return number of empty supply piles, counting split piles once."""
+        """Return number of empty supply piles, counting split/Wizards piles once."""
+        from dominion.cards.allies.wizards import WIZARDS_PILE_ORDER, WizardsSplitCard
+
         counted: set[str] = set()
         empties = 0
         for name in list(self.supply.keys()):
             if name in counted:
                 continue
             card = get_card(name)
-            if isinstance(card, SplitPileMixin):
+            if isinstance(card, WizardsSplitCard):
+                wizard_names = set(WIZARDS_PILE_ORDER)
+                counted.update(wizard_names)
+                if all(self.supply.get(n, 0) == 0 for n in wizard_names if n in self.supply):
+                    empties += 1
+            elif isinstance(card, SplitPileMixin):
                 partner = card.partner_card_name
                 counted.add(name)
                 counted.add(partner)
@@ -267,6 +277,10 @@ class GameState:
         # Resolve project effects that occur at the start of the turn
         for project in self.current_player.projects:
             project.on_turn_start(self, self.current_player)
+
+        # Resolve Ally effects (e.g. Cave Dwellers' Favor-spending hook)
+        for ally in self.allies:
+            ally.on_turn_start(self, self.current_player)
 
         # Log turn header with complete state
         resources = {

@@ -45,7 +45,7 @@ def _parse_special_line(line: str, config: BoardConfig) -> bool:
         config.events.append(value)
     elif key == "project":
         config.projects.append(value)
-    elif key == "way":
+    elif key in ("way", "way of the"):
         config.ways.append(value)
     elif key == "landmark":
         config.landmarks.append(value)

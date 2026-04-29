@@ -1,6 +1,7 @@
 from .torturer import Torturer
 from .patrol import Patrol
 from .bridge import Bridge
+from .lurker import Lurker
 from .nobles import Nobles
 from .wishing_well import WishingWell
 from .conspirator import Conspirator
@@ -9,4 +10,4 @@ from .pawn import Pawn
 from .steward import Steward
 from .swindler import Swindler
 
-__all__ = ['Torturer', 'Patrol', 'Bridge', 'Nobles', 'WishingWell', 'Conspirator', 'Ironworks', 'Pawn', 'Steward', 'Swindler']
+__all__ = ['Torturer', 'Patrol', 'Bridge', 'Lurker', 'Nobles', 'WishingWell', 'Conspirator', 'Ironworks', 'Pawn', 'Steward', 'Swindler']

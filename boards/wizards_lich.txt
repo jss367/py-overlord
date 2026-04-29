@@ -1,0 +1,13 @@
+Beggar
+Lurker
+Settlers
+Wishing Well
+Student
+Mill
+Baker
+Cauldron
+Crew
+Pilgrim
+
+Event: Continue
+Ally: Cave Dwellers

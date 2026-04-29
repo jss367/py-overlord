@@ -39,6 +39,7 @@ class PlayerState:
     # Misc counters
     vp_tokens: int = 0
     villagers: int = 0
+    favors: int = 0
     miser_coppers: int = 0
     native_village_mat: list[Card] = field(default_factory=list)
     ignore_action_bonuses: bool = False
