@@ -567,7 +567,13 @@ class GeneticTrainer:
                 self._strategy_to_inject = None
 
             best_strategy = None
-            best_fitness = 0.0
+            # Shaped fitness can be negative, so seed below any possible value
+            # — otherwise a panel where every candidate scores <= 0 would leave
+            # best_strategy = None and train() would return (None, metrics).
+            best_fitness = float("-inf")
+            # Track raw mean win rate of the best individual separately from
+            # shaped fitness so metrics['win_rate'] stays a real win rate.
+            best_win_rate = 0.0
 
             # Start training progress tracking
             self.logger.start_training(self.generations)
@@ -585,10 +591,14 @@ class GeneticTrainer:
                     if fitness > best_fitness:
                         best_fitness = fitness
                         best_strategy = deepcopy(strategy)
+                        if self.last_eval_breakdown:
+                            # Entry[1] is always the per-opponent win rate,
+                            # whether the breakdown is 2-tuple or 4-tuple.
+                            best_win_rate = sum(
+                                entry[1] for entry in self.last_eval_breakdown
+                            ) / len(self.last_eval_breakdown)
                         log.info("New best fitness: %.2f", best_fitness)
                         if len(self.last_eval_breakdown) > 1:
-                            # Entries may be 2-tuples (raw) or 4-tuples (shaped);
-                            # the first two fields are always (name, win_rate).
                             parts = ", ".join(
                                 f"{entry[0]}: {entry[1]:.1f}%"
                                 for entry in self.last_eval_breakdown
@@ -620,8 +630,14 @@ class GeneticTrainer:
             # End training progress tracking
             self.logger.end_training()
 
+            # If no candidate was ever evaluated (e.g. empty population),
+            # surface the shaped fitness as -inf-equivalent 0.0 so callers
+            # don't see a sentinel value.
+            reported_fitness = best_fitness if best_strategy is not None else 0.0
+
             metrics = {
-                "win_rate": best_fitness,
+                "win_rate": best_win_rate,
+                "fitness": reported_fitness,
                 "generations": self.generations,
                 "final_generation": self.generations,
             }

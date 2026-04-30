@@ -236,3 +236,100 @@ class TestShapeRewardsDefaultsOn:
     def test_default_is_shaping_enabled(self):
         trainer = GeneticTrainer(["Village"], population_size=1, generations=1)
         assert trainer.shape_rewards is True
+
+
+class TestTrainHandlesNegativeShapedFitness:
+    """train() must still return a strategy when shaping makes every candidate
+    score below zero — initializing best_fitness to 0.0 would silently drop
+    them all and return None."""
+
+    def test_returns_best_strategy_when_all_fitness_negative(self, monkeypatch):
+        trainer = GeneticTrainer(
+            ["Village"],
+            population_size=4,
+            generations=1,
+            games_per_eval=2,
+            immigrant_fraction=0.0,
+            shape_rewards=True,
+        )
+
+        scores = iter([-10.0, -5.0, -20.0, -8.0])
+        breakdowns = iter([
+            [("Opp", 0.0, -50.0, -10.0)],
+            [("Opp", 0.0, -25.0, -5.0)],
+            [("Opp", 0.0, -100.0, -20.0)],
+            [("Opp", 0.0, -40.0, -8.0)],
+        ])
+
+        def fake_eval(_strategy):
+            trainer.last_eval_breakdown = next(breakdowns)
+            return next(scores)
+
+        monkeypatch.setattr(trainer, "evaluate_strategy", fake_eval)
+
+        best, metrics = trainer.train()
+
+        assert best is not None, "train() must not return None when all fitness < 0"
+        assert metrics["fitness"] == pytest.approx(-5.0), (
+            f"Expected best (least-negative) fitness of -5.0, got {metrics.get('fitness')}"
+        )
+
+
+class TestTrainMetricsDistinguishWinRateFromShapedFitness:
+    """With shaping on, metrics['win_rate'] must be the raw win rate, not the
+    shaped fitness — otherwise downstream code prints '86% win rate' for a
+    100%-winning strategy."""
+
+    def test_metrics_reports_raw_win_rate_alongside_shaped_fitness(self, monkeypatch):
+        trainer = GeneticTrainer(
+            ["Village"],
+            population_size=2,
+            generations=1,
+            games_per_eval=2,
+            immigrant_fraction=0.0,
+            shape_rewards=True,
+        )
+
+        # First evaluation: shaped fitness 86 backed by a true 100% win rate.
+        # Second evaluation: shaped fitness 70 backed by a 50% win rate.
+        results = iter([86.0, 70.0])
+        breakdowns = iter([
+            [("Opp", 100.0, 30.0, 86.0)],
+            [("Opp", 50.0, 100.0, 70.0)],
+        ])
+
+        def fake_eval(_strategy):
+            trainer.last_eval_breakdown = next(breakdowns)
+            return next(results)
+
+        monkeypatch.setattr(trainer, "evaluate_strategy", fake_eval)
+
+        _, metrics = trainer.train()
+
+        assert metrics["fitness"] == pytest.approx(86.0)
+        assert metrics["win_rate"] == pytest.approx(100.0), (
+            f"win_rate should be the raw 100% mean, got {metrics['win_rate']}"
+        )
+
+    def test_metrics_winrate_equals_fitness_when_shaping_off(self, monkeypatch):
+        """With shaping off, fitness *is* the mean win rate; the two metrics
+        keys should be equal so we don't break the historical contract."""
+        trainer = GeneticTrainer(
+            ["Village"],
+            population_size=1,
+            generations=1,
+            games_per_eval=2,
+            immigrant_fraction=0.0,
+            shape_rewards=False,
+        )
+
+        def fake_eval(_strategy):
+            trainer.last_eval_breakdown = [("Opp", 75.0)]
+            return 75.0
+
+        monkeypatch.setattr(trainer, "evaluate_strategy", fake_eval)
+
+        _, metrics = trainer.train()
+
+        assert metrics["win_rate"] == pytest.approx(75.0)
+        assert metrics["fitness"] == pytest.approx(75.0)
