@@ -46,13 +46,14 @@ class Continue(Event):
         )
         gained = game_state.gain_card(player, chosen)
 
-        # Locate the gained card in whichever post-gain zone it landed in
-        # (Insignia/Royal Seal can top-deck; the default destination is the
-        # discard pile). Only play it if we can find it in a normal zone —
-        # if a reaction trashed or exiled it, the play step is skipped, the
-        # same way a Watchtower-trashed gain wouldn't be playable.
+        # Locate the gained card in whichever post-gain zone it landed in.
+        # Default destination is the discard pile, but Insignia/Royal Seal
+        # can top-deck and Villa's on_gain moves itself into hand. Only play
+        # it if we can find it in a normal zone — if a reaction trashed or
+        # exiled it, the play step is skipped (Watchtower-trashed gains
+        # aren't playable).
         zone = None
-        for candidate in (player.discard, player.deck):
+        for candidate in (player.hand, player.discard, player.deck):
             if gained in candidate:
                 zone = candidate
                 break

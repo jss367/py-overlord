@@ -49,7 +49,8 @@ class _FixedTargetAI:
 def _new_state(target_name: str) -> tuple[GameState, PlayerState]:
     state = GameState(players=[])
     state.players = [PlayerState(_FixedTargetAI(target_name))]
-    state.setup_supply([get_card("Village")])
+    # Include Villa in the kingdom so Continue can target it when asked.
+    state.setup_supply([get_card("Village"), get_card("Villa")])
     state.players[0].coins = 8
     return state, state.players[0]
 
@@ -81,6 +82,17 @@ def test_continue_does_not_duplicate_topdecked_gains():
     assert len(villages_in_play) == 1, f"Village should be in_play once; in_play has {len(villages_in_play)}"
     assert villages_in_deck == [], f"Village should not be left on deck; got {len(villages_in_deck)}"
     assert villages_in_discard == [], f"Village should not be in discard pre-cleanup; got {len(villages_in_discard)}"
+
+
+def test_continue_finds_gain_in_hand_for_villa():
+    """Villa's on_gain moves itself into hand. Continue must still play it."""
+    state, player = _new_state("Villa")
+    Continue().on_buy(state, player)
+
+    villas_in_play = [c for c in player.in_play if c.name == "Villa"]
+    villas_in_hand = [c for c in player.hand if c.name == "Villa"]
+    assert len(villas_in_play) == 1, "Villa should be in_play after Continue plays it"
+    assert villas_in_hand == [], "Villa should not be left in hand"
 
 
 def test_continue_skips_play_if_gain_was_intercepted():

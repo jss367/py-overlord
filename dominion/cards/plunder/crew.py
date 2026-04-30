@@ -17,7 +17,12 @@ class Crew(Card):
         game_state.draw_cards(player, 3)
         # Stay in play until the start-of-next-turn duration trigger fires.
         self.duration_persistent = True
-        player.duration.append(self)
+        # Guard against duplicate listings when Crew is replayed in the same
+        # turn (Flagship, Throne Room, etc. operate on the same instance).
+        # Each replay still draws +3 above, but the duration list may only
+        # carry the card once or on_duration would top-deck it multiple times.
+        if self not in player.duration:
+            player.duration.append(self)
 
     def on_duration(self, game_state):
         player = game_state.current_player
