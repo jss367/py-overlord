@@ -28,20 +28,12 @@ class WizardsSplitCard(Card):
                 return False
         return super().may_be_bought(game_state)
 
-    def get_additional_piles(self) -> dict[str, int]:
-        """When any single Wizard is added to the kingdom, populate all four piles.
-
-        Returns 4 of each remaining Wizard for 2-player setups; in larger
-        games the supply still works (each Wizard sets its own count via
-        ``starting_supply`` when added directly), and the engine treats this
-        4 as a default fallback.
-        """
-        extras: dict[str, int] = {}
-        for name in WIZARDS_PILE_ORDER:
-            if name == self.name:
-                continue
-            extras[name] = 4
-        return extras
+    # Note: the partner Wizards aren't added via ``get_additional_piles``
+    # because that method has no access to ``game_state`` and so can't size
+    # the piles by player count. Instead, ``GameState.setup_supply`` detects
+    # ``WizardsSplitCard`` and calls ``starting_supply`` on each partner —
+    # the same shape as the existing ``SplitPileMixin`` handling. Keep this
+    # default empty so the supply path stays consistent.
 
 
 def _grant_favor(player) -> None:

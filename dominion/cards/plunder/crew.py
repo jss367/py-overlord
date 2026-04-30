@@ -21,9 +21,14 @@ class Crew(Card):
 
     def on_duration(self, game_state):
         player = game_state.current_player
-        # Move Crew from duration to top of deck. Mark as persistent so the
-        # engine's post-on_duration cleanup does not also try to discard it.
+        # Move Crew from duration *and* in_play onto the top of the deck.
+        # Without removing from in_play, cleanup later this turn would also
+        # discard the same card object, leaving Crew duplicated across deck
+        # and discard. Marking duration_persistent suppresses the engine's
+        # default move-to-discard since we've handled it ourselves.
         if self in player.duration:
             player.duration.remove(self)
+        if self in player.in_play:
+            player.in_play.remove(self)
         player.deck.append(self)
         self.duration_persistent = True

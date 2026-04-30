@@ -155,6 +155,20 @@ class GameState:
                 if partner.name not in self.supply:
                     self.supply[partner.name] = partner.starting_supply(self)
 
+            # Wizards split pile: add the other three partners with
+            # player-count-aware supply via each partner's starting_supply.
+            from dominion.cards.allies.wizards import (
+                WIZARDS_PILE_ORDER,
+                WizardsSplitCard,
+            )
+            if isinstance(card, WizardsSplitCard):
+                for partner_name in WIZARDS_PILE_ORDER:
+                    if partner_name == card.name:
+                        continue
+                    if partner_name not in self.supply:
+                        partner = get_card(partner_name)
+                        self.supply[partner_name] = partner.starting_supply(self)
+
             extras = card.get_additional_piles()
             for name, count in extras.items():
                 if name not in self.supply:
