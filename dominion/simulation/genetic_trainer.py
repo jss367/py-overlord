@@ -44,6 +44,7 @@ class GeneticTrainer:
         board_config: Optional[BoardConfig] = None,
         immigrant_fraction: float = 0.15,
         sharing_threshold: float = 0.8,
+        simplify_genomes: bool = True,
     ):
         if kingdom_cards is None:
             if board_config is None:
@@ -59,6 +60,7 @@ class GeneticTrainer:
         self.board_config = board_config
         self.immigrant_fraction = immigrant_fraction
         self.sharing_threshold = sharing_threshold
+        self.simplify_genomes = simplify_genomes
         self.battle_system = StrategyBattle(kingdom_cards, log_folder, board_config=board_config)
         if not self.kingdom_cards:
             raise ValueError("kingdom_cards cannot be empty")
@@ -549,6 +551,14 @@ class GeneticTrainer:
             for gen in range(self.generations):
                 self.current_generation = gen
                 log.info("Generation %d/%d", gen + 1, self.generations)
+
+                # Strip dead rules so mutation/crossover the next generation
+                # operate on lean genomes. Behavior-preserving.
+                if self.simplify_genomes:
+                    from dominion.strategy.genome_simplification import (
+                        simplify_strategy,
+                    )
+                    population = [simplify_strategy(s) for s in population]
 
                 # Evaluate population
                 fitness_scores = []
