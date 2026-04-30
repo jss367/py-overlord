@@ -86,6 +86,34 @@ class GeneticTrainer:
             except ValueError:
                 pass
 
+    # Probability that ``_random_condition_with_compound`` wraps a normally
+    # sampled inner condition in ``and_(card_in_play(X), inner)``. Tunable.
+    _COMPOUND_CONDITION_PROB = 0.15
+
+    def _random_condition_with_compound(self) -> "Callable | None":
+        """Return a random callable condition, with ~15% probability returning
+        a compound ``and_(card_in_play(X), inner)`` where ``X`` is drawn from
+        the kingdom's action cards and ``inner`` is a normally-sampled
+        condition.
+
+        If the kingdom has no action cards, falls back to a non-compound
+        condition (since ``card_in_play`` with no kingdom action is not
+        meaningful).
+        """
+        if (
+            self._kingdom_action_cards
+            and random.random() < self._COMPOUND_CONDITION_PROB
+        ):
+            inner = self._random_condition()
+            card = random.choice(self._kingdom_action_cards)
+            if inner is None:
+                # A degenerate ``and_(card_in_play(X))`` collapses to just the
+                # card_in_play check; emit it directly so the _source string
+                # stays clean.
+                return PriorityRule.card_in_play(card)
+            return PriorityRule.and_(PriorityRule.card_in_play(card), inner)
+        return self._random_condition()
+
     @staticmethod
     def _random_condition() -> "Callable | None":
         """Return a random callable condition from a diverse vocabulary."""
@@ -165,7 +193,7 @@ class GeneticTrainer:
                 elif card in self.kingdom_cards:
                     condition = PriorityRule.turn_number("<=", random.randint(5, 15))
                 else:
-                    condition = self._random_condition()
+                    condition = self._random_condition_with_compound()
             strategy.gain_priority.append(PriorityRule(card, condition))
 
         # Generate action priorities (only actual action cards)
@@ -181,7 +209,7 @@ class GeneticTrainer:
                     elif card in ["Smithy", "Laboratory"]:
                         condition = PriorityRule.resources("actions", ">=", 1)
                     else:
-                        condition = self._random_condition()
+                        condition = self._random_condition_with_compound()
                 strategy.action_priority.append(PriorityRule(card, condition))
 
         # Generate treasure priorities — include kingdom treasures
@@ -292,13 +320,13 @@ class GeneticTrainer:
                         elif priority.card_name in self.kingdom_cards:
                             priority.condition = PriorityRule.turn_number("<=", random.randint(5, 15))
                         else:
-                            priority.condition = self._random_condition()
+                            priority.condition = self._random_condition_with_compound()
                     else:
                         # Existing condition — half the time drop it, half the time replace
                         if random.random() < 0.5:
                             priority.condition = None
                         else:
-                            priority.condition = self._random_condition()
+                            priority.condition = self._random_condition_with_compound()
 
         # Reorder: swap two adjacent gain rules
         if random.random() < self.mutation_rate and len(strategy.gain_priority) >= 2:
@@ -322,7 +350,7 @@ class GeneticTrainer:
             if missing:
                 card = random.choice(missing)
                 pos = random.randint(0, len(strategy.gain_priority))
-                strategy.gain_priority.insert(pos, PriorityRule(card, self._random_condition()))
+                strategy.gain_priority.insert(pos, PriorityRule(card, self._random_condition_with_compound()))
 
         # Remove a low-value gain entry (but keep at least 3 rules)
         if random.random() < self.mutation_rate * 0.2 and len(strategy.gain_priority) > 3:
@@ -349,7 +377,7 @@ class GeneticTrainer:
                             elif priority.card_name in ["Smithy", "Laboratory"]:
                                 priority.condition = PriorityRule.resources("actions", ">=", 1)
                             else:
-                                priority.condition = self._random_condition()
+                                priority.condition = self._random_condition_with_compound()
 
         # Add/remove action cards (only actual action cards)
         if random.random() < self.mutation_rate * 0.3:
@@ -358,7 +386,7 @@ class GeneticTrainer:
             if missing:
                 card = random.choice(missing)
                 pos = random.randint(0, len(strategy.action_priority))
-                strategy.action_priority.insert(pos, PriorityRule(card, self._random_condition()))
+                strategy.action_priority.insert(pos, PriorityRule(card, self._random_condition_with_compound()))
 
         if random.random() < self.mutation_rate * 0.2 and len(strategy.action_priority) > 1:
             i = random.randint(0, len(strategy.action_priority) - 1)
