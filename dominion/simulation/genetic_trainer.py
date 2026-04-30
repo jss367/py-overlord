@@ -86,14 +86,24 @@ class GeneticTrainer:
             except ValueError:
                 pass
 
-    @staticmethod
-    def _random_condition() -> "Callable | None":
-        """Return a random callable condition from a diverse vocabulary."""
-        kind = random.choice([
+    def _random_condition(self) -> "Callable | None":
+        """Return a random callable condition from a diverse vocabulary.
+
+        card_in_play requires a real kingdom action card name, so this is
+        an instance method (not a staticmethod) — it pulls the candidate set
+        from self._kingdom_action_cards computed in __init__."""
+        choices = [
             "provinces_left", "turn_number", "resources", "has_cards",
             "empty_piles", "deck_size", "action_density", "score_diff",
-            "actions_in_play", "max_in_deck", "none",
-        ])
+            "actions_in_play", "max_in_deck",
+            "actions_gained_this_turn", "cards_gained_this_turn",
+            "none",
+        ]
+        # card_in_play only makes sense if we have at least one kingdom
+        # action card to reference.
+        if self._kingdom_action_cards:
+            choices.append("card_in_play")
+        kind = random.choice(choices)
         if kind == "provinces_left":
             op = random.choice(["<=", ">", ">=", "<"])
             amount = random.randint(2, 8)
@@ -138,6 +148,17 @@ class GeneticTrainer:
             card = random.choice(["Silver", "Gold", "Copper", "Estate", "Curse"])
             amount = random.randint(1, 6)
             return PriorityRule.max_in_deck(card, amount)
+        if kind == "actions_gained_this_turn":
+            op = random.choice(["<=", ">=", "<", ">"])
+            amount = random.randint(1, 4)
+            return PriorityRule.actions_gained_this_turn(op, amount)
+        if kind == "cards_gained_this_turn":
+            op = random.choice(["<=", ">=", "<", ">"])
+            amount = random.randint(1, 5)
+            return PriorityRule.cards_gained_this_turn(op, amount)
+        if kind == "card_in_play":
+            card = random.choice(self._kingdom_action_cards)
+            return PriorityRule.card_in_play(card)
         return None
 
     def create_random_strategy(self) -> BaseStrategy:

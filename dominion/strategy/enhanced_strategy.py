@@ -97,6 +97,27 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.actions_in_play({op!r}, {amount!r})")
 
     @staticmethod
+    def actions_gained_this_turn(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when the number of actions gained this turn satisfies the comparison.
+
+        Useful for Cauldron-style triggers ("when this is the Nth action gained
+        while X is in play"). Reads ``player.actions_gained_this_turn``, which
+        is reset to 0 at the start of each of the player's turns."""
+        cmp = PriorityRule._OP_MAP[op]
+        fn = lambda _s, me, _amount=amount, _cmp=cmp: _cmp(me.actions_gained_this_turn, _amount)
+        return PriorityRule._tag_source(fn, f"PriorityRule.actions_gained_this_turn({op!r}, {amount!r})")
+
+    @staticmethod
+    def cards_gained_this_turn(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when the number of cards gained this turn satisfies the comparison.
+
+        Reads ``player.cards_gained_this_turn``, which is reset to 0 at the start
+        of each of the player's turns."""
+        cmp = PriorityRule._OP_MAP[op]
+        fn = lambda _s, me, _amount=amount, _cmp=cmp: _cmp(me.cards_gained_this_turn, _amount)
+        return PriorityRule._tag_source(fn, f"PriorityRule.cards_gained_this_turn({op!r}, {amount!r})")
+
+    @staticmethod
     def card_in_play(card_name: str) -> Callable[["GameState", "PlayerState"], bool]:
         """True when the named card is currently in play."""
         fn = lambda _s, me, _card=card_name: any(c.name == _card for c in me.in_play)
