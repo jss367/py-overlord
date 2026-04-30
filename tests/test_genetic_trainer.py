@@ -20,7 +20,11 @@ def make_stub_strategy() -> BaseStrategy:
 
 
 def test_evaluate_strategy_counts_second_seat_wins(monkeypatch):
-    trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=2)
+    # shape_rewards=False to keep this asserting raw win-rate behavior.
+    trainer = GeneticTrainer(
+        ["Village"], population_size=1, generations=1, games_per_eval=2,
+        shape_rewards=False,
+    )
 
     # Provide a deterministic strategy under test
     strategy = make_stub_strategy()
@@ -31,7 +35,9 @@ def test_evaluate_strategy_counts_second_seat_wins(monkeypatch):
         call_counter.count += 1
         # Big Money (second_ai in the first call) wins when our strategy leads.
         # Our strategy (second_ai in the second call) wins when going second.
-        return second_ai, {}, None, 0
+        # Provide minimal scores so reward shaping (when on) has data.
+        scores = {first_ai.name: 0, second_ai.name: 1}
+        return second_ai, scores, None, 0
 
     monkeypatch.setattr(trainer.battle_system, "run_game", fake_run_game)
 
@@ -434,7 +440,7 @@ class TestPanelEvaluation:
     """Verify panel-based fitness: split games across multiple opponents."""
 
     def test_panel_evaluation_distributes_games_across_opponents(self, monkeypatch):
-        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4)
+        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4, shape_rewards=False)
         strategy = make_stub_strategy()
 
         opp_a = _make_dummy_opponent("OpponentA")
@@ -456,7 +462,7 @@ class TestPanelEvaluation:
         assert games_against["OpponentB"] == 2, games_against
 
     def test_panel_fitness_is_mean_of_per_opponent_rates(self, monkeypatch):
-        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4)
+        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4, shape_rewards=False)
         strategy = make_stub_strategy()
         strategy.name = "Stub"
 
@@ -482,7 +488,7 @@ class TestPanelEvaluation:
     def test_panel_evaluation_uses_full_games_budget(self, monkeypatch):
         """games_per_eval=10 with 3 opponents should run exactly 10 total games
         (distributed 4+3+3), not 9 from floor division."""
-        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=10)
+        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=10, shape_rewards=False)
         strategy = make_stub_strategy()
 
         opp_a = _make_dummy_opponent("A")
@@ -510,7 +516,7 @@ class TestPanelEvaluation:
         """Two panel members sharing a name (e.g. both BigMoneySmithy variants)
         must both contribute to the breakdown — a dict keyed by name silently
         loses one of them."""
-        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4)
+        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4, shape_rewards=False)
         strategy = make_stub_strategy()
         strategy.name = "Stub"
 
@@ -538,7 +544,7 @@ class TestPanelEvaluation:
         )
 
     def test_panel_per_opponent_breakdown_is_exposed(self, monkeypatch):
-        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4)
+        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4, shape_rewards=False)
         strategy = make_stub_strategy()
         strategy.name = "Stub"
 
