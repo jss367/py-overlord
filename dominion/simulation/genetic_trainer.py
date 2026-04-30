@@ -44,6 +44,7 @@ class GeneticTrainer:
         board_config: Optional[BoardConfig] = None,
         immigrant_fraction: float = 0.15,
         sharing_threshold: float = 0.8,
+        shape_rewards: bool = True,
     ):
         if kingdom_cards is None:
             if board_config is None:
@@ -59,6 +60,7 @@ class GeneticTrainer:
         self.board_config = board_config
         self.immigrant_fraction = immigrant_fraction
         self.sharing_threshold = sharing_threshold
+        self.shape_rewards = shape_rewards
         self.battle_system = StrategyBattle(kingdom_cards, log_folder, board_config=board_config)
         if not self.kingdom_cards:
             raise ValueError("kingdom_cards cannot be empty")
@@ -67,10 +69,12 @@ class GeneticTrainer:
         self._strategy_to_inject = None
         self._baseline_strategy = None
         self._baseline_panel: list[BaseStrategy] = []
-        # List of (opponent_name, win_rate) tuples — list (not dict) so that
-        # multiple panel members sharing a name (e.g. two BigMoneySmithy
-        # variants) each contribute their rate independently.
-        self.last_eval_breakdown: list[tuple[str, float]] = []
+        # List of per-opponent breakdown tuples. With ``shape_rewards=False``
+        # each entry is ``(name, win_rate)``; with shaping on each entry is
+        # ``(name, win_rate, avg_margin, shaped_fitness)``. Stored as a list
+        # (not a dict) so multiple panel members sharing a name (e.g. two
+        # BigMoneySmithy variants) each contribute independently.
+        self.last_eval_breakdown: list[tuple] = []
 
         # Cache card type lookups for filtering
         from dominion.cards.registry import get_card
@@ -220,31 +224,81 @@ class GeneticTrainer:
             raise ValueError("Big Money strategy not found")
         return [big_money]
 
+    @staticmethod
+    def _margin_to_score(avg_margin: float) -> float:
+        """Map an average VP margin (player VP minus opponent VP) onto a
+        shaped fitness contribution in ``[-100, 100]``.
+
+        The mapping is the identity with clipping: a +20 average margin
+        contributes +20 fitness points, a -20 average margin contributes
+        -20, and very large margins clamp at +/-100. This keeps the
+        shaping term on the same scale as a 0-100 win-rate signal so the
+        weighted mix in :meth:`_shape_fitness` stays well-behaved.
+        """
+        if avg_margin > 100.0:
+            return 100.0
+        if avg_margin < -100.0:
+            return -100.0
+        return float(avg_margin)
+
+    @staticmethod
+    def _shape_fitness(win_rate_pct: float, avg_margin: float) -> float:
+        """Combine win rate (0-100) and average score margin into a single
+        shaped fitness value.
+
+        Weights: 80% win rate (primary signal), 20% margin score. The margin
+        score is computed by :meth:`_margin_to_score`, so a +20 average VP
+        margin adds +4 fitness points (0.2 * 20) on top of the win-rate
+        component, and a -20 average VP margin subtracts 4.
+        """
+        margin_score = GeneticTrainer._margin_to_score(avg_margin)
+        return 0.8 * win_rate_pct + 0.2 * margin_score
+
     def evaluate_strategy(self, strategy: BaseStrategy) -> float:
         """Evaluate a strategy by playing games against each panel opponent.
-        Returns the mean win rate across the panel (0-100)."""
+
+        With ``shape_rewards=False`` (the historical behavior), returns the
+        mean per-opponent win rate (0-100). With ``shape_rewards=True``
+        (the default), returns ``0.8 * win_rate + 0.2 * margin_score`` per
+        opponent and averages those — see :meth:`_shape_fitness`.
+        """
         try:
             panel = self._resolve_panel()
             from dominion.ai.genetic_ai import GeneticAI
 
             games_for_opp = _distribute_games(self.games_per_eval, len(panel))
-            breakdown: list[tuple[str, float]] = []
+            breakdown: list[tuple] = []
             for i, opponent in enumerate(panel):
                 games_per_opp = games_for_opp[i]
                 kingdom_card_names = self.battle_system._determine_kingdom_cards(strategy, opponent)
                 wins = 0
+                margin_total = 0.0
                 for game_num in range(games_per_opp):
                     ai1 = GeneticAI(strategy)
                     ai2 = GeneticAI(opponent)
                     if game_num % 2 == 0:
-                        winner, _s, _l, _t = self.battle_system.run_game(ai1, ai2, kingdom_card_names)
+                        winner, scores, _l, _t = self.battle_system.run_game(ai1, ai2, kingdom_card_names)
                     else:
-                        winner, _s, _l, _t = self.battle_system.run_game(ai2, ai1, kingdom_card_names)
+                        winner, scores, _l, _t = self.battle_system.run_game(ai2, ai1, kingdom_card_names)
                     if winner == ai1:
                         wins += 1
+                    # ``scores`` is keyed by ai.name; if the mock omits scores
+                    # (some legacy tests do), treat margin as 0 for this game.
+                    if scores:
+                        my_score = scores.get(ai1.name, 0)
+                        opp_score = scores.get(ai2.name, 0)
+                        margin_total += my_score - opp_score
                 rate = wins / games_per_opp * 100
-                breakdown.append((opponent.name, rate))
+                avg_margin = margin_total / games_per_opp
+                if self.shape_rewards:
+                    fitness = self._shape_fitness(rate, avg_margin)
+                    breakdown.append((opponent.name, rate, avg_margin, fitness))
+                else:
+                    breakdown.append((opponent.name, rate))
             self.last_eval_breakdown = breakdown
+            if self.shape_rewards:
+                # Mean of the shaped per-opponent fitness values
+                return sum(entry[3] for entry in breakdown) / len(breakdown)
             return sum(r for _, r in breakdown) / len(breakdown)
         except Exception as e:
             log.exception("Error evaluating strategy %s. Got error: %s", strategy.name, e)
@@ -533,9 +587,11 @@ class GeneticTrainer:
                         best_strategy = deepcopy(strategy)
                         log.info("New best fitness: %.2f", best_fitness)
                         if len(self.last_eval_breakdown) > 1:
+                            # Entries may be 2-tuples (raw) or 4-tuples (shaped);
+                            # the first two fields are always (name, win_rate).
                             parts = ", ".join(
-                                f"{name}: {rate:.1f}%"
-                                for name, rate in self.last_eval_breakdown
+                                f"{entry[0]}: {entry[1]:.1f}%"
+                                for entry in self.last_eval_breakdown
                             )
                             log.info("  panel breakdown — %s", parts)
 
