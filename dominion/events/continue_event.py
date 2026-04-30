@@ -46,12 +46,22 @@ class Continue(Event):
         )
         gained = game_state.gain_card(player, chosen)
 
-        if not gained.is_action:
+        # Locate the gained card in whichever post-gain zone it landed in
+        # (Insignia/Royal Seal can top-deck; the default destination is the
+        # discard pile). Only play it if we can find it in a normal zone —
+        # if a reaction trashed or exiled it, the play step is skipped, the
+        # same way a Watchtower-trashed gain wouldn't be playable.
+        zone = None
+        for candidate in (player.discard, player.deck):
+            if gained in candidate:
+                zone = candidate
+                break
+
+        if zone is None:
             return
 
-        # Play the gained Action — pull it out of discard and resolve it.
-        if gained in player.discard:
-            player.discard.remove(gained)
+        zone.remove(gained)
         player.in_play.append(gained)
-        # Continue grants a free play; we deliberately don't deduct an action.
+        # Continue grants a free play of the gain (Action *or* Treasure);
+        # we deliberately don't deduct an action.
         gained.on_play(game_state)
