@@ -1,0 +1,17 @@
+# Cauldron-curse seed board.
+#
+# Designed so that a player can deliberately gain three Action cards on a
+# single turn while a Cauldron is in play, triggering Cauldron's curse-out
+# clause for every opponent. Cauldron supplies +1 Buy and +$2, and every
+# other Action on this board costs at most $5, with seven of them at $2-$4
+# so even a small payload turn can chain three buys / Workshop-gains.
+Cauldron
+Settlers
+Wishing Well
+Pawn
+Hamlet
+Workshop
+Village
+Smithy
+Mill
+Baker

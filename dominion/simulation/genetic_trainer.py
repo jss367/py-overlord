@@ -45,6 +45,7 @@ class GeneticTrainer:
         immigrant_fraction: float = 0.15,
         sharing_threshold: float = 0.8,
         shape_rewards: bool = True,
+        simplify_genomes: bool = True,
     ):
         if kingdom_cards is None:
             if board_config is None:
@@ -61,6 +62,7 @@ class GeneticTrainer:
         self.immigrant_fraction = immigrant_fraction
         self.sharing_threshold = sharing_threshold
         self.shape_rewards = shape_rewards
+        self.simplify_genomes = simplify_genomes
         self.battle_system = StrategyBattle(kingdom_cards, log_folder, board_config=board_config)
         if not self.kingdom_cards:
             raise ValueError("kingdom_cards cannot be empty")
@@ -90,14 +92,52 @@ class GeneticTrainer:
             except ValueError:
                 pass
 
-    @staticmethod
-    def _random_condition() -> "Callable | None":
-        """Return a random callable condition from a diverse vocabulary."""
-        kind = random.choice([
+    # Probability that ``_random_condition_with_compound`` wraps a normally
+    # sampled inner condition in ``and_(card_in_play(X), inner)``. Tunable.
+    _COMPOUND_CONDITION_PROB = 0.15
+
+    def _random_condition_with_compound(self) -> "Callable | None":
+        """Return a random callable condition, with ~15% probability returning
+        a compound ``and_(card_in_play(X), inner)`` where ``X`` is drawn from
+        the kingdom's action cards and ``inner`` is a normally-sampled
+        condition.
+
+        If the kingdom has no action cards, falls back to a non-compound
+        condition (since ``card_in_play`` with no kingdom action is not
+        meaningful).
+        """
+        if (
+            self._kingdom_action_cards
+            and random.random() < self._COMPOUND_CONDITION_PROB
+        ):
+            inner = self._random_condition()
+            card = random.choice(self._kingdom_action_cards)
+            if inner is None:
+                # A degenerate ``and_(card_in_play(X))`` collapses to just the
+                # card_in_play check; emit it directly so the _source string
+                # stays clean.
+                return PriorityRule.card_in_play(card)
+            return PriorityRule.and_(PriorityRule.card_in_play(card), inner)
+        return self._random_condition()
+
+    def _random_condition(self) -> "Callable | None":
+        """Return a random callable condition from a diverse vocabulary.
+
+        card_in_play requires a real kingdom action card name, so this is
+        an instance method (not a staticmethod) — it pulls the candidate set
+        from self._kingdom_action_cards computed in __init__."""
+        choices = [
             "provinces_left", "turn_number", "resources", "has_cards",
             "empty_piles", "deck_size", "action_density", "score_diff",
-            "actions_in_play", "max_in_deck", "none",
-        ])
+            "actions_in_play", "max_in_deck",
+            "actions_gained_this_turn", "cards_gained_this_turn",
+            "none",
+        ]
+        # card_in_play only makes sense if we have at least one kingdom
+        # action card to reference.
+        if self._kingdom_action_cards:
+            choices.append("card_in_play")
+        kind = random.choice(choices)
         if kind == "provinces_left":
             op = random.choice(["<=", ">", ">=", "<"])
             amount = random.randint(2, 8)
@@ -142,6 +182,17 @@ class GeneticTrainer:
             card = random.choice(["Silver", "Gold", "Copper", "Estate", "Curse"])
             amount = random.randint(1, 6)
             return PriorityRule.max_in_deck(card, amount)
+        if kind == "actions_gained_this_turn":
+            op = random.choice(["<=", ">=", "<", ">"])
+            amount = random.randint(1, 4)
+            return PriorityRule.actions_gained_this_turn(op, amount)
+        if kind == "cards_gained_this_turn":
+            op = random.choice(["<=", ">=", "<", ">"])
+            amount = random.randint(1, 5)
+            return PriorityRule.cards_gained_this_turn(op, amount)
+        if kind == "card_in_play":
+            card = random.choice(self._kingdom_action_cards)
+            return PriorityRule.card_in_play(card)
         return None
 
     def create_random_strategy(self) -> BaseStrategy:
@@ -169,7 +220,7 @@ class GeneticTrainer:
                 elif card in self.kingdom_cards:
                     condition = PriorityRule.turn_number("<=", random.randint(5, 15))
                 else:
-                    condition = self._random_condition()
+                    condition = self._random_condition_with_compound()
             strategy.gain_priority.append(PriorityRule(card, condition))
 
         # Generate action priorities (only actual action cards)
@@ -185,7 +236,7 @@ class GeneticTrainer:
                     elif card in ["Smithy", "Laboratory"]:
                         condition = PriorityRule.resources("actions", ">=", 1)
                     else:
-                        condition = self._random_condition()
+                        condition = self._random_condition_with_compound()
                 strategy.action_priority.append(PriorityRule(card, condition))
 
         # Generate treasure priorities — include kingdom treasures
@@ -346,13 +397,13 @@ class GeneticTrainer:
                         elif priority.card_name in self.kingdom_cards:
                             priority.condition = PriorityRule.turn_number("<=", random.randint(5, 15))
                         else:
-                            priority.condition = self._random_condition()
+                            priority.condition = self._random_condition_with_compound()
                     else:
                         # Existing condition — half the time drop it, half the time replace
                         if random.random() < 0.5:
                             priority.condition = None
                         else:
-                            priority.condition = self._random_condition()
+                            priority.condition = self._random_condition_with_compound()
 
         # Reorder: swap two adjacent gain rules
         if random.random() < self.mutation_rate and len(strategy.gain_priority) >= 2:
@@ -376,7 +427,7 @@ class GeneticTrainer:
             if missing:
                 card = random.choice(missing)
                 pos = random.randint(0, len(strategy.gain_priority))
-                strategy.gain_priority.insert(pos, PriorityRule(card, self._random_condition()))
+                strategy.gain_priority.insert(pos, PriorityRule(card, self._random_condition_with_compound()))
 
         # Remove a low-value gain entry (but keep at least 3 rules)
         if random.random() < self.mutation_rate * 0.2 and len(strategy.gain_priority) > 3:
@@ -403,7 +454,7 @@ class GeneticTrainer:
                             elif priority.card_name in ["Smithy", "Laboratory"]:
                                 priority.condition = PriorityRule.resources("actions", ">=", 1)
                             else:
-                                priority.condition = self._random_condition()
+                                priority.condition = self._random_condition_with_compound()
 
         # Add/remove action cards (only actual action cards)
         if random.random() < self.mutation_rate * 0.3:
@@ -412,7 +463,7 @@ class GeneticTrainer:
             if missing:
                 card = random.choice(missing)
                 pos = random.randint(0, len(strategy.action_priority))
-                strategy.action_priority.insert(pos, PriorityRule(card, self._random_condition()))
+                strategy.action_priority.insert(pos, PriorityRule(card, self._random_condition_with_compound()))
 
         if random.random() < self.mutation_rate * 0.2 and len(strategy.action_priority) > 1:
             i = random.randint(0, len(strategy.action_priority) - 1)
@@ -581,6 +632,14 @@ class GeneticTrainer:
             for gen in range(self.generations):
                 self.current_generation = gen
                 log.info("Generation %d/%d", gen + 1, self.generations)
+
+                # Strip dead rules so mutation/crossover the next generation
+                # operate on lean genomes. Behavior-preserving.
+                if self.simplify_genomes:
+                    from dominion.strategy.genome_simplification import (
+                        simplify_strategy,
+                    )
+                    population = [simplify_strategy(s) for s in population]
 
                 # Evaluate population
                 fitness_scores = []
