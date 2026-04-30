@@ -203,9 +203,12 @@ class Lich(WizardsSplitCard):
         if chosen is None or chosen not in game_state.trash:
             return
         game_state.trash.remove(chosen)
-        # Skip supply decrement since the card was in trash.
-        player.discard.append(chosen)
-        chosen.on_gain(game_state, player)
+        # Route through gain_card so the gain participates in shared
+        # bookkeeping (cards_gained_this_turn, actions_gained_this_turn,
+        # Cauldron's third-Action-gain trigger, project on_gain hooks,
+        # Watchtower / Royal Seal / Insignia reactions, …). Supply isn't
+        # decremented because the card came out of the trash, not supply.
+        game_state.gain_card(player, chosen)
 
     def on_trash(self, game_state, player) -> None:
         from ..registry import get_card
