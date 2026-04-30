@@ -227,9 +227,10 @@ class TestRandomConditionVocabulary:
         """Sampling 400 conditions should produce at least one of each new primitive."""
         random_local = __import__("random")
         random_local.seed(0)
+        trainer = GeneticTrainer(["Village", "Smithy", "Market"], population_size=1, generations=1)
         sources: set[str] = set()
         for _ in range(400):
-            cond = GeneticTrainer._random_condition()
+            cond = trainer._random_condition()
             if cond is None:
                 continue
             src = getattr(cond, "_source", "")
@@ -246,6 +247,55 @@ class TestRandomConditionVocabulary:
         }
         missing = expected - sources
         assert not missing, f"Random vocabulary missing: {missing}. Got: {sources}"
+
+    def test_random_condition_includes_cauldron_primitives(self):
+        """Sampling many conditions should produce card_in_play, actions_gained_this_turn,
+        and cards_gained_this_turn — the new vocabulary needed for Cauldron-style triggers."""
+        random_local = __import__("random")
+        random_local.seed(1)
+        trainer = GeneticTrainer(["Village", "Smithy", "Market"], population_size=1, generations=1)
+        sources: set[str] = set()
+        for _ in range(800):
+            cond = trainer._random_condition()
+            if cond is None:
+                continue
+            src = getattr(cond, "_source", "")
+            sources.add(src.split("(")[0])
+
+        expected = {
+            "PriorityRule.card_in_play",
+            "PriorityRule.actions_gained_this_turn",
+            "PriorityRule.cards_gained_this_turn",
+        }
+        missing = expected - sources
+        assert not missing, f"Cauldron vocabulary missing: {missing}. Got: {sources}"
+
+    def test_random_condition_card_in_play_uses_kingdom_action(self):
+        """When _random_condition returns card_in_play it must reference one of the
+        kingdom action cards, not a hard-coded card name."""
+        random_local = __import__("random")
+        random_local.seed(2)
+        kingdom = ["Village", "Smithy", "Market"]
+        trainer = GeneticTrainer(kingdom, population_size=1, generations=1)
+        seen_cards: set[str] = set()
+        for _ in range(800):
+            cond = trainer._random_condition()
+            if cond is None:
+                continue
+            src = getattr(cond, "_source", "")
+            if not src.startswith("PriorityRule.card_in_play("):
+                continue
+            # Extract the card name from the source string
+            inner = src[len("PriorityRule.card_in_play("):-1]
+            # inner is repr-form, e.g. "'Village'" — strip surrounding quotes
+            card_name = inner.strip().strip("'").strip('"')
+            seen_cards.add(card_name)
+
+        assert seen_cards, "card_in_play was never sampled"
+        # Every sampled card must be a real kingdom action card
+        assert seen_cards <= set(kingdom), (
+            f"card_in_play sampled non-kingdom names: {seen_cards - set(kingdom)}"
+        )
 
 
 class TestSourceAttribute:

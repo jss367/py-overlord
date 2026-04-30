@@ -30,6 +30,8 @@ def _make_mock_player(coins=3, actions=1, buys=1, vp=3, all_cards=None, in_play=
     cards = all_cards if all_cards is not None else []
     player.all_cards = lambda _cards=cards: list(_cards)
     player.get_victory_points = lambda _g=None, _vp=vp: _vp
+    player.actions_gained_this_turn = 0
+    player.cards_gained_this_turn = 0
     return player
 
 
