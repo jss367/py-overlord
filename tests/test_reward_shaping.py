@@ -311,6 +311,81 @@ class TestTrainMetricsDistinguishWinRateFromShapedFitness:
             f"win_rate should be the raw 100% mean, got {metrics['win_rate']}"
         )
 
+    def test_failed_eval_does_not_outrank_negative_shaped_fitness(self, monkeypatch):
+        """If evaluate_strategy hits its exception path it must NOT become the
+        global best when valid candidates have negative shaped fitness."""
+        trainer = GeneticTrainer(
+            ["Village"],
+            population_size=2,
+            generations=1,
+            games_per_eval=2,
+            immigrant_fraction=0.0,
+            simplify_genomes=False,
+            shape_rewards=True,
+        )
+
+        # Force evaluate_strategy down its exception path. It should clear
+        # the breakdown and return a sentinel that loses to any real fitness.
+        def boom(_strategy):
+            raise RuntimeError("simulated game failure")
+
+        monkeypatch.setattr(trainer.battle_system, "run_game", boom)
+
+        # First strategy: failed eval. Second: valid negative shaped fitness.
+        eval_results = []
+
+        original_eval = trainer.evaluate_strategy
+        call_count = {"n": 0}
+
+        def patched_eval(strategy):
+            call_count["n"] += 1
+            if call_count["n"] == 1:
+                # Real exception path
+                fitness = original_eval(strategy)
+            else:
+                # Valid negative shaped fitness; populate breakdown directly
+                trainer.last_eval_breakdown = [("Opp", 0.0, -50.0, -10.0)]
+                fitness = -10.0
+            eval_results.append(fitness)
+            return fitness
+
+        monkeypatch.setattr(trainer, "evaluate_strategy", patched_eval)
+
+        best, metrics = trainer.train()
+
+        assert eval_results[0] < eval_results[1], (
+            f"Failed eval ({eval_results[0]}) must lose to a valid negative fitness "
+            f"({eval_results[1]}); otherwise failures look 'best'"
+        )
+        assert metrics["fitness"] == pytest.approx(-10.0)
+
+    def test_failed_eval_clears_breakdown(self, monkeypatch):
+        """A failed evaluation must reset last_eval_breakdown so a later
+        consumer can't read stale data from the prior strategy."""
+        trainer = GeneticTrainer(
+            ["Village"],
+            population_size=1,
+            generations=1,
+            games_per_eval=2,
+            shape_rewards=True,
+        )
+        # Pre-populate breakdown to simulate "previous successful eval".
+        trainer.last_eval_breakdown = [("Opp", 100.0, 30.0, 86.0)]
+
+        def boom(*_args, **_kwargs):
+            raise RuntimeError("simulated failure")
+
+        monkeypatch.setattr(trainer.battle_system, "run_game", boom)
+
+        strategy = _make_stub_strategy()
+        opp = _make_dummy_opponent("Opp")
+        trainer.set_baseline_panel([opp])
+        trainer.evaluate_strategy(strategy)
+
+        assert trainer.last_eval_breakdown == [], (
+            f"Expected breakdown cleared after failed eval, got {trainer.last_eval_breakdown}"
+        )
+
     def test_metrics_winrate_equals_fitness_when_shaping_off(self, monkeypatch):
         """With shaping off, fitness *is* the mean win rate; the two metrics
         keys should be equal so we don't break the historical contract."""

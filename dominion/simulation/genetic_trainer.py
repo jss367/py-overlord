@@ -353,7 +353,12 @@ class GeneticTrainer:
             return sum(r for _, r in breakdown) / len(breakdown)
         except Exception as e:
             log.exception("Error evaluating strategy %s. Got error: %s", strategy.name, e)
-            return 0.0
+            # Clear the breakdown so train() can't credit this strategy with
+            # the prior candidate's per-opponent results, and return -inf so
+            # a failed eval can never outrank legitimate (possibly negative)
+            # shaped fitness in best-strategy tracking.
+            self.last_eval_breakdown = []
+            return float("-inf")
 
     def _crossover(self, parent1: BaseStrategy, parent2: BaseStrategy) -> BaseStrategy:
         """Create a new strategy by combining two parent strategies"""
