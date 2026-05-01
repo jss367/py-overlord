@@ -124,6 +124,60 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.card_in_play({card_name!r})")
 
     @staticmethod
+    def card_in_hand(card_name: str) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when the named card is currently in hand.
+
+        Useful for synergy rules such as "play Village only if a terminal is in
+        hand", e.g. ``and_(card_in_hand("Smithy"), resources("actions", "<", 2))``.
+        """
+        fn = lambda _s, me, _card=card_name: any(c.name == _card for c in me.hand)
+        return PriorityRule._tag_source(fn, f"PriorityRule.card_in_hand({card_name!r})")
+
+    @staticmethod
+    def actions_in_hand(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when the number of action cards currently in hand satisfies the comparison."""
+        cmp = PriorityRule._OP_MAP[op]
+        fn = lambda _s, me, _amount=amount, _cmp=cmp: _cmp(
+            sum(1 for c in me.hand if c.is_action), _amount
+        )
+        return PriorityRule._tag_source(fn, f"PriorityRule.actions_in_hand({op!r}, {amount!r})")
+
+    @staticmethod
+    def terminals_in_hand(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when the number of terminal action cards in hand satisfies the comparison.
+
+        A terminal is an action that grants no ``+Action`` (``stats.actions == 0``)."""
+        cmp = PriorityRule._OP_MAP[op]
+        fn = lambda _s, me, _amount=amount, _cmp=cmp: _cmp(
+            sum(1 for c in me.hand if c.is_action and c.stats.actions == 0), _amount
+        )
+        return PriorityRule._tag_source(fn, f"PriorityRule.terminals_in_hand({op!r}, {amount!r})")
+
+    @staticmethod
+    def treasures_in_hand(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when the number of treasure cards currently in hand satisfies the comparison."""
+        cmp = PriorityRule._OP_MAP[op]
+        fn = lambda _s, me, _amount=amount, _cmp=cmp: _cmp(
+            sum(1 for c in me.hand if c.is_treasure), _amount
+        )
+        return PriorityRule._tag_source(fn, f"PriorityRule.treasures_in_hand({op!r}, {amount!r})")
+
+    @staticmethod
+    def excess_actions(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when remaining actions minus terminals waiting in hand satisfies the comparison.
+
+        ``excess_actions(">=", 1)`` answers "do I have headroom to play another terminal?"
+        ``excess_actions("<", 1)`` answers "would playing another terminal strand me?"
+        """
+        cmp = PriorityRule._OP_MAP[op]
+
+        def _eval(_s, me, _amount=amount, _cmp=cmp):
+            terminals = sum(1 for c in me.hand if c.is_action and c.stats.actions == 0)
+            return _cmp(me.actions - terminals, _amount)
+
+        return PriorityRule._tag_source(_eval, f"PriorityRule.excess_actions({op!r}, {amount!r})")
+
+    @staticmethod
     def deck_count_diff(card_a: str, card_b: str, op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
         """True when (count of card_a in deck) minus (count of card_b in deck) satisfies the comparison."""
         cmp = PriorityRule._OP_MAP[op]
@@ -279,9 +333,27 @@ class EnhancedStrategy:
         unexpected = [c for c in choices if c is not None and c.name not in priority_names]
         if not unexpected:
             return None
-        # Prefer non-terminal actions (+actions) to avoid wasting remaining actions
-        non_terminal = [c for c in unexpected if c.stats.actions >= 1]
-        return non_terminal[0] if non_terminal else unexpected[0]
+        return self._score_unexpected_action(unexpected, player)
+
+    @staticmethod
+    def _score_unexpected_action(unexpected: list[Card], player: PlayerState) -> Optional[Card]:
+        """Pick the safest unexpected action to play.
+
+        Prefers cantrips (+Action and +Card), then non-terminals, then terminals
+        scored by net resources delivered (cards, coins, buys). A cantrip
+        replaces itself in hand, so it's strictly safer than a terminal.
+        """
+        non_terminals = [c for c in unexpected if c.stats.actions >= 1]
+        if non_terminals:
+            def _nt_score(c: Card) -> tuple:
+                cantrip = 1 if c.stats.cards >= 1 else 0
+                return (cantrip, c.stats.actions, c.stats.cards, c.stats.coins, c.stats.buys)
+            return max(non_terminals, key=_nt_score)
+
+        # Only terminals remain. Score by net resources delivered.
+        def _t_score(c: Card) -> tuple:
+            return (c.stats.cards, c.stats.coins, c.stats.buys)
+        return max(unexpected, key=_t_score)
 
     def choose_treasure(self, state, player, choices):
         result = self._choose_from_priority(self.treasure_priority, choices, state, player)

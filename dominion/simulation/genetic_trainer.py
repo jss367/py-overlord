@@ -131,12 +131,15 @@ class GeneticTrainer:
             "empty_piles", "deck_size", "action_density", "score_diff",
             "actions_in_play", "max_in_deck",
             "actions_gained_this_turn", "cards_gained_this_turn",
+            "actions_in_hand", "terminals_in_hand", "treasures_in_hand",
+            "excess_actions",
             "none",
         ]
-        # card_in_play only makes sense if we have at least one kingdom
-        # action card to reference.
+        # card_in_play / card_in_hand only make sense if we have at least
+        # one kingdom action card name to reference.
         if self._kingdom_action_cards:
             choices.append("card_in_play")
+            choices.append("card_in_hand")
         kind = random.choice(choices)
         if kind == "provinces_left":
             op = random.choice(["<=", ">", ">=", "<"])
@@ -193,6 +196,25 @@ class GeneticTrainer:
         if kind == "card_in_play":
             card = random.choice(self._kingdom_action_cards)
             return PriorityRule.card_in_play(card)
+        if kind == "card_in_hand":
+            card = random.choice(self._kingdom_action_cards)
+            return PriorityRule.card_in_hand(card)
+        if kind == "actions_in_hand":
+            op = random.choice([">=", "<=", ">", "<"])
+            amount = random.randint(1, 4)
+            return PriorityRule.actions_in_hand(op, amount)
+        if kind == "terminals_in_hand":
+            op = random.choice([">=", "<=", ">", "<"])
+            amount = random.randint(1, 3)
+            return PriorityRule.terminals_in_hand(op, amount)
+        if kind == "treasures_in_hand":
+            op = random.choice([">=", "<=", ">", "<"])
+            amount = random.randint(1, 4)
+            return PriorityRule.treasures_in_hand(op, amount)
+        if kind == "excess_actions":
+            op = random.choice([">=", "<=", ">", "<"])
+            amount = random.choice([-1, 0, 1])
+            return PriorityRule.excess_actions(op, amount)
         return None
 
     def create_random_strategy(self) -> BaseStrategy:
