@@ -210,7 +210,23 @@ from dominion.cards.intrigue import (
     Swindler,
 )
 from dominion.cards.plunder import Barbarian, FirstMate, Flagship, Highwayman, Trickster, Astrolabe, Pickaxe, HarborVillage
-from dominion.cards.dark_ages import Armory, Count, Ironmonger, Marauder, PoorHouse, Spoils, Ruins, Graverobber, Procession, Sage
+from dominion.cards.dark_ages import (
+    Armory,
+    Count,
+    Feodum,
+    HuntingGrounds,
+    Ironmonger,
+    Marauder,
+    MarketSquare,
+    PoorHouse,
+    Spoils,
+    Ruins,
+    Graverobber,
+    Procession,
+    Sage,
+)
+from dominion.cards.allies import Samurai
+from dominion.cards.hinterlands.wandering_minstrel import WanderingMinstrel
 from dominion.cards.seaside import Bazaar, Lookout, NativeVillage, TradingPost, Wharf, Treasury, Pirate
 from dominion.cards.adventures import Artificer, Giant, Messenger
 from dominion.cards.nocturne import TragicHero
@@ -467,6 +483,11 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Gatekeeper": Gatekeeper,
     "Aristocrat": Aristocrat,
     "Harbor Village": HarborVillage,
+    "Wandering Minstrel": WanderingMinstrel,
+    "Feodum": Feodum,
+    "Hunting Grounds": HuntingGrounds,
+    "Market Square": MarketSquare,
+    "Samurai": Samurai,
 }
 
 CARD_ALIASES: dict[str, str] = {
@@ -480,6 +501,11 @@ CARD_ALIASES: dict[str, str] = {
     "Trading post": "Trading Post",
     "Native village": "Native Village",
     "Harbor village": "Harbor Village",
+    "Wandering minstrel": "Wandering Minstrel",
+    "Wandering Minstrels": "Wandering Minstrel",
+    "Wandering minstrels": "Wandering Minstrel",
+    "Hunting grounds": "Hunting Grounds",
+    "Market square": "Market Square",
 }
 
 

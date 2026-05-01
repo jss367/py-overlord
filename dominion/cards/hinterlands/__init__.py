@@ -31,6 +31,7 @@ from .stables import Stables
 from .trader import Trader
 from .trail import Trail
 from .tunnel import Tunnel
+from .wandering_minstrel import WanderingMinstrel
 from .weaver import Weaver
 from .wheelwright import Wheelwright
 from .witchs_hut import WitchsHut
@@ -69,6 +70,7 @@ __all__ = [
     'Trader',
     'Trail',
     'Tunnel',
+    'WanderingMinstrel',
     'Weaver',
     'Wheelwright',
     'WitchsHut',
