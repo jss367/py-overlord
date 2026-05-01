@@ -29,7 +29,14 @@ class WanderingMinstrel(Card):
         actions = [c for c in revealed if c.is_action]
         non_actions = [c for c in revealed if not c.is_action]
 
-        ordered = player.ai.order_cards_for_topdeck(game_state, player, actions)
+        ordered = player.ai.order_cards_for_topdeck(game_state, player, list(actions))
+        # Defensive: a malformed AI response (duplicates, omissions, or
+        # unrelated cards) must not be allowed to duplicate or destroy cards.
+        # Mirror the guard used by Sentry/Rabble: fall back to the revealed
+        # order if the returned multiset doesn't match.
+        if set(ordered) != set(actions) or len(ordered) != len(actions):
+            ordered = actions
+
         # `order_cards_for_topdeck` returns the topdeck order from top to bottom;
         # push them onto the deck in reverse so the first item ends up on top.
         for card in reversed(ordered):

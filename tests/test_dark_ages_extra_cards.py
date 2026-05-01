@@ -70,6 +70,40 @@ def test_wandering_minstrel_cards_actions_and_topdeck():
     assert any(c.name == "Copper" for c in player.discard)
 
 
+class BadOrderAI(GainFirstBuyAI):
+    """AI that returns a malformed topdeck order (duplicates an entry)."""
+
+    def order_cards_for_topdeck(self, state, player, cards):
+        if cards:
+            return cards + [cards[0]]
+        return list(cards)
+
+
+def test_wandering_minstrel_rejects_malformed_topdeck_order():
+    state, player = _setup(BadOrderAI())
+    minstrel = get_card("Wandering Minstrel")
+    village_a = get_card("Village")
+    village_b = get_card("Village")
+    estate = get_card("Estate")
+    copper = get_card("Copper")
+    player.hand = [minstrel]
+    # Drawn first (top of deck), then 3 revealed (in pop order):
+    # village_b (action), village_a (action), estate (victory).
+    player.deck = [estate, village_a, village_b, copper]
+
+    player.hand.remove(minstrel)
+    player.in_play.append(minstrel)
+    minstrel.on_play(state)
+
+    # Two action cards were revealed; both should be on the deck exactly once
+    # despite the AI trying to inject a duplicate.
+    deck_villages = [c for c in player.deck if c.name == "Village"]
+    assert len(deck_villages) == 2
+    assert village_a in deck_villages and village_b in deck_villages
+    # Estate (non-action) was discarded.
+    assert estate in player.discard
+
+
 def test_wandering_minstrel_with_short_deck():
     state, player = _setup(GainFirstBuyAI())
     minstrel = get_card("Wandering Minstrel")
