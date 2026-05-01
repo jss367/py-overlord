@@ -22,7 +22,7 @@ class Samurai(Card):
         player = game_state.current_player
 
         def attack_target(target):
-            if len(target.hand) <= 3:
+            if len(target.hand) < 5:
                 return
 
             discard_needed = len(target.hand) - 3
