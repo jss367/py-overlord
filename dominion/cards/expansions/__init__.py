@@ -53,12 +53,16 @@ from ..empires import (
 from ..nocturne.crypt import Crypt
 from ..nocturne.skulk import Skulk
 from ..dark_ages.beggar import Beggar
+from ..dark_ages.feodum import Feodum
 from ..dark_ages.forager import Forager
+from ..dark_ages.hunting_grounds import HuntingGrounds
+from ..dark_ages.market_square import MarketSquare
 from ..dark_ages.rats import Rats
 from ..dark_ages.rebuild import Rebuild
 from ..dark_ages.shelters import Hovel, Necropolis, OvergrownEstate
 from ..allies.collection import Collection
 from ..allies.modify import Modify
+from ..allies.samurai import Samurai
 from ..promo import (
     Avanto,
     BlackMarket,
@@ -153,6 +157,7 @@ from ..hinterlands import (
     Trader,
     Trail,
     Tunnel,
+    WanderingMinstrel,
     Weaver,
     Wheelwright,
     WitchsHut,
@@ -312,9 +317,14 @@ __all__ = [
     'Trader',
     'Trail',
     'Tunnel',
+    'WanderingMinstrel',
     'Weaver',
     'Wheelwright',
     'WitchsHut',
+    'Feodum',
+    'HuntingGrounds',
+    'MarketSquare',
+    'Samurai',
     'ActingTroupe',
     'Taskmaster',
     'Torturer',

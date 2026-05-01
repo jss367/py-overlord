@@ -1389,6 +1389,28 @@ class GameState:
             if hasattr(project, "on_trash"):
                 project.on_trash(self, player, card)
 
+        self._handle_market_square_reaction(player, card)
+
+    def _handle_market_square_reaction(self, player: PlayerState, trashed_card: Card) -> None:
+        """Offer Market Square reactions for any card the player just trashed."""
+
+        from ..cards.registry import get_card
+
+        while True:
+            squares = [card for card in player.hand if card.name == "Market Square"]
+            if not squares:
+                return
+            if self.supply.get("Gold", 0) <= 0:
+                return
+            if not player.ai.should_react_with_market_square(self, player, trashed_card):
+                return
+
+            square = squares[0]
+            player.hand.remove(square)
+            self.discard_card(player, square)
+            self.supply["Gold"] -= 1
+            self.gain_card(player, get_card("Gold"))
+
     def _handle_cargo_ship_gain(self, player: PlayerState, gained_card: Card) -> None:
         """Check if a Cargo Ship in play wants to set aside the gained card."""
         for card in list(player.in_play):
