@@ -107,6 +107,13 @@ class GameState:
             for player in self.players:
                 player.coin_tokens += 1
 
+        # Allies rules: when an Ally is in the game, each player starts with
+        # 1 Favor. Without this, Ally abilities can't be activated until a
+        # Liaison resolves, which skews early-turn behavior on Ally boards.
+        if self.allies:
+            for player in self.players:
+                player.favors += 1
+
         # Create a more readable player list for logging
         player_descriptions = []
         for idx, player in enumerate(self.players, start=1):
