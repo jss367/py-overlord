@@ -71,6 +71,12 @@ class Student(WizardsSplitCard):
 
         if chosen.is_treasure:
             _grant_favor(player)
+            # Student's official text: "If it's a Treasure, put this onto
+            # your deck." Move Student out of in_play so cleanup doesn't
+            # also discard it.
+            if self in player.in_play:
+                player.in_play.remove(self)
+                player.deck.append(self)
 
 
 class Conjurer(WizardsSplitCard):
