@@ -22,7 +22,19 @@ from .menagerie_events import (
     Toil,
     Transport,
 )
-from .plunder_events import Avoid, Bury, Foray, Invasion, Peril, Prosper, Scrounge
+from .plunder_events import (
+    Avoid,
+    Bury,
+    Deliver,
+    Foray,
+    Invasion,
+    Journey,
+    Mirror,
+    Peril,
+    Prepare,
+    Prosper,
+    Scrounge,
+)
 from .prosperity_events import Investment
 from .training import Training
 
@@ -53,6 +65,10 @@ EVENT_TYPES: dict[str, Type[Event]] = {
     "Scrounge": Scrounge,
     "Prosper": Prosper,
     "Invasion": Invasion,
+    "Mirror": Mirror,
+    "Deliver": Deliver,
+    "Prepare": Prepare,
+    "Journey": Journey,
 }
 
 

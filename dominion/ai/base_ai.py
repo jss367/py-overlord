@@ -427,6 +427,46 @@ class AI(ABC):
 
         return True
 
+    def should_react_with_stowaway(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Return True to set aside Stowaway from hand to play it when attacked.
+        Default: True (the reaction is purely beneficial)."""
+
+        return True
+
+    def should_react_with_mapmaker(
+        self, state: GameState, player: PlayerState, gainer: PlayerState, gained_card: Card
+    ) -> bool:
+        """Return True to reveal Mapmaker from hand when an opponent gains a
+        Victory card. Default: True (the reaction is purely beneficial)."""
+
+        return True
+
+    def sailor_should_play_duration_on_gain(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """Return True to play a Duration card immediately when gained while
+        Sailor is in play. Default: True."""
+
+        return True
+
+    def mining_road_play_treasure(
+        self, state: GameState, player: PlayerState, treasures: list, gained_card: Card
+    ):
+        """Choose a Treasure to play for Mining Road's reaction. Returns the
+        chosen Treasure, or None to decline. Default: None."""
+
+        return None
+
+    def should_use_mirror(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """Return True to gain another copy of a just-gained Action via Mirror.
+        Default: True (purely beneficial)."""
+
+        return True
+
     def should_spend_favor_on_cave_dwellers(
         self, state: GameState, player: PlayerState
     ) -> bool:

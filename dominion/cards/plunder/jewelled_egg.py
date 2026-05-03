@@ -6,7 +6,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class JewelledEgg(Card):
-    """$2 Treasure: +$1, +1 Buy. When trashed: +1 VP, gain 2 Loots."""
+    """$2 Treasure: +$1, +1 Buy. When you trash this, +1 Coffer and gain 2 Loots."""
 
     def __init__(self):
         super().__init__(
@@ -20,7 +20,7 @@ class JewelledEgg(Card):
         from ..registry import get_card
         from .loot_cards import LOOT_CARD_NAMES
 
-        player.vp_tokens += 1
+        player.coin_tokens += 1
         for _ in range(2):
             loot_name = random.choice(LOOT_CARD_NAMES)
             loot = get_card(loot_name)

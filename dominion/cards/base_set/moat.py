@@ -9,3 +9,11 @@ class Moat(Card):
             stats=CardStats(cards=2),
             types=[CardType.ACTION, CardType.REACTION],
         )
+
+    def react_to_attack(self, game_state, player):
+        if not player.ai.should_reveal_moat(game_state, player):
+            return None
+        game_state.log_callback(
+            ("action", player.ai.name, "reveals Moat to block the attack", {})
+        )
+        return "block"

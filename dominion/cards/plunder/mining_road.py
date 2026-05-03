@@ -4,18 +4,18 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class MiningRoad(Card):
-    """$4 Treasure: +1 Action, +1 Buy, +$1.
+    """$4 Treasure.
 
-    The next time you gain a non-Victory card during your buy phase this turn,
-    you may set aside a Treasure card from your hand: gain a card costing
-    exactly $1 more than that Treasure (this turn).
+    +1 Buy, +$1. The next time you gain a non-Victory card during your buy
+    phase this turn, you may play a Treasure card from your hand: gain a
+    card costing exactly $1 more than that Treasure.
     """
 
     def __init__(self):
         super().__init__(
             name="Mining Road",
             cost=CardCost(coins=4),
-            stats=CardStats(actions=1, coins=1, buys=1),
+            stats=CardStats(coins=1, buys=1),
             types=[CardType.TREASURE],
         )
         self._owner = None
@@ -42,13 +42,13 @@ class MiningRoad(Card):
         if not treasures:
             return
 
-        chosen_treasure = owner.ai.choose_treasure(
-            game_state, list(treasures) + [None]
+        chosen = owner.ai.mining_road_play_treasure(
+            game_state, owner, list(treasures), gained_card
         )
-        if chosen_treasure is None or chosen_treasure not in owner.hand:
+        if chosen is None or chosen not in owner.hand:
             return
 
-        target_cost = chosen_treasure.cost.coins + 1
+        target_cost = chosen.cost.coins + 1
         candidates = []
         for name, count in game_state.supply.items():
             if count <= 0:
@@ -66,8 +66,10 @@ class MiningRoad(Card):
 
         self._gain_reaction_armed = False
 
-        owner.hand.remove(chosen_treasure)
-        owner.in_play.append(chosen_treasure)
+        # Play the treasure (it goes to in_play and grants its coin).
+        owner.hand.remove(chosen)
+        owner.in_play.append(chosen)
+        chosen.on_play(game_state)
 
         game_state.supply[choice.name] -= 1
         game_state.gain_card(owner, choice)

@@ -57,16 +57,16 @@ def test_jewelled_egg_basic_play():
     assert player.buys == 2  # base 1 + 1 from egg
 
 
-def test_jewelled_egg_trash_gives_vp_and_loots():
+def test_jewelled_egg_trash_gives_coffer_and_loots():
     state, player = _make_state_with_player()
     egg = get_card("Jewelled Egg")
 
-    pre_vp = player.vp_tokens
+    pre_tokens = player.coin_tokens
     pre_discard = len(player.discard)
 
     state.trash_card(player, egg)
 
-    assert player.vp_tokens == pre_vp + 1
+    assert player.coin_tokens == pre_tokens + 1
     # Two Loots gained to discard
     assert len(player.discard) == pre_discard + 2
 
@@ -339,8 +339,8 @@ def test_figurine_basic_no_actions_in_hand():
 
     figurine.on_play(state)
     assert len(player.hand) == 2  # +2 Cards drawn
-    assert player.buys == 2
-    assert player.actions == 1  # No action discarded
+    assert player.buys == 1  # No action discarded → no +1 Buy
+    assert player.actions == 1  # No action discarded → no +1 Action
 
 
 def test_figurine_discard_action_for_extra_action():
@@ -537,16 +537,22 @@ def test_shaman_basic_stats():
     assert player.coins == 1
 
 
-def test_shaman_gains_from_trash_within_cost():
-    state, player = _make_state_with_player(ChooseFirstActionAI())
-    shaman = get_card("Shaman")
+def test_shaman_setup_rule_gains_from_trash_at_start_of_turn():
+    """While Shaman is in the supply, each player gains a trash card at start of turn."""
+    from tests.utils import ChooseFirstActionAI as _CFA
+
+    state = GameState(players=[])
+    state.initialize_game([_CFA()], [get_card("Shaman"), get_card("Village")])
+
+    player = state.players[0]
     state.trash.append(get_card("Gold"))  # cost 6 - eligible
     state.trash.append(get_card("Province"))  # cost 8 - not eligible
-    player.in_play.append(shaman)
-    shaman.on_play(state)
 
-    assert any(c.name == "Gold" for c in player.discard)
-    # Province stays in trash
+    # Trigger a start-of-turn manually
+    state.current_player_index = 0
+    state.handle_start_phase()
+
+    assert any(c.name == "Gold" for c in player.discard + player.deck + player.hand)
     assert any(c.name == "Province" for c in state.trash)
 
 
@@ -884,25 +890,47 @@ class FrigateVictimAI(DummyAI):
         return choices[:count]
 
 
-def test_frigate_attacks_now_and_next_turn():
+def test_frigate_basic_play_grants_coins():
     attacker = PlayerState(DummyAI())
-    victim = PlayerState(FrigateVictimAI())
-    state = GameState(players=[attacker, victim])
-    state.supply["Curse"] = 10
-
-    victim.hand = [get_card("Copper") for _ in range(6)]
+    state = GameState(players=[attacker])
 
     frigate = get_card("Frigate")
     attacker.in_play.append(frigate)
     frigate.on_play(state)
 
     assert attacker.coins == 3
+    assert frigate._active is True
+
+
+def test_frigate_forces_discard_when_opponent_plays_action():
+    attacker = PlayerState(DummyAI())
+    victim = PlayerState(FrigateVictimAI())
+    state = GameState(players=[attacker, victim])
+
+    frigate = get_card("Frigate")
+    attacker.in_play.append(frigate)
+    frigate.play_effect(state)
+
+    victim.hand = [get_card("Copper") for _ in range(6)]
+    village = get_card("Village")
+
+    # Manually invoke the on_action_played hook (the engine would do this
+    # during the action phase).
+    frigate.on_action_played(state, attacker, victim, village)
     assert len(victim.hand) == 4
 
-    # Refill victim hand to test second-turn attack
-    victim.hand = [get_card("Copper") for _ in range(6)]
+
+def test_frigate_deactivates_at_owners_next_turn():
+    attacker = PlayerState(DummyAI())
+    state = GameState(players=[attacker])
+
+    frigate = get_card("Frigate")
+    attacker.in_play.append(frigate)
+    frigate.play_effect(state)
+    assert frigate._active is True
+
     frigate.on_duration(state)
-    assert len(victim.hand) == 4
+    assert frigate._active is False
     assert frigate.duration_persistent is False
 
 
@@ -1087,7 +1115,7 @@ def test_mining_road_basic_stats():
     player.in_play.append(mr)
     mr.on_play(state)
 
-    assert player.actions == 2
+    assert player.actions == 1  # No +1 Action; canonical Mining Road is +1 Buy +$1 only
     assert player.buys == 2
     assert player.coins == 1
 

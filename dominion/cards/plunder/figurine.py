@@ -4,13 +4,15 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Figurine(Card):
-    """$5 Action: +2 Cards, +1 Buy. You may discard an Action card for +1 Action."""
+    """$5 Action: +2 Cards. If you discard an Action card from your hand,
+    +1 Buy and +1 Action.
+    """
 
     def __init__(self):
         super().__init__(
             name="Figurine",
             cost=CardCost(coins=5),
-            stats=CardStats(cards=2, buys=1),
+            stats=CardStats(cards=2),
             types=[CardType.ACTION],
         )
 
@@ -28,3 +30,4 @@ class Figurine(Card):
         player.hand.remove(choice)
         game_state.discard_card(player, choice)
         player.actions += 1
+        player.buys += 1

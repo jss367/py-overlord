@@ -295,9 +295,27 @@ class GameState:
             self.current_player.hand.extend(self.current_player.delayed_cards)
             self.current_player.delayed_cards = []
 
+        # Return any cards set aside by the Deliver event last turn
+        if self.current_player.delivered_cards:
+            self.current_player.hand.extend(self.current_player.delivered_cards)
+            self.current_player.delivered_cards = []
+        self.current_player.deliver_armed = False
+
+        # Resolve any Prepare cards set aside last turn: play them in any
+        # order, then they end up in play (and get discarded normally at
+        # cleanup).
+        if self.current_player.prepared_cards:
+            self._resolve_prepared_cards(self.current_player)
+
         # Resolve project effects that occur at the start of the turn
         for project in self.current_player.projects:
             project.on_turn_start(self, self.current_player)
+
+        # Plunder Shaman setup rule: while Shaman is in the kingdom, each
+        # player may gain a card from the trash (up to $6) at start of turn.
+        if "Shaman" in self.supply:
+            from ..cards.plunder.shaman import Shaman as _Shaman
+            _Shaman.resolve_start_of_turn(self, self.current_player)
 
         # Resolve Ally effects (e.g. Cave Dwellers' Favor-spending hook)
         for ally in self.allies:
@@ -352,9 +370,17 @@ class GameState:
             # Move to discard after duration effect resolves unless it stays in play
             if not getattr(card, "duration_persistent", False):
                 player.duration.remove(card)
+                redirect = None
                 if hasattr(card, "on_discard_from_play"):
-                    card.on_discard_from_play(self, player)
-                player.discard.append(card)
+                    redirect = card.on_discard_from_play(self, player)
+                if redirect == "hand":
+                    player.hand.append(card)
+                elif redirect == "deck":
+                    player.deck.append(card)
+                elif redirect == "handled":
+                    pass
+                else:
+                    player.discard.append(card)
 
         # Process any cards that were multiplied (e.g. by Throne Room)
         for card in player.multiplied_durations[:]:
@@ -469,15 +495,18 @@ class GameState:
         self.phase = "treasure"
 
     def _dispatch_on_action_played(self, player: PlayerState, action_card: Card) -> None:
-        """Call ``on_action_played`` on each card in play that defines it."""
+        """Call ``on_action_played`` on each card in play (any player's) that
+        defines it. ``player`` is the player who played the action.
+        """
 
-        for card in list(player.in_play) + list(player.duration):
-            if card is action_card:
-                continue
-            hook = getattr(card, "on_action_played", None)
-            if hook is None:
-                continue
-            hook(self, player, action_card)
+        for owner in self.players:
+            for card in list(owner.in_play) + list(owner.duration):
+                if card is action_card:
+                    continue
+                hook = getattr(card, "on_action_played", None)
+                if hook is None:
+                    continue
+                hook(self, owner, player, action_card)
 
     def _handle_start_of_buy_phase_effects(self) -> None:
         """Apply state effects that trigger at the start of the buy phase."""
@@ -847,17 +876,28 @@ class GameState:
                 if card.name in self.tireless_piles:
                     tireless_set_aside.append(card)
                 else:
+                    redirect = None
                     if hasattr(card, "on_discard_from_play"):
-                        card.on_discard_from_play(self, player)
-                    self.discard_card(player, card, from_cleanup=True)
+                        redirect = card.on_discard_from_play(self, player)
+                    if redirect == "hand":
+                        player.hand.append(card)
+                    elif redirect == "deck":
+                        player.deck.append(card)
+                    elif redirect == "handled":
+                        pass
+                    else:
+                        self.discard_card(player, card, from_cleanup=True)
 
         if player.trickster_set_aside:
             player.hand.extend(player.trickster_set_aside)
             player.trickster_set_aside = []
         player.trickster_uses_remaining = 0
 
-        # Draw new hand
-        player.draw_cards(5)
+        # Draw new hand (Journey skips this on the extra turn)
+        if getattr(player, "skip_next_draw_phase", False):
+            player.skip_next_draw_phase = False
+        else:
+            player.draw_cards(5)
 
         # Tireless: put set-aside cards on top of deck after drawing
         for card in tireless_set_aside:
@@ -1171,6 +1211,8 @@ class GameState:
         self._handle_cargo_ship_gain(player, actual_card)
         self._handle_opponent_gain_hooks(player, actual_card)
         self._dispatch_on_card_gained(player, actual_card)
+        self._handle_mirror_reaction(player, actual_card)
+        self._handle_deliver_interception(player, actual_card)
 
         if (
             hasattr(player, "cards_gained_this_buy_phase")
@@ -1455,21 +1497,34 @@ class GameState:
             self.log_callback(("action", player.ai.name, "reveals Shield to block the attack", {}))
             return True
 
-        if self._maybe_reveal_moat(player):
-            return True
+        return self._dispatch_attack_reactions(player)
 
-        return False
+    def _dispatch_attack_reactions(self, player: PlayerState) -> bool:
+        """Iterate Reaction cards in hand and resolve their react_to_attack hook.
 
-    def _maybe_reveal_moat(self, player: PlayerState) -> bool:
-        moats = [card for card in player.hand if card.name == "Moat"]
-        if not moats:
-            return False
+        Each card may return ``"block"`` to prevent the attack from resolving,
+        or any other value (typically ``None``) to indicate a non-blocking
+        side effect (e.g. Stowaway revealing for +1 Card).
+        """
 
-        if not player.ai.should_reveal_moat(self, player):
-            return False
-
-        self.log_callback(("action", player.ai.name, "reveals Moat to block the attack", {}))
-        return True
+        blocked = False
+        # Snapshot to avoid mutation issues if a card removes itself from hand.
+        for card in list(player.hand):
+            if not card.is_reaction:
+                continue
+            if card not in player.hand:
+                continue  # was removed by an earlier reaction
+            hook = getattr(card, "react_to_attack", None)
+            if hook is None:
+                continue
+            try:
+                result = hook(self, player)
+            except TypeError:
+                # Fallback for hooks defined as react_to_attack(self, state, player)
+                result = hook(self, player)
+            if result == "block":
+                blocked = True
+        return blocked
 
     def trash_card(self, player: PlayerState, card: Card) -> None:
         """Move a card to the trash and trigger related effects."""
@@ -1518,6 +1573,85 @@ class GameState:
             for project in player.projects:
                 if hasattr(project, "on_opponent_gain"):
                     project.on_opponent_gain(self, player, gained_card)
+
+        # Hand-based reactions to opponent victory gains (e.g. Mapmaker)
+        if gained_card.is_victory:
+            for player in self.players:
+                if player is gainer:
+                    continue
+                for card in list(player.hand):
+                    if card not in player.hand:
+                        continue
+                    hook = getattr(card, "react_to_opponent_victory_gain", None)
+                    if hook is None:
+                        continue
+                    hook(self, player, gained_card)
+
+    def _resolve_prepared_cards(self, player: PlayerState) -> None:
+        """Play each card on the prepared_cards mat in any order at start of turn.
+
+        Treats Action and Treasure plays uniformly: move from mat to in_play
+        and call on_play. The player's normal Action allowance is bypassed
+        for these (they are 'free plays' as Prepare's text describes).
+        """
+
+        cards = list(player.prepared_cards)
+        player.prepared_cards = []
+
+        # Allow the AI to choose play order. Default: original order.
+        if hasattr(player.ai, "order_prepared_cards"):
+            ordered = player.ai.order_prepared_cards(self, player, list(cards))
+            if isinstance(ordered, list) and len(ordered) == len(cards):
+                # Verify same set of cards
+                from collections import Counter
+
+                if Counter(id(c) for c in ordered) == Counter(id(c) for c in cards):
+                    cards = ordered
+
+        for card in cards:
+            player.in_play.append(card)
+            actions_before = player.actions
+            card.on_play(self)
+            # Restore actions: Prepare lets you play actions without spending.
+            if card.is_action:
+                player.actions = actions_before
+
+    def _handle_deliver_interception(
+        self, gainer: PlayerState, gained_card: Card
+    ) -> None:
+        """Deliver event: divert each gain to the delivered_cards mat.
+
+        Triggered while ``deliver_armed`` is set; the cards return to the
+        gainer's hand at the start of their next turn.
+        """
+
+        if not getattr(gainer, "deliver_armed", False):
+            return
+
+        # The card has already been placed into hand/deck/discard by gain_card.
+        # Locate it and move it to the delivered_cards mat.
+        for zone in (gainer.discard, gainer.deck, gainer.hand):
+            if gained_card in zone:
+                zone.remove(gained_card)
+                gainer.delivered_cards.append(gained_card)
+                return
+
+    def _handle_mirror_reaction(self, gainer: PlayerState, gained_card: Card) -> None:
+        """Mirror event: next Action gained may be doubled."""
+
+        if not getattr(gainer, "mirror_armed", False):
+            return
+        if not gained_card.is_action:
+            return
+        if self.supply.get(gained_card.name, 0) <= 0:
+            return
+        if not gainer.ai.should_use_mirror(self, gainer, gained_card):
+            return
+
+        gainer.mirror_armed = False
+        self.supply[gained_card.name] -= 1
+        from ..cards.registry import get_card
+        self.gain_card(gainer, get_card(gained_card.name))
 
     def _dispatch_on_card_gained(self, gainer: PlayerState, gained_card: Card) -> None:
         """Notify cards in any player's in-play/duration zones of a gain.

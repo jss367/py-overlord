@@ -79,6 +79,11 @@ class PlayerState:
     highwayman_attacks: int = 0
     highwayman_blocked_this_turn: bool = False
     insignia_active: bool = False
+    mirror_armed: bool = False
+    deliver_armed: bool = False
+    delivered_cards: list[Card] = field(default_factory=list)
+    prepared_cards: list[Card] = field(default_factory=list)
+    skip_next_draw_phase: bool = False
 
     def initialize(self, use_shelters: bool = False):
         """Set up starting deck and draw initial hand.
@@ -156,6 +161,11 @@ class PlayerState:
         self.highwayman_attacks = 0
         self.highwayman_blocked_this_turn = False
         self.insignia_active = False
+        self.mirror_armed = False
+        self.deliver_armed = False
+        self.delivered_cards = []
+        self.prepared_cards = []
+        self.skip_next_draw_phase = False
         self.gained_victory_this_buy_phase = False
         self.deluded = False
         self.envious = False
@@ -232,6 +242,8 @@ class PlayerState:
             self.trickster_set_aside,
             self.delayed_cards,
             self.flagship_pending,
+            self.delivered_cards,
+            self.prepared_cards,
         ]
 
         cards: list[Card] = []
