@@ -18,6 +18,7 @@ from .loot_cards import (
 )
 from .first_mate import FirstMate
 from .barbarian import Barbarian
+from .crew import Crew
 from .flagship import Flagship
 from .trickster import Trickster
 from .highwayman import Highwayman
@@ -43,6 +44,7 @@ __all__ = [
     'Sword',
     'FirstMate',
     'Barbarian',
+    'Crew',
     'Flagship',
     'Trickster',
     'Highwayman',

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from dominion.ai.genetic_ai import GeneticAI
+from dominion.allies.registry import get_ally
 from dominion.boards.loader import BoardConfig, load_board
 from dominion.cards.registry import get_card
 from dominion.events.registry import get_event
@@ -110,13 +111,15 @@ class StrategyBattle:
         events = []
         projects = []
         ways = []
+        allies = []
 
         if self.board_config:
             events = [get_event(name) for name in self.board_config.events]
             projects = [get_project(name) for name in self.board_config.projects]
             ways = [get_way(name) for name in self.board_config.ways]
+            allies = [get_ally(name) for name in self.board_config.allies]
 
-        return kingdom_cards, events, projects, ways
+        return kingdom_cards, events, projects, ways, allies
 
     def run_battle(self, strategy1_name: str, strategy2_name: str, num_games: int = 100) -> dict[str, Any]:
         """Run multiple games between two strategies"""
@@ -230,7 +233,7 @@ class StrategyBattle:
         game_state.set_logger(self.logger)
 
         # Initialize game
-        kingdom_cards, events, projects, ways = self._prepare_board_components(kingdom_card_names)
+        kingdom_cards, events, projects, ways, allies = self._prepare_board_components(kingdom_card_names)
         game_state.initialize_game(
             [ai1, ai2],
             kingdom_cards,
@@ -238,6 +241,7 @@ class StrategyBattle:
             events=events,
             projects=projects,
             ways=ways,
+            allies=allies,
         )
 
         # Apply traits from board config

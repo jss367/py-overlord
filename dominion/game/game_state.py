@@ -17,6 +17,7 @@ class GameState:
     events: list = field(default_factory=list)
     projects: list = field(default_factory=list)
     ways: list = field(default_factory=list)
+    allies: list = field(default_factory=list)
     current_player_index: int = 0
     phase: str = "start"
     turn_number: int = 1
@@ -87,6 +88,7 @@ class GameState:
         events: list = None,
         projects: list = None,
         ways: list = None,
+        allies: list = None,
     ):
         """Set up the game with given AIs and kingdom cards."""
         # Create PlayerState objects for each AI
@@ -95,6 +97,7 @@ class GameState:
         self.events = events or []
         self.projects = projects or []
         self.ways = ways or []
+        self.allies = allies or []
 
         # Initialize players
         for player in self.players:
@@ -103,6 +106,13 @@ class GameState:
         if self.baker_in_supply:
             for player in self.players:
                 player.coin_tokens += 1
+
+        # Allies rules: when an Ally is in the game, each player starts with
+        # 1 Favor. Without this, Ally abilities can't be activated until a
+        # Liaison resolves, which skews early-turn behavior on Ally boards.
+        if self.allies:
+            for player in self.players:
+                player.favors += 1
 
         # Create a more readable player list for logging
         player_descriptions = []
@@ -151,6 +161,20 @@ class GameState:
                 partner = get_card(card.partner_card_name)
                 if partner.name not in self.supply:
                     self.supply[partner.name] = partner.starting_supply(self)
+
+            # Wizards split pile: add the other three partners with
+            # player-count-aware supply via each partner's starting_supply.
+            from dominion.cards.allies.wizards import (
+                WIZARDS_PILE_ORDER,
+                WizardsSplitCard,
+            )
+            if isinstance(card, WizardsSplitCard):
+                for partner_name in WIZARDS_PILE_ORDER:
+                    if partner_name == card.name:
+                        continue
+                    if partner_name not in self.supply:
+                        partner = get_card(partner_name)
+                        self.supply[partner_name] = partner.starting_supply(self)
 
             extras = card.get_additional_piles()
             for name, count in extras.items():
@@ -202,14 +226,21 @@ class GameState:
 
     @property
     def empty_piles(self) -> int:
-        """Return number of empty supply piles, counting split piles once."""
+        """Return number of empty supply piles, counting split/Wizards piles once."""
+        from dominion.cards.allies.wizards import WIZARDS_PILE_ORDER, WizardsSplitCard
+
         counted: set[str] = set()
         empties = 0
         for name in list(self.supply.keys()):
             if name in counted:
                 continue
             card = get_card(name)
-            if isinstance(card, SplitPileMixin):
+            if isinstance(card, WizardsSplitCard):
+                wizard_names = set(WIZARDS_PILE_ORDER)
+                counted.update(wizard_names)
+                if all(self.supply.get(n, 0) == 0 for n in wizard_names if n in self.supply):
+                    empties += 1
+            elif isinstance(card, SplitPileMixin):
                 partner = card.partner_card_name
                 counted.add(name)
                 counted.add(partner)
@@ -267,6 +298,10 @@ class GameState:
         # Resolve project effects that occur at the start of the turn
         for project in self.current_player.projects:
             project.on_turn_start(self, self.current_player)
+
+        # Resolve Ally effects (e.g. Cave Dwellers' Favor-spending hook)
+        for ally in self.allies:
+            ally.on_turn_start(self, self.current_player)
 
         # Log turn header with complete state
         resources = {
@@ -1023,8 +1058,21 @@ class GameState:
         self.discard_hex(hex_name)
         return hex_name
 
-    def gain_card(self, player: PlayerState, card: Card, to_deck: bool = False) -> Card:
+    def gain_card(
+        self,
+        player: PlayerState,
+        card: Card,
+        to_deck: bool = False,
+        from_supply: bool = True,
+    ) -> Card:
         """Add a card to a player's discard or deck, honoring topdeck effects.
+
+        ``from_supply`` controls supply-restoration semantics. The default
+        (``True``) matches the historical contract: the caller has already
+        decremented the supply for ``card.name``, so Trader's reaction and
+        the Exile-reclamation path may add 1 back when they replace the
+        gain. For trash-origin gains (Lurker, Lich), pass ``False`` so the
+        supply pile isn't inflated by the restoration logic.
 
         If the player has a matching card on their Exile mat, that card is
         reclaimed instead of the newly gained copy.
@@ -1043,7 +1091,7 @@ class GameState:
 
         if not reclaimed:
             actual_card = self._handle_trader_exchange(
-                player, card, actual_card, destination_is_deck
+                player, card, actual_card, destination_is_deck, from_supply=from_supply
             )
 
         if not destination_is_deck and getattr(player, "topdeck_gains", False):
@@ -1056,9 +1104,10 @@ class GameState:
         ):
             destination_is_deck = True
 
-        if reclaimed and card.name in self.supply:
+        if reclaimed and from_supply and card.name in self.supply:
             # Caller already decremented the supply; restore it since the
-            # Exiled card is being used instead.
+            # Exiled card is being used instead. Only valid for from-supply
+            # gains — trash-origin gains never decremented in the first place.
             self.supply[card.name] = self.supply.get(card.name, 0) + 1
 
         if destination_is_deck:
@@ -1129,8 +1178,15 @@ class GameState:
         original_card: Card,
         actual_card: Card,
         to_deck: bool,
+        from_supply: bool = True,
     ) -> Card:
-        """Allow Trader reactions to replace a gain with a Silver."""
+        """Allow Trader reactions to replace a gain with a Silver.
+
+        ``from_supply`` mirrors ``gain_card``: when the caller decremented
+        supply for ``original_card`` (the normal case), Trader restores it.
+        For trash-origin gains the caller never touched supply so we must
+        not "restore" a count that was never decremented.
+        """
 
         if self.supply.get("Silver", 0) <= 0:
             return actual_card
@@ -1141,7 +1197,7 @@ class GameState:
         if not player.ai.should_reveal_trader(self, player, original_card, to_deck=to_deck):
             return actual_card
 
-        if original_card.name in self.supply:
+        if from_supply and original_card.name in self.supply:
             self.supply[original_card.name] = self.supply.get(original_card.name, 0) + 1
 
         self.supply["Silver"] -= 1

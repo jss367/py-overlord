@@ -3,6 +3,7 @@
 from typing import Type
 
 from .base_event import Event
+from .continue_event import Continue
 from .gain_silver import GainSilver
 from .looting import Looting
 from .menagerie_events import (
@@ -27,6 +28,7 @@ from .training import Training
 EVENT_TYPES: dict[str, Type[Event]] = {
     "Gain Silver": GainSilver,
     "Looting": Looting,
+    "Continue": Continue,
     "Desperation": Desperation,
     "Gamble": Gamble,
     "March": March,

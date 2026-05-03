@@ -47,6 +47,11 @@ def _parse_special_line(line: str, config: BoardConfig) -> bool:
         config.projects.append(value)
     elif key == "way":
         config.ways.append(value)
+    elif key.startswith("way of the"):
+        # ``Way of the Mouse: Native Village`` becomes
+        # ``Way of the Mouse (Native Village)`` so the registry's
+        # parametric-Way regex resolves the target.
+        config.ways.append(f"{prefix.strip()} ({value})")
     elif key == "landmark":
         config.landmarks.append(value)
     elif key == "ally":

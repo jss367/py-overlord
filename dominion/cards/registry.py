@@ -196,11 +196,20 @@ from dominion.cards.hinterlands import (
     WitchsHut,
 )
 from dominion.cards.renaissance import ActingTroupe, Inventor
-from dominion.cards.allies import Taskmaster, WealthyVillage
+from dominion.cards.allies import (
+    Conjurer,
+    Lich,
+    Pilgrim,
+    Sorcerer,
+    Student,
+    Taskmaster,
+    WealthyVillage,
+)
 from dominion.cards.intrigue import (
     Torturer,
     Patrol,
     Bridge,
+    Lurker,
     Nobles,
     WishingWell,
     Conspirator,
@@ -209,7 +218,7 @@ from dominion.cards.intrigue import (
     Steward,
     Swindler,
 )
-from dominion.cards.plunder import Barbarian, FirstMate, Flagship, Highwayman, Trickster, Astrolabe, Pickaxe, HarborVillage
+from dominion.cards.plunder import Barbarian, Crew, FirstMate, Flagship, Highwayman, Trickster, Astrolabe, Pickaxe, HarborVillage
 from dominion.cards.dark_ages import (
     Armory,
     Count,
@@ -483,6 +492,18 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Gatekeeper": Gatekeeper,
     "Aristocrat": Aristocrat,
     "Harbor Village": HarborVillage,
+    # Wizards split pile (Allies)
+    "Student": Student,
+    "Conjurer": Conjurer,
+    "Sorcerer": Sorcerer,
+    "Lich": Lich,
+    # Other Allies
+    "Pilgrim": Pilgrim,
+    # Intrigue
+    "Lurker": Lurker,
+    # Plunder
+    "Crew": Crew,
+    # From main since branch divergence
     "Wandering Minstrel": WanderingMinstrel,
     "Feodum": Feodum,
     "Hunting Grounds": HuntingGrounds,

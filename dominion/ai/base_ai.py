@@ -381,6 +381,107 @@ class AI(ABC):
         """Choose a Way to use when playing a card. Default is none."""
         return None
 
+    def should_spend_favor_on_cave_dwellers(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Decide whether to spend a Favor on Cave Dwellers' discard-then-draw.
+
+        Default: spend whenever the hand contains a junk card (Curse, Copper,
+        cheap Victory, Estate, or any non-Action Victory).
+        """
+        for card in player.hand:
+            if card.name in {"Curse", "Copper", "Estate", "Hovel", "Overgrown Estate"}:
+                return True
+            if card.is_victory and not card.is_action and card.cost.coins <= 2:
+                return True
+        return False
+
+    def choose_card_to_discard_for_cave_dwellers(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Pick a card to discard when activating Cave Dwellers."""
+        if not choices:
+            return None
+        picked = self.choose_cards_to_discard(state, player, choices, 1, reason="cave_dwellers")
+        return picked[0] if picked else None
+
+    def choose_card_to_topdeck_from_hand(
+        self, state: GameState, player: PlayerState, choices: list[Card], reason: Optional[str] = None
+    ) -> Optional[Card]:
+        """Choose which card from hand to put on top of deck (Pilgrim, etc.).
+
+        Default: prefer to top-deck the most valuable Action so it's drawn
+        next turn, otherwise the cheapest junk.
+        """
+        if not choices:
+            return None
+
+        actions = [c for c in choices if c.is_action]
+        if actions:
+            return max(actions, key=lambda c: (c.cost.coins, c.is_duration, c.name))
+
+        treasures = [c for c in choices if c.is_treasure]
+        if treasures:
+            return max(treasures, key=lambda c: (c.cost.coins, c.name))
+
+        return min(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_action_to_trash_from_supply(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Lurker mode 1: pick an Action card in supply to trash.
+
+        Default heuristic: prioritise cards that drain meaningful piles —
+        the top of a split pile (Settlers exposes Bustling Village; Student
+        drains the Wizards pile toward Lich). Ties broken by lowest cost so
+        we don't spend value trashing premium cards.
+        """
+        if not choices:
+            return None
+
+        priority_pile_drainers = {"Settlers", "Student", "Conjurer", "Sorcerer"}
+        for name in ("Student", "Conjurer", "Sorcerer", "Settlers"):
+            for c in choices:
+                if c.name == name:
+                    return c
+        # Otherwise prefer the cheapest Action so we don't waste a high-value pile.
+        return min(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_action_to_gain_from_trash(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Lurker mode 2: pick an Action in the trash to gain."""
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_lurker_mode(
+        self, state: GameState, player: PlayerState, can_trash: bool, can_gain: bool
+    ) -> str:
+        """Return 'trash' or 'gain' for Lurker. Default: gain if any Action sits in trash, else trash."""
+        if can_gain:
+            return "gain"
+        return "trash"
+
+    def choose_continue_target(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Pick which $0-$4 card to gain and play via the Continue event."""
+        if not choices:
+            return None
+        actions = [c for c in choices if c.is_action]
+        if actions:
+            return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.stats.actions, c.name))
+        return max(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_card_to_gain_from_trash(
+        self, state: GameState, player: PlayerState, choices: list[Card], max_cost: int
+    ) -> Optional[Card]:
+        """Used by Lich's "+ gain a cheaper Action from trash" clause."""
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.name))
+
     def use_amphora_now(self, state: GameState) -> bool:
         """Decide whether to take Amphora's bonus immediately."""
         return True

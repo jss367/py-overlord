@@ -48,12 +48,30 @@ def test_strategy_battle_prepares_landscapes(tmp_path):
     board = load_board(path)
     battle = StrategyBattle(board_config=board)
 
-    kingdom, events, projects, ways = battle._prepare_board_components(board.kingdom_cards)
+    kingdom, events, projects, ways, allies = battle._prepare_board_components(board.kingdom_cards)
 
     assert [card.name for card in kingdom] == board.kingdom_cards
     assert events == []
     assert [project.name for project in projects] == board.projects
     assert [way.name for way in ways] == board.ways
+    assert allies == []
+
+
+def test_way_of_the_prefix_with_target(tmp_path):
+    """``Way of the Mouse: Native Village`` should parse as the parametric
+    Way ``Way of the Mouse (Native Village)`` — what the registry expects."""
+    path = write_board(
+        tmp_path,
+        """
+        Bridge
+        Way of the Mouse: Native Village
+        """,
+    )
+
+    board = load_board(path)
+
+    assert board.kingdom_cards == ["Bridge"]
+    assert board.ways == ["Way of the Mouse (Native Village)"]
 
 
 def test_load_board_requires_cards(tmp_path):
