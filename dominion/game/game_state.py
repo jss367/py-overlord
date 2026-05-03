@@ -300,12 +300,6 @@ class GameState:
             self.current_player.hand.extend(self.current_player.delivered_cards)
             self.current_player.delivered_cards = []
 
-        # Resolve any Prepare cards set aside last turn: play them in any
-        # order, then they end up in play (and get discarded normally at
-        # cleanup).
-        if self.current_player.prepared_cards:
-            self._resolve_prepared_cards(self.current_player)
-
         # Resolve project effects that occur at the start of the turn
         for project in self.current_player.projects:
             project.on_turn_start(self, self.current_player)
@@ -339,6 +333,13 @@ class GameState:
         # Only log duration phase if there are duration cards
         if self.current_player.duration:
             self.do_duration_phase()
+
+        # Resolve any Prepare cards set aside last turn AFTER existing
+        # durations resolve, so prepared Duration cards (e.g. Longship)
+        # don't immediately fire their on_duration on the same turn they
+        # were played.
+        if self.current_player.prepared_cards:
+            self._resolve_prepared_cards(self.current_player)
 
         self.phase = "action"
 
@@ -1507,25 +1508,31 @@ class GameState:
         Each card may return ``"block"`` to prevent the attack from resolving,
         or any other value (typically ``None``) to indicate a non-blocking
         side effect (e.g. Stowaway revealing for +1 Card).
+
+        Loops until no new reactive cards in hand have been offered, so that
+        a non-blocking reaction which draws additional Reactions (e.g.
+        Stowaway revealing a Moat into hand) still gets a chance to block.
         """
 
         blocked = False
-        # Snapshot to avoid mutation issues if a card removes itself from hand.
-        for card in list(player.hand):
-            if not card.is_reaction:
-                continue
-            if card not in player.hand:
-                continue  # was removed by an earlier reaction
-            hook = getattr(card, "react_to_attack", None)
-            if hook is None:
-                continue
-            try:
+        offered_ids: set[int] = set()
+        while True:
+            new_offer = False
+            for card in list(player.hand):
+                if id(card) in offered_ids:
+                    continue
+                if not card.is_reaction:
+                    continue
+                offered_ids.add(id(card))
+                new_offer = True
+                hook = getattr(card, "react_to_attack", None)
+                if hook is None:
+                    continue
                 result = hook(self, player)
-            except TypeError:
-                # Fallback for hooks defined as react_to_attack(self, state, player)
-                result = hook(self, player)
-            if result == "block":
-                blocked = True
+                if result == "block":
+                    blocked = True
+            if not new_offer:
+                break
         return blocked
 
     def trash_card(self, player: PlayerState, card: Card) -> None:

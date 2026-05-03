@@ -568,6 +568,76 @@ def test_cabin_boy_trash_branch_does_not_crash_in_duration_phase():
     )
 
 
+def test_prepared_duration_does_not_fire_on_same_turn():
+    """Regression: a Duration card played from the Prepare mat must not
+    immediately resolve its on_duration effect during the same turn's
+    duration phase. Longship's "+2 Cards next turn" should fire on the
+    *following* turn, not the turn it was prepared.
+    """
+
+    state = GameState(players=[])
+    state.initialize_game(
+        [DummyAI()], [get_card("Longship"), get_card("Village")]
+    )
+    player = state.players[0]
+
+    longship = get_card("Longship")
+    player.prepared_cards = [longship]
+    player.deck = [get_card("Copper") for _ in range(10)]
+    player.hand = []
+    player.in_play = []
+    player.duration = []
+    player.actions = 1
+
+    state.current_player_index = 0
+    state.handle_start_phase()
+
+    # Longship's on_play gives +2 Actions; on_duration gives +2 Cards.
+    # On the prepare-resolution turn we should see +2 Actions but NOT
+    # +2 Cards yet.
+    assert player.actions == 3
+    assert len(player.hand) == 0  # The +2 Cards effect hasn't fired yet
+    # Longship is still pending in duration for next turn
+    assert longship in player.duration
+
+
+class _MoatRevealOnDraw(DummyAI):
+    """Reveals Moat both on initial check and after a chained reaction draws it."""
+
+    def should_reveal_moat(self, state, player):
+        return True
+
+    def should_react_with_stowaway(self, state, player):
+        return True
+
+
+def test_attack_reactions_offer_cards_drawn_during_reaction():
+    """Regression: revealing Stowaway draws cards; if a Moat is among them,
+    the player should still be able to reveal it to block the same attack.
+    """
+
+    attacker = PlayerState(DummyAI())
+    victim = PlayerState(_MoatRevealOnDraw())
+    state = GameState(players=[attacker, victim])
+
+    moat = get_card("Moat")
+    stowaway = get_card("Stowaway")
+    victim.hand = [stowaway]
+    # Top of deck (last element) is drawn first by Stowaway.
+    victim.deck = [get_card("Copper"), moat]
+
+    hit = []
+
+    def attack(target):
+        hit.append("hit")
+
+    state.attack_player(victim, attack)
+
+    # Stowaway revealed → drew Moat. Moat then revealed → blocks the attack.
+    assert moat in victim.hand
+    assert hit == [], "Moat drawn via Stowaway should still block the attack"
+
+
 def test_shaman_does_not_trigger_when_not_in_kingdom():
     state = GameState(players=[])
     state.initialize_game([_ShamanAI()], [get_card("Village")])  # No Shaman
