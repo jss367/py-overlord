@@ -381,6 +381,52 @@ class AI(ABC):
         """Choose a Way to use when playing a card. Default is none."""
         return None
 
+    def choose_overpay_amount(
+        self, state: GameState, card: Card, available: int
+    ) -> int:
+        """Return how many extra coins to pay when buying a card that
+        supports overpaying. Default: 0 (no overpay)."""
+
+        return 0
+
+    def choose_card_to_set_aside(
+        self,
+        state: GameState,
+        player: PlayerState,
+        choices: list,
+        reason: Optional[str] = None,
+    ):
+        """Choose a card to set aside (e.g. Cage, Grotto). Default: opt out."""
+
+        return None
+
+    def quartermaster_choice(
+        self, state: GameState, player: PlayerState, set_aside: list
+    ) -> str:
+        """For Quartermaster, return either 'gain' or 'take'.
+
+        Default: take if there's anything on the mat, else gain.
+        """
+
+        return "take" if set_aside else "gain"
+
+    def gondola_delay_coins(self, state: GameState, player: PlayerState) -> bool:
+        """For Gondola, return True to delay +$2 to next turn. Default: False."""
+
+        return False
+
+    def cabin_boy_should_trash(
+        self, state: GameState, player: PlayerState, durations: list
+    ) -> bool:
+        """For Cabin Boy, return True to trash for a Duration card. Default: False."""
+
+        return False
+
+    def use_amphora_now(self, state: GameState) -> bool:
+        """For Amphora Loot, return True to take +$3 +1 Buy now. Default: True."""
+
+        return True
+
     def should_spend_favor_on_cave_dwellers(
         self, state: GameState, player: PlayerState
     ) -> bool:

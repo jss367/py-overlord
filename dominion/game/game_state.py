@@ -352,6 +352,8 @@ class GameState:
             # Move to discard after duration effect resolves unless it stays in play
             if not getattr(card, "duration_persistent", False):
                 player.duration.remove(card)
+                if hasattr(card, "on_discard_from_play"):
+                    card.on_discard_from_play(self, player)
                 player.discard.append(card)
 
         # Process any cards that were multiplied (e.g. by Throne Room)
@@ -461,7 +463,21 @@ class GameState:
                     player.coins += 1
                 player.harbor_village_pending = max(0, harbor_pending - 1)
 
+            # Notify cards in play that an action was played.
+            self._dispatch_on_action_played(player, choice)
+
         self.phase = "treasure"
+
+    def _dispatch_on_action_played(self, player: PlayerState, action_card: Card) -> None:
+        """Call ``on_action_played`` on each card in play that defines it."""
+
+        for card in list(player.in_play) + list(player.duration):
+            if card is action_card:
+                continue
+            hook = getattr(card, "on_action_played", None)
+            if hook is None:
+                continue
+            hook(self, player, action_card)
 
     def _handle_start_of_buy_phase_effects(self) -> None:
         """Apply state effects that trigger at the start of the buy phase."""
@@ -575,12 +591,26 @@ class GameState:
                 )
 
             cost = self.get_card_cost(player, choice)
-            coins_spent = min(player.coins, cost)
-            tokens_spent = max(0, cost - coins_spent)
+            overpay_amount = 0
+            if getattr(choice, "supports_overpay", False) and not getattr(
+                choice, "is_event", False
+            ):
+                available = max(0, player.coins + player.coin_tokens - cost)
+                if available > 0:
+                    overpay_amount = max(
+                        0,
+                        int(player.ai.choose_overpay_amount(self, choice, available)),
+                    )
+                    overpay_amount = min(overpay_amount, available)
+
+            total_cost = cost + overpay_amount
+            coins_spent = min(player.coins, total_cost)
+            tokens_spent = max(0, total_cost - coins_spent)
             remaining_coins = player.coins - coins_spent
             remaining_tokens = player.coin_tokens - tokens_spent
             context = {
                 "cost": cost,
+                "overpay": overpay_amount,
                 "remaining_coins": remaining_coins,
                 "remaining_coin_tokens": remaining_tokens,
                 "remaining_buys": player.buys - 1,
@@ -589,7 +619,7 @@ class GameState:
 
             player.bought_this_turn.append(choice.name)
             player.buys -= 1
-            player.coins_spent_this_turn += cost
+            player.coins_spent_this_turn += total_cost
 
             player.potions -= choice.cost.potions
 
@@ -608,6 +638,9 @@ class GameState:
                 self.log_callback(("supply_change", choice.name, -1, self.supply[choice.name]))
                 choice.on_buy(self)
                 gained_card = self.gain_card(player, choice)
+
+                if overpay_amount > 0 and hasattr(gained_card, "on_overpay"):
+                    gained_card.on_overpay(self, player, overpay_amount)
 
                 self._handle_on_buy_in_play_effects(player, choice, gained_card)
 
@@ -814,6 +847,8 @@ class GameState:
                 if card.name in self.tireless_piles:
                     tireless_set_aside.append(card)
                 else:
+                    if hasattr(card, "on_discard_from_play"):
+                        card.on_discard_from_play(self, player)
                     self.discard_card(player, card, from_cleanup=True)
 
         if player.trickster_set_aside:
@@ -1135,6 +1170,7 @@ class GameState:
         self._track_action_gain(player, actual_card)
         self._handle_cargo_ship_gain(player, actual_card)
         self._handle_opponent_gain_hooks(player, actual_card)
+        self._dispatch_on_card_gained(player, actual_card)
 
         if (
             hasattr(player, "cards_gained_this_buy_phase")
@@ -1482,6 +1518,21 @@ class GameState:
             for project in player.projects:
                 if hasattr(project, "on_opponent_gain"):
                     project.on_opponent_gain(self, player, gained_card)
+
+    def _dispatch_on_card_gained(self, gainer: PlayerState, gained_card: Card) -> None:
+        """Notify cards in any player's in-play/duration zones of a gain.
+
+        Each card with an ``on_card_gained(state, owner, gainer, card)`` hook is
+        called once per gain. ``owner`` is the player whose in-play zone the
+        reacting card sits in; ``gainer`` is the player who gained the new card.
+        """
+
+        for owner in self.players:
+            for card in list(owner.in_play) + list(owner.duration):
+                hook = getattr(card, "on_card_gained", None)
+                if hook is None:
+                    continue
+                hook(self, owner, gainer, gained_card)
 
     def _update_final_metrics(self):
         """Update final game metrics including victory points."""

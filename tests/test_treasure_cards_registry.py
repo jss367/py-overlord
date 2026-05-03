@@ -48,6 +48,17 @@ EXPECTED_TREASURE_CARDS = {
     "Coronet",
     "Huge Turnip",
     "Pickaxe",
+    "Sack of Loot",
+    "Jewelled Egg",
+    "Buried Treasure",
+    "King's Cache",
+    "Crucible",
+    "Gondola",
+    "Pendant",
+    "Silver Mine",
+    "Rope",
+    "Cage",
+    "Mining Road",
 }
 
 MULTI_TYPE_TREASURES = {
@@ -63,6 +74,10 @@ MULTI_TYPE_TREASURES = {
     "Shield": {CardType.TREASURE, CardType.REACTION},
     "Spell Scroll": {CardType.TREASURE, CardType.ACTION},
     "Sword": {CardType.TREASURE, CardType.ATTACK},
+    "Buried Treasure": {CardType.TREASURE, CardType.DURATION},
+    "Gondola": {CardType.TREASURE, CardType.DURATION},
+    "Rope": {CardType.TREASURE, CardType.DURATION},
+    "Cage": {CardType.TREASURE, CardType.DURATION},
 }
 
 
