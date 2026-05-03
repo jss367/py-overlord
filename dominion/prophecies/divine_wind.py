@@ -19,24 +19,24 @@ class DivineWind(Prophecy):
     def on_activate(self, game_state) -> None:
         from dominion.cards.registry import CARD_TYPES, get_card
 
-        protected = {
-            "Copper", "Silver", "Gold", "Platinum",
-            "Estate", "Duchy", "Province", "Colony",
-            "Curse", "Potion",
-        }
-        # Anything that isn't a basic / non-supply pile is treated as a
-        # Kingdom pile to remove.
-        old_kingdom = [
-            name for name in list(game_state.supply.keys())
-            if name not in protected
-        ]
-        for name in old_kingdom:
-            del game_state.supply[name]
+        # Per rulebook: only the Kingdom Supply piles used this game are
+        # removed. Basic piles (Copper/Silver/Gold/Platinum, Estate/Duchy/
+        # Province/Colony, Curse, Potion) and non-Kingdom support piles
+        # (Ruins, Spoils, Horse, Madman, Mercenary, Loot, Bystander/Joust
+        # rewards, etc.) stay — we identify the Kingdom piles by the snapshot
+        # taken at initialize_game time.
+        kingdom_pile_names = list(getattr(game_state, "original_kingdom_pile_names", set()))
+        removed = []
+        for name in kingdom_pile_names:
+            if name in game_state.supply:
+                del game_state.supply[name]
+                removed.append(name)
 
         # Pick 10 fresh Kingdom-eligible cards not previously in the supply.
+        previously_in_supply = set(removed) | set(game_state.supply.keys())
         candidates = []
         for name, cls in CARD_TYPES.items():
-            if name in protected or name in old_kingdom:
+            if name in previously_in_supply:
                 continue
             try:
                 card = get_card(name)
@@ -44,7 +44,10 @@ class DivineWind(Prophecy):
                 continue
             if getattr(card, "is_event", False) or getattr(card, "is_project", False):
                 continue
+            # Skip pure Victory cards and Curses as Kingdom replacements.
             if card.is_victory and not card.is_action:
+                continue
+            if card.name == "Curse":
                 continue
             candidates.append(card)
 
@@ -54,7 +57,10 @@ class DivineWind(Prophecy):
             if added >= 10:
                 break
             game_state.supply[card.name] = card.starting_supply(game_state)
+            # Track the new pile so a second Divine Wind (extremely unlikely)
+            # would also remove it.
+            game_state.original_kingdom_pile_names.add(card.name)
             added += 1
         game_state.log_callback(
-            f"Divine Wind: replaced {len(old_kingdom)} Kingdom piles with {added} new ones"
+            f"Divine Wind: replaced {len(removed)} Kingdom piles with {added} new ones"
         )

@@ -33,6 +33,12 @@ class ApproachingArmy(Prophecy):
             if card.cost.potions > 0:
                 continue
             game_state.supply[card.name] = card.starting_supply(game_state)
+            # Marauder, Pillage, etc. require companion piles (Ruins, Spoils,
+            # Joust prizes). Add anything the Attack declares so the new pile
+            # functions in play.
+            for pile_name, count in card.get_additional_piles().items():
+                if pile_name not in game_state.supply:
+                    game_state.supply[pile_name] = count
             game_state.log_callback(
                 f"Approaching Army adds Attack pile: {card.name}"
             )

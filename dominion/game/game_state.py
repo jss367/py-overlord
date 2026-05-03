@@ -38,6 +38,11 @@ class GameState:
     sun_tokens: int = 0
     riverboat_set_aside: object = None  # Card set aside at game start for Riverboat
     harsh_winter_debt: dict = field(default_factory=dict)  # pile_name → debt tokens
+    # Names of the Kingdom card piles (and their split-pile partners) used at
+    # game setup. Tracked separately from the supply because Divine Wind
+    # needs to remove only those piles, not non-Kingdom support piles like
+    # Ruins, Spoils, or Horse.
+    original_kingdom_pile_names: set = field(default_factory=set)
 
     def __post_init__(self):
         """Initialize with default logger that prints to console."""
@@ -119,6 +124,20 @@ class GameState:
         """Set up the game with given AIs and kingdom cards."""
         # Create PlayerState objects for each AI
         self.players = [PlayerState(ai) for ai in ais]
+        # Snapshot the Kingdom selection before setup_supply expands the pile
+        # set with split-pile partners. We extend the snapshot with the
+        # partner names below since Divine Wind treats a split pile as one
+        # Kingdom pile to remove.
+        self.original_kingdom_pile_names = {c.name for c in kingdom_cards}
+        for c in kingdom_cards:
+            if isinstance(c, SplitPileMixin):
+                self.original_kingdom_pile_names.add(c.partner_card_name)
+            from dominion.cards.allies.wizards import (
+                WIZARDS_PILE_ORDER,
+                WizardsSplitCard,
+            )
+            if isinstance(c, WizardsSplitCard):
+                self.original_kingdom_pile_names.update(WIZARDS_PILE_ORDER)
         self.setup_supply(kingdom_cards)
         self.events = events or []
         self.projects = projects or []
@@ -366,6 +385,9 @@ class GameState:
         player.fortune_doubled_this_turn = False
         player.harbor_village_pending = 0
         player.continue_used_this_turn = False
+        # Daimyo's "next non-Command Action this turn" replay expires when the
+        # turn ends without a triggering Action being played.
+        player.daimyo_pending = 0
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:

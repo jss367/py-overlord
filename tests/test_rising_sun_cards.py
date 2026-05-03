@@ -643,3 +643,87 @@ def test_sickness_curse_or_discard():
     state.prophecy.on_cleanup_start(state, player)
     # Curse should have gone to deck (top)
     assert any(c.name == "Curse" for c in player.deck), "Curse should be on deck"
+
+
+# ---------------------------------------------------------------------------
+# Code review fixes (round 2)
+# ---------------------------------------------------------------------------
+
+
+def test_daimyo_pending_resets_at_turn_start():
+    """If Daimyo is the last Action played, the pending replay must NOT
+    leak into the next turn — Daimyo's text says 'this turn'.
+    """
+    state, player = _setup()
+    daimyo = get_card("Daimyo")
+    player.in_play = [daimyo]
+    player.deck = [get_card("Copper") for _ in range(5)]
+    daimyo.on_play(state)
+    assert player.daimyo_pending == 1, "Daimyo registers a pending replay"
+
+    # Simulate turn boundary by calling handle_start_phase
+    state.phase = "start"
+    state.handle_start_phase()
+    assert player.daimyo_pending == 0, "pending replay must clear at turn start"
+
+
+def test_divine_wind_preserves_non_kingdom_support_piles():
+    """Divine Wind only removes the original 10 Kingdom piles, not Ruins/
+    Spoils/etc. that were added via get_additional_piles.
+    """
+    state = GameState(players=[])
+    # Marauder's get_additional_piles adds Ruins and Spoils
+    state.initialize_game(
+        [_GainFirstAI()],
+        [get_card("Marauder"), get_card("Village")],
+    )
+    assert "Ruins" in state.supply, "setup adds Ruins via Marauder"
+    assert "Spoils" in state.supply, "setup adds Spoils via Marauder"
+
+    dw = get_prophecy("Divine Wind")
+    dw.activate(state)
+
+    # Marauder and Village should be gone (they were Kingdom piles)
+    assert "Marauder" not in state.supply
+    assert "Village" not in state.supply
+    # Support piles must remain
+    assert "Ruins" in state.supply, "Divine Wind should leave Ruins alone"
+    assert "Spoils" in state.supply, "Divine Wind should leave Spoils alone"
+    # Basic piles must remain
+    for basic in ("Copper", "Silver", "Gold", "Estate", "Duchy", "Province", "Curse"):
+        assert basic in state.supply, f"{basic} should still be in supply"
+
+
+def test_approaching_army_adds_attack_companion_piles():
+    """If Approaching Army adds Marauder, the Ruins and Spoils piles it
+    needs must also be created (otherwise gained Marauders/Loots break).
+    """
+    state = GameState(players=[])
+    # Use a kingdom with no Marauder so Approaching Army can add it
+    state.initialize_game([_GainFirstAI()], [get_card("Village")])
+
+    # Force Marauder selection by clearing the supply of any other Attacks
+    # and pre-validating Marauder is the candidate
+    aa = get_prophecy("Approaching Army")
+    # Force pick Marauder by ensuring it's the first eligible Attack found
+    # We just call setup directly; whichever Attack it picks must bring
+    # additional piles if it has any.
+    aa.setup(state)
+
+    # Find the added Attack pile (anything that wasn't there before this call)
+    added_attack = None
+    for name in state.supply:
+        try:
+            card = get_card(name)
+            if card.is_attack and name not in {"Village"}:
+                added_attack = card
+                break
+        except ValueError:
+            continue
+    assert added_attack is not None, "Approaching Army should have added an Attack pile"
+
+    # Whatever it added, every additional pile it declared should now exist.
+    for pile in added_attack.get_additional_piles():
+        assert pile in state.supply, (
+            f"{added_attack.name} requires pile {pile} but it wasn't added"
+        )
