@@ -71,6 +71,7 @@ class Lurker(Card):
         # Route through gain_card so the gain participates in shared
         # bookkeeping (cards_gained_this_turn, actions_gained_this_turn,
         # Cauldron's third-Action-gain trigger, project on_gain hooks,
-        # Watchtower / Royal Seal / Insignia reactions, …). Supply isn't
-        # decremented because the card came out of the trash, not supply.
-        game_state.gain_card(player, chosen)
+        # Watchtower / Royal Seal / Insignia reactions, …). Pass
+        # from_supply=False since the card came from trash — without that,
+        # Trader's reaction would inflate the original card's supply pile.
+        game_state.gain_card(player, chosen, from_supply=False)

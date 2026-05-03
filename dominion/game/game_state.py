@@ -1058,8 +1058,21 @@ class GameState:
         self.discard_hex(hex_name)
         return hex_name
 
-    def gain_card(self, player: PlayerState, card: Card, to_deck: bool = False) -> Card:
+    def gain_card(
+        self,
+        player: PlayerState,
+        card: Card,
+        to_deck: bool = False,
+        from_supply: bool = True,
+    ) -> Card:
         """Add a card to a player's discard or deck, honoring topdeck effects.
+
+        ``from_supply`` controls supply-restoration semantics. The default
+        (``True``) matches the historical contract: the caller has already
+        decremented the supply for ``card.name``, so Trader's reaction and
+        the Exile-reclamation path may add 1 back when they replace the
+        gain. For trash-origin gains (Lurker, Lich), pass ``False`` so the
+        supply pile isn't inflated by the restoration logic.
 
         If the player has a matching card on their Exile mat, that card is
         reclaimed instead of the newly gained copy.
@@ -1078,7 +1091,7 @@ class GameState:
 
         if not reclaimed:
             actual_card = self._handle_trader_exchange(
-                player, card, actual_card, destination_is_deck
+                player, card, actual_card, destination_is_deck, from_supply=from_supply
             )
 
         if not destination_is_deck and getattr(player, "topdeck_gains", False):
@@ -1091,9 +1104,10 @@ class GameState:
         ):
             destination_is_deck = True
 
-        if reclaimed and card.name in self.supply:
+        if reclaimed and from_supply and card.name in self.supply:
             # Caller already decremented the supply; restore it since the
-            # Exiled card is being used instead.
+            # Exiled card is being used instead. Only valid for from-supply
+            # gains — trash-origin gains never decremented in the first place.
             self.supply[card.name] = self.supply.get(card.name, 0) + 1
 
         if destination_is_deck:
@@ -1164,8 +1178,15 @@ class GameState:
         original_card: Card,
         actual_card: Card,
         to_deck: bool,
+        from_supply: bool = True,
     ) -> Card:
-        """Allow Trader reactions to replace a gain with a Silver."""
+        """Allow Trader reactions to replace a gain with a Silver.
+
+        ``from_supply`` mirrors ``gain_card``: when the caller decremented
+        supply for ``original_card`` (the normal case), Trader restores it.
+        For trash-origin gains the caller never touched supply so we must
+        not "restore" a count that was never decremented.
+        """
 
         if self.supply.get("Silver", 0) <= 0:
             return actual_card
@@ -1176,7 +1197,7 @@ class GameState:
         if not player.ai.should_reveal_trader(self, player, original_card, to_deck=to_deck):
             return actual_card
 
-        if original_card.name in self.supply:
+        if from_supply and original_card.name in self.supply:
             self.supply[original_card.name] = self.supply.get(original_card.name, 0) + 1
 
         self.supply["Silver"] -= 1
