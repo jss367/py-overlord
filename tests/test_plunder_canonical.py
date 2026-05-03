@@ -368,7 +368,7 @@ def test_deliver_returns_cards_to_hand_at_start_of_next_turn():
 # ---------------------------------------------------------------------------
 
 
-def test_prepare_sets_aside_in_play_and_hand():
+def test_prepare_sets_aside_hand():
     player = PlayerState(DummyAI())
     state = GameState(players=[player])
 
@@ -382,11 +382,12 @@ def test_prepare_sets_aside_in_play_and_hand():
     prepare = get_event("Prepare")
     prepare.on_buy(state, player)
 
+    # Hand is set aside; in-play stays untouched.
     assert player.hand == []
-    assert player.in_play == []
+    assert player.in_play == [village]
     assert silver in player.prepared_cards
     assert estate in player.prepared_cards
-    assert village in player.prepared_cards
+    assert village not in player.prepared_cards
 
 
 def test_prepare_plays_set_aside_cards_at_start_of_next_turn():
@@ -746,6 +747,105 @@ def test_sailor_trigger_does_not_fire_on_subsequent_turn():
     crews_in_discard = sum(1 for c in player.discard if c.name == "Crew")
     assert crews_in_play == 0
     assert crews_in_discard == 1
+
+
+def test_journey_cannot_be_chained_on_extra_turn():
+    """Buying Journey during an extra turn must not grant another extra turn.
+
+    Otherwise, with $4 each turn the player could chain Journey indefinitely.
+    """
+
+    state = GameState(players=[])
+    state.initialize_game([DummyAI()], [get_card("Village")])
+    player = state.players[0]
+
+    # Simulate having just started an extra turn.
+    state.is_extra_turn = True
+
+    journey = get_event("Journey")
+    journey.on_buy(state, player)
+
+    assert state.extra_turn is False, "Journey shouldn't chain on an extra turn"
+    assert player.skip_next_draw_phase is False
+
+
+def test_journey_grants_extra_turn_on_normal_turn():
+    """Sanity check: Journey still works on a normal turn."""
+
+    state = GameState(players=[])
+    state.initialize_game([DummyAI()], [get_card("Village")])
+    player = state.players[0]
+
+    state.is_extra_turn = False
+
+    journey = get_event("Journey")
+    journey.on_buy(state, player)
+
+    assert state.extra_turn is True
+    assert player.skip_next_draw_phase is True
+
+
+def test_prepare_only_sets_aside_hand_not_in_play():
+    """Prepare should only set aside the player's hand, leaving in-play untouched."""
+
+    player = PlayerState(DummyAI())
+    state = GameState(players=[player])
+
+    silver_in_play = get_card("Silver")
+    village_in_play = get_card("Village")
+    estate_in_hand = get_card("Estate")
+
+    player.in_play = [silver_in_play, village_in_play]
+    player.hand = [estate_in_hand]
+
+    prepare = get_event("Prepare")
+    prepare.on_buy(state, player)
+
+    # In-play cards remain in play
+    assert silver_in_play in player.in_play
+    assert village_in_play in player.in_play
+    # Hand cards are set aside
+    assert estate_in_hand in player.prepared_cards
+    assert player.hand == []
+    # Only the hand's Estate is on the prepared mat
+    assert silver_in_play not in player.prepared_cards
+    assert village_in_play not in player.prepared_cards
+
+
+def test_mining_road_trigger_consumed_when_player_declines():
+    """Mining Road's 'next time' trigger must consume on first eligible gain
+    even when the player has no Treasure to play (or the AI declines).
+    """
+
+    class _NoTreasureAI(DummyAI):
+        def mining_road_play_treasure(self, state, player, treasures, gained_card):
+            return None  # Always decline
+
+    player = PlayerState(_NoTreasureAI())
+    state = GameState(players=[player])
+    state.supply["Silver"] = 10
+    state.supply["Copper"] = 10
+    state.phase = "buy"
+
+    mr = get_card("Mining Road")
+    player.hand = [get_card("Silver")]  # Treasure available
+    player.in_play.append(mr)
+    mr.play_effect(state)
+
+    # First non-Victory gain — AI declines, but trigger should consume
+    state.supply["Silver"] -= 1
+    state.gain_card(player, get_card("Silver"))
+
+    assert mr._gain_reaction_armed is False, (
+        "Mining Road trigger should consume on first eligible gain "
+        "regardless of player decision"
+    )
+
+    # A subsequent gain should NOT re-prompt
+    state.supply["Copper"] -= 1
+    state.gain_card(player, get_card("Copper"))
+    # Still consumed — no infinite re-arming
+    assert mr._gain_reaction_armed is False
 
 
 def test_shaman_does_not_trigger_when_not_in_kingdom():

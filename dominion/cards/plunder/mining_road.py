@@ -38,6 +38,10 @@ class MiningRoad(Card):
         if game_state.phase != "buy":
             return
 
+        # This is an eligible gain — consume the one-shot trigger now,
+        # regardless of whether the player can or wants to use the effect.
+        self._gain_reaction_armed = False
+
         treasures = [c for c in owner.hand if c.is_treasure]
         if not treasures:
             return
@@ -63,8 +67,6 @@ class MiningRoad(Card):
         choice = owner.ai.choose_buy(game_state, list(candidates) + [None])
         if choice is None or game_state.supply.get(choice.name, 0) <= 0:
             return
-
-        self._gain_reaction_armed = False
 
         # Play the treasure (it goes to in_play and grants its coin).
         owner.hand.remove(chosen)

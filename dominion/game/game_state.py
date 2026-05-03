@@ -22,6 +22,7 @@ class GameState:
     phase: str = "start"
     turn_number: int = 1
     extra_turn: bool = False
+    is_extra_turn: bool = False  # True while *currently* taking an extra turn
     copper_value: int = 1
     trade_route_tokens_on_piles: dict[str, bool] = field(default_factory=dict)
     trade_route_mat_tokens: int = 0
@@ -932,12 +933,16 @@ class GameState:
         player.mirror_armed = False
 
         # Move to next player
+        was_extra_turn = self.extra_turn
         if not self.extra_turn:
             self.current_player_index = (self.current_player_index + 1) % len(self.players)
             if self.current_player_index == 0:
                 self.turn_number += 1
 
         self.extra_turn = False
+        # The next turn is an "extra turn" iff we just consumed extra_turn
+        # (didn't advance current_player). Used by Journey to prevent chains.
+        self.is_extra_turn = was_extra_turn
         self.phase = "start"
 
     def play_turn(self):

@@ -166,36 +166,30 @@ class Prosper(Event):
 
 class Journey(Event):
     """$4 Event: Take an extra turn after this one, in which you don't draw
-    a new hand.
+    a new hand. Cannot be used to chain off a turn that is itself an extra
+    turn.
     """
 
     def __init__(self):
         super().__init__("Journey", CardCost(coins=4))
 
     def on_buy(self, game_state, player) -> None:
+        if getattr(game_state, "is_extra_turn", False):
+            # Already on an extra turn — refuse to chain another.
+            return
         game_state.extra_turn = True
         player.skip_next_draw_phase = True
 
 
 class Prepare(Event):
-    """$5 Event: Set aside the cards you have in play and the cards in your
-    hand. At the start of your next turn, play those cards in any order.
+    """$5 Event: Set aside the cards in your hand. At the start of your next
+    turn, play those cards in any order.
     """
 
     def __init__(self):
         super().__init__("Prepare", CardCost(coins=5))
 
     def on_buy(self, game_state, player) -> None:
-        # Move in-play (excluding durations that are still resolving) and hand
-        # to the prepared mat. Treat durations as ineligible to set aside so
-        # their lingering effects still resolve.
-        moveable_in_play = [
-            c for c in player.in_play if c not in player.duration
-        ]
-        for card in moveable_in_play:
-            player.in_play.remove(card)
-            player.prepared_cards.append(card)
-
         for card in list(player.hand):
             player.hand.remove(card)
             player.prepared_cards.append(card)
