@@ -554,20 +554,29 @@ def test_great_leader_grants_action_after_each_action_play():
     assert player.actions == actions_before + 3
 
 
-def test_good_harvest_first_treasure_per_turn():
+def test_good_harvest_first_of_each_treasure_name():
+    """Good Harvest fires the first time each differently-named Treasure
+    plays. Per rulebook: 4 Coppers + 1 Silver = +2 Buys, +$2 total."""
     state, player = _setup()
     state.prophecy = get_prophecy("Good Harvest")
     state.prophecy.is_active = True
     state.sun_tokens = 0
+    state.prophecy.on_turn_start(state, player)
 
     silver = get_card("Silver")
+    copper = get_card("Copper")
     coins_before = player.coins
+    buys_before = player.buys
+
+    # First Silver triggers
     state.prophecy.on_play_treasure(state, player, silver)
-    assert player.coins == coins_before + 1
-    assert player.buys >= 2  # +1 Buy
+    # Second Silver does NOT trigger (same name)
     state.prophecy.on_play_treasure(state, player, silver)
-    # No further bonus on the second treasure
-    assert player.coins == coins_before + 1
+    # First Copper triggers (different name)
+    state.prophecy.on_play_treasure(state, player, copper)
+
+    assert player.coins == coins_before + 2, "Silver and Copper each grant +$1"
+    assert player.buys == buys_before + 2, "Silver and Copper each grant +1 Buy"
 
 
 def test_bureaucracy_grants_copper_on_coin_cost_gain():
@@ -632,7 +641,9 @@ def test_growth_chains_treasure_gains():
     assert player.discard, "Growth should have gained a cheaper card"
 
 
-def test_sickness_curse_or_discard():
+def test_sickness_curse_or_discard_at_turn_start():
+    """Sickness fires at the start of each player's turn (per card text),
+    not at cleanup."""
     state, player = _setup()
     state.prophecy = get_prophecy("Sickness")
     state.prophecy.is_active = True
@@ -640,7 +651,7 @@ def test_sickness_curse_or_discard():
     state.supply["Curse"] = 30
     player.hand = [get_card("Estate") for _ in range(2)]  # only 2 junk → curse mode
 
-    state.prophecy.on_cleanup_start(state, player)
+    state.prophecy.on_turn_start(state, player)
     # Curse should have gone to deck (top)
     assert any(c.name == "Curse" for c in player.deck), "Curse should be on deck"
 
@@ -727,3 +738,60 @@ def test_approaching_army_adds_attack_companion_piles():
         assert pile in state.supply, (
             f"{added_attack.name} requires pile {pile} but it wasn't added"
         )
+
+
+def test_harsh_winter_first_on_turn_gain_places_two_debt_on_pile():
+    """Per card text: when you gain a card on your turn, if there's debt
+    on its pile, take it; otherwise put 2 Debt on the pile."""
+    state, player = _setup()
+    state.prophecy = get_prophecy("Harsh Winter")
+    state.prophecy.is_active = True
+    state.sun_tokens = 0
+
+    village = get_card("Village")
+    state.prophecy.on_gain(state, player, village)
+    # First gain: pile had 0 debt → 2 placed
+    assert state.harsh_winter_debt.get("Village") == 2
+    # Player took no debt
+    assert player.debt == 0
+
+
+def test_harsh_winter_second_on_turn_gain_takes_pile_debt():
+    state, player = _setup()
+    state.prophecy = get_prophecy("Harsh Winter")
+    state.prophecy.is_active = True
+    state.sun_tokens = 0
+
+    village = get_card("Village")
+    state.prophecy.on_gain(state, player, village)  # places 2 debt
+    state.prophecy.on_gain(state, player, village)  # takes those 2
+
+    assert state.harsh_winter_debt.get("Village", 0) == 0
+    assert player.debt == 2
+
+
+def test_harsh_winter_off_turn_gain_does_nothing():
+    state = _two_player_setup()
+    state.prophecy = get_prophecy("Harsh Winter")
+    state.prophecy.is_active = True
+    state.sun_tokens = 0
+    p1, p2 = state.players
+    # Active turn = p1; p2 gains while not their turn
+    state.current_player_index = 0
+    village = get_card("Village")
+    state.prophecy.on_gain(state, p2, village)
+    assert state.harsh_winter_debt.get("Village", 0) == 0
+    assert p2.debt == 0
+
+
+def test_panic_grants_two_buys_per_treasure_play():
+    state, player = _setup()
+    state.prophecy = get_prophecy("Panic")
+    state.prophecy.is_active = True
+    state.sun_tokens = 0
+
+    silver = get_card("Silver")
+    buys_before = player.buys
+    state.prophecy.on_play_treasure(state, player, silver)
+    assert player.buys == buys_before + 2
+    assert player.panic_active is True

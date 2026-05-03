@@ -11,11 +11,11 @@ from .registry import register
 class Sickness(Prophecy):
     name: str = "Sickness"
     description: str = (
-        "While active: at the end of each player's turn (start of cleanup), "
-        "they gain a Curse onto their deck OR discard 3 cards."
+        "While active: at the start of each player's turn, they gain a Curse "
+        "onto their deck OR discard 3 cards."
     )
 
-    def on_cleanup_start(self, game_state, player) -> None:
+    def on_turn_start(self, game_state, player) -> None:
         from dominion.cards.registry import get_card
 
         choice = player.ai.choose_sickness_mode(game_state, player)

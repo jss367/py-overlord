@@ -67,7 +67,7 @@ class PlayerState:
     kintsugi_has_gained_gold: bool = False
     # Rising Sun: Prophecy-driven per-player state
     biding_time_set_aside: list = field(default_factory=list)
-    good_harvest_used_this_turn: bool = False
+    good_harvest_treasures_played: set = field(default_factory=set)
     panic_active: bool = False
     rapid_expansion_set_aside: list = field(default_factory=list)
     flourishing_trade_active: bool = False
@@ -156,7 +156,7 @@ class PlayerState:
         self.foresight_set_aside = []
         self.kintsugi_has_gained_gold = False
         self.biding_time_set_aside = []
-        self.good_harvest_used_this_turn = False
+        self.good_harvest_treasures_played = set()
         self.panic_active = False
         self.rapid_expansion_set_aside = []
         self.flourishing_trade_active = False
