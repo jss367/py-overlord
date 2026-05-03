@@ -638,6 +638,116 @@ def test_attack_reactions_offer_cards_drawn_during_reaction():
     assert hit == [], "Moat drawn via Stowaway should still block the attack"
 
 
+def test_mirror_trigger_expires_at_end_of_turn():
+    """Mirror is 'this turn' scoped; trigger must clear at cleanup if unused."""
+
+    state = GameState(players=[])
+    state.initialize_game([DummyAI()], [get_card("Village")])
+    player = state.players[0]
+    state.supply["Village"] = 10
+
+    mirror = get_event("Mirror")
+    mirror.on_buy(state, player)
+    assert player.mirror_armed is True
+
+    # No Action gained this turn — run cleanup
+    state.current_player_index = 0
+    state.handle_cleanup_phase()
+    assert player.mirror_armed is False
+
+    # On the next turn, an Action gain should NOT be doubled
+    state.supply["Village"] -= 1
+    state.gain_card(player, get_card("Village"))
+    assert sum(1 for c in player.discard if c.name == "Village") == 1
+
+
+class _FrigateVictim(DummyAI):
+    def choose_cards_to_discard(self, state, player, choices, count, *, reason=None):
+        return list(choices[:count])
+
+
+def test_prepare_play_dispatches_on_action_played():
+    """Prepared Action plays should fire on_action_played hooks (e.g. Frigate)."""
+
+    p1 = PlayerState(DummyAI())
+    p2 = PlayerState(_FrigateVictim())
+    state = GameState(players=[p1, p2])
+
+    # Set up p2 with Frigate active in their duration zone (so p1 actions
+    # trigger Frigate's discard attack on p2... wait, Frigate attacks
+    # *opponents* of its owner. Let's flip: p1 owns Frigate, attacks p2.
+    # But we want to test that p2's prepared action triggers p1's Frigate.
+    frigate = get_card("Frigate")
+    p1.duration.append(frigate)
+    frigate._owner = p1
+    frigate._active = True
+
+    village = get_card("Village")
+    p2.prepared_cards = [village]
+    p2.deck = [get_card("Copper") for _ in range(5)]
+    p2.hand = [get_card("Copper") for _ in range(6)]
+    p2.in_play = []
+    p2.duration = []
+    p2.actions = 1
+
+    state.current_player_index = 1  # p2's turn
+    state.handle_start_phase()
+
+    # p2 played Village from prepared mat. Frigate (in p1's duration) should
+    # have forced p2 to discard down to 4.
+    assert len(p2.hand) <= 4
+
+
+class _SailorAwareAI(DummyAI):
+    def sailor_should_play_duration_on_gain(self, state, player, gained_card):
+        return True
+
+
+def test_sailor_trigger_does_not_fire_on_subsequent_turn():
+    """Sailor's 'once this turn' trigger must expire at end of the turn it was
+    played. Gains during a *later* turn (e.g. Shaman gaining from trash on
+    turn N+1 before do_duration_phase runs) must NOT auto-play.
+    """
+
+    state = GameState(players=[])
+    state.initialize_game(
+        [_SailorAwareAI()],
+        [get_card("Sailor"), get_card("Crew"), get_card("Shaman")],
+    )
+    player = state.players[0]
+
+    state.supply["Crew"] = 5
+
+    # Turn 1: play Sailor.
+    sailor = get_card("Sailor")
+    player.in_play.append(sailor)
+    player.duration.append(sailor)
+    sailor.play_effect(state)
+
+    # End turn 1
+    state.current_player_index = 0
+    state.handle_cleanup_phase()
+    # Simulate next turn start (which increments turns_taken)
+    state.current_player_index = 0
+    # Drain delivered/prepared so handle_start_phase doesn't trip on dummies
+    player.delivered_cards = []
+    player.prepared_cards = []
+
+    # Manually bump the turn counter to simulate being on turn 2
+    player.turns_taken += 1
+
+    # Turn 2 — gain a Crew (a Duration card). This is the same kind of gain
+    # that triggers Sailor on turn 1, but it's now a different turn.
+    state.supply["Crew"] -= 1
+    state.gain_card(player, get_card("Crew"))
+
+    # The gained Crew should NOT have been played; it sits in discard.
+    crews_in_play = sum(1 for c in player.in_play if c.name == "Crew")
+    crews_in_discard = sum(1 for c in player.discard if c.name == "Crew")
+    assert crews_in_play == 0
+    assert crews_in_discard == 1
+
+
 def test_shaman_does_not_trigger_when_not_in_kingdom():
     state = GameState(players=[])
     state.initialize_game([_ShamanAI()], [get_card("Village")])  # No Shaman

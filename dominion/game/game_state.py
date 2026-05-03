@@ -928,6 +928,8 @@ class GameState:
         # Deliver only diverts gains during the buyer's own turn; clear the
         # flag at the end of cleanup so opponent-turn gains aren't intercepted.
         player.deliver_armed = False
+        # Mirror is "this turn"-scoped; expire any unused trigger.
+        player.mirror_armed = False
 
         # Move to next player
         if not self.extra_turn:
@@ -1622,6 +1624,10 @@ class GameState:
             # Prepare plays don't spend an action — we never decrement
             # ``player.actions`` here, so on_play's +Actions persist naturally.
             card.on_play(self)
+            # Notify cards in play (any player's) that an Action was played.
+            # Treasures fall through harmlessly because no card hooks on Treasure plays.
+            if card.is_action:
+                self._dispatch_on_action_played(player, card)
 
     def _handle_deliver_interception(
         self, gainer: PlayerState, gained_card: Card

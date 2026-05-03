@@ -21,11 +21,15 @@ class Sailor(Card):
         self.duration_persistent = True
         self._owner = None
         self._gain_play_armed = False
+        self._armed_turn = -1
 
     def play_effect(self, game_state):
         player = game_state.current_player
         self._owner = player
         self._gain_play_armed = True
+        # Sailor's "once this turn" trigger is scoped to the turn it was
+        # played; record it so subsequent turns can't fire it.
+        self._armed_turn = player.turns_taken
         player.duration.append(self)
 
     def on_duration(self, game_state):
@@ -46,6 +50,10 @@ class Sailor(Card):
         if not self._gain_play_armed:
             return
         if gainer is not self._owner or owner is not self._owner:
+            return
+        if owner.turns_taken != self._armed_turn:
+            # Trigger has expired — Sailor was played on a previous turn.
+            self._gain_play_armed = False
             return
         if not gained_card.is_duration:
             return
