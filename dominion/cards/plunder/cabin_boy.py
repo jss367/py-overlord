@@ -51,7 +51,9 @@ class CabinBoy(Card):
             gain = durations[0]
             game_state.supply[gain.name] -= 1
             game_state.gain_card(player, gain)
+            # Stay 'persistent' so do_duration_phase doesn't try to remove
+            # this from player.duration again — we've already cleaned up.
+            self.duration_persistent = True
         else:
             player.coins += 2
-
-        self.duration_persistent = False
+            self.duration_persistent = False

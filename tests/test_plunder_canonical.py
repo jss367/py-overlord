@@ -252,6 +252,33 @@ def test_mirror_doubles_next_action_gain():
     assert player.mirror_armed is False
 
 
+def test_mirror_trigger_consumed_even_when_declined():
+    """Mirror fires on first Action gain whether or not the copy is taken."""
+
+    class _DeclineMirrorAI(DummyAI):
+        def should_use_mirror(self, state, player, gained_card):
+            return False
+
+    player = PlayerState(_DeclineMirrorAI())
+    state = GameState(players=[player])
+    state.supply["Village"] = 10
+
+    mirror = get_event("Mirror")
+    mirror.on_buy(state, player)
+    assert player.mirror_armed is True
+
+    # First Action gain: declined; trigger consumed
+    state.supply["Village"] -= 1
+    state.gain_card(player, get_card("Village"))
+    assert player.mirror_armed is False
+    assert sum(1 for c in player.discard if c.name == "Village") == 1
+
+    # Second Action gain: should NOT trigger Mirror
+    state.supply["Village"] -= 1
+    state.gain_card(player, get_card("Village"))
+    assert sum(1 for c in player.discard if c.name == "Village") == 2
+
+
 def test_mirror_does_not_double_treasure():
     player = PlayerState(DummyAI())
     state = GameState(players=[player])
@@ -291,12 +318,42 @@ def test_deliver_diverts_gains_to_mat():
     assert not any(c.name == "Silver" for c in player.discard)
 
 
+def test_deliver_clears_at_end_of_buyer_cleanup():
+    """Deliver only affects gains during the buyer's own turn.
+
+    Once the buyer's cleanup phase ends, deliver_armed should be cleared so
+    that gains the buyer makes during opponent turns (e.g. via reactions)
+    are not diverted.
+    """
+
+    p1 = PlayerState(DummyAI())
+    p2 = PlayerState(DummyAI())
+    state = GameState(players=[p1, p2])
+    state.supply["Silver"] = 10
+
+    deliver = get_event("Deliver")
+    deliver.on_buy(state, p1)
+    assert p1.deliver_armed is True
+
+    # Run p1's cleanup
+    state.current_player_index = 0
+    state.handle_cleanup_phase()
+    assert p1.deliver_armed is False
+
+    # Now if p1 somehow gains during p2's turn, it should NOT be diverted
+    state.supply["Silver"] -= 1
+    state.gain_card(p1, get_card("Silver"))
+    assert any(c.name == "Silver" for c in p1.discard)
+    assert not any(c.name == "Silver" for c in p1.delivered_cards)
+
+
 def test_deliver_returns_cards_to_hand_at_start_of_next_turn():
     state = GameState(players=[])
     state.initialize_game([DummyAI()], [get_card("Village")])
     player = state.players[0]
     player.delivered_cards = [get_card("Silver"), get_card("Estate")]
-    player.deliver_armed = True
+    # deliver_armed was already cleared at end of last cleanup; the mat
+    # carries the cards forward.
 
     state.current_player_index = 0
     state.handle_start_phase()
@@ -304,7 +361,6 @@ def test_deliver_returns_cards_to_hand_at_start_of_next_turn():
     assert any(c.name == "Silver" for c in player.hand)
     assert any(c.name == "Estate" for c in player.hand)
     assert player.delivered_cards == []
-    assert player.deliver_armed is False
 
 
 # ---------------------------------------------------------------------------
@@ -344,6 +400,7 @@ def test_prepare_plays_set_aside_cards_at_start_of_next_turn():
     player.deck = [get_card("Copper") for _ in range(5)]
     player.hand = []
     player.in_play = []
+    player.actions = 1
 
     state.current_player_index = 0
     state.handle_start_phase()
@@ -351,9 +408,10 @@ def test_prepare_plays_set_aside_cards_at_start_of_next_turn():
     # Both prepared cards should be in play
     assert silver in player.in_play
     assert village in player.in_play
-    # Silver gave +$2; Village gave +1 Card and +2 Actions (but actions
-    # restored under Prepare's "free play" semantics).
+    # Silver gave +$2; Village gave +2 Actions (preserved — Prepare plays
+    # don't spend an action).
     assert player.coins == 2
+    assert player.actions == 3  # base 1 + 2 from Village
     assert player.prepared_cards == []
 
 
@@ -469,6 +527,45 @@ class _ShamanAI(DummyAI):
             if c is not None:
                 return c
         return None
+
+
+class _CabinBoyTrashAI(DummyAI):
+    def cabin_boy_should_trash(self, state, player, durations):
+        return True
+
+    def choose_buy(self, state, choices):
+        for c in choices:
+            if c is not None and c.name == "Sailor":
+                return c
+        return None
+
+
+def test_cabin_boy_trash_branch_does_not_crash_in_duration_phase():
+    """Regression: trash branch must not double-remove self from duration list."""
+
+    state = GameState(players=[])
+    state.initialize_game(
+        [_CabinBoyTrashAI()],
+        [get_card("Cabin Boy"), get_card("Sailor")],
+    )
+    player = state.players[0]
+    state.supply["Sailor"] = 5
+
+    cabin_boy = get_card("Cabin Boy")
+    player.in_play.append(cabin_boy)
+    player.duration.append(cabin_boy)
+    cabin_boy.duration_persistent = True
+
+    # Run the real duration phase, which is where the crash would surface.
+    state.do_duration_phase()
+
+    assert cabin_boy in state.trash
+    assert cabin_boy not in player.duration
+    assert cabin_boy not in player.in_play
+    # Sailor was gained
+    assert any(
+        c.name == "Sailor" for c in player.discard + player.deck + player.hand
+    )
 
 
 def test_shaman_does_not_trigger_when_not_in_kingdom():

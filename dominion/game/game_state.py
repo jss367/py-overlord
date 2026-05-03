@@ -299,7 +299,6 @@ class GameState:
         if self.current_player.delivered_cards:
             self.current_player.hand.extend(self.current_player.delivered_cards)
             self.current_player.delivered_cards = []
-        self.current_player.deliver_armed = False
 
         # Resolve any Prepare cards set aside last turn: play them in any
         # order, then they end up in play (and get discarded normally at
@@ -925,6 +924,9 @@ class GameState:
         ]
         player.highwayman_blocked_this_turn = False
         player.insignia_active = False
+        # Deliver only diverts gains during the buyer's own turn; clear the
+        # flag at the end of cleanup so opponent-turn gains aren't intercepted.
+        player.deliver_armed = False
 
         # Move to next player
         if not self.extra_turn:
@@ -1610,11 +1612,9 @@ class GameState:
 
         for card in cards:
             player.in_play.append(card)
-            actions_before = player.actions
+            # Prepare plays don't spend an action — we never decrement
+            # ``player.actions`` here, so on_play's +Actions persist naturally.
             card.on_play(self)
-            # Restore actions: Prepare lets you play actions without spending.
-            if card.is_action:
-                player.actions = actions_before
 
     def _handle_deliver_interception(
         self, gainer: PlayerState, gained_card: Card
@@ -1637,18 +1637,27 @@ class GameState:
                 return
 
     def _handle_mirror_reaction(self, gainer: PlayerState, gained_card: Card) -> None:
-        """Mirror event: next Action gained may be doubled."""
+        """Mirror event: next Action gained may be doubled.
+
+        The trigger is consumed on the first eligible Action gain whether or
+        not the player chooses to take the extra copy ("the next time you
+        gain an Action card" fires once per Mirror buy).
+        """
 
         if not getattr(gainer, "mirror_armed", False):
             return
         if not gained_card.is_action:
             return
+
+        # Consume the trigger on this Action gain regardless of the player's
+        # decision below.
+        gainer.mirror_armed = False
+
         if self.supply.get(gained_card.name, 0) <= 0:
             return
         if not gainer.ai.should_use_mirror(self, gainer, gained_card):
             return
 
-        gainer.mirror_armed = False
         self.supply[gained_card.name] -= 1
         from ..cards.registry import get_card
         self.gain_card(gainer, get_card(gained_card.name))
