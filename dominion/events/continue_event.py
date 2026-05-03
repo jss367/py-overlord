@@ -76,6 +76,36 @@ class Continue(Event):
 
         zone.remove(gained)
         player.in_play.append(gained)
-        # Returning to the Action phase to play this gain doesn't consume an
-        # Action play.
-        gained.on_play(game_state)
+
+        # Per rulebook: "you return to your Action phase; and you play the
+        # Action card you gained." Switch the phase back so the gain plays
+        # under Action-phase semantics (Daimyo replays, Prophecy hooks).
+        game_state.phase = "action"
+
+        daimyo_replays = getattr(player, "daimyo_pending", 0)
+        player.daimyo_pending = 0
+        plays = 1 + daimyo_replays
+        for _ in range(plays):
+            gained.on_play(game_state)
+            if game_state.prophecy is not None and game_state.prophecy.is_active:
+                game_state.prophecy.on_play_action(game_state, player, gained)
+                # Continue can't gain Attack cards, so on_play_attack is dead
+
+        # Let the player use any remaining Action plays from hand. This loop
+        # also picks up any Shadow cards now exposed in the deck.
+        game_state.handle_action_phase()
+
+        # Skip the Treasure phase per the general rule "you cannot play further
+        # Treasures that turn after buying an Event," but return to Buy phase
+        # so the outer buy loop continues and 'start of Buy phase' abilities
+        # can repeat (Flourishing Trade in particular).
+        game_state.phase = "buy"
+        if (
+            game_state.prophecy is not None
+            and game_state.prophecy.is_active
+            and game_state.prophecy.name == "Flourishing Trade"
+            and player.actions > 0
+        ):
+            converted = player.actions
+            player.actions = 0
+            player.buys += converted

@@ -450,6 +450,48 @@ def test_continue_is_once_per_turn():
     assert Continue().may_be_bought(state, player) is False
 
 
+def test_continue_returns_to_action_phase_for_more_plays():
+    """After Continue's gain plays, the player should be back in Action phase
+    and able to play remaining Actions from hand."""
+    state, player = _setup()
+    state.supply["Village"] = 10
+    # Hand: another Village ready to play after Continue resolves
+    player.hand = [get_card("Village")]
+    player.deck = [get_card("Copper") for _ in range(10)]
+    player.in_play = []
+    player.actions = 0  # only Continue's +1 Action enables hand play
+
+    coins_before = player.coins
+    actions_before = player.actions
+    get_event("Continue").on_buy(state, player)
+
+    # The gained Village played (in_play count), and the Village from hand
+    # also played because handle_action_phase ran after returning to Action.
+    village_plays = sum(1 for c in player.in_play if c.name == "Village")
+    assert village_plays == 2, f"expected 2 Villages in play, got {village_plays}"
+    assert state.phase == "buy", "should be back in Buy phase after Continue"
+
+
+def test_continue_fires_prophecy_hooks_on_gained_play():
+    """Great Leader is active: each Action play grants +1 Action. Continue's
+    play of the gained card must trigger the Prophecy hook just like a
+    normal Action-phase play would."""
+    state, player = _setup()
+    state.prophecy = get_prophecy("Great Leader")
+    state.prophecy.is_active = True
+    state.sun_tokens = 0
+    state.supply["Village"] = 10
+    player.hand = []
+    player.in_play = []
+    player.deck = [get_card("Copper") for _ in range(5)]
+    actions_before = player.actions
+
+    get_event("Continue").on_buy(state, player)
+    # Continue: +1 Action; gained Village plays (+2 Actions); Great Leader
+    # fires after the play (+1 Action). Net = +4 actions over baseline.
+    assert player.actions >= actions_before + 4
+
+
 def test_kintsugi_requires_gold_for_gain():
     state, player = _setup()
     player.kintsugi_has_gained_gold = False
