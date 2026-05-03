@@ -795,3 +795,47 @@ def test_panic_grants_two_buys_per_treasure_play():
     state.prophecy.on_play_treasure(state, player, silver)
     assert player.buys == buys_before + 2
     assert player.panic_active is True
+
+
+def test_riverboat_fires_prophecy_hooks_on_set_aside_play():
+    """Riverboat plays the set-aside card directly during the duration phase;
+    Great Leader (active) should still grant +1 Action after that play."""
+    state = GameState(players=[])
+    festival = get_card("Festival")
+    state.initialize_game(
+        [_GainFirstAI()],
+        [get_card("Village")],
+        riverboat_set_aside=festival,
+    )
+    state.prophecy = get_prophecy("Great Leader")
+    state.prophecy.is_active = True
+    state.sun_tokens = 0
+
+    player = state.players[0]
+    riverboat = get_card("Riverboat")
+    player.duration = [riverboat]
+    riverboat.duration_persistent = True
+    actions_before = player.actions
+
+    riverboat.on_duration(state)
+    # Festival gives +2 Actions; Great Leader adds +1 after the play.
+    assert player.actions == actions_before + 3
+
+
+def test_practice_fires_prophecy_hooks_on_each_play():
+    """Practice plays the chosen Action twice; Great Leader should grant
+    +1 Action after each of those plays."""
+    state, player = _setup()
+    state.prophecy = get_prophecy("Great Leader")
+    state.prophecy.is_active = True
+    state.sun_tokens = 0
+
+    village = get_card("Village")  # +1 Card +2 Actions
+    player.hand = [village]
+    player.deck = [get_card("Copper") for _ in range(10)]
+    actions_before = player.actions
+
+    get_event("Practice").on_buy(state, player)
+    # Village played twice → +4 Actions from Village; Great Leader fires
+    # twice → +2 Actions. Net +6 over baseline.
+    assert player.actions == actions_before + 6

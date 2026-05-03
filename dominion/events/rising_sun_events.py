@@ -253,8 +253,12 @@ class Practice(Event):
             return
         player.hand.remove(chosen)
         player.in_play.append(chosen)
+        # Each play fires the active Prophecy's after-Action hooks, matching
+        # what handle_action_phase would do.
         chosen.on_play(game_state)
+        game_state.fire_prophecy_action_hooks(player, chosen)
         chosen.on_play(game_state)
+        game_state.fire_prophecy_action_hooks(player, chosen)
 
 
 class ReceiveTribute(Event):

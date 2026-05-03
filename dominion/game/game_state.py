@@ -90,6 +90,20 @@ class GameState:
     def current_player(self) -> PlayerState:
         return self.players[self.current_player_index]
 
+    def fire_prophecy_action_hooks(self, player: PlayerState, card: Card) -> None:
+        """Fire the active Prophecy's after-Action-play hooks for ``card``.
+
+        Used by Continue / Riverboat / Practice and any other code path that
+        plays an Action card outside ``handle_action_phase``. The hooks are
+        the same ones the action phase loop fires after each Action play
+        (Great Leader's +1 Action, Approaching Army's +$1 from Attacks).
+        """
+        if self.prophecy is None or not self.prophecy.is_active:
+            return
+        self.prophecy.on_play_action(self, player, card)
+        if card.is_attack:
+            self.prophecy.on_play_attack(self, player, card)
+
     def remove_sun_token(self, count: int = 1) -> None:
         """Omen +1 Sun: remove ``count`` Sun tokens from the active Prophecy.
 

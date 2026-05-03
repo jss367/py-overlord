@@ -32,4 +32,7 @@ class Riverboat(Card):
         # (per rulebook: "This doesn't move the set aside card; it stays set
         # aside, even if it has instructions on it that would move it.").
         target.on_play(game_state)
+        # Active prophecies (Great Leader, Approaching Army, etc.) react to
+        # this play just like an Action-phase play would.
+        game_state.fire_prophecy_action_hooks(player, target)
         self.duration_persistent = False

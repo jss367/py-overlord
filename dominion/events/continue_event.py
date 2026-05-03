@@ -87,9 +87,7 @@ class Continue(Event):
         plays = 1 + daimyo_replays
         for _ in range(plays):
             gained.on_play(game_state)
-            if game_state.prophecy is not None and game_state.prophecy.is_active:
-                game_state.prophecy.on_play_action(game_state, player, gained)
-                # Continue can't gain Attack cards, so on_play_attack is dead
+            game_state.fire_prophecy_action_hooks(player, gained)
 
         # Let the player use any remaining Action plays from hand. This loop
         # also picks up any Shadow cards now exposed in the deck.
