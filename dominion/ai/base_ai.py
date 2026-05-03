@@ -605,3 +605,163 @@ class AI(ABC):
     def should_topdeck_treasury(self, state: GameState, player: PlayerState) -> bool:
         """Decide whether to topdeck Treasury at end of buy phase."""
         return True
+
+    # --- Seaside hooks -------------------------------------------------
+
+    def choose_card_to_set_aside_for_haven(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Pick a card to set aside under Haven for next turn.
+
+        Default: prefer the most valuable Action; otherwise the most expensive
+        Treasure. Skip if the only options are clear junk.
+        """
+        if not choices:
+            return None
+
+        actions = [c for c in choices if c.is_action]
+        if actions:
+            return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+
+        treasures = [c for c in choices if c.is_treasure and c.name != "Copper"]
+        if treasures:
+            return max(treasures, key=lambda c: (c.cost.coins, c.name))
+
+        return None
+
+    def choose_card_to_ambassador(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Pick a card to "reveal" with Ambassador (and return copies of)."""
+        if not choices:
+            return None
+
+        # Prefer to recycle the worst card we have copies of.
+        priorities = ["Curse", "Estate", "Hovel", "Overgrown Estate", "Copper"]
+        for name in priorities:
+            for c in choices:
+                if c.name == name:
+                    return c
+        return None
+
+    def choose_pile_to_embargo(
+        self, state: GameState, player: PlayerState
+    ) -> Optional[str]:
+        """Choose which Supply pile to place an Embargo token on.
+
+        Default: embargo Province if available; otherwise the most expensive
+        Action / Victory in the Supply.
+        """
+        from ..cards.registry import get_card
+
+        if state.supply.get("Province", 0) > 0:
+            return "Province"
+
+        candidates = []
+        for name, count in state.supply.items():
+            if count <= 0:
+                continue
+            if name in {"Curse", "Copper"}:
+                continue
+            try:
+                card = get_card(name)
+            except ValueError:
+                continue
+            candidates.append((card.cost.coins, name))
+
+        if not candidates:
+            return None
+        candidates.sort(reverse=True)
+        return candidates[0][1]
+
+    def choose_smugglers_target(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Pick the most valuable card to smuggle (default: highest cost)."""
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.is_action, c.name))
+
+    def choose_card_to_set_aside_for_island(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Pick a card from hand to send to the Island mat with Island."""
+        if not choices:
+            return None
+
+        # Prefer to exile junk (Curse > non-Action Victory > Copper).
+        priorities = ["Curse", "Estate", "Hovel", "Overgrown Estate", "Copper"]
+        for name in priorities:
+            for c in choices:
+                if c.name == name:
+                    return c
+
+        # Otherwise put away a non-action victory card if any.
+        greens = [c for c in choices if c.is_victory and not c.is_action]
+        if greens:
+            return min(greens, key=lambda c: (c.cost.coins, c.name))
+
+        return None
+
+    def choose_pirate_ship_mode(
+        self, state: GameState, player: PlayerState, tokens: int
+    ) -> str:
+        """Decide between attacking and cashing in Pirate Ship tokens."""
+        if tokens >= 3:
+            return "coins"
+        return "attack"
+
+    def choose_treasure_to_trash_with_pirate_ship(
+        self,
+        state: GameState,
+        player: PlayerState,
+        target: PlayerState,
+        treasures: list[Card],
+    ) -> Optional[Card]:
+        """Pick which revealed Treasure to trash from the target."""
+        if not treasures:
+            return None
+        return max(treasures, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_card_to_gain_with_blockade(
+        self, state: GameState, player: PlayerState, max_cost: int
+    ) -> Optional[Card]:
+        """Pick a Supply card costing up to ``max_cost`` to gain with Blockade."""
+        from ..cards.registry import get_card
+
+        candidates = []
+        for name, count in state.supply.items():
+            if count <= 0:
+                continue
+            try:
+                card = get_card(name)
+            except ValueError:
+                continue
+            if card.cost.coins > max_cost:
+                continue
+            if card.cost.potions > 0 or card.cost.debt > 0:
+                continue
+            if card.name == "Curse":
+                continue
+            candidates.append(card)
+
+        if not candidates:
+            return None
+        return max(candidates, key=lambda c: (c.cost.coins, c.is_action, c.name))
+
+    def should_play_gain_with_sailor(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """Decide whether to play a freshly gained Action via Sailor."""
+        return gained_card.is_action
+
+    def choose_sailor_trash(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Pick a card to optionally trash at the start of Sailor's next turn."""
+        priorities = ["Curse", "Estate", "Hovel", "Overgrown Estate", "Copper"]
+        for name in priorities:
+            for c in choices:
+                if c.name == name:
+                    return c
+        return None

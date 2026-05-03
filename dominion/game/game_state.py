@@ -32,6 +32,7 @@ class GameState:
     farmers_market_pile_tokens: int = 0
     temple_pile_tokens: int = 0
     tireless_piles: set = field(default_factory=set)  # card names with Tireless trait
+    embargo_tokens: dict[str, int] = field(default_factory=dict)
       
 
     def __post_init__(self):
@@ -509,7 +510,11 @@ class GameState:
                 getattr(player, "highwayman_attacks", 0) > 0
                 and not getattr(player, "highwayman_blocked_this_turn", False)
             )
-            if blocked:
+            corsair_trashed = self._maybe_corsair_trash(player, choice)
+
+            if corsair_trashed:
+                coins_after = player.coins
+            elif blocked:
                 player.highwayman_blocked_this_turn = True
                 coins_after = player.coins
             else:
@@ -610,6 +615,7 @@ class GameState:
                 gained_card = self.gain_card(player, choice)
 
                 self._handle_on_buy_in_play_effects(player, choice, gained_card)
+                self._apply_embargo_tokens(player, choice.name)
 
                 if player.goons_played:
                     player.vp_tokens += player.goons_played
@@ -821,8 +827,12 @@ class GameState:
             player.trickster_set_aside = []
         player.trickster_uses_remaining = 0
 
+        # Outpost: schedule an extra turn for this player with a 3-card hand.
+        outpost_extra_turn = bool(getattr(player, "outpost_pending", False))
+        cards_to_draw = 3 if outpost_extra_turn else 5
+
         # Draw new hand
-        player.draw_cards(5)
+        player.draw_cards(cards_to_draw)
 
         # Tireless: put set-aside cards on top of deck after drawing
         for card in tireless_set_aside:
@@ -850,8 +860,19 @@ class GameState:
         ]
         player.highwayman_blocked_this_turn = False
         player.insignia_active = False
+        player.sailor_play_uses = 0
+        player.corsair_trashed_this_turn = False
+        # Rotate gain history for Smugglers.
+        player.gained_cards_last_turn = list(getattr(player, "gained_cards_this_turn", []))
+        player.gained_cards_this_turn = []
+        # Outpost bookkeeping.
+        player.outpost_taken_last_turn = outpost_extra_turn
+        player.outpost_pending = False
 
         # Move to next player
+        if outpost_extra_turn:
+            self.extra_turn = True
+
         if not self.extra_turn:
             self.current_player_index = (self.current_player_index + 1) % len(self.players)
             if self.current_player_index == 0:
@@ -1149,7 +1170,23 @@ class GameState:
         if hasattr(player, "cards_gained_this_turn"):
             player.cards_gained_this_turn += 1
 
+        # Track names of cards gained this turn (for Smugglers).
+        if hasattr(player, "gained_cards_this_turn"):
+            player.gained_cards_this_turn.append(actual_card.name)
+
+        # Sailor: once per turn, may play a non-Sailor Action gained this turn.
+        self._handle_sailor_gain(player, actual_card)
+
         return actual_card
+
+    def _handle_sailor_gain(self, player: PlayerState, gained_card: Card) -> None:
+        """Trigger Sailor's "may play this gain" effect for the gainer's own gains."""
+        if getattr(player, "sailor_play_uses", 0) <= 0:
+            return
+        for card in list(player.duration):
+            if card.name == "Sailor" and hasattr(card, "on_gain_for_owner"):
+                if card.on_gain_for_owner(self, player, gained_card):
+                    return
 
     def _handle_gatekeeper_exile(
         self, player: PlayerState, card: Card, on_deck: bool, reclaimed: "Card | None"
@@ -1419,6 +1456,10 @@ class GameState:
             self.log_callback(("action", player.ai.name, "reveals Shield to block the attack", {}))
             return True
 
+        if any(card.name == "Lighthouse" for card in player.duration):
+            self.log_callback(("action", player.ai.name, "is protected by Lighthouse", {}))
+            return True
+
         if self._maybe_reveal_moat(player):
             return True
 
@@ -1475,13 +1516,44 @@ class GameState:
                     break
 
     def _handle_opponent_gain_hooks(self, gainer: PlayerState, gained_card: Card) -> None:
-        """Resolve project hooks that trigger when another player gains a card."""
+        """Resolve project / duration hooks that trigger when another player gains a card."""
         for player in self.players:
             if player is gainer:
                 continue
             for project in player.projects:
                 if hasattr(project, "on_opponent_gain"):
                     project.on_opponent_gain(self, player, gained_card)
+            # Duration cards (Monkey, Blockade) can react to opponent gains.
+            for card in list(player.duration):
+                if hasattr(card, "on_opponent_gain"):
+                    card.on_opponent_gain(self, player, gainer, gained_card)
+
+    def _maybe_corsair_trash(self, treasure_player: PlayerState, treasure_card: Card) -> bool:
+        """Let any opposing Corsair trash the first Silver/Gold of the turn."""
+        if treasure_card.name not in {"Silver", "Gold"}:
+            return False
+        if getattr(treasure_player, "corsair_trashed_this_turn", False):
+            return False
+
+        for other in self.players:
+            if other is treasure_player:
+                continue
+            for card in list(other.duration):
+                if card.name == "Corsair" and hasattr(card, "react_to_treasure_played"):
+                    if card.react_to_treasure_played(self, treasure_player, treasure_card):
+                        return True
+        return False
+
+    def _apply_embargo_tokens(self, buyer: PlayerState, card_name: str) -> None:
+        """Give the buyer a Curse for each Embargo token on the bought pile."""
+        from ..cards.registry import get_card
+
+        tokens = self.embargo_tokens.get(card_name, 0)
+        for _ in range(tokens):
+            if self.supply.get("Curse", 0) <= 0:
+                break
+            self.supply["Curse"] -= 1
+            self.gain_card(buyer, get_card("Curse"))
 
     def _update_final_metrics(self):
         """Update final game metrics including victory points."""
