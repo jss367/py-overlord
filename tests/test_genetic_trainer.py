@@ -20,7 +20,11 @@ def make_stub_strategy() -> BaseStrategy:
 
 
 def test_evaluate_strategy_counts_second_seat_wins(monkeypatch):
-    trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=2)
+    # shape_rewards=False to keep this asserting raw win-rate behavior.
+    trainer = GeneticTrainer(
+        ["Village"], population_size=1, generations=1, games_per_eval=2,
+        shape_rewards=False,
+    )
 
     # Provide a deterministic strategy under test
     strategy = make_stub_strategy()
@@ -31,7 +35,9 @@ def test_evaluate_strategy_counts_second_seat_wins(monkeypatch):
         call_counter.count += 1
         # Big Money (second_ai in the first call) wins when our strategy leads.
         # Our strategy (second_ai in the second call) wins when going second.
-        return second_ai, {}, None, 0
+        # Provide minimal scores so reward shaping (when on) has data.
+        scores = {first_ai.name: 0, second_ai.name: 1}
+        return second_ai, scores, None, 0
 
     monkeypatch.setattr(trainer.battle_system, "run_game", fake_run_game)
 
@@ -227,9 +233,10 @@ class TestRandomConditionVocabulary:
         """Sampling 400 conditions should produce at least one of each new primitive."""
         random_local = __import__("random")
         random_local.seed(0)
+        trainer = GeneticTrainer(["Village", "Smithy", "Market"], population_size=1, generations=1)
         sources: set[str] = set()
         for _ in range(400):
-            cond = GeneticTrainer._random_condition()
+            cond = trainer._random_condition()
             if cond is None:
                 continue
             src = getattr(cond, "_source", "")
@@ -246,6 +253,55 @@ class TestRandomConditionVocabulary:
         }
         missing = expected - sources
         assert not missing, f"Random vocabulary missing: {missing}. Got: {sources}"
+
+    def test_random_condition_includes_cauldron_primitives(self):
+        """Sampling many conditions should produce card_in_play, actions_gained_this_turn,
+        and cards_gained_this_turn — the new vocabulary needed for Cauldron-style triggers."""
+        random_local = __import__("random")
+        random_local.seed(1)
+        trainer = GeneticTrainer(["Village", "Smithy", "Market"], population_size=1, generations=1)
+        sources: set[str] = set()
+        for _ in range(800):
+            cond = trainer._random_condition()
+            if cond is None:
+                continue
+            src = getattr(cond, "_source", "")
+            sources.add(src.split("(")[0])
+
+        expected = {
+            "PriorityRule.card_in_play",
+            "PriorityRule.actions_gained_this_turn",
+            "PriorityRule.cards_gained_this_turn",
+        }
+        missing = expected - sources
+        assert not missing, f"Cauldron vocabulary missing: {missing}. Got: {sources}"
+
+    def test_random_condition_card_in_play_uses_kingdom_action(self):
+        """When _random_condition returns card_in_play it must reference one of the
+        kingdom action cards, not a hard-coded card name."""
+        random_local = __import__("random")
+        random_local.seed(2)
+        kingdom = ["Village", "Smithy", "Market"]
+        trainer = GeneticTrainer(kingdom, population_size=1, generations=1)
+        seen_cards: set[str] = set()
+        for _ in range(800):
+            cond = trainer._random_condition()
+            if cond is None:
+                continue
+            src = getattr(cond, "_source", "")
+            if not src.startswith("PriorityRule.card_in_play("):
+                continue
+            # Extract the card name from the source string
+            inner = src[len("PriorityRule.card_in_play("):-1]
+            # inner is repr-form, e.g. "'Village'" — strip surrounding quotes
+            card_name = inner.strip().strip("'").strip('"')
+            seen_cards.add(card_name)
+
+        assert seen_cards, "card_in_play was never sampled"
+        # Every sampled card must be a real kingdom action card
+        assert seen_cards <= set(kingdom), (
+            f"card_in_play sampled non-kingdom names: {seen_cards - set(kingdom)}"
+        )
 
 
 class TestSourceAttribute:
@@ -384,7 +440,7 @@ class TestPanelEvaluation:
     """Verify panel-based fitness: split games across multiple opponents."""
 
     def test_panel_evaluation_distributes_games_across_opponents(self, monkeypatch):
-        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4)
+        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4, shape_rewards=False)
         strategy = make_stub_strategy()
 
         opp_a = _make_dummy_opponent("OpponentA")
@@ -406,7 +462,7 @@ class TestPanelEvaluation:
         assert games_against["OpponentB"] == 2, games_against
 
     def test_panel_fitness_is_mean_of_per_opponent_rates(self, monkeypatch):
-        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4)
+        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4, shape_rewards=False)
         strategy = make_stub_strategy()
         strategy.name = "Stub"
 
@@ -432,7 +488,7 @@ class TestPanelEvaluation:
     def test_panel_evaluation_uses_full_games_budget(self, monkeypatch):
         """games_per_eval=10 with 3 opponents should run exactly 10 total games
         (distributed 4+3+3), not 9 from floor division."""
-        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=10)
+        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=10, shape_rewards=False)
         strategy = make_stub_strategy()
 
         opp_a = _make_dummy_opponent("A")
@@ -460,7 +516,7 @@ class TestPanelEvaluation:
         """Two panel members sharing a name (e.g. both BigMoneySmithy variants)
         must both contribute to the breakdown — a dict keyed by name silently
         loses one of them."""
-        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4)
+        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4, shape_rewards=False)
         strategy = make_stub_strategy()
         strategy.name = "Stub"
 
@@ -488,7 +544,7 @@ class TestPanelEvaluation:
         )
 
     def test_panel_per_opponent_breakdown_is_exposed(self, monkeypatch):
-        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4)
+        trainer = GeneticTrainer(["Village"], population_size=1, generations=1, games_per_eval=4, shape_rewards=False)
         strategy = make_stub_strategy()
         strategy.name = "Stub"
 

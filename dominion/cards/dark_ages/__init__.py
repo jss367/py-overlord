@@ -1,5 +1,8 @@
 from .beggar import Beggar
+from .feodum import Feodum
 from .forager import Forager
+from .hunting_grounds import HuntingGrounds
+from .market_square import MarketSquare
 from .rats import Rats
 from .rebuild import Rebuild
 from .shelters import Hovel, Necropolis, OvergrownEstate
@@ -16,7 +19,10 @@ from .sage import Sage
 
 __all__ = [
     'Beggar',
+    'Feodum',
     'Forager',
+    'HuntingGrounds',
+    'MarketSquare',
     'Rats',
     'Rebuild',
     'Hovel',

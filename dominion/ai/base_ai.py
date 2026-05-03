@@ -361,6 +361,22 @@ class AI(ABC):
 
         return list(cards)
 
+    def should_react_with_market_square(
+        self, state: GameState, player: PlayerState, trashed_card: Card
+    ) -> bool:
+        """Decide whether to discard Market Square to gain a Gold."""
+
+        return True
+
+    def choose_hunting_grounds_reward(
+        self, state: GameState, player: PlayerState
+    ) -> str:
+        """Choose between gaining a Duchy or three Estates when Hunting Grounds is trashed."""
+
+        if state.supply.get("Duchy", 0) > 0:
+            return "duchy"
+        return "estates"
+
     def choose_way(self, state: GameState, card: Card, ways: list) -> Optional[object]:
         """Choose a Way to use when playing a card. Default is none."""
         return None
