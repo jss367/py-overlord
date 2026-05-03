@@ -32,6 +32,8 @@ class CardType(Enum):
     REACTION = "reaction"
     DURATION = "duration"
     COMMAND = "command"
+    SHADOW = "shadow"
+    OMEN = "omen"
 
 
 class Card:
@@ -77,6 +79,14 @@ class Card:
     def is_command(self) -> bool:
         return CardType.COMMAND in self.types
 
+    @property
+    def is_shadow(self) -> bool:
+        return CardType.SHADOW in self.types
+
+    @property
+    def is_omen(self) -> bool:
+        return CardType.OMEN in self.types
+
     def get_victory_points(self, player) -> int:
         """Get victory points this card provides for the given player."""
         return self.stats.vp
@@ -92,6 +102,14 @@ class Card:
     def on_play(self, game_state):
         """Execute this card's effects when played."""
         player = game_state.current_player
+
+        # Rising Sun: "+1 Sun" always appears first on Omens, before any
+        # other text. Removing the last Sun token activates the Prophecy in
+        # the middle of resolving the Omen (e.g. so Kitsune sees the new
+        # rule before its own choices apply).
+        if self.is_omen:
+            game_state.remove_sun_token(1)
+
         if player.ignore_action_bonuses:
             added_actions = 0
         else:
