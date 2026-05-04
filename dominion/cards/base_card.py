@@ -45,6 +45,8 @@ class CardType(Enum):
     DOOM = "doom"
     ZOMBIE = "zombie"
     LIAISON = "liaison"
+    RESERVE = "reserve"
+    TRAVELLER = "traveller"
 
 
 class Card:
@@ -141,6 +143,12 @@ class Card:
     @property
     def is_heirloom(self) -> bool:
         return CardType.HEIRLOOM in self.types
+    def is_reserve(self) -> bool:
+        return CardType.RESERVE in self.types
+
+    @property
+    def is_traveller(self) -> bool:
+        return CardType.TRAVELLER in self.types
 
     @property
     def is_liaison(self) -> bool:
@@ -238,6 +246,23 @@ class Card:
     def on_trash(self, game_state, player):
         """Effects that happen when card is trashed. Override in subclasses."""
         pass
+
+    # Adventures: Travellers expose ``next_traveller`` (a card name) to be
+    # exchanged into when the card is discarded from play. Default ``None`` so
+    # non-Traveller cards never trigger exchange logic.
+    next_traveller: "str | None" = None
+
+    def on_call_from_tavern(
+        self, game_state, player, trigger: str, *args, **kwargs
+    ) -> bool:
+        """Optional hook for Reserve cards on the Tavern mat.
+
+        Called by the engine on each known trigger ("start_of_turn",
+        "action_played", "buy", "gain", "cleanup_start"). Subclasses should
+        return True if they actually called this card off the mat (the engine
+        will then move the card from ``tavern_mat`` to ``discard``).
+        """
+        return False
 
     def react_to_attack(self, game_state, player, attacker, attack_card) -> bool:
         """React to an incoming attack from another player.

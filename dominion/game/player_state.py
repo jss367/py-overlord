@@ -156,6 +156,40 @@ class PlayerState:
     ghost_pending_actions: list = field(default_factory=list)
     # Nocturne — Boons pending at start of next turn (Blessed Village).
     pending_blessed_boons: int = 0
+    # Adventures: Reserve cards live on the Tavern mat across turns until called
+    tavern_mat: list[Card] = field(default_factory=list)
+    # Adventures: Distant Lands counts as 4 VP only while still on the Tavern mat at game end.
+    distant_lands_played: int = 0
+    # Adventures: -1 Card tokens on deck reduce next end-of-turn redraw.
+    minus_card_tokens: int = 0
+    # Adventures Champion: persistent Action-immunity giver.
+    champions_in_play: int = 0
+    # Adventures Hireling: stays in play, +1 Card per turn.
+    hirelings_in_play: int = 0
+    # Adventures Mission: skip the buy phase on the extra turn.
+    mission_used_this_turn: bool = False
+    mission_no_buy_turn: bool = False
+    # Adventures Pilgrimage.
+    pilgrimage_used_this_turn: bool = False
+    # Adventures Travelling Fair: while active, may topdeck gains this turn.
+    travelling_fair_active: bool = False
+    # Adventures Save event.
+    save_set_aside: list[Card] = field(default_factory=list)
+    # Adventures Expedition.
+    expedition_extra_draws: int = 0
+    # Adventures Plan event: pile names where Plan placed the trash token.
+    plan_trash_piles: set = field(default_factory=set)
+    # Adventures Inheritance.
+    inherited_action_name: "str | None" = None
+    inheritance_used: bool = False
+    # Adventures Borrow / Alms once-per-turn locks.
+    borrow_used_this_turn: bool = False
+    alms_used_this_turn: bool = False
+    # Adventures Bridge Troll.
+    bridge_trolls_in_play: int = 0
+    # Adventures Haunted Woods / Swamp Hag pending.
+    haunted_woods_attacks: int = 0
+    swamp_hag_attacks: int = 0
 
     def initialize(self, use_shelters: bool = False, heirlooms: list[str] = None):
         """Set up starting deck and draw initial hand.
@@ -306,6 +340,27 @@ class PlayerState:
         self.ghost_pending_actions = []
         self.pending_blessed_boons = 0
 
+        # Adventures resets
+        self.tavern_mat = []
+        self.distant_lands_played = 0
+        self.minus_card_tokens = 0
+        self.champions_in_play = 0
+        self.hirelings_in_play = 0
+        self.mission_used_this_turn = False
+        self.mission_no_buy_turn = False
+        self.pilgrimage_used_this_turn = False
+        self.travelling_fair_active = False
+        self.save_set_aside = []
+        self.expedition_extra_draws = 0
+        self.plan_trash_piles = set()
+        self.inherited_action_name = None
+        self.inheritance_used = False
+        self.borrow_used_this_turn = False
+        self.alms_used_this_turn = False
+        self.bridge_trolls_in_play = 0
+        self.haunted_woods_attacks = 0
+        self.swamp_hag_attacks = 0
+
         # Draw initial hand of 5 cards
         self.draw_cards(5)
 
@@ -420,6 +475,8 @@ class PlayerState:
             self.delayed_cards,
             self.flagship_pending,
             self.clerk_pending_replay,
+            self.tavern_mat,
+            self.save_set_aside,
         ]
 
         cards: list[Card] = []
