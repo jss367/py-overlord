@@ -955,3 +955,184 @@ def test_sailor_grants_two_coins_next_turn():
     coins_before = player.coins
     sailor.on_duration(state)
     assert player.coins == coins_before + 2
+
+
+# -- Sea Chart ---------------------------------------------------------------
+
+
+def test_sea_chart_reveals_and_takes_when_no_copy_in_play():
+    state = _make_state()
+    player = state.players[0]
+
+    sea_chart = get_card("Sea Chart")
+    # deck[-1] = top. We want Sea Chart's +1 Card to draw the Copper
+    # (top), then reveal Village, no matching Village in play, so Village
+    # goes to hand.
+    village = get_card("Village")
+    copper = get_card("Copper")
+    player.deck = [village, copper]  # bottom=village, top=copper
+    player.hand = [sea_chart]
+
+    play_action(state, player, sea_chart)
+
+    # +1 Card drew the Copper from the top.
+    assert copper in player.hand
+    # Sea Chart then revealed the new top (Village). No copy of Village in
+    # play, so Village goes to hand.
+    assert village in player.hand
+    assert player.deck == []
+
+
+def test_sea_chart_revealed_card_stays_when_matching_copy_in_play():
+    state = _make_state()
+    player = state.players[0]
+
+    sea_chart = get_card("Sea Chart")
+    matching = get_card("Village")
+    village_top = get_card("Village")
+    # Place a Village already in play, and arrange for the reveal to land
+    # on a Village too.
+    player.in_play = [matching]
+    # Top of deck after +1 Card draw must be Village.
+    # We need at least 2 cards: top one drawn by +1 Card, top of remaining
+    # is what Sea Chart reveals.
+    drawn_first = get_card("Copper")
+    player.deck = [village_top, drawn_first]  # top=drawn_first, then village_top
+    player.hand = [sea_chart]
+
+    play_action(state, player, sea_chart)
+
+    # +1 Card drew the Copper.
+    assert drawn_first in player.hand
+    # Sea Chart revealed Village. Copy of Village IS in play (the one set
+    # aside as `matching`), so revealed card stays on top of the deck.
+    assert village_top not in player.hand
+    assert player.deck and player.deck[-1] is village_top
+
+
+# -- Lighthouse vs Witch -----------------------------------------------------
+
+
+def test_lighthouse_blocks_witch_curse():
+    """A defender with a Lighthouse in their duration zone must not gain a
+    Curse when an opponent plays Witch.
+    """
+    state = _make_state(num_players=2)
+    attacker, defender = state.players
+    state.current_player_index = 0
+
+    # Defender has a Lighthouse in duration (i.e. previously played).
+    defender.duration.append(get_card("Lighthouse"))
+
+    # Need Curses in supply.
+    state.supply["Curse"] = 10
+    initial_curse_supply = state.supply["Curse"]
+
+    witch = get_card("Witch")
+    attacker.hand = [witch]
+    play_action(state, attacker, witch)
+
+    # Defender shouldn't have gained a Curse.
+    assert not any(c.name == "Curse" for c in defender.discard)
+    assert not any(c.name == "Curse" for c in defender.hand)
+    assert state.supply["Curse"] == initial_curse_supply
+
+
+def test_lighthouse_played_then_witch_attacks_no_curse():
+    """End-to-end: defender plays Lighthouse on their turn; when an opponent
+    later plays Witch (still during the Lighthouse's duration window), the
+    defender is immune.
+    """
+    state = _make_state(num_players=2)
+    defender, attacker = state.players
+    state.current_player_index = 0
+
+    # Defender plays Lighthouse on their own turn.
+    lighthouse = get_card("Lighthouse")
+    defender.hand = [lighthouse]
+    play_action(state, defender, lighthouse)
+    assert lighthouse in defender.duration
+
+    # Hand off the turn.
+    state.current_player_index = 1
+    state.supply["Curse"] = 10
+    initial_curses = state.supply["Curse"]
+
+    witch = get_card("Witch")
+    attacker.hand = [witch]
+    play_action(state, attacker, witch)
+
+    assert not any(c.name == "Curse" for c in defender.discard)
+    assert state.supply["Curse"] == initial_curses
+
+
+def test_lighthouse_immunity_ends_after_duration_resolves():
+    """Once Lighthouse's on_duration runs (next turn cleanup), the card is
+    no longer in the duration zone and immunity ends.
+    """
+    state = _make_state(num_players=2)
+    defender, attacker = state.players
+    state.current_player_index = 0
+
+    lighthouse = get_card("Lighthouse")
+    defender.duration.append(lighthouse)
+
+    # Resolve the duration effect (start of defender's next turn).
+    lighthouse.on_duration(state)
+    # Mimic GameState.do_duration_phase removing it after the effect.
+    if not lighthouse.duration_persistent:
+        defender.duration.remove(lighthouse)
+        defender.discard.append(lighthouse)
+
+    assert lighthouse not in defender.duration
+
+    # Now an attack should land — defender takes a curse.
+    state.current_player_index = 1
+    state.supply["Curse"] = 10
+    witch = get_card("Witch")
+    attacker.hand = [witch]
+    play_action(state, attacker, witch)
+
+    assert any(c.name == "Curse" for c in defender.discard)
+
+
+# -- Treasury topdeck end-to-end --------------------------------------------
+
+
+def test_treasury_topdecks_to_top_of_deck():
+    """Treasury's on_buy_phase_end places the card on the top of the deck
+    (i.e. ``deck[-1]``), so it will be drawn first next turn.
+    """
+    state = _make_state()
+    player = state.players[0]
+
+    treasury = get_card("Treasury")
+    other = get_card("Copper")
+    player.in_play = [treasury]
+    player.deck = [other]  # bottom card
+    player.gained_victory_this_turn = False
+
+    treasury.on_buy_phase_end(state)
+
+    # Treasury should be the top of the deck now.
+    assert player.deck and player.deck[-1] is treasury
+    assert treasury not in player.in_play
+
+
+def test_treasury_does_not_topdeck_when_action_phase_victory_gained():
+    """gained_victory_this_turn covers Action-phase Victory gains too
+    (e.g. Workshop, Charm, Ironworks gaining an Estate).
+    """
+    state = _make_state()
+    player = state.players[0]
+
+    treasury = get_card("Treasury")
+    player.in_play = [treasury]
+    # Simulate a Victory card gain during the Action phase.
+    player.gained_victory_this_turn = True
+    player.gained_victory_this_buy_phase = False
+
+    treasury.on_buy_phase_end(state)
+
+    assert treasury in player.in_play
+    assert treasury not in player.deck

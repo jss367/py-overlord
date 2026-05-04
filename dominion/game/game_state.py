@@ -384,6 +384,7 @@ class GameState:
         player.cauldron_triggered = False
         player.cards_gained_this_turn = 0
         player.gained_victory_this_buy_phase = False
+        player.gained_victory_this_turn = False
         player.flagship_pending = [
             card for card in player.flagship_pending if card in player.duration
         ]
@@ -1378,6 +1379,11 @@ class GameState:
 
         if actual_card.is_victory and player is self.current_player and self.phase == "buy":
             player.gained_victory_this_buy_phase = True
+
+        # Treasury cares about Victory cards gained anywhere on your turn
+        # (Action phase via Workshop / Charm / Ironworks counts too).
+        if actual_card.is_victory and player is self.current_player:
+            player.gained_victory_this_turn = True
 
         if hasattr(player, "cards_gained_this_turn"):
             player.cards_gained_this_turn += 1

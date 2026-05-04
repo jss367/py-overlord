@@ -182,7 +182,7 @@ def test_treasury_topdecks_when_no_victory_gained():
     state, player = _setup(ai)
     treasury = get_card("Treasury")
     player.in_play = [treasury]
-    player.gained_victory_this_buy_phase = False
+    player.gained_victory_this_turn = False
 
     treasury.on_buy_phase_end(state)
 
@@ -195,7 +195,7 @@ def test_treasury_stays_when_victory_gained():
     state, player = _setup(ai)
     treasury = get_card("Treasury")
     player.in_play = [treasury]
-    player.gained_victory_this_buy_phase = True
+    player.gained_victory_this_turn = True
 
     treasury.on_buy_phase_end(state)
 
@@ -208,7 +208,7 @@ def test_treasury_stays_when_ai_declines():
     state, player = _setup(ai)
     treasury = get_card("Treasury")
     player.in_play = [treasury]
-    player.gained_victory_this_buy_phase = False
+    player.gained_victory_this_turn = False
 
     treasury.on_buy_phase_end(state)
 
