@@ -1791,15 +1791,53 @@ class GameState:
         player.actions_gained_this_turn += 1
 
         if (
-            player.actions_gained_this_turn >= 3
+            player.actions_gained_this_turn == 3
             and not player.cauldron_triggered
             and any(card_in_play.name == "Cauldron" for card_in_play in player.in_play)
         ):
+            player.cauldron_triggered = True
+
+            cauldron_card = next(
+                (c for c in player.in_play if c.name == "Cauldron"),
+                None,
+            )
+
+            self.log_callback(
+                (
+                    "action",
+                    player.ai.name,
+                    "Cauldron triggers (3rd Action gained)",
+                    {},
+                )
+            )
+
+            def curse_target(target):
+                if self.supply.get("Curse", 0) <= 0:
+                    return
+                self.give_curse_to_player(target)
+                target_name = (
+                    self.logger.format_player_name(target.ai.name)
+                    if self.logger
+                    else target.ai.name
+                )
+                self.log_callback(
+                    (
+                        "action",
+                        player.ai.name,
+                        f"Cauldron gives curse to {target_name}",
+                        {"curses_remaining": self.supply.get("Curse", 0)},
+                    )
+                )
+
             for other in self.players:
                 if other is player:
                     continue
-                self.give_curse_to_player(other)
-            player.cauldron_triggered = True
+                self.attack_player(
+                    other,
+                    curse_target,
+                    attacker=player,
+                    attack_card=cauldron_card,
+                )
 
     def player_has_shield(self, player: PlayerState) -> bool:
         """Check if the player has a Shield card in hand."""
