@@ -177,13 +177,36 @@ def test_hasty_sets_aside_then_plays_next_turn():
     assert any(c.name == "Village" for c in player.in_play)
 
 
+def test_hasty_sets_aside_card_gained_to_hand():
+    """Regression for PR #193 review: Hasty must trigger even when the
+    gained card lands in hand (e.g. Mining Road's gain-to-hand)."""
+    state = _make_state()
+    apply_trait(state, "Hasty", "Village")
+    player = state.current_player
+    # Simulate the gain landing in hand directly.
+    village = get_card("Village")
+    player.hand.append(village)
+    state._handle_trait_on_gain(player, village)
+    assert village not in player.hand
+    assert any(c.name == "Village" for c in state.hasty_set_aside.get(id(player), []))
+
+
 def test_inherited_replaces_starting_estate():
     state = _make_state()
-    pre_estates = sum(1 for c in state.current_player.deck if c.name == "Estate")
-    pre_villages = sum(1 for c in state.current_player.deck if c.name == "Village")
+    # Ensure at least one Estate is in the deck (initial shuffle may have
+    # dealt every starting Estate into the opening hand). Inherited only
+    # operates on the deck.
+    player = state.current_player
+    if not any(c.name == "Estate" for c in player.deck):
+        for i, c in enumerate(player.hand):
+            if c.name == "Estate":
+                player.deck.append(player.hand.pop(i))
+                break
+    pre_estates = sum(1 for c in player.deck if c.name == "Estate")
+    pre_villages = sum(1 for c in player.deck if c.name == "Village")
     apply_trait(state, "Inherited", "Village")
-    post_estates = sum(1 for c in state.current_player.deck if c.name == "Estate")
-    post_villages = sum(1 for c in state.current_player.deck if c.name == "Village")
+    post_estates = sum(1 for c in player.deck if c.name == "Estate")
+    post_villages = sum(1 for c in player.deck if c.name == "Village")
     assert post_estates == pre_estates - 1
     assert post_villages == pre_villages + 1
 

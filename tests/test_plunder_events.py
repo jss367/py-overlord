@@ -266,3 +266,58 @@ def test_prosper_gains_one_of_each_loot():
     discard_names = {c.name for c in player.discard}
     for name in LOOT_CARD_NAMES:
         assert name in discard_names
+
+
+def test_launch_lockout_clears_at_turn_start():
+    """Regression for PR #193 review: launch_used must reset each turn so
+    Launch is once-per-turn rather than once-per-game."""
+    state = _make_state(num_players=2)
+    player = state.players[0]
+    state.current_player_index = 0
+    player.deck = [get_card("Copper")]
+    launch = get_event("Launch")
+    launch.on_buy(state, player)
+    assert player.launch_used is True
+    assert not launch.may_be_bought(state, player)
+    # Cycle: end turn (player 0) → next player → back to player 0.
+    state.current_player_index = 1
+    state.handle_start_phase()
+    state.current_player_index = 0
+    state.handle_start_phase()
+    # After our next turn-start, Launch should be buyable again.
+    assert player.launch_used is False
+    assert launch.may_be_bought(state, player)
+
+
+def test_deliver_sets_aside_one_gain_and_returns_to_hand_next_turn():
+    """Regression for PR #193 review: Deliver must set aside the next gained
+    card (one gain) and return it to hand at start of next turn — it must
+    not act as a broad topdeck redirect."""
+    state = _make_state(num_players=2)
+    player = state.players[0]
+    state.current_player_index = 0
+    deliver = get_event("Deliver")
+    deliver.on_buy(state, player)
+    # First gain: Silver should be set aside, not put in deck/discard.
+    state.supply["Silver"] -= 1
+    state.gain_card(player, get_card("Silver"))
+    assert any(c.name == "Silver" for c in player.deliver_set_aside)
+    assert not any(c.name == "Silver" for c in player.discard)
+    assert not any(c.name == "Silver" for c in player.deck)
+    # Second gain in same turn must NOT be redirected (only one Deliver buy).
+    state.supply["Gold"] -= 1
+    state.gain_card(player, get_card("Gold"))
+    # Gold should land in discard normally (not on deliver_set_aside, not
+    # forced to deck).
+    assert any(c.name == "Gold" for c in player.discard)
+    assert not any(c.name == "Gold" for c in player.deliver_set_aside)
+    # Pending counter consumed.
+    assert player.deliver_pending_count == 0
+    # Cycle to next turn for player 0.
+    state.current_player_index = 1
+    state.handle_start_phase()
+    state.current_player_index = 0
+    state.handle_start_phase()
+    # Set-aside Silver returned to hand.
+    assert any(c.name == "Silver" for c in player.hand)
+    assert player.deliver_set_aside == []

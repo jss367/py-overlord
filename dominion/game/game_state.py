@@ -763,14 +763,25 @@ class GameState:
             )
         )
 
+        # Plunder per-turn flag resets. Performed BEFORE the duration phase
+        # so that any cards trashed by start-of-turn duration effects
+        # (e.g. Secluded Shrine) count toward this turn's "cards trashed
+        # this turn" total used by Crucible.
+        self.current_player.cards_trashed_this_turn = 0
+        self.current_player.mining_road_triggered = False
+        self.current_player.search_triggered = False
+        # Plunder Launch event: reset the once-per-turn lockout.
+        self.current_player.launch_used = False
+
         # Only log duration phase if there are duration cards
         if self.current_player.duration:
             self.do_duration_phase()
 
-        # Plunder per-turn flag resets.
-        self.current_player.cards_trashed_this_turn = 0
-        self.current_player.mining_road_triggered = False
-        self.current_player.search_triggered = False
+        # Plunder Deliver event: return any set-aside gains to hand.
+        deliver_set_aside = getattr(self.current_player, "deliver_set_aside", None)
+        if deliver_set_aside:
+            self.current_player.hand.extend(deliver_set_aside)
+            self.current_player.deliver_set_aside = []
 
         # Plunder Shy trait: discard Shy-pile cards in hand for +2 Cards.
         self._handle_shy_start_of_turn(self.current_player)
@@ -863,8 +874,28 @@ class GameState:
                 non_v = [c for c in candidates if not c.is_victory]
                 pick = (non_v or candidates)[0]
                 if self.supply.get(pick.name, 0) > 0:
+                    # Route the gain through gain_card so on-gain hooks
+                    # (gained-this-turn counters, Watchtower, Trader, Royal
+                    # Seal, Allies/Landmark gain reactions, etc.) all fire
+                    # consistently with every other gain path. Then move
+                    # the gained copy from its destination zone onto the
+                    # Quartermaster mat where the card text places it.
                     self.supply[pick.name] -= 1
-                    self.quartermaster_mats[id(player)].append(pick)
+                    gained = self.gain_card(player, get_card(pick.name))
+                    if gained is None:
+                        continue
+                    if gained in player.discard:
+                        player.discard.remove(gained)
+                    elif gained in player.deck:
+                        player.deck.remove(gained)
+                    elif gained in player.hand:
+                        player.hand.remove(gained)
+                    else:
+                        # Card was relocated by a reaction (e.g. Watchtower
+                        # trashed it, Trader exchanged it for Silver). In
+                        # that case skip placing it on the mat.
+                        continue
+                    self.quartermaster_mats[id(player)].append(gained)
 
     def do_duration_phase(self):
         """Handle effects of duration cards from previous turn."""
@@ -2347,6 +2378,11 @@ class GameState:
 
         # Plunder Mining Road: first Treasure gained → gain a Treasure to hand.
         self._handle_mining_road_gain(player, actual_card)
+
+        # Plunder Deliver event: set aside the next gain to return to hand
+        # at the start of the next turn. Only consume the pending count if
+        # the card is in a movable zone (discard/deck/hand).
+        self._handle_deliver_gain(player, actual_card)
         # Generic "while this is in play, when you gain a card ..." hook used
         # by Allies cards like Galleria and Skirmisher. In-play cards may
         # implement on_owner_gain(game_state, player, gained_card).
@@ -2388,11 +2424,17 @@ class GameState:
                 self.gain_card(player, get_card("Silver"))
 
         if trait == "Hasty":
+            # Hasty: gained card is set aside and played at the start of the
+            # next turn, regardless of which zone the card landed in (gains
+            # to hand via Mining Road / Artisan-style effects still trigger
+            # Hasty per the Trait's text).
             zone = None
             if gained_card in player.discard:
                 zone = player.discard
             elif gained_card in player.deck:
                 zone = player.deck
+            elif gained_card in player.hand:
+                zone = player.hand
             if zone is not None:
                 zone.remove(gained_card)
                 self.hasty_set_aside.setdefault(id(player), []).append(gained_card)
@@ -2434,12 +2476,17 @@ class GameState:
         if not pending:
             return
         landing = pending.pop(0)
+        # Locate and remove the gained card from wherever it landed
+        # (discard, deck, or hand via gain-to-hand effects). If we cannot
+        # find it, abandon the Landing Party trigger rather than re-queueing
+        # forever — the gain has already been processed by the caller.
         if gained_card in player.discard:
             player.discard.remove(gained_card)
         elif gained_card in player.deck:
             player.deck.remove(gained_card)
+        elif gained_card in player.hand:
+            player.hand.remove(gained_card)
         else:
-            pending.insert(0, landing)
             return
         if landing in player.duration:
             player.duration.remove(landing)
@@ -2447,6 +2494,31 @@ class GameState:
             player.in_play.remove(landing)
         player.deck.append(landing)
         player.deck.append(gained_card)
+
+    def _handle_deliver_gain(self, player: PlayerState, gained_card: Card) -> None:
+        """Handle a Deliver event "set aside next gain" trigger.
+
+        Each Deliver buy queues exactly one set-aside; subsequent Delivers
+        stack. The gained card is removed from whichever zone it landed in
+        (discard, deck, or hand) and stashed on player.deliver_set_aside,
+        to be returned to hand at the start of the next turn.
+        """
+        if getattr(player, "deliver_pending_count", 0) <= 0:
+            return
+        # Find the gained card in any movable zone.
+        if gained_card in player.discard:
+            player.discard.remove(gained_card)
+        elif gained_card in player.deck:
+            player.deck.remove(gained_card)
+        elif gained_card in player.hand:
+            player.hand.remove(gained_card)
+        else:
+            # Card landed somewhere we cannot move it from (e.g. trashed
+            # by Watchtower, exiled, etc.); leave the trigger pending for
+            # a subsequent gain rather than silently consuming it.
+            return
+        player.deliver_pending_count -= 1
+        player.deliver_set_aside.append(gained_card)
 
     def _handle_mining_road_gain(self, player: PlayerState, gained_card: Card) -> None:
         if player is not self.current_player:

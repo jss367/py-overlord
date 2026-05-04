@@ -112,8 +112,14 @@ class PlayerState:
     search_triggered: bool = False
     avoid_pending: int = 0
     deliver_pending: list = field(default_factory=list)
+    # Plunder Deliver event: number of upcoming gains to set aside, and the
+    # cards already set aside awaiting return-to-hand at next turn start.
+    deliver_pending_count: int = 0
+    deliver_set_aside: list = field(default_factory=list)
     bury_mat: list = field(default_factory=list)
     prepare_set_aside: list = field(default_factory=list)
+    # Plunder Launch event: once-per-turn lockout (reset at turn start).
+    launch_used: bool = False
     cage_state: object = None
     grotto_set_aside: list = field(default_factory=list)
     # Prosperity 2E: Tiara grants once-per-turn replay-treasure
@@ -263,8 +269,11 @@ class PlayerState:
         self.search_triggered = False
         self.avoid_pending = 0
         self.deliver_pending = []
+        self.deliver_pending_count = 0
+        self.deliver_set_aside = []
         self.bury_mat = []
         self.prepare_set_aside = []
+        self.launch_used = False
         self.cage_state = None
         self.grotto_set_aside = []
         self.tiara_replay_used = False
