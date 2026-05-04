@@ -24,6 +24,7 @@ from .pirate import Pirate
 from .pirate_ship import PirateShip
 from .sailor import Sailor
 from .salvager import Salvager
+from .sea_chart import SeaChart
 from .sea_hag import SeaHag
 from .sea_witch import SeaWitch
 from .smugglers import Smugglers
@@ -60,6 +61,7 @@ __all__ = [
     'PirateShip',
     'Sailor',
     'Salvager',
+    'SeaChart',
     'SeaHag',
     'SeaWitch',
     'Smugglers',
