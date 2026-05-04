@@ -125,43 +125,99 @@ class Peril(Event):
 
 
 class Scrounge(Event):
-    """$4 Event: Trash an Estate from your hand to gain a Gold. Otherwise,
-    gain an Estate.
+    """$3 Event: Choose one: Trash a card from your hand; or gain an Estate
+    from the trash. If you trashed an Estate, also gain a Duchy.
     """
 
     def __init__(self):
-        super().__init__("Scrounge", CardCost(coins=4))
+        super().__init__("Scrounge", CardCost(coins=3))
 
     def on_buy(self, game_state, player) -> None:
-        estate_in_hand = next(
-            (c for c in player.hand if c.name == "Estate"), None
-        )
+        estate_in_trash = any(c.name == "Estate" for c in game_state.trash)
 
-        if estate_in_hand is not None:
-            player.hand.remove(estate_in_hand)
-            game_state.trash_card(player, estate_in_hand)
-            if game_state.supply.get("Gold", 0) > 0:
-                game_state.supply["Gold"] -= 1
-                game_state.gain_card(player, get_card("Gold"))
+        decision = "trash"
+        if hasattr(player.ai, "scrounge_choice"):
+            decision = player.ai.scrounge_choice(
+                game_state, player, estate_in_trash
+            )
+            if decision not in {"trash", "gain_estate"}:
+                decision = "trash"
+
+        if decision == "gain_estate":
+            if estate_in_trash:
+                # Pull an Estate from the trash; gain it normally.
+                for idx, c in enumerate(game_state.trash):
+                    if c.name == "Estate":
+                        estate = game_state.trash.pop(idx)
+                        game_state.gain_card(player, estate, from_supply=False)
+                        return
             return
 
-        if game_state.supply.get("Estate", 0) > 0:
-            game_state.supply["Estate"] -= 1
-            game_state.gain_card(player, get_card("Estate"))
+        # decision == "trash"
+        if not player.hand:
+            return
+
+        choice = player.ai.choose_card_to_trash(
+            game_state, list(player.hand) + [None]
+        )
+        if choice is None or choice not in player.hand:
+            return
+
+        was_estate = choice.name == "Estate"
+        player.hand.remove(choice)
+        game_state.trash_card(player, choice)
+
+        if was_estate and game_state.supply.get("Duchy", 0) > 0:
+            game_state.supply["Duchy"] -= 1
+            game_state.gain_card(player, get_card("Duchy"))
 
 
 class Prosper(Event):
-    """$10 Event: Gain a Loot and one Treasure of each cost up through Gold."""
+    """$10 Event: Gain a Loot, then any number of differently named Treasures
+    from the supply.
+    """
 
     def __init__(self):
         super().__init__("Prosper", CardCost(coins=10))
 
     def on_buy(self, game_state, player) -> None:
         _gain_random_loot(game_state, player)
-        for name in ("Silver", "Gold"):
-            if game_state.supply.get(name, 0) > 0:
-                game_state.supply[name] -= 1
-                game_state.gain_card(player, get_card(name))
+
+        # Build the list of unique Treasure cards available in the supply.
+        seen_names: set[str] = set()
+        available = []
+        for name, count in game_state.supply.items():
+            if count <= 0:
+                continue
+            if name in seen_names:
+                continue
+            card = get_card(name)
+            if not card.is_treasure:
+                continue
+            seen_names.add(name)
+            available.append(card)
+
+        chosen: list = []
+        if hasattr(player.ai, "prosper_choose_treasures"):
+            chosen = player.ai.prosper_choose_treasures(
+                game_state, player, list(available)
+            )
+            if not isinstance(chosen, list):
+                chosen = []
+        else:
+            # Default: take Silver and Gold (most universally valuable).
+            chosen = [c for c in available if c.name in {"Silver", "Gold"}]
+
+        # Enforce "differently named" — at most one of each name.
+        gained_names: set[str] = set()
+        for card in chosen:
+            if card.name in gained_names:
+                continue
+            if game_state.supply.get(card.name, 0) <= 0:
+                continue
+            gained_names.add(card.name)
+            game_state.supply[card.name] -= 1
+            game_state.gain_card(player, get_card(card.name))
 
 
 class Journey(Event):
@@ -220,33 +276,34 @@ class Mirror(Event):
 
 
 class Invasion(Event):
-    """$10 Event: Gain an Action card. Each other player gains a Curse."""
+    """$10 Event: Play an Attack card from your hand. Gain a Duchy, a Gold,
+    a Loot, and a Province.
+    """
 
     def __init__(self):
         super().__init__("Invasion", CardCost(coins=10))
 
     def on_buy(self, game_state, player) -> None:
-        actions_available = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            card = get_card(name)
-            if card.is_action and card.cost.potions == 0:
-                actions_available.append(card)
-
-        if actions_available:
-            actions_available.sort(
-                key=lambda c: (c.cost.coins, c.name), reverse=True
+        # Optional: play an Attack from hand.
+        attacks_in_hand = [c for c in player.hand if c.is_attack]
+        if attacks_in_hand:
+            choice = player.ai.choose_action(
+                game_state, list(attacks_in_hand) + [None]
             )
-            choice = player.ai.choose_buy(
-                game_state, list(actions_available) + [None]
-            )
-            if choice is None or game_state.supply.get(choice.name, 0) <= 0:
-                choice = actions_available[0]
-            game_state.supply[choice.name] -= 1
-            game_state.gain_card(player, choice)
+            if choice is not None and choice in player.hand:
+                player.hand.remove(choice)
+                player.in_play.append(choice)
+                choice.on_play(game_state)
+                game_state._dispatch_on_action_played(player, choice)
 
-        for other in game_state.players:
-            if other is player:
-                continue
-            game_state.give_curse_to_player(other)
+        # Sequential gains.
+        for name in ("Duchy", "Gold"):
+            if game_state.supply.get(name, 0) > 0:
+                game_state.supply[name] -= 1
+                game_state.gain_card(player, get_card(name))
+
+        _gain_random_loot(game_state, player)
+
+        if game_state.supply.get("Province", 0) > 0:
+            game_state.supply["Province"] -= 1
+            game_state.gain_card(player, get_card("Province"))

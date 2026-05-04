@@ -572,6 +572,31 @@ class AI(ABC):
         """Decide whether to take Amphora's bonus immediately."""
         return True
 
+    def scrounge_choice(
+        self, state: GameState, player: PlayerState, can_gain_estate_from_trash: bool
+    ) -> str:
+        """For Scrounge, return 'trash' or 'gain_estate'.
+
+        Default: prefer 'trash' (which can gain a Duchy if you trashed an
+        Estate); fall back to 'gain_estate' if the hand is empty.
+        """
+
+        if not player.hand:
+            return "gain_estate" if can_gain_estate_from_trash else "trash"
+        return "trash"
+
+    def prosper_choose_treasures(
+        self, state: GameState, player: PlayerState, available: list
+    ) -> list:
+        """For Prosper, choose any number of differently named Treasures to gain.
+
+        Default: gain Silver, Gold, and Platinum if present (skip Coppers and
+        any junk Treasures).
+        """
+
+        good = {"Silver", "Gold", "Platinum"}
+        return [c for c in available if c.name in good]
+
     def choose_torturer_attack(self, state: GameState, player: PlayerState) -> bool:
         """Choose whether to discard two cards or gain a Curse from Torturer.
 
