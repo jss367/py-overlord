@@ -407,6 +407,10 @@ class GameState:
         # Merchant's "first Silver this turn = +$1" tracking
         player.merchant_silver_bonus = 0
         player.merchant_silver_bonus_used = False
+        # Prosperity 2E: Tiara's once-per-turn replay resets each turn
+        player.tiara_replay_used = False
+        # Prosperity 2E: War Chest names tracked per turn
+        player.war_chest_named_this_turn = []
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
@@ -704,6 +708,22 @@ class GameState:
                 if self.prophecy is not None and self.prophecy.is_active:
                     self.prophecy.on_play_treasure(self, player, choice)
 
+                # Prosperity 2E: Tiara — once per turn, when you play a
+                # Treasure, you may play it again.
+                if (
+                    not getattr(player, "tiara_replay_used", False)
+                    and choice.name != "Tiara"
+                    and any(card.name == "Tiara" for card in player.in_play)
+                    and choice in player.in_play
+                ):
+                    if player.ai.should_replay_treasure_with_tiara(
+                        self, player, choice
+                    ):
+                        player.tiara_replay_used = True
+                        choice.on_play(self)
+                        if self.prophecy is not None and self.prophecy.is_active:
+                            self.prophecy.on_play_treasure(self, player, choice)
+
             remaining = [c.name for c in player.hand if c.is_treasure]
             context = {
                 "coins_before": coins_before,
@@ -938,6 +958,20 @@ class GameState:
         for card in list(player.in_play):
             if hasattr(card, "on_cleanup_start"):
                 card.on_cleanup_start(self)
+
+        # Prosperity 2E: Anvil and similar "when you discard this from play"
+        # cards trigger BEFORE the hand is discarded so the player can choose
+        # to discard a Treasure from their actual end-of-turn hand. Cards
+        # that opt in expose ``on_discard_from_play``; we resolve them here
+        # while leaving the card itself in play (the regular cleanup loop
+        # below will then discard it normally).
+        for card in list(player.in_play):
+            if (
+                hasattr(card, "on_discard_from_play")
+                and card not in player.duration
+                and card not in player.multiplied_durations
+            ):
+                card.on_discard_from_play(self, player)
 
         # Discard hand and in-play cards
         scheme_count = sum(1 for card in player.in_play if card.name == "Scheme")
@@ -1325,6 +1359,14 @@ class GameState:
             not destination_is_deck
             and getattr(player, "insignia_active", False)
             and player.ai.should_topdeck_with_insignia(self, player, actual_card)
+        ):
+            destination_is_deck = True
+
+        # Prosperity 2E: Tiara — while in play, gains may be topdecked.
+        if (
+            not destination_is_deck
+            and any(card.name == "Tiara" for card in player.in_play)
+            and player.ai.should_topdeck_with_tiara(self, player, actual_card)
         ):
             destination_is_deck = True
 

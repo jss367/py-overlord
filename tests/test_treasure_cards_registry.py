@@ -3,6 +3,7 @@ from dominion.cards.registry import CARD_TYPES, get_card
 
 EXPECTED_TREASURE_CARDS = {
     "Amphora",
+    "Anvil",
     "Bank",
     "Cache",
     "Capital",
@@ -12,6 +13,7 @@ EXPECTED_TREASURE_CARDS = {
     "Contraband",
     "Copper",
     "Crown",
+    "Crystal Ball",
     "Doubloons",
     "Endless Chalice",
     "Figurehead",
@@ -23,6 +25,7 @@ EXPECTED_TREASURE_CARDS = {
     "Horn of Plenty",
     "Ill-Gotten Gains",
     "Insignia",
+    "Investment",
     "Jewels",
     "Loan",
     "Masterpiece",
@@ -43,7 +46,9 @@ EXPECTED_TREASURE_CARDS = {
     "Stash",
     "Sword",
     "Talisman",
+    "Tiara",
     "Venture",
+    "War Chest",
     "Astrolabe",
     "Coronet",
     "Huge Turnip",
