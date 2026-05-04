@@ -286,6 +286,20 @@ class GameState:
                         partner = get_card(partner_name)
                         self.supply[partner_name] = partner.starting_supply(self)
 
+            # Castles split pile: add the other seven Castles with
+            # player-count-aware supply via each partner's starting_supply.
+            from dominion.cards.empires.castles import (
+                CASTLE_PILE_ORDER,
+                CastleSplitCard,
+            )
+            if isinstance(card, CastleSplitCard):
+                for partner_name in CASTLE_PILE_ORDER:
+                    if partner_name == card.name:
+                        continue
+                    if partner_name not in self.supply:
+                        partner = get_card(partner_name)
+                        self.supply[partner_name] = partner.starting_supply(self)
+
             extras = card.get_additional_piles()
             for name, count in extras.items():
                 if name not in self.supply:
@@ -336,8 +350,9 @@ class GameState:
 
     @property
     def empty_piles(self) -> int:
-        """Return number of empty supply piles, counting split/Wizards piles once."""
+        """Return number of empty supply piles, counting split/Wizards/Castles piles once."""
         from dominion.cards.allies.wizards import WIZARDS_PILE_ORDER, WizardsSplitCard
+        from dominion.cards.empires.castles import CASTLE_PILE_ORDER, CastleSplitCard
 
         counted: set[str] = set()
         empties = 0
@@ -349,6 +364,11 @@ class GameState:
                 wizard_names = set(WIZARDS_PILE_ORDER)
                 counted.update(wizard_names)
                 if all(self.supply.get(n, 0) == 0 for n in wizard_names if n in self.supply):
+                    empties += 1
+            elif isinstance(card, CastleSplitCard):
+                castle_names = set(CASTLE_PILE_ORDER)
+                counted.update(castle_names)
+                if all(self.supply.get(n, 0) == 0 for n in castle_names if n in self.supply):
                     empties += 1
             elif isinstance(card, SplitPileMixin):
                 partner = card.partner_card_name

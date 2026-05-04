@@ -492,3 +492,265 @@ def test_way_of_the_mouse_with_smithy_set_aside():
 
     # Smithy effect: +3 Cards
     assert len(player.hand) == 3
+
+
+# --- Scrap ---
+
+def test_scrap_trashes_and_grants_bonuses_per_cost():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai)
+    scrap = get_card("Scrap")
+    silver = get_card("Silver")
+    player.hand = [scrap, silver]
+    player.deck = [get_card("Copper"), get_card("Copper"), get_card("Copper")]
+    player.coins = 0
+
+    player.hand.remove(scrap)
+    player.in_play.append(scrap)
+    scrap.on_play(state)
+
+    assert silver in state.trash
+    # Silver costs $3, default heuristic alternates +Card / +$1
+    assert player.coins >= 1
+    # +1 Card was drawn at least once, so hand grew
+    assert len(player.hand) >= 1
+
+
+def test_scrap_with_zero_cost_card_does_nothing_extra():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai)
+    scrap = get_card("Scrap")
+    copper = get_card("Copper")
+    player.hand = [scrap, copper]
+    player.coins = 0
+
+    player.hand.remove(scrap)
+    player.in_play.append(scrap)
+    scrap.on_play(state)
+
+    assert copper in state.trash
+    # Copper costs $0, no bonuses granted
+    assert player.coins == 0
+    assert player.buys == 1
+
+
+# --- Abundance ---
+
+def test_abundance_immediate_and_duration_effect():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai)
+    abundance = get_card("Abundance")
+    player.coins = 0
+    player.buys = 0
+
+    player.in_play.append(abundance)
+    abundance.on_play(state)
+
+    assert player.coins == 1
+    assert player.buys == 1
+    assert abundance in player.duration
+
+    abundance.on_duration(state)
+
+    assert player.coins == 2
+    assert player.buys == 2
+    assert abundance.duration_persistent is False
+
+
+# --- Transmogrify ---
+
+def test_transmogrify_trashes_and_gains_one_more_to_hand():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai)
+    trans = get_card("Transmogrify")
+    silver = get_card("Silver")
+    player.hand = [trans, silver]
+    player.actions = 1
+
+    player.hand.remove(trans)
+    player.in_play.append(trans)
+    trans.on_play(state)
+
+    assert silver in state.trash
+    # Should gain a card costing up to $4 — some kingdom card lands in hand
+    assert any(c is not silver for c in player.hand)
+    # +1 Action
+    assert player.actions == 2
+
+
+# --- Footpad ---
+
+def test_footpad_grants_coffers_and_attacks_opponents():
+    ai = GainFirstBuyAI()
+    ai2 = DummyAI()
+    state = GameState(players=[])
+    state.initialize_game([ai, ai2], [get_card("Footpad")])
+    p1 = state.players[0]
+    p2 = state.players[1]
+
+    footpad = get_card("Footpad")
+    p1.hand = [footpad]
+    p1.coin_tokens = 0
+    p2.hand = [
+        get_card("Copper"),
+        get_card("Silver"),
+        get_card("Gold"),
+        get_card("Estate"),
+        get_card("Duchy"),
+    ]
+
+    p1.hand.remove(footpad)
+    p1.in_play.append(footpad)
+    footpad.on_play(state)
+
+    assert p1.coin_tokens == 2
+    assert len(p2.hand) == 3
+
+
+def test_footpad_does_nothing_to_small_hand():
+    ai = GainFirstBuyAI()
+    ai2 = DummyAI()
+    state = GameState(players=[])
+    state.initialize_game([ai, ai2], [get_card("Footpad")])
+    p1 = state.players[0]
+    p2 = state.players[1]
+
+    footpad = get_card("Footpad")
+    p1.hand = [footpad]
+    p2.hand = [get_card("Copper"), get_card("Silver")]
+
+    p1.hand.remove(footpad)
+    p1.in_play.append(footpad)
+    footpad.on_play(state)
+
+    assert len(p2.hand) == 2  # already at/below 3
+
+
+# --- Wall ---
+
+def test_wall_penalizes_decks_above_fifteen_cards():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai)
+    wall = get_card("Wall")
+    player.deck = [get_card("Copper") for _ in range(20)] + [wall]
+
+    # 21 cards total, 15 free, so -6 VP
+    assert wall.get_victory_points(player) == -6
+
+
+def test_wall_penalty_not_double_counted_with_multiple_walls():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai)
+    wall1 = get_card("Wall")
+    wall2 = get_card("Wall")
+    player.deck = [get_card("Copper") for _ in range(15)] + [wall1, wall2]
+
+    # 17 cards; first wall scores -2, second scores 0
+    assert wall1.get_victory_points(player) + wall2.get_victory_points(player) == -2
+
+
+# --- Castles ---
+
+def test_castles_pile_only_top_buyable():
+    ai = GainFirstBuyAI()
+    state = GameState(players=[])
+    state.initialize_game([ai, DummyAI()], [get_card("Humble Castle")])
+
+    # All eight Castles should be in the supply
+    for name in [
+        "Humble Castle",
+        "Crumbling Castle",
+        "Small Castle",
+        "Haunted Castle",
+        "Opulent Castle",
+        "Sprawling Castle",
+        "Grand Castle",
+        "King's Castle",
+    ]:
+        assert state.supply.get(name, 0) >= 1
+
+    assert get_card("Humble Castle").may_be_bought(state)
+    assert not get_card("Crumbling Castle").may_be_bought(state)
+
+    state.supply["Humble Castle"] = 0
+    assert get_card("Crumbling Castle").may_be_bought(state)
+
+
+def test_castles_pile_counts_as_single_empty_pile():
+    ai = GainFirstBuyAI()
+    state = GameState(players=[])
+    state.initialize_game([ai, DummyAI()], [get_card("Humble Castle")])
+
+    for name in [
+        "Humble Castle",
+        "Crumbling Castle",
+        "Small Castle",
+        "Haunted Castle",
+        "Opulent Castle",
+        "Sprawling Castle",
+        "Grand Castle",
+        "King's Castle",
+    ]:
+        state.supply[name] = 0
+
+    # All other piles are still stocked, so only the Castles pile is empty
+    assert state.empty_piles == 1
+
+
+def test_humble_castle_scales_vp_with_castles_owned():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai)
+    humble = get_card("Humble Castle")
+    crumbling = get_card("Crumbling Castle")
+    player.deck = [humble, crumbling, get_card("Copper")]
+
+    assert humble.get_victory_points(player) == 2  # 2 castles total
+
+
+def test_kings_castle_scores_two_vp_per_castle():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai)
+    humble = get_card("Humble Castle")
+    kings = get_card("King's Castle")
+    player.deck = [humble, kings]
+
+    assert kings.get_victory_points(player) == 4  # 2 castles * 2
+
+
+def test_crumbling_castle_grants_vp_and_silver_on_gain():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai)
+    crumbling = get_card("Crumbling Castle")
+    state.supply["Crumbling Castle"] = 1
+    state.supply["Crumbling Castle"] -= 1
+    state.gain_card(player, crumbling)
+
+    assert player.vp_tokens == 1
+    assert any(c.name == "Silver" for c in player.discard)
+
+
+def test_sprawling_castle_grants_duchy_and_three_estates_on_gain():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai)
+    sprawling = get_card("Sprawling Castle")
+    state.supply["Sprawling Castle"] = 1
+    state.supply["Sprawling Castle"] -= 1
+    state.gain_card(player, sprawling)
+
+    duchies = [c for c in player.discard if c.name == "Duchy"]
+    estates = [c for c in player.discard if c.name == "Estate"]
+    assert len(duchies) == 1
+    assert len(estates) == 3
+
+
+def test_grand_castle_scores_one_vp_per_revealed_victory():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai)
+    grand = get_card("Grand Castle")
+    player.hand = [get_card("Estate"), get_card("Duchy")]
+    state.supply["Grand Castle"] = 1
+    state.supply["Grand Castle"] -= 1
+    state.gain_card(player, grand)
+
+    # Grand Castle gives +1 VP per Victory in hand and in play (2 here)
+    assert player.vp_tokens >= 2

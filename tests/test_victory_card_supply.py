@@ -1,6 +1,10 @@
 """Tests covering supply counts for core victory piles."""
 
-from dominion.cards.empires.castles import Castle
+from dominion.cards.empires.castles import (
+    CASTLE_PILE_ORDER,
+    HumbleCastle,
+    KingsCastle,
+)
 from dominion.cards.prosperity.colony import Colony
 from dominion.cards.victory import Province
 from dominion.game.game_state import GameState
@@ -33,10 +37,21 @@ def test_colony_starting_supply_matches_province_rules():
 
 
 def test_castle_pile_has_fixed_count():
-    castle = Castle()
+    """Each Castle pile holds 1 in 2-player and 2 in 3+ player games.
 
-    assert castle.starting_supply(make_state(2)) == 8
-    assert castle.starting_supply(make_state(4)) == 8
+    With eight different Castles, the pile totals 8 cards in 2-player and
+    16 cards in 3+ player games.
+    """
+
+    humble = HumbleCastle()
+    kings = KingsCastle()
+
+    assert humble.starting_supply(make_state(2)) == 1
+    assert humble.starting_supply(make_state(4)) == 2
+    assert kings.starting_supply(make_state(2)) == 1
+    assert kings.starting_supply(make_state(4)) == 2
+
+    assert len(CASTLE_PILE_ORDER) == 8
 
 
 def test_setup_supply_uses_victory_scaling():

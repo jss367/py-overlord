@@ -40,7 +40,15 @@ from dominion.cards.expansions import (
     Graverobber,
     Hamlet,
     Capital,
-    Castle,
+    CrumblingCastle,
+    GrandCastle,
+    HauntedCastle,
+    HumbleCastle,
+    KingsCastle,
+    OpulentCastle,
+    SmallCastle,
+    SprawlingCastle,
+    Wall,
     Catapult,
     Harvest,
     Charm,
@@ -197,9 +205,11 @@ from dominion.cards.hinterlands import (
 )
 from dominion.cards.renaissance import ActingTroupe, Inventor
 from dominion.cards.allies import (
+    Abundance,
     Conjurer,
     Lich,
     Pilgrim,
+    Scrap,
     Sorcerer,
     Student,
     Taskmaster,
@@ -271,8 +281,8 @@ from dominion.cards.seaside import (
     Warehouse,
     Wharf,
 )
-from dominion.cards.adventures import Artificer, Giant, Messenger
-from dominion.cards.nocturne import TragicHero
+from dominion.cards.adventures import Artificer, Giant, Messenger, Transmogrify
+from dominion.cards.nocturne import Footpad, TragicHero
 from dominion.cards.menagerie import Destrier, Horse, HuntingLodge, Mastermind, Paddock, Gatekeeper
 from dominion.cards.rising_sun import (
     Alley,
@@ -348,7 +358,15 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Bustling Village": BustlingVillage,
     "Hamlet": Hamlet,
     "Capital": Capital,
-    "Castle": Castle,
+    "Humble Castle": HumbleCastle,
+    "Crumbling Castle": CrumblingCastle,
+    "Small Castle": SmallCastle,
+    "Haunted Castle": HauntedCastle,
+    "Opulent Castle": OpulentCastle,
+    "Sprawling Castle": SprawlingCastle,
+    "Grand Castle": GrandCastle,
+    "King's Castle": KingsCastle,
+    "Wall": Wall,
     "Catapult": Catapult,
     "Harvest": Harvest,
     "Charm": Charm,
@@ -619,6 +637,13 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Snake Witch": SnakeWitch,
     "Tanuki": Tanuki,
     "Tea House": TeaHouse,
+    # Allies extras
+    "Abundance": Abundance,
+    "Scrap": Scrap,
+    # Adventures extras
+    "Transmogrify": Transmogrify,
+    # Nocturne extras
+    "Footpad": Footpad,
 }
 
 CARD_ALIASES: dict[str, str] = {
@@ -646,6 +671,16 @@ CARD_ALIASES: dict[str, str] = {
     "Wandering minstrels": "Wandering Minstrel",
     "Hunting grounds": "Hunting Grounds",
     "Market square": "Market Square",
+    "Humble castle": "Humble Castle",
+    "Crumbling castle": "Crumbling Castle",
+    "Small castle": "Small Castle",
+    "Haunted castle": "Haunted Castle",
+    "Opulent castle": "Opulent Castle",
+    "Sprawling castle": "Sprawling Castle",
+    "Grand castle": "Grand Castle",
+    "King's castle": "King's Castle",
+    "Kings Castle": "King's Castle",
+    "Kings castle": "King's Castle",
 }
 
 

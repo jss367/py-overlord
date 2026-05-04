@@ -2,6 +2,7 @@ from dominion.cards.base_card import CardType
 from dominion.cards.registry import CARD_TYPES, get_card
 
 EXPECTED_TREASURE_CARDS = {
+    "Abundance",
     "Amphora",
     "Bank",
     "Cache",
@@ -21,6 +22,7 @@ EXPECTED_TREASURE_CARDS = {
     "Hammer",
     "Hoard",
     "Horn of Plenty",
+    "Humble Castle",
     "Ill-Gotten Gains",
     "Insignia",
     "Jewels",
@@ -52,6 +54,7 @@ EXPECTED_TREASURE_CARDS = {
 }
 
 MULTI_TYPE_TREASURES = {
+    "Abundance": {CardType.TREASURE, CardType.DURATION},
     "Amphora": {CardType.TREASURE, CardType.DURATION},
     "Astrolabe": {CardType.TREASURE, CardType.DURATION},
     "Cauldron": {CardType.TREASURE, CardType.ATTACK},
@@ -59,6 +62,7 @@ MULTI_TYPE_TREASURES = {
     "Endless Chalice": {CardType.TREASURE, CardType.DURATION},
     "Figurehead": {CardType.TREASURE, CardType.DURATION},
     "Fool's Gold": {CardType.TREASURE, CardType.REACTION},
+    "Humble Castle": {CardType.TREASURE, CardType.VICTORY},
     "Jewels": {CardType.TREASURE, CardType.DURATION},
     "Rocks": {CardType.TREASURE, CardType.VICTORY},
     "Shield": {CardType.TREASURE, CardType.REACTION},
