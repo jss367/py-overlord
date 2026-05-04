@@ -18,6 +18,7 @@ class GameState:
     projects: list = field(default_factory=list)
     ways: list = field(default_factory=list)
     allies: list = field(default_factory=list)
+    landmarks: list = field(default_factory=list)
     current_player_index: int = 0
     phase: str = "start"
     turn_number: int = 1
@@ -33,6 +34,8 @@ class GameState:
     temple_pile_tokens: int = 0
     tireless_piles: set = field(default_factory=set)  # card names with Tireless trait
     embargo_tokens: dict[str, int] = field(default_factory=dict)
+    # Empires Tax: pile_name -> debt tokens currently on the pile.
+    tax_tokens: dict[str, int] = field(default_factory=dict)
 
     # Dark Ages: ordered piles where the top card matters (Ruins, Knights).
     # ``pile_order[name]`` is a list of card-name strings; the top of the pile
@@ -145,6 +148,7 @@ class GameState:
         allies: list = None,
         prophecy: object = None,
         riverboat_set_aside: Card = None,
+        landmarks: list = None,
     ):
         """Set up the game with given AIs and kingdom cards."""
         # Create PlayerState objects for each AI
@@ -168,6 +172,9 @@ class GameState:
         self.projects = projects or []
         self.ways = ways or []
         self.allies = allies or []
+        self.landmarks = landmarks or []
+        for landmark in self.landmarks:
+            landmark.setup(self)
 
         # Rising Sun: a Prophecy is dealt out whenever any Omen card is in the
         # supply. Sun tokens are placed based on player count.
@@ -201,6 +208,12 @@ class GameState:
         if self.baker_in_supply:
             for player in self.players:
                 player.coin_tokens += 1
+
+        # Empires Tax setup: when Tax is among the events, place 1 debt token
+        # on each Supply pile at game start.
+        if any(getattr(ev, "name", None) == "Tax" for ev in (self.events or [])):
+            for pile_name in self.supply:
+                self.tax_tokens[pile_name] = self.tax_tokens.get(pile_name, 0) + 1
 
         # Allies rules: when an Ally is in the game, each player starts with
         # 1 Favor. Without this, Ally abilities can't be activated until a
@@ -303,6 +316,15 @@ class GameState:
 
             if card.name == "Baker":
                 self.baker_in_supply = True
+
+        # Empires Castles: any Castle in the kingdom expands the pile to all
+        # 8 distinct Castle cards, each with player-count-aware supply.
+        from dominion.cards.empires.castles import CASTLE_ORDER
+        if any(c.name in CASTLE_ORDER for c in kingdom_cards):
+            for name in CASTLE_ORDER:
+                castle = get_card(name)
+                self.supply[name] = castle.starting_supply(self)
+                self.original_kingdom_pile_names.add(name)
 
         if any(card.name == "Trade Route" for card in kingdom_cards):
             self.trade_route_tokens_on_piles = {}
@@ -535,6 +557,9 @@ class GameState:
         player.war_chest_named_this_turn = []
         # Coppersmith bonus is per-turn.
         player.coppersmiths_played = 0
+        # Enchantress: re-arm the "first Action this turn" override flag if a
+        # caster's Enchantress is still active over this opponent.
+        player.enchantress_used_this_turn = False
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
@@ -732,6 +757,26 @@ class GameState:
                         # +1 Card, +1 Action (instead of its normal text).
                         self.draw_cards(player, 1)
                         player.actions += 1
+                    elif (
+                        choice.is_action
+                        and getattr(player, "enchantress_active", False)
+                        and not getattr(player, "enchantress_used_this_turn", False)
+                    ):
+                        # Empires Enchantress: opponent's first Action this
+                        # turn under Enchantress's duration is replaced with
+                        # "+1 Card, +1 Action".
+                        player.enchantress_used_this_turn = True
+                        player.enchantress_active = False
+                        self.draw_cards(player, 1)
+                        player.actions += 1
+                        self.log_callback(
+                            (
+                                "action",
+                                player.ai.name,
+                                f"is enchanted while playing {choice} (gets +1 Card +1 Action instead)",
+                                {},
+                            )
+                        )
                     else:
                         choice.on_play(self)
                     if training_pile and choice.name == training_pile:
@@ -779,6 +824,10 @@ class GameState:
         if player.envious:
             player.envious = False
             player.envious_effect_active = True
+
+        # Empires Landmarks: Arena's start-of-buy discard-for-VP option.
+        for landmark in self.landmarks:
+            landmark.on_buy_phase_start(self, player)
 
         # Rising Sun Flourishing Trade: leftover Action plays become Buys.
         if (
@@ -985,6 +1034,11 @@ class GameState:
                 # Dark Ages: Hovel reacts to buying a Victory card.
                 if choice.is_victory:
                     self._handle_hovel_reaction(player)
+                self._apply_tax_tokens(player, choice.name)
+
+                # Empires Landmarks: react to buys (Basilica, Colonnade, Defiled Shrine).
+                for landmark in self.landmarks:
+                    landmark.on_buy(self, player, choice)
 
                 if player.goons_played:
                     player.vp_tokens += player.goons_played
@@ -1018,6 +1072,46 @@ class GameState:
                 card.on_buy_phase_end(self)
             if hasattr(card, "on_cleanup_return_province"):
                 card.on_cleanup_return_province(player)
+
+        # Empires Donate: resolve any pending Donate buys at end of buy phase.
+        donates = getattr(player, "donate_pending", 0)
+        if donates:
+            for _ in range(donates):
+                self._resolve_donate(player)
+            player.donate_pending = 0
+
+    def _resolve_donate(self, player: PlayerState) -> None:
+        """Empires Donate: dump hand+deck into discard, trash any from
+        discard, then put discard into deck and shuffle."""
+        import random as _random
+
+        # Move hand and deck into discard.
+        player.discard.extend(player.hand)
+        player.hand = []
+        player.discard.extend(player.deck)
+        player.deck = []
+
+        # AI trashes any cards from discard.
+        keep = []
+        to_trash = []
+        for card in list(player.discard):
+            choice = player.ai.choose_card_to_trash(self, [card, None])
+            if choice is card:
+                to_trash.append(card)
+            else:
+                keep.append(card)
+        player.discard = keep
+        for card in to_trash:
+            self.trash_card(player, card)
+
+        # Put all of discard into deck and shuffle.
+        deck = list(player.discard)
+        player.discard = []
+        _random.shuffle(deck)
+        player.deck = deck
+
+        # Draw a fresh hand of 5.
+        self.draw_cards(player, 5)
 
     def get_card_cost(self, player: PlayerState, card: Card) -> int:
         """Return the coin cost of a card after modifiers."""
@@ -1621,6 +1715,11 @@ class GameState:
         if hasattr(player, "gained_cards_this_turn"):
             player.gained_cards_this_turn.append(actual_card.name)
 
+        # Empires Landmarks: react to gains AFTER the counters are bumped so
+        # Labyrinth can see cards_gained_this_turn == 2 on the 2nd gain.
+        for landmark in self.landmarks:
+            landmark.on_gain(self, player, actual_card)
+
         # Sailor: once per turn, may play a non-Sailor Action gained this turn.
         self._handle_sailor_gain(player, actual_card)
 
@@ -2080,6 +2179,10 @@ class GameState:
             if hasattr(project, "on_trash"):
                 project.on_trash(self, player, card)
 
+        # Empires Landmarks (Tomb).
+        for landmark in self.landmarks:
+            landmark.on_trash(self, player, card)
+
         self._handle_market_square_reaction(player, card)
 
     def _handle_hovel_reaction(self, player: PlayerState) -> None:
@@ -2150,6 +2253,13 @@ class GameState:
                         return True
         return False
 
+    def _apply_tax_tokens(self, buyer: PlayerState, card_name: str) -> None:
+        """Empires Tax: buyer takes any debt tokens from the pile, then the pile resets."""
+        tokens = self.tax_tokens.get(card_name, 0)
+        if tokens > 0:
+            buyer.debt += tokens
+            self.tax_tokens[card_name] = 0
+
     def _apply_embargo_tokens(self, buyer: PlayerState, card_name: str) -> None:
         """Give the buyer a Curse for each Embargo token on the bought pile."""
         from ..cards.registry import get_card
@@ -2168,5 +2278,5 @@ class GameState:
 
         # Calculate and store final victory points for each player
         for player in self.players:
-            vp = player.get_victory_points()
+            vp = player.get_victory_points(self)
             self.logger.current_metrics.victory_points[player.ai.name] = vp

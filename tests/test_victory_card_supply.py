@@ -33,10 +33,12 @@ def test_colony_starting_supply_matches_province_rules():
 
 
 def test_castle_pile_has_fixed_count():
+    """Each Castle in the 8-pile is 1-each in 2P, 2-each in 3+P."""
+
     castle = Castle()
 
-    assert castle.starting_supply(make_state(2)) == 8
-    assert castle.starting_supply(make_state(4)) == 8
+    assert castle.starting_supply(make_state(2)) == 1
+    assert castle.starting_supply(make_state(4)) == 2
 
 
 def test_setup_supply_uses_victory_scaling():

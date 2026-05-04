@@ -1,7 +1,8 @@
-from ..base_card import Card, CardCost, CardStats, CardType
+from ..base_card import CardCost, CardStats, CardType
+from ..split_pile import TopSplitPileCard
 
 
-class Gladiator(Card):
+class Gladiator(TopSplitPileCard):
     partner_card_name = "Fortune"
 
     def __init__(self):
@@ -11,6 +12,10 @@ class Gladiator(Card):
             stats=CardStats(coins=2),
             types=[CardType.ACTION],
         )
+
+    def starting_supply(self, game_state) -> int:
+        # Empires Gladiator/Fortune split pile is 5 + 5 regardless of player count.
+        return 5
 
     def play_effect(self, game_state):
         player = game_state.current_player

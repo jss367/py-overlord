@@ -37,6 +37,7 @@ class CardType(Enum):
     RUINS = "ruins"
     KNIGHT = "knight"
     LOOTER = "looter"
+    CASTLE = "castle"
 
 
 class Card:
@@ -101,6 +102,10 @@ class Card:
     @property
     def is_looter(self) -> bool:
         return CardType.LOOTER in self.types
+
+    @property
+    def is_castle(self) -> bool:
+        return CardType.CASTLE in self.types
 
     def get_victory_points(self, player) -> int:
         """Get victory points this card provides for the given player."""
