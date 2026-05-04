@@ -44,7 +44,17 @@ class SeaChart(Card):
         # "Put it into your hand if you don't have a copy of it in play."
         # Sea Chart itself counts as "in play", so revealing another Sea
         # Chart fails the condition. Any non-matching card is put into hand.
-        has_copy_in_play = any(c.name == top.name for c in player.in_play)
+        # Duration cards remain "in play" while sitting in ``player.duration``
+        # (and ``player.multiplied_durations`` when re-played by Throne-style
+        # effects), so include those zones in the check.
+        in_play_zones = (
+            player.in_play,
+            player.duration,
+            player.multiplied_durations,
+        )
+        has_copy_in_play = any(
+            c.name == top.name for zone in in_play_zones for c in zone
+        )
         if not has_copy_in_play:
             player.deck.pop()
             player.hand.append(top)
