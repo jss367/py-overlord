@@ -138,6 +138,18 @@ class Card:
         """Effects that happen when card is bought. Override in subclasses."""
         pass
 
+    def may_overpay(self, game_state) -> bool:
+        """Whether this card supports the Guilds Overpay mechanic when bought.
+
+        Default False. Override on cards that allow overpay (Doctor, Herald,
+        Masterpiece, Stonemason).
+        """
+        return False
+
+    def on_overpay(self, game_state, player, amount: int) -> None:
+        """Effects when this card is bought with overpay. Override in subclasses."""
+        pass
+
     def on_gain(self, game_state, player):
         """Effects that happen when card is gained."""
         if self.is_action and getattr(player, "collection_played", 0) > 0:

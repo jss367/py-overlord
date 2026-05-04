@@ -1154,3 +1154,103 @@ class AI(ABC):
     ) -> bool:
         """Hook for AIs that may want to skip Charlatan's Curse attack."""
         return True
+
+    # ------------------------------------------------------------------
+    # Guilds — Overpay decision hooks
+    # ------------------------------------------------------------------
+
+    def choose_overpay_amount(
+        self,
+        state: GameState,
+        player: PlayerState,
+        card: Card,
+        max_amount: int,
+    ) -> int:
+        """How many coins to overpay when buying ``card``.
+
+        ``max_amount`` is capped at the player's available coins after the
+        printed cost has already been paid. Default heuristic per Guilds
+        overpay card:
+
+        * Masterpiece: spend everything — each $1 turns into a Silver gain.
+        * Stonemason: spend $3, $4, or $5 to gain two solid Action cards.
+        * Doctor: spend up to $2 if there's likely junk on top of the deck.
+        * Herald: spend up to $2 if the discard pile holds useful Actions.
+
+        Subclasses may override with stronger strategies.
+        """
+        if max_amount <= 0:
+            return 0
+
+        name = getattr(card, "name", "")
+        if name == "Masterpiece":
+            # Each $1 overpaid → Silver gain. Always strictly positive.
+            return max_amount
+        if name == "Stonemason":
+            # Want exactly $3 or $4 (Witch / Smithy / Wharf etc.). Don't go
+            # under $3 since $2 Actions are usually weak.
+            for target in (5, 4, 3):
+                if max_amount >= target:
+                    return target
+            return 0
+        if name == "Doctor":
+            # Each $1 lets us peek the top of the deck and trash junk. Be
+            # mildly aggressive when junk is plausibly present.
+            junk_in_deck = sum(
+                1
+                for c in player.deck + player.discard
+                if c.name in {"Curse", "Copper", "Estate"}
+            )
+            if junk_in_deck >= 3:
+                return min(max_amount, 2)
+            if junk_in_deck >= 1:
+                return min(max_amount, 1)
+            return 0
+        if name == "Herald":
+            # Topdeck up to N cards from discard. Worth overpaying when the
+            # discard has Actions worth replaying immediately.
+            actions_in_discard = sum(1 for c in player.discard if c.is_action)
+            return min(max_amount, actions_in_discard, 2)
+        return 0
+
+    def choose_doctor_overpay_action(
+        self,
+        state: GameState,
+        player: PlayerState,
+        card: Card,
+    ) -> str:
+        """Pick what Doctor's overpay does to the peeked top-of-deck card.
+
+        Returns one of: 'trash', 'discard', 'topdeck'. Default: trash junk
+        (Curse, Copper, Estate, low-cost non-Action Victory), discard
+        otherwise unhelpful Victory cards in the early game, and topdeck
+        anything else so we draw it next turn.
+        """
+        if card.name in {"Curse", "Copper", "Estate", "Hovel", "Overgrown Estate"}:
+            return "trash"
+        if card.is_victory and not card.is_action and card.cost.coins <= 2:
+            return "trash"
+        if card.is_victory and not card.is_action:
+            return "discard"
+        return "topdeck"
+
+    def choose_herald_overpay_topdeck(
+        self,
+        state: GameState,
+        player: PlayerState,
+        choices: list[Card],
+    ) -> Optional[Card]:
+        """Pick a card from discard to put on top of deck via Herald overpay.
+
+        Returns ``None`` to skip. Default: prefer the most expensive Action,
+        then the most expensive Treasure (skipping Copper).
+        """
+        if not choices:
+            return None
+        actions = [c for c in choices if c.is_action]
+        if actions:
+            return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+        treasures = [c for c in choices if c.is_treasure and c.name != "Copper"]
+        if treasures:
+            return max(treasures, key=lambda c: (c.cost.coins, c.name))
+        return None
