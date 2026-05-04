@@ -1,7 +1,7 @@
 import logging
 import random
 from copy import deepcopy
-from typing import Optional, Tuple
+from typing import Callable, Optional, Tuple
 
 import coloredlogs
 
