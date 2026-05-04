@@ -950,6 +950,87 @@ def test_prepare_skips_non_playable_cards():
     assert player.coins == 2
 
 
+class _WatchtowerTrashAI(DummyAI):
+    """AI that always trashes gains via Watchtower."""
+
+    def choose_watchtower_reaction(self, state, player, gained_card):
+        return "trash"
+
+    def quartermaster_choice(self, state, player, set_aside):
+        return "gain"
+
+    def choose_buy(self, state, choices):
+        for c in choices:
+            if c is not None and c.name == "Silver":
+                return c
+        return None
+
+
+def test_quartermaster_does_not_double_track_watchtower_trashed_gains():
+    """Regression: if Watchtower trashes the gained card, Quartermaster should
+    NOT also park a reference to it on the mat. Otherwise the same card sits
+    in both `state.trash` and `set_aside`.
+    """
+
+    player = PlayerState(_WatchtowerTrashAI())
+    state = GameState(players=[player])
+    state.supply["Silver"] = 10
+    state.supply["Watchtower"] = 5
+
+    # Put a Watchtower in hand so the gain reaction is available.
+    player.hand = [get_card("Watchtower")]
+
+    qm = get_card("Quartermaster")
+    player.in_play.append(qm)
+    qm.play_effect(state)
+
+    # The Quartermaster mat must be empty: the gained Silver was trashed.
+    assert qm.set_aside == [], (
+        "Quartermaster shouldn't append a card that was redirected by "
+        "another reaction (Watchtower trashed it)."
+    )
+    # Silver should be in the trash (or at least not in two places).
+    silvers_in_trash = sum(1 for c in state.trash if c.name == "Silver")
+    silvers_in_mat = sum(1 for c in qm.set_aside if c.name == "Silver")
+    assert silvers_in_trash >= 1
+    assert silvers_in_mat == 0
+
+
+def test_stowaway_reaction_dispatches_on_action_played():
+    """Reaction-played Stowaway should fire global on_action_played hooks.
+
+    Frigate (in the attacker's duration) attacks; victim reveals Stowaway as
+    a reaction; Frigate's on_action_played should fire because Stowaway is
+    an Action being played.
+    """
+
+    attacker = PlayerState(DummyAI())
+    victim = PlayerState(_FrigateVictim())
+    state = GameState(players=[attacker, victim])
+
+    frigate = get_card("Frigate")
+    attacker.duration.append(frigate)
+    frigate._owner = attacker
+    frigate._active = True
+
+    stowaway = get_card("Stowaway")
+    victim.hand = [stowaway] + [get_card("Copper") for _ in range(5)]
+    victim.deck = [get_card("Copper") for _ in range(5)]
+
+    # Have Frigate "attack" via a custom function — it doesn't matter what
+    # the attack does for this test; we want to verify the on_action_played
+    # hook fires when Stowaway reacts.
+    def noop(target):
+        pass
+
+    state.attack_player(victim, noop)
+
+    # Stowaway dispatched on_action_played → Frigate forced victim to
+    # discard down to 4.
+    assert stowaway in victim.in_play
+    assert len(victim.hand) == 4
+
+
 def test_shaman_does_not_trigger_when_not_in_kingdom():
     state = GameState(players=[])
     state.initialize_game([_ShamanAI()], [get_card("Village")])  # No Shaman

@@ -55,6 +55,9 @@ class Stowaway(Card):
 
         game_state.draw_cards(player, 2)
         player.actions += 1
+        # Notify cards in play (any player's) that an Action was played, so
+        # global hooks (Frigate, Harbor Village, etc.) fire correctly.
+        game_state._dispatch_on_action_played(player, self)
         return None  # does not block the attack
 
     def on_discard_from_play(self, game_state, player):

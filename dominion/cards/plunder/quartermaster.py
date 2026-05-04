@@ -71,11 +71,18 @@ class Quartermaster(Card):
         game_state.supply[choice.name] -= 1
         gained = game_state.gain_card(player, choice)
 
-        # Pull the gained card out of the discard/deck and onto the mat.
+        # Pull the gained card out of the discard/deck/hand and onto the mat.
+        # If a gain reaction (Watchtower, Trader, etc.) already moved or
+        # replaced the card, leave it alone — adding it to set_aside would
+        # cause the same instance to live in two zones.
         if gained in player.discard:
             player.discard.remove(gained)
+            self.set_aside.append(gained)
         elif gained in player.deck:
             player.deck.remove(gained)
+            self.set_aside.append(gained)
         elif gained in player.hand:
             player.hand.remove(gained)
-        self.set_aside.append(gained)
+            self.set_aside.append(gained)
+        # Otherwise: card was redirected (e.g., Watchtower trashed it,
+        # Trader exchanged it for Silver). Don't track it on the mat.
