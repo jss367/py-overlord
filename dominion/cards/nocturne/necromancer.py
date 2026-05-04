@@ -7,7 +7,9 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Necromancer(Card):
-    nocturne_piles = {
+    # Necromancer's three Zombies start in the trash (not in the supply),
+    # so Necromancer has legal targets from turn 1.
+    nocturne_trash_piles = {
         "Zombie Apprentice": 1,
         "Zombie Mason": 1,
         "Zombie Spy": 1,

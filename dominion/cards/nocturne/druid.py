@@ -25,11 +25,19 @@ class Druid(Card):
         choice = player.ai.choose_druid_boon(game_state, player, boons)
         if not choice or choice not in boons:
             choice = boons[0]
-        # Apply the Boon (Druid Boons are not added to discard — they remain
-        # set aside for future Druid plays).
-        from dominion.boons import resolve_boon
+        # Apply the Boon. Druid's set-aside Boons are not shuffled into the
+        # Boons discard pile — they remain set aside for future Druid plays.
+        # However, persistent Boons (Field's/Forest's/River's Gift) must still
+        # attach to the player's ``active_boons`` so their next-turn effects
+        # fire. We replicate the relevant bookkeeping from
+        # ``GameState.resolve_boon`` here without discarding the Boon name.
+        from dominion.boons import resolve_boon, is_persistent_boon
 
         game_state.log_callback(
             ("action", player.ai.name, f"Druid receives Boon: {choice}", {})
         )
         resolve_boon(choice, game_state, player)
+        if is_persistent_boon(choice):
+            if not hasattr(player, "active_boons"):
+                player.active_boons = []
+            player.active_boons.append(choice)

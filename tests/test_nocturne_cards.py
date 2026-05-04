@@ -455,3 +455,127 @@ def test_werewolf_night_phase_attacks():
     # Other player got a hex (Greed → topdecked Copper)
     other = state.players[1]
     assert any(c.name == "Copper" for c in other.deck) or len(state.hex_discard) > 0
+
+
+# ----- PR #191 review fixes -----
+
+
+def test_bat_is_typed_as_night_only():
+    """Bat must be a Night card, not Action/Shadow, so it cannot be played in
+    the Action phase (or from the deck via Shadow handling)."""
+    bat = get_card("Bat")
+    assert bat.is_night
+    assert not bat.is_action
+    assert not bat.is_shadow
+
+
+def test_raider_attack_works_against_small_hand():
+    """Raider must force a discard whenever the target has a matching card,
+    regardless of hand size; previous code immunized hands of <5 cards."""
+
+    state, player = _setup(players=2)
+    raider = get_card("Raider")
+    other = state.players[1]
+    # Make sure Raider's in-play set will match a card in the target's small
+    # hand. Use Copper (always in the supply) as the matched card.
+    player.in_play = [raider, get_card("Copper")]
+    other.hand = [get_card("Copper"), get_card("Estate")]
+    raider.play_effect(state)
+    # The matching Copper should have been discarded.
+    assert any(c.name == "Copper" for c in other.discard)
+    assert not any(c.name == "Copper" for c in other.hand)
+
+
+def test_druid_persistent_boon_attaches_to_player():
+    """Druid granting a persistent Boon (Field's Gift) must add it to the
+    player's active_boons so its next-turn effect survives."""
+
+    state, player = _setup()
+    state.druid_boons = ["The Field's Gift", "The Sea's Gift", "The Mountain's Gift"]
+    druid = get_card("Druid")
+    player.in_play.append(druid)
+    actions_before = player.actions
+    druid.play_effect(state)
+    # The Field's Gift gave +1 Action and +$1 immediately.
+    assert player.actions >= actions_before + 1
+    # And it must be tracked as active on the player so the next-turn
+    # effects still fire.
+    assert hasattr(player, "active_boons")
+    assert "The Field's Gift" in player.active_boons
+
+
+def test_necromancer_zombies_start_in_trash():
+    """Necromancer's three Zombies must start in the trash, not in the
+    supply, so Necromancer has legal targets from turn 1."""
+
+    from dominion.cards.nocturne.necromancer import Necromancer
+
+    state, player = _setup()
+    state.trash = []
+    state._setup_nocturne_extras([Necromancer()])
+    trash_names = {c.name for c in state.trash}
+    assert "Zombie Apprentice" in trash_names
+    assert "Zombie Mason" in trash_names
+    assert "Zombie Spy" in trash_names
+    # And they should NOT be in the supply.
+    assert "Zombie Apprentice" not in state.supply
+    assert "Zombie Mason" not in state.supply
+    assert "Zombie Spy" not in state.supply
+
+
+def test_changeling_exchange_on_gain_when_ai_opts_in():
+    """Gaining a $3+ card with Changeling in supply must offer the exchange
+    (when the AI opts in, the gain becomes a Changeling)."""
+
+    class ExchangeAI(_PlayAllAI):
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=ExchangeAI())
+    state.supply["Changeling"] = 10
+    state.supply["Smithy"] = 10
+    smithy_before = state.supply["Smithy"]
+    changeling_before = state.supply["Changeling"]
+    smithy = get_card("Smithy")  # cost $4
+    state.supply["Smithy"] -= 1
+    state.gain_card(player, smithy)
+    # Exchanged: Smithy returned, Changeling came out, Changeling now in
+    # the player's discard.
+    assert state.supply["Smithy"] == smithy_before
+    assert state.supply["Changeling"] == changeling_before - 1
+    assert any(c.name == "Changeling" for c in player.discard)
+    assert not any(c.name == "Smithy" for c in player.discard)
+
+
+def test_changeling_exchange_skipped_for_cheap_gains():
+    """Gaining a card costing <$3 must not trigger Changeling exchange."""
+
+    class ExchangeAI(_PlayAllAI):
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=ExchangeAI())
+    state.supply["Changeling"] = 10
+    changeling_before = state.supply["Changeling"]
+    estate = get_card("Estate")  # cost $2
+    state.supply["Estate"] -= 1
+    state.gain_card(player, estate)
+    assert state.supply["Changeling"] == changeling_before
+    assert any(c.name == "Estate" for c in player.discard)
+
+
+def test_changeling_exchange_skipped_when_gaining_changeling():
+    """Gaining a Changeling itself must not trigger an exchange loop."""
+
+    class ExchangeAI(_PlayAllAI):
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=ExchangeAI())
+    state.supply["Changeling"] = 10
+    changeling_before = state.supply["Changeling"]
+    state.supply["Changeling"] -= 1
+    state.gain_card(player, get_card("Changeling"))
+    # Net: one Changeling came out of the pile and ended up in discard.
+    assert state.supply["Changeling"] == changeling_before - 1
+    assert sum(1 for c in player.discard if c.name == "Changeling") == 1

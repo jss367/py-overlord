@@ -2499,7 +2499,59 @@ class GameState:
             if hook is not None:
                 hook(self, player, actual_card)
 
+        # Nocturne Changeling: when you gain a non-Changeling card costing
+        # $3+, you may exchange it for a Changeling from the supply.
+        actual_card = self._maybe_exchange_for_changeling(player, actual_card)
+
         return actual_card
+
+    def _maybe_exchange_for_changeling(
+        self, player: PlayerState, gained_card: Card
+    ) -> Card:
+        """If the player has the option, exchange ``gained_card`` for a Changeling.
+
+        Returns whatever card now occupies the gain slot — either the
+        original ``gained_card`` (no exchange) or the Changeling that
+        replaced it. Exchanging means: the original card is returned to
+        its supply pile, a Changeling is removed from the Changeling pile,
+        and the Changeling is placed where the original card was.
+        """
+
+        if self.supply.get("Changeling", 0) <= 0:
+            return gained_card
+        if gained_card.name == "Changeling":
+            return gained_card
+        if gained_card.cost.coins < 3:
+            return gained_card
+        # Skip cards that did not enter a normal zone (e.g. Watchtower
+        # already moved them to the trash or to the deck-top set-aside).
+        zone = None
+        if gained_card in player.discard:
+            zone = player.discard
+        elif gained_card in player.deck:
+            zone = player.deck
+        elif gained_card in player.hand:
+            zone = player.hand
+        else:
+            return gained_card
+
+        if not player.ai.should_exchange_changeling(self, player, gained_card):
+            return gained_card
+
+        from ..cards.registry import get_card
+
+        zone.remove(gained_card)
+        # Return the gained card to its pile (if it has one).
+        if gained_card.name in self.supply:
+            self.supply[gained_card.name] = self.supply.get(gained_card.name, 0) + 1
+        # Take a Changeling from the Changeling pile.
+        self.supply["Changeling"] -= 1
+        changeling = get_card("Changeling")
+        zone.append(changeling)
+        self.log_callback(
+            ("action", player.ai.name, f"exchanges {gained_card} for Changeling", {})
+        )
+        return changeling
 
     def _handle_sailor_gain(self, player: PlayerState, gained_card: Card) -> None:
         """Trigger Sailor's "may play this gain" effect for the gainer's own gains."""
@@ -3275,9 +3327,24 @@ class GameState:
             self.tax_tokens[card_name] = 0
 
     def _setup_nocturne_extras(self, kingdom_cards: list[Card]) -> None:
-        """Add non-supply piles needed by Nocturne kingdom cards."""
+        """Add non-supply piles needed by Nocturne kingdom cards.
+
+        Most Nocturne extras (Spirits, Wish, Bat) live in supply piles even
+        though they are not buyable. Necromancer is special: the three
+        Zombies (``Zombie Apprentice``, ``Zombie Mason``, ``Zombie Spy``)
+        start in the trash so Necromancer has legal targets from turn 1.
+        Cards may opt into the trash setup by listing names in
+        ``nocturne_trash_piles``; otherwise ``nocturne_piles`` entries go
+        to the supply as non-buyable piles.
+        """
+
+        from ..cards.registry import get_card as _get_card
 
         for card in kingdom_cards:
+            trash_extras: dict[str, int] = getattr(card, "nocturne_trash_piles", {})
+            for name, count in trash_extras.items():
+                for _ in range(count):
+                    self.trash.append(_get_card(name))
             extras: dict[str, int] = getattr(card, "nocturne_piles", {})
             for name, count in extras.items():
                 if name not in self.supply:

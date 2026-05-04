@@ -1,4 +1,4 @@
-"""Bat — non-supply Action-Shadow, $2."""
+"""Bat — non-supply Night, $2."""
 
 from ...base_card import Card, CardCost, CardStats, CardType
 
@@ -11,7 +11,7 @@ class Bat(Card):
             name="Bat",
             cost=CardCost(coins=2),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.SHADOW],
+            types=[CardType.NIGHT],
         )
 
     def starting_supply(self, game_state) -> int:
