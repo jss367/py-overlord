@@ -34,5 +34,6 @@ class Scepter(Card):
             )
             choice.on_play(game_state)
             game_state.fire_prophecy_action_hooks(player, choice)
+            game_state.fire_ally_play_hooks(player, choice)
         else:
             player.coins += 2

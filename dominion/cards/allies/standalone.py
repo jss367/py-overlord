@@ -246,6 +246,7 @@ class Courier(Card):
             # Play it.
             player.in_play.append(top)
             top.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, top)
         elif top.name in {"Curse", "Estate", "Copper"}:
             game_state.trash_card(player, top)
         else:
@@ -319,6 +320,7 @@ class RoyalGalley(Card):
         player.in_play.append(choice)
         for _ in range(2):
             choice.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, choice)
         # Stay in play through duration cleanup.
         self.duration_persistent = False
         player.duration.append(self)
@@ -391,6 +393,7 @@ class Contract(Card):
         self._set_aside = None
         player.in_play.append(card)
         card.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, card)
 
 
 class Emissary(Card):
@@ -546,6 +549,7 @@ class Specialist(Card):
         player.hand.remove(choice)
         player.in_play.append(choice)
         choice.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, choice)
 
         # Choose: play again, or gain a copy.
         # Heuristic: gain a copy of cheap cantrips ($3-$5); replay otherwise.
@@ -562,6 +566,7 @@ class Specialist(Card):
                 game_state.gain_card(player, copy)
                 return
         choice.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, choice)
 
 
 class Swap(Card):

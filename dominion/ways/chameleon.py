@@ -24,6 +24,8 @@ class WayOfTheChameleon(Way):
             # CardStats accounting in Card.on_play, so swapping here is enough.
             card._chameleon_active = True
             card.on_play(game_state)
+            # Note: Ally hooks are fired by the Action phase loop after
+            # ``way.apply`` returns.
         finally:
             card.stats.cards = original_cards
             card.stats.coins = original_coins

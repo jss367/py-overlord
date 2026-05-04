@@ -301,6 +301,7 @@ class Invasion(Event):
                 player.hand.remove(card)
                 player.in_play.append(card)
                 card.on_play(game_state)
+                game_state.fire_ally_play_hooks(player, card)
         # Gain 2 Silvers.
         for _ in range(2):
             if game_state.supply.get("Silver", 0) <= 0:

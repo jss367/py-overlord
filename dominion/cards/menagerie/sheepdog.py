@@ -25,4 +25,5 @@ class Sheepdog(Card):
         player.in_play.append(self)
         # Owner is current_player when reacting to their own gain
         self.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, self)
         return True

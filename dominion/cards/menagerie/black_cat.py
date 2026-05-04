@@ -66,5 +66,6 @@ class BlackCat(Card):
             game_state.current_player_index = game_state.players.index(player)
             # Owner draws +2 from base on_play
             self.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, self)
         finally:
             game_state.current_player_index = original_index

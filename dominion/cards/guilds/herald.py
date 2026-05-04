@@ -24,6 +24,7 @@ class Herald(Card):
         if card.is_action:
             player.in_play.append(card)
             card.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, card)
         else:
             game_state.discard_card(player, card)
 

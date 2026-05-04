@@ -154,6 +154,7 @@ class Orb(Loot):
             player.discard.remove(chosen)
             player.in_play.append(chosen)
             chosen.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, chosen)
         else:
             player.coins += 3
             player.buys += 1
@@ -271,6 +272,7 @@ class SpellScroll(Loot):
                 player.discard.remove(gain)
             player.in_play.append(gain)
             gain.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, gain)
 
 
 class Staff(Loot):
@@ -286,6 +288,7 @@ class Staff(Loot):
                 player.hand.remove(card)
                 player.in_play.append(card)
                 card.on_play(game_state)
+                game_state.fire_ally_play_hooks(player, card)
 
 
 class Sword(Loot):

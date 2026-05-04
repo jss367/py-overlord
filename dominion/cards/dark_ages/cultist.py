@@ -41,6 +41,7 @@ class Cultist(Card):
             player.hand.remove(next_cultist)
             player.in_play.append(next_cultist)
             next_cultist.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, next_cultist)
 
     def on_trash(self, game_state, player):
         game_state.draw_cards(player, 3)

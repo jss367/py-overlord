@@ -80,3 +80,4 @@ class Berserker(Card):
 
         player.in_play.append(self)
         self.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, self)

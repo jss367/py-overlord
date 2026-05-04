@@ -419,6 +419,7 @@ class FortuneHunter(Card):
             top.remove(played)
             player.in_play.append(played)
             played.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, played)
         for c in top:
             player.deck.append(c)
 
@@ -456,6 +457,7 @@ class Gondola(Card):
         player.hand.remove(choice)
         player.in_play.append(choice)
         choice.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, choice)
 
 
 class LandingParty(Card):
@@ -944,3 +946,4 @@ class KingsCache(Card):
         player.in_play.append(choice)
         for _ in range(3):
             choice.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, choice)

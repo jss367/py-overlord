@@ -257,8 +257,10 @@ class Practice(Event):
         # what handle_action_phase would do.
         chosen.on_play(game_state)
         game_state.fire_prophecy_action_hooks(player, chosen)
+        game_state.fire_ally_play_hooks(player, chosen)
         chosen.on_play(game_state)
         game_state.fire_prophecy_action_hooks(player, chosen)
+        game_state.fire_ally_play_hooks(player, chosen)
 
 
 class ReceiveTribute(Event):

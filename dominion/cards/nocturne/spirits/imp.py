@@ -38,3 +38,4 @@ class Imp(Card):
             ("action", player.ai.name, f"Imp plays {choice}", {})
         )
         choice.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, choice)

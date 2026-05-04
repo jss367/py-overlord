@@ -35,4 +35,5 @@ class Riverboat(Card):
         # Active prophecies (Great Leader, Approaching Army, etc.) react to
         # this play just like an Action-phase play would.
         game_state.fire_prophecy_action_hooks(player, target)
+        game_state.fire_ally_play_hooks(player, target)
         self.duration_persistent = False

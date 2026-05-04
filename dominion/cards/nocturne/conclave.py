@@ -36,5 +36,6 @@ class Conclave(Card):
             ("action", player.ai.name, f"Conclave plays {choice}", {})
         )
         choice.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, choice)
         if not player.ignore_action_bonuses:
             player.actions += 1

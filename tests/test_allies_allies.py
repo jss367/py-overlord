@@ -336,3 +336,81 @@ def test_order_of_astrologers_topdecks_from_discard_when_shuffle_imminent():
     state.allies[0].on_turn_start(state, player)
     assert player.favors == 0
     assert any(c.name == "Smithy" for c in player.deck)
+
+
+# ---------------------------------------------------------------------------
+# PR #192 review-feedback regression tests
+# ---------------------------------------------------------------------------
+
+
+def test_league_of_shopkeepers_uses_favors_not_liaisons_in_play():
+    """League of Shopkeepers' +$/+Buy thresholds are gated on the player's
+    Favor count, not on the number of Liaisons currently in play."""
+    state, player = _state("League of Shopkeepers")
+    underling = get_card("Underling")
+    player.in_play.append(underling)
+    # Player has many Favors and only a single Liaison in play.
+    player.favors = 4
+    coins_before = player.coins
+    buys_before = player.buys
+    state.allies[0].on_play_card(state, player, underling)
+    # 1 Liaison in play → old (incorrect) impl would skip both bonuses.
+    # New (correct) impl: favors becomes 5 → +$1 (>=3) and +1 Buy (>=5).
+    assert player.coins == coins_before + 1
+    assert player.buys == buys_before + 1
+
+
+def test_circle_of_witches_fires_on_throne_room_attack():
+    """Throne Room playing an Attack twice should trigger Circle of Witches
+    each time, not just once."""
+    p1 = PlayerState(DummyAI())
+    p2 = PlayerState(DummyAI())
+    state = GameState(players=[p1, p2])
+    state.supply = {"Curse": 10}
+    state.allies = [get_ally("Circle of Witches")]
+    p1.favors = 6  # Enough for two attacks (3 each).
+    state.current_player_index = 0
+    militia = get_card("Militia")
+    p1.in_play.append(militia)
+    # Simulate Throne Room's two nested plays via the new helper.
+    militia.on_play(state)
+    state.fire_ally_play_hooks(p1, militia)
+    militia.on_play(state)
+    state.fire_ally_play_hooks(p1, militia)
+    # Each attack should have spent 3 Favors (6 → 0) and given 2 Curses.
+    assert p1.favors == 0
+    assert sum(1 for c in p2.discard if c.name == "Curse") == 2
+
+
+def test_get_victory_points_no_arg_includes_plateau_shepherds():
+    """``get_victory_points()`` with no argument must still include
+    Ally / Landmark contributions when the player has a back-reference
+    to its game state."""
+    p = PlayerState(DummyAI())
+    state = GameState(players=[p])
+    state.allies = [get_ally("Plateau Shepherds")]
+    p.favors = 2
+    p.deck = [get_card("Estate"), get_card("Estate")]  # $2 cost cards
+    # 2 favors paired with 2 $2 cards = 2 pairs * 4 VP = 8 VP from Ally,
+    # plus 1 VP per Estate (2 estates = 2 VP) = 10 total.
+    assert p.get_victory_points() == 10
+
+
+def test_circle_of_witches_fires_on_night_attack():
+    """Night-phase Attack plays must dispatch the Ally on_play_card hook
+    (for cards like Werewolf in Night mode, etc.)."""
+    p1 = PlayerState(DummyAI())
+    p2 = PlayerState(DummyAI())
+    state = GameState(players=[p1, p2])
+    state.supply = {"Curse": 5}
+    state.allies = [get_ally("Circle of Witches")]
+    p1.favors = 3
+    state.current_player_index = 0
+    # Use Witch as a stand-in attack card to simulate the firing path. The
+    # important property under test is that fire_ally_play_hooks routes to
+    # CircleOfWitches.on_play_card.
+    witch = get_card("Witch")
+    p1.in_play.append(witch)
+    state.fire_ally_play_hooks(p1, witch)
+    assert p1.favors == 0
+    assert sum(1 for c in p2.discard if c.name == "Curse") == 1

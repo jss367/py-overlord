@@ -55,6 +55,7 @@ class FirstMate(Card):
             player.hand.remove(card_to_play)
             player.in_play.append(card_to_play)
             card_to_play.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, card_to_play)
 
         self._draw_to_six(game_state, player)
 
