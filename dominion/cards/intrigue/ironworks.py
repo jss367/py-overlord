@@ -29,7 +29,12 @@ class Ironworks(Card):
 
         gain_options.sort(key=lambda c: (c.is_action, c.is_treasure, c.is_victory, c.cost.coins), reverse=True)
         gained = gain_options[0]
+        if game_state.supply.get(gained.name, 0) <= 0:
+            return
         game_state.supply[gained.name] -= 1
+        game_state.log_callback(
+            ("supply_change", gained.name, -1, game_state.supply[gained.name])
+        )
         actual = game_state.gain_card(player, gained)
 
         if actual.is_action:

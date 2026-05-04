@@ -411,6 +411,8 @@ class GameState:
         player.tiara_replay_used = False
         # Prosperity 2E: War Chest names tracked per turn
         player.war_chest_named_this_turn = []
+        # Coppersmith bonus is per-turn.
+        player.coppersmiths_played = 0
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
@@ -1715,10 +1717,79 @@ class GameState:
         self._maybe_play_guard_dogs(target)
         if attacker is None:
             attacker = self.current_player
+        # Some Reactions modify the target's hand before the attack hits
+        # (Diplomat, Secret Chamber). They don't block the attack itself.
+        self._maybe_react_diplomat(target)
+        self._maybe_react_secret_chamber(target)
         if self._player_blocks_attack(target, attacker, attack_card):
             return
 
         attack_fn(target)
+
+    def _maybe_react_diplomat(self, player: PlayerState) -> None:
+        """Resolve Diplomat reactions: with hand of 5+, draw 2 then discard 3."""
+        # Diplomat is a Reaction-Action; can only react if it's in hand.
+        diplomats = [card for card in player.hand if card.name == "Diplomat"]
+        if not diplomats:
+            return
+        if len(player.hand) < 5:
+            return
+        if not player.ai.should_reveal_diplomat(self, player):
+            return
+
+        self.log_callback(
+            ("action", player.ai.name, "reveals Diplomat to react", {})
+        )
+        self.draw_cards(player, 2)
+        # Now discard 3 chosen cards.
+        discards = player.ai.choose_cards_to_discard(
+            self, player, list(player.hand), 3, reason="diplomat"
+        )
+        actually_discarded: list[Card] = []
+        for card in discards[:3]:
+            if card in player.hand:
+                player.hand.remove(card)
+                self.discard_card(player, card)
+                actually_discarded.append(card)
+        # If the AI returned fewer than 3 picks, fall back to forcing
+        # discards (the rule text says "discard 3").
+        while len(actually_discarded) < 3 and player.hand:
+            fallback = min(player.hand, key=lambda c: (c.cost.coins, c.name))
+            player.hand.remove(fallback)
+            self.discard_card(player, fallback)
+            actually_discarded.append(fallback)
+
+    def _maybe_react_secret_chamber(self, player: PlayerState) -> None:
+        """Resolve Secret Chamber reactions: +2 cards, then put 2 onto deck."""
+        chambers = [card for card in player.hand if card.name == "Secret Chamber"]
+        if not chambers:
+            return
+        if not player.ai.should_discard_secret_chamber(self, player):
+            return
+
+        self.log_callback(
+            ("action", player.ai.name, "reveals Secret Chamber to react", {})
+        )
+        self.draw_cards(player, 2)
+        if not player.hand:
+            return
+        topdeck_picks = player.ai.choose_secret_chamber_topdeck(
+            self, player, list(player.hand)
+        )
+        placed = 0
+        for card in topdeck_picks:
+            if placed >= 2:
+                break
+            if card in player.hand:
+                player.hand.remove(card)
+                player.deck.append(card)
+                placed += 1
+        # If AI didn't pick enough, top-deck cheapest cards.
+        while placed < 2 and player.hand:
+            fallback = min(player.hand, key=lambda c: (c.cost.coins, c.name))
+            player.hand.remove(fallback)
+            player.deck.append(fallback)
+            placed += 1
 
     def _player_blocks_attack(
         self,

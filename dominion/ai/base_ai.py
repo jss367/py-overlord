@@ -611,6 +611,307 @@ class AI(ABC):
         low_value_cards = [card for card in hand if is_low_value(card)]
         return len(low_value_cards) >= 2
 
+    # ------------------------------------------------------------------
+    # Intrigue decision hooks
+    # ------------------------------------------------------------------
+
+    def choose_card_to_topdeck_for_courtyard(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Pick a card from hand to put on top of deck after Courtyard's draw.
+
+        Default: top-deck the most valuable Action so it's drawn next
+        turn, otherwise the cheapest junk. Mirrors the Pilgrim heuristic.
+        """
+        return self.choose_card_to_topdeck_from_hand(
+            state, player, choices, reason="courtyard"
+        )
+
+    def choose_card_to_pass_for_masquerade(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Pick a card from hand to pass left during Masquerade.
+
+        Default: pass the worst available junk (Curse, then cheap Victory,
+        then Copper); otherwise the cheapest non-Action.
+        """
+        if not choices:
+            return None
+
+        priorities = ["Curse", "Estate", "Hovel", "Overgrown Estate", "Copper"]
+        for name in priorities:
+            for c in choices:
+                if c.name == name:
+                    return c
+
+        # Avoid passing useful Actions/Treasures: pick the cheapest non-Action card.
+        non_actions = [c for c in choices if not c.is_action]
+        if non_actions:
+            return min(non_actions, key=lambda c: (c.cost.coins, c.name))
+        return min(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def should_discard_estate_for_baron(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Decide whether to discard an Estate for +$4 with Baron.
+
+        Default: yes if any Estate is in hand.
+        """
+        return any(card.name == "Estate" for card in player.hand)
+
+    def should_reveal_diplomat(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Decide whether to reveal Diplomat as a Reaction to an Attack.
+
+        Default: reveal whenever it's legal (hand size >= 5). The reaction
+        actually trades 3 cards out for 2 drawn, which on net is small,
+        but it does cycle and protect the hand position.
+        """
+        return len(player.hand) >= 5
+
+    def choose_card_to_place_for_secret_passage(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Pick a card from hand to insert anywhere in the deck.
+
+        Default: top-deck the best Action so it's drawn next.
+        """
+        if not choices:
+            return None
+        actions = [c for c in choices if c.is_action]
+        if actions:
+            return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+        treasures = [c for c in choices if c.is_treasure and c.name != "Copper"]
+        if treasures:
+            return max(treasures, key=lambda c: (c.cost.coins, c.name))
+        return None
+
+    def choose_secret_passage_position(
+        self,
+        state: GameState,
+        player: PlayerState,
+        card: Card,
+        deck_size: int,
+    ) -> int:
+        """Return an index 0..deck_size to insert the chosen card in the deck.
+
+        ``deck_size`` is the size of the deck before insertion. Index 0
+        means the bottom; ``deck_size`` means the top (drawn first).
+        Default: top of deck.
+        """
+        return deck_size
+
+    def choose_courtier_options(
+        self, state: GameState, player: PlayerState, options: list[str], num_choices: int
+    ) -> list[str]:
+        """Pick ``num_choices`` distinct Courtier options.
+
+        Options are 'action', 'buy', 'coins', 'gold'. Default priority:
+        coins > gold > action > buy.
+        """
+        priority = ["coins", "gold", "action", "buy"]
+        ordered = [opt for opt in priority if opt in options]
+        return ordered[:num_choices]
+
+    def choose_courtier_reveal(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Choose which card to reveal for Courtier (more types -> more bonuses)."""
+        if not choices:
+            return None
+        return max(
+            choices,
+            key=lambda c: (len(c.types), c.cost.coins, c.name),
+        )
+
+    def choose_minion_mode(
+        self, state: GameState, player: PlayerState
+    ) -> str:
+        """Choose Minion mode: 'coins' or 'discard'.
+
+        Default: discard-and-redraw if the hand is ugly (>=3 junk cards),
+        otherwise take the +$2.
+        """
+        junk_count = sum(
+            1 for c in player.hand
+            if c.name in {"Curse", "Copper", "Estate"}
+            or (c.is_victory and not c.is_action and c.cost.coins <= 2)
+        )
+        if junk_count >= 3 or len(player.hand) <= 2:
+            return "discard"
+        return "coins"
+
+    def choose_card_to_gain_for_replace(
+        self, state: GameState, player: PlayerState, max_cost: int
+    ) -> Optional[Card]:
+        """Pick a card to gain via Replace, given its max cost."""
+        from ..cards.registry import get_card
+
+        candidates: list[Card] = []
+        for name, count in state.supply.items():
+            if count <= 0:
+                continue
+            try:
+                card = get_card(name)
+            except ValueError:
+                continue
+            if card.cost.coins > max_cost:
+                continue
+            if card.cost.potions > 0 or card.cost.debt > 0:
+                continue
+            if card.name == "Curse":
+                continue
+            candidates.append(card)
+
+        if not candidates:
+            return None
+        return max(candidates, key=lambda c: (c.cost.coins, c.is_action, c.name))
+
+    def choose_card_to_gain_for_upgrade(
+        self, state: GameState, player: PlayerState, exact_cost: int
+    ) -> Optional[Card]:
+        """Pick a card to gain via Upgrade (exact cost match)."""
+        from ..cards.registry import get_card
+
+        candidates: list[Card] = []
+        for name, count in state.supply.items():
+            if count <= 0:
+                continue
+            try:
+                card = get_card(name)
+            except ValueError:
+                continue
+            if card.cost.coins != exact_cost:
+                continue
+            if card.cost.potions > 0 or card.cost.debt > 0:
+                continue
+            if card.name == "Curse":
+                continue
+            candidates.append(card)
+
+        if not candidates:
+            return None
+        # Prefer Action > Treasure > Victory; tie-break by named order.
+        return max(
+            candidates,
+            key=lambda c: (c.is_action, c.is_treasure, c.is_victory, c.name),
+        )
+
+    def order_cards_for_scout(
+        self, state: GameState, player: PlayerState, cards: list[Card]
+    ) -> list[Card]:
+        """Order non-Victory cards drawn by Scout for putting back on deck.
+
+        Default: most valuable on top (drawn first).
+        """
+        return sorted(
+            cards,
+            key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
+            reverse=True,
+        )
+
+    def choose_card_to_gain_for_saboteur(
+        self, state: GameState, target: PlayerState, max_cost: int
+    ) -> Optional[Card]:
+        """Pick a card to gain after Saboteur trashed a card. ``target`` is the
+        player choosing the gain. Default: highest-cost Action available."""
+        from ..cards.registry import get_card
+
+        candidates: list[Card] = []
+        for name, count in state.supply.items():
+            if count <= 0:
+                continue
+            try:
+                card = get_card(name)
+            except ValueError:
+                continue
+            if card.cost.coins > max_cost:
+                continue
+            if card.cost.potions > 0 or card.cost.debt > 0:
+                continue
+            if card.name == "Curse":
+                continue
+            candidates.append(card)
+
+        if not candidates:
+            return None
+        return max(candidates, key=lambda c: (c.is_action, c.cost.coins, c.name))
+
+    def should_discard_secret_chamber(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Decide whether to reveal Secret Chamber as a Reaction to an Attack.
+
+        Default: reveal — drawing 2 then putting 2 back has limited
+        downside and bypasses the attack's hand-disruption.
+        """
+        return True
+
+    def choose_secret_chamber_discards(
+        self, state: GameState, player: PlayerState
+    ) -> list[Card]:
+        """Pick which cards to discard for Secret Chamber's main effect.
+
+        Default: discard junk (Curses, cheap Victory, Estates, Coppers).
+        """
+        return [
+            c for c in player.hand
+            if c.name in {"Curse", "Estate", "Hovel", "Overgrown Estate", "Copper"}
+            or (c.is_victory and not c.is_action and c.cost.coins <= 2)
+        ]
+
+    def choose_secret_chamber_topdeck(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> list[Card]:
+        """Pick 2 cards to put on top of deck after Secret Chamber's reaction.
+
+        Default: keep the best 2 Actions/Treasures on top.
+        """
+        if not choices:
+            return []
+        ordered = sorted(
+            choices,
+            key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
+            reverse=True,
+        )
+        return ordered[: min(2, len(choices))]
+
+    def name_card_for_wishing_well(
+        self, state: GameState, player: PlayerState
+    ) -> Optional[str]:
+        """Name a card to "wish for" with Wishing Well.
+
+        The default heuristic guesses the most common card across the
+        deck (top portion the player would hit) and discard. We weight
+        the deck more than the discard since the next card comes off
+        the deck. If the deck is empty but discard isn't, we use the
+        discard, since that pile becomes the next deck after shuffle.
+        """
+        from collections import Counter
+
+        deck_counts: Counter[str] = Counter(card.name for card in player.deck)
+        discard_counts: Counter[str] = Counter(card.name for card in player.discard)
+
+        # If deck is empty, the discard is about to become the deck.
+        if not deck_counts and discard_counts:
+            most_common = discard_counts.most_common(1)
+            return most_common[0][0] if most_common else None
+
+        if not deck_counts:
+            return None
+
+        # Combine, weighting deck heavily. Tie-break by name for determinism.
+        scored: dict[str, int] = {}
+        for name, count in deck_counts.items():
+            scored[name] = scored.get(name, 0) + count * 10
+        for name, count in discard_counts.items():
+            scored[name] = scored.get(name, 0) + count
+
+        if not scored:
+            return None
+        return max(scored.items(), key=lambda kv: (kv[1], kv[0]))[0]
+
     def order_cards_for_patrol(self, state: GameState, player: PlayerState, cards: list[Card]) -> list[Card]:
         """Return cards in draw priority order for Patrol's topdeck effect."""
 
