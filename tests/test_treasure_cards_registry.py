@@ -61,6 +61,9 @@ EXPECTED_TREASURE_CARDS = {
     "Ducat",
     "Scepter",
     "Spices",
+    "Kiln",
+    "Stockpile",
+    "Supplies",
 }
 
 MULTI_TYPE_TREASURES = {

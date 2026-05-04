@@ -1879,3 +1879,129 @@ class AI(ABC):
         if not choices:
             return None
         return max(choices, key=lambda c: (c.cost.coins, c.is_action, c.name))
+
+    # =================================================================
+    # Menagerie expansion AI hooks
+    # =================================================================
+    def should_react_with_black_cat(
+        self,
+        state: GameState,
+        player: PlayerState,
+        gainer: PlayerState,
+        gained_card: Card,
+    ) -> bool:
+        """Default: react if a Curse can be given to opponents."""
+        return state.supply.get("Curse", 0) > 0
+
+    def choose_sleigh_reaction(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> Optional[str]:
+        """Return 'hand', 'deck', or None.
+
+        Default: put Action / Treasure into hand for immediate use.
+        """
+        if gained_card.is_action or gained_card.is_treasure:
+            return "hand"
+        return None
+
+    def choose_scrap_options(
+        self, state: GameState, player: PlayerState, n: int
+    ) -> list[str]:
+        """Pick up to n distinct options for Scrap.
+
+        Default: prefer card, action, coin, buy, silver, horse.
+        """
+        order = ["card", "action", "coin", "buy", "silver", "horse"]
+        return order[:n]
+
+    def should_play_sheepdog(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """Default: always play Sheepdog when triggered."""
+        return True
+
+    def choose_card_to_exile_for_bounty_hunter(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Prefer to exile a junk card not yet in exile."""
+        if not choices:
+            return None
+        already = {c.name for c in player.exile}
+        for junk in ("Curse", "Estate", "Copper"):
+            for c in choices:
+                if c.name == junk and junk not in already:
+                    return c
+        not_exiled = [c for c in choices if c.name not in already]
+        if not_exiled:
+            return min(not_exiled, key=lambda c: (c.cost.coins, c.name))
+        return min(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_treasures_to_discard_for_hostelry(
+        self, state: GameState, player: PlayerState, treasures: list[Card]
+    ) -> list[Card]:
+        """Default: discard all Coppers in hand."""
+        return [c for c in treasures if c.name == "Copper"]
+
+    def should_play_village_green_now(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Default: resolve immediately."""
+        return True
+
+    def should_resolve_barge_now(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Default: resolve immediately."""
+        return True
+
+    def should_reveal_falconer(
+        self,
+        state: GameState,
+        player: PlayerState,
+        gainer: PlayerState,
+        gained_card: Card,
+    ) -> bool:
+        """Default: reveal whenever a cheaper card can be gained."""
+        return gained_card.cost.coins >= 1
+
+    def choose_card_to_exile_for_sanctuary(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Default: exile a junk card if any."""
+        if not choices:
+            return None
+        for junk in ("Curse", "Estate", "Copper"):
+            for c in choices:
+                if c.name == junk:
+                    return c
+        return None
+
+    def should_gain_silver_for_wayfarer(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Default: gain a Silver."""
+        return True
+
+    def should_gain_copy_with_kiln(
+        self, state: GameState, player: PlayerState, played_card: Card
+    ) -> bool:
+        """Default: only gain copies of useful cards (cost >= 3, not Curse)."""
+        if played_card.name == "Curse":
+            return False
+        if played_card.cost.coins < 3:
+            return False
+        return True
+
+    def choose_name_for_pursue(
+        self, state: GameState, player: PlayerState
+    ) -> str:
+        """Default: name the most-frequent junk card in your deck or 'Curse'."""
+        from collections import Counter
+
+        counts: Counter = Counter()
+        for c in player.deck:
+            if c.name in ("Curse", "Estate", "Copper", "Hovel", "Overgrown Estate"):
+                counts[c.name] += 1
+        if counts:
+            return counts.most_common(1)[0][0]
+        return "Curse"
