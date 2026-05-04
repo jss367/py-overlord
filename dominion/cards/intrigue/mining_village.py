@@ -18,7 +18,7 @@ class MiningVillage(Card):
         player = game_state.current_player
         # The card has been moved from hand into player.in_play before
         # play_effect runs. Decide whether to trash it for +$2.
-        if not self._should_self_trash(player):
+        if not self._should_self_trash(game_state, player):
             return
 
         # Find this exact instance in play and trash it.
@@ -29,8 +29,17 @@ class MiningVillage(Card):
                 player.coins += 2
                 return
 
-    def _should_self_trash(self, player) -> bool:
-        # Default: never self-trash. Mining Village is a Village body
-        # that's normally more useful than a one-shot +$2; only specific
-        # AIs/strategies should opt in by overriding this.
-        return False
+    def _should_self_trash(self, game_state, player) -> bool:
+        """Ask the AI whether to trash this Mining Village for +$2.
+
+        The AI hook lives on ``BaseAI.should_trash_mining_village`` so
+        strategies can opt in (e.g., when the +$2 closes out a Province
+        buy or the Village body is no longer needed for actions).
+        """
+        ai = getattr(player, "ai", None)
+        if ai is None:
+            return False
+        hook = getattr(ai, "should_trash_mining_village", None)
+        if hook is None:
+            return False
+        return bool(hook(game_state, player))

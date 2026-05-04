@@ -891,6 +891,38 @@ class AI(ABC):
         """
         return any(card.name == "Estate" for card in player.hand)
 
+    def should_trash_mining_village(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Decide whether to trash Mining Village for +$2.
+
+        Mining Village is normally more valuable as a Village body, so
+        the default keeps it. Trash only when the +$2 unlocks a key
+        gain this turn (Province / Colony / Duchy in late game, or
+        Gold) and we have enough actions to keep the chain going
+        without this Village.
+        """
+        # If we'd waste actions by keeping it, lean toward trashing.
+        plenty_of_actions = player.actions >= 1 and not any(
+            c.is_action for c in player.hand
+        )
+        coins = player.coins + 2
+
+        # Rough late-game/closing-buy heuristic.
+        province_cost = 8
+        if player.coins < province_cost <= coins and state.supply.get("Province", 0) > 0:
+            return True
+        colony_cost = 11
+        if player.coins < colony_cost <= coins and state.supply.get("Colony", 0) > 0:
+            return True
+
+        # If Village body is dead weight (no remaining actions in hand
+        # and we already have spare actions), the +$2 is pure upside.
+        if plenty_of_actions and player.coins < 6 <= coins:
+            return True
+
+        return False
+
     def should_reveal_diplomat(
         self, state: GameState, player: PlayerState
     ) -> bool:
@@ -907,7 +939,15 @@ class AI(ABC):
     ) -> Optional[Card]:
         """Pick a card from hand to insert anywhere in the deck.
 
-        Default: top-deck the best Action so it's drawn next.
+        Secret Passage's placement is mandatory: with a non-empty hand, a
+        card must be moved into the deck. We therefore always return a
+        choice when one is available.
+
+        Default priority:
+            1. Top-deck the best Action so it's drawn next.
+            2. Otherwise top-deck the most valuable non-Copper Treasure.
+            3. Otherwise (only junk in hand) bury the worst junk card,
+               which the position hook places at the bottom of the deck.
         """
         if not choices:
             return None
@@ -917,7 +957,16 @@ class AI(ABC):
         treasures = [c for c in choices if c.is_treasure and c.name != "Copper"]
         if treasures:
             return max(treasures, key=lambda c: (c.cost.coins, c.name))
-        return None
+        # Hand is only Coppers / Curses / cheap Victories. The placement
+        # is still mandatory, so pick the worst junk to bury at the
+        # bottom (handled by ``choose_secret_passage_position``).
+        junk_priority = {"Curse": 0, "Copper": 1}
+
+        def junk_rank(card: Card) -> tuple:
+            base = junk_priority.get(card.name, 2)
+            return (base, card.cost.coins, card.name)
+
+        return min(choices, key=junk_rank)
 
     def choose_secret_passage_position(
         self,
@@ -930,8 +979,17 @@ class AI(ABC):
 
         ``deck_size`` is the size of the deck before insertion. Index 0
         means the bottom; ``deck_size`` means the top (drawn first).
-        Default: top of deck.
+
+        Default: top-deck Actions and good Treasures so they're drawn
+        next; bury junk (Curses, Coppers, cheap Victories) at the
+        bottom so it doesn't clog the next reshuffle's top.
         """
+        is_junk = (
+            card.name in {"Curse", "Copper", "Estate", "Hovel", "Overgrown Estate"}
+            or (card.is_victory and not card.is_action and card.cost.coins <= 2)
+        )
+        if is_junk:
+            return 0
         return deck_size
 
     def choose_courtier_options(
@@ -1071,14 +1129,21 @@ class AI(ABC):
         return max(candidates, key=lambda c: (c.is_action, c.cost.coins, c.name))
 
     def should_discard_secret_chamber(
-        self, state: GameState, player: PlayerState
+        self, state: GameState, player: PlayerState, reveal_count: int = 0
     ) -> bool:
         """Decide whether to reveal Secret Chamber as a Reaction to an Attack.
 
-        Default: reveal — drawing 2 then putting 2 back has limited
-        downside and bypasses the attack's hand-disruption.
+        ``reveal_count`` is how many times Secret Chamber has already
+        been revealed against the current Attack trigger; the rules
+        permit additional reveals but the engine asks again before
+        each one.
+
+        Default: reveal once per Attack — drawing 2 then putting 2 back
+        cycles cards and bypasses the attack's hand-disruption. After
+        the first reveal the net effect is zero hand-size change, so
+        further reveals only waste shuffles and are skipped by default.
         """
-        return True
+        return reveal_count == 0
 
     def choose_secret_chamber_discards(
         self, state: GameState, player: PlayerState
