@@ -29,6 +29,12 @@ class GameState:
     baker_in_supply: bool = False
     hex_deck: list[str] = field(default_factory=list)
     hex_discard: list[str] = field(default_factory=list)
+    # Nocturne: Boons deck (analogous to Hexes)
+    boons_deck: list[str] = field(default_factory=list)
+    boons_discard: list[str] = field(default_factory=list)
+    # Druid sets aside three random Boons at the start of the game; the
+    # active player may receive any one of them when playing Druid.
+    druid_boons: list[str] = field(default_factory=list)
     wild_hunt_pile_tokens: int = 0
     farmers_market_pile_tokens: int = 0
     temple_pile_tokens: int = 0
@@ -210,9 +216,30 @@ class GameState:
         elif any(c.name == "Riverboat" for c in kingdom_cards):
             self.riverboat_set_aside = self._pick_riverboat_set_aside(kingdom_cards)
 
+        # Nocturne: collect heirlooms from kingdom cards (one Copper per
+        # heirloom is swapped at player init).
+        heirlooms = [
+            getattr(c, "heirloom", None) for c in kingdom_cards
+            if getattr(c, "heirloom", None)
+        ]
+
         # Initialize players
         for player in self.players:
-            player.initialize(use_shelters)
+            player.initialize(use_shelters, heirlooms=heirlooms)
+
+        # Nocturne: setup Boons-related infrastructure when needed.
+        needs_boons = any(
+            getattr(c, "uses_boons", False) for c in kingdom_cards
+        )
+        if needs_boons:
+            from dominion.boons import create_boons_deck
+            self.boons_deck = create_boons_deck()
+            self.boons_discard = []
+        # Druid sets aside three Boons regardless of which Boons are persistent.
+        if any(c.name == "Druid" for c in kingdom_cards):
+            self.setup_druid_boons()
+        # Nocturne: extra non-supply piles needed by various cards
+        self._setup_nocturne_extras(kingdom_cards)
 
         if self.baker_in_supply:
             for player in self.players:
@@ -591,6 +618,49 @@ class GameState:
         player.enchantress_used_this_turn = False
         # Renaissance Priest's rest-of-turn trigger resets each turn.
         player.priest_played_this_turn = 0
+
+        # Nocturne — reset per-turn counter
+        player.cards_gained_this_turn_count = 0
+
+        # Nocturne — persistent Boons given last turn fire their start-of-turn bonus.
+        active_boons = list(getattr(player, "active_boons", []))
+        player.active_boons = []
+        for boon in active_boons:
+            if boon == "The Field's Gift":
+                if not player.ignore_action_bonuses:
+                    player.actions += 1
+                player.coins += 1
+            elif boon == "The Forest's Gift":
+                player.buys += 1
+                player.coins += 1
+            self.discard_boon(boon)
+
+        # Nocturne — Lost in the Woods (Fool): receive a Boon
+        if getattr(player, "lost_in_the_woods", False):
+            self.receive_boon(player)
+
+        # Nocturne — Blessed Village pending Boons
+        for _ in range(getattr(player, "pending_blessed_boons", 0)):
+            self.receive_boon(player)
+        player.pending_blessed_boons = 0
+
+        # Nocturne — Ghost: play the set-aside Action twice over two turns
+        if getattr(player, "ghost_pending_actions", None):
+            updated: list = []
+            for entry in player.ghost_pending_actions:
+                action_card, plays_left = entry
+                if plays_left <= 0:
+                    continue
+                if action_card not in player.in_play:
+                    player.in_play.append(action_card)
+                self.log_callback(
+                    ("action", player.ai.name, f"Ghost replays {action_card}", {})
+                )
+                action_card.on_play(self)
+                plays_left -= 1
+                if plays_left > 0:
+                    updated.append((action_card, plays_left))
+            player.ghost_pending_actions = updated
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
@@ -1149,6 +1219,38 @@ class GameState:
 
 
         self._handle_buy_phase_end(player)
+        self.phase = "night"
+
+    def handle_night_phase(self):
+        """Play Night cards from hand after Buy, before Cleanup.
+
+        Each Night-card play follows the standard flow: ``on_play`` is called,
+        the card moves to in_play, and Duration-Night cards stay in play until
+        their start-of-next-turn effect resolves.
+        """
+
+        player = self.current_player
+        while True:
+            night_cards = [card for card in player.hand if card.is_night]
+            if not night_cards:
+                break
+
+            choice = player.ai.choose_night(self, night_cards + [None])
+            if choice is None or choice not in player.hand:
+                break
+
+            self.log_callback(("action", player.ai.name, f"plays Night {choice}", {}))
+            player.hand.remove(choice)
+            player.in_play.append(choice)
+            choice.on_play(self)
+
+            # Rising Sun prophecy hooks may also care about Night plays
+            if self.prophecy is not None and self.prophecy.is_active:
+                if choice.is_action:
+                    self.prophecy.on_play_action(self, player, choice)
+                if choice.is_attack:
+                    self.prophecy.on_play_attack(self, player, choice)
+
         self.phase = "cleanup"
 
     def _handle_buy_phase_end(self, player: PlayerState) -> None:
@@ -1445,6 +1547,12 @@ class GameState:
         outpost_extra_turn = bool(getattr(player, "outpost_pending", False))
         cards_to_draw = 3 if outpost_extra_turn else 5
 
+        # Nocturne — The River's Gift: +1 Card at end of turn (per active copy)
+        rivers_count = sum(
+            1 for b in getattr(player, "active_boons", []) if b == "The River's Gift"
+        )
+        cards_to_draw += rivers_count
+
         # Draw new hand
         player.draw_cards(cards_to_draw)
 
@@ -1457,6 +1565,11 @@ class GameState:
         # Tireless: put set-aside cards on top of deck after drawing
         for card in tireless_set_aside:
             player.deck.insert(0, card)
+
+        # Nocturne — Faithful Hound: set-aside Hounds return to hand at end of turn
+        if getattr(player, "hound_set_aside", None):
+            player.hand.extend(player.hound_set_aside)
+            player.hound_set_aside = []
 
         # Reset resources
         player.actions = 1
@@ -1526,6 +1639,8 @@ class GameState:
             self.handle_treasure_phase()
         elif self.phase == "buy":
             self.handle_buy_phase()
+        elif self.phase == "night":
+            self.handle_night_phase()
         elif self.phase == "cleanup":
             self.handle_cleanup_phase()
 
@@ -1747,6 +1862,85 @@ class GameState:
         self.discard_hex(hex_name)
         return hex_name
 
+    # ---- Nocturne Boons ----
+
+    def _ensure_boons_deck(self) -> None:
+        from dominion.boons import create_boons_deck
+
+        if not self.boons_deck:
+            if self.boons_discard:
+                self.boons_deck = list(self.boons_discard)
+                random.shuffle(self.boons_deck)
+                self.boons_discard = []
+            else:
+                self.boons_deck = create_boons_deck()
+
+    def draw_boon(self) -> Optional[str]:
+        """Draw the next Boon from the Boons deck, shuffling if needed.
+
+        Excludes any Boons currently set aside for Druid or held as a
+        persistent active Boon by any player (they are not in the deck).
+        """
+
+        self._ensure_boons_deck()
+        # Remove any Boon names that are reserved by Druid or actively held
+        # by a player from the deck so they aren't drawn.
+        reserved: set[str] = set(self.druid_boons)
+        for p in self.players:
+            for b in getattr(p, "active_boons", []):
+                reserved.add(b)
+        while self.boons_deck and self.boons_deck[-1] in reserved:
+            self.boons_deck.pop()
+            self._ensure_boons_deck()
+        if not self.boons_deck:
+            return None
+        return self.boons_deck.pop()
+
+    def discard_boon(self, boon_name: Optional[str]) -> None:
+        if boon_name:
+            self.boons_discard.append(boon_name)
+
+    def resolve_boon(self, player: "PlayerState", boon_name: str) -> None:
+        """Apply Boon ``boon_name`` to ``player`` and log it."""
+
+        if not boon_name:
+            return
+        from dominion.boons import resolve_boon, is_persistent_boon
+
+        self.log_callback(("action", player.ai.name, f"receives Boon: {boon_name}", {}))
+        resolve_boon(boon_name, self, player)
+
+        if is_persistent_boon(boon_name):
+            # Persistent Boons hang on the player; they will be returned to
+            # the Boons discard pile at start of their next turn.
+            if not hasattr(player, "active_boons"):
+                player.active_boons = []
+            player.active_boons.append(boon_name)
+        else:
+            self.discard_boon(boon_name)
+
+    def receive_boon(self, player: "PlayerState") -> Optional[str]:
+        """Draw and resolve a Boon for ``player``."""
+
+        boon = self.draw_boon()
+        if not boon:
+            return None
+        self.resolve_boon(player, boon)
+        return boon
+
+    def setup_druid_boons(self) -> None:
+        """Set aside 3 random Boons for Druid for the duration of the game."""
+
+        self._ensure_boons_deck()
+        chosen: list[str] = []
+        for _ in range(3):
+            if not self.boons_deck:
+                self._ensure_boons_deck()
+            if not self.boons_deck:
+                break
+            chosen.append(self.boons_deck.pop())
+        self.druid_boons = chosen
+
     def gain_card(
         self,
         player: PlayerState,
@@ -1864,6 +2058,10 @@ class GameState:
 
         if hasattr(player, "cards_gained_this_turn"):
             player.cards_gained_this_turn += 1
+
+        # Nocturne — Devil's Workshop and Monastery key off this counter
+        if hasattr(player, "cards_gained_this_turn_count"):
+            player.cards_gained_this_turn_count += 1
 
         # Track names of cards gained this turn (for Smugglers).
         if hasattr(player, "gained_cards_this_turn"):
@@ -2281,6 +2479,10 @@ class GameState:
             self.log_callback(("action", player.ai.name, "is protected by Lighthouse", {}))
             return True
 
+        if any(card.name == "Guardian" for card in player.duration):
+            self.log_callback(("action", player.ai.name, "is protected by Guardian", {}))
+            return True
+
         # Generic Reaction-card dispatch: any Reaction card in hand may
         # provide a `react_to_attack` override that returns True to block.
         # Iterate over a snapshot — react_to_attack must not mutate the hand
@@ -2490,6 +2692,22 @@ class GameState:
         if tokens > 0:
             buyer.debt += tokens
             self.tax_tokens[card_name] = 0
+
+    def _setup_nocturne_extras(self, kingdom_cards: list[Card]) -> None:
+        """Add non-supply piles needed by Nocturne kingdom cards."""
+
+        for card in kingdom_cards:
+            extras: dict[str, int] = getattr(card, "nocturne_piles", {})
+            for name, count in extras.items():
+                if name not in self.supply:
+                    self.supply[name] = count
+        needs_boons = any(getattr(c, "uses_boons", False) for c in kingdom_cards)
+        if needs_boons and "Will-o'-Wisp" not in self.supply:
+            try:
+                wisp = get_card("Will-o'-Wisp")
+                self.supply["Will-o'-Wisp"] = wisp.starting_supply(self)
+            except ValueError:
+                pass
 
     def _apply_embargo_tokens(self, buyer: PlayerState, card_name: str) -> None:
         """Give the buyer a Curse for each Embargo token on the bought pile."""

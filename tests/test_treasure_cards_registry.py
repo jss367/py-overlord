@@ -64,6 +64,16 @@ EXPECTED_TREASURE_CARDS = {
     "Kiln",
     "Stockpile",
     "Supplies",
+    # Nocturne Heirlooms
+    "Cursed Gold",
+    "Goat",
+    "Haunted Mirror",
+    "Lucky Coin",
+    "Magic Lamp",
+    "Pasture",
+    "Pouch",
+    # Nocturne kingdom Treasures
+    "Idol",
 }
 
 MULTI_TYPE_TREASURES = {
@@ -81,6 +91,16 @@ MULTI_TYPE_TREASURES = {
     "Spell Scroll": {CardType.TREASURE, CardType.ACTION},
     "Sword": {CardType.TREASURE, CardType.ATTACK},
     "Humble Castle": {CardType.TREASURE, CardType.VICTORY, CardType.CASTLE},
+    # Nocturne Heirlooms (all also have HEIRLOOM type)
+    "Cursed Gold": {CardType.TREASURE, CardType.HEIRLOOM},
+    "Goat": {CardType.TREASURE, CardType.HEIRLOOM},
+    "Haunted Mirror": {CardType.TREASURE, CardType.HEIRLOOM},
+    "Lucky Coin": {CardType.TREASURE, CardType.HEIRLOOM},
+    "Magic Lamp": {CardType.TREASURE, CardType.HEIRLOOM},
+    "Pasture": {CardType.TREASURE, CardType.VICTORY, CardType.HEIRLOOM},
+    "Pouch": {CardType.TREASURE, CardType.HEIRLOOM},
+    # Nocturne kingdom Treasures
+    "Idol": {CardType.TREASURE, CardType.ATTACK, CardType.FATE},
 }
 
 
