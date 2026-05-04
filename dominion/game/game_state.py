@@ -2064,6 +2064,19 @@ class GameState:
             self.supply.get("Province", 0) == 0 or self.empty_piles >= 3
         )
 
+        # If the current player is mid-turn (has not yet finished cleanup),
+        # never short-circuit into the Fleet extra round or game-end logic.
+        # The current turn must complete first so end-of-turn / between-turn
+        # effects (Empires Donate, Outpost handoff, duration draws, etc.)
+        # actually resolve. Without this guard, ``is_game_over`` would switch
+        # to a Fleet player's start phase between this player's buy and
+        # cleanup phases, dropping their pending Donate.
+        mid_turn = self.phase != "start" and (
+            normal_end or self.fleet_extra_round_active or self.turn_number > 100
+        )
+        if mid_turn:
+            return False
+
         # Renaissance Fleet: if normal end-game would trigger and any player
         # owns Fleet, grant one extra round to all Fleet owners before the
         # game actually ends. Non-Fleet owners are skipped during this round.
