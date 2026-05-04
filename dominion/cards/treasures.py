@@ -26,6 +26,23 @@ class Silver(Card):
     def starting_supply(self, game_state) -> int:
         return 40
 
+    def play_effect(self, game_state):
+        """Apply Merchant's "first Silver this turn = +$1" bonus."""
+
+        player = game_state.current_player
+        bonus = getattr(player, "merchant_silver_bonus", 0)
+        if bonus and not getattr(player, "merchant_silver_bonus_used", False):
+            player.coins += bonus
+            player.merchant_silver_bonus_used = True
+            game_state.log_callback(
+                (
+                    "action",
+                    player.ai.name,
+                    f"gains +${bonus} from Merchant on first Silver",
+                    {"bonus": bonus},
+                )
+            )
+
 
 class Gold(Card):
     def __init__(self):

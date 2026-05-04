@@ -60,6 +60,106 @@ class AI(ABC):
 
         return True
 
+    def should_play_vassal_action(
+        self, state: GameState, player: PlayerState, card: Card
+    ) -> bool:
+        """Decide whether to play the Action card revealed/discarded by Vassal.
+
+        The default is to always play it — Vassal's bonus play is strictly
+        free value (it doesn't consume an action) so there's no reason to
+        skip a free Action. Strategies may override (e.g. to avoid playing
+        a junk Action card like Necropolis).
+        """
+        return True
+
+    def should_chancellor_discard_deck(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Decide whether to put the deck into the discard pile via Chancellor.
+
+        Default: discard the deck whenever it's reasonably large. The trigger
+        of 5+ cards captures the case where reshuffling is genuinely useful.
+        """
+        return len(player.deck) >= 5
+
+    def should_trash_copper_for_moneylender(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Decide whether to trash a Copper for +$3 with Moneylender.
+
+        Default: always trash, since +$3 is strictly better than +$1 from
+        the Copper itself, and trashing a Copper thins the deck.
+        """
+        return True
+
+    def choose_treasure_to_trash_with_bandit(
+        self,
+        state: GameState,
+        attacker: PlayerState,
+        target: PlayerState,
+        treasures: list[Card],
+    ) -> Card:
+        """Pick which Treasure (other than Copper) the target trashes for Bandit.
+
+        Default: trash the most valuable revealed Treasure (e.g. Gold > Silver).
+        """
+        return max(treasures, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_treasure_to_trash_with_thief(
+        self,
+        state: GameState,
+        attacker: PlayerState,
+        target: PlayerState,
+        treasures: list[Card],
+    ) -> Card:
+        """Pick which Treasure the target trashes for Thief.
+
+        Default: trash the most valuable revealed Treasure.
+        """
+        return max(treasures, key=lambda c: (c.cost.coins, c.name))
+
+    def should_gain_thief_treasure(
+        self, state: GameState, player: PlayerState, card: Card
+    ) -> bool:
+        """Decide whether to keep a Treasure trashed by Thief.
+
+        Default: keep anything more valuable than Copper.
+        """
+        return card.name != "Copper"
+
+    def choose_topdeck_or_discard(
+        self,
+        state: GameState,
+        chooser: PlayerState,
+        target: PlayerState,
+        revealed: Card,
+        *,
+        is_self: bool,
+    ) -> bool:
+        """Decide whether the revealed top card should be discarded.
+
+        Used by Spy: ``chooser`` decides whether ``target`` discards their
+        revealed top card or puts it back. Returns True to discard,
+        False to topdeck.
+
+        Default heuristic:
+          - If the revealed card is junk (Curse, cheap Victory, Copper) and
+            the target is the chooser themselves → discard it (drawing fresh).
+          - If the target is an opponent → discard valuable cards (Action,
+            Treasure of cost 3+) and keep their junk on top.
+        """
+
+        is_junk = (
+            revealed.name == "Curse"
+            or (revealed.is_victory and not revealed.is_action and revealed.cost.coins <= 2)
+            or revealed.name == "Copper"
+        )
+
+        if is_self:
+            return is_junk
+        # Target is opponent: discard if not junk (waste their next draw).
+        return not is_junk
+
     def should_play_guard_dog(
         self, state: GameState, player: PlayerState, card: Card
     ) -> bool:
