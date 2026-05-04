@@ -1,0 +1,120 @@
+name: Auto Merge
+
+# Enables auto-merge on a PR when a trusted actor (the repo owner or
+# the Codex review bot) signals approval via:
+#   - a 👍 reaction on the PR (polled), or
+#   - a 👍 comment on the PR (event-driven).
+#
+# Auto-merge itself defers to GitHub's branch protection — the PR will
+# only actually merge once required status checks (test, lint) pass.
+
+on:
+  issue_comment:
+    types: [created]
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: auto-merge-${{ github.event.issue.number || github.sha }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+jobs:
+  merge-on-thumbsup-comment:
+    if: >-
+      github.event_name == 'issue_comment'
+      && github.event.issue.pull_request
+      && contains(github.event.comment.body, '👍')
+      && (github.event.comment.author_association == 'OWNER'
+          || github.event.comment.author_association == 'COLLABORATOR'
+          || github.actor == 'chatgpt-codex-connector[bot]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable auto-merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.issue.number }}
+        run: |
+          base=$(gh pr view "$PR" --repo "$REPO" --json baseRefName -q .baseRefName)
+          if [[ "$base" != "main" ]]; then
+            echo "PR #${PR} targets '${base}', not main — skipping."
+            exit 0
+          fi
+          title=$(gh pr view "$PR" --repo "$REPO" --json title -q .title)
+          gh pr merge "$PR" --repo "$REPO" --squash --auto --delete-branch \
+            --subject "${title} (#${PR})"
+
+  merge-on-reaction:
+    if: >-
+      github.event_name == 'schedule'
+      || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find approved open PRs
+        id: approved
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          TRUSTED_ACTORS="jss367 chatgpt-codex-connector[bot]"
+
+          prs=$(gh pr list --repo "$REPO" --state open --json number -q '.[].number')
+
+          if [[ -z "$prs" ]]; then
+            echo "No open PRs."
+            echo "has_approved=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          approved_prs=""
+          for pr in $prs; do
+            last_push=$(gh pr view "$pr" --repo "$REPO" \
+              --json commits --jq '.commits[-1].committedDate')
+
+            reaction_match=$(gh api "repos/${REPO}/issues/${pr}/reactions" \
+              | jq --arg cutoff "$last_push" \
+                '[.[] | select(.content == "+1" and .created_at > $cutoff) | .user.login]')
+
+            for actor in $TRUSTED_ACTORS; do
+              if echo "$reaction_match" | jq -e "index(\"$actor\")" > /dev/null 2>&1; then
+                echo "PR #${pr} has +1 from ${actor} after latest push (${last_push})"
+                approved_prs="${approved_prs} ${pr}"
+                break
+              fi
+            done
+          done
+
+          approved_prs=$(echo "$approved_prs" | xargs)
+          if [[ -z "$approved_prs" ]]; then
+            echo "No PRs with trusted +1 reactions."
+            echo "has_approved=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Approved PRs: $approved_prs"
+            echo "has_approved=true" >> "$GITHUB_OUTPUT"
+            echo "pr_numbers=$approved_prs" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Enable auto-merge on each approved PR
+        if: steps.approved.outputs.has_approved == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          for pr in ${{ steps.approved.outputs.pr_numbers }}; do
+            echo "=== Processing PR #${pr} ==="
+            base=$(gh pr view "$pr" --repo "$REPO" --json baseRefName -q .baseRefName)
+            if [[ "$base" != "main" ]]; then
+              echo "PR #${pr}: targets '${base}', not main — skipping."
+              continue
+            fi
+            title=$(gh pr view "$pr" --repo "$REPO" --json title -q .title)
+            gh pr merge "$pr" --repo "$REPO" --squash --auto --delete-branch \
+              --subject "${title} (#${pr})" \
+              || echo "WARNING: Auto-merge failed for PR #${pr}"
+          done
