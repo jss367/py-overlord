@@ -1244,10 +1244,10 @@ class GameState:
                         on_play(self, player, choice)
 
                 # Prosperity 2E: Tiara — once per turn, when you play a
-                # Treasure, you may play it again.
+                # Treasure, you may play it again. Tiara may target itself
+                # (the once-per-turn limit is enforced by ``tiara_replay_used``).
                 if (
                     not getattr(player, "tiara_replay_used", False)
-                    and choice.name != "Tiara"
                     and any(card.name == "Tiara" for card in player.in_play)
                     and choice in player.in_play
                 ):
@@ -1654,20 +1654,6 @@ class GameState:
             if hook is not None:
                 hook(self, player)
 
-        # Prosperity 2E: Anvil and similar "when you discard this from play"
-        # cards trigger BEFORE the hand is discarded so the player can choose
-        # to discard a Treasure from their actual end-of-turn hand. Cards
-        # that opt in expose ``on_discard_from_play``; we resolve them here
-        # while leaving the card itself in play (the regular cleanup loop
-        # below will then discard it normally).
-        for card in list(player.in_play):
-            if (
-                hasattr(card, "on_discard_from_play")
-                and card not in player.duration
-                and card not in player.multiplied_durations
-            ):
-                card.on_discard_from_play(self, player)
-
         # Discard hand and in-play cards
         scheme_count = sum(1 for card in player.in_play if card.name == "Scheme")
         if scheme_count:
@@ -1684,6 +1670,89 @@ class GameState:
                     player.in_play.remove(chosen)
                 player.deck.insert(0, chosen)
 
+        # Plunder Pendant: +$1 per differently-named Treasure in play per Pendant.
+        # Calculated before any hand-mutating cleanup hooks fire.
+        pendants_in_play = [c for c in player.in_play if c.name == "Pendant"]
+        if pendants_in_play:
+            distinct_treasures = {c.name for c in player.in_play if c.is_treasure}
+            for _ in pendants_in_play:
+                player.coins += len(distinct_treasures)
+
+        # Duration cards remain in play until their lingering effects finish.
+        durations_to_keep = set(player.duration + player.multiplied_durations)
+
+        # Determine which Treasures (if any) Trickster will set aside before
+        # firing discard-from-play hooks, so we don't trigger those hooks on
+        # cards that ultimately won't be discarded this cleanup.
+        trickster_selected: list[Card] = []
+        trickster_uses = getattr(player, "trickster_uses_remaining", 0)
+        if trickster_uses > 0:
+            non_duration_in_play = [
+                card for card in player.in_play if card not in durations_to_keep
+            ]
+            treasures_in_play = [
+                card for card in non_duration_in_play if card.is_treasure
+            ]
+            if treasures_in_play:
+                max_set_aside = min(trickster_uses, len(treasures_in_play))
+                chosen = player.ai.choose_treasures_to_set_aside_with_trickster(
+                    self, player, list(treasures_in_play), max_set_aside
+                )
+                remaining_choices = list(treasures_in_play)
+                for card in chosen:
+                    if card in remaining_choices:
+                        remaining_choices.remove(card)
+                        trickster_selected.append(card)
+                if trickster_selected:
+                    player.trickster_set_aside.extend(trickster_selected)
+                    player.trickster_uses_remaining = max(
+                        0, player.trickster_uses_remaining - len(trickster_selected)
+                    )
+
+        def _will_be_discarded_from_play(card) -> bool:
+            """Return True if ``card`` will actually be discarded from play
+            during this cleanup (i.e. won't stay as a duration, get topdecked,
+            be set aside by Trickster/Tireless, or get returned to the supply
+            by Panic). Used to gate ``on_discard_from_play`` hooks so they
+            only fire for cards that genuinely get discarded."""
+            if card in durations_to_keep:
+                return False
+            if card in trickster_selected:
+                return False
+            if getattr(card, "_frog_topdeck", False):
+                return False
+            if (
+                card.name == "Walled Village"
+                and getattr(player, "walled_villages_played", 0) <= 1
+            ):
+                return False
+            if card.name == "Border Guard" and getattr(
+                card, "horn_topdeck_pending", False
+            ):
+                return False
+            if (
+                card.is_treasure
+                and getattr(player, "panic_active", False)
+                and card.name in self.supply
+            ):
+                return False
+            if card.name in self.tireless_piles:
+                return False
+            return True
+
+        # Prosperity 2E: Anvil and similar "when you discard this from play"
+        # cards trigger BEFORE the hand is discarded so the player can choose
+        # to discard a Treasure from their actual end-of-turn hand. Only fire
+        # the hook for cards that will actually be discarded from play this
+        # cleanup (filtered above) — otherwise cards like Anvil could grant
+        # their bonus while being set aside by Trickster, etc.
+        for card in list(player.in_play):
+            if (
+                hasattr(card, "on_discard_from_play")
+                and _will_be_discarded_from_play(card)
+            ):
+                card.on_discard_from_play(self, player)
+
         # Plunder Patient trait: at end of turn, mat cards from Patient pile.
         patient_pile = self.trait_piles.get("Patient")
         if patient_pile:
@@ -1693,42 +1762,15 @@ class GameState:
                 for card in patient_cards:
                     player.hand.remove(card)
 
-        # Plunder Pendant: +$1 per differently-named Treasure in play per Pendant.
-        pendants_in_play = [c for c in player.in_play if c.name == "Pendant"]
-        if pendants_in_play:
-            distinct_treasures = {c.name for c in player.in_play if c.is_treasure}
-            for _ in pendants_in_play:
-                player.coins += len(distinct_treasures)
-
         hand_cards = list(player.hand)
         player.hand = []
         self.discard_cards(player, hand_cards, from_cleanup=True)
 
-        # Duration cards remain in play until their lingering effects finish.
         in_play_cards = list(player.in_play)
         player.in_play = []
-        durations_to_keep = set(player.duration + player.multiplied_durations)
-
-        trickster_selected: list[Card] = []
-        trickster_uses = getattr(player, "trickster_uses_remaining", 0)
-        if trickster_uses > 0:
-            treasures_in_play = [card for card in in_play_cards if card.is_treasure]
-            if treasures_in_play:
-                max_set_aside = min(trickster_uses, len(treasures_in_play))
-                chosen = player.ai.choose_treasures_to_set_aside_with_trickster(
-                    self, player, list(treasures_in_play), max_set_aside
-                )
-                remaining_choices = list(treasures_in_play)
-                for card in chosen:
-                    if card in remaining_choices and card in in_play_cards:
-                        remaining_choices.remove(card)
-                        in_play_cards.remove(card)
-                        trickster_selected.append(card)
-                if trickster_selected:
-                    player.trickster_set_aside.extend(trickster_selected)
-                    player.trickster_uses_remaining = max(
-                        0, player.trickster_uses_remaining - len(trickster_selected)
-                    )
+        for card in trickster_selected:
+            if card in in_play_cards:
+                in_play_cards.remove(card)
 
         tireless_set_aside: list[Card] = []
 
