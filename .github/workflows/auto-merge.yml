@@ -61,15 +61,20 @@ jobs:
             exit 0
           fi
 
-          unresolved=$(gh api graphql -f query='
-            query($owner:String!,$name:String!,$num:Int!){
+          # Paginate so that PRs with >100 review threads are handled correctly.
+          unresolved=$(gh api graphql --paginate -f query='
+            query($owner:String!,$name:String!,$num:Int!,$endCursor:String){
               repository(owner:$owner,name:$name){
                 pullRequest(number:$num){
-                  reviewThreads(first:100){nodes{isResolved}}
+                  reviewThreads(first:100, after:$endCursor){
+                    nodes{isResolved}
+                    pageInfo{hasNextPage,endCursor}
+                  }
                 }
               }
             }' -F owner="${REPO%/*}" -F name="${REPO#*/}" -F num="$PR" \
-            --jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false)] | length')
+            --jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false)] | length' \
+            | awk 'BEGIN{s=0} {s+=$1} END{print s}')
           if [[ "${unresolved:-0}" -gt 0 ]]; then
             echo "PR #${PR} has ${unresolved} unresolved review thread(s) — skipping."
             exit 0
@@ -143,15 +148,20 @@ jobs:
               continue
             fi
 
-            unresolved=$(gh api graphql -f query='
-              query($owner:String!,$name:String!,$num:Int!){
+            # Paginate so that PRs with >100 review threads are handled correctly.
+            unresolved=$(gh api graphql --paginate -f query='
+              query($owner:String!,$name:String!,$num:Int!,$endCursor:String){
                 repository(owner:$owner,name:$name){
                   pullRequest(number:$num){
-                    reviewThreads(first:100){nodes{isResolved}}
+                    reviewThreads(first:100, after:$endCursor){
+                      nodes{isResolved}
+                      pageInfo{hasNextPage,endCursor}
+                    }
                   }
                 }
               }' -F owner="${REPO%/*}" -F name="${REPO#*/}" -F num="$pr" \
-              --jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false)] | length')
+              --jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false)] | length' \
+              | awk 'BEGIN{s=0} {s+=$1} END{print s}')
             if [[ "${unresolved:-0}" -gt 0 ]]; then
               echo "PR #${pr}: ${unresolved} unresolved review thread(s) — skipping."
               continue
