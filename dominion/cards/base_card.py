@@ -149,6 +149,17 @@ class Card:
         """Effects that happen when card is trashed. Override in subclasses."""
         pass
 
+    def react_to_attack(self, game_state, player, attacker, attack_card) -> bool:
+        """React to an incoming attack from another player.
+
+        Override in Reaction cards to optionally block the attack. Return
+        True if the attack should be considered fully blocked for this
+        player (no further reactions for this attack are processed).
+
+        The default implementation does nothing and returns False.
+        """
+        return False
+
     def get_additional_piles(self) -> dict[str, int]:
         """Return additional supply piles required by this card."""
         return {}

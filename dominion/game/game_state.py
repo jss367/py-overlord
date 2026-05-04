@@ -403,6 +403,9 @@ class GameState:
         # Daimyo's "next non-Command Action this turn" replay expires when the
         # turn ends without a triggering Action being played.
         player.daimyo_pending = 0
+        # Merchant's "first Silver this turn = +$1" tracking
+        player.merchant_silver_bonus = 0
+        player.merchant_silver_bonus_used = False
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
@@ -1652,15 +1655,29 @@ class GameState:
         """Check if the player has a Shield card in hand."""
         return any(card.name == "Shield" for card in player.hand)
 
-    def attack_player(self, target: PlayerState, attack_fn) -> None:
+    def attack_player(
+        self,
+        target: PlayerState,
+        attack_fn,
+        *,
+        attacker: PlayerState = None,
+        attack_card: Card = None,
+    ) -> None:
         """Apply an attack to a player unless blocked by reactions."""
         self._maybe_play_guard_dogs(target)
-        if self._player_blocks_attack(target):
+        if attacker is None:
+            attacker = self.current_player
+        if self._player_blocks_attack(target, attacker, attack_card):
             return
 
         attack_fn(target)
 
-    def _player_blocks_attack(self, player: PlayerState) -> bool:
+    def _player_blocks_attack(
+        self,
+        player: PlayerState,
+        attacker: PlayerState = None,
+        attack_card: Card = None,
+    ) -> bool:
         if self.player_has_shield(player):
             self.log_callback(("action", player.ai.name, "reveals Shield to block the attack", {}))
             return True
@@ -1669,21 +1686,23 @@ class GameState:
             self.log_callback(("action", player.ai.name, "is protected by Lighthouse", {}))
             return True
 
-        if self._maybe_reveal_moat(player):
-            return True
+        # Generic Reaction-card dispatch: any Reaction card in hand may
+        # provide a `react_to_attack` override that returns True to block.
+        # Iterate over a snapshot — react_to_attack must not mutate the hand
+        # mid-iteration in the default implementations.
+        for card in list(player.hand):
+            if not card.is_reaction:
+                continue
+            try:
+                blocked = card.react_to_attack(self, player, attacker, attack_card)
+            except TypeError:
+                # Backwards-compatibility: a reaction card without the new
+                # signature shouldn't crash the attack pipeline.
+                blocked = False
+            if blocked:
+                return True
 
         return False
-
-    def _maybe_reveal_moat(self, player: PlayerState) -> bool:
-        moats = [card for card in player.hand if card.name == "Moat"]
-        if not moats:
-            return False
-
-        if not player.ai.should_reveal_moat(self, player):
-            return False
-
-        self.log_callback(("action", player.ai.name, "reveals Moat to block the attack", {}))
-        return True
 
     def trash_card(self, player: PlayerState, card: Card) -> None:
         """Move a card to the trash and trigger related effects."""
