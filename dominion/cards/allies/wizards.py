@@ -50,7 +50,7 @@ class Student(WizardsSplitCard):
             name="Student",
             cost=CardCost(coins=3),
             stats=CardStats(actions=1),
-            types=[CardType.ACTION],
+            types=[CardType.ACTION, CardType.LIAISON],
         )
 
     def play_effect(self, game_state):
@@ -89,7 +89,7 @@ class Conjurer(WizardsSplitCard):
             name="Conjurer",
             cost=CardCost(coins=4),
             stats=CardStats(actions=1, cards=1),
-            types=[CardType.ACTION],
+            types=[CardType.ACTION, CardType.LIAISON],
         )
 
     def play_effect(self, game_state):
@@ -140,7 +140,7 @@ class Sorcerer(WizardsSplitCard):
             name="Sorcerer",
             cost=CardCost(coins=5),
             stats=CardStats(actions=1, cards=1),
-            types=[CardType.ACTION, CardType.ATTACK],
+            types=[CardType.ACTION, CardType.ATTACK, CardType.LIAISON],
         )
 
     def play_effect(self, game_state):
@@ -176,7 +176,7 @@ class Lich(WizardsSplitCard):
             name="Lich",
             cost=CardCost(coins=6),
             stats=CardStats(actions=2, cards=6),
-            types=[CardType.ACTION],
+            types=[CardType.ACTION, CardType.LIAISON],
         )
 
     def play_effect(self, game_state):

@@ -193,6 +193,9 @@ class GameState:
             )
             if isinstance(c, WizardsSplitCard):
                 self.original_kingdom_pile_names.update(WIZARDS_PILE_ORDER)
+            from dominion.cards.allies._split_base import AlliesSplitCard
+            if isinstance(c, AlliesSplitCard):
+                self.original_kingdom_pile_names.update(c.pile_order)
         self.setup_supply(kingdom_cards)
         self.events = events or []
         self.projects = projects or []
@@ -278,6 +281,16 @@ class GameState:
                 for art_name in names:
                     if art_name not in self.artifacts:
                         self.artifacts[art_name] = get_artifact(art_name)
+        # Allies rules: if any Liaison is in the kingdom and the caller did
+        # not already specify an Ally, choose a random one. Without an Ally,
+        # Liaison cards still grant Favors but those Favors have nothing
+        # to spend on.
+        if not self.allies and any(c.is_liaison for c in kingdom_cards):
+            from dominion.allies.registry import ALLY_TYPES
+            if ALLY_TYPES:
+                ally_class = random.choice(list(ALLY_TYPES.values()))
+                self.allies = [ally_class()]
+                self.log_callback(f"Ally: {self.allies[0].name}")
 
         # Allies rules: when an Ally is in the game, each player starts with
         # 1 Favor. Without this, Ally abilities can't be activated until a
@@ -367,6 +380,17 @@ class GameState:
             )
             if isinstance(card, WizardsSplitCard):
                 for partner_name in WIZARDS_PILE_ORDER:
+                    if partner_name == card.name:
+                        continue
+                    if partner_name not in self.supply:
+                        partner = get_card(partner_name)
+                        self.supply[partner_name] = partner.starting_supply(self)
+
+            # Allies four-card split piles (Augurs, Clashes, Forts,
+            # Odysseys, Townsfolk).
+            from dominion.cards.allies._split_base import AlliesSplitCard
+            if isinstance(card, AlliesSplitCard):
+                for partner_name in card.pile_order:
                     if partner_name == card.name:
                         continue
                     if partner_name not in self.supply:
@@ -546,6 +570,7 @@ class GameState:
     def empty_piles(self) -> int:
         """Return number of empty supply piles, counting split/Wizards piles once."""
         from dominion.cards.allies.wizards import WIZARDS_PILE_ORDER, WizardsSplitCard
+        from dominion.cards.allies._split_base import AlliesSplitCard
 
         counted: set[str] = set()
         empties = 0
@@ -557,6 +582,11 @@ class GameState:
                 wizard_names = set(WIZARDS_PILE_ORDER)
                 counted.update(wizard_names)
                 if all(self.supply.get(n, 0) == 0 for n in wizard_names if n in self.supply):
+                    empties += 1
+            elif isinstance(card, AlliesSplitCard):
+                pile_names = set(card.pile_order)
+                counted.update(pile_names)
+                if all(self.supply.get(n, 0) == 0 for n in pile_names if n in self.supply):
                     empties += 1
             elif isinstance(card, SplitPileMixin):
                 partner = card.partner_card_name
@@ -1049,6 +1079,13 @@ class GameState:
                                 urchin.react_to_attack_played(self, player, choice)
                             except AttributeError:
                                 pass
+                    # Allies hook: any Ally that reacts to plays
+                    # (Circle of Witches, League of Shopkeepers,
+                    # Fellowship of Scribes).
+                    for ally in self.allies:
+                        on_play = getattr(ally, "on_play_card", None)
+                        if on_play is not None:
+                            on_play(self, player, choice)
 
             # Harbor Village bonus: +$1 if the action gave +$
             if harbor_pending > 0 and choice.name != "Harbor Village":
@@ -1122,6 +1159,13 @@ class GameState:
             player.actions = 0
             player.buys += converted
 
+        # Allies: hook called at start of buy phase
+        # (Market Towns, Peaceful Cult).
+        for ally in self.allies:
+            hook = getattr(ally, "on_buy_phase_start", None)
+            if hook is not None:
+                hook(self, player)
+
     def handle_treasure_phase(self):
         """Handle the treasure phase of a turn."""
         player = self.current_player
@@ -1191,6 +1235,13 @@ class GameState:
                 # Rising Sun: Prophecy hooks fire after each treasure plays
                 if self.prophecy is not None and self.prophecy.is_active:
                     self.prophecy.on_play_treasure(self, player, choice)
+
+                # Allies hook: City-state, League of Shopkeepers,
+                # Fellowship of Scribes can react to treasures played.
+                for ally in self.allies:
+                    on_play = getattr(ally, "on_play_card", None)
+                    if on_play is not None:
+                        on_play(self, player, choice)
 
                 # Prosperity 2E: Tiara — once per turn, when you play a
                 # Treasure, you may play it again.
@@ -1403,6 +1454,12 @@ class GameState:
 
     def _handle_buy_phase_end(self, player: PlayerState) -> None:
         """Resolve end-of-buy-phase triggers like Treasury and Joust."""
+        # Allies: League of Bankers fires before normal end-of-buy hooks
+        # so the +$ from Favors can be spent on a leftover buy if any.
+        for ally in self.allies:
+            hook = getattr(ally, "on_buy_phase_end", None)
+            if hook is not None:
+                hook(self, player)
         for card in list(player.in_play):
             if hasattr(card, "on_buy_phase_end"):
                 card.on_buy_phase_end(self)
@@ -1475,6 +1532,10 @@ class GameState:
         # Plunder Cheap trait: cards from the Cheap pile cost $1 less.
         if self.pile_traits.get(card.name) == "Cheap":
             cost -= 1
+        # Allies "Family of Inventors": -$1 cost tokens on Supply piles.
+        tokens = getattr(self, "family_inventor_tokens", {}).get(card.name, 0)
+        if tokens:
+            cost -= tokens
 
         return max(0, cost)
 
@@ -1584,6 +1645,14 @@ class GameState:
         for card in list(player.in_play):
             if hasattr(card, "on_cleanup_start"):
                 card.on_cleanup_start(self)
+
+        # Allies: end-of-turn / cleanup hook.
+        # Used by Coastal Haven, Family of Inventors, Island Folk,
+        # Order of Masons.
+        for ally in self.allies:
+            hook = getattr(ally, "on_turn_end", None)
+            if hook is not None:
+                hook(self, player)
 
         # Prosperity 2E: Anvil and similar "when you discard this from play"
         # cards trigger BEFORE the hand is discarded so the player can choose
@@ -1720,6 +1789,12 @@ class GameState:
             1 for b in getattr(player, "active_boons", []) if b == "The River's Gift"
         )
         cards_to_draw += rivers_count
+        # Allies "Order of Masons" bonus: +1 Card per 2 Favors spent
+        # this turn end (banked above before cleanup runs).
+        bonus = getattr(player, "order_of_masons_bonus", 0)
+        if bonus:
+            cards_to_draw += bonus
+            player.order_of_masons_bonus = 0
 
         # Draw new hand
         player.draw_cards(cards_to_draw)
@@ -2272,6 +2347,20 @@ class GameState:
 
         # Plunder Mining Road: first Treasure gained → gain a Treasure to hand.
         self._handle_mining_road_gain(player, actual_card)
+        # Generic "while this is in play, when you gain a card ..." hook used
+        # by Allies cards like Galleria and Skirmisher. In-play cards may
+        # implement on_owner_gain(game_state, player, gained_card).
+        for card in list(player.in_play) + list(player.duration):
+            hook = getattr(card, "on_owner_gain", None)
+            if hook is not None:
+                hook(self, player, actual_card)
+
+        # Allies hook: the chosen Ally may react to the active player's gains
+        # (Architects' Guild, Band of Nomads, Trappers' Lodge).
+        for ally in self.allies:
+            hook = getattr(ally, "on_owner_gain", None)
+            if hook is not None:
+                hook(self, player, actual_card)
 
         return actual_card
 

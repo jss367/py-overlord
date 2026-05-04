@@ -363,18 +363,23 @@ class PlayerState:
     def get_victory_points(self, _game_state=None) -> int:
         """Calculate total victory points for the player.
 
-        Empires Landmarks contribute via ``vp_for(game_state, player)`` when a
-        ``game_state`` is supplied; otherwise the legacy behavior is used.
+        Empires Landmarks contribute via ``vp_for(game_state, player)``; Allies
+        like Plateau Shepherds may contribute via ``score_bonus``. Both require
+        a ``game_state`` argument.
         """
-        base = (
+        total = (
             sum(card.get_victory_points(self) for card in self.all_cards())
             + self.vp_tokens
             - 2 * self.misery
         )
         if _game_state is not None:
             for landmark in getattr(_game_state, "landmarks", []) or []:
-                base += landmark.vp_for(_game_state, self)
-        return base
+                total += landmark.vp_for(_game_state, self)
+            for ally in getattr(_game_state, "allies", []) or []:
+                hook = getattr(ally, "score_bonus", None)
+                if hook is not None:
+                    total += hook(_game_state, self)
+        return total
 
     def all_cards(self) -> list[Card]:
         """Return a list of all cards the player possesses."""
