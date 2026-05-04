@@ -732,6 +732,22 @@ class GameState:
                 player.coins += 1
             self.discard_boon(boon)
 
+        # Nocturne — Druid's set-aside Boons fire their next-turn bonus too,
+        # but they are NOT discarded; they remain set aside for the rest of
+        # the game so future Druid plays still see all three.
+        druid_boons = list(getattr(player, "druid_active_boons", []))
+        player.druid_active_boons = []
+        for boon in druid_boons:
+            if boon == "The Field's Gift":
+                if not player.ignore_action_bonuses:
+                    player.actions += 1
+                player.coins += 1
+            elif boon == "The Forest's Gift":
+                player.buys += 1
+                player.coins += 1
+            # The River's Gift +1 Card was already delivered at end of last
+            # turn during cleanup. No discard — Boon stays set aside.
+
         # Nocturne — Lost in the Woods (Fool): receive a Boon
         if getattr(player, "lost_in_the_woods", False):
             self.receive_boon(player)
@@ -1914,9 +1930,15 @@ class GameState:
         outpost_extra_turn = bool(getattr(player, "outpost_pending", False))
         cards_to_draw = 3 if outpost_extra_turn else 5
 
-        # Nocturne — The River's Gift: +1 Card at end of turn (per active copy)
+        # Nocturne — The River's Gift: +1 Card at end of turn (per active copy).
+        # Druid's set-aside River's Gift also delivers the cleanup draw.
         rivers_count = sum(
             1 for b in getattr(player, "active_boons", []) if b == "The River's Gift"
+        )
+        rivers_count += sum(
+            1
+            for b in getattr(player, "druid_active_boons", [])
+            if b == "The River's Gift"
         )
         cards_to_draw += rivers_count
         # Allies "Order of Masons" bonus: +1 Card per 2 Favors spent
@@ -2540,14 +2562,19 @@ class GameState:
 
         from ..cards.registry import get_card
 
-        zone.remove(gained_card)
+        # Capture the index where the gained card sits so the Changeling
+        # replaces it in the same slot. This matters for topdeck-style gains
+        # (e.g. Watchtower / Royal Seal placing on top of deck) where the
+        # exchanged card must keep that position.
+        original_index = zone.index(gained_card)
+        zone.pop(original_index)
         # Return the gained card to its pile (if it has one).
         if gained_card.name in self.supply:
             self.supply[gained_card.name] = self.supply.get(gained_card.name, 0) + 1
         # Take a Changeling from the Changeling pile.
         self.supply["Changeling"] -= 1
         changeling = get_card("Changeling")
-        zone.append(changeling)
+        zone.insert(original_index, changeling)
         self.log_callback(
             ("action", player.ai.name, f"exchanges {gained_card} for Changeling", {})
         )

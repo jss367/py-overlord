@@ -487,8 +487,9 @@ def test_raider_attack_works_against_small_hand():
 
 
 def test_druid_persistent_boon_attaches_to_player():
-    """Druid granting a persistent Boon (Field's Gift) must add it to the
-    player's active_boons so its next-turn effect survives."""
+    """Druid granting a persistent Boon (Field's Gift) must track it on the
+    player so its next-turn effect survives — but on the Druid-specific
+    list, not on ``active_boons`` (which gets discarded each turn)."""
 
     state, player = _setup()
     state.druid_boons = ["The Field's Gift", "The Sea's Gift", "The Mountain's Gift"]
@@ -498,10 +499,13 @@ def test_druid_persistent_boon_attaches_to_player():
     druid.play_effect(state)
     # The Field's Gift gave +1 Action and +$1 immediately.
     assert player.actions >= actions_before + 1
-    # And it must be tracked as active on the player so the next-turn
-    # effects still fire.
-    assert hasattr(player, "active_boons")
-    assert "The Field's Gift" in player.active_boons
+    # Tracked on the Druid-specific list so the start-of-turn cleanup
+    # applies the bonus without sending it to the boon discard pile.
+    assert hasattr(player, "druid_active_boons")
+    assert "The Field's Gift" in player.druid_active_boons
+    # Must NOT leak into the regular active_boons list, otherwise the
+    # next-turn cleanup would discard it.
+    assert "The Field's Gift" not in getattr(player, "active_boons", [])
 
 
 def test_necromancer_zombies_start_in_trash():
@@ -579,3 +583,134 @@ def test_changeling_exchange_skipped_when_gaining_changeling():
     # Net: one Changeling came out of the pile and ended up in discard.
     assert state.supply["Changeling"] == changeling_before - 1
     assert sum(1 for c in player.discard if c.name == "Changeling") == 1
+
+
+def test_changeling_exchange_preserves_topdeck_position():
+    """When a gained card is topdecked (e.g. via Royal Seal) and then
+    exchanged for a Changeling, the Changeling must replace the gained
+    card in the SAME deck slot (the top), not get appended to the
+    bottom."""
+
+    class TopdeckExchangeAI(_PlayAllAI):
+        def should_topdeck_with_royal_seal(self, state, player, gained_card):
+            return True
+
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=TopdeckExchangeAI())
+    state.supply["Changeling"] = 10
+    state.supply["Smithy"] = 10
+
+    # Pre-existing deck contents (these are below the topdecked gain).
+    estate_a = get_card("Estate")
+    estate_b = get_card("Estate")
+    player.deck = [estate_a, estate_b]
+
+    # Royal Seal in play so the gain gets topdecked.
+    player.in_play.append(get_card("Royal Seal"))
+
+    smithy = get_card("Smithy")  # cost $4
+    state.supply["Smithy"] -= 1
+    state.gain_card(player, smithy)
+
+    # Changeling must sit at the top of the deck (last element), where
+    # Royal Seal placed Smithy before the exchange replaced it.
+    assert player.deck, "deck should not be empty after exchange"
+    assert player.deck[-1].name == "Changeling", (
+        f"top-of-deck should be Changeling, got {[c.name for c in player.deck]}"
+    )
+    # And the original deck order below it must be untouched.
+    assert player.deck[0] is estate_a
+    assert player.deck[1] is estate_b
+    # Smithy returned to the supply, no Smithy/Changeling leaked into discard.
+    assert not any(c.name == "Smithy" for c in player.discard)
+    assert not any(c.name == "Changeling" for c in player.discard)
+
+
+def test_druid_boons_persist_across_multiple_turns():
+    """Druid's three set-aside Boons must NEVER be sent to the boons
+    discard pile — they remain set aside for the entire game and continue
+    delivering their next-turn bonuses every turn until something else
+    happens."""
+
+    state, player = _setup()
+    state.druid_boons = ["The Field's Gift", "The Forest's Gift", "The River's Gift"]
+    boons_discard_before = list(state.boons_discard)
+
+    druid = get_card("Druid")
+    player.in_play.append(druid)
+
+    # Receive Field's Gift via Druid (immediate +1 Action +$1).
+    actions_before = player.actions
+    coins_before = player.coins
+    druid.play_effect(state)
+    assert player.actions == actions_before + 1
+    assert player.coins == coins_before + 1
+    assert player.druid_active_boons == ["The Field's Gift"]
+
+    # Simulate several start-of-turn cleanups. The Druid Boon should
+    # fire its bonus EACH start-of-turn (via the cleanup hook) but never
+    # appear in the boons discard, and the Druid set-aside list must
+    # stay intact.
+    for turn_idx in range(3):
+        actions_before = player.actions
+        coins_before = player.coins
+        state.handle_start_phase()
+        # Field's Gift fires +1 Action +$1.
+        assert player.actions >= actions_before + 1, (
+            f"turn {turn_idx}: Druid Field's Gift should give +1 Action"
+        )
+        assert player.coins >= coins_before + 1, (
+            f"turn {turn_idx}: Druid Field's Gift should give +$1"
+        )
+        # The boon must not have been discarded.
+        assert "The Field's Gift" not in state.boons_discard, (
+            f"turn {turn_idx}: Druid Boon leaked into boons discard"
+        )
+        # The 3 set-aside Boons remain set aside.
+        assert set(state.druid_boons) == {
+            "The Field's Gift",
+            "The Forest's Gift",
+            "The River's Gift",
+        }
+        # Re-attach for next iteration: the player's druid_active_boons
+        # was cleared by handle_start_phase. Re-play Druid to re-receive
+        # Field's Gift so the next iteration can verify continued effect.
+        druid.play_effect(state)
+
+    # Final invariant: nothing Druid-related ended up in boons_discard.
+    new_in_discard = [b for b in state.boons_discard if b not in boons_discard_before]
+    for b in new_in_discard:
+        assert b not in {"The Field's Gift", "The Forest's Gift", "The River's Gift"}
+
+
+def test_druid_river_gift_grants_cleanup_draw_without_discarding():
+    """Druid receiving River's Gift grants the +1-card cleanup draw, and
+    the Boon stays set aside (not in active_boons, not in boons discard)."""
+
+    state, player = _setup()
+    state.druid_boons = ["The River's Gift", "The Sea's Gift", "The Mountain's Gift"]
+
+    # Player needs cards in deck to draw (cleanup draws the new hand).
+    player.deck = [get_card("Copper") for _ in range(10)]
+    player.hand = []
+    player.discard = []
+    player.in_play.append(get_card("Druid"))
+
+    druid = get_card("Druid")
+    druid.play_effect(state)
+    # River's Gift was chosen.
+    assert player.druid_active_boons == ["The River's Gift"]
+    # Persistent Boon must not appear on the regular active_boons list.
+    assert "The River's Gift" not in player.active_boons
+
+    # Cleanup the turn: River's Gift adds +1 to the cleanup draw, so the
+    # newly drawn hand should be 5 + 1 = 6 cards.
+    state.handle_cleanup_phase()
+    assert len(player.hand) == 6, (
+        f"River's Gift cleanup draw should produce a 6-card hand, got {len(player.hand)}"
+    )
+    # Boon stayed set aside, not discarded.
+    assert "The River's Gift" not in state.boons_discard
+    assert "The River's Gift" in state.druid_boons
