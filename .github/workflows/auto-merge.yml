@@ -3,7 +3,11 @@ name: Auto Merge
 # Enables auto-merge on a PR when a trusted actor (the repo owner or
 # the Codex review bot) signals approval via:
 #   - a 👍 reaction on the PR (polled), or
-#   - a 👍 comment on the PR (event-driven).
+#   - a comment on the PR whose body is exactly 👍 (event-driven).
+#
+# Before enabling auto-merge, the workflow verifies that the PR has no
+# unresolved review threads — otherwise correction comments left by
+# Codex (or any reviewer) would be ignored and merged over.
 #
 # Auto-merge itself defers to GitHub's branch protection — the PR will
 # only actually merge once required status checks (test, lint) pass.
@@ -40,12 +44,42 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PR: ${{ github.event.issue.number }}
+          BODY: ${{ github.event.comment.body }}
         run: |
+          # Require the comment body to be exactly 👍 (whitespace tolerated).
+          # `contains(...)` at job level is a coarse pre-filter — a comment
+          # like "👍 but please fix X first" must NOT trigger a merge.
+          body_stripped=$(printf '%s' "$BODY" | tr -d '[:space:]')
+          if [[ "$body_stripped" != "👍" ]]; then
+            echo "Comment body is not exactly 👍 (got: $(printf '%q' "$BODY")) — skipping."
+            exit 0
+          fi
+
           base=$(gh pr view "$PR" --repo "$REPO" --json baseRefName -q .baseRefName)
           if [[ "$base" != "main" ]]; then
             echo "PR #${PR} targets '${base}', not main — skipping."
             exit 0
           fi
+
+          # Paginate so that PRs with >100 review threads are handled correctly.
+          unresolved=$(gh api graphql --paginate -f query='
+            query($owner:String!,$name:String!,$num:Int!,$endCursor:String){
+              repository(owner:$owner,name:$name){
+                pullRequest(number:$num){
+                  reviewThreads(first:100, after:$endCursor){
+                    nodes{isResolved}
+                    pageInfo{hasNextPage,endCursor}
+                  }
+                }
+              }
+            }' -F owner="${REPO%/*}" -F name="${REPO#*/}" -F num="$PR" \
+            --jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false)] | length' \
+            | awk 'BEGIN{s=0} {s+=$1} END{print s}')
+          if [[ "${unresolved:-0}" -gt 0 ]]; then
+            echo "PR #${PR} has ${unresolved} unresolved review thread(s) — skipping."
+            exit 0
+          fi
+
           title=$(gh pr view "$PR" --repo "$REPO" --json title -q .title)
           gh pr merge "$PR" --repo "$REPO" --squash --auto --delete-branch \
             --subject "${title} (#${PR})"
@@ -113,6 +147,26 @@ jobs:
               echo "PR #${pr}: targets '${base}', not main — skipping."
               continue
             fi
+
+            # Paginate so that PRs with >100 review threads are handled correctly.
+            unresolved=$(gh api graphql --paginate -f query='
+              query($owner:String!,$name:String!,$num:Int!,$endCursor:String){
+                repository(owner:$owner,name:$name){
+                  pullRequest(number:$num){
+                    reviewThreads(first:100, after:$endCursor){
+                      nodes{isResolved}
+                      pageInfo{hasNextPage,endCursor}
+                    }
+                  }
+                }
+              }' -F owner="${REPO%/*}" -F name="${REPO#*/}" -F num="$pr" \
+              --jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false)] | length' \
+              | awk 'BEGIN{s=0} {s+=$1} END{print s}')
+            if [[ "${unresolved:-0}" -gt 0 ]]; then
+              echo "PR #${pr}: ${unresolved} unresolved review thread(s) — skipping."
+              continue
+            fi
+
             title=$(gh pr view "$pr" --repo "$REPO" --json title -q .title)
             gh pr merge "$pr" --repo "$REPO" --squash --auto --delete-branch \
               --subject "${title} (#${pr})" \
