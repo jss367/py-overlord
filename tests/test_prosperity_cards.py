@@ -443,6 +443,50 @@ def test_anvil_no_gain_when_no_treasure_in_hand():
     assert state.supply["Silver"] == silver_supply_before
 
 
+class AnvilTricksterAI(AnvilAI):
+    """Set aside Anvil with Trickster (when offered) and otherwise behave
+    like ``AnvilAI`` for the rest of the cleanup choices."""
+
+    def choose_treasures_to_set_aside_with_trickster(
+        self, state, player, treasures, max_count
+    ):
+        anvils = [c for c in treasures if c.name == "Anvil"]
+        return anvils[:max_count]
+
+
+def test_anvil_does_not_trigger_when_trickster_sets_it_aside():
+    """When Trickster sets Anvil aside during cleanup, Anvil's
+    ``on_discard_from_play`` hook must NOT fire (Anvil is never actually
+    discarded from play this turn)."""
+    ai = AnvilTricksterAI(gain_target="Silver")
+    player = PlayerState(ai)
+    state = GameState([player])
+    state.setup_supply([get_card("Anvil"), get_card("Silver")])
+
+    anvil = get_card("Anvil")
+    copper = get_card("Copper")
+    estate = get_card("Estate")
+
+    player.in_play = [anvil]
+    player.hand = [copper, estate]
+    player.trickster_uses_remaining = 1
+
+    silver_supply_before = state.supply["Silver"]
+    state.handle_cleanup_phase()
+
+    # Anvil should be set aside (and returned to hand for next turn) — not
+    # discarded — so its bonus must not trigger and no Silver should be
+    # gained, nor should the Copper be discarded to feed Anvil's effect.
+    assert state.supply["Silver"] == silver_supply_before
+    assert any(c.name == "Anvil" for c in player.hand)
+    # Copper still cycles through cleanup (hand is discarded) but no gain
+    # was triggered from supply.
+    gained_silver = sum(
+        1 for c in player.hand + player.discard + player.deck if c.name == "Silver"
+    )
+    assert gained_silver == 0
+
+
 # ---------------------------------------------------------------------------
 # Charlatan ($5 Action-Attack)
 # ---------------------------------------------------------------------------
@@ -645,7 +689,9 @@ def test_investment_trash_treasure_grants_vp_for_distinct_treasures():
 
 class TiaraReplayAI(DummyAI):
     def should_replay_treasure_with_tiara(self, state, player, treasure):
-        return True
+        # Don't waste the once-per-turn replay on Tiara itself when better
+        # treasures are available; replay any other Treasure.
+        return treasure.name != "Tiara"
 
     def should_topdeck_with_tiara(self, state, player, gained_card):
         return True
@@ -657,6 +703,24 @@ class TiaraReplayAI(DummyAI):
                 if c is not None and c.name == name:
                     return c
         return None
+
+
+class TiaraReplayAnyAI(DummyAI):
+    """Always replay with Tiara, even Tiara itself (used to verify
+    self-replay is now permitted)."""
+
+    def should_replay_treasure_with_tiara(self, state, player, treasure):
+        return True
+
+    def should_topdeck_with_tiara(self, state, player, gained_card):
+        return True
+
+    def choose_treasure(self, state, choices):
+        # Play Tiara first so it has a chance to self-replay.
+        for c in choices:
+            if c is not None and c.name == "Tiara":
+                return c
+        return next((c for c in choices if c is not None), None)
 
 
 def test_tiara_grants_buy():
@@ -689,6 +753,30 @@ def test_tiara_replays_treasure_once_per_turn():
     # Tiara: +1 Buy, no coin. Silver: $2 (replayed once via Tiara) ⇒ $4. Copper: $1.
     # So total = 4 + 1 = 5
     assert player.coins == 5
+    assert player.tiara_replay_used
+
+
+def test_tiara_can_replay_itself():
+    """Tiara may target itself for the once-per-turn replay. The card has
+    no coin output, but replaying it grants an extra +1 Buy (and the
+    once-per-turn limit is enforced by ``tiara_replay_used``)."""
+    ai = TiaraReplayAnyAI()
+    player = PlayerState(ai)
+    state = GameState([player])
+    state.setup_supply([get_card("Tiara"), get_card("Copper")])
+
+    tiara = get_card("Tiara")
+    copper = get_card("Copper")
+    player.hand = [tiara, copper]
+    initial_buys = player.buys
+
+    state.phase = "treasure"
+    state.handle_treasure_phase()
+
+    # Tiara plays once + self-replays once (+2 Buys total). Copper: $1.
+    # No further replay because Tiara's once-per-turn limit is now used.
+    assert player.coins == 1
+    assert player.buys == initial_buys + 2
     assert player.tiara_replay_used
 
 
