@@ -57,6 +57,7 @@ EXPECTED_TREASURE_CARDS = {
     "Huge Turnip",
     "Pickaxe",
     "Rice",
+    "Humble Castle",
 }
 
 MULTI_TYPE_TREASURES = {
@@ -73,6 +74,7 @@ MULTI_TYPE_TREASURES = {
     "Shield": {CardType.TREASURE, CardType.REACTION},
     "Spell Scroll": {CardType.TREASURE, CardType.ACTION},
     "Sword": {CardType.TREASURE, CardType.ATTACK},
+    "Humble Castle": {CardType.TREASURE, CardType.VICTORY, CardType.CASTLE},
 }
 
 

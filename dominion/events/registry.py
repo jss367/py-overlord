@@ -35,6 +35,21 @@ from .rising_sun_events import (
     SeaTrade,
 )
 from .training import Training
+from .empires_events import (
+    Advance,
+    Annex,
+    Banquet,
+    Conquest,
+    Delve,
+    Dominate,
+    Donate,
+    Ritual,
+    SaltTheEarth,
+    Tax,
+    Triumph,
+    Wedding,
+    Windfall,
+)
 
 EVENT_TYPES: dict[str, Type[Event]] = {
     "Gain Silver": GainSilver,
@@ -66,6 +81,20 @@ EVENT_TYPES: dict[str, Type[Event]] = {
     "Practice": Practice,
     "Receive Tribute": ReceiveTribute,
     "Sea Trade": SeaTrade,
+    # Empires
+    "Triumph": Triumph,
+    "Annex": Annex,
+    "Donate": Donate,
+    "Advance": Advance,
+    "Delve": Delve,
+    "Tax": Tax,
+    "Banquet": Banquet,
+    "Ritual": Ritual,
+    "Salt the Earth": SaltTheEarth,
+    "Wedding": Wedding,
+    "Windfall": Windfall,
+    "Conquest": Conquest,
+    "Dominate": Dominate,
 }
 
 

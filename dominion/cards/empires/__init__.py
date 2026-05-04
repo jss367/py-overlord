@@ -1,7 +1,19 @@
 from .archive import Archive
 from .bustling_village import BustlingVillage
 from .capital import Capital
-from .castles import Castle
+from .castles import (
+    Castle,
+    HumbleCastle,
+    CrumblingCastle,
+    SmallCastle,
+    HauntedCastle,
+    OpulentCastle,
+    SprawlingCastle,
+    GrandCastle,
+    KingsCastle,
+    CASTLE_ORDER,
+)
+from .enchantress import Enchantress
 from .catapult import Catapult
 from .charm import Charm
 from .chariot_race import ChariotRace
@@ -32,6 +44,16 @@ __all__ = [
     'BustlingVillage',
     'Capital',
     'Castle',
+    'HumbleCastle',
+    'CrumblingCastle',
+    'SmallCastle',
+    'HauntedCastle',
+    'OpulentCastle',
+    'SprawlingCastle',
+    'GrandCastle',
+    'KingsCastle',
+    'CASTLE_ORDER',
+    'Enchantress',
     'Catapult',
     'Charm',
     'ChariotRace',

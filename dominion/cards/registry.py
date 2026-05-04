@@ -59,6 +59,15 @@ from dominion.cards.expansions import (
     Hamlet,
     Capital,
     Castle,
+    HumbleCastle,
+    CrumblingCastle,
+    SmallCastle,
+    HauntedCastle,
+    OpulentCastle,
+    SprawlingCastle,
+    GrandCastle,
+    KingsCastle,
+    Enchantress,
     Catapult,
     Harvest,
     Charm,
@@ -434,7 +443,15 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Bustling Village": BustlingVillage,
     "Hamlet": Hamlet,
     "Capital": Capital,
-    "Castle": Castle,
+    "Humble Castle": HumbleCastle,
+    "Crumbling Castle": CrumblingCastle,
+    "Small Castle": SmallCastle,
+    "Haunted Castle": HauntedCastle,
+    "Opulent Castle": OpulentCastle,
+    "Sprawling Castle": SprawlingCastle,
+    "Grand Castle": GrandCastle,
+    "King's Castle": KingsCastle,
+    "Enchantress": Enchantress,
     "Catapult": Catapult,
     "Harvest": Harvest,
     "Charm": Charm,
@@ -797,6 +814,10 @@ CARD_ALIASES: dict[str, str] = {
     "Wandering minstrels": "Wandering Minstrel",
     "Hunting grounds": "Hunting Grounds",
     "Market square": "Market Square",
+    # Empires Castles: any name resolves to the Humble Castle (top of pile)
+    # which triggers the Castles supply expansion in setup_supply.
+    "Castle": "Humble Castle",
+    "Castles": "Humble Castle",
 }
 
 

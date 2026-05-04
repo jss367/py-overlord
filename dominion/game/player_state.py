@@ -67,6 +67,11 @@ class PlayerState:
     charm_next_buy_copies: int = 0
     walled_villages_played: int = 0
     fortune_doubled_this_turn: bool = False
+    # Empires Enchantress: opponent's first Action play this turn is replaced.
+    enchantress_active: bool = False
+    enchantress_used_this_turn: bool = False
+    # Empires Donate: count of pending Donate events to resolve at end of buy.
+    donate_pending: int = 0
     # Rising Sun: Daimyo replays the next non-Command Action card played
     daimyo_pending: int = 0
     continue_used_this_turn: bool = False
@@ -176,6 +181,11 @@ class PlayerState:
         self.charm_next_buy_copies = 0
         self.walled_villages_played = 0
         self.fortune_doubled_this_turn = False
+        # Enchantress flags persist across turns (cleared by caster's duration
+        # trigger), but reset here for game start.
+        self.enchantress_active = False
+        self.enchantress_used_this_turn = False
+        self.donate_pending = 0
         self.daimyo_pending = 0
         self.continue_used_this_turn = False
         self.foresight_set_aside = []
@@ -273,17 +283,18 @@ class PlayerState:
     def get_victory_points(self, _game_state=None) -> int:
         """Calculate total victory points for the player.
 
-        ``PlayerState.get_victory_points`` is frequently called with an unused
-        ``game_state`` argument throughout the project.  The tests mimic that
-        behaviour and pass ``None`` explicitly, so keep a placeholder
-        parameter to remain compatible with those call sites while ignoring it
-        internally.
+        Empires Landmarks contribute via ``vp_for(game_state, player)`` when a
+        ``game_state`` is supplied; otherwise the legacy behavior is used.
         """
-        return (
+        base = (
             sum(card.get_victory_points(self) for card in self.all_cards())
             + self.vp_tokens
             - 2 * self.misery
         )
+        if _game_state is not None:
+            for landmark in getattr(_game_state, "landmarks", []) or []:
+                base += landmark.vp_for(_game_state, self)
+        return base
 
     def all_cards(self) -> list[Card]:
         """Return a list of all cards the player possesses."""

@@ -1,14 +1,20 @@
-from ..base_card import Card, CardCost, CardStats, CardType
+from ..base_card import CardCost, CardStats, CardType
+from ..split_pile import BottomSplitPileCard
 
 
-class Fortune(Card):
+class Fortune(BottomSplitPileCard):
+    partner_card_name = "Gladiator"
+
     def __init__(self):
         super().__init__(
             name="Fortune",
-            cost=CardCost(debt=8),
+            cost=CardCost(coins=8, debt=8),
             stats=CardStats(buys=1),
             types=[CardType.TREASURE],
         )
+
+    def starting_supply(self, game_state) -> int:
+        return 5
 
     def play_effect(self, game_state):
         player = game_state.current_player
