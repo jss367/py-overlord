@@ -764,3 +764,192 @@ def test_tribute_two_same_named_only_one_bonus():
 
     # Two Golds revealed but only one distinct-name bonus.
     assert p1.coins == 2
+
+
+# ---------------------------------------------------------------------------
+# PR #182 review-feedback follow-ups
+# ---------------------------------------------------------------------------
+
+
+def test_secret_passage_buries_junk_when_only_junk_in_hand():
+    """Secret Passage's placement is mandatory: if hand has only junk
+    (Coppers/Estates), the default AI must still pick a card and
+    place it (at the bottom of the deck)."""
+    state = GameState(players=[])
+    state.initialize_game([ChooseFirstActionAI()], [get_card("Secret Passage")])
+
+    player = state.players[0]
+    sp = get_card("Secret Passage")
+
+    # Hand and deck contain only junk; nothing valuable to top-deck.
+    # After +2 draw the hand will be all Coppers/Estates.
+    player.hand = [get_card("Estate"), get_card("Copper")]
+    player.deck = [get_card("Copper"), get_card("Estate")]
+    player.discard = []
+
+    sp.on_play(state)
+
+    # +2 cards then +1 action; one card must be placed back into the deck.
+    # Before play: hand=2, deck=2. After +2 draw: hand=4, deck=0.
+    # After mandatory placement: hand=3, deck=1.
+    assert len(player.hand) == 3
+    assert len(player.deck) == 1
+    # The placed card must be one of the junk cards.
+    assert player.deck[0].name in {"Estate", "Copper"}
+
+
+def test_mining_village_can_self_trash_via_ai_hook():
+    """Mining Village's optional +$2 self-trash must be reachable when
+    an AI's ``should_trash_mining_village`` returns True."""
+    from dominion.ai.base_ai import AI
+
+    class TrashMVAI(ChooseFirstActionAI):
+        def should_trash_mining_village(self, state, player):
+            return True
+
+    state = GameState(players=[])
+    state.initialize_game([TrashMVAI()], [get_card("Mining Village")])
+
+    player = state.players[0]
+    mv = get_card("Mining Village")
+
+    player.hand = []
+    player.deck = [get_card("Copper")]
+    player.coins = 0
+    # Engine moves the card into play before play_effect runs;
+    # simulate that here since we're invoking on_play directly.
+    player.in_play.append(mv)
+
+    mv.on_play(state)
+
+    # +1 Card +2 Actions, then opt-in self-trash for +$2.
+    assert player.coins == 2
+    # Mining Village is no longer in play (it was trashed).
+    assert not any(c.name == "Mining Village" for c in player.in_play)
+    assert any(c.name == "Mining Village" for c in state.trash)
+
+
+def test_diplomat_can_react_multiple_times_per_attack():
+    """Diplomat is a Reaction-Action; with a large enough hand it can
+    react more than once to the same Attack trigger. Each reveal
+    draws 2 and discards 3, so the hand naturally tapers."""
+
+    class AlwaysDiplomatAI(ChooseFirstActionAI):
+        # Inherit default should_reveal_diplomat (>=5 hand size).
+        pass
+
+    state = GameState(players=[])
+    state.initialize_game([AlwaysDiplomatAI()], [get_card("Diplomat")])
+
+    player = state.players[0]
+    # Start with two Diplomats and enough chaff for 5+ hand cards.
+    player.hand = [
+        get_card("Diplomat"),
+        get_card("Diplomat"),
+        get_card("Copper"),
+        get_card("Copper"),
+        get_card("Copper"),
+        get_card("Copper"),
+        get_card("Copper"),
+    ]
+    # Plenty of cards in deck to draw from across multiple reactions.
+    player.deck = [get_card("Copper") for _ in range(20)]
+    player.discard = []
+
+    # Track how many "reveals Diplomat" log entries appear.
+    reveal_log: list = []
+
+    original_log = state.log_callback
+
+    def spy(entry):
+        if (
+            isinstance(entry, tuple)
+            and len(entry) >= 3
+            and isinstance(entry[2], str)
+            and "reveals Diplomat" in entry[2]
+        ):
+            reveal_log.append(entry)
+        original_log(entry)
+
+    state.log_callback = spy
+
+    state._maybe_react_diplomat(player)
+
+    # Expect at least 2 reveals before the hand drops below 5.
+    assert len(reveal_log) >= 2
+
+
+def test_secret_chamber_default_reacts_once_per_attack():
+    """Default Secret Chamber AI reveals exactly once per Attack
+    trigger (additional reveals are net-zero, so the default skips
+    them) — but the engine permits more if an AI opts in."""
+
+    state = GameState(players=[])
+    state.initialize_game([ChooseFirstActionAI()], [get_card("Secret Chamber")])
+
+    player = state.players[0]
+    player.hand = [get_card("Secret Chamber"), get_card("Copper"), get_card("Copper")]
+    player.deck = [get_card("Copper") for _ in range(10)]
+    player.discard = []
+
+    reveal_log: list = []
+    original_log = state.log_callback
+
+    def spy(entry):
+        if (
+            isinstance(entry, tuple)
+            and len(entry) >= 3
+            and isinstance(entry[2], str)
+            and "reveals Secret Chamber" in entry[2]
+        ):
+            reveal_log.append(entry)
+        original_log(entry)
+
+    state.log_callback = spy
+
+    state._maybe_react_secret_chamber(player)
+
+    assert len(reveal_log) == 1
+
+
+def test_secret_chamber_can_react_multiple_times_when_ai_opts_in():
+    """An AI that always wants to reveal Secret Chamber should be
+    able to react multiple times per Attack trigger."""
+
+    class AlwaysChamberAI(ChooseFirstActionAI):
+        def should_discard_secret_chamber(self, state, player, reveal_count=0):
+            # Cap at 3 reveals to keep the test bounded.
+            return reveal_count < 3
+
+        def choose_secret_chamber_topdeck(self, state, player, choices):
+            # Keep the Secret Chamber in hand by top-decking other
+            # cards instead, so it can react again.
+            non_chamber = [c for c in choices if c.name != "Secret Chamber"]
+            return non_chamber[:2]
+
+    state = GameState(players=[])
+    state.initialize_game([AlwaysChamberAI()], [get_card("Secret Chamber")])
+
+    player = state.players[0]
+    player.hand = [get_card("Secret Chamber"), get_card("Copper"), get_card("Copper")]
+    player.deck = [get_card("Copper") for _ in range(20)]
+    player.discard = []
+
+    reveal_log: list = []
+    original_log = state.log_callback
+
+    def spy(entry):
+        if (
+            isinstance(entry, tuple)
+            and len(entry) >= 3
+            and isinstance(entry[2], str)
+            and "reveals Secret Chamber" in entry[2]
+        ):
+            reveal_log.append(entry)
+        original_log(entry)
+
+    state.log_callback = spy
+
+    state._maybe_react_secret_chamber(player)
+
+    assert len(reveal_log) == 3
