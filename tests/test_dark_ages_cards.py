@@ -386,6 +386,56 @@ def test_squire_on_trash_gains_attack():
     assert any(c.is_attack for c in player.discard)
 
 
+def test_squire_on_trash_can_gain_top_knight():
+    """When Knights is the only Attack pile, Squire gains the top Knight."""
+    state = _setup(num_players=2, kingdom=[get_card("Knights")])
+    player = state.players[0]
+    squire = get_card("Squire")
+    expected_top = state.pile_order["Knights"][-1]
+    pile_size_before = state.supply["Knights"]
+
+    state.trash_card(player, squire)
+
+    assert any(c.is_knight for c in player.discard), \
+        "Squire should have gained a Knight"
+    assert any(c.name == expected_top for c in player.discard), \
+        "Squire should gain the top Knight from the pile"
+    assert state.supply["Knights"] == pile_size_before - 1
+
+
+def test_urchin_triggers_on_attack_played_via_throne_room():
+    """Throne Room on a non-Urchin Attack should still trash Urchin for Mercenary."""
+    state = _setup(
+        num_players=2,
+        kingdom=[get_card("Urchin"), get_card("Witch"), get_card("Throne Room")],
+    )
+    attacker = state.players[0]
+    urchin = get_card("Urchin")
+    throne = get_card("Throne Room")
+    militia = get_card("Militia")
+
+    attacker.in_play = [urchin]
+    attacker.hand = [militia]
+    # Throne Room plays Militia twice; the first play should trigger
+    # Urchin's reaction (which trashes itself for Mercenary).
+    throne.play_effect(state)
+
+    assert urchin in state.trash, "Urchin should be trashed when Militia is played via Throne Room"
+    assert any(c.name == "Mercenary" for c in attacker.discard), \
+        "Mercenary should be gained from Urchin's reaction"
+
+
+def test_embargo_token_on_knights_curses_buyer():
+    """Embargo on the shared Knights pile gives a Curse when buying any Knight."""
+    state = _setup(num_players=2, kingdom=[get_card("Knights")])
+    player = state.players[0]
+    state.embargo_tokens["Knights"] = 1
+    # Should map the buy of e.g. "Dame Sylvia" to the "Knights" pile.
+    state._apply_embargo_tokens(player, "Knights")
+    assert any(c.name == "Curse" for c in player.discard), \
+        "Embargo on Knights should give a Curse when applied"
+
+
 def test_vagrant_picks_up_curse_top():
     state = _setup()
     player = state.players[0]
