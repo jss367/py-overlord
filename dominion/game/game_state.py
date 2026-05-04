@@ -70,6 +70,12 @@ class GameState:
     # Ruins, Spoils, or Horse.
     original_kingdom_pile_names: set = field(default_factory=set)
 
+    # Names of piles in ``self.supply`` that are non-Supply (e.g. Cornucopia
+    # Tournament Prizes). These are excluded from the three-empty-piles
+    # game-end condition because emptying a non-Supply pile is not, by the
+    # rules, an empty Supply pile.
+    non_supply_pile_names: set = field(default_factory=set)
+
     # Cornucopia: Young Witch designates an extra $2/$3 Kingdom pile as the
     # Bane. A card from that pile, revealed from hand, blocks a Young Witch
     # attack against the holder.
@@ -440,6 +446,12 @@ class GameState:
                 if name not in self.supply:
                     self.supply[name] = count
 
+            non_supply_extras = card.get_additional_non_supply_piles()
+            for name, count in non_supply_extras.items():
+                if name not in self.supply:
+                    self.supply[name] = count
+                self.non_supply_pile_names.add(name)
+
             if card.name == "Baker":
                 self.baker_in_supply = True
 
@@ -614,6 +626,12 @@ class GameState:
         empties = 0
         for name in list(self.supply.keys()):
             if name in counted:
+                continue
+            # Non-Supply piles (e.g. Tournament Prizes) live in self.supply
+            # for lookup convenience but must not advance the three-empty-
+            # piles end condition.
+            if name in self.non_supply_pile_names:
+                counted.add(name)
                 continue
             card = get_card(name)
             if isinstance(card, WizardsSplitCard):

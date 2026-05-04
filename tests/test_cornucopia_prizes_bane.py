@@ -128,6 +128,24 @@ def test_prizes_are_not_buyable():
         assert not prize.may_be_bought(state)
 
 
+def test_prize_piles_excluded_from_three_pile_end_condition():
+    """Emptying every Prize pile must not advance the three-empty-piles
+    end condition: Prizes are non-Supply.
+    """
+    state, _ = _setup(FirstChoiceAI(), [get_card("Tournament")])
+    # Sanity: no Supply piles are empty at game start.
+    assert state.empty_piles == 0
+    # All Prize piles registered as non-Supply.
+    for name in PRIZE_CARD_NAMES:
+        assert name in state.non_supply_pile_names
+    # Empty every Prize pile (5 piles — well over 3).
+    for name in PRIZE_CARD_NAMES:
+        state.supply[name] = 0
+    # Empty piles count must still be 0 (Province pile non-empty too).
+    assert state.empty_piles == 0
+    assert not state.is_game_over()
+
+
 # ---------------------------------------------------------------------------
 # Tournament behaviour
 # ---------------------------------------------------------------------------

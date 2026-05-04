@@ -235,6 +235,19 @@ class Card:
         """Return additional supply piles required by this card."""
         return {}
 
+    def get_additional_non_supply_piles(self) -> dict[str, int]:
+        """Return additional non-Supply piles required by this card.
+
+        These piles live alongside the Supply (so cards can be looked up and
+        gained from them via ``state.supply``) but they must NOT count toward
+        the three-empty-piles game-end condition. Examples: Tournament Prize
+        piles, Madman, Mercenary, Spirits, Wishes, Bats, Zombies, Horses,
+        Spoils. Currently used by Tournament; older callers still register
+        their non-Supply piles directly in ``state.supply`` without flagging
+        them, which is a known limitation tracked separately.
+        """
+        return {}
+
     def __str__(self) -> str:
         return self.name
 
