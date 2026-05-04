@@ -1523,36 +1523,19 @@ class AI(ABC):
         card: Card,
         max_amount: int,
     ) -> int:
-        """How many coins to overpay when buying ``card``.
-
-        ``max_amount`` is capped at the player's available coins after the
-        printed cost has already been paid. Default heuristic per Guilds
-        overpay card:
-
-        * Masterpiece: spend everything — each $1 turns into a Silver gain.
-        * Stonemason: spend $3, $4, or $5 to gain two solid Action cards.
-        * Doctor: spend up to $2 if there's likely junk on top of the deck.
-        * Herald: spend up to $2 if the discard pile holds useful Actions.
-
-        Subclasses may override with stronger strategies.
-        """
+        """How many coins to overpay when buying ``card``."""
         if max_amount <= 0:
             return 0
 
         name = getattr(card, "name", "")
         if name == "Masterpiece":
-            # Each $1 overpaid → Silver gain. Always strictly positive.
             return max_amount
         if name == "Stonemason":
-            # Want exactly $3 or $4 (Witch / Smithy / Wharf etc.). Don't go
-            # under $3 since $2 Actions are usually weak.
             for target in (5, 4, 3):
                 if max_amount >= target:
                     return target
             return 0
         if name == "Doctor":
-            # Each $1 lets us peek the top of the deck and trash junk. Be
-            # mildly aggressive when junk is plausibly present.
             junk_in_deck = sum(
                 1
                 for c in player.deck + player.discard
@@ -1564,8 +1547,6 @@ class AI(ABC):
                 return min(max_amount, 1)
             return 0
         if name == "Herald":
-            # Topdeck up to N cards from discard. Worth overpaying when the
-            # discard has Actions worth replaying immediately.
             actions_in_discard = sum(1 for c in player.discard if c.is_action)
             return min(max_amount, actions_in_discard, 2)
         return 0
@@ -1576,13 +1557,7 @@ class AI(ABC):
         player: PlayerState,
         card: Card,
     ) -> str:
-        """Pick what Doctor's overpay does to the peeked top-of-deck card.
-
-        Returns one of: 'trash', 'discard', 'topdeck'. Default: trash junk
-        (Curse, Copper, Estate, low-cost non-Action Victory), discard
-        otherwise unhelpful Victory cards in the early game, and topdeck
-        anything else so we draw it next turn.
-        """
+        """Pick what Doctor's overpay does to the peeked top-of-deck card."""
         if card.name in {"Curse", "Copper", "Estate", "Hovel", "Overgrown Estate"}:
             return "trash"
         if card.is_victory and not card.is_action and card.cost.coins <= 2:
@@ -1597,11 +1572,7 @@ class AI(ABC):
         player: PlayerState,
         choices: list[Card],
     ) -> Optional[Card]:
-        """Pick a card from discard to put on top of deck via Herald overpay.
-
-        Returns ``None`` to skip. Default: prefer the most expensive Action,
-        then the most expensive Treasure (skipping Copper).
-        """
+        """Pick a card from discard to put on top of deck via Herald overpay."""
         if not choices:
             return None
         actions = [c for c in choices if c.is_action]
@@ -1611,3 +1582,300 @@ class AI(ABC):
         if treasures:
             return max(treasures, key=lambda c: (c.cost.coins, c.name))
         return None
+
+    # ------------------------------------------------------------------
+    # Dark Ages decision hooks
+    # ------------------------------------------------------------------
+
+    def should_trash_hovel_on_victory(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Hovel reaction: trash self when Victory bought. Default: always."""
+        return True
+
+    def should_discard_survivors_reveal(
+        self, state: GameState, player: PlayerState, revealed: list[Card]
+    ) -> bool:
+        """Survivors: discard the two revealed cards instead of topdecking?
+
+        Default heuristic: discard if any revealed card is junk
+        (Curse/Ruins/Estate/Copper); keep good cards on top.
+        """
+        for card in revealed:
+            if card.name == "Curse" or card.is_ruins:
+                return True
+            if card.name == "Copper":
+                return True
+            if card.is_victory and not card.is_action and card.cost.coins <= 2:
+                return True
+        return False
+
+    def choose_squire_option(
+        self, state: GameState, player: PlayerState, options: list[str]
+    ) -> str:
+        """Squire: pick 'actions', 'buys', or 'silver'.
+
+        Default: silver if available, else actions.
+        """
+        if "silver" in options and state.supply.get("Silver", 0) > 0:
+            return "silver"
+        if "actions" in options:
+            return "actions"
+        return options[0] if options else "actions"
+
+    def choose_attack_to_gain_from_squire(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """When Squire is trashed, pick an Attack card to gain."""
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def should_trash_with_hermit(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Hermit: optionally trash a non-Treasure from discard or hand."""
+        if not choices:
+            return None
+        priorities = ["Curse", "Ruins", "Abandoned Mine", "Ruined Library",
+                      "Ruined Market", "Ruined Village", "Survivors",
+                      "Estate", "Hovel", "Overgrown Estate"]
+        for name in priorities:
+            for card in choices:
+                if card.name == name:
+                    return card
+        return None
+
+    def choose_card_to_gain_with_hermit(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Hermit: pick a $0-$3 card to gain."""
+        if not choices:
+            return None
+        actions = [c for c in choices if c.is_action]
+        if actions:
+            return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+        return max(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_storeroom_first_discards(
+        self, state: GameState, player: PlayerState, hand: list[Card]
+    ) -> list[Card]:
+        """Storeroom: pick which cards to discard for +1 Card each."""
+        ordered = sorted(hand, key=lambda c: (c.cost.coins, c.name))
+        # Discard low-value cards
+        return [c for c in ordered if c.name in {"Curse", "Estate", "Copper"} or c.is_ruins]
+
+    def choose_storeroom_second_discards(
+        self, state: GameState, player: PlayerState, hand: list[Card]
+    ) -> list[Card]:
+        """Storeroom: pick cards to discard for +$1 each."""
+        return [c for c in hand if c.name in {"Curse", "Estate", "Copper"} or c.is_ruins]
+
+    def should_trash_action_for_death_cart(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Death Cart: pick an Action to trash for +$5, or None to skip."""
+        if not choices:
+            return None
+        # Prefer to trash a Ruins or Cultist; otherwise the cheapest Action
+        for c in choices:
+            if c.is_ruins or c.name == "Cultist":
+                return c
+        return min(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_band_of_misfits_target(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Band of Misfits: select a non-Command Action in supply costing < $5."""
+        if not choices:
+            return None
+        return max(
+            choices,
+            key=lambda c: (c.stats.cards * 2 + c.stats.actions + c.cost.coins, c.name),
+        )
+
+    def should_catacombs_discard_three(
+        self, state: GameState, player: PlayerState, revealed: list[Card]
+    ) -> bool:
+        """Catacombs: discard the 3 revealed and draw 3 fresh, or take to hand?
+
+        Default: take to hand if any revealed card is good (action/treasure
+        $3+); otherwise discard and draw fresh.
+        """
+        keep_score = sum(
+            1 for c in revealed
+            if c.is_action or (c.is_treasure and c.cost.coins >= 3)
+        )
+        return keep_score < 2
+
+    def choose_card_to_gain_with_catacombs(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Catacombs: when trashed, pick a cheaper card to gain."""
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.is_action, c.name))
+
+    def should_replay_treasure_with_counterfeit(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Counterfeit: pick a Treasure to play twice and trash, or None."""
+        if not choices:
+            return None
+        # Prefer to trash Copper; otherwise highest-coin treasure.
+        coppers = [c for c in choices if c.name == "Copper"]
+        if coppers:
+            return coppers[0]
+        return max(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def should_play_cultist_chain(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Cultist: chain another Cultist from hand if possible."""
+        return True
+
+    def name_card_for_mystic(
+        self, state: GameState, player: PlayerState
+    ) -> str:
+        """Mystic: name a card likely to be the top of the deck.
+
+        Default: most common non-Copper card in deck+discard, else 'Copper'.
+        """
+        from collections import Counter
+        counts = Counter(
+            c.name for c in (player.deck + player.discard)
+            if c.name != "Copper"
+        )
+        if counts:
+            return counts.most_common(1)[0][0]
+        return "Copper"
+
+    def choose_card_to_discard_for_pillage(
+        self, state: GameState, attacker: PlayerState, target: PlayerState,
+        hand: list[Card],
+    ) -> "Card | None":
+        """Pillage: attacker chooses a card from target's hand to discard."""
+        if not hand:
+            return None
+        return max(hand, key=lambda c: (c.cost.coins, c.is_action, c.name))
+
+    def should_gain_from_trash_with_rogue(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Rogue: pick a $3-$6 card from trash to gain when none in deck-tops."""
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.is_action, c.name))
+
+    def choose_card_to_trash_for_altar(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Altar: trash a card from hand."""
+        if not choices:
+            return None
+        priorities = ["Curse", "Ruins", "Abandoned Mine", "Ruined Library",
+                      "Ruined Market", "Ruined Village", "Survivors",
+                      "Estate", "Hovel", "Overgrown Estate", "Copper"]
+        for name in priorities:
+            for c in choices:
+                if c.name == name:
+                    return c
+        return min(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_card_to_gain_with_altar(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Altar: gain a card costing up to $5."""
+        if not choices:
+            return None
+        actions = [c for c in choices if c.is_action]
+        if actions:
+            return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+        return max(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def should_play_mercenary_trash(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> list[Card]:
+        """Mercenary: optionally trash exactly 2 cards from hand."""
+        priorities = ["Curse", "Ruins", "Abandoned Mine", "Ruined Library",
+                      "Ruined Market", "Ruined Village", "Survivors",
+                      "Estate", "Hovel", "Overgrown Estate", "Copper"]
+        ordered: list[Card] = []
+        for name in priorities:
+            for c in choices:
+                if c.name == name and c not in ordered:
+                    ordered.append(c)
+                    if len(ordered) == 2:
+                        return ordered
+        return ordered if len(ordered) == 2 else []
+
+    def choose_card_to_trash_with_junk_dealer(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Junk Dealer: trash a card from hand."""
+        if not choices:
+            return None
+        priorities = ["Curse", "Ruins", "Abandoned Mine", "Ruined Library",
+                      "Ruined Market", "Ruined Village", "Survivors",
+                      "Estate", "Hovel", "Overgrown Estate", "Copper"]
+        for name in priorities:
+            for c in choices:
+                if c.name == name:
+                    return c
+        return min(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def should_scavenger_discard_deck(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Scavenger: discard your deck?"""
+        return len(player.deck) >= 3
+
+    def choose_card_to_topdeck_with_scavenger(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Scavenger: optionally pick a card from discard to topdeck."""
+        if not choices:
+            return None
+        actions = [c for c in choices if c.is_action]
+        if actions:
+            return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+        treasures = [c for c in choices if c.is_treasure and c.name != "Copper"]
+        if treasures:
+            return max(treasures, key=lambda c: (c.cost.coins, c.name))
+        return None
+
+    def choose_dame_anna_trash(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> list[Card]:
+        """Dame Anna: trash up to 2 cards from hand."""
+        priorities = ["Curse", "Ruins", "Abandoned Mine", "Ruined Library",
+                      "Ruined Market", "Ruined Village", "Survivors",
+                      "Estate", "Hovel", "Overgrown Estate", "Copper"]
+        result: list[Card] = []
+        for name in priorities:
+            for c in choices:
+                if c.name == name and c not in result:
+                    result.append(c)
+                    if len(result) == 2:
+                        return result
+        return result
+
+    def choose_card_to_gain_with_dame_natalie(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Dame Natalie: optionally gain a $0-$3 card."""
+        if not choices:
+            return None
+        actions = [c for c in choices if c.is_action]
+        if actions:
+            return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+        return max(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_knight_to_trash(
+        self, state: GameState, attacker: PlayerState, target: PlayerState,
+        choices: list[Card],
+    ) -> "Card | None":
+        """Knight attack: attacker picks one revealed $3-$6 card to trash."""
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.is_action, c.name))

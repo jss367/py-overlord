@@ -31,7 +31,10 @@ def test_marauder_gives_spoils_and_ruins():
     marauder.on_play(state)
 
     assert any(card.name == "Spoils" for card in player.discard)
-    assert any(card.name == "Ruins" for card in opponent.discard)
+    # The opponent gains the top of the Ruins pile, which is one of the five
+    # Ruins variants (Abandoned Mine, Ruined Library, Ruined Market, Ruined
+    # Village, Survivors). Check that a Ruins-typed card was gained.
+    assert any(card.is_ruins for card in opponent.discard)
     assert state.supply["Spoils"] == spoils_before - 1
     assert state.supply["Ruins"] == ruins_before - 1
 

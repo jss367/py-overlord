@@ -36,7 +36,7 @@ class Ironmonger(Card):
         should_discard = False
         if revealed.is_victory or revealed.name == "Curse":
             should_discard = True
-        elif revealed.name == "Ruins":
+        elif revealed.is_ruins:
             should_discard = True
 
         if should_discard:

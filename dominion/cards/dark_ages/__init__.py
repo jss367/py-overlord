@@ -9,7 +9,16 @@ from .shelters import Hovel, Necropolis, OvergrownEstate
 from .ironmonger import Ironmonger
 from .marauder import Marauder
 from .spoils import Spoils
-from .ruins import Ruins
+from .ruins import (
+    Ruins,
+    AbandonedMine,
+    RuinedLibrary,
+    RuinedMarket,
+    RuinedVillage,
+    Survivors,
+    RUIN_VARIANT_CLASSES,
+    RUIN_VARIANT_NAMES,
+)
 from .poor_house import PoorHouse
 from .count import Count
 from .armory import Armory
@@ -32,6 +41,11 @@ __all__ = [
     'Marauder',
     'Spoils',
     'Ruins',
+    'AbandonedMine',
+    'RuinedLibrary',
+    'RuinedMarket',
+    'RuinedVillage',
+    'Survivors',
     'PoorHouse',
     'Count',
     'Armory',

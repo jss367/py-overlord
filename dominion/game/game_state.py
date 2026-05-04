@@ -34,6 +34,11 @@ class GameState:
     tireless_piles: set = field(default_factory=set)  # card names with Tireless trait
     embargo_tokens: dict[str, int] = field(default_factory=dict)
 
+    # Dark Ages: ordered piles where the top card matters (Ruins, Knights).
+    # ``pile_order[name]`` is a list of card-name strings; the top of the pile
+    # is the LAST element. Pulling from these piles always pops the top.
+    pile_order: dict[str, list[str]] = field(default_factory=dict)
+
     # Rising Sun: Prophecies and Sun tokens
     prophecy: object = None
     sun_tokens: int = 0
@@ -321,20 +326,16 @@ class GameState:
         if any(card.name == "Young Witch" for card in kingdom_cards):
             self._setup_young_witch_bane(kingdom_cards)
 
-    def _setup_young_witch_bane(self, kingdom_cards: list[Card]) -> None:
-        """Designate the Bane card pile required by Young Witch.
+        self._setup_dark_ages_piles(kingdom_cards)
 
-        Prefers a Kingdom card already in the chosen ten that costs $2 or $3.
-        Falls back to adding an extra Kingdom pile from outside the chosen
-        set. The selected card's name is stored on ``self.bane_card_name``.
-        """
+    def _setup_young_witch_bane(self, kingdom_cards: list[Card]) -> None:
+        """Designate the Bane card pile required by Young Witch."""
 
         BASIC_NAMES = {
             "Copper", "Silver", "Gold", "Platinum",
             "Estate", "Duchy", "Province", "Colony", "Curse",
         }
 
-        # Already-eligible piles in the kingdom.
         in_kingdom = [
             c for c in kingdom_cards
             if c.cost.coins in (2, 3)
@@ -345,14 +346,11 @@ class GameState:
             and not getattr(c, "is_project", False)
         ]
         if in_kingdom:
-            # Pick deterministically (cheapest then by name) so tests are
-            # repeatable.
             chosen = min(in_kingdom, key=lambda c: (c.cost.coins, c.name))
             self.bane_card_name = chosen.name
             self.original_kingdom_pile_names.add(chosen.name)
             return
 
-        # Otherwise, add an extra Kingdom pile from outside the chosen set.
         kingdom_names = {c.name for c in kingdom_cards}
         candidate_name: str | None = None
         candidate_card: Card | None = None
@@ -381,6 +379,58 @@ class GameState:
             self.supply[candidate_name] = candidate_card.starting_supply(self)
             self.bane_card_name = candidate_name
             self.original_kingdom_pile_names.add(candidate_name)
+
+    def _setup_dark_ages_piles(self, kingdom_cards: list[Card]) -> None:
+        """Build the shuffled Ruins / Knights piles and Madman / Mercenary piles."""
+        from dominion.cards.dark_ages.ruins import RUIN_VARIANT_NAMES
+        from dominion.cards.dark_ages.knights import KNIGHT_NAMES
+
+        if "Ruins" in self.supply:
+            n_players = max(2, len(self.players))
+            ruins_count = 10 * (n_players - 1)
+            ruin_pool: list[str] = []
+            per_variant = (ruins_count // len(RUIN_VARIANT_NAMES)) + 1
+            for variant in RUIN_VARIANT_NAMES:
+                ruin_pool.extend([variant] * per_variant)
+            random.shuffle(ruin_pool)
+            ruin_pool = ruin_pool[:ruins_count]
+            random.shuffle(ruin_pool)
+            self.pile_order["Ruins"] = ruin_pool
+            self.supply["Ruins"] = len(ruin_pool)
+
+        if "Knights" in self.supply:
+            order = list(KNIGHT_NAMES)
+            random.shuffle(order)
+            self.pile_order["Knights"] = order
+            self.supply["Knights"] = len(order)
+
+        if any(card.name == "Hermit" for card in kingdom_cards):
+            self.supply["Madman"] = 10
+
+        if any(card.name == "Urchin" for card in kingdom_cards):
+            self.supply["Mercenary"] = 10
+
+    def gain_ruins(self, target) -> "Card | None":
+        """Resolve a "gain a Ruins" by handing over the top of the Ruins pile."""
+        order = self.pile_order.get("Ruins")
+        if not order:
+            if self.supply.get("Ruins", 0) > 0:
+                self.supply["Ruins"] -= 1
+                return self.gain_card(target, get_card("Ruins"))
+            return None
+
+        if not order:
+            return None
+        top_name = order.pop()
+        self.supply["Ruins"] = max(0, self.supply.get("Ruins", 0) - 1)
+        return self.gain_card(target, get_card(top_name))
+
+    def top_of_pile(self, pile_name: str) -> "Card | None":
+        """Return a card object representing the top of an ordered pile, or None."""
+        order = self.pile_order.get(pile_name)
+        if not order:
+            return None
+        return get_card(order[-1])
 
     def _prepare_black_market_deck(self, kingdom_cards: list[Card]) -> None:
         """Build and shuffle the Black Market deck for this game."""
@@ -693,6 +743,17 @@ class GameState:
                         if choice.is_attack:
                             self.prophecy.on_play_attack(self, player, choice)
 
+                    # Dark Ages: Urchin reacts to a freshly played Attack.
+                    if choice.is_attack and choice.name != "Urchin":
+                        for urchin in [
+                            c for c in list(player.in_play)
+                            if c.name == "Urchin" and c is not choice
+                        ]:
+                            try:
+                                urchin.react_to_attack_played(self, player, choice)
+                            except AttributeError:
+                                pass
+
             # Harbor Village bonus: +$1 if the action gave +$
             if harbor_pending > 0 and choice.name != "Harbor Village":
                 coins_gained = player.coins - coins_before_action
@@ -904,8 +965,15 @@ class GameState:
                 player.projects.append(choice)
                 choice.on_buy(self, player)
             else:
-                self.supply[choice.name] -= 1
-                self.log_callback(("supply_change", choice.name, -1, self.supply[choice.name]))
+                # Dark Ages: buying a Knight removes the top of the Knights
+                # pile, not a "Sir Bailey" pile.
+                pile_name = choice.name
+                if choice.is_knight and "Knights" in self.pile_order:
+                    pile_name = "Knights"
+                    if self.pile_order["Knights"]:
+                        self.pile_order["Knights"].pop()
+                self.supply[pile_name] = max(0, self.supply.get(pile_name, 0) - 1)
+                self.log_callback(("supply_change", pile_name, -1, self.supply[pile_name]))
                 choice.on_buy(self)
                 gained_card = self.gain_card(player, choice)
 
@@ -914,6 +982,9 @@ class GameState:
 
                 self._handle_on_buy_in_play_effects(player, choice, gained_card)
                 self._apply_embargo_tokens(player, choice.name)
+                # Dark Ages: Hovel reacts to buying a Victory card.
+                if choice.is_victory:
+                    self._handle_hovel_reaction(player)
 
                 if player.goons_played:
                     player.vp_tokens += player.goons_played
@@ -979,12 +1050,26 @@ class GameState:
 
         for card_name, count in self.supply.items():
             if count > 0:
-                card = get_card(card_name)
+                # Dark Ages: ordered piles ("Knights", "Ruins") expose the
+                # top card as the buyable entry. Ruins is never normally
+                # buyable, but Knights is.
+                if card_name in self.pile_order:
+                    top = self.top_of_pile(card_name)
+                    if top is None:
+                        continue
+                    card = top
+                    # The top card of an ordered pile is implicitly buyable
+                    # (Knights). Ruins is never bought directly — the only
+                    # pile_order pile players can buy from is Knights.
+                    pile_buyable = card_name == "Knights"
+                else:
+                    card = get_card(card_name)
+                    pile_buyable = card.may_be_bought(self)
                 cost = self.get_card_cost(player, card)
                 if (
                     cost <= available_coins
                     and card.cost.potions <= player.potions
-                    and card.may_be_bought(self)
+                    and pile_buyable
                     and card_name not in player.banned_buys
                     and (not player.cannot_buy_actions or not card.is_action)
                 ):
@@ -1996,6 +2081,18 @@ class GameState:
                 project.on_trash(self, player, card)
 
         self._handle_market_square_reaction(player, card)
+
+    def _handle_hovel_reaction(self, player: PlayerState) -> None:
+        """Offer Hovels in hand the chance to trash themselves on Victory buys."""
+        while True:
+            hovels = [card for card in player.hand if card.name == "Hovel"]
+            if not hovels:
+                return
+            if not player.ai.should_trash_hovel_on_victory(self, player):
+                return
+            hovel = hovels[0]
+            player.hand.remove(hovel)
+            self.trash_card(player, hovel)
 
     def _handle_market_square_reaction(self, player: PlayerState, trashed_card: Card) -> None:
         """Offer Market Square reactions for any card the player just trashed."""
