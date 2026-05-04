@@ -15,21 +15,18 @@ class WishingWell(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
 
+        # Step 1: Name the card BEFORE drawing/looking.
+        guessed_name = player.ai.name_card_for_wishing_well(game_state, player)
+
+        # Step 2: Reveal the top card of the deck.
         if not player.deck and player.discard:
             player.shuffle_discard_into_deck()
         if not player.deck:
             return
 
-        guessed_name = self._guess_card_name(player)
         card = player.deck.pop()
 
         if guessed_name and card.name == guessed_name:
             player.hand.append(card)
         else:
             player.deck.append(card)
-
-    @staticmethod
-    def _guess_card_name(player) -> str | None:
-        if player.deck:
-            return player.deck[-1].name
-        return None

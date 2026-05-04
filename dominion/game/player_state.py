@@ -106,6 +106,8 @@ class PlayerState:
     war_chest_named_this_turn: list[str] = field(default_factory=list)
     # Prosperity 2E: Clerk attack — duration self-replay
     clerk_pending_replay: list[Card] = field(default_factory=list)
+    # Intrigue 1E: each Coppersmith played gives a +$1 bonus per Copper played.
+    coppersmiths_played: int = 0
 
     def initialize(self, use_shelters: bool = False):
         """Set up starting deck and draw initial hand.
@@ -211,6 +213,7 @@ class PlayerState:
         self.misery = 0
         self.cannot_buy_actions = False
         self.envious_effect_active = False
+        self.coppersmiths_played = 0
 
         # Draw initial hand of 5 cards
         self.draw_cards(5)

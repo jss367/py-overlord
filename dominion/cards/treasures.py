@@ -13,6 +13,14 @@ class Copper(Card):
     def starting_supply(self, game_state) -> int:
         return 60
 
+    def play_effect(self, game_state):
+        # Coppersmith (Intrigue 1E): each Copper played this turn produces
+        # an extra +$1 for each Coppersmith already played this turn.
+        player = game_state.current_player
+        bonus = getattr(player, "coppersmiths_played", 0)
+        if bonus:
+            player.coins += bonus
+
 
 class Silver(Card):
     def __init__(self):
