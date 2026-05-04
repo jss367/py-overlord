@@ -55,10 +55,10 @@ def test_enchantress_overrides_first_action_play():
 
     # Village normally would give +1 Card +2 Actions; under Enchantress
     # override it gives +1 Card +1 Action only on the first Action play.
-    # After one Action, Smithy still in hand. Player should have 1 +1 card
-    # from Village's override + Smithy normal play (+3 cards).
-    # But we just want to confirm Village WAS overridden:
-    assert not other.enchantress_active  # Cleared after first action.
+    # The ``enchantress_active`` flag stays set until the caster's next turn
+    # (so extra turns like Outpost are still affected); only
+    # ``enchantress_used_this_turn`` gates the per-turn override.
+    assert other.enchantress_active
     assert other.enchantress_used_this_turn
 
 
@@ -78,6 +78,39 @@ def test_enchantress_only_first_action_overridden():
     # First Smithy enchanted (+1 Card +1 Action). Second Smithy plays normally
     # but action count came from Enchantress override (+1 Action).
     # We expect the player drew at least Smithy's 3 cards on the second play.
+    assert other.enchantress_used_this_turn
+
+
+def test_enchantress_persists_across_opponent_extra_turn():
+    """Enchantress should still apply on an opponent's extra turn (e.g.
+    Outpost) before the caster's next turn. Only the per-turn "used" flag
+    gates the override; the duration flag must persist."""
+    state = _make_game(2)
+    state.current_player_index = 1
+    other = state.players[1]
+    other.enchantress_active = True
+    other.actions = 1
+    smithy = get_card("Smithy")
+    other.hand = [smithy]
+    other.deck = [get_card("Copper") for _ in range(5)]
+
+    state.handle_action_phase()
+    assert other.enchantress_active
+    assert other.enchantress_used_this_turn
+
+    # Simulate the start of the player's next (extra) turn re-arming the
+    # per-turn flag. ``handle_start_phase`` resets ``enchantress_used_this_turn``;
+    # we mirror that here without invoking the full start sequence.
+    other.enchantress_used_this_turn = False
+
+    other.actions = 1
+    smithy2 = get_card("Smithy")
+    other.hand = [smithy2]
+    other.deck = [get_card("Copper") for _ in range(5)]
+    state.handle_action_phase()
+
+    # Override should fire again on the extra turn.
+    assert other.enchantress_active
     assert other.enchantress_used_this_turn
 
 

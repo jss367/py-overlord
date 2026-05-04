@@ -20,21 +20,45 @@ def _make_game(events, num_players=2):
     return state
 
 
-def test_donate_resolves_at_end_of_buy_phase():
+def test_donate_pending_set_on_buy_not_consumed_in_buy_phase_end():
     state = _make_game([get_event("Donate")])
     player = state.players[0]
     player.coins = 0
     player.buys = 1
 
-    # Manually trigger donate buy + buy phase end
     get_event("Donate").on_buy(state, player)
     assert player.donate_pending == 1
 
-    # Run buy phase end resolution
+    # Donate is deferred until cleanup completes. _handle_buy_phase_end
+    # must NOT consume donate_pending or draw a hand prematurely.
+    hand_before = len(player.hand)
     state._handle_buy_phase_end(player)
-    # Donate should be resolved.
+    assert player.donate_pending == 1
+    assert len(player.hand) == hand_before
+
+
+def test_donate_resolves_after_cleanup_draw():
+    """Donate fires AFTER cleanup's discard-and-draw so the Donate-drawn
+    hand survives into the next turn instead of being immediately discarded."""
+    state = _make_game([get_event("Donate")])
+    player = state.players[0]
+    state.current_player_index = state.players.index(player)
+
+    get_event("Donate").on_buy(state, player)
+    assert player.donate_pending == 1
+
+    # Stack the deck with plenty of cards so cleanup's draw-5 has cards to
+    # pull before Donate redraws.
+    player.deck = [get_card("Copper") for _ in range(20)]
+    player.hand = [get_card("Copper") for _ in range(3)]
+    player.in_play = []
+    player.duration = []
+    player.multiplied_durations = []
+
+    state.handle_cleanup_phase()
+    # Donate should now have been resolved exactly once.
     assert player.donate_pending == 0
-    # Player should have 5 cards in hand now.
+    # Final hand size is 5 from the post-Donate draw.
     assert len(player.hand) == 5
 
 

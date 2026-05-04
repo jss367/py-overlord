@@ -138,6 +138,27 @@ def test_opulent_castle_discard_for_coins():
     assert all(c.name == "Copper" for c in player.hand)
 
 
+def test_castles_count_as_single_pile_for_empty_piles():
+    """Emptying individual Castle ranks must not trip the "three piles
+    depleted" game-end condition. All 8 Castle cards collapse to one pile."""
+    state = _make_game(2)
+
+    # Drain the first three Castle ranks. Castles as a whole still have
+    # cards, so empty_piles should not count any of them.
+    for name in CASTLE_ORDER[:3]:
+        state.supply[name] = 0
+    assert state.empty_piles == 0
+
+    # Drain everything but King's Castle: still not "Castles empty".
+    for name in CASTLE_ORDER[:-1]:
+        state.supply[name] = 0
+    assert state.empty_piles == 0
+
+    # Drain the final Castle: now Castles counts as one empty pile.
+    state.supply[CASTLE_ORDER[-1]] = 0
+    assert state.empty_piles == 1
+
+
 def test_small_castle_trash_self_gains_castle():
     state = _make_game(2)
     player = state.players[0]
