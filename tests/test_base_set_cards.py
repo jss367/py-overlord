@@ -102,6 +102,36 @@ def test_merchant_only_first_silver_gets_bonus():
     assert player.coins - coins_before == 5
 
 
+def test_merchant_does_not_apply_to_silver_played_after_an_earlier_silver():
+    """A Silver played before any Merchant must consume the "first Silver"
+    slot, so that a later Silver played after a Merchant gets no bonus.
+    """
+
+    state = _make_state()
+    player = state.players[0]
+
+    s1 = get_card("Silver")
+    merchant = get_card("Merchant")
+    s2 = get_card("Silver")
+    player.hand = [s1, merchant, s2]
+
+    coins_before = player.coins
+
+    # Play Silver before any Merchant (e.g. via Storyteller / Black Market /
+    # Vassal-style effects in a normal turn).
+    s1.on_play(state)
+    # Now play Merchant (queues +$1 bonus).
+    play_action(state, player, merchant)
+    # Now play a second Silver.
+    s2.on_play(state)
+
+    # First Silver: +$2 (no Merchant active yet, no bonus).
+    # Merchant: +0 coins directly.
+    # Second Silver: +$2 only -- the "first Silver this turn" was already
+    # played, so the +$1 bonus must NOT apply.
+    assert player.coins - coins_before == 4
+
+
 # ---- Vassal -----------------------------------------------------------------
 
 
@@ -311,6 +341,44 @@ def test_artisan_gains_to_hand_and_topdecks_from_hand():
     # Hand should now contain the gained card (we've also topdecked one of
     # them, so net hand size = 2 + 1 gained - 1 topdecked = 2).
     assert len(player.hand) == 2 or len(player.hand) == 1
+
+
+def test_artisan_does_not_resurrect_card_trashed_by_watchtower():
+    """If Watchtower trashes Artisan's gain, the card must NOT also end up
+    in hand. The trashed instance must remain only in the trash pile.
+    """
+
+    class WatchtowerTrashAI(ChooseFirstActionAI):
+        def choose_watchtower_reaction(self, state, player, gained_card):
+            # Trash everything that Artisan tries to gain.
+            return "trash"
+
+    state = _make_state(ai_class=WatchtowerTrashAI)
+    player = state.players[0]
+
+    artisan = get_card("Artisan")
+    watchtower = get_card("Watchtower")
+    junk = get_card("Estate")
+    player.hand = [artisan, watchtower, junk]
+
+    play_action(state, player, artisan)
+
+    # The gained card should be in the trash, NOT duplicated in hand.
+    assert len(state.trash) >= 1, "expected the gained card to be trashed"
+    trashed = state.trash[-1]
+    assert trashed not in player.hand
+    assert trashed not in player.discard
+    assert trashed not in player.deck
+
+    # The same Card object must not appear simultaneously in trash and in any
+    # of the player's zones.
+    all_player_cards = (
+        player.hand + player.discard + player.deck + player.in_play
+    )
+    for trashed_card in state.trash:
+        assert trashed_card not in all_player_cards, (
+            f"trashed {trashed_card.name} also present in player zones"
+        )
 
 
 # ---- Chancellor (1E) --------------------------------------------------------
