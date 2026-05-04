@@ -92,18 +92,24 @@ from ..guilds import (
     Stonemason,
     Taxman,
 )
+from ..prosperity.anvil import Anvil
 from ..prosperity.bank import Bank
 from ..prosperity.bishop import Bishop
+from ..prosperity.charlatan import Charlatan
 from ..prosperity.city import City
+from ..prosperity.clerk import Clerk
 from ..prosperity.contraband import Contraband
 from ..prosperity.counting_house import CountingHouse
+from ..prosperity.crystal_ball import CrystalBall
 from ..prosperity.expand import Expand
 from ..prosperity.forge import Forge
 from ..prosperity.goons import Goons
 from ..prosperity.grand_market import GrandMarket
 from ..prosperity.hoard import Hoard
+from ..prosperity.investment import Investment
 from ..prosperity.kings_court import KingsCourt
 from ..prosperity.loan import Loan
+from ..prosperity.magnate import Magnate
 from ..prosperity.mint import Mint
 from ..prosperity.monument import Monument
 from ..prosperity.mountebank import Mountebank
@@ -112,9 +118,11 @@ from ..prosperity.quarry import Quarry
 from ..prosperity.rabble import Rabble
 from ..prosperity.royal_seal import RoyalSeal
 from ..prosperity.talisman import Talisman
+from ..prosperity.tiara import Tiara
 from ..prosperity.trade_route import TradeRoute
 from ..prosperity.vault import Vault
 from ..prosperity.venture import Venture
+from ..prosperity.war_chest import WarChest
 from ..prosperity.watchtower import Watchtower
 from ..prosperity.workers_village import WorkersVillage
 from ..prosperity.platinum import Platinum
@@ -257,18 +265,24 @@ __all__ = [
     'Soothsayer',
     'Stonemason',
     'Taxman',
+    'Anvil',
     'Bank',
     'Bishop',
+    'Charlatan',
     'City',
+    'Clerk',
     'Contraband',
     'CountingHouse',
+    'CrystalBall',
     'Expand',
     'Forge',
     'Goons',
     'GrandMarket',
     'Hoard',
+    'Investment',
     'KingsCourt',
     'Loan',
+    'Magnate',
     'Mint',
     'Monument',
     'Mountebank',
@@ -277,9 +291,11 @@ __all__ = [
     'Rabble',
     'RoyalSeal',
     'Talisman',
+    'Tiara',
     'TradeRoute',
     'Vault',
     'Venture',
+    'WarChest',
     'Watchtower',
     'WorkersVillage',
     'Platinum',

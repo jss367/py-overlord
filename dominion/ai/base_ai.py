@@ -987,3 +987,170 @@ class AI(ABC):
                 c.name,
             ),
         )
+
+    # ------------------------------------------------------------------
+    # Prosperity 2E hooks
+    # ------------------------------------------------------------------
+
+    def choose_anvil_treasure_to_discard(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Anvil: pick a Treasure to discard from hand to gain a card up to $4.
+
+        Default: discard the cheapest Treasure (Copper preferred) to fuel a
+        better gain.
+        """
+        if not choices:
+            return None
+        coppers = [c for c in choices if c.name == "Copper"]
+        if coppers:
+            return coppers[0]
+        return min(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_anvil_gain(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Anvil: pick which $0-$4 card to gain after discarding a Treasure."""
+        if not choices:
+            return None
+        actions = [c for c in choices if c.is_action]
+        if actions:
+            return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+        return max(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_card_to_topdeck_for_clerk(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Clerk attack: opponent picks a card from hand to topdeck."""
+        return self.choose_card_to_topdeck_from_hand(
+            state, player, choices, reason="clerk"
+        )
+
+    def should_replay_clerk(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """At start of turn, may play a Clerk that was set aside.
+
+        Default: yes — the +$2 is essentially free.
+        """
+        return True
+
+    def choose_investment_mode(
+        self, state: GameState, player: PlayerState, can_trash_treasure: bool
+    ) -> str:
+        """Investment: 'coin' (+$1) or 'trash' (trash a Treasure for +1 VP per
+        differently-named Treasure revealed).
+
+        Default: trash if doing so reveals at least 2 distinct Treasure
+        names, otherwise take the coin.
+        """
+        if not can_trash_treasure:
+            return "coin"
+        treasures = [c for c in player.hand if c.is_treasure]
+        distinct = {c.name for c in treasures}
+        if len(distinct) >= 2:
+            return "trash"
+        return "coin"
+
+    def choose_treasure_to_trash_for_investment(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Investment: pick which Treasure in hand to trash."""
+        if not choices:
+            return None
+        # Prefer trashing the cheapest Treasure that still has duplicates.
+        coppers = [c for c in choices if c.name == "Copper"]
+        if coppers:
+            return coppers[0]
+        return min(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def should_topdeck_with_tiara(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """Tiara: when you gain a card, you may put it onto your deck.
+
+        Default: topdeck Action and Treasure gains worth $4+, never topdeck
+        junk like Curse or Copper.
+        """
+        if gained_card.name in {"Curse", "Copper", "Ruins"}:
+            return False
+        if gained_card.is_victory and not gained_card.is_action:
+            # Victory cards go to the deck only if they're worth playing soon
+            # (e.g. Province for end-game) — let the AI keep them in discard.
+            return False
+        return gained_card.cost.coins >= 4
+
+    def should_replay_treasure_with_tiara(
+        self, state: GameState, player: PlayerState, treasure: Card
+    ) -> bool:
+        """Tiara: once per turn, when you play a Treasure, you may play it again.
+
+        Default: yes — replaying any treasure is strictly positive.
+        """
+        return True
+
+    def choose_card_for_war_chest(
+        self, state: GameState, opponent: PlayerState, supply_choices: list[Card]
+    ) -> "Card | None":
+        """Player to the left of War Chest's owner names a card.
+
+        Default heuristic: name a strong $5 card the opponent might want next
+        (Witch, Mountebank, Wharf, Goons, etc.), falling back to the most
+        expensive supply card.
+        """
+        if not supply_choices:
+            return None
+        priority = [
+            "Witch",
+            "Mountebank",
+            "Goons",
+            "Wharf",
+            "Ghost Ship",
+            "Bishop",
+            "City",
+            "Vault",
+            "Watchtower",
+            "Province",
+            "Gold",
+        ]
+        for name in priority:
+            for card in supply_choices:
+                if card.name == name:
+                    return card
+        return max(supply_choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_war_chest_gain(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """War Chest: gain a $0-$5 card not previously named this turn."""
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.is_action, c.name))
+
+    def choose_crystal_ball_action(
+        self, state: GameState, player: PlayerState, top_card: Card
+    ) -> str:
+        """Crystal Ball: 'trash', 'discard', 'play', or 'leave'.
+
+        Default: trash junk (Curse, Copper, low Estate); play valuable
+        Treasures/Actions; leave anything else.
+        """
+        if top_card.name in {"Curse", "Ruins"}:
+            return "trash"
+        if top_card.name == "Copper" and len([
+            c for c in player.hand if c.name == "Copper"
+        ]) >= 2:
+            return "trash"
+        if top_card.is_action and player.actions > 0:
+            return "play"
+        if top_card.is_treasure and top_card.name != "Copper":
+            return "play"
+        if top_card.is_victory and not top_card.is_action:
+            return "discard"
+        return "leave"
+
+    def should_play_charlatan_curse_attack(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Hook for AIs that may want to skip Charlatan's Curse attack."""
+        return True
