@@ -59,6 +59,18 @@ class PlayerState:
     charm_next_buy_copies: int = 0
     walled_villages_played: int = 0
     fortune_doubled_this_turn: bool = False
+    # Rising Sun: Daimyo replays the next non-Command Action card played
+    daimyo_pending: int = 0
+    continue_used_this_turn: bool = False
+    foresight_set_aside: list = field(default_factory=list)
+    # Rising Sun: Kintsugi event cares whether Gold has ever been gained.
+    kintsugi_has_gained_gold: bool = False
+    # Rising Sun: Prophecy-driven per-player state
+    biding_time_set_aside: list = field(default_factory=list)
+    good_harvest_treasures_played: set = field(default_factory=set)
+    panic_active: bool = False
+    rapid_expansion_set_aside: list = field(default_factory=list)
+    flourishing_trade_active: bool = False
 
     # Turn tracking
     turns_taken: int = 0
@@ -139,6 +151,15 @@ class PlayerState:
         self.charm_next_buy_copies = 0
         self.walled_villages_played = 0
         self.fortune_doubled_this_turn = False
+        self.daimyo_pending = 0
+        self.continue_used_this_turn = False
+        self.foresight_set_aside = []
+        self.kintsugi_has_gained_gold = False
+        self.biding_time_set_aside = []
+        self.good_harvest_treasures_played = set()
+        self.panic_active = False
+        self.rapid_expansion_set_aside = []
+        self.flourishing_trade_active = False
         self.turns_taken = 0
         self.actions_played = 0
         self.actions_this_turn = 0
@@ -187,11 +208,27 @@ class PlayerState:
         return drawn
 
     def shuffle_discard_into_deck(self):
-        """Shuffle discard pile to create new deck, respecting Stash."""
+        """Shuffle discard pile to create new deck.
+
+        Respects Stash (top) and Rising Sun Shadow cards (bottom).
+        Cards at index 0 are the bottom of the deck (drawn last); cards at
+        the end are the top (drawn first via ``deck.pop()``).
+        """
         stash_cards = [card for card in self.discard if card.name == "Stash"]
-        others = [card for card in self.discard if card.name != "Stash"]
+        shadows = [
+            card
+            for card in self.discard
+            if card.name != "Stash" and getattr(card, "is_shadow", False)
+        ]
+        others = [
+            card
+            for card in self.discard
+            if card.name != "Stash" and not getattr(card, "is_shadow", False)
+        ]
         random.shuffle(others)
-        self.deck = others + stash_cards
+        # Shadows live at the bottom of the deck (index 0..) per Rising Sun
+        # rules; everything else is shuffled normally on top of them.
+        self.deck = shadows + others + stash_cards
         self.discard = []
 
     def count_in_deck(self, card_name: str) -> int:

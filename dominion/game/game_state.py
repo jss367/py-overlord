@@ -32,7 +32,17 @@ class GameState:
     farmers_market_pile_tokens: int = 0
     temple_pile_tokens: int = 0
     tireless_piles: set = field(default_factory=set)  # card names with Tireless trait
-      
+
+    # Rising Sun: Prophecies and Sun tokens
+    prophecy: object = None
+    sun_tokens: int = 0
+    riverboat_set_aside: object = None  # Card set aside at game start for Riverboat
+    harsh_winter_debt: dict = field(default_factory=dict)  # pile_name → debt tokens
+    # Names of the Kingdom card piles (and their split-pile partners) used at
+    # game setup. Tracked separately from the supply because Divine Wind
+    # needs to remove only those piles, not non-Kingdom support piles like
+    # Ruins, Spoils, or Horse.
+    original_kingdom_pile_names: set = field(default_factory=set)
 
     def __post_init__(self):
         """Initialize with default logger that prints to console."""
@@ -80,6 +90,39 @@ class GameState:
     def current_player(self) -> PlayerState:
         return self.players[self.current_player_index]
 
+    def fire_prophecy_action_hooks(self, player: PlayerState, card: Card) -> None:
+        """Fire the active Prophecy's after-Action-play hooks for ``card``.
+
+        Used by Continue / Riverboat / Practice and any other code path that
+        plays an Action card outside ``handle_action_phase``. The hooks are
+        the same ones the action phase loop fires after each Action play
+        (Great Leader's +1 Action, Approaching Army's +$1 from Attacks).
+        """
+        if self.prophecy is None or not self.prophecy.is_active:
+            return
+        self.prophecy.on_play_action(self, player, card)
+        if card.is_attack:
+            self.prophecy.on_play_attack(self, player, card)
+
+    def remove_sun_token(self, count: int = 1) -> None:
+        """Omen +1 Sun: remove ``count`` Sun tokens from the active Prophecy.
+
+        When the last token is removed, the Prophecy activates and its rule
+        text becomes effective for the rest of the game. No-ops when there is
+        no active Prophecy or when tokens have already been depleted.
+        """
+        if self.prophecy is None:
+            return
+        if self.sun_tokens <= 0:
+            return
+        for _ in range(count):
+            if self.sun_tokens <= 0:
+                break
+            self.sun_tokens -= 1
+            if self.sun_tokens == 0 and not self.prophecy.is_active:
+                self.prophecy.activate(self)
+                break
+
     def initialize_game(
         self,
         ais: list,
@@ -89,15 +132,56 @@ class GameState:
         projects: list = None,
         ways: list = None,
         allies: list = None,
+        prophecy: object = None,
+        riverboat_set_aside: Card = None,
     ):
         """Set up the game with given AIs and kingdom cards."""
         # Create PlayerState objects for each AI
         self.players = [PlayerState(ai) for ai in ais]
+        # Snapshot the Kingdom selection before setup_supply expands the pile
+        # set with split-pile partners. We extend the snapshot with the
+        # partner names below since Divine Wind treats a split pile as one
+        # Kingdom pile to remove.
+        self.original_kingdom_pile_names = {c.name for c in kingdom_cards}
+        for c in kingdom_cards:
+            if isinstance(c, SplitPileMixin):
+                self.original_kingdom_pile_names.add(c.partner_card_name)
+            from dominion.cards.allies.wizards import (
+                WIZARDS_PILE_ORDER,
+                WizardsSplitCard,
+            )
+            if isinstance(c, WizardsSplitCard):
+                self.original_kingdom_pile_names.update(WIZARDS_PILE_ORDER)
         self.setup_supply(kingdom_cards)
         self.events = events or []
         self.projects = projects or []
         self.ways = ways or []
         self.allies = allies or []
+
+        # Rising Sun: a Prophecy is dealt out whenever any Omen card is in the
+        # supply. Sun tokens are placed based on player count.
+        has_omen = any(card.is_omen for card in kingdom_cards)
+        if prophecy is None and has_omen:
+            from dominion.prophecies.registry import PROPHECY_TYPES
+            if PROPHECY_TYPES:
+                prophecy_class = random.choice(list(PROPHECY_TYPES.values()))
+                prophecy = prophecy_class()
+        if prophecy is not None:
+            self.prophecy = prophecy
+            tokens_per_count = {2: 5, 3: 8, 4: 10, 5: 12, 6: 13}
+            self.sun_tokens = tokens_per_count.get(len(self.players), 5)
+            prophecy.setup(self)
+            self.log_callback(
+                f"Prophecy: {prophecy.name} ({self.sun_tokens} Sun tokens)"
+            )
+
+        # Riverboat: a non-Duration Action card costing exactly $5 is set aside
+        # at the start of the game and played at the start of the turn after
+        # Riverboat is played.
+        if riverboat_set_aside is not None:
+            self.riverboat_set_aside = riverboat_set_aside
+        elif any(c.name == "Riverboat" for c in kingdom_cards):
+            self.riverboat_set_aside = self._pick_riverboat_set_aside(kingdom_cards)
 
         # Initialize players
         for player in self.players:
@@ -126,6 +210,31 @@ class GameState:
 
         self.log_callback("Game initialized with players: " + ", ".join(player_descriptions))
         self.log_callback("Kingdom cards: " + ", ".join(c.name for c in kingdom_cards))
+
+    def _pick_riverboat_set_aside(self, kingdom_cards: list[Card]) -> "Card | None":
+        """Choose a non-Duration Action card costing exactly $5 not in the supply.
+
+        Used at game setup when Riverboat is in the kingdom and the caller
+        didn't pass an explicit set-aside card.
+        """
+        in_kingdom = {c.name for c in kingdom_cards}
+        for name in get_all_card_names():
+            if name in in_kingdom:
+                continue
+            try:
+                card = get_card(name)
+            except ValueError:
+                continue
+            if not card.is_action:
+                continue
+            if card.is_duration:
+                continue
+            if getattr(card, "is_event", False) or getattr(card, "is_project", False):
+                continue
+            if card.cost.coins != 5 or card.cost.debt != 0 or card.cost.potions != 0:
+                continue
+            return card
+        return None
 
     def setup_supply(self, kingdom_cards: list[Card]):
         """Set up the initial supply piles."""
@@ -289,6 +398,10 @@ class GameState:
         player.insignia_active = False
         player.fortune_doubled_this_turn = False
         player.harbor_village_pending = 0
+        player.continue_used_this_turn = False
+        # Daimyo's "next non-Command Action this turn" replay expires when the
+        # turn ends without a triggering Action being played.
+        player.daimyo_pending = 0
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
@@ -302,6 +415,10 @@ class GameState:
         # Resolve Ally effects (e.g. Cave Dwellers' Favor-spending hook)
         for ally in self.allies:
             ally.on_turn_start(self, self.current_player)
+
+        # Rising Sun: Prophecy start-of-turn hook (Kind Emperor)
+        if self.prophecy is not None and self.prophecy.is_active:
+            self.prophecy.on_turn_start(self, self.current_player)
 
         # Log turn header with complete state
         resources = {
@@ -373,11 +490,27 @@ class GameState:
     def handle_action_phase(self):
         """Handle the action phase of a turn."""
         player = self.current_player
+        enlightened = (
+            self.prophecy is not None
+            and self.prophecy.is_active
+            and self.prophecy.name == "Enlightenment"
+        )
 
         while True:
             action_cards = [card for card in player.hand if card.is_action]
+            # Rising Sun: Enlightenment turns Treasures into Actions for all
+            # purposes — they can be played from your hand in the Action phase.
+            if enlightened:
+                action_cards += [
+                    card for card in player.hand
+                    if card.is_treasure and not card.is_action
+                ]
+            # Rising Sun: Shadow cards may be played from the deck whenever
+            # you could normally play an Action.
+            shadow_in_deck = [card for card in player.deck if card.is_shadow]
+            playable = action_cards + shadow_in_deck
 
-            if not action_cards:
+            if not playable:
                 break
 
             if player.actions == 0:
@@ -395,7 +528,7 @@ class GameState:
                 else:
                     break
 
-            choice = player.ai.choose_action(self, action_cards + [None])
+            choice = player.ai.choose_action(self, playable + [None])
             if choice is None:
                 break
 
@@ -425,7 +558,11 @@ class GameState:
             player.actions -= 1
             player.actions_played += 1
             player.actions_this_turn += 1
-            player.hand.remove(choice)
+            # Shadow cards are played from the deck; everything else from hand.
+            if choice in player.hand:
+                player.hand.remove(choice)
+            elif choice in player.deck:
+                player.deck.remove(choice)
             player.in_play.append(choice)
             # Track coins before play for Harbor Village bonus
             coins_before_action = player.coins
@@ -448,11 +585,30 @@ class GameState:
                         if flagship in player.duration:
                             player.duration.remove(flagship)
 
-                plays = 1 + len(flagships_to_resolve)
+                # Rising Sun: Daimyo replays the next non-Command Action.
+                # Multiple Daimyos stack and all replay the same card.
+                daimyo_replays = 0
+                if not getattr(choice, "is_command", False):
+                    daimyo_replays = getattr(player, "daimyo_pending", 0)
+                    player.daimyo_pending = 0
+
+                plays = 1 + len(flagships_to_resolve) + daimyo_replays
                 for _ in range(plays):
-                    choice.on_play(self)
+                    if enlightened and choice.is_treasure and not choice.is_action:
+                        # Treasure played in Action phase under Enlightenment:
+                        # +1 Card, +1 Action (instead of its normal text).
+                        self.draw_cards(player, 1)
+                        player.actions += 1
+                    else:
+                        choice.on_play(self)
                     if training_pile and choice.name == training_pile:
                         player.coins += 1
+
+                    # Rising Sun: Prophecy hooks fire after each play
+                    if self.prophecy is not None and self.prophecy.is_active:
+                        self.prophecy.on_play_action(self, player, choice)
+                        if choice.is_attack:
+                            self.prophecy.on_play_attack(self, player, choice)
 
             # Harbor Village bonus: +$1 if the action gave +$
             if harbor_pending > 0 and choice.name != "Harbor Village":
@@ -479,6 +635,17 @@ class GameState:
         if player.envious:
             player.envious = False
             player.envious_effect_active = True
+
+        # Rising Sun Flourishing Trade: leftover Action plays become Buys.
+        if (
+            self.prophecy is not None
+            and self.prophecy.is_active
+            and self.prophecy.name == "Flourishing Trade"
+            and player.actions > 0
+        ):
+            converted = player.actions
+            player.actions = 0
+            player.buys += converted
 
     def handle_treasure_phase(self):
         """Handle the treasure phase of a turn."""
@@ -522,6 +689,10 @@ class GameState:
                 ):
                     player.coins = coins_before + 1
                     coins_after = player.coins
+
+                # Rising Sun: Prophecy hooks fire after each treasure plays
+                if self.prophecy is not None and self.prophecy.is_active:
+                    self.prophecy.on_play_treasure(self, player, choice)
 
             remaining = [c.name for c in player.hand if c.is_treasure]
             context = {
@@ -658,6 +829,10 @@ class GameState:
         if quarry_discount and card.is_action:
             cost -= 2 * quarry_discount
 
+        # Rising Sun: Flourishing Trade and other cost-modifying Prophecies.
+        if self.prophecy is not None and self.prophecy.is_active:
+            cost += self.prophecy.cost_modifier(self, player, card)
+
         return max(0, cost)
 
     def _get_affordable_cards(self, player):
@@ -744,6 +919,15 @@ class GameState:
         player.actions_this_turn = 0
         player.bought_this_turn = []
 
+        # Rising Sun: Prophecy cleanup-start hook (Biding Time, Sickness)
+        if self.prophecy is not None and self.prophecy.is_active:
+            self.prophecy.on_cleanup_start(self, player)
+
+        # Rising Sun: Cards in play with cleanup-start triggers (River Shrine)
+        for card in list(player.in_play):
+            if hasattr(card, "on_cleanup_start"):
+                card.on_cleanup_start(self)
+
         # Discard hand and in-play cards
         scheme_count = sum(1 for card in player.in_play if card.name == "Scheme")
         if scheme_count:
@@ -800,6 +984,14 @@ class GameState:
                 and getattr(player, "walled_villages_played", 0) <= 1
             ):
                 player.deck.insert(0, card)
+            elif (
+                card.is_treasure
+                and getattr(player, "panic_active", False)
+                and card.name in self.supply
+            ):
+                # Rising Sun Panic: discarded Treasures return to their pile
+                # (essentially a one-shot Treasure under Panic).
+                self.supply[card.name] = self.supply.get(card.name, 0) + 1
             else:
                 if card.name == "Capital":
                     player.debt += 6
@@ -823,6 +1015,12 @@ class GameState:
 
         # Draw new hand
         player.draw_cards(5)
+
+        # Rising Sun Foresight: cards set aside earlier go into hand after
+        # drawing the next hand.
+        if getattr(player, "foresight_set_aside", None):
+            player.hand.extend(player.foresight_set_aside)
+            player.foresight_set_aside = []
 
         # Tireless: put set-aside cards on top of deck after drawing
         for card in tireless_set_aside:
@@ -1118,6 +1316,16 @@ class GameState:
         self._handle_gatekeeper_exile(player, actual_card, destination_is_deck, reclaimed)
 
         actual_card.on_gain(self, player)
+
+        # Rising Sun: Kintsugi event needs to know whether the player has
+        # ever gained a Gold.
+        if actual_card.name == "Gold":
+            player.kintsugi_has_gained_gold = True
+
+        # Rising Sun: Prophecy on-gain hook (Bureaucracy, Growth, Harsh Winter,
+        # Progress, Rapid Expansion all care about gains).
+        if self.prophecy is not None and self.prophecy.is_active:
+            self.prophecy.on_gain(self, player, actual_card)
 
         self._handle_trade_route_token(actual_card)
         self._handle_watchtower_reaction(player, actual_card)
