@@ -138,11 +138,11 @@ def test_sinister_plot_stockpiles_then_draws():
         state.handle_start_phase()
         state.phase = "start"
     assert project.tokens == 3
-    # 4th turn-start: remove a token, then +2 Cards.
+    # 4th turn-start: remove ALL tokens and +X Cards where X = tokens removed.
     p.hand = []
     state.handle_start_phase()
-    assert project.tokens == 2
-    assert len(p.hand) >= 2
+    assert project.tokens == 0
+    assert len(p.hand) >= 3
 
 
 def test_academy_grants_villager_on_action_gain():

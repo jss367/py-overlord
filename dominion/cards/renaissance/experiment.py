@@ -23,9 +23,12 @@ class Experiment(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
         # Return this card to its supply pile rather than discarding it.
+        # Only return if this physical copy is still in play; if a multiplier
+        # (e.g., Throne Room) replays Experiment, the second resolution should
+        # not add another phantom copy to the pile.
         if self in player.in_play:
             player.in_play.remove(self)
-        game_state.supply["Experiment"] = game_state.supply.get("Experiment", 0) + 1
+            game_state.supply["Experiment"] = game_state.supply.get("Experiment", 0) + 1
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)

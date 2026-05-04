@@ -18,14 +18,22 @@ class Scepter(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
 
-        # Find Action cards in play that aren't durations remaining for
-        # later turns (we treat any Action in play as eligible — Renaissance
-        # rules require it was played this turn, which is true for anything
-        # in player.in_play).
+        # Renaissance rules: Scepter replays an Action played THIS turn.
+        # Duration cards from prior turns linger in ``player.in_play`` but
+        # are no longer tracked in ``player.duration`` /
+        # ``player.multiplied_durations`` (they were resolved and removed
+        # at the start of this turn). Exclude them so we don't illegally
+        # replay them this turn.
+        active_durations = set(map(id, player.duration)) | set(
+            map(id, player.multiplied_durations)
+        )
         replayable = [
             c
             for c in player.in_play
-            if c.is_action and c is not self and c.name != "Scepter"
+            if c.is_action
+            and c is not self
+            and c.name != "Scepter"
+            and (not c.is_duration or id(c) in active_durations)
         ]
         if replayable:
             choice = max(
