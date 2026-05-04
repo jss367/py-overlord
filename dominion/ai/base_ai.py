@@ -752,8 +752,13 @@ class AI(ABC):
     def should_play_gain_with_sailor(
         self, state: GameState, player: PlayerState, gained_card: Card
     ) -> bool:
-        """Decide whether to play a freshly gained Action via Sailor."""
-        return gained_card.is_action
+        """Decide whether to play a freshly gained Duration card via Sailor.
+
+        Sailor only triggers on Duration gains; this hook just lets a player
+        opt out (e.g. if they don't want to dirty in-play with the card).
+        Default: always play it, matching the printed-card mandate.
+        """
+        return True
 
     def choose_sailor_trash(
         self, state: GameState, player: PlayerState, choices: list[Card]
@@ -765,3 +770,120 @@ class AI(ABC):
                 if c.name == name:
                     return c
         return None
+
+    # ------------------------------------------------------------------
+    # Rising Sun decision hooks
+    # ------------------------------------------------------------------
+
+    def should_take_gold_mine_gold(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Decide whether Gold Mine should gain a Gold (taking 4 Debt).
+
+        Default: take the Gold whenever the player can pay off the Debt
+        within a turn or two — i.e. the deck regularly produces $4+ — but
+        skip when already burdened by Debt.
+        """
+        if state.supply.get("Gold", 0) <= 0:
+            return False
+        if player.debt > 0:
+            return False
+        return True
+
+    def choose_kitsune_options(
+        self,
+        state: GameState,
+        player: PlayerState,
+        options: list[str],
+    ) -> list[str]:
+        """Pick two of Kitsune's four options.
+
+        Default heuristic: prefer cursing opponents, then +$2, then +1
+        Action, falling back to gaining a Silver.
+        """
+        priority = ["curse", "coins", "action", "silver"]
+        ordered = [opt for opt in priority if opt in options]
+        return ordered[:2]
+
+    def should_rustic_village_discard(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Decide whether Rustic Village should discard 2 for +1 Card.
+
+        Default: discard when there are at least two clearly low-value cards
+        in hand (Curse, Copper, cheap Victory).
+        """
+        low_value = 0
+        for card in player.hand:
+            if card.name in {"Curse", "Copper", "Estate", "Hovel", "Overgrown Estate"}:
+                low_value += 1
+            elif card.is_victory and not card.is_action and card.cost.coins <= 2:
+                low_value += 1
+        return low_value >= 2
+
+    def should_reveal_snake_witch(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Decide whether to reveal Snake Witch's hand to curse opponents.
+
+        Default: reveal whenever doing so would actually curse someone (the
+        Curse pile isn't empty) — handing back Snake Witch to its pile is a
+        small loss in exchange for distributing Curses.
+        """
+        if state.supply.get("Curse", 0) <= 0:
+            return False
+        return any(other is not player for other in state.players)
+
+    def choose_asceticism_overpay(
+        self, state: GameState, player: PlayerState, available: int
+    ) -> int:
+        """Choose how much extra coin to pay on top of Asceticism's $2.
+
+        Default: trash low-value cards (Curse, Copper, cheap Victory) only,
+        capped by available coins and hand size.
+        """
+        cheap = [
+            card
+            for card in player.hand
+            if card.name in {"Curse", "Copper", "Estate", "Hovel", "Overgrown Estate"}
+            or (card.is_victory and not card.is_action and card.cost.coins <= 2)
+        ]
+        return min(len(cheap), available)
+
+    def choose_sickness_mode(
+        self, state: GameState, player: PlayerState
+    ) -> str:
+        """Pick Sickness's mode at end of turn: 'curse' or 'discard'.
+
+        Default: discard 3 if the hand contains 3+ junk cards (Curses,
+        Coppers, cheap Victory cards), otherwise take the Curse onto your
+        deck.
+        """
+        junk = sum(
+            1
+            for card in player.hand
+            if card.name in {"Curse", "Copper", "Estate"}
+            or (card.is_victory and not card.is_action and card.cost.coins <= 2)
+        )
+        if junk >= 3:
+            return "discard"
+        return "curse"
+
+    def choose_riverboat_set_aside(
+        self, state: GameState, player: PlayerState, candidates: list[Card]
+    ) -> "Card | None":
+        """Pick which $5 non-Duration Action card Riverboat sets aside.
+
+        Default: prefer cards that produce extra cards/actions and survive
+        being played repeatedly across turns. Falls back to the first
+        candidate.
+        """
+        if not candidates:
+            return None
+        return max(
+            candidates,
+            key=lambda c: (
+                c.stats.cards * 2 + c.stats.actions + c.stats.coins,
+                c.name,
+            ),
+        )

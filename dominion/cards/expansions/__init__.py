@@ -62,7 +62,7 @@ from ..dark_ages.rebuild import Rebuild
 from ..dark_ages.shelters import Hovel, Necropolis, OvergrownEstate
 from ..allies.collection import Collection
 from ..allies.modify import Modify
-from ..allies.samurai import Samurai
+from ..rising_sun.samurai import Samurai
 from ..promo import (
     Avanto,
     BlackMarket,

@@ -234,7 +234,6 @@ from dominion.cards.dark_ages import (
     Procession,
     Sage,
 )
-from dominion.cards.allies import Samurai
 from dominion.cards.hinterlands.wandering_minstrel import WanderingMinstrel
 from dominion.cards.seaside import (
     Ambassador,
@@ -275,7 +274,33 @@ from dominion.cards.seaside import (
 from dominion.cards.adventures import Artificer, Giant, Messenger
 from dominion.cards.nocturne import TragicHero
 from dominion.cards.menagerie import Destrier, Horse, HuntingLodge, Mastermind, Paddock, Gatekeeper
-from dominion.cards.rising_sun import ImperialEnvoy, Aristocrat
+from dominion.cards.rising_sun import (
+    Alley,
+    Aristocrat,
+    Artist,
+    Change,
+    Craftsman,
+    Daimyo,
+    Fishmonger,
+    GoldMine,
+    ImperialEnvoy,
+    Kitsune,
+    Litter,
+    MountainShrine,
+    Ninja,
+    Poet,
+    Rice,
+    RiceBroker,
+    RiverShrine,
+    Riverboat,
+    Ronin,
+    RootCellar,
+    RusticVillage,
+    Samurai,
+    SnakeWitch,
+    Tanuki,
+    TeaHouse,
+)
 from dominion.cards.renaissance import CargoShip
 
 from dominion.cards.treasures import Copper, Gold, Silver
@@ -570,7 +595,30 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Feodum": Feodum,
     "Hunting Grounds": HuntingGrounds,
     "Market Square": MarketSquare,
+    # Rising Sun
+    "Alley": Alley,
+    "Artist": Artist,
+    "Change": Change,
+    "Craftsman": Craftsman,
+    "Daimyo": Daimyo,
+    "Fishmonger": Fishmonger,
+    "Gold Mine": GoldMine,
+    "Kitsune": Kitsune,
+    "Litter": Litter,
+    "Mountain Shrine": MountainShrine,
+    "Ninja": Ninja,
+    "Poet": Poet,
+    "Rice": Rice,
+    "Rice Broker": RiceBroker,
+    "River Shrine": RiverShrine,
+    "Riverboat": Riverboat,
+    "Ronin": Ronin,
+    "Root Cellar": RootCellar,
+    "Rustic Village": RusticVillage,
     "Samurai": Samurai,
+    "Snake Witch": SnakeWitch,
+    "Tanuki": Tanuki,
+    "Tea House": TeaHouse,
 }
 
 CARD_ALIASES: dict[str, str] = {

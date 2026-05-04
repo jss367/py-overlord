@@ -36,13 +36,15 @@ class Sailor(Card):
         self.duration_persistent = False
 
     def on_gain_for_owner(self, game_state, owner, gained_card):
-        """Called by gain_card to allow Sailor to play a freshly gained Action.
+        """Called by gain_card to allow Sailor to play a freshly gained Duration.
 
-        Returns True if the gain was played (and consumed a Sailor use).
+        Sailor's text is "Once this turn, when you gain a Duration card other
+        than this, play it." Returns True if the gain was played (and consumed
+        a Sailor use).
         """
         if gained_card.name == "Sailor":
             return False
-        if not gained_card.is_action:
+        if not gained_card.is_duration:
             return False
         if getattr(owner, "sailor_play_uses", 0) <= 0:
             return False

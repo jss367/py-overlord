@@ -1,4 +1,4 @@
-"""The Continue event from Plunder."""
+"""The Continue event from Rising Sun."""
 
 from dominion.cards.base_card import CardCost
 from dominion.cards.registry import get_card
@@ -7,12 +7,24 @@ from .base_event import Event
 
 
 class Continue(Event):
-    """$8: gain a non-Victory non-Command card costing up to $4, then play it."""
+    """$8 Debt: Once per turn. Gain an Action card costing up to $4 that
+    isn't an Attack card; return to your Action phase; play the gained card.
+    +1 Action, +1 Buy.
+
+    Cost is pure Debt — buying it takes 8 Debt.
+    """
 
     def __init__(self):
-        super().__init__("Continue", CardCost(coins=8))
+        super().__init__("Continue", CardCost(coins=0, debt=8))
+
+    def may_be_bought(self, game_state, player) -> bool:
+        return not getattr(player, "continue_used_this_turn", False)
 
     def on_buy(self, game_state, player) -> None:
+        player.continue_used_this_turn = True
+        player.actions += 1
+        player.buys += 1
+
         candidates = []
         for name, count in game_state.supply.items():
             if count <= 0:
@@ -21,11 +33,17 @@ class Continue(Event):
                 card = get_card(name)
             except ValueError:
                 continue
-            if card.is_victory or card.is_command:
+            if not card.is_action:
+                continue
+            if card.is_attack:
+                continue
+            if card.is_command:
                 continue
             if card.cost.potions > 0:
                 continue
             if card.cost.coins > 4:
+                continue
+            if card.cost.debt > 0:
                 continue
             if not card.may_be_bought(game_state):
                 continue
@@ -47,11 +65,6 @@ class Continue(Event):
         gained = game_state.gain_card(player, chosen)
 
         # Locate the gained card in whichever post-gain zone it landed in.
-        # Default destination is the discard pile, but Insignia/Royal Seal
-        # can top-deck and Villa's on_gain moves itself into hand. Only play
-        # it if we can find it in a normal zone — if a reaction trashed or
-        # exiled it, the play step is skipped (Watchtower-trashed gains
-        # aren't playable).
         zone = None
         for candidate in (player.hand, player.discard, player.deck):
             if gained in candidate:
@@ -63,6 +76,34 @@ class Continue(Event):
 
         zone.remove(gained)
         player.in_play.append(gained)
-        # Continue grants a free play of the gain (Action *or* Treasure);
-        # we deliberately don't deduct an action.
-        gained.on_play(game_state)
+
+        # Per rulebook: "you return to your Action phase; and you play the
+        # Action card you gained." Switch the phase back so the gain plays
+        # under Action-phase semantics (Daimyo replays, Prophecy hooks).
+        game_state.phase = "action"
+
+        daimyo_replays = getattr(player, "daimyo_pending", 0)
+        player.daimyo_pending = 0
+        plays = 1 + daimyo_replays
+        for _ in range(plays):
+            gained.on_play(game_state)
+            game_state.fire_prophecy_action_hooks(player, gained)
+
+        # Let the player use any remaining Action plays from hand. This loop
+        # also picks up any Shadow cards now exposed in the deck.
+        game_state.handle_action_phase()
+
+        # Skip the Treasure phase per the general rule "you cannot play further
+        # Treasures that turn after buying an Event," but return to Buy phase
+        # so the outer buy loop continues and 'start of Buy phase' abilities
+        # can repeat (Flourishing Trade in particular).
+        game_state.phase = "buy"
+        if (
+            game_state.prophecy is not None
+            and game_state.prophecy.is_active
+            and game_state.prophecy.name == "Flourishing Trade"
+            and player.actions > 0
+        ):
+            converted = player.actions
+            player.actions = 0
+            player.buys += converted

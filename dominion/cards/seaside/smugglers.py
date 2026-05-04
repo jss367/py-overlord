@@ -20,8 +20,10 @@ class Smugglers(Card):
         player = game_state.current_player
         player_idx = game_state.players.index(player)
 
-        # "Right" is the player whose turn comes next.
-        right_idx = (player_idx + 1) % len(game_state.players)
+        # "Right" in Dominion = the previous player in turn order (turns
+        # proceed clockwise / "to the left"), so the right neighbor's last
+        # turn is the one that just finished before ours.
+        right_idx = (player_idx - 1) % len(game_state.players)
         right_player = game_state.players[right_idx]
 
         # Find candidates from the right neighbor's last turn gains.

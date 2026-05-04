@@ -4,7 +4,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Aristocrat(Card):
-    """Aristocrat - Action ($5)
+    """Aristocrat - Action ($3)
 
     Look at how many Aristocrats you have in play (counting this).
     If it's:
@@ -17,7 +17,7 @@ class Aristocrat(Card):
     def __init__(self):
         super().__init__(
             name="Aristocrat",
-            cost=CardCost(coins=5),
+            cost=CardCost(coins=3),
             stats=CardStats(),
             types=[CardType.ACTION],
         )

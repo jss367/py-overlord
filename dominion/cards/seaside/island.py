@@ -22,7 +22,9 @@ class Island(Card):
             player.in_play.remove(self)
             player.island_mat.append(self)
 
-        # Move another card from hand to the mat.
+        # Move another card from hand to the mat. The second move is
+        # mandatory if the hand has any card; fall back to the cheapest if the
+        # AI returns None (default heuristic only picks junk).
         if not player.hand:
             return
 
@@ -30,7 +32,10 @@ class Island(Card):
             game_state, player, list(player.hand)
         )
         if choice is None or choice not in player.hand:
-            return
+            choice = min(
+                player.hand,
+                key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
+            )
 
         player.hand.remove(choice)
         player.island_mat.append(choice)

@@ -20,19 +20,26 @@ class Haven(Card):
         player = game_state.current_player
 
         if not player.hand:
+            # Nothing to set aside; Haven still enters duration so cleanup
+            # discards it correctly next turn.
+            player.duration.append(self)
+            self.duration_persistent = True
             return
 
+        # Haven's set-aside is mandatory if the hand has cards. Honor the AI
+        # choice when valid; otherwise fall back to the cheapest junk so we
+        # don't silently turn Haven into a no-downside cantrip+duration.
         choice = player.ai.choose_card_to_set_aside_for_haven(
             game_state, player, list(player.hand)
         )
         if choice is None or choice not in player.hand:
-            # No card chosen — Haven still goes to duration but with nothing set aside
-            choice = None
+            choice = min(
+                player.hand,
+                key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
+            )
 
-        if choice is not None:
-            player.hand.remove(choice)
-            self.set_aside = choice
-
+        player.hand.remove(choice)
+        self.set_aside = choice
         player.duration.append(self)
         self.duration_persistent = True
 

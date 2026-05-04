@@ -48,6 +48,7 @@ EXPECTED_TREASURE_CARDS = {
     "Coronet",
     "Huge Turnip",
     "Pickaxe",
+    "Rice",
 }
 
 MULTI_TYPE_TREASURES = {

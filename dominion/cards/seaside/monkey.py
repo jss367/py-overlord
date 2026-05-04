@@ -29,11 +29,15 @@ class Monkey(Card):
 
         Only active while Monkey is in the owner's duration zone (i.e. between
         the owner's turns). The on_duration callback removes it from duration.
+
+        "Right" in Dominion = the previous player in turn order (turns proceed
+        clockwise / "to the left"), so the right neighbor is at index
+        ``(owner_idx - 1) % N``.
         """
         if self not in owner.duration:
             return
 
         owner_idx = game_state.players.index(owner)
-        right_idx = (owner_idx + 1) % len(game_state.players)
+        right_idx = (owner_idx - 1) % len(game_state.players)
         if game_state.players[right_idx] is gainer:
             game_state.draw_cards(owner, 1)

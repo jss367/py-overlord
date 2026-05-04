@@ -347,7 +347,7 @@ def test_samurai_skips_attack_for_small_hand():
     assert len(victim.hand) == 3  # unchanged
 
 
-def test_samurai_does_not_attack_four_card_hand():
+def test_samurai_trims_four_card_hand_to_three():
     ai1 = GainFirstBuyAI()
     ai2 = DummyAI()
     state = GameState(players=[])
@@ -365,8 +365,7 @@ def test_samurai_does_not_attack_four_card_hand():
     attacker.in_play.append(samurai)
     samurai.on_play(state)
 
-    # Samurai only attacks opponents with 5+ cards; a 4-card hand is immune.
-    assert len(victim.hand) == 4
+    assert len(victim.hand) == 3
 
 
 def test_samurai_on_duration_grants_one_coin_and_persists():

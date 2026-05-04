@@ -164,6 +164,26 @@ def test_salvager_trashes_for_coins():
     assert estate in state.trash
 
 
+def test_haven_forces_set_aside_when_hand_has_only_junk():
+    """Haven must set aside a card whenever the hand is non-empty.
+
+    The default heuristic only picks Actions/expensive Treasures; this test
+    proves Haven still picks something when the hand is all low-value cards.
+    """
+    state = _make_state()
+    player = state.players[0]
+    haven = get_card("Haven")
+    copper = get_card("Copper")
+    estate = get_card("Estate")
+
+    player.deck = [get_card("Copper")]
+    player.hand = [haven, copper, estate]
+    play_action(state, player, haven)
+
+    assert haven.set_aside is not None, \
+        "Haven must set aside something when hand has cards"
+
+
 def test_haven_sets_aside_card_for_next_turn():
     state = _make_state()
     player = state.players[0]
@@ -313,6 +333,37 @@ def test_monkey_draws_when_right_neighbor_gains():
     assert len(player_a.hand) == hand_before + 1
 
 
+def test_monkey_only_triggers_on_right_neighbor_in_three_player_game():
+    """Monkey watches the player to the owner's right (previous player).
+
+    For owner at index 1, right = index 0. Gains by p2 (left) must NOT trigger.
+    """
+    state = _make_state(num_players=3)
+    p0, p1, p2 = state.players
+    state.current_player_index = 1
+    state.supply["Silver"] = 10
+    state.supply["Gold"] = 10
+
+    monkey = get_card("Monkey")
+    p1.deck = [get_card("Copper") for _ in range(5)]
+    p1.hand = [monkey]
+    play_action(state, p1, monkey)
+
+    hand_after_play = len(p1.hand)
+
+    # Left neighbor (p2) gains — must NOT trigger Monkey.
+    state.supply["Silver"] -= 1
+    state.gain_card(p2, get_card("Silver"))
+    assert len(p1.hand) == hand_after_play, \
+        "Monkey should NOT draw on left-neighbor gains"
+
+    # Right neighbor (p0) gains — must trigger Monkey.
+    state.supply["Gold"] -= 1
+    state.gain_card(p0, get_card("Gold"))
+    assert len(p1.hand) == hand_after_play + 1, \
+        "Monkey should draw on right-neighbor gains"
+
+
 # -- Medium cards ------------------------------------------------------------
 
 
@@ -369,6 +420,30 @@ def test_smugglers_gains_copy_of_right_neighbors_last_turn_gain():
     assert any(c.name == "Silver" for c in player_a.discard)
 
 
+def test_smugglers_uses_previous_player_in_three_player_game():
+    """In 3+ players, Smugglers reads the right (previous) player's gains.
+
+    For player at index 1, "right" = previous in turn order = index 0.
+    """
+    state = _make_state(num_players=3)
+    p0, p1, p2 = state.players
+    state.current_player_index = 1
+    state.supply["Silver"] = 10
+    state.supply["Gold"] = 10
+
+    # Set distinct gains so we can tell which neighbor was sourced.
+    p0.gained_cards_last_turn = ["Silver"]  # right neighbor of p1
+    p2.gained_cards_last_turn = ["Gold"]    # left neighbor of p1
+
+    smug = get_card("Smugglers")
+    p1.hand = [smug]
+    play_action(state, p1, smug)
+
+    assert any(c.name == "Silver" for c in p1.discard), \
+        "Smugglers must source from p0 (right of p1), not p2 (left)"
+    assert all(c.name != "Gold" for c in p1.discard)
+
+
 def test_navigator_can_discard_or_topdeck():
     state = _make_state()
     player = state.players[0]
@@ -405,6 +480,25 @@ def test_ghost_ship_topdecks_excess_cards():
     # Defender topdecked down to 3.
     assert len(defender.hand) == 3
     assert len(defender.deck) == 2
+
+
+def test_island_forces_second_card_to_mat_when_only_actions_in_hand():
+    """Island's second-card move is mandatory if a card is available.
+
+    Default Island heuristic prefers junk and skips on Action-only hands; this
+    proves Island still moves an Action when nothing else is available.
+    """
+    state = _make_state()
+    player = state.players[0]
+    island = get_card("Island")
+    village = get_card("Village")  # Action, not junk
+
+    player.hand = [island, village]
+    play_action(state, player, island)
+
+    assert island in player.island_mat
+    assert village in player.island_mat, \
+        "Island must move another hand card when one is available"
 
 
 def test_island_moves_self_and_chosen_card_to_mat():
@@ -604,7 +698,28 @@ def test_corsair_trashes_first_silver_played_by_opponent():
     assert player_b.corsair_trashed_this_turn
 
 
-def test_sailor_plays_gained_action():
+def test_sailor_plays_gained_duration_card():
+    class SailorAI(DummyAI):
+        def should_play_gain_with_sailor(self, state, player, gained_card):
+            return True
+
+    state = _make_state(ai_class=SailorAI)
+    player = state.players[0]
+    state.supply["Caravan"] = 10
+
+    sailor = get_card("Sailor")
+    player.deck = [get_card("Copper") for _ in range(5)]
+    player.hand = [sailor]
+    play_action(state, player, sailor)
+
+    state.supply["Caravan"] -= 1
+    state.gain_card(player, get_card("Caravan"))
+
+    # Sailor played the gained Caravan: +1 Card drawn, Caravan in play.
+    assert any(c.name == "Caravan" for c in player.in_play)
+
+
+def test_sailor_does_not_play_gained_non_duration_action():
     class SailorAI(DummyAI):
         def should_play_gain_with_sailor(self, state, player, gained_card):
             return True
@@ -618,12 +733,15 @@ def test_sailor_plays_gained_action():
     player.hand = [sailor]
     play_action(state, player, sailor)
 
+    hand_before = len(player.hand)
     state.supply["Smithy"] -= 1
     state.gain_card(player, get_card("Smithy"))
 
-    # Sailor played the gained Smithy → +3 cards drawn into hand.
-    assert any(c.name == "Smithy" for c in player.in_play)
-    assert len(player.hand) == 3
+    # Smithy is an Action but not a Duration — Sailor should NOT play it.
+    assert all(c.name != "Smithy" for c in player.in_play)
+    assert any(c.name == "Smithy" for c in player.discard)
+    # No extra cards drawn (Smithy would have drawn 3).
+    assert len(player.hand) == hand_before
 
 
 def test_sailor_grants_two_coins_next_turn():
