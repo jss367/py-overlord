@@ -42,7 +42,11 @@ class Navigator(Card):
                 game_state.discard_card(player, card)
         else:
             ordered = player.ai.order_cards_for_topdeck(game_state, player, revealed)
-            # Put back so that the first item in `ordered` ends up on top of deck.
-            # In this codebase deck.pop() draws from the end, so "top" == end.
-            for card in ordered:
+            # Defensive: malformed AI responses fall back to the revealed order.
+            if set(ordered) != set(revealed) or len(ordered) != len(revealed):
+                ordered = revealed
+            # `order_cards_for_topdeck` returns cards in draw-priority order
+            # (first = top). `deck.pop()` draws from the end of the list, so
+            # iterate in reverse to place the first ordered card on top.
+            for card in reversed(ordered):
                 player.deck.append(card)

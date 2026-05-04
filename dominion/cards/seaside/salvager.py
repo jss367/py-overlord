@@ -17,9 +17,15 @@ class Salvager(Card):
         if not player.hand:
             return
 
+        # Trash is mandatory when the hand has cards. Honor the AI's choice
+        # when valid; otherwise fall back to the cheapest junk so we don't
+        # silently turn Salvager into a free +1 Buy.
         choice = player.ai.choose_card_to_trash(game_state, list(player.hand))
         if choice is None or choice not in player.hand:
-            return
+            choice = min(
+                player.hand,
+                key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
+            )
 
         cost = game_state.get_card_cost(player, choice)
         player.hand.remove(choice)

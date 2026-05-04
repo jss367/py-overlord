@@ -20,8 +20,13 @@ class Explorer(Card):
         player = game_state.current_player
 
         target_name = "Silver"
-        if any(card.name == "Province" for card in player.hand):
-            # Reveal Province (no need to remove it; it's revealed in place) and gain Gold.
+        # The reveal is optional. Only choose Gold when the Gold pile is
+        # actually drawable; otherwise the rational play is to skip the
+        # reveal and gain a Silver to hand instead of fizzling.
+        if (
+            any(card.name == "Province" for card in player.hand)
+            and game_state.supply.get("Gold", 0) > 0
+        ):
             target_name = "Gold"
 
         if game_state.supply.get(target_name, 0) <= 0:

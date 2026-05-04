@@ -142,6 +142,26 @@ def test_caravan_draws_now_and_next_turn():
     assert len(player.hand) == hand_size_before + 1
 
 
+def test_salvager_forces_trash_when_ai_skips():
+    """Salvager's trash is mandatory if the hand has cards.
+
+    With an AI that always returns None for trash choices, Salvager must
+    still trash something (and credit the +$ for that card's cost).
+    """
+    state = _make_state()
+    player = state.players[0]
+    salvager = get_card("Salvager")
+    estate = get_card("Estate")
+
+    player.hand = [salvager, estate]
+    play_action(state, player, salvager)
+
+    # Default DummyAI.choose_card_to_trash returns None — Salvager must
+    # still pick a card to trash (Estate, since it's the only choice).
+    assert estate in state.trash
+    assert player.coins == 2  # Estate costs 2
+
+
 def test_salvager_trashes_for_coins():
     class TrashEstateAI(DummyAI):
         def choose_card_to_trash(self, state, choices):
@@ -465,6 +485,45 @@ def test_smugglers_uses_previous_player_in_three_player_game():
     assert all(c.name != "Gold" for c in p1.discard)
 
 
+def test_navigator_first_ordered_card_lands_on_top():
+    """Navigator must put back the AI's first-ordered card on TOP of the deck.
+
+    The AI returns [A, B, C, D, E] meaning "A drawn first, then B, ...".
+    Since `deck.pop()` draws from the end, the FIRST item must be appended
+    last (i.e. the loop must iterate in reverse).
+    """
+    class TopdeckOrderAI(DummyAI):
+        def order_cards_for_topdeck(self, state, player, cards):
+            # Force a specific order: Gold first (top), then Silver, then Coppers.
+            order = ["Gold", "Silver", "Copper", "Copper", "Copper"]
+            picked = []
+            remaining = list(cards)
+            for name in order:
+                for c in remaining:
+                    if c.name == name:
+                        picked.append(c)
+                        remaining.remove(c)
+                        break
+            picked.extend(remaining)
+            return picked
+
+    state = _make_state(ai_class=TopdeckOrderAI)
+    player = state.players[0]
+    nav = get_card("Navigator")
+
+    # Mostly non-junk so the topdeck branch (not discard) is taken.
+    player.deck = [
+        get_card("Gold"), get_card("Silver"),
+        get_card("Smithy"), get_card("Smithy"), get_card("Copper"),
+    ]
+    player.hand = [nav]
+    play_action(state, player, nav)
+
+    # Gold should be on top of deck (drawn first by deck.pop()).
+    assert player.deck and player.deck[-1].name == "Gold", \
+        f"Top of deck should be Gold, got {player.deck[-1].name if player.deck else 'empty'}"
+
+
 def test_navigator_can_discard_or_topdeck():
     state = _make_state()
     player = state.players[0]
@@ -550,6 +609,25 @@ def test_explorer_gains_gold_to_hand_when_revealing_province():
     play_action(state, player, explorer)
 
     assert any(c.name == "Gold" for c in player.hand)
+
+
+def test_explorer_falls_back_to_silver_when_gold_pile_empty():
+    """If Gold is empty, Explorer should not fizzle when Province is in hand —
+    the rational play is to skip the optional reveal and take a Silver.
+    """
+    state = _make_state()
+    player = state.players[0]
+    state.supply["Gold"] = 0  # No Gold available
+    state.supply["Silver"] = 10
+
+    explorer = get_card("Explorer")
+    province = get_card("Province")
+    player.hand = [explorer, province]
+    play_action(state, player, explorer)
+
+    # No Gold to gain → fall back to Silver to hand.
+    assert any(c.name == "Silver" for c in player.hand), \
+        "Explorer must take Silver when Gold pile is empty, not fizzle"
 
 
 def test_explorer_gains_silver_to_hand_otherwise():
