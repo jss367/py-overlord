@@ -19,9 +19,10 @@ class SinisterPlot(Project):
         # The AI may override later; default keeps us building cards for
         # explosive draws.
         if self.tokens >= 3:
-            # Remove a token, then +X Cards where X = remaining tokens.
-            self.tokens -= 1
-            if self.tokens > 0:
-                game_state.draw_cards(player, self.tokens)
+            # Cash in: remove ALL tokens and +X Cards where X = tokens removed.
+            cashed = self.tokens
+            self.tokens = 0
+            if cashed > 0:
+                game_state.draw_cards(player, cashed)
         else:
             self.tokens += 1

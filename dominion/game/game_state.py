@@ -1918,8 +1918,15 @@ class GameState:
             )
         ):
             self.fleet_extra_round_active = True
+            # Build the queue starting from the player whose turn is next
+            # (i.e. the seat after the player who triggered game end).
+            # ``current_player_index`` already points to that next seat
+            # because cleanup advances it before is_game_over runs.
+            n = len(self.players)
+            start = self.current_player_index % n if n else 0
+            ordered = [self.players[(start + i) % n] for i in range(n)]
             self.fleet_extra_players = [
-                pl for pl in self.players
+                pl for pl in ordered
                 if any(getattr(p, "name", "") == "Fleet" for p in pl.projects)
             ]
             self.log_callback("Fleet: extra round of turns for Fleet owners")
