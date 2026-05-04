@@ -48,3 +48,44 @@ class Stonemason(Card):
             game_state.supply[card.name] -= 1
             game_state.gain_card(player, card)
             gained += 1
+
+    # --- Guilds Overpay ------------------------------------------------
+
+    def may_overpay(self, game_state) -> bool:
+        return True
+
+    def on_overpay(self, game_state, player, amount: int) -> None:
+        """Gain 2 Action cards each costing exactly ``amount`` coins."""
+        if amount <= 0:
+            return
+        from ..registry import get_card
+
+        def list_candidates() -> list[Card]:
+            cards: list[Card] = []
+            for name, count in game_state.supply.items():
+                if count <= 0:
+                    continue
+                card = get_card(name)
+                if not card.is_action:
+                    continue
+                if card.cost.coins != amount:
+                    continue
+                if card.cost.potions > 0 or card.cost.debt > 0:
+                    continue
+                cards.append(card)
+            return cards
+
+        for _ in range(2):
+            candidates = list_candidates()
+            if not candidates:
+                return
+            candidates.sort(
+                key=lambda c: (
+                    c.stats.cards * 2 + c.stats.actions + c.stats.coins,
+                    c.name,
+                ),
+                reverse=True,
+            )
+            chosen = candidates[0]
+            game_state.supply[chosen.name] -= 1
+            game_state.gain_card(player, get_card(chosen.name))

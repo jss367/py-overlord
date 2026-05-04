@@ -799,6 +799,31 @@ class GameState:
             player.coins -= coins_spent
             player.coin_tokens -= tokens_spent
 
+            # Guilds Overpay: ask the AI whether to pay extra coins on top of
+            # the printed cost. Only Cards that opt in via ``may_overpay``
+            # (e.g. Doctor, Herald, Masterpiece, Stonemason) trigger this.
+            overpay_amount = 0
+            if (
+                not getattr(choice, "is_event", False)
+                and not getattr(choice, "is_project", False)
+                and choice.may_overpay(self)
+                and player.coins > 0
+            ):
+                max_overpay = max(0, player.coins)
+                if max_overpay > 0:
+                    chosen = player.ai.choose_overpay_amount(self, player, choice, max_overpay)
+                    overpay_amount = max(0, min(int(chosen or 0), max_overpay))
+                    if overpay_amount > 0:
+                        player.coins -= overpay_amount
+                        player.coins_spent_this_turn += overpay_amount
+                        self.log_callback(
+                            (
+                                "action",
+                                player.ai.name,
+                                f"overpays {overpay_amount} for {choice}",
+                                {"overpay": overpay_amount, "remaining_coins": player.coins},
+                            )
+                        )
 
             if getattr(choice, "is_event", False):
                 choice.on_buy(self, player)
@@ -811,6 +836,9 @@ class GameState:
                 self.log_callback(("supply_change", choice.name, -1, self.supply[choice.name]))
                 choice.on_buy(self)
                 gained_card = self.gain_card(player, choice)
+
+                if overpay_amount > 0:
+                    choice.on_overpay(self, player, overpay_amount)
 
                 self._handle_on_buy_in_play_effects(player, choice, gained_card)
                 self._apply_embargo_tokens(player, choice.name)

@@ -26,3 +26,24 @@ class Herald(Card):
             card.on_play(game_state)
         else:
             game_state.discard_card(player, card)
+
+    # --- Guilds Overpay ------------------------------------------------
+
+    def may_overpay(self, game_state) -> bool:
+        return True
+
+    def on_overpay(self, game_state, player, amount: int) -> None:
+        """For each $1 overpaid, may pick a card from discard to topdeck."""
+        if amount <= 0:
+            return
+
+        for _ in range(amount):
+            if not player.discard:
+                return
+            choice = player.ai.choose_herald_overpay_topdeck(
+                game_state, player, list(player.discard)
+            )
+            if choice is None or choice not in player.discard:
+                return
+            player.discard.remove(choice)
+            player.deck.append(choice)
