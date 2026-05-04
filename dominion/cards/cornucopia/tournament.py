@@ -21,8 +21,12 @@ class Tournament(Card):
             types=[CardType.ACTION],
         )
 
-    def get_additional_piles(self) -> dict[str, int]:
-        # Each Prize is a single non-supply card forming the Prize pile.
+    def get_additional_non_supply_piles(self) -> dict[str, int]:
+        # Each Prize is a single non-Supply card forming the Prize pile.
+        # Prizes live in ``state.supply`` for lookup/gain convenience but
+        # they are non-Supply and must not count toward the three-empty-
+        # piles game-end condition (handled via
+        # ``GameState.non_supply_pile_names``).
         return {name: 1 for name in PRIZE_CARD_NAMES}
 
     def play_effect(self, game_state):
