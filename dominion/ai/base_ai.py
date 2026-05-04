@@ -60,6 +60,238 @@ class AI(ABC):
 
         return True
 
+    # ---- Nocturne hooks ----
+
+    def choose_night(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
+        """Choose a Night card to play. Default: play every Night available."""
+
+        for choice in choices:
+            if choice is not None:
+                return choice
+        return None
+
+    def choose_card_to_gain_up_to(
+        self,
+        state: GameState,
+        player: PlayerState,
+        choices: list[Card],
+        max_cost: int,
+    ) -> Optional[Card]:
+        """Choose a card to gain costing up to ``max_cost``.
+
+        Default heuristic: pick the most expensive option, then most-cards
+        bonus, then alphabetic.
+        """
+
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+
+    def choose_treasure_to_discard_for_earths_gift(
+        self, state: GameState, player: PlayerState, treasures: list[Card]
+    ) -> Optional[Card]:
+        """Choose a Treasure to discard for The Earth's Gift, or None to skip."""
+
+        if not treasures:
+            return None
+        # Prefer the cheapest treasure (Copper) so we trade junk for value.
+        return min(treasures, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_card_to_gain_to_hand(
+        self, state: GameState, player: PlayerState, choices: list[Card], max_cost: int
+    ) -> Optional[Card]:
+        """Choose a card to gain to hand (Cobbler, Wish)."""
+
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+
+    def choose_card_to_gain_for_exorcist(
+        self,
+        state: GameState,
+        player: PlayerState,
+        trashed: Card,
+        choices: list[Card],
+    ) -> Optional[Card]:
+        """Choose Action card to gain (cheaper than ``trashed``, non-Victory)."""
+
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+
+    def choose_action_to_play_twice_with_ghost(
+        self, state: GameState, player: PlayerState, action: Card
+    ) -> bool:
+        """Confirm playing the Ghost-revealed Action card. Default True."""
+
+        return True
+
+    def choose_action_to_play_with_conclave(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Choose an action to play with Conclave (one not in play already)."""
+
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.stats.cards, c.cost.coins, c.name))
+
+    def choose_imp_action(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Choose an Action to play with Imp (one with no copy already in play)."""
+
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.stats.cards, c.cost.coins, c.name))
+
+    def choose_druid_boon(
+        self, state: GameState, player: PlayerState, boons: list[str]
+    ) -> Optional[str]:
+        """Choose which of the three Druid Boons to receive."""
+
+        if not boons:
+            return None
+        # Prefer Sea's/Sky's/Mountain's/etc. by name; default first.
+        return boons[0]
+
+    def should_exchange_changeling(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """When you gain a card costing $3+, may exchange it for a Changeling.
+
+        Default: do not exchange.
+        """
+
+        return False
+
+    def choose_action_to_play_from_trash(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Necromancer: choose an Action card from the trash to play."""
+
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.stats.cards, c.cost.coins, c.name))
+
+    def choose_card_to_gain_for_zombie_mason(
+        self, state: GameState, player: PlayerState, max_cost: int, choices: list[Card]
+    ) -> Optional[Card]:
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+
+    def choose_cards_to_trash_for_cemetery(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> list[Card]:
+        """Cemetery: trash up to 4 cards from hand on gain."""
+
+        # Default: trash up to 4 Curses/Estates/Coppers.
+        junky = [c for c in choices if c.name in {"Curse", "Estate", "Copper"}]
+        return junky[:4]
+
+    def choose_cards_to_trash_for_monastery(
+        self, state: GameState, player: PlayerState, choices: list[Card], count: int
+    ) -> list[Card]:
+        """Monastery: trash up to ``count`` cards (junk first)."""
+
+        junky_priority = {"Curse": 0, "Copper": 1, "Estate": 2}
+        ordered = sorted(
+            choices,
+            key=lambda c: (junky_priority.get(c.name, 99), c.cost.coins, c.name),
+        )
+        return ordered[:count]
+
+    def should_play_pixie_for_boon(
+        self, state: GameState, player: PlayerState, boon_name: str
+    ) -> bool:
+        """Pixie: trash the Pixie to receive the discarded Boon? Default True."""
+
+        return True
+
+    def should_pooka_trash_treasure(
+        self, state: GameState, player: PlayerState, treasures: list[Card]
+    ) -> Optional[Card]:
+        """Pooka: choose a Treasure (not Cursed Gold) to trash for +4 cards."""
+
+        if not treasures:
+            return None
+        # Prefer cheapest Treasure (Copper before Silver).
+        return min(treasures, key=lambda c: (c.cost.coins, c.name))
+
+    def should_play_haunted_mirror_action_discard(
+        self, state: GameState, player: PlayerState, actions: list[Card]
+    ) -> Optional[Card]:
+        """Haunted Mirror: discard an Action to gain a Ghost? Default cheapest."""
+
+        if not actions:
+            return None
+        return min(actions, key=lambda c: (c.cost.coins, c.name))
+
+    def should_play_night_watchman_now(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """When gained, Night Watchman may be played immediately. Default True."""
+
+        return True
+
+    def choose_cards_to_topdeck_or_discard(
+        self,
+        state: GameState,
+        player: PlayerState,
+        revealed: list[Card],
+    ) -> tuple[list[Card], list[Card]]:
+        """Night Watchman / The Sun's Gift: split into (discard, topdeck-order).
+
+        Default: discard victory/curse cards, topdeck the rest cheapest-first.
+        """
+
+        discard = [c for c in revealed if c.is_victory or c.name == "Curse"]
+        keep = [c for c in revealed if c not in discard]
+        keep_sorted = sorted(keep, key=lambda c: (c.cost.coins, c.name))
+        return discard, keep_sorted
+
+    def choose_secret_cave_discards(
+        self, state: GameState, player: PlayerState
+    ) -> list[Card]:
+        """Secret Cave: optionally discard 3 cards for +$3 next turn."""
+
+        if len(player.hand) < 3:
+            return []
+        # Default: only discard if there are 3 junky cards available.
+        junky = [c for c in player.hand if c.name in {"Copper", "Curse", "Estate"}]
+        if len(junky) < 3:
+            return []
+        return junky[:3]
+
+    def choose_shepherd_discards(
+        self, state: GameState, player: PlayerState, victories: list[Card]
+    ) -> list[Card]:
+        """Shepherd: choose how many Victory cards to discard. Default: all."""
+
+        return list(victories)
+
+    def should_idol_attack(self, state: GameState, player: PlayerState) -> bool:
+        """Idol on odd-count: receive a Boon (True) or skip. Default True."""
+
+        return True
+
+    def choose_card_to_discard_with_raider(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Raider attack: target chooses a card matching one in attacker's play."""
+
+        if not choices:
+            return None
+        return min(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def should_play_werewolf_as_attack(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Werewolf is dual-mode based on phase; this is a hint only."""
+
+        return False
+
+
     def should_play_vassal_action(
         self, state: GameState, player: PlayerState, card: Card
     ) -> bool:

@@ -117,16 +117,45 @@ class PlayerState:
     priest_played_this_turn: int = 0
     # Renaissance Cargo Ship / Buy phase end tracking
     gained_action_or_treasure_this_buy_phase: bool = False
+    # Nocturne — persistent Boons received this/last turn.
+    active_boons: list[str] = field(default_factory=list)
+    # Nocturne — Lost in the Woods state from Fool.
+    lost_in_the_woods: bool = False
+    # Nocturne — Cards gained this turn (count). Used by Devil's Workshop, Monastery.
+    cards_gained_this_turn_count: int = 0
+    # Nocturne — pending start-of-next-turn effects.
+    pending_cobbler_gains: int = 0
+    pending_den_of_sin_draws: int = 0
+    pending_ghost_town_actions: int = 0
+    pending_guardian_coins: int = 0
+    pending_secret_cave_coins: int = 0
+    pending_raider_coins: int = 0
+    # Nocturne Ghost duration: list of set-aside Actions to replay.
+    ghost_pending_actions: list = field(default_factory=list)
+    # Nocturne — Boons pending at start of next turn (Blessed Village).
+    pending_blessed_boons: int = 0
 
-    def initialize(self, use_shelters: bool = False):
+    def initialize(self, use_shelters: bool = False, heirlooms: list[str] = None):
         """Set up starting deck and draw initial hand.
 
         If ``use_shelters`` is ``True``, start with Necropolis, Hovel and
         Overgrown Estate instead of three Estates as in the Dark Ages expansion.
+
+        ``heirlooms`` is a list of Heirloom card names (Nocturne). For each
+        heirloom, one starting Copper is replaced with the matching Heirloom.
         """
 
         # Create starting deck
-        self.deck = [get_card("Copper") for _ in range(7)]
+        coppers_count = 7
+        heirlooms = heirlooms or []
+        coppers_count -= len(heirlooms)
+        coppers_count = max(0, coppers_count)
+        self.deck = [get_card("Copper") for _ in range(coppers_count)]
+        for h in heirlooms:
+            try:
+                self.deck.append(get_card(h))
+            except ValueError:
+                self.deck.append(get_card("Copper"))
         if use_shelters:
             self.deck += [
                 get_card("Necropolis"),
@@ -230,6 +259,17 @@ class PlayerState:
         self.coppersmiths_played = 0
         self.priest_played_this_turn = 0
         self.gained_action_or_treasure_this_buy_phase = False
+        self.active_boons = []
+        self.lost_in_the_woods = False
+        self.cards_gained_this_turn_count = 0
+        self.pending_cobbler_gains = 0
+        self.pending_den_of_sin_draws = 0
+        self.pending_ghost_town_actions = 0
+        self.pending_guardian_coins = 0
+        self.pending_secret_cave_coins = 0
+        self.pending_raider_coins = 0
+        self.ghost_pending_actions = []
+        self.pending_blessed_boons = 0
 
         # Draw initial hand of 5 cards
         self.draw_cards(5)

@@ -38,6 +38,12 @@ class CardType(Enum):
     KNIGHT = "knight"
     LOOTER = "looter"
     CASTLE = "castle"
+    NIGHT = "night"
+    SPIRIT = "spirit"
+    HEIRLOOM = "heirloom"
+    FATE = "fate"
+    DOOM = "doom"
+    ZOMBIE = "zombie"
 
 
 class Card:
@@ -47,6 +53,10 @@ class Card:
         self.stats = stats
         self.types = types
         self.duration_persistent = False
+        # Nocturne: heirloom name (subclasses set this); when this card is in
+        # the kingdom one starting Copper is replaced with this Heirloom.
+        if not hasattr(self, "heirloom"):
+            self.heirloom: str | None = None
 
         # Debug validation
         if not isinstance(types, list):
@@ -106,6 +116,30 @@ class Card:
     @property
     def is_castle(self) -> bool:
         return CardType.CASTLE in self.types
+
+    @property
+    def is_night(self) -> bool:
+        return CardType.NIGHT in self.types
+
+    @property
+    def is_spirit(self) -> bool:
+        return CardType.SPIRIT in self.types
+
+    @property
+    def is_fate(self) -> bool:
+        return CardType.FATE in self.types
+
+    @property
+    def is_doom(self) -> bool:
+        return CardType.DOOM in self.types
+
+    @property
+    def is_zombie(self) -> bool:
+        return CardType.ZOMBIE in self.types
+
+    @property
+    def is_heirloom(self) -> bool:
+        return CardType.HEIRLOOM in self.types
 
     def get_victory_points(self, player) -> int:
         """Get victory points this card provides for the given player."""
