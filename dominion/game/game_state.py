@@ -1390,31 +1390,10 @@ class GameState:
             player.coins -= coins_spent
             player.coin_tokens -= tokens_spent
 
-            # Guilds Overpay: ask the AI whether to pay extra coins on top of
-            # the printed cost. Only Cards that opt in via ``may_overpay``
+            # Guilds Overpay: ask the AI whether to pay extra on top of the
+            # printed cost. Only Cards that opt in via ``may_overpay``
             # (e.g. Doctor, Herald, Masterpiece, Stonemason) trigger this.
-            overpay_amount = 0
-            if (
-                not getattr(choice, "is_event", False)
-                and not getattr(choice, "is_project", False)
-                and choice.may_overpay(self)
-                and player.coins > 0
-            ):
-                max_overpay = max(0, player.coins)
-                if max_overpay > 0:
-                    chosen = player.ai.choose_overpay_amount(self, player, choice, max_overpay)
-                    overpay_amount = max(0, min(int(chosen or 0), max_overpay))
-                    if overpay_amount > 0:
-                        player.coins -= overpay_amount
-                        player.coins_spent_this_turn += overpay_amount
-                        self.log_callback(
-                            (
-                                "action",
-                                player.ai.name,
-                                f"overpays {overpay_amount} for {choice}",
-                                {"overpay": overpay_amount, "remaining_coins": player.coins},
-                            )
-                        )
+            overpay_amount = self._prompt_overpay(player, choice)
 
             if getattr(choice, "is_event", False):
                 choice.on_buy(self, player)
@@ -1657,6 +1636,47 @@ class GameState:
 
         return affordable
 
+    def _prompt_overpay(self, player, card) -> int:
+        """Ask the AI whether to overpay when buying ``card``, deduct the cost,
+        and return the chosen amount. Does not invoke ``on_overpay`` itself —
+        callers must do that after the card is gained.
+
+        Treats ``coin_tokens`` as spendable currency alongside ``player.coins``,
+        matching how cost payment works elsewhere in the engine.
+        """
+        if getattr(card, "is_event", False) or getattr(card, "is_project", False):
+            return 0
+        if not card.may_overpay(self):
+            return 0
+
+        max_overpay = max(0, player.coins + player.coin_tokens)
+        if max_overpay <= 0:
+            return 0
+
+        chosen = player.ai.choose_overpay_amount(self, player, card, max_overpay)
+        amount = max(0, min(int(chosen or 0), max_overpay))
+        if amount <= 0:
+            return 0
+
+        coins_spent = min(player.coins, amount)
+        tokens_spent = amount - coins_spent
+        player.coins -= coins_spent
+        player.coin_tokens -= tokens_spent
+        player.coins_spent_this_turn += amount
+        self.log_callback(
+            (
+                "action",
+                player.ai.name,
+                f"overpays {amount} for {card}",
+                {
+                    "overpay": amount,
+                    "remaining_coins": player.coins,
+                    "remaining_coin_tokens": player.coin_tokens,
+                },
+            )
+        )
+        return amount
+
     def _complete_purchase(self, player, card):
         """Helper to complete a card purchase."""
         cost = self.get_card_cost(player, card)
@@ -1671,8 +1691,13 @@ class GameState:
             player.debt += card.cost.debt
         self.supply[card.name] -= 1
 
+        overpay_amount = self._prompt_overpay(player, card)
+
         card.on_buy(self)
         self.gain_card(player, card)
+
+        if overpay_amount > 0:
+            card.on_overpay(self, player, overpay_amount)
 
         if player.goons_played:
             player.vp_tokens += player.goons_played

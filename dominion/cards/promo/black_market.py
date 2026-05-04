@@ -81,10 +81,17 @@ class BlackMarket(Card):
         if player.buys > 0:
             player.buys -= 1
 
+        # Guilds Overpay: Black Market purchases trigger overpay just like a
+        # normal buy (Doctor/Herald/Masterpiece/Stonemason).
+        overpay_amount = game_state._prompt_overpay(player, card)
+
         from ..registry import get_card
 
         card.on_buy(game_state)
         gained = game_state.gain_card(player, get_card(card.name))
+
+        if overpay_amount > 0:
+            card.on_overpay(game_state, player, overpay_amount)
 
         game_state._handle_on_buy_in_play_effects(player, card, gained)
         if player.goons_played:

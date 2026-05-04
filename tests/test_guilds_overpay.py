@@ -295,3 +295,77 @@ def test_overpay_does_not_fire_on_gain_only_on_buy():
 
     assert ai.overpay_calls == []
     assert sum(1 for c in player.discard if c.name == "Silver") == 0
+
+
+# --- Coin tokens as spendable overpay currency -----------------------------
+
+
+def test_overpay_can_be_paid_with_coin_tokens():
+    """Coin tokens should be spendable for overpay just like coins."""
+
+    ai = OverpayingAI(overpay=2, target_card="Masterpiece")
+    state, player = _make_state(ai)
+    state.supply["Masterpiece"] = 10
+    # Cost $3 — pay with all coins, leaving only coin tokens for overpay.
+    player.coins = 3
+    player.coin_tokens = 5
+
+    state.handle_buy_phase()
+
+    silvers = sum(1 for c in player.discard if c.name == "Silver")
+    assert silvers == 2, f"expected 2 Silvers from $2 token-overpay, got {silvers}"
+    # 2 of the 5 coin tokens were spent on overpay.
+    assert player.coin_tokens == 3
+    assert player.coins == 0
+
+
+def test_overpay_max_amount_includes_coin_tokens():
+    """The AI's max_amount should include both coins and coin tokens."""
+
+    ai = OverpayingAI(overpay=0, target_card="Masterpiece")
+    state, player = _make_state(ai)
+    state.supply["Masterpiece"] = 10
+    player.coins = 3  # exactly cost
+    player.coin_tokens = 4
+
+    state.handle_buy_phase()
+
+    # max_amount should be 0 (coins) + 4 (tokens) = 4.
+    assert ai.overpay_calls == [("Masterpiece", 4)]
+
+
+# --- Black Market: overpay must trigger via that buy path too --------------
+
+
+def test_black_market_buying_masterpiece_triggers_overpay():
+    """Buying Masterpiece via Black Market should fire overpay (not just buy phase)."""
+    from dominion.cards.promo.black_market import BlackMarket
+
+    ai = OverpayingAI(overpay=3, target_card="Masterpiece")
+    state, player = _make_state(ai)
+    state.supply["Masterpiece"] = 10
+
+    # Force Black Market to reveal Masterpiece.
+    state.black_market_deck = ["Masterpiece"]
+
+    # AI must agree to buy revealed Masterpiece.
+    def _choose_bm(state, player, choices):
+        for c in choices:
+            if c.name == "Masterpiece":
+                return c
+        return None
+
+    ai.choose_black_market_purchase = _choose_bm  # type: ignore[assignment]
+    ai.order_cards_for_black_market_bottom = (  # type: ignore[assignment]
+        lambda state, player, choices: list(choices)
+    )
+
+    player.coins = 6  # cost $3 + overpay $3
+    player.buys = 1
+
+    BlackMarket().play_effect(state)
+
+    silvers = sum(1 for c in player.discard if c.name == "Silver")
+    assert silvers == 3, f"Black Market overpay should gain 3 Silvers, got {silvers}"
+    assert any(c.name == "Masterpiece" for c in player.discard)
+    assert ai.overpay_calls and ai.overpay_calls[-1][0] == "Masterpiece"
