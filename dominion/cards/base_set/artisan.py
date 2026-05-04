@@ -42,12 +42,16 @@ class Artisan(Card):
             if game_state.supply.get(chosen.name, 0) > 0:
                 game_state.supply[chosen.name] -= 1
                 gained = game_state.gain_card(player, chosen)
+                # Only redirect the gain into hand if reactions (Watchtower
+                # trash/topdeck, Royal Seal, Gatekeeper exile, etc.) haven't
+                # already moved the card object out of discard/deck. If the
+                # card is in trash/exile we must not resurrect it.
                 if gained is not None:
                     if gained in player.discard:
                         player.discard.remove(gained)
+                        player.hand.append(gained)
                     elif gained in player.deck:
                         player.deck.remove(gained)
-                    if gained not in player.hand:
                         player.hand.append(gained)
 
         # 2) Put a card from hand onto your deck.

@@ -38,10 +38,12 @@ class Silver(Card):
         """Apply Merchant's "first Silver this turn = +$1" bonus."""
 
         player = game_state.current_player
+        already_played_silver = getattr(
+            player, "merchant_silver_bonus_used", False
+        )
         bonus = getattr(player, "merchant_silver_bonus", 0)
-        if bonus and not getattr(player, "merchant_silver_bonus_used", False):
+        if bonus and not already_played_silver:
             player.coins += bonus
-            player.merchant_silver_bonus_used = True
             game_state.log_callback(
                 (
                     "action",
@@ -50,6 +52,11 @@ class Silver(Card):
                     {"bonus": bonus},
                 )
             )
+        # Mark that a Silver has been played this turn even if no Merchant
+        # bonus was active. Otherwise a Silver played before any Merchant
+        # would let a later Silver (after Merchant) incorrectly claim the
+        # "first Silver this turn" bonus.
+        player.merchant_silver_bonus_used = True
 
 
 class Gold(Card):
