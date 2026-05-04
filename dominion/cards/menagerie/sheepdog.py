@@ -23,7 +23,21 @@ class Sheepdog(Card):
 
         player.hand.remove(self)
         player.in_play.append(self)
-        # Owner is current_player when reacting to their own gain
-        self.on_play(game_state)
-        game_state.fire_ally_play_hooks(player, self)
+        # Gains can happen on other players' turns (e.g. via an opponent's
+        # Black Cat Curse), so resolve Sheepdog's effects from the perspective
+        # of its owner rather than ``game_state.current_player``.
+        original_index = game_state.current_player_index
+        try:
+            game_state.current_player_index = game_state.players.index(player)
+        except ValueError:
+            # Owner not registered as a player (defensive); fall back to the
+            # current play context.
+            self.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, self)
+            return True
+        try:
+            self.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, self)
+        finally:
+            game_state.current_player_index = original_index
         return True

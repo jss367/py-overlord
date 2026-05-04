@@ -11,7 +11,10 @@ class WayOfTheHorse(Way):
         player = game_state.current_player
         game_state.draw_cards(player, 2)
         player.actions += 1
-        # Return the played card to its supply pile
-        if card in player.in_play:
+        # Return the played card to its supply pile. Only do so if the card
+        # actually has a pile in the supply — otherwise we'd manufacture a
+        # synthetic pile for cards that were never in the Supply (e.g. cards
+        # gained from non-Supply piles or set-aside zones).
+        if card in player.in_play and card.name in game_state.supply:
             player.in_play.remove(card)
-            game_state.supply[card.name] = game_state.supply.get(card.name, 0) + 1
+            game_state.supply[card.name] += 1

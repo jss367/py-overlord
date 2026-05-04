@@ -246,3 +246,42 @@ def test_way_of_the_chameleon_swaps_cards_and_coins():
     state.handle_action_phase()
     # Swapped: +3 coins and 0 cards
     assert p1.coins == 3
+
+
+def test_way_of_the_chameleon_swaps_imperative_draw():
+    """Chameleon must also swap imperative ``+Cards`` (e.g. cards that draw
+    inside ``play_effect`` rather than via ``CardStats.cards``)."""
+    state, p1 = _state(
+        "Way of the Chameleon",
+        kingdom=[get_card("Village"), get_card("Hunting Lodge")],
+    )
+    p1.actions = 1
+    # Hunting Lodge: +1 Card, +2 Actions; you may discard your hand for +5 Cards.
+    # The +5 Cards branch is imperative. Without choosing the discard branch,
+    # we still get 1 stat-driven Card → should swap to +$1.
+    hl = get_card("Hunting Lodge")
+    p1.hand = [hl]
+    p1.deck = [get_card("Copper")] * 10
+    state.phase = "action"
+    state.handle_action_phase()
+    # Hunting Lodge here draws 1 stat + (with the AI choosing to discard for
+    # the +5 branch) 5 imperative — 6 cards total. All swapped to +$.
+    # Without the imperative-draw fix, we'd see 1 coin and 5 cards drawn.
+    assert p1.coins == 6
+    # Hand should be empty: the player discarded everything for the +5 Cards
+    # branch, which Chameleon converted to coins (no draw happened).
+    assert len(p1.hand) == 0
+
+
+def test_way_of_the_horse_does_not_create_synthetic_pile():
+    """Way of the Horse must not invent a supply pile for a non-Supply card."""
+    state, p1 = _state("Way of the Horse", kingdom=[get_card("Village")])
+    p1.actions = 1
+    # Construct a non-Supply Action: register a Smithy in hand but ensure
+    # there is no Smithy supply pile.
+    state.supply.pop("Smithy", None)
+    p1.hand = [get_card("Smithy")]
+    state.phase = "action"
+    state.handle_action_phase()
+    # The Way must not have manufactured a Smithy pile from nothing.
+    assert "Smithy" not in state.supply

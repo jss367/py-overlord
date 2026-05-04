@@ -3203,16 +3203,20 @@ class GameState:
                     else:
                         player.deck.append(gained_card)
                     break
-        # Sheepdog: play from hand when you gain a card
+        # Sheepdog: play from hand when you gain a card. Each Sheepdog in
+        # hand may independently react to the same gain event, so do not stop
+        # after the first successful reaction.
         for card in list(player.hand):
             if card.name == "Sheepdog" and hasattr(card, "react_to_own_gain"):
-                if card.react_to_own_gain(self, player, gained_card):
-                    break
+                card.react_to_own_gain(self, player, gained_card)
 
     def _maybe_kiln_gain(self, player: PlayerState, played_card: Card) -> None:
         """Menagerie Kiln: gain a copy of the next card the player plays.
 
-        Triggers once per pending Kiln charge per card play.
+        Triggers once per pending Kiln charge per card play. The "next card
+        played" timing means the charge is consumed on the very next eligible
+        play even if no copy can actually be gained (empty/non-supply pile),
+        so that Kiln does not silently carry over to a later play.
         """
         pending = getattr(player, "kiln_pending", 0)
         if pending <= 0:
@@ -3220,13 +3224,18 @@ class GameState:
         # Don't trigger on Kiln itself when it would re-trigger on its own play.
         if played_card.name == "Kiln":
             return
+
+        # The trigger fires on this play regardless of whether a copy can be
+        # gained — consume the pending charge up-front.
+        player.kiln_pending = pending - 1
+
         if self.supply.get(played_card.name, 0) <= 0:
             return
-        from ..cards.registry import get_card
-
         if not player.ai.should_gain_copy_with_kiln(self, player, played_card):
             return
-        player.kiln_pending = pending - 1
+
+        from ..cards.registry import get_card
+
         try:
             copy = get_card(played_card.name)
         except ValueError:

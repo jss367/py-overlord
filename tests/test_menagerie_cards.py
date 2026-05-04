@@ -241,3 +241,65 @@ def test_coven_exiles_curse_for_opponent():
     state.phase = "action"
     state.handle_action_phase()
     assert any(c.name == "Curse" for c in p2.exile)
+
+
+def test_cavalry_on_gain_in_buy_phase_does_not_grant_action():
+    """Buying Cavalry returns to action phase but must not grant a free Action."""
+    state, p1, _ = _two_player_state()
+    state.supply["Cavalry"] = state.supply.get("Cavalry", 10)
+    state.phase = "buy"
+    p1.actions = 0
+    state.supply["Cavalry"] -= 1
+    state.gain_card(p1, get_card("Cavalry"))
+    # Phase reverts but actions stay at 0 — the card text never grants +1 Action.
+    assert state.phase == "action"
+    assert p1.actions == 0
+
+
+def test_multiple_sheepdogs_all_react_to_single_gain():
+    """Each Sheepdog in hand should independently react to a gain."""
+    state, p1, _ = _two_player_state()
+    p1.hand = [get_card("Sheepdog"), get_card("Sheepdog")]
+    p1.deck = [get_card("Copper")] * 10
+    state.supply["Silver"] -= 1
+    state.gain_card(p1, get_card("Silver"))
+    # Both Sheepdogs played from hand into in_play.
+    assert sum(1 for c in p1.in_play if c.name == "Sheepdog") == 2
+
+
+def test_sheepdog_off_turn_reacts_for_owner():
+    """Sheepdog should draw cards for its owner, not the active player, when
+    the gain happens on another player's turn."""
+    state, p1, p2 = _two_player_state()
+    # p1 is the current player; p2 owns Sheepdog and is gaining a Curse via
+    # an opponent's effect (e.g. Black Cat). Simulate by directly gaining on
+    # p2 while p1 is the current player.
+    p2.hand = [get_card("Sheepdog")]
+    p2.deck = [get_card("Estate"), get_card("Estate")]
+    p1_hand_before = len(p1.hand)
+    state.supply["Curse"] -= 1
+    state.gain_card(p2, get_card("Curse"))
+    # p2 should have +2 cards drawn (their hand grew by 2 from deck).
+    assert any(c.name == "Estate" for c in p2.hand)
+    # p1's hand size is unchanged — Sheepdog did not draw for the active player.
+    assert len(p1.hand) == p1_hand_before
+
+
+def test_kiln_consumes_trigger_when_pile_empty():
+    """If the next-played card has no supply pile to copy from, Kiln still
+    consumes its pending charge so it cannot carry over to a later card."""
+    state, p1, _ = _two_player_state()
+    state.supply["Village"] = 10
+    p1.actions = 5
+    kiln = get_card("Kiln")
+    p1.in_play.append(kiln)
+    kiln.on_play(state)  # Sets kiln_pending = 1
+    # Empty the Village pile and play a Village (which has no copies left).
+    village_a = get_card("Village")
+    state.supply["Village"] = 0
+    p1.hand = [village_a, get_card("Village")]
+    state.phase = "action"
+    state.handle_action_phase()
+    # Pending must have been consumed by the first play even though no copy
+    # could be gained.
+    assert getattr(p1, "kiln_pending", 0) == 0
