@@ -32,13 +32,19 @@ class Blockade(Card):
         game_state.supply[choice.name] -= 1
         gained = game_state.gain_card(player, get_card(choice.name))
 
-        # Set aside (remove from discard/deck).
+        # Set aside only if the card still resides in discard/deck. If another
+        # ability (e.g. Sailor playing a gained Duration) has already moved it
+        # elsewhere, leave it where it is — otherwise the same Card object
+        # would end up in multiple zones when Blockade resolves next turn.
         if gained in player.discard:
             player.discard.remove(gained)
+            self.set_aside = gained
         elif gained in player.deck:
             player.deck.remove(gained)
+            self.set_aside = gained
 
-        self.set_aside = gained
+        # Always watch the pile name so opponents who gain a copy still get
+        # cursed (the watch effect is independent of where our copy went).
         self.watched_card_name = gained.name
         player.duration.append(self)
         self.duration_persistent = True

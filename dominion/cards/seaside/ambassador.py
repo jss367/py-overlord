@@ -22,10 +22,15 @@ class Ambassador(Card):
         if not player.hand:
             return
 
-        # AI choose what to "reveal" — prefer junk to recycle.
+        # Reveal is mandatory if the hand has cards. Honor the AI's choice
+        # when valid; otherwise fall back to the cheapest hand card so the
+        # attack still resolves (default heuristic only picks junk).
         choice = player.ai.choose_card_to_ambassador(game_state, player, list(player.hand))
-        if choice is None:
-            return
+        if choice is None or choice not in player.hand:
+            choice = min(
+                player.hand,
+                key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
+            )
 
         # Find copies in hand of the same name.
         copies = [c for c in player.hand if c.name == choice.name]

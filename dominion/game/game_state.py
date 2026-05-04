@@ -677,15 +677,16 @@ class GameState:
                 getattr(player, "highwayman_attacks", 0) > 0
                 and not getattr(player, "highwayman_blocked_this_turn", False)
             )
-            corsair_trashed = self._maybe_corsair_trash(player, choice)
 
-            if corsair_trashed:
-                coins_after = player.coins
-            elif blocked:
+            if blocked:
                 player.highwayman_blocked_this_turn = True
                 coins_after = player.coins
             else:
+                # Corsair trashes AFTER on_play: the treasure is fully played
+                # (so its +$ applies and any "while in play" counters tick),
+                # then Corsair removes it from in-play to the trash.
                 choice.on_play(self)
+                self._maybe_corsair_trash(player, choice)
                 coins_after = player.coins
                 if (
                     player.envious_effect_active

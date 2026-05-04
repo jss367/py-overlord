@@ -367,6 +367,27 @@ def test_monkey_only_triggers_on_right_neighbor_in_three_player_game():
 # -- Medium cards ------------------------------------------------------------
 
 
+def test_ambassador_does_not_fizzle_on_non_junk_hand():
+    """Ambassador must reveal something when the hand is non-empty.
+
+    Default heuristic only picks junk; with a Silver-only non-junk hand it
+    returns None, but the reveal is mandatory per the printed card.
+    """
+    state = _make_state(num_players=2)
+    attacker, defender = state.players
+    state.current_player_index = 0
+    state.supply["Silver"] = 10
+
+    amb = get_card("Ambassador")
+    silver = get_card("Silver")
+    attacker.hand = [amb, silver]
+    play_action(state, attacker, amb)
+
+    # Defender should have gained a Silver — the play didn't fizzle.
+    assert any(c.name == "Silver" for c in defender.discard), \
+        "Ambassador must still attack opponents even on non-junk hands"
+
+
 def test_ambassador_returns_copies_and_others_gain():
     state = _make_state(num_players=2)
     attacker, defender = state.players
@@ -654,6 +675,43 @@ def test_blockade_gains_card_to_hand_next_turn():
     assert any(c.name == "Silver" for c in player.hand)
 
 
+def test_blockade_does_not_set_aside_card_sailor_already_played():
+    """If Sailor plays the Duration that Blockade just gained, Blockade must
+    not also set it aside — otherwise the same Card object lives in multiple
+    zones and gets duplicated when Blockade resolves next turn.
+    """
+    class SailorAI(DummyAI):
+        def should_play_gain_with_sailor(self, state, player, gained_card):
+            return True
+
+    state = _make_state(ai_class=SailorAI)
+    player = state.players[0]
+    state.supply["Caravan"] = 10  # Caravan: Duration, cost $4 — Blockade-eligible
+
+    # Set up Sailor in duration before playing Blockade.
+    sailor = get_card("Sailor")
+    player.hand = [sailor]
+    play_action(state, player, sailor)
+    assert player.sailor_play_uses == 1
+
+    blockade = get_card("Blockade")
+    player.hand = [blockade]
+    play_action(state, player, blockade)
+
+    # Blockade picked Caravan. Sailor played it from gain → it's in in_play
+    # as a Duration. Blockade must NOT also stash it for next turn.
+    in_play_caravans = [c for c in player.in_play if c.name == "Caravan"]
+    assert len(in_play_caravans) == 1
+    assert blockade.set_aside is None, \
+        "Blockade must not set aside a card Sailor already moved into in_play"
+
+    # Resolve next-turn duration; the Caravan must NOT be re-added to hand.
+    blockade.on_duration(state)
+    hand_caravans = [c for c in player.hand if c.name == "Caravan"]
+    assert len(hand_caravans) == 0, \
+        "Caravan should not appear in hand if Blockade had nothing set aside"
+
+
 def test_blockade_curses_opponent_who_gains_same_card():
     state = _make_state(num_players=2)
     player_a, player_b = state.players
@@ -696,6 +754,10 @@ def test_corsair_trashes_first_silver_played_by_opponent():
 
     assert silver in state.trash
     assert player_b.corsair_trashed_this_turn
+    # The Silver was played first → +$2 should still have been gained before
+    # Corsair trashed it from in-play.
+    assert player_b.coins == 2, \
+        "Corsair must trash AFTER on_play, so the +$ from Silver still applies"
 
 
 def test_sailor_plays_gained_duration_card():
