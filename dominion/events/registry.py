@@ -36,6 +36,17 @@ from .plunder_events import (
     Scrounge,
 )
 from .prosperity_events import Investment
+from .rising_sun_events import (
+    Amass,
+    Asceticism,
+    Credit,
+    Foresight,
+    Gather,
+    Kintsugi,
+    Practice,
+    ReceiveTribute,
+    SeaTrade,
+)
 from .training import Training
 
 EVENT_TYPES: dict[str, Type[Event]] = {
@@ -58,6 +69,7 @@ EVENT_TYPES: dict[str, Type[Event]] = {
     "Transport": Transport,
     "Investment": Investment,
     "Training": Training,
+    # Plunder
     "Bury": Bury,
     "Avoid": Avoid,
     "Foray": Foray,
@@ -69,6 +81,16 @@ EVENT_TYPES: dict[str, Type[Event]] = {
     "Deliver": Deliver,
     "Prepare": Prepare,
     "Journey": Journey,
+    # Rising Sun
+    "Amass": Amass,
+    "Asceticism": Asceticism,
+    "Credit": Credit,
+    "Foresight": Foresight,
+    "Gather": Gather,
+    "Kintsugi": Kintsugi,
+    "Practice": Practice,
+    "Receive Tribute": ReceiveTribute,
+    "Sea Trade": SeaTrade,
 }
 
 

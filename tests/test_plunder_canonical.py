@@ -848,6 +848,108 @@ def test_mining_road_trigger_consumed_when_player_declines():
     assert mr._gain_reaction_armed is False
 
 
+def test_gondola_does_not_grant_synthetic_action_on_gain_play():
+    """Gondola's gain-play is a free play; it should not synthesize a +1 Action.
+
+    A prepared Village should yield the Village's own +2 Actions, no more.
+    """
+
+    class _PlayVillageAI(DummyAI):
+        def choose_action(self, state, choices):
+            for c in choices:
+                if c is not None and c.name == "Village":
+                    return c
+            return None
+
+    player = PlayerState(_PlayVillageAI())
+    state = GameState(players=[player])
+    state.supply["Gondola"] = 5
+
+    village = get_card("Village")
+    player.hand = [village]
+    player.actions = 0  # Out of actions
+    player.deck = [get_card("Copper") for _ in range(5)]
+
+    gondola = get_card("Gondola")
+    state.supply["Gondola"] -= 1
+    state.gain_card(player, gondola)
+
+    # Village was played: gave +1 Card and +2 Actions.
+    # Starting actions = 0; Village gives +2; expect actions == 2 (not 3).
+    assert player.actions == 2
+    assert village in player.in_play
+
+
+def test_gondola_dispatches_on_action_played_for_gain_play():
+    """When Gondola plays an Action on gain, on_action_played hooks fire."""
+
+    p1 = PlayerState(DummyAI())  # Owner of Frigate
+    p2 = PlayerState(_FrigateVictim())  # Will gain Gondola and play Village
+
+    state = GameState(players=[p1, p2])
+    state.supply["Gondola"] = 5
+
+    # p1 has a Frigate active in their duration zone
+    frigate = get_card("Frigate")
+    p1.duration.append(frigate)
+    frigate._owner = p1
+    frigate._active = True
+
+    # p2 has Village in hand and gains Gondola
+    village = get_card("Village")
+    p2.hand = [village] + [get_card("Copper") for _ in range(5)]
+    p2.actions = 1
+    p2.deck = []
+
+    class _PickVillageAI(DummyAI):
+        def choose_action(self, state, choices):
+            for c in choices:
+                if c is not None and c.name == "Village":
+                    return c
+            return None
+
+        def choose_cards_to_discard(self, state, player, choices, count, *, reason=None):
+            return list(choices[:count])
+
+    p2.ai = _PickVillageAI()
+
+    gondola = get_card("Gondola")
+    state.supply["Gondola"] -= 1
+    state.gain_card(p2, gondola)
+
+    # Frigate should have forced p2 to discard down to 4 because p2 played Village.
+    # Hand had 6 (Village + 5 Coppers), Village played → 5 cards in hand →
+    # Frigate forces discard to 4.
+    assert village in p2.in_play
+    assert len(p2.hand) == 4
+
+
+def test_prepare_skips_non_playable_cards():
+    """Prepared Victory cards are not 'played'; they should not end up in in_play."""
+
+    state = GameState(players=[])
+    state.initialize_game([DummyAI()], [get_card("Village")])
+    player = state.players[0]
+
+    estate = get_card("Estate")
+    silver = get_card("Silver")
+    player.prepared_cards = [estate, silver]
+    player.deck = [get_card("Copper") for _ in range(5)]
+    player.hand = []
+    player.in_play = []
+    player.duration = []
+
+    state.current_player_index = 0
+    state.handle_start_phase()
+
+    # Silver gets played (Treasure), Estate does not (pure Victory).
+    assert silver in player.in_play
+    assert estate not in player.in_play
+    # Estate should be discarded (or in some non-in_play zone).
+    assert estate in player.discard
+    assert player.coins == 2
+
+
 def test_shaman_does_not_trigger_when_not_in_kingdom():
     state = GameState(players=[])
     state.initialize_game([_ShamanAI()], [get_card("Village")])  # No Shaman

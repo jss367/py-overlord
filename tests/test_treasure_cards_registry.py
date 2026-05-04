@@ -59,6 +59,7 @@ EXPECTED_TREASURE_CARDS = {
     "Rope",
     "Cage",
     "Mining Road",
+    "Rice",
 }
 
 MULTI_TYPE_TREASURES = {

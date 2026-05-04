@@ -2,17 +2,17 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Samurai(Card):
-    """Action - Attack that stays in play.
+    """Action-Duration-Attack ($6).
 
-    When you play this, each other player with 5 or more cards in hand
-    discards down to 3. While this is in play, +1 Coin at the start of
-    each of your turns.
+    When you play this, each other player discards down to 3 cards in hand.
+    The Samurai stays in play, and produces +$1 at the start of each of your
+    turns for the rest of the game.
     """
 
     def __init__(self):
         super().__init__(
             name="Samurai",
-            cost=CardCost(coins=5),
+            cost=CardCost(coins=6),
             stats=CardStats(),
             types=[CardType.ACTION, CardType.ATTACK, CardType.DURATION],
         )
@@ -22,7 +22,7 @@ class Samurai(Card):
         player = game_state.current_player
 
         def attack_target(target):
-            if len(target.hand) < 5:
+            if len(target.hand) <= 3:
                 return
 
             discard_needed = len(target.hand) - 3
@@ -45,12 +45,10 @@ class Samurai(Card):
                 continue
             game_state.attack_player(other, attack_target)
 
-        # Stays in play to provide +1 Coin at the start of each future turn
         player.duration.append(self)
         self.duration_persistent = True
 
     def on_duration(self, game_state):
         player = game_state.current_player
         player.coins += 1
-        # Samurai never leaves play on its own
         self.duration_persistent = True

@@ -49,9 +49,11 @@ class Gondola(Card):
         if choice is None or choice not in player.hand:
             return
 
-        if player.actions <= 0:
-            player.actions += 1
-
+        # Free play — does not spend an action; on_play's +Actions persist
+        # naturally, but no synthetic +1 Action is added.
         player.hand.remove(choice)
         player.in_play.append(choice)
         choice.on_play(game_state)
+        # Notify cards in play (any player's) that an Action was played so
+        # global hooks (Frigate, Harbor Village, etc.) fire correctly.
+        game_state._dispatch_on_action_played(player, choice)
