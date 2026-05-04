@@ -276,6 +276,129 @@ class Stampede(Event):
             game_state.gain_card(player, horse)
 
 
+class Pursue(Event):
+    """+1 Buy. Name a card. Reveal top 4 cards. Discard the matches; put back
+    the rest in any order.
+    """
+
+    def __init__(self):
+        super().__init__("Pursue", CardCost(coins=2))
+
+    def on_buy(self, game_state, player) -> None:
+        player.buys += 1
+        # Choose a name to pursue. Default: the most-frequent card name in the
+        # rest of the deck (so we discard junk to thin), or "Curse".
+        named = player.ai.choose_name_for_pursue(game_state, player)
+        revealed = []
+        for _ in range(4):
+            if not player.deck and player.discard:
+                player.shuffle_discard_into_deck()
+            if not player.deck:
+                break
+            revealed.append(player.deck.pop())
+        for card in revealed:
+            if card.name == named:
+                game_state.discard_card(player, card)
+        # Put back non-matches in some order; AI may sort them. Default: as-is.
+        leftovers = [c for c in revealed if c.name != named]
+        for card in leftovers:
+            player.deck.append(card)
+
+
+class Commerce(Event):
+    """Gain a Gold per differently-named card you've gained this turn."""
+
+    def __init__(self):
+        super().__init__("Commerce", CardCost(coins=5))
+
+    def on_buy(self, game_state, player) -> None:
+        unique_names = set(getattr(player, "gained_cards_this_turn", []))
+        for _ in unique_names:
+            if game_state.supply.get("Gold", 0) <= 0:
+                break
+            game_state.supply["Gold"] -= 1
+            game_state.gain_card(player, get_card("Gold"))
+
+
+class Demand(Event):
+    """Gain a Horse and a card costing up to $4, both onto your deck."""
+
+    def __init__(self):
+        super().__init__("Demand", CardCost(coins=5))
+
+    def on_buy(self, game_state, player) -> None:
+        ensure_horse_pile(game_state)
+        if game_state.supply.get("Horse", 0) > 0:
+            game_state.supply["Horse"] -= 1
+            game_state.gain_card(player, get_card("Horse"), to_deck=True)
+
+        candidates = []
+        for name, count in game_state.supply.items():
+            if count <= 0:
+                continue
+            try:
+                card = get_card(name)
+            except ValueError:
+                continue
+            if card.cost.coins <= 4 and card.cost.potions == 0:
+                candidates.append(card)
+        if not candidates:
+            return
+        choice = player.ai.choose_buy(game_state, candidates + [None])
+        if choice is None:
+            choice = max(candidates, key=lambda c: (c.cost.coins, c.name))
+        if game_state.supply.get(choice.name, 0) <= 0:
+            return
+        game_state.supply[choice.name] -= 1
+        game_state.gain_card(player, choice, to_deck=True)
+
+
+class Reap(Event):
+    """Gain a Gold. Set it aside. Play it at start of next turn."""
+
+    def __init__(self):
+        super().__init__("Reap", CardCost(coins=7))
+
+    def on_buy(self, game_state, player) -> None:
+        if game_state.supply.get("Gold", 0) <= 0:
+            return
+        game_state.supply["Gold"] -= 1
+        gold = get_card("Gold")
+        # Track on player so it gets played at start of next turn.
+        if not hasattr(player, "reap_set_aside"):
+            player.reap_set_aside = []
+        player.reap_set_aside.append(gold)
+
+
+class Enclave(Event):
+    """Gain a Gold. Exile a Duchy from the Supply."""
+
+    def __init__(self):
+        super().__init__("Enclave", CardCost(coins=8))
+
+    def on_buy(self, game_state, player) -> None:
+        if game_state.supply.get("Gold", 0) > 0:
+            game_state.supply["Gold"] -= 1
+            game_state.gain_card(player, get_card("Gold"))
+        if game_state.supply.get("Duchy", 0) > 0:
+            game_state.supply["Duchy"] -= 1
+            player.exile.append(get_card("Duchy"))
+
+
+class Alliance(Event):
+    """Gain a Province, a Duchy, an Estate, a Gold, a Silver, and a Copper."""
+
+    def __init__(self):
+        super().__init__("Alliance", CardCost(coins=10))
+
+    def on_buy(self, game_state, player) -> None:
+        for name in ("Province", "Duchy", "Estate", "Gold", "Silver", "Copper"):
+            if game_state.supply.get(name, 0) <= 0:
+                continue
+            game_state.supply[name] -= 1
+            game_state.gain_card(player, get_card(name))
+
+
 class Transport(Event):
     """Move an Action to or from Exile."""
 

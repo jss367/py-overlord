@@ -571,6 +571,9 @@ class GameState:
         player.fortune_doubled_this_turn = False
         player.harbor_village_pending = 0
         player.continue_used_this_turn = False
+        # Menagerie state resets
+        player.cavalry_returned_this_turn = False
+        player.kiln_pending = 0
         # Daimyo's "next non-Command Action this turn" replay expires when the
         # turn ends without a triggering Action being played.
         player.daimyo_pending = 0
@@ -593,6 +596,28 @@ class GameState:
         if self.current_player.delayed_cards:
             self.current_player.hand.extend(self.current_player.delayed_cards)
             self.current_player.delayed_cards = []
+
+        # Menagerie Reap event: play any set-aside Golds from previous turn.
+        reap_set_aside = getattr(self.current_player, "reap_set_aside", None)
+        if reap_set_aside:
+            self.current_player.reap_set_aside = []
+            for gold_card in reap_set_aside:
+                self.current_player.in_play.append(gold_card)
+                gold_card.on_play(self)
+
+        # Menagerie Way of the Squirrel: +2 Cards next turn (banked draw).
+        squirrel_pending = getattr(self.current_player, "squirrel_pending", 0)
+        if squirrel_pending > 0:
+            self.draw_cards(self.current_player, squirrel_pending)
+            self.current_player.squirrel_pending = 0
+
+        # Menagerie Way of the Turtle: play set-aside cards now.
+        turtle_set_aside = getattr(self.current_player, "turtle_set_aside", None)
+        if turtle_set_aside:
+            self.current_player.turtle_set_aside = []
+            for c in turtle_set_aside:
+                self.current_player.in_play.append(c)
+                c.on_play(self)
 
         # Resolve project effects that occur at the start of the turn
         for project in self.current_player.projects:
@@ -766,6 +791,8 @@ class GameState:
                 way.apply(self, choice)
                 if training_pile and choice.name == training_pile:
                     player.coins += 1
+                # Menagerie: Kiln triggers on Way-played card too.
+                self._maybe_kiln_gain(player, choice)
             else:
                 flagships_to_resolve: list[Card] = []
                 pending_flagships = getattr(player, "flagship_pending", [])
@@ -814,6 +841,9 @@ class GameState:
                         choice.on_play(self)
                     if training_pile and choice.name == training_pile:
                         player.coins += 1
+
+                    # Menagerie: Kiln — next card played, gain a copy of it.
+                    self._maybe_kiln_gain(player, choice)
 
                     # Rising Sun: Prophecy hooks fire after each play
                     if self.prophecy is not None and self.prophecy.is_active:
@@ -933,6 +963,8 @@ class GameState:
                 # then Corsair removes it from in-play to the trash.
                 choice.on_play(self)
                 self._maybe_corsair_trash(player, choice)
+                # Menagerie: Kiln — gain a copy of the next card played.
+                self._maybe_kiln_gain(player, choice)
                 coins_after = player.coins
                 if (
                     player.envious_effect_active
@@ -1364,6 +1396,10 @@ class GameState:
         for card in in_play_cards:
             if card in durations_to_keep:
                 player.in_play.append(card)
+            elif getattr(card, "_frog_topdeck", False):
+                # Menagerie Way of the Frog: topdeck on cleanup.
+                card._frog_topdeck = False
+                player.deck.insert(0, card)
             elif (
                 card.name == "Walled Village"
                 and getattr(player, "walled_villages_played", 0) <= 1
@@ -1805,7 +1841,9 @@ class GameState:
         self._handle_fools_gold_reactions(player, actual_card)
         self._track_action_gain(player, actual_card)
         self._handle_cargo_ship_gain(player, actual_card)
+        self._handle_menagerie_gain_reactions(player, actual_card)
         self._handle_opponent_gain_hooks(player, actual_card)
+        self._handle_livery_gain(player, actual_card)
 
         if (
             hasattr(player, "cards_gained_this_buy_phase")
@@ -2346,7 +2384,9 @@ class GameState:
                     break
 
     def _handle_opponent_gain_hooks(self, gainer: PlayerState, gained_card: Card) -> None:
-        """Resolve project / duration hooks that trigger when another player gains a card."""
+        """Resolve project / duration / hand-reaction hooks that trigger when
+        another player gains a card.
+        """
         for player in self.players:
             if player is gainer:
                 continue
@@ -2357,6 +2397,76 @@ class GameState:
             for card in list(player.duration):
                 if hasattr(card, "on_opponent_gain"):
                     card.on_opponent_gain(self, player, gainer, gained_card)
+            # Menagerie: Black Cat and Falconer (in-hand reactions to opponent gains)
+            for card in list(player.hand):
+                if hasattr(card, "on_opponent_gain"):
+                    card.on_opponent_gain(self, player, gainer, gained_card)
+
+    def _handle_menagerie_gain_reactions(
+        self, player: PlayerState, gained_card: Card
+    ) -> None:
+        """Sleigh / Sheepdog reactions in the gainer's own hand."""
+        # Sleigh: discard from hand to put gained card into hand or onto deck
+        for card in list(player.hand):
+            if card.name == "Sleigh" and hasattr(card, "react_to_own_gain"):
+                decision = card.react_to_own_gain(self, player, gained_card)
+                if decision in {"hand", "deck"}:
+                    if gained_card in player.discard:
+                        player.discard.remove(gained_card)
+                    elif gained_card in player.deck:
+                        player.deck.remove(gained_card)
+                    if decision == "hand":
+                        player.hand.append(gained_card)
+                    else:
+                        player.deck.append(gained_card)
+                    break
+        # Sheepdog: play from hand when you gain a card
+        for card in list(player.hand):
+            if card.name == "Sheepdog" and hasattr(card, "react_to_own_gain"):
+                if card.react_to_own_gain(self, player, gained_card):
+                    break
+
+    def _maybe_kiln_gain(self, player: PlayerState, played_card: Card) -> None:
+        """Menagerie Kiln: gain a copy of the next card the player plays.
+
+        Triggers once per pending Kiln charge per card play.
+        """
+        pending = getattr(player, "kiln_pending", 0)
+        if pending <= 0:
+            return
+        # Don't trigger on Kiln itself when it would re-trigger on its own play.
+        if played_card.name == "Kiln":
+            return
+        if self.supply.get(played_card.name, 0) <= 0:
+            return
+        from ..cards.registry import get_card
+
+        if not player.ai.should_gain_copy_with_kiln(self, player, played_card):
+            return
+        player.kiln_pending = pending - 1
+        try:
+            copy = get_card(played_card.name)
+        except ValueError:
+            return
+        self.supply[played_card.name] -= 1
+        self.gain_card(player, copy)
+
+    def _handle_livery_gain(self, player: PlayerState, gained_card: Card) -> None:
+        """Each Livery in play: gain a Horse when a card costing $4+ is gained."""
+        if gained_card.name == "Horse":
+            return
+        if gained_card.cost.coins < 4:
+            return
+        livery_count = sum(1 for c in player.in_play if c.name == "Livery")
+        if livery_count <= 0:
+            return
+        from ..cards.registry import get_card
+
+        for _ in range(livery_count):
+            if self.supply.get("Horse", 0) <= 0:
+                break
+            self.supply["Horse"] -= 1
+            self.gain_card(player, get_card("Horse"))
 
     def _maybe_corsair_trash(self, treasure_player: PlayerState, treasure_card: Card) -> bool:
         """Let any opposing Corsair trash the first Silver/Gold of the turn."""
