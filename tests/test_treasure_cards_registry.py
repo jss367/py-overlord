@@ -74,6 +74,20 @@ EXPECTED_TREASURE_CARDS = {
     "Pouch",
     # Nocturne kingdom Treasures
     "Idol",
+    # Plunder treasures
+    "Buried Treasure",
+    "Cage",
+    "Crucible",
+    "Enlarge",
+    "Figurine",
+    "Gondola",
+    "Jewelled Egg",
+    "King's Cache",
+    "Pendant",
+    "Rope",
+    "Sack of Loot",
+    "Stowaway",
+    "Tools",
 }
 
 MULTI_TYPE_TREASURES = {
@@ -101,6 +115,12 @@ MULTI_TYPE_TREASURES = {
     "Pouch": {CardType.TREASURE, CardType.HEIRLOOM},
     # Nocturne kingdom Treasures
     "Idol": {CardType.TREASURE, CardType.ATTACK, CardType.FATE},
+    "Buried Treasure": {CardType.TREASURE, CardType.DURATION},
+    "Cage": {CardType.TREASURE, CardType.DURATION},
+    "Enlarge": {CardType.TREASURE, CardType.DURATION},
+    "Gondola": {CardType.TREASURE, CardType.DURATION},
+    "Rope": {CardType.TREASURE, CardType.DURATION},
+    "Stowaway": {CardType.TREASURE, CardType.DURATION, CardType.REACTION},
 }
 
 

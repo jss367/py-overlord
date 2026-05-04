@@ -56,6 +56,21 @@ from .empires_events import (
     Wedding,
     Windfall,
 )
+from .plunder_events import (
+    Avoid,
+    Bury,
+    Deliver,
+    Foray,
+    Invasion,
+    Launch,
+    Maelstrom,
+    Mirror,
+    Peril,
+    Prepare,
+    Prosper,
+    Rush,
+    Scrounge,
+)
 
 EVENT_TYPES: dict[str, Type[Event]] = {
     "Gain Silver": GainSilver,
@@ -107,6 +122,20 @@ EVENT_TYPES: dict[str, Type[Event]] = {
     "Windfall": Windfall,
     "Conquest": Conquest,
     "Dominate": Dominate,
+    # Plunder events (Looting already registered above).
+    "Avoid": Avoid,
+    "Bury": Bury,
+    "Deliver": Deliver,
+    "Foray": Foray,
+    "Invasion": Invasion,
+    "Launch": Launch,
+    "Maelstrom": Maelstrom,
+    "Mirror": Mirror,
+    "Peril": Peril,
+    "Prepare": Prepare,
+    "Prosper": Prosper,
+    "Rush": Rush,
+    "Scrounge": Scrounge,
 }
 
 
