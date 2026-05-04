@@ -1667,6 +1667,12 @@ class GameState:
 
         player.actions_this_turn = 0
         player.bought_this_turn = []
+        # Plunder Deliver: the "set aside the next gain THIS TURN" trigger
+        # only persists until end of turn. Cards already set aside in
+        # ``deliver_set_aside`` still return at start of next turn, but
+        # any pending-but-unfired count expires here so it cannot leak
+        # onto a future turn's gains.
+        player.deliver_pending_count = 0
 
         # Rising Sun: Prophecy cleanup-start hook (Biding Time, Sickness)
         if self.prophecy is not None and self.prophecy.is_active:
@@ -2380,8 +2386,11 @@ class GameState:
         self._handle_mining_road_gain(player, actual_card)
 
         # Plunder Deliver event: set aside the next gain to return to hand
-        # at the start of the next turn. Only consume the pending count if
-        # the card is in a movable zone (discard/deck/hand).
+        # at the start of the next turn. The pending count is always
+        # consumed by the next gain (per "the next card you gain this
+        # turn"); if the card has been moved out of the player's zones
+        # (e.g. trashed by Watchtower or exiled), nothing is set aside
+        # but the trigger is still spent.
         self._handle_deliver_gain(player, actual_card)
         # Generic "while this is in play, when you gain a card ..." hook used
         # by Allies cards like Galleria and Skirmisher. In-play cards may
@@ -2499,13 +2508,23 @@ class GameState:
         """Handle a Deliver event "set aside next gain" trigger.
 
         Each Deliver buy queues exactly one set-aside; subsequent Delivers
-        stack. The gained card is removed from whichever zone it landed in
-        (discard, deck, or hand) and stashed on player.deliver_set_aside,
-        to be returned to hand at the start of the next turn.
+        stack. Per the rules, the trigger applies to *the next card you
+        gain this turn* — so the trigger is consumed by the very next
+        gain, even if that card has already been moved out of the
+        player's zones (e.g. trashed by Watchtower or exiled by
+        Gatekeeper). When the card is still in a movable zone (discard,
+        deck, or hand) it is stashed on ``player.deliver_set_aside`` to
+        be returned to hand at the start of the next turn; otherwise we
+        simply consume the pending count without setting anything aside.
         """
         if getattr(player, "deliver_pending_count", 0) <= 0:
             return
-        # Find the gained card in any movable zone.
+        # Always consume the trigger — Deliver locks onto the first gain
+        # this turn regardless of where it ends up.
+        player.deliver_pending_count -= 1
+        # Find the gained card in any movable zone. If we cannot find it
+        # (e.g. trashed/exiled), the trigger is still spent but there is
+        # nothing to set aside.
         if gained_card in player.discard:
             player.discard.remove(gained_card)
         elif gained_card in player.deck:
@@ -2513,11 +2532,7 @@ class GameState:
         elif gained_card in player.hand:
             player.hand.remove(gained_card)
         else:
-            # Card landed somewhere we cannot move it from (e.g. trashed
-            # by Watchtower, exiled, etc.); leave the trigger pending for
-            # a subsequent gain rather than silently consuming it.
             return
-        player.deliver_pending_count -= 1
         player.deliver_set_aside.append(gained_card)
 
     def _handle_mining_road_gain(self, player: PlayerState, gained_card: Card) -> None:
