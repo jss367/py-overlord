@@ -113,6 +113,10 @@ class PlayerState:
     clerk_pending_replay: list[Card] = field(default_factory=list)
     # Intrigue 1E: each Coppersmith played gives a +$1 bonus per Copper played.
     coppersmiths_played: int = 0
+    # Renaissance Priest: rest-of-turn +$2 on trash trigger.
+    priest_played_this_turn: int = 0
+    # Renaissance Cargo Ship / Buy phase end tracking
+    gained_action_or_treasure_this_buy_phase: bool = False
 
     def initialize(self, use_shelters: bool = False):
         """Set up starting deck and draw initial hand.
@@ -224,6 +228,8 @@ class PlayerState:
         self.cannot_buy_actions = False
         self.envious_effect_active = False
         self.coppersmiths_played = 0
+        self.priest_played_this_turn = 0
+        self.gained_action_or_treasure_this_buy_phase = False
 
         # Draw initial hand of 5 cards
         self.draw_cards(5)

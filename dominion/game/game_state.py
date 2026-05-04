@@ -58,6 +58,15 @@ class GameState:
     # attack against the holder.
     bane_card_name: str = ""
 
+    # Renaissance: Artifacts. Populated by ``initialize_game`` when the
+    # corresponding Kingdom card is in the supply.
+    artifacts: dict = field(default_factory=dict)
+
+    # Renaissance Fleet project: the set of players who own Fleet at game
+    # end. They (and only they) take an extra round of turns.
+    fleet_extra_round_active: bool = False
+    fleet_extra_players: list = field(default_factory=list)
+
     def __post_init__(self):
         """Initialize with default logger that prints to console."""
         self.logger = None
@@ -214,6 +223,23 @@ class GameState:
         if any(getattr(ev, "name", None) == "Tax" for ev in (self.events or [])):
             for pile_name in self.supply:
                 self.tax_tokens[pile_name] = self.tax_tokens.get(pile_name, 0) + 1
+
+        # Renaissance: create the relevant Artifacts when their anchoring
+        # Kingdom cards are present. Artifacts start unheld and pass to
+        # the active player when an anchor card is played.
+        from dominion.artifacts import get_artifact
+        artifact_triggers = {
+            "Flag Bearer": ["Flag"],
+            "Border Guard": ["Horn", "Lantern"],
+            "Treasurer": ["Key"],
+            "Swashbuckler": ["Treasure Chest"],
+        }
+        kingdom_names = {c.name for c in kingdom_cards}
+        for trigger, names in artifact_triggers.items():
+            if trigger in kingdom_names:
+                for art_name in names:
+                    if art_name not in self.artifacts:
+                        self.artifacts[art_name] = get_artifact(art_name)
 
         # Allies rules: when an Ally is in the game, each player starts with
         # 1 Favor. Without this, Ally abilities can't be activated until a
@@ -560,6 +586,8 @@ class GameState:
         # Enchantress: re-arm the "first Action this turn" override flag if a
         # caster's Enchantress is still active over this opponent.
         player.enchantress_used_this_turn = False
+        # Renaissance Priest's rest-of-turn trigger resets each turn.
+        player.priest_played_this_turn = 0
 
         # Return any cards delayed by the Delay event
         if self.current_player.delayed_cards:
@@ -569,6 +597,11 @@ class GameState:
         # Resolve project effects that occur at the start of the turn
         for project in self.current_player.projects:
             project.on_turn_start(self, self.current_player)
+
+        # Renaissance: Artifact start-of-turn effects for the holder
+        for artifact in self.artifacts.values():
+            if artifact.holder is self.current_player:
+                artifact.on_holder_turn_start(self, self.current_player)
 
         # Resolve Ally effects (e.g. Cave Dwellers' Favor-spending hook)
         for ally in self.allies:
@@ -817,6 +850,15 @@ class GameState:
         player.cards_gained_this_buy_phase = 0
         player.gained_victory_this_buy_phase = False
 
+        # Renaissance: Artifact start-of-buy-phase effects (Treasure Chest)
+        for artifact in self.artifacts.values():
+            if artifact.holder is player:
+                artifact.on_holder_buy_phase_start(self, player)
+
+        # Renaissance: project end-of-buy-phase markers reset for Pageant /
+        # Exploration tracking.
+        player.gained_action_or_treasure_this_buy_phase = False
+
         if player.deluded:
             player.deluded = False
             player.cannot_buy_actions = True
@@ -846,8 +888,20 @@ class GameState:
 
         self._handle_start_of_buy_phase_effects()
 
+        capitalism = any(
+            getattr(p, "name", "") == "Capitalism" for p in player.projects
+        )
+
         while True:
             treasures = [card for card in player.hand if card.is_treasure]
+            if capitalism:
+                treasures += [
+                    card
+                    for card in player.hand
+                    if card.is_action
+                    and not card.is_treasure
+                    and card.stats.coins > 0
+                ]
             if not treasures:
                 break
 
@@ -1080,6 +1134,11 @@ class GameState:
                 self._resolve_donate(player)
             player.donate_pending = 0
 
+        # Renaissance: end-of-buy-phase project triggers (Pageant, Exploration)
+        for project in player.projects:
+            if hasattr(project, "on_buy_phase_end"):
+                project.on_buy_phase_end(self, player)
+
     def _resolve_donate(self, player: PlayerState) -> None:
         """Empires Donate: dump hand+deck into discard, trash any from
         discard, then put discard into deck and shuffle."""
@@ -1311,6 +1370,13 @@ class GameState:
             ):
                 player.deck.insert(0, card)
             elif (
+                card.name == "Border Guard"
+                and getattr(card, "horn_topdeck_pending", False)
+            ):
+                # Renaissance Horn: topdeck this Border Guard during cleanup.
+                card.horn_topdeck_pending = False
+                player.deck.insert(0, card)
+            elif (
                 card.is_treasure
                 and getattr(player, "panic_active", False)
                 and card.name in self.supply
@@ -1391,6 +1457,18 @@ class GameState:
         if outpost_extra_turn:
             self.extra_turn = True
 
+        if self.fleet_extra_round_active and not self.extra_turn:
+            # Fleet extra round: pop the player whose turn just ended and
+            # advance to the next Fleet owner in the queue.
+            if self.fleet_extra_players and self.fleet_extra_players[0] is player:
+                self.fleet_extra_players.pop(0)
+            if self.fleet_extra_players:
+                next_player = self.fleet_extra_players[0]
+                self.current_player_index = self.players.index(next_player)
+            self.phase = "start"
+            self.extra_turn = False
+            return
+
         if not self.extra_turn:
             self.current_player_index = (self.current_player_index + 1) % len(self.players)
             if self.current_player_index == 0:
@@ -1430,7 +1508,43 @@ class GameState:
         if self.logger:
             self.logger.current_metrics.turn_count = self.turn_number
 
-        # Check win conditions in order of precedence
+        normal_end = (
+            self.supply.get("Province", 0) == 0 or self.empty_piles >= 3
+        )
+
+        # Renaissance Fleet: if normal end-game would trigger and any player
+        # owns Fleet, grant one extra round to all Fleet owners before the
+        # game actually ends. Non-Fleet owners are skipped during this round.
+        if (
+            normal_end
+            and not self.fleet_extra_round_active
+            and any(
+                any(getattr(p, "name", "") == "Fleet" for p in pl.projects)
+                for pl in self.players
+            )
+        ):
+            self.fleet_extra_round_active = True
+            self.fleet_extra_players = [
+                pl for pl in self.players
+                if any(getattr(p, "name", "") == "Fleet" for p in pl.projects)
+            ]
+            self.log_callback("Fleet: extra round of turns for Fleet owners")
+            # Move directly to the first Fleet player and resume play.
+            if self.fleet_extra_players:
+                self.current_player_index = self.players.index(
+                    self.fleet_extra_players[0]
+                )
+                self.phase = "start"
+            return False
+
+        # If we are inside the Fleet extra round, end only once every Fleet
+        # owner has taken their bonus turn.
+        if self.fleet_extra_round_active:
+            if self.fleet_extra_players:
+                return False
+            self._update_final_metrics()
+            self.log_callback("Game over (after Fleet extra round)")
+            return True
 
         # 1. Province pile empty
         if self.supply.get("Province", 0) == 0:
@@ -1699,6 +1813,8 @@ class GameState:
             and self.phase == "buy"
         ):
             player.cards_gained_this_buy_phase += 1
+            if actual_card.is_action or actual_card.is_treasure:
+                player.gained_action_or_treasure_this_buy_phase = True
 
         if actual_card.is_victory and player is self.current_player and self.phase == "buy":
             player.gained_victory_this_buy_phase = True
@@ -2183,6 +2299,11 @@ class GameState:
         for landmark in self.landmarks:
             landmark.on_trash(self, player, card)
 
+        # Renaissance Priest: +$2 for each Priest played this turn.
+        priest_count = getattr(player, "priest_played_this_turn", 0)
+        if priest_count and player is self.current_player:
+            player.coins += 2 * priest_count
+
         self._handle_market_square_reaction(player, card)
 
     def _handle_hovel_reaction(self, player: PlayerState) -> None:
@@ -2270,6 +2391,28 @@ class GameState:
                 break
             self.supply["Curse"] -= 1
             self.gain_card(buyer, get_card("Curse"))
+
+    def take_artifact(self, player: PlayerState, name: str) -> None:
+        """Transfer the named Artifact to ``player``.
+
+        No-op if the Artifact isn't in the game. Already-held by this
+        player → still calls ``on_take`` for symmetry. Held by someone
+        else → previous holder's ``on_lose`` fires first.
+        """
+
+        artifact = self.artifacts.get(name)
+        if artifact is None:
+            return
+        previous = artifact.holder
+        if previous is player:
+            return
+        if previous is not None:
+            artifact.on_lose(self, previous)
+        artifact.holder = player
+        artifact.on_take(self, player)
+        self.log_callback(
+            ("action", player.ai.name, f"takes the {name}", {"artifact": name})
+        )
 
     def _update_final_metrics(self):
         """Update final game metrics including victory points."""
