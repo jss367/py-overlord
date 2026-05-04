@@ -88,6 +88,8 @@ EXPECTED_TREASURE_CARDS = {
     "Sack of Loot",
     "Stowaway",
     "Tools",
+    "Bauble",
+    "Contract",
 }
 
 MULTI_TYPE_TREASURES = {
@@ -121,6 +123,8 @@ MULTI_TYPE_TREASURES = {
     "Gondola": {CardType.TREASURE, CardType.DURATION},
     "Rope": {CardType.TREASURE, CardType.DURATION},
     "Stowaway": {CardType.TREASURE, CardType.DURATION, CardType.REACTION},
+    "Bauble": {CardType.TREASURE, CardType.LIAISON},
+    "Contract": {CardType.TREASURE, CardType.DURATION, CardType.LIAISON},
 }
 
 

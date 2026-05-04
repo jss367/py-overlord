@@ -7,13 +7,15 @@ class Modify(Card):
             name="Modify",
             cost=CardCost(coins=5),
             stats=CardStats(),
-            types=[CardType.ACTION],
+            types=[CardType.ACTION, CardType.LIAISON],
         )
 
     def play_effect(self, game_state):
         from ..registry import get_card
 
         player = game_state.current_player
+        # Liaison: +1 Favor when played.
+        player.favors += 1
         if not player.hand:
             return
         to_trash = player.ai.choose_card_to_trash(game_state, player.hand)

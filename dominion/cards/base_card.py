@@ -44,6 +44,7 @@ class CardType(Enum):
     FATE = "fate"
     DOOM = "doom"
     ZOMBIE = "zombie"
+    LIAISON = "liaison"
 
 
 class Card:
@@ -140,6 +141,10 @@ class Card:
     @property
     def is_heirloom(self) -> bool:
         return CardType.HEIRLOOM in self.types
+
+    @property
+    def is_liaison(self) -> bool:
+        return CardType.LIAISON in self.types
 
     def get_victory_points(self, player) -> int:
         """Get victory points this card provides for the given player."""
