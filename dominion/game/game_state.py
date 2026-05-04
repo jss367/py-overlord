@@ -1055,6 +1055,11 @@ class GameState:
                                 {},
                             )
                         )
+                        # Per Enchantress's wording, the card is still PLAYED
+                        # (only its effect is replaced). If it is an Attack,
+                        # any Urchin in play still reacts. Card.on_play was
+                        # not invoked, so fire the reaction explicitly here.
+                        self._fire_urchin_reaction(player, choice)
                     else:
                         choice.on_play(self)
                     if training_pile and choice.name == training_pile:
@@ -1072,7 +1077,9 @@ class GameState:
                     # Note: Urchin's react_to_attack_played is fired from
                     # Card.on_play, so it correctly catches Attacks played
                     # indirectly via Throne Room, King's Court, Procession,
-                    # or Band of Misfits as well.
+                    # or Band of Misfits as well. The Enchantress branch
+                    # above does not call on_play, so it triggers Urchin's
+                    # reaction explicitly via _fire_urchin_reaction.
 
                     # Allies hook: any Ally that reacts to plays
                     # (Circle of Witches, League of Shopkeepers,
@@ -1094,6 +1101,27 @@ class GameState:
             self._maybe_inspiring_extra_play(player, choice)
 
         self.phase = "treasure"
+
+    def _fire_urchin_reaction(self, player: PlayerState, attack_card: Card) -> None:
+        """Trigger Urchin's react_to_attack_played for any Urchins this player
+        has in play, when an Attack card is played but Card.on_play did not
+        run (e.g. Enchantress substitutes its effect). Mirrors the trigger in
+        Card.on_play so both code paths agree.
+        """
+        if not attack_card.is_attack or attack_card.name == "Urchin":
+            return
+        urchins = [
+            c for c in list(player.in_play)
+            if c.name == "Urchin" and c is not attack_card
+        ]
+        for urchin in urchins:
+            react = getattr(urchin, "react_to_attack_played", None)
+            if react is None:
+                continue
+            try:
+                react(self, player, attack_card)
+            except AttributeError:
+                pass
 
     def _maybe_inspiring_extra_play(self, player: PlayerState, just_played: Card) -> None:
         if self.pile_traits.get(just_played.name) != "Inspiring":
