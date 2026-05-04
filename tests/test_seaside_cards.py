@@ -790,6 +790,30 @@ def test_blockade_does_not_set_aside_card_sailor_already_played():
         "Caravan should not appear in hand if Blockade had nothing set aside"
 
 
+def test_blockade_does_not_curse_lighthouse_defender():
+    """A Lighthouse-defending opponent at Blockade-play time must not be
+    cursed when they later gain a copy of the watched card.
+    """
+    state = _make_state(num_players=2)
+    player_a, player_b = state.players
+    state.current_player_index = 0
+    state.supply["Silver"] = 10
+    state.supply["Curse"] = 10
+
+    # Defender is protected by Lighthouse when Blockade is played.
+    player_b.duration.append(get_card("Lighthouse"))
+
+    blockade = get_card("Blockade")
+    player_a.hand = [blockade]
+    play_action(state, player_a, blockade)
+
+    # Player B (defended) gains the watched card → must not gain a Curse.
+    state.supply["Silver"] -= 1
+    state.gain_card(player_b, get_card("Silver"))
+    assert all(c.name != "Curse" for c in player_b.discard), \
+        "Blockade must not curse opponents protected at play time"
+
+
 def test_blockade_curses_opponent_who_gains_same_card():
     state = _make_state(num_players=2)
     player_a, player_b = state.players
@@ -805,6 +829,41 @@ def test_blockade_curses_opponent_who_gains_same_card():
     state.supply["Silver"] -= 1
     state.gain_card(player_b, get_card("Silver"))
     assert any(c.name == "Curse" for c in player_b.discard)
+
+
+def test_corsair_does_not_trash_treasure_of_lighthouse_defender():
+    """A Lighthouse-defending opponent at Corsair-play time must remain immune
+    on later turns when they play their first Silver/Gold.
+    """
+    class PlayTreasuresAI(DummyAI):
+        def choose_treasure(self, state, choices):
+            for c in choices:
+                if c is not None:
+                    return c
+            return None
+
+    state = _make_state(num_players=2, ai_class=PlayTreasuresAI)
+    attacker, defender = state.players
+    state.current_player_index = 0
+
+    # Defender has Lighthouse in duration when Corsair is played.
+    defender.duration.append(get_card("Lighthouse"))
+
+    corsair = get_card("Corsair")
+    attacker.hand = [corsair]
+    play_action(state, attacker, corsair)
+
+    # Defender's later turn — plays Silver. Corsair must not trash it.
+    state.current_player_index = 1
+    silver = get_card("Silver")
+    defender.hand = [silver]
+    state.phase = "treasure"
+    state.handle_treasure_phase()
+
+    assert silver not in state.trash, \
+        "Corsair must not trash treasures of opponents protected at play time"
+    assert silver in defender.in_play
+    assert defender.coins == 2
 
 
 def test_corsair_trashes_first_silver_played_by_opponent():

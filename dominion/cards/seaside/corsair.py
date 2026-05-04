@@ -16,13 +16,25 @@ class Corsair(Card):
         )
         self.duration_persistent = True
         self.active = False
+        # Identities (object id) of opponents who weren't immune at play time.
+        self._affected_player_ids: set[int] = set()
 
     def play_effect(self, game_state):
         player = game_state.current_player
         self.active = True
         player.duration.append(self)
-        # Owner attribution lets the on_treasure_played hook find the Corsair.
         self._owner = player
+        self._affected_player_ids = set()
+
+        # Resolve the attack at play time so Moat / Lighthouse / Shield can
+        # exempt opponents from the deferred-trash effect for this Corsair.
+        def attack_target(target):
+            self._affected_player_ids.add(id(target))
+
+        for other in game_state.players:
+            if other is player:
+                continue
+            game_state.attack_player(other, attack_target)
 
     def on_duration(self, game_state):
         player = game_state.current_player
@@ -30,12 +42,12 @@ class Corsair(Card):
         self.active = False
         self.duration_persistent = False
         self._owner = None
+        self._affected_player_ids = set()
 
     def react_to_treasure_played(self, game_state, treasure_player, treasure_card):
-        """Trash the first Silver/Gold each opponent plays each turn while active.
+        """Trash the first Silver/Gold each affected opponent plays each turn.
 
-        Called from the treasure-play path. Returns True if the treasure was
-        trashed, False otherwise.
+        Returns True if the treasure was trashed, False otherwise.
         """
         if not self.active:
             return False
@@ -44,12 +56,12 @@ class Corsair(Card):
             return False
         if treasure_card.name not in {"Silver", "Gold"}:
             return False
-
+        if id(treasure_player) not in self._affected_player_ids:
+            return False
         if treasure_player.corsair_trashed_this_turn:
             return False
 
         treasure_player.corsair_trashed_this_turn = True
-        # Remove from in_play and trash it.
         if treasure_card in treasure_player.in_play:
             treasure_player.in_play.remove(treasure_card)
         game_state.trash_card(treasure_player, treasure_card)

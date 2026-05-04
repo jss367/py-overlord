@@ -16,11 +16,25 @@ class Blockade(Card):
         )
         self.set_aside = None
         self.watched_card_name = None
+        # Identities (object id) of opponents who weren't immune at play time.
+        self._affected_player_ids: set[int] = set()
 
     def play_effect(self, game_state):
         from ..registry import get_card
 
         player = game_state.current_player
+
+        # Resolve the attack at play time so Moat / Lighthouse / Shield can
+        # exempt opponents from the deferred-curse trigger for this Blockade.
+        self._affected_player_ids = set()
+
+        def attack_target(target):
+            self._affected_player_ids.add(id(target))
+
+        for other in game_state.players:
+            if other is player:
+                continue
+            game_state.attack_player(other, attack_target)
 
         choice = player.ai.choose_card_to_gain_with_blockade(game_state, player, max_cost=4)
         if choice is None:
@@ -59,12 +73,19 @@ class Blockade(Card):
         self.duration_persistent = False
 
     def on_opponent_gain(self, game_state, owner, gainer, gained_card):
-        """Curse opponents who gain a matching card while this is in play."""
+        """Curse opponents who gain a matching card while this is in play.
+
+        Only opponents who were actually hit by the original Attack play (i.e.
+        not protected by Moat/Lighthouse/Shield at play time) are subject to
+        the follow-up curse trigger.
+        """
         if self.watched_card_name is None:
             return
         if self not in owner.duration:
             return
         if gained_card.name != self.watched_card_name:
+            return
+        if id(gainer) not in self._affected_player_ids:
             return
         if game_state.supply.get("Curse", 0) <= 0:
             return
