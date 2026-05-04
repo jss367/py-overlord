@@ -17,7 +17,6 @@ from .loot_cards import (
     LOOT_CARD_NAMES,
 )
 from .first_mate import FirstMate
-from .barbarian import Barbarian
 from .crew import Crew
 from .flagship import Flagship
 from .trickster import Trickster
@@ -25,6 +24,39 @@ from .highwayman import Highwayman
 from .astrolabe import Astrolabe
 from .pickaxe import Pickaxe
 from .harbor_village import HarborVillage
+from .kingdom_cards import (
+    Abundance,
+    BuriedTreasure,
+    CabinBoy,
+    Cage,
+    Crucible,
+    Cutthroat,
+    Enlarge,
+    Figurine,
+    FortuneHunter,
+    Frigate,
+    Gondola,
+    Grotto,
+    JewelledEgg,
+    KingsCache,
+    LandingParty,
+    Longship,
+    Mapmaker,
+    Maroon,
+    MiningRoad,
+    Pendant,
+    Quartermaster,
+    Rope,
+    SackOfLoot,
+    Search,
+    SecludedShrine,
+    Shaman,
+    SilverMine,
+    Siren,
+    Stowaway,
+    SwampShacks,
+    Tools,
+)
 
 __all__ = [
     'Amphora',
@@ -43,7 +75,6 @@ __all__ = [
     'Staff',
     'Sword',
     'FirstMate',
-    'Barbarian',
     'Crew',
     'Flagship',
     'Trickster',
@@ -52,4 +83,35 @@ __all__ = [
     'Astrolabe',
     'Pickaxe',
     'HarborVillage',
+    'Abundance',
+    'BuriedTreasure',
+    'CabinBoy',
+    'Cage',
+    'Crucible',
+    'Cutthroat',
+    'Enlarge',
+    'Figurine',
+    'FortuneHunter',
+    'Frigate',
+    'Gondola',
+    'Grotto',
+    'JewelledEgg',
+    'KingsCache',
+    'LandingParty',
+    'Longship',
+    'Mapmaker',
+    'Maroon',
+    'MiningRoad',
+    'Pendant',
+    'Quartermaster',
+    'Rope',
+    'SackOfLoot',
+    'Search',
+    'SecludedShrine',
+    'Shaman',
+    'SilverMine',
+    'Siren',
+    'Stowaway',
+    'SwampShacks',
+    'Tools',
 ]

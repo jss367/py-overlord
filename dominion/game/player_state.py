@@ -105,6 +105,17 @@ class PlayerState:
     highwayman_attacks: int = 0
     highwayman_blocked_this_turn: bool = False
     insignia_active: bool = False
+    # Plunder cards / events / traits.
+    fated_pile: str = ""
+    cards_trashed_this_turn: int = 0
+    mining_road_triggered: bool = False
+    search_triggered: bool = False
+    avoid_pending: int = 0
+    deliver_pending: list = field(default_factory=list)
+    bury_mat: list = field(default_factory=list)
+    prepare_set_aside: list = field(default_factory=list)
+    cage_state: object = None
+    grotto_set_aside: list = field(default_factory=list)
     # Prosperity 2E: Tiara grants once-per-turn replay-treasure
     tiara_replay_used: bool = False
     # Prosperity 2E: War Chest tracks names already used this turn
@@ -247,6 +258,15 @@ class PlayerState:
         self.highwayman_attacks = 0
         self.highwayman_blocked_this_turn = False
         self.insignia_active = False
+        self.cards_trashed_this_turn = 0
+        self.mining_road_triggered = False
+        self.search_triggered = False
+        self.avoid_pending = 0
+        self.deliver_pending = []
+        self.bury_mat = []
+        self.prepare_set_aside = []
+        self.cage_state = None
+        self.grotto_set_aside = []
         self.tiara_replay_used = False
         self.war_chest_named_this_turn = []
         self.clerk_pending_replay = []
@@ -297,10 +317,26 @@ class PlayerState:
     def shuffle_discard_into_deck(self):
         """Shuffle discard pile to create new deck.
 
-        Respects Stash (top) and Rising Sun Shadow cards (bottom).
+        Respects Stash (top), Rising Sun Shadow cards (bottom), Plunder
+        Avoid event (top up to 3), and Plunder Fated trait (top of deck).
         Cards at index 0 are the bottom of the deck (drawn last); cards at
         the end are the top (drawn first via ``deck.pop()``).
         """
+        avoid_set_aside: list = []
+        if self.avoid_pending > 0 and self.discard:
+            n = min(3, len(self.discard))
+            avoid_set_aside = self.discard[-n:]
+            self.discard = self.discard[:-n]
+            self.avoid_pending = max(0, self.avoid_pending - 1)
+        fated_top: list = []
+        if self.fated_pile:
+            others_kept = []
+            for card in self.discard:
+                if card.name == self.fated_pile:
+                    fated_top.append(card)
+                else:
+                    others_kept.append(card)
+            self.discard = others_kept
         stash_cards = [card for card in self.discard if card.name == "Stash"]
         shadows = [
             card
@@ -313,9 +349,7 @@ class PlayerState:
             if card.name != "Stash" and not getattr(card, "is_shadow", False)
         ]
         random.shuffle(others)
-        # Shadows live at the bottom of the deck (index 0..) per Rising Sun
-        # rules; everything else is shuffled normally on top of them.
-        self.deck = shadows + others + stash_cards
+        self.deck = shadows + others + stash_cards + fated_top + avoid_set_aside
         self.discard = []
 
     def count_in_deck(self, card_name: str) -> int:
