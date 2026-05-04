@@ -27,10 +27,7 @@ class Marauder(Card):
         def attack_target(target):
             if game_state.supply.get("Ruins", 0) <= 0:
                 return
-
-            game_state.supply["Ruins"] -= 1
-            ruin = get_card("Ruins")
-            game_state.gain_card(target, ruin)
+            game_state.gain_ruins(target)
 
         for other in game_state.players:
             if other is player:

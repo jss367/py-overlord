@@ -12,6 +12,7 @@ EXPECTED_TREASURE_CARDS = {
     "Collection",
     "Contraband",
     "Copper",
+    "Counterfeit",
     "Crown",
     "Crystal Ball",
     "Doubloons",

@@ -275,10 +275,37 @@ from dominion.cards.dark_ages import (
     PoorHouse,
     Spoils,
     Ruins,
+    AbandonedMine,
+    RuinedLibrary,
+    RuinedMarket,
+    RuinedVillage,
+    Survivors,
     Graverobber,
     Procession,
     Sage,
 )
+from dominion.cards.dark_ages.knights import KNIGHT_CLASSES
+from dominion.cards.dark_ages.madman import Madman
+from dominion.cards.dark_ages.mercenary import Mercenary
+from dominion.cards.dark_ages.squire import Squire
+from dominion.cards.dark_ages.vagrant import Vagrant
+from dominion.cards.dark_ages.hermit import Hermit
+from dominion.cards.dark_ages.storeroom import Storeroom
+from dominion.cards.dark_ages.urchin import Urchin
+from dominion.cards.dark_ages.death_cart import DeathCart
+from dominion.cards.dark_ages.fortress import Fortress
+from dominion.cards.dark_ages.scavenger import Scavenger
+from dominion.cards.dark_ages.band_of_misfits import BandOfMisfits
+from dominion.cards.dark_ages.bandit_camp import BanditCamp
+from dominion.cards.dark_ages.catacombs import Catacombs
+from dominion.cards.dark_ages.counterfeit import Counterfeit
+from dominion.cards.dark_ages.cultist import Cultist
+from dominion.cards.dark_ages.junk_dealer import JunkDealer
+from dominion.cards.dark_ages.mystic import Mystic
+from dominion.cards.dark_ages.pillage import Pillage
+from dominion.cards.dark_ages.rogue import Rogue
+from dominion.cards.dark_ages.altar import Altar
+from dominion.cards.dark_ages.knights import KnightsPile
 from dominion.cards.hinterlands.wandering_minstrel import WanderingMinstrel
 from dominion.cards.seaside import (
     Ambassador,
@@ -712,6 +739,37 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Snake Witch": SnakeWitch,
     "Tanuki": Tanuki,
     "Tea House": TeaHouse,
+    # Dark Ages — Ruins variants
+    "Abandoned Mine": AbandonedMine,
+    "Ruined Library": RuinedLibrary,
+    "Ruined Market": RuinedMarket,
+    "Ruined Village": RuinedVillage,
+    "Survivors": Survivors,
+    # Dark Ages — Knights pile + members
+    "Knights": KnightsPile,
+    **{cls().name: cls for cls in KNIGHT_CLASSES},
+    # Dark Ages — Non-supply piles
+    "Madman": Madman,
+    "Mercenary": Mercenary,
+    # Dark Ages — kingdom cards (1E set 20 missing)
+    "Squire": Squire,
+    "Vagrant": Vagrant,
+    "Hermit": Hermit,
+    "Storeroom": Storeroom,
+    "Urchin": Urchin,
+    "Death Cart": DeathCart,
+    "Fortress": Fortress,
+    "Scavenger": Scavenger,
+    "Band of Misfits": BandOfMisfits,
+    "Bandit Camp": BanditCamp,
+    "Catacombs": Catacombs,
+    "Counterfeit": Counterfeit,
+    "Cultist": Cultist,
+    "Junk Dealer": JunkDealer,
+    "Mystic": Mystic,
+    "Pillage": Pillage,
+    "Rogue": Rogue,
+    "Altar": Altar,
 }
 
 CARD_ALIASES: dict[str, str] = {
