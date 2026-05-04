@@ -120,10 +120,11 @@ def test_strategy_competitive_vs_big_money(loader, board):
     cauldron_curse board.
 
     We deliberately seed Python's RNG to make this test deterministic
-    so flakiness in the strategy frame doesn't break CI; the ``>= 16``
-    threshold corresponds to roughly 40% of 40 games and is well below
-    the strategy's empirical winrate (~50%) but still high enough that
-    a regression that destroyed the engine would surface."""
+    so flakiness in the strategy frame doesn't break CI. With Cauldron
+    at its printed cost of $5, the strategy's empirical winrate is
+    around 30%; the ``>= 10`` threshold (25%) is set well below that
+    but still high enough that a regression which broke the Cauldron
+    curse-out attack or the strategy frame would surface."""
 
     random.seed(20240429)
     cc_wins = 0
@@ -144,9 +145,9 @@ def test_strategy_competitive_vs_big_money(loader, board):
         else:
             bm_wins += 1
 
-    assert cc_wins >= 16, (
+    assert cc_wins >= 10, (
         f"CauldronCurse only won {cc_wins}/40 vs BigMoney; expected at "
-        f"least 16 (~40%) on the seed board (BigMoney won {bm_wins})."
+        f"least 10 (~25%) on the seed board (BigMoney won {bm_wins})."
     )
 
 
