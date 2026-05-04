@@ -1010,6 +1010,57 @@ def test_sea_chart_revealed_card_stays_when_matching_copy_in_play():
     assert player.deck and player.deck[-1] is village_top
 
 
+def test_sea_chart_treats_duration_cards_as_in_play():
+    """Duration cards still sitting in ``player.duration`` count as "in play"
+    for Sea Chart's matching check, so revealing the same card type leaves
+    the deck topdeck untouched.
+    """
+    state = _make_state()
+    player = state.players[0]
+
+    sea_chart = get_card("Sea Chart")
+    # A previously played Caravan that is still active sits in duration.
+    caravan_in_duration = get_card("Caravan")
+    player.duration = [caravan_in_duration]
+
+    revealed_caravan = get_card("Caravan")
+    drawn_first = get_card("Copper")
+    player.deck = [revealed_caravan, drawn_first]  # top=drawn_first
+    player.hand = [sea_chart]
+
+    play_action(state, player, sea_chart)
+
+    # +1 Card drew Copper.
+    assert drawn_first in player.hand
+    # Caravan in duration counts as "in play", so the revealed Caravan is
+    # NOT moved to hand and stays on top of the deck.
+    assert revealed_caravan not in player.hand
+    assert player.deck and player.deck[-1] is revealed_caravan
+
+
+def test_sea_chart_treats_multiplied_durations_as_in_play():
+    """Cards in ``player.multiplied_durations`` (Throne-Room-replayed
+    durations) also count as "in play" for Sea Chart.
+    """
+    state = _make_state()
+    player = state.players[0]
+
+    sea_chart = get_card("Sea Chart")
+    wharf_replayed = get_card("Wharf")
+    player.multiplied_durations = [wharf_replayed]
+
+    revealed_wharf = get_card("Wharf")
+    drawn_first = get_card("Copper")
+    player.deck = [revealed_wharf, drawn_first]
+    player.hand = [sea_chart]
+
+    play_action(state, player, sea_chart)
+
+    assert drawn_first in player.hand
+    assert revealed_wharf not in player.hand
+    assert player.deck and player.deck[-1] is revealed_wharf
+
+
 # -- Lighthouse vs Witch -----------------------------------------------------
 
 
