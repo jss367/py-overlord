@@ -273,6 +273,73 @@ def test_way_of_the_chameleon_swaps_imperative_draw():
     assert len(p1.hand) == 0
 
 
+def test_way_of_the_chameleon_does_not_swap_vassal_played_card():
+    """When Vassal is played as Way of the Chameleon and reveals/plays an
+    Action via its side effect, the *Vassal's* +$2 swaps to +2 Cards (the Way
+    applies to Vassal). The card Vassal plays — Village here — keeps its own
+    +1 Card and +2 Actions: the Way does NOT chain to cards that Vassal
+    causes to be played.
+    """
+    state, p1 = _state(
+        "Way of the Chameleon",
+        kingdom=[get_card("Village"), get_card("Vassal")],
+    )
+    p1.actions = 1
+    vassal = get_card("Vassal")
+    p1.hand = [vassal]
+    # Top of deck (last element) is what Vassal discards/plays. Make it
+    # Village so Vassal plays Village as a side effect.
+    p1.deck = [get_card("Copper"), get_card("Copper"), get_card("Village")]
+    state.phase = "action"
+    state.handle_action_phase()
+    # Vassal's own +$2 swaps to +2 Cards (Vassal had 0 +Cards to begin with).
+    # Village (played as Vassal's side effect) keeps its real +1 Card +2
+    # Actions; its +1 Card is NOT swapped to +$1.
+    # Net coins: Vassal contributed 0 (its +$2 swapped away). Village adds
+    # nothing to coins. So coins == 0.
+    assert p1.coins == 0
+    # Hand contents:
+    #   - Vassal swap drew 2 cards (Vassal's +$2 -> +2 Cards from deck top:
+    #     two Coppers).
+    #   - Village's own +1 Card drew 1 card. Deck started with 3 cards: the
+    #     last (Village) was popped by Vassal, leaving 2 Coppers. Vassal's
+    #     swap drew both Coppers, so by the time Village resolves there's
+    #     nothing left to draw.
+    # Sanity: Village must be in_play (it was played, not discarded), proving
+    # the +1 Card came from Village resolving — and that any draws Village
+    # made happened via the un-intercepted draw path.
+    assert any(c.name == "Village" for c in p1.in_play)
+    # Player's actions: started 1, -1 to play Vassal, Village +2 = 2.
+    assert p1.actions == 2
+
+
+def test_way_of_the_chameleon_throne_room_does_not_swap_smithy_draws():
+    """Throne Room played as Way of the Chameleon: the Way applies only to
+    Throne Room itself (which has no +Cards/+$, so the swap is a no-op).
+    Smithy played by Throne Room keeps its real +3 Cards and is NOT
+    converted to +$3.
+    """
+    state, p1 = _state(
+        "Way of the Chameleon",
+        kingdom=[get_card("Throne Room"), get_card("Smithy")],
+    )
+    p1.actions = 1
+    throne = get_card("Throne Room")
+    smithy = get_card("Smithy")
+    p1.hand = [throne, smithy]
+    p1.deck = [get_card("Copper")] * 10
+    state.phase = "action"
+    state.handle_action_phase()
+    # Throne Room itself has no +Cards/+$ — Chameleon swap is a no-op there.
+    # Smithy played twice via Throne Room normally draws 6 cards; those
+    # draws are NOT routed through Chameleon's interceptor.
+    assert p1.coins == 0
+    # Hand: Smithy was played out of hand by Throne Room, then drew 6
+    # Coppers across two activations.
+    coppers_in_hand = sum(1 for c in p1.hand if c.name == "Copper")
+    assert coppers_in_hand == 6
+
+
 def test_way_of_the_horse_does_not_create_synthetic_pile():
     """Way of the Horse must not invent a supply pile for a non-Supply card."""
     state, p1 = _state("Way of the Horse", kingdom=[get_card("Village")])
