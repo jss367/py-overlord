@@ -997,6 +997,62 @@ class AI(ABC):
         """Decide whether to set aside Province for Joust."""
         return True
 
+    def should_reveal_tournament_province(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Decide whether to reveal a Province from hand for Tournament.
+
+        Default True: revealing is strictly favourable for the active player
+        (Prize or Duchy on top of the deck) and denies opponents the +1
+        Card / +$1 consolation when revealed defensively.
+        """
+        return True
+
+    def choose_tournament_prize(
+        self,
+        state: GameState,
+        player: PlayerState,
+        choices: list[Card],
+    ) -> Optional[Card]:
+        """Pick a Prize (or Duchy) to gain from Tournament's reveal effect.
+
+        Default: prefer any available Prize (Bag of Gold, Followers, Princess,
+        Trusty Steed, Diadem) over a Duchy.
+        """
+        if not choices:
+            return None
+        # Static priority that's broadly reasonable.
+        priority = {
+            "Followers": 5,
+            "Trusty Steed": 4,
+            "Princess": 3,
+            "Bag of Gold": 2,
+            "Diadem": 1,
+            "Duchy": 0,
+        }
+        return max(choices, key=lambda c: (priority.get(c.name, 0), c.name))
+
+    def should_reveal_bane(self, state: GameState, player: PlayerState) -> bool:
+        """Decide whether to reveal a Bane card to block a Young Witch attack.
+
+        Default True — blocking a Curse is almost always worth a single hand
+        reveal.
+        """
+        return True
+
+    def choose_trusty_steed_options(
+        self,
+        state: GameState,
+        player: PlayerState,
+        options: list[str],
+    ) -> list[str]:
+        """Choose two of Trusty Steed's four options.
+
+        Default: +2 Cards and +2 Actions (a generic Lab + Village). AIs may
+        override to chase Silvers (deck-cycling combo) or coins.
+        """
+        return ["cards", "actions"]
+
     def should_set_aside_cargo_ship(
         self, state: GameState, player: PlayerState, gained_card: Card
     ) -> bool:

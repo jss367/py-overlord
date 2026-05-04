@@ -40,4 +40,6 @@ class YoungWitch(Card):
         for other in game_state.players:
             if other is player:
                 continue
-            game_state.attack_player(other, attack_target)
+            game_state.attack_player(
+                other, attack_target, attacker=player, attack_card=self
+            )

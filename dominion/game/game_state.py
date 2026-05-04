@@ -45,6 +45,11 @@ class GameState:
     # Ruins, Spoils, or Horse.
     original_kingdom_pile_names: set = field(default_factory=set)
 
+    # Cornucopia: Young Witch designates an extra $2/$3 Kingdom pile as the
+    # Bane. A card from that pile, revealed from hand, blocks a Young Witch
+    # attack against the holder.
+    bane_card_name: str = ""
+
     def __post_init__(self):
         """Initialize with default logger that prints to console."""
         self.logger = None
@@ -309,6 +314,73 @@ class GameState:
             self._prepare_black_market_deck(kingdom_cards)
         else:
             self.black_market_deck = []
+
+        # Cornucopia: Young Witch designates a Bane Kingdom pile costing $2 or
+        # $3. If one of the already-chosen Kingdom cards qualifies, use it;
+        # otherwise add an extra $2/$3 pile to the Supply.
+        if any(card.name == "Young Witch" for card in kingdom_cards):
+            self._setup_young_witch_bane(kingdom_cards)
+
+    def _setup_young_witch_bane(self, kingdom_cards: list[Card]) -> None:
+        """Designate the Bane card pile required by Young Witch.
+
+        Prefers a Kingdom card already in the chosen ten that costs $2 or $3.
+        Falls back to adding an extra Kingdom pile from outside the chosen
+        set. The selected card's name is stored on ``self.bane_card_name``.
+        """
+
+        BASIC_NAMES = {
+            "Copper", "Silver", "Gold", "Platinum",
+            "Estate", "Duchy", "Province", "Colony", "Curse",
+        }
+
+        # Already-eligible piles in the kingdom.
+        in_kingdom = [
+            c for c in kingdom_cards
+            if c.cost.coins in (2, 3)
+            and c.cost.potions == 0
+            and c.cost.debt == 0
+            and c.name != "Young Witch"
+            and not getattr(c, "is_event", False)
+            and not getattr(c, "is_project", False)
+        ]
+        if in_kingdom:
+            # Pick deterministically (cheapest then by name) so tests are
+            # repeatable.
+            chosen = min(in_kingdom, key=lambda c: (c.cost.coins, c.name))
+            self.bane_card_name = chosen.name
+            self.original_kingdom_pile_names.add(chosen.name)
+            return
+
+        # Otherwise, add an extra Kingdom pile from outside the chosen set.
+        kingdom_names = {c.name for c in kingdom_cards}
+        candidate_name: str | None = None
+        candidate_card: Card | None = None
+        for name in get_all_card_names():
+            if name in kingdom_names or name in BASIC_NAMES:
+                continue
+            if name in self.supply:
+                continue
+            try:
+                card = get_card(name)
+            except ValueError:
+                continue
+            if card.cost.coins not in (2, 3):
+                continue
+            if card.cost.potions != 0 or card.cost.debt != 0:
+                continue
+            if getattr(card, "is_event", False) or getattr(card, "is_project", False):
+                continue
+            if not card.may_be_bought(self):
+                continue
+            candidate_name = name
+            candidate_card = card
+            break
+
+        if candidate_name and candidate_card is not None:
+            self.supply[candidate_name] = candidate_card.starting_supply(self)
+            self.bane_card_name = candidate_name
+            self.original_kingdom_pile_names.add(candidate_name)
 
     def _prepare_black_market_deck(self, kingdom_cards: list[Card]) -> None:
         """Build and shuffle the Black Market deck for this game."""
@@ -1848,6 +1920,30 @@ class GameState:
                 blocked = False
             if blocked:
                 return True
+
+        # Cornucopia: Young Witch may be blocked by revealing the Bane card.
+        # The Bane is any (non-Reaction) card the Bane pile designates; only
+        # blocks Young Witch attacks (not other attacks).
+        if (
+            attack_card is not None
+            and attack_card.name == "Young Witch"
+            and self.bane_card_name
+        ):
+            for card in player.hand:
+                if card.name == self.bane_card_name:
+                    if player.ai.should_reveal_bane(self, player):
+                        self.log_callback(
+                            (
+                                "action",
+                                player.ai.name,
+                                f"reveals {card.name} (Bane) to block Young Witch",
+                                {
+                                    "attacker": attacker.ai.name if attacker else None,
+                                },
+                            )
+                        )
+                        return True
+                    break
 
         return False
 

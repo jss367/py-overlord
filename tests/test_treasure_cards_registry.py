@@ -52,6 +52,7 @@ EXPECTED_TREASURE_CARDS = {
     "War Chest",
     "Astrolabe",
     "Coronet",
+    "Diadem",
     "Huge Turnip",
     "Pickaxe",
     "Rice",

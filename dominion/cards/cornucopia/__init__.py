@@ -13,6 +13,7 @@ from .tournament import Tournament
 from .young_witch import YoungWitch
 from .joust import Joust
 from .rewards import Coronet, Demesne, Housecarl, HugeTurnip, Renown
+from .prizes import BagOfGold, Diadem, Followers, Princess, TrustySteed
 
 __all__ = [
     "Fairgrounds",
@@ -34,4 +35,9 @@ __all__ = [
     "Housecarl",
     "HugeTurnip",
     "Renown",
+    "BagOfGold",
+    "Diadem",
+    "Followers",
+    "Princess",
+    "TrustySteed",
 ]
