@@ -58,6 +58,9 @@ EXPECTED_TREASURE_CARDS = {
     "Pickaxe",
     "Rice",
     "Humble Castle",
+    "Ducat",
+    "Scepter",
+    "Spices",
 }
 
 MULTI_TYPE_TREASURES = {
