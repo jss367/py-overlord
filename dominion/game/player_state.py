@@ -42,6 +42,14 @@ class PlayerState:
     favors: int = 0
     miser_coppers: int = 0
     native_village_mat: list[Card] = field(default_factory=list)
+    island_mat: list[Card] = field(default_factory=list)
+    pirate_ship_tokens: int = 0
+    sailor_play_uses: int = 0
+    outpost_pending: bool = False
+    outpost_taken_last_turn: bool = False
+    corsair_trashed_this_turn: bool = False
+    gained_cards_this_turn: list[str] = field(default_factory=list)
+    gained_cards_last_turn: list[str] = field(default_factory=list)
     ignore_action_bonuses: bool = False
     collection_played: int = 0
     goons_played: int = 0
@@ -134,6 +142,14 @@ class PlayerState:
         self.villagers = 0
         self.miser_coppers = 0
         self.native_village_mat = []
+        self.island_mat = []
+        self.pirate_ship_tokens = 0
+        self.sailor_play_uses = 0
+        self.outpost_pending = False
+        self.outpost_taken_last_turn = False
+        self.corsair_trashed_this_turn = False
+        self.gained_cards_this_turn = []
+        self.gained_cards_last_turn = []
         self.ignore_action_bonuses = False
         self.collection_played = 0
         self.goons_played = 0
@@ -266,6 +282,7 @@ class PlayerState:
             self.exile,
             self.invested_exile,
             self.native_village_mat,
+            self.island_mat,
             self.trickster_set_aside,
             self.delayed_cards,
             self.flagship_pending,
