@@ -89,6 +89,16 @@ class GameState:
         self.logger = None
         self.log_callback = self._default_log_handler
         self.logs = []
+        # Provide a back-reference so PlayerState methods (notably
+        # ``get_victory_points``) can find Allies / Landmarks even when
+        # callers don't pass ``game_state`` explicitly. Some tests construct
+        # GameState with placeholder ``None`` players, so be defensive.
+        for _player in self.players:
+            if _player is not None:
+                try:
+                    _player.game_state = self
+                except AttributeError:
+                    pass
 
     def set_logger(self, logger):
         """Set the game logger instance."""
@@ -144,6 +154,29 @@ class GameState:
         if card.is_attack:
             self.prophecy.on_play_attack(self, player, card)
 
+    def fire_ally_play_hooks(self, player: PlayerState, card: Card) -> None:
+        """Fire the active Allies' ``on_play_card`` hooks for ``card``.
+
+        Used by every code path that resolves a card's ``on_play``: the main
+        Action / Treasure / Night phase loops as well as nested plays from
+        multipliers (Throne Room, King's Court, Procession, Crown, Overlord,
+        Mastermind), bonus-play cards (Vassal, Conclave, Imp, Herald,
+        Necromancer, Captain, Band of Misfits, Riverboat, Scepter, etc.) and
+        gain-and-play effects (Sailor, plunder Loots).
+
+        Without this, Allies like Circle of Witches and Fellowship of Scribes
+        only react to the outermost play and silently miss nested plays
+        (e.g. Throne-Room-on-Militia would not fire a Circle of Witches
+        Curse trigger), and Allies that react to Liaison plays (League of
+        Shopkeepers, Plateau Shepherds favor accounting) would undercount.
+        """
+        if not self.allies:
+            return
+        for ally in self.allies:
+            on_play = getattr(ally, "on_play_card", None)
+            if on_play is not None:
+                on_play(self, player, card)
+
     def remove_sun_token(self, count: int = 1) -> None:
         """Omen +1 Sun: remove ``count`` Sun tokens from the active Prophecy.
 
@@ -179,6 +212,11 @@ class GameState:
         """Set up the game with given AIs and kingdom cards."""
         # Create PlayerState objects for each AI
         self.players = [PlayerState(ai) for ai in ais]
+        # Provide a back-reference so PlayerState methods (notably
+        # ``get_victory_points``) can find Allies / Landmarks even when
+        # callers don't pass ``game_state`` explicitly.
+        for _player in self.players:
+            _player.game_state = self
         # Snapshot the Kingdom selection before setup_supply expands the pile
         # set with split-pile partners. We extend the snapshot with the
         # partner names below since Divine Wind treats a split pile as one
@@ -1001,6 +1039,10 @@ class GameState:
                     player.coins += 1
                 # Menagerie: Kiln triggers on Way-played card too.
                 self._maybe_kiln_gain(player, choice)
+                # Allies that react to plays still fire when an Action is
+                # played using a Way: the card itself was played, just with
+                # different text. Match the non-Way branch's behaviour.
+                self.fire_ally_play_hooks(player, choice)
             else:
                 flagships_to_resolve: list[Card] = []
                 pending_flagships = getattr(player, "flagship_pending", [])
@@ -1082,10 +1124,7 @@ class GameState:
                     # Allies hook: any Ally that reacts to plays
                     # (Circle of Witches, League of Shopkeepers,
                     # Fellowship of Scribes).
-                    for ally in self.allies:
-                        on_play = getattr(ally, "on_play_card", None)
-                        if on_play is not None:
-                            on_play(self, player, choice)
+                    self.fire_ally_play_hooks(player, choice)
 
             # Harbor Village bonus: +$1 if the action gave +$
             if harbor_pending > 0 and choice.name != "Harbor Village":
@@ -1238,10 +1277,7 @@ class GameState:
 
                 # Allies hook: City-state, League of Shopkeepers,
                 # Fellowship of Scribes can react to treasures played.
-                for ally in self.allies:
-                    on_play = getattr(ally, "on_play_card", None)
-                    if on_play is not None:
-                        on_play(self, player, choice)
+                self.fire_ally_play_hooks(player, choice)
 
                 # Prosperity 2E: Tiara — once per turn, when you play a
                 # Treasure, you may play it again.
@@ -1258,6 +1294,10 @@ class GameState:
                         choice.on_play(self)
                         if self.prophecy is not None and self.prophecy.is_active:
                             self.prophecy.on_play_treasure(self, player, choice)
+                        # Tiara's bonus replay is another play of the
+                        # treasure, so Allies that react to plays should
+                        # fire again here.
+                        self.fire_ally_play_hooks(player, choice)
 
             remaining = [c.name for c in player.hand if c.is_treasure]
             context = {
@@ -1449,6 +1489,11 @@ class GameState:
                     self.prophecy.on_play_action(self, player, choice)
                 if choice.is_attack:
                     self.prophecy.on_play_attack(self, player, choice)
+
+            # Allies that react to plays (Circle of Witches reacting to a
+            # Night Attack like Werewolf, Fellowship of Scribes reacting to
+            # any played card, etc.) must also fire for Night plays.
+            self.fire_ally_play_hooks(player, choice)
 
         self.phase = "cleanup"
 

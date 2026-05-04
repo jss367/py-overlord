@@ -37,6 +37,7 @@ class Gamble(Event):
             card = player.deck.pop()
             player.in_play.append(card)
             card.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, card)
         else:
             pass
 
@@ -56,6 +57,7 @@ class March(Event):
             player.discard.remove(choice)
             player.in_play.append(choice)
             choice.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, choice)
 
 
 class Toil(Event):
@@ -73,6 +75,7 @@ class Toil(Event):
             player.hand.remove(choice)
             player.in_play.append(choice)
             choice.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, choice)
 
 
 class Enhance(Event):

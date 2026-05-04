@@ -34,3 +34,4 @@ class KingsCourt(Card):
 
         for _ in range(3):
             choice.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, choice)

@@ -22,6 +22,7 @@ class Piazza(Project):
             player.in_play.append(top)
             top.on_play(game_state)
             game_state.fire_prophecy_action_hooks(player, top)
+            game_state.fire_ally_play_hooks(player, top)
             game_state.log_callback(
                 ("action", player.ai.name, f"plays {top.name} via Piazza", {}),
             )

@@ -88,6 +88,7 @@ class Continue(Event):
         for _ in range(plays):
             gained.on_play(game_state)
             game_state.fire_prophecy_action_hooks(player, gained)
+            game_state.fire_ally_play_hooks(player, gained)
 
         # Let the player use any remaining Action plays from hand. This loop
         # also picks up any Shadow cards now exposed in the deck.

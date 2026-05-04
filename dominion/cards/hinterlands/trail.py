@@ -47,6 +47,7 @@ class Trail(Card):
             way.apply(game_state, self)
         else:
             self.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, self)
 
         if origin == "trash":
             if self in player.in_play:

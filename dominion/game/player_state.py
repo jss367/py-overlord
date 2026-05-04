@@ -364,14 +364,21 @@ class PlayerState:
         """Calculate total victory points for the player.
 
         Empires Landmarks contribute via ``vp_for(game_state, player)``; Allies
-        like Plateau Shepherds may contribute via ``score_bonus``. Both require
-        a ``game_state`` argument.
+        like Plateau Shepherds may contribute via ``score_bonus``. Both
+        require a ``game_state`` argument, but most callers (winner selection,
+        end-of-game reports, RL evaluators) call this with no argument. We
+        fall back to the player's stored ``game_state`` back-reference so
+        Landmarks and Allies are always counted in real games. Tests that
+        instantiate a bare ``PlayerState`` will simply get the no-game
+        behaviour, which is what they expect.
         """
         total = (
             sum(card.get_victory_points(self) for card in self.all_cards())
             + self.vp_tokens
             - 2 * self.misery
         )
+        if _game_state is None:
+            _game_state = getattr(self, "game_state", None)
         if _game_state is not None:
             for landmark in getattr(_game_state, "landmarks", []) or []:
                 total += landmark.vp_for(_game_state, self)

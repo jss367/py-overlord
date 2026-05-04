@@ -50,5 +50,6 @@ class Captain(Card):
         temp = get_card(choice.name)
         player.in_play.append(temp)
         temp.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, temp)
         if temp in player.in_play:
             player.in_play.remove(temp)

@@ -53,3 +53,4 @@ class BandOfMisfits(Card):
         # its on_play, but treat it as Band of Misfits for in-play state.
         impostor = get_card(choice.name)
         impostor.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, impostor)

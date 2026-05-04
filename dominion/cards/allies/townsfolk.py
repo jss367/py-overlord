@@ -160,3 +160,4 @@ class Elder(_Townsfolk):
         player.hand.remove(choice)
         player.in_play.append(choice)
         choice.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, choice)

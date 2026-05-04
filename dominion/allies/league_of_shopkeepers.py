@@ -2,8 +2,13 @@ from .base_ally import Ally
 
 
 class LeagueOfShopkeepers(Ally):
-    """When you play a Liaison, +1 Favor; when 3+ Liaisons in play, +$1;
-    when 5+, +1 Buy.
+    """When you play a Liaison: +1 Favor; if you have 3+ Favors, +$1; if
+    you have 5+ Favors, +1 Buy.
+
+    The official rule keys the +$ / +Buy off the player's Favor count, not
+    the number of Liaisons currently in play. Both bonuses fire (the Ally
+    text reads "If you have 5 or more Favors, +1 Buy" with the +$ trigger
+    on its own line).
     """
 
     def __init__(self):
@@ -16,18 +21,16 @@ class LeagueOfShopkeepers(Ally):
         # Liaison itself also grants a Favor as part of its effect).
         player.favors += 1
 
-        liaison_count = sum(
-            1 for c in player.in_play if c.is_liaison
-        )
-        if liaison_count >= 3:
+        favors = player.favors
+        if favors >= 3:
             player.coins += 1
-        if liaison_count >= 5:
+        if favors >= 5:
             player.buys += 1
         game_state.log_callback(
             (
                 "action",
                 player.ai.name,
-                f"League of Shopkeepers triggers ({liaison_count} Liaisons in play)",
-                {"favors_remaining": player.favors},
+                f"League of Shopkeepers triggers ({favors} Favors)",
+                {"favors_remaining": favors},
             )
         )

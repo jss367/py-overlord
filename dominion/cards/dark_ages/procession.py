@@ -30,7 +30,9 @@ class Procession(Card):
         player.in_play.append(choice)
 
         choice.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, choice)
         choice.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, choice)
 
         # Trash the played card
         target_cost = choice.cost.coins + 1

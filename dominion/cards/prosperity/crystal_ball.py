@@ -43,6 +43,7 @@ class CrystalBall(Card):
             player.deck.pop()
             player.in_play.append(top_card)
             top_card.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, top_card)
             return
 
         # 'leave' (default) — do nothing; card stays on top of the deck.

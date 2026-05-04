@@ -30,6 +30,7 @@ class NightWatchman(Card):
                 return
             player.in_play.append(self)
             self.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, self)
 
     def play_effect(self, game_state):
         player = game_state.current_player

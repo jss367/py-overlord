@@ -20,6 +20,7 @@ class Venture(Card):
             if card.is_treasure:
                 player.in_play.append(card)
                 card.on_play(game_state)
+                game_state.fire_ally_play_hooks(player, card)
                 break
             revealed.append(card)
         player.discard.extend(revealed)

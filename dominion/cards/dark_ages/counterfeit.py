@@ -30,7 +30,9 @@ class Counterfeit(Card):
         player.hand.remove(choice)
         player.in_play.append(choice)
         choice.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, choice)
         choice.on_play(game_state)
+        game_state.fire_ally_play_hooks(player, choice)
 
         # Trash the played treasure
         if choice in player.in_play:

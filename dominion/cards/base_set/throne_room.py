@@ -28,3 +28,4 @@ class ThroneRoom(Card):
 
         for _ in range(2):
             choice.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, choice)
