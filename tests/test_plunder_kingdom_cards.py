@@ -513,3 +513,117 @@ def test_quartermaster_routes_gain_through_gain_card_hooks():
     # gain_card-side bookkeeping must have run.
     assert gained_name in player.gained_cards_this_turn
     assert player.cards_gained_this_turn >= 1
+
+
+def test_quartermaster_respects_watchtower_topdeck():
+    """Regression for PR #206 review (P2): when a Quartermaster gain
+    triggers a Watchtower topdeck reaction, the gained card must end up
+    on top of the player's deck — NOT on the Quartermaster mat. The
+    player's choice of destination via on-gain reactions takes
+    precedence over Quartermaster's "onto this" placement."""
+
+    class _TopdeckAI(_NullAI):
+        def choose_watchtower_reaction(self, state, player, card):
+            return "topdeck"
+
+    state = _make_state(num_players=2)
+    state.current_player_index = 0
+    player = state.players[0]
+    player.ai = _TopdeckAI()
+    # Watchtower must be in the player's hand to react.
+    player.hand.append(get_card("Watchtower"))
+    qm = get_card("Quartermaster")
+    qm.duration_persistent = True
+    player.duration.append(qm)
+    state.quartermaster_mats[id(player)] = []
+
+    state._handle_quartermaster_start_of_turn(player)
+
+    # QM mat should be empty: Watchtower's topdeck reaction wins.
+    mat = state.quartermaster_mats.get(id(player), [])
+    assert mat == [], (
+        "Watchtower topdeck reaction should redirect the gain off the "
+        f"Quartermaster mat; mat was {[c.name for c in mat]}"
+    )
+    # The gained card must be on top of the deck (last element).
+    assert player.deck, "Topdecked card should be in the deck"
+    top = player.deck[-1]
+    assert top.cost.coins <= 4
+    assert top.is_treasure or top.is_action or top.is_victory
+
+
+def test_quartermaster_no_watchtower_keeps_card_on_mat():
+    """Regression for PR #206 review (P2): when no on-gain reaction
+    redirects the gain, Quartermaster's normal behavior must still apply
+    — the gained card lands on the Quartermaster mat, not in the
+    discard."""
+    state = _make_state(num_players=1)
+    state.current_player_index = 0
+    player = state.players[0]
+    qm = get_card("Quartermaster")
+    qm.duration_persistent = True
+    player.duration.append(qm)
+    state.quartermaster_mats[id(player)] = []
+    pre_discard = len(player.discard)
+
+    state._handle_quartermaster_start_of_turn(player)
+
+    mat = state.quartermaster_mats.get(id(player), [])
+    assert len(mat) == 1, (
+        "Without a Watchtower redirect the gain must land on the QM mat"
+    )
+    # Card was not left in discard.
+    assert len(player.discard) == pre_discard
+
+
+def test_river_shrine_cleanup_gain_eligible_for_deliver():
+    """Regression for PR #206 review (P1): cleanup-start hooks (River
+    Shrine, Improve) gain cards that are still part of THIS turn. If the
+    player bought Deliver and had not gained yet, those cleanup-start
+    gains MUST be eligible for Deliver's "set aside the next gain this
+    turn" trigger — i.e. the deliver_pending_count reset must happen
+    AFTER cleanup-start hooks run, not before."""
+    from dominion.events.registry import get_event
+
+    class _PickSilverAI(_NullAI):
+        def choose_buy(self, state, choices):
+            for c in choices:
+                if c is not None and getattr(c, "name", "") == "Silver":
+                    return c
+            for c in choices:
+                if c is not None:
+                    return c
+            return None
+
+    state = _make_state(num_players=2)
+    state.current_player_index = 0
+    player = state.players[0]
+    player.ai = _PickSilverAI()
+    # Buy Deliver to queue a pending set-aside.
+    deliver = get_event("Deliver")
+    deliver.on_buy(state, player)
+    assert player.deliver_pending_count == 1
+    # Set up River Shrine in play with no buy-phase gains so its
+    # cleanup-start hook will fire and gain a card.
+    river = get_card("River Shrine")
+    player.in_play.append(river)
+    player.cards_gained_this_buy_phase = 0
+    state.supply["River Shrine"] = 10
+    # Run cleanup. River Shrine should gain a card during cleanup; that
+    # gain should be intercepted by Deliver and set aside.
+    pre_set_aside = list(player.deliver_set_aside)
+    state.handle_cleanup_phase()
+    # River Shrine's cleanup-start gain was set aside by Deliver.
+    assert len(player.deliver_set_aside) == len(pre_set_aside) + 1, (
+        "River Shrine's cleanup-start gain should be set aside by "
+        "Deliver — the deliver reset must run AFTER cleanup-start hooks"
+    )
+    # Pending count cleared after cleanup (turn boundary).
+    assert player.deliver_pending_count == 0
+    # Cycle to next turn for player 0; set-aside card returns to hand.
+    state.current_player_index = 1
+    state.handle_start_phase()
+    state.current_player_index = 0
+    state.handle_start_phase()
+    # The set-aside card should now be in hand.
+    assert player.deliver_set_aside == []

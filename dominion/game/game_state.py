@@ -877,25 +877,27 @@ class GameState:
                     # Route the gain through gain_card so on-gain hooks
                     # (gained-this-turn counters, Watchtower, Trader, Royal
                     # Seal, Allies/Landmark gain reactions, etc.) all fire
-                    # consistently with every other gain path. Then move
-                    # the gained copy from its destination zone onto the
-                    # Quartermaster mat where the card text places it.
+                    # consistently with every other gain path. The card
+                    # text places the gain on the Quartermaster mat, but
+                    # on-gain reactions that redirect the gain (Watchtower
+                    # topdeck/trash, Trader, etc.) take precedence — the
+                    # player chose those destinations. Only move to the
+                    # mat if the card landed in the default destination
+                    # (discard).
                     self.supply[pick.name] -= 1
                     gained = self.gain_card(player, get_card(pick.name))
                     if gained is None:
                         continue
                     if gained in player.discard:
+                        # Default destination — move onto QM mat per card text.
                         player.discard.remove(gained)
-                    elif gained in player.deck:
-                        player.deck.remove(gained)
-                    elif gained in player.hand:
-                        player.hand.remove(gained)
-                    else:
-                        # Card was relocated by a reaction (e.g. Watchtower
-                        # trashed it, Trader exchanged it for Silver). In
-                        # that case skip placing it on the mat.
-                        continue
-                    self.quartermaster_mats[id(player)].append(gained)
+                        self.quartermaster_mats[id(player)].append(gained)
+                    # Otherwise an on-gain reaction redirected the card
+                    # (e.g. Watchtower topdecked it to player.deck or
+                    # trashed it to self.trash, or another effect routed
+                    # it to the hand). Respect the player's choice and
+                    # leave the card where it ended up — the QM trigger
+                    # has already fired.
 
     def do_duration_phase(self):
         """Handle effects of duration cards from previous turn."""
@@ -1667,21 +1669,28 @@ class GameState:
 
         player.actions_this_turn = 0
         player.bought_this_turn = []
-        # Plunder Deliver: the "set aside the next gain THIS TURN" trigger
-        # only persists until end of turn. Cards already set aside in
-        # ``deliver_set_aside`` still return at start of next turn, but
-        # any pending-but-unfired count expires here so it cannot leak
-        # onto a future turn's gains.
-        player.deliver_pending_count = 0
 
         # Rising Sun: Prophecy cleanup-start hook (Biding Time, Sickness)
         if self.prophecy is not None and self.prophecy.is_active:
             self.prophecy.on_cleanup_start(self, player)
 
         # Rising Sun: Cards in play with cleanup-start triggers (River Shrine)
+        # and Renaissance: Improve. These hooks may gain cards which are
+        # still part of THIS turn — if the player bought Deliver and had
+        # not yet gained, those cleanup-start gains are eligible for the
+        # Deliver set-aside trigger.
         for card in list(player.in_play):
             if hasattr(card, "on_cleanup_start"):
                 card.on_cleanup_start(self)
+
+        # Plunder Deliver: the "set aside the next gain THIS TURN" trigger
+        # only persists until end of turn. Cards already set aside in
+        # ``deliver_set_aside`` still return at start of next turn, but
+        # any pending-but-unfired count expires here so it cannot leak
+        # onto a future turn's gains. Reset AFTER cleanup-start hooks so
+        # gains made by River Shrine / Improve during cleanup remain
+        # eligible for Deliver.
+        player.deliver_pending_count = 0
 
         # Allies: end-of-turn / cleanup hook.
         # Used by Coastal Haven, Family of Inventors, Island Folk,
