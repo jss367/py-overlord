@@ -444,3 +444,186 @@ def test_fortune_hunter_plays_treasure_from_top_of_deck():
     fh.on_play(state)
     # Silver played → +$2; plus Fortune Hunter's stat +$2 = +$4.
     assert player.coins == pre_coins + 4
+
+
+def test_landing_party_top_decks_treasure_gained_to_hand():
+    """Regression for PR #193 review: Landing Party should resolve even when
+    the gained Treasure was placed somewhere other than discard/deck (e.g.
+    Mining Road's gain-to-hand)."""
+    state = _make_state()
+    player = state.current_player
+    lp = get_card("Landing Party")
+    state.landing_party_pending.setdefault(id(player), []).append(lp)
+    player.duration.append(lp)
+    # Simulate a treasure that's already been placed in hand by some prior
+    # gain-to-hand effect; the on-gain handler still needs to find and
+    # top-deck it.
+    silver = get_card("Silver")
+    player.hand.append(silver)
+    # Invoke the gain hook directly with the in-hand card.
+    state._handle_landing_party_gain(player, silver)
+    # Silver should now be on top of the deck along with Landing Party.
+    assert silver not in player.hand
+    top_two = [c.name for c in player.deck[-2:]]
+    assert "Silver" in top_two
+    assert "Landing Party" in top_two
+
+
+def test_crucible_counts_duration_phase_trashes():
+    """Regression for PR #193 review: cards trashed during the duration
+    phase (e.g. Secluded Shrine's start-of-turn trash) must count toward
+    cards_trashed_this_turn for Crucible."""
+    state = _make_state(num_players=2)
+    state.current_player_index = 0
+    player = state.players[0]
+    # Put a Secluded Shrine in duration so the duration phase fires.
+    shrine = get_card("Secluded Shrine")
+    player.duration.append(shrine)
+    # Give the player two trashable Curses in hand for Shrine to trash.
+    player.hand = [get_card("Curse"), get_card("Curse")]
+    # Cycle: end this turn → opponent → back to player 0 (duration fires).
+    state.current_player_index = 1
+    state.handle_start_phase()
+    state.current_player_index = 0
+    state.handle_start_phase()
+    # Shrine trashed up to 2 Curses during the duration phase, AFTER the
+    # per-turn counter reset; so the count should reflect them.
+    assert player.cards_trashed_this_turn >= 1
+
+
+def test_quartermaster_routes_gain_through_gain_card_hooks():
+    """Regression for PR #193 review: Quartermaster's start-of-turn gain
+    must run through gain_card so on-gain bookkeeping (e.g.
+    cards_gained_this_turn, gained_cards_this_turn) fires."""
+    state = _make_state(num_players=2)
+    state.current_player_index = 0
+    player = state.players[0]
+    qm = get_card("Quartermaster")
+    qm.duration_persistent = True
+    player.duration.append(qm)
+    # Cycle to player 0's next turn so the start-of-turn handler fires.
+    state.current_player_index = 1
+    state.handle_start_phase()
+    state.current_player_index = 0
+    state.handle_start_phase()
+    # Quartermaster mat should have one card.
+    mat = state.quartermaster_mats.get(id(player), [])
+    assert len(mat) == 1
+    gained_name = mat[0].name
+    # gain_card-side bookkeeping must have run.
+    assert gained_name in player.gained_cards_this_turn
+    assert player.cards_gained_this_turn >= 1
+
+
+def test_quartermaster_respects_watchtower_topdeck():
+    """Regression for PR #206 review (P2): when a Quartermaster gain
+    triggers a Watchtower topdeck reaction, the gained card must end up
+    on top of the player's deck — NOT on the Quartermaster mat. The
+    player's choice of destination via on-gain reactions takes
+    precedence over Quartermaster's "onto this" placement."""
+
+    class _TopdeckAI(_NullAI):
+        def choose_watchtower_reaction(self, state, player, card):
+            return "topdeck"
+
+    state = _make_state(num_players=2)
+    state.current_player_index = 0
+    player = state.players[0]
+    player.ai = _TopdeckAI()
+    # Watchtower must be in the player's hand to react.
+    player.hand.append(get_card("Watchtower"))
+    qm = get_card("Quartermaster")
+    qm.duration_persistent = True
+    player.duration.append(qm)
+    state.quartermaster_mats[id(player)] = []
+
+    state._handle_quartermaster_start_of_turn(player)
+
+    # QM mat should be empty: Watchtower's topdeck reaction wins.
+    mat = state.quartermaster_mats.get(id(player), [])
+    assert mat == [], (
+        "Watchtower topdeck reaction should redirect the gain off the "
+        f"Quartermaster mat; mat was {[c.name for c in mat]}"
+    )
+    # The gained card must be on top of the deck (last element).
+    assert player.deck, "Topdecked card should be in the deck"
+    top = player.deck[-1]
+    assert top.cost.coins <= 4
+    assert top.is_treasure or top.is_action or top.is_victory
+
+
+def test_quartermaster_no_watchtower_keeps_card_on_mat():
+    """Regression for PR #206 review (P2): when no on-gain reaction
+    redirects the gain, Quartermaster's normal behavior must still apply
+    — the gained card lands on the Quartermaster mat, not in the
+    discard."""
+    state = _make_state(num_players=1)
+    state.current_player_index = 0
+    player = state.players[0]
+    qm = get_card("Quartermaster")
+    qm.duration_persistent = True
+    player.duration.append(qm)
+    state.quartermaster_mats[id(player)] = []
+    pre_discard = len(player.discard)
+
+    state._handle_quartermaster_start_of_turn(player)
+
+    mat = state.quartermaster_mats.get(id(player), [])
+    assert len(mat) == 1, (
+        "Without a Watchtower redirect the gain must land on the QM mat"
+    )
+    # Card was not left in discard.
+    assert len(player.discard) == pre_discard
+
+
+def test_river_shrine_cleanup_gain_eligible_for_deliver():
+    """Regression for PR #206 review (P1): cleanup-start hooks (River
+    Shrine, Improve) gain cards that are still part of THIS turn. If the
+    player bought Deliver and had not gained yet, those cleanup-start
+    gains MUST be eligible for Deliver's "set aside the next gain this
+    turn" trigger — i.e. the deliver_pending_count reset must happen
+    AFTER cleanup-start hooks run, not before."""
+    from dominion.events.registry import get_event
+
+    class _PickSilverAI(_NullAI):
+        def choose_buy(self, state, choices):
+            for c in choices:
+                if c is not None and getattr(c, "name", "") == "Silver":
+                    return c
+            for c in choices:
+                if c is not None:
+                    return c
+            return None
+
+    state = _make_state(num_players=2)
+    state.current_player_index = 0
+    player = state.players[0]
+    player.ai = _PickSilverAI()
+    # Buy Deliver to queue a pending set-aside.
+    deliver = get_event("Deliver")
+    deliver.on_buy(state, player)
+    assert player.deliver_pending_count == 1
+    # Set up River Shrine in play with no buy-phase gains so its
+    # cleanup-start hook will fire and gain a card.
+    river = get_card("River Shrine")
+    player.in_play.append(river)
+    player.cards_gained_this_buy_phase = 0
+    state.supply["River Shrine"] = 10
+    # Run cleanup. River Shrine should gain a card during cleanup; that
+    # gain should be intercepted by Deliver and set aside.
+    pre_set_aside = list(player.deliver_set_aside)
+    state.handle_cleanup_phase()
+    # River Shrine's cleanup-start gain was set aside by Deliver.
+    assert len(player.deliver_set_aside) == len(pre_set_aside) + 1, (
+        "River Shrine's cleanup-start gain should be set aside by "
+        "Deliver — the deliver reset must run AFTER cleanup-start hooks"
+    )
+    # Pending count cleared after cleanup (turn boundary).
+    assert player.deliver_pending_count == 0
+    # Cycle to next turn for player 0; set-aside card returns to hand.
+    state.current_player_index = 1
+    state.handle_start_phase()
+    state.current_player_index = 0
+    state.handle_start_phase()
+    # The set-aside card should now be in hand.
+    assert player.deliver_set_aside == []

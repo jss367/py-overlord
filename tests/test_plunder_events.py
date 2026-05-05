@@ -266,3 +266,135 @@ def test_prosper_gains_one_of_each_loot():
     discard_names = {c.name for c in player.discard}
     for name in LOOT_CARD_NAMES:
         assert name in discard_names
+
+
+def test_launch_lockout_clears_at_turn_start():
+    """Regression for PR #193 review: launch_used must reset each turn so
+    Launch is once-per-turn rather than once-per-game."""
+    state = _make_state(num_players=2)
+    player = state.players[0]
+    state.current_player_index = 0
+    player.deck = [get_card("Copper")]
+    launch = get_event("Launch")
+    launch.on_buy(state, player)
+    assert player.launch_used is True
+    assert not launch.may_be_bought(state, player)
+    # Cycle: end turn (player 0) → next player → back to player 0.
+    state.current_player_index = 1
+    state.handle_start_phase()
+    state.current_player_index = 0
+    state.handle_start_phase()
+    # After our next turn-start, Launch should be buyable again.
+    assert player.launch_used is False
+    assert launch.may_be_bought(state, player)
+
+
+def test_deliver_sets_aside_one_gain_and_returns_to_hand_next_turn():
+    """Regression for PR #193 review: Deliver must set aside the next gained
+    card (one gain) and return it to hand at start of next turn — it must
+    not act as a broad topdeck redirect."""
+    state = _make_state(num_players=2)
+    player = state.players[0]
+    state.current_player_index = 0
+    deliver = get_event("Deliver")
+    deliver.on_buy(state, player)
+    # First gain: Silver should be set aside, not put in deck/discard.
+    state.supply["Silver"] -= 1
+    state.gain_card(player, get_card("Silver"))
+    assert any(c.name == "Silver" for c in player.deliver_set_aside)
+    assert not any(c.name == "Silver" for c in player.discard)
+    assert not any(c.name == "Silver" for c in player.deck)
+    # Second gain in same turn must NOT be redirected (only one Deliver buy).
+    state.supply["Gold"] -= 1
+    state.gain_card(player, get_card("Gold"))
+    # Gold should land in discard normally (not on deliver_set_aside, not
+    # forced to deck).
+    assert any(c.name == "Gold" for c in player.discard)
+    assert not any(c.name == "Gold" for c in player.deliver_set_aside)
+    # Pending counter consumed.
+    assert player.deliver_pending_count == 0
+    # Cycle to next turn for player 0.
+    state.current_player_index = 1
+    state.handle_start_phase()
+    state.current_player_index = 0
+    state.handle_start_phase()
+    # Set-aside Silver returned to hand.
+    assert any(c.name == "Silver" for c in player.hand)
+    assert player.deliver_set_aside == []
+
+
+def test_deliver_pending_expires_at_end_of_turn():
+    """Regression for PR #206 review (P1): Deliver's "the next card you
+    gain THIS TURN" trigger must not leak across the turn boundary. If
+    the player buys Deliver and gains nothing that turn, the pending
+    counter must be cleared during cleanup so a future turn's first
+    gain is unaffected."""
+    state = _make_state(num_players=2)
+    player = state.players[0]
+    state.current_player_index = 0
+    deliver = get_event("Deliver")
+    deliver.on_buy(state, player)
+    assert player.deliver_pending_count == 1
+    # End the turn without gaining anything.
+    state.handle_cleanup_phase()
+    # Pending count must have expired with the turn.
+    assert player.deliver_pending_count == 0
+    # Cycle to player 0's next turn.
+    state.current_player_index = 1
+    state.handle_start_phase()
+    state.current_player_index = 0
+    state.handle_start_phase()
+    # First gain on the new turn must NOT be set aside — Deliver expired.
+    state.supply["Silver"] -= 1
+    state.gain_card(player, get_card("Silver"))
+    assert not any(c.name == "Silver" for c in player.deliver_set_aside)
+    assert any(c.name == "Silver" for c in player.discard)
+
+
+def test_deliver_consumes_trigger_when_gained_card_trashed_by_watchtower():
+    """Regression for PR #206 review (P2): Deliver's trigger fires on
+    "the next card you gain this turn" — even if a Watchtower reaction
+    trashes that gain (or another effect exiles it) before Deliver gets
+    to set it aside, the pending count must still decrement so Deliver
+    does not leak onto a later gain in the same turn."""
+
+    trashed_first_only = {"count": 0}
+
+    class _TrashFirstGainAI(_NullAI):
+        def choose_watchtower_reaction(self, state, player, card):
+            # Only trash the very first gain we're asked about.
+            if trashed_first_only["count"] == 0:
+                trashed_first_only["count"] += 1
+                return "trash"
+            return None
+
+    state = _make_state(num_players=2)
+    player = state.players[0]
+    player.ai = _TrashFirstGainAI()
+    state.current_player_index = 0
+    state.supply["Watchtower"] = 10
+    # Put a Watchtower in hand to react with.
+    player.hand.append(get_card("Watchtower"))
+    deliver = get_event("Deliver")
+    deliver.on_buy(state, player)
+    assert player.deliver_pending_count == 1
+    # First gain: Watchtower trashes Silver before Deliver sees a movable
+    # zone. Deliver still consumes its trigger.
+    state.supply["Silver"] -= 1
+    silver = get_card("Silver")
+    state.gain_card(player, silver)
+    assert player.deliver_pending_count == 0, (
+        "Deliver must consume its trigger even when the gained card was "
+        "trashed by Watchtower"
+    )
+    assert silver in state.trash
+    assert silver not in player.deliver_set_aside
+    # A subsequent gain in the same turn must NOT be redirected (Deliver
+    # already spent its trigger on the trashed Silver).
+    state.supply["Gold"] -= 1
+    gold = get_card("Gold")
+    state.gain_card(player, gold)
+    assert gold not in player.deliver_set_aside
+    assert gold not in state.trash
+    # Gold should land in the discard normally.
+    assert gold in player.discard

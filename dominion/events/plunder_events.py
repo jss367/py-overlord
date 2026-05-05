@@ -67,14 +67,15 @@ class Deliver(Event):
         super().__init__("Deliver", CardCost(coins=2))
 
     def on_buy(self, game_state, player) -> None:
-        # Mark the player so the next gain is set aside; checked in gain_card.
-        player.deliver_pending = list(getattr(player, "deliver_pending", []))
-        # Use a sentinel to indicate one pending; gain_card doesn't currently
-        # consult deliver_pending, but a future hook can. As a simple
-        # approximation: top-deck the next gain so it lands in hand at start
-        # of next turn (after the new hand is drawn). Push a marker onto the
-        # player's topdeck_gains flag for one gain.
-        player.topdeck_gains = True
+        # Mark one pending Deliver "set aside next gain" trigger. The actual
+        # set-aside happens in GameState.gain_card via the deliver_pending
+        # counter; the card is moved to player.deliver_set_aside and placed
+        # into hand at the start of the next turn. Each Deliver buy queues
+        # exactly one gain, so multiple Delivers in a turn affect the next
+        # N gains.
+        player.deliver_pending_count = (
+            getattr(player, "deliver_pending_count", 0) + 1
+        )
 
 
 class Peril(Event):
