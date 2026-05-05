@@ -628,6 +628,106 @@ def test_changeling_exchange_preserves_topdeck_position():
     assert not any(c.name == "Changeling" for c in player.discard)
 
 
+def test_changeling_uses_effective_cost_at_gain_peddler_full_cost():
+    """At full printed cost ($8), Peddler is well above Changeling's $3
+    threshold, so the exchange MUST be offered."""
+
+    class ExchangeAI(_PlayAllAI):
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=ExchangeAI())
+    state.supply["Changeling"] = 10
+    state.supply["Peddler"] = 10
+    # No Actions in play -> Peddler's effective cost == printed cost ($8).
+    player.in_play = []
+    changeling_before = state.supply["Changeling"]
+    peddler_before = state.supply["Peddler"]
+
+    peddler = get_card("Peddler")  # printed cost $8
+    state.supply["Peddler"] -= 1
+    state.gain_card(player, peddler)
+
+    # Exchange happened: Peddler returned, a Changeling was taken.
+    assert state.supply["Peddler"] == peddler_before
+    assert state.supply["Changeling"] == changeling_before - 1
+    assert any(c.name == "Changeling" for c in player.discard)
+    assert not any(c.name == "Peddler" for c in player.discard)
+
+
+def test_changeling_uses_effective_cost_at_gain_peddler_reduced_below_three():
+    """Bridge in play reduces every card's cost by $1. With 2 Bridges +
+    actions in play that drop Peddler to $0–$2, gaining a Peddler must
+    NOT trigger the Changeling exchange because the effective cost is
+    below $3."""
+
+    class ExchangeAI(_PlayAllAI):
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=ExchangeAI())
+    state.supply["Changeling"] = 10
+    state.supply["Peddler"] = 10
+
+    # Stack three Bridges in play -> player.cost_reduction = 3, so
+    # every card gets -$3. Combined with 2 actions in play
+    # (Peddler -$4 from cost_modifier), Peddler effective cost is
+    # max(0, 8 - 4 - 3) = 1, which is below $3.
+    player.cost_reduction = 3
+    # Two Action cards in play to trigger Peddler's cost_modifier.
+    player.in_play = [get_card("Village"), get_card("Smithy")]
+
+    # Sanity: confirm get_card_cost agrees the effective cost is < 3.
+    peddler_template = get_card("Peddler")
+    assert state.get_card_cost(player, peddler_template) < 3
+
+    changeling_before = state.supply["Changeling"]
+    peddler_before = state.supply["Peddler"]
+
+    peddler = get_card("Peddler")
+    state.supply["Peddler"] -= 1
+    state.gain_card(player, peddler)
+
+    # No exchange: Changeling pile untouched, Peddler stays in discard.
+    assert state.supply["Changeling"] == changeling_before
+    assert state.supply["Peddler"] == peddler_before - 1
+    assert any(c.name == "Peddler" for c in player.discard)
+    assert not any(c.name == "Changeling" for c in player.discard)
+
+
+def test_changeling_exchange_skipped_for_non_supply_card():
+    """If a card without a Supply pile (e.g. Necromancer's Zombies, which
+    live in `nocturne_trash_piles` and start in the trash) somehow reaches
+    a player's hand/discard/deck via gain_card, Changeling must NOT
+    exchange it — there's no pile to return the original to. The card
+    must remain wherever gain_card put it; nothing must vanish from the
+    game and no Changeling must be granted."""
+
+    class ExchangeAI(_PlayAllAI):
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=ExchangeAI())
+    state.supply["Changeling"] = 10
+    # Zombie is intentionally NOT in state.supply — it lives in
+    # nocturne_trash_piles and is normally only ever in state.trash.
+    assert "Zombie Apprentice" not in state.supply
+
+    changeling_before = state.supply["Changeling"]
+    zombie = get_card("Zombie Apprentice")  # cost $3, qualifies on cost
+    state.gain_card(player, zombie)
+
+    # The Zombie must still be in the player's discard (where gain_card
+    # placed it) — it must NOT have vanished from the game.
+    assert any(c is zombie for c in player.discard), (
+        "Non-supply gained card vanished from the game during attempted "
+        "Changeling exchange"
+    )
+    # No Changeling came out of the pile, no Changeling in discard.
+    assert state.supply["Changeling"] == changeling_before
+    assert not any(c.name == "Changeling" for c in player.discard)
+
+
 def test_druid_boons_persist_across_multiple_turns():
     """Druid's three set-aside Boons must NEVER be sent to the boons
     discard pile — they remain set aside for the entire game and continue

@@ -2543,7 +2543,22 @@ class GameState:
             return gained_card
         if gained_card.name == "Changeling":
             return gained_card
-        if gained_card.cost.coins < 3:
+        # Use the EFFECTIVE cost-at-gain (after Bridge/Highway/Quarry/Peddler
+        # cost_modifier/etc.) rather than the printed cost. Cards like
+        # Peddler, Destrier, and Wayfarer have variable cost: their printed
+        # `cost.coins` is much higher than what they actually cost in many
+        # game states, and Changeling's "$3+" trigger applies to the actual
+        # gain-time cost.
+        if self.get_card_cost(player, gained_card) < 3:
+            return gained_card
+        # Changeling's exchange requires returning the gained card to its
+        # pile. If the gained card has no Supply pile to return to (e.g.
+        # Zombies live in `nocturne_trash_piles` and may end up in `trash`,
+        # Spirits live in non-supply piles, etc.), the exchange is simply
+        # unavailable — otherwise the card would silently vanish from the
+        # game. Skip exchange in that case rather than try to route the
+        # card back to its non-supply origin.
+        if gained_card.name not in self.supply:
             return gained_card
         # Skip cards that did not enter a normal zone (e.g. Watchtower
         # already moved them to the trash or to the deck-top set-aside).
@@ -2568,9 +2583,9 @@ class GameState:
         # exchanged card must keep that position.
         original_index = zone.index(gained_card)
         zone.pop(original_index)
-        # Return the gained card to its pile (if it has one).
-        if gained_card.name in self.supply:
-            self.supply[gained_card.name] = self.supply.get(gained_card.name, 0) + 1
+        # Return the gained card to its Supply pile. (We've already
+        # guaranteed above that the card has a Supply entry.)
+        self.supply[gained_card.name] = self.supply.get(gained_card.name, 0) + 1
         # Take a Changeling from the Changeling pile.
         self.supply["Changeling"] -= 1
         changeling = get_card("Changeling")
