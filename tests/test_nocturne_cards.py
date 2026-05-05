@@ -695,6 +695,51 @@ def test_changeling_uses_effective_cost_at_gain_peddler_reduced_below_three():
     assert not any(c.name == "Changeling" for c in player.discard)
 
 
+def test_changeling_exchange_works_for_knights_pile():
+    """Knights live in a single supply pile keyed "Knights" with each
+    individual Knight (e.g. Sir Martin) tracked in pile_order. Gaining a
+    specific Knight must still allow Changeling exchange — return the
+    Knight to the TOP of pile_order["Knights"] and increment the
+    "Knights" supply count, then hand the player a Changeling. The
+    earlier guard `if gained_card.name not in self.supply` mistakenly
+    skipped Knights because "Sir Martin" is not a supply key."""
+
+    class ExchangeAI(_PlayAllAI):
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=ExchangeAI())
+    state.supply["Changeling"] = 10
+    # Set up the Knights pile the way _setup_dark_ages_piles does:
+    # supply key "Knights" with pile_order["Knights"] listing variants.
+    state.pile_order["Knights"] = ["Dame Anna", "Sir Bailey", "Sir Martin"]
+    state.supply["Knights"] = 3
+
+    knights_supply_before = state.supply["Knights"]
+    changeling_before = state.supply["Changeling"]
+
+    sir_martin = get_card("Sir Martin")  # the specific top-Knight gained
+    # Simulate the buyer having popped the top of pile_order and decremented
+    # supply["Knights"] (matching how buy_card resolves Knight gains).
+    state.pile_order["Knights"].remove("Sir Martin")
+    state.supply["Knights"] -= 1
+    state.gain_card(player, sir_martin)
+
+    # After the exchange:
+    # - Sir Martin must be back on top of pile_order["Knights"]
+    # - supply["Knights"] must be restored to its pre-buy count
+    # - supply["Changeling"] decreased by one
+    # - Player's discard contains Changeling, NOT Sir Martin
+    assert state.pile_order["Knights"][-1] == "Sir Martin", (
+        f"Sir Martin should be back on top of Knights pile; "
+        f"pile_order={state.pile_order['Knights']}"
+    )
+    assert state.supply["Knights"] == knights_supply_before
+    assert state.supply["Changeling"] == changeling_before - 1
+    assert any(c.name == "Changeling" for c in player.discard)
+    assert not any(c.name == "Sir Martin" for c in player.discard)
+
+
 def test_changeling_exchange_skipped_for_non_supply_card():
     """If a card without a Supply pile (e.g. Necromancer's Zombies, which
     live in `nocturne_trash_piles` and start in the trash) somehow reaches

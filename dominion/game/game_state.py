@@ -2558,7 +2558,13 @@ class GameState:
         # unavailable — otherwise the card would silently vanish from the
         # game. Skip exchange in that case rather than try to route the
         # card back to its non-supply origin.
-        if gained_card.name not in self.supply:
+        #
+        # Ordered piles (Knights, Ruins) use a single supply key
+        # ("Knights"/"Ruins") that does NOT match the gained card's name
+        # (e.g. "Sir Martin"). Resolve the owning pile by checking
+        # is_knight/is_ruins first, then falling back to a pile_order scan.
+        pile_name = self._resolve_changeling_pile_name(gained_card)
+        if pile_name is None:
             return gained_card
         # Skip cards that did not enter a normal zone (e.g. Watchtower
         # already moved them to the trash or to the deck-top set-aside).
@@ -2583,9 +2589,13 @@ class GameState:
         # exchanged card must keep that position.
         original_index = zone.index(gained_card)
         zone.pop(original_index)
-        # Return the gained card to its Supply pile. (We've already
-        # guaranteed above that the card has a Supply entry.)
-        self.supply[gained_card.name] = self.supply.get(gained_card.name, 0) + 1
+        # Return the gained card to its Supply pile. For ordered piles
+        # (Knights, Ruins) push the card name back onto the top of
+        # pile_order so it's the next card to come off; for normal piles
+        # just bump the count.
+        if pile_name in self.pile_order:
+            self.pile_order[pile_name].append(gained_card.name)
+        self.supply[pile_name] = self.supply.get(pile_name, 0) + 1
         # Take a Changeling from the Changeling pile.
         self.supply["Changeling"] -= 1
         changeling = get_card("Changeling")
@@ -2594,6 +2604,29 @@ class GameState:
             ("action", player.ai.name, f"exchanges {gained_card} for Changeling", {})
         )
         return changeling
+
+    def _resolve_changeling_pile_name(self, gained_card: Card) -> "str | None":
+        """Find the Supply pile key that owns ``gained_card``, or None.
+
+        Direct supply name first; then is_knight/is_ruins for the
+        Dark Ages ordered piles whose key is "Knights"/"Ruins" rather
+        than the specific card name; then a generic pile_order scan to
+        catch any other ordered-pile arrangement. Returns None for cards
+        that have no Supply origin (Zombies, Spirits, Wish, Bat, Ghost,
+        Madman, Mercenary in their non-supply states, etc.) so the
+        caller can skip the exchange rather than letting the card vanish.
+        """
+
+        if gained_card.name in self.supply:
+            return gained_card.name
+        if gained_card.is_knight and "Knights" in self.supply:
+            return "Knights"
+        if gained_card.is_ruins and "Ruins" in self.supply:
+            return "Ruins"
+        for pile_key, names in self.pile_order.items():
+            if gained_card.name in names and pile_key in self.supply:
+                return pile_key
+        return None
 
     def _handle_sailor_gain(self, player: PlayerState, gained_card: Card) -> None:
         """Trigger Sailor's "may play this gain" effect for the gainer's own gains."""
