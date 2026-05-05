@@ -340,6 +340,64 @@ def test_way_of_the_chameleon_throne_room_does_not_swap_smithy_draws():
     assert coppers_in_hand == 6
 
 
+def test_way_of_the_chameleon_does_not_swap_cursed_village_draw_until_six():
+    """Cursed Village's "draw until you have 6 in hand" is an imperative
+    draw, NOT a "+Cards" instruction. Way of the Chameleon must not
+    convert that draw into coins.
+    """
+    import random
+
+    random.seed(1729)
+    state, p1 = _state(
+        "Way of the Chameleon",
+        kingdom=[get_card("Village"), get_card("Cursed Village")],
+    )
+    p1.actions = 1
+    cv = get_card("Cursed Village")
+    p1.hand = [cv]
+    p1.deck = [get_card("Copper")] * 10
+    state.phase = "action"
+    state.handle_action_phase()
+    # Cursed Village has no +Cards / +$ on its stat block, so the
+    # Chameleon swap is a no-op for the stat block. Crucially, the
+    # "draw until 6 in hand" must execute as a draw — NOT swapped to
+    # coins. Cursed Village is played from hand, leaving 0; it then
+    # draws up to 6.
+    assert len(p1.hand) == 6, (
+        f"Expected hand of 6 (draw-until-6 still draws), got {len(p1.hand)}"
+    )
+    # No coins were granted: Cursed Village had no +$ to swap, and the
+    # imperative draw must NOT have been converted to coins.
+    assert p1.coins == 0
+    # The Hex still fires: a Hex was drawn from the Hex deck and is
+    # now in the Hex discard pile.
+    assert state.hex_discard, "Cursed Village should have caused a Hex"
+
+
+def test_way_of_the_chameleon_does_not_swap_library_draw_until_seven():
+    """Library's "draw until you have 7 in hand" is an imperative draw,
+    NOT "+Cards". Way of the Chameleon must not convert it to coins.
+    """
+    state, p1 = _state(
+        "Way of the Chameleon",
+        kingdom=[get_card("Village"), get_card("Library")],
+    )
+    p1.actions = 1
+    lib = get_card("Library")
+    p1.hand = [lib]
+    # Coppers in deck so the AI never sets any aside.
+    p1.deck = [get_card("Copper")] * 10
+    state.phase = "action"
+    state.handle_action_phase()
+    # Library has no +Cards / +$, so the Chameleon swap is a no-op for
+    # its stat block. The "draw until 7" must execute as a real draw —
+    # not be converted to coins.
+    assert len(p1.hand) == 7, (
+        f"Expected hand of 7 (draw-until-7 still draws), got {len(p1.hand)}"
+    )
+    assert p1.coins == 0
+
+
 def test_way_of_the_horse_does_not_create_synthetic_pile():
     """Way of the Horse must not invent a supply pile for a non-Supply card."""
     state, p1 = _state("Way of the Horse", kingdom=[get_card("Village")])

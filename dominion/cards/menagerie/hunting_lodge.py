@@ -12,6 +12,10 @@ class HuntingLodge(Card):
 
     def play_effect(self, game_state):
         """You may discard your hand for +5 Cards."""
+        # Lazy import to avoid circular import (ways package imports cards
+        # registry at top level).
+        from dominion.ways.chameleon import chameleon_plus_cards
+
         player = game_state.current_player
 
         # AI decides whether to discard hand for 5 new cards
@@ -19,7 +23,8 @@ class HuntingLodge(Card):
         # (the AI doesn't have a specific method for this, so we use a heuristic:
         #  discard if hand has 3 or fewer non-action cards worth playing)
         if not player.hand:
-            game_state.draw_cards(player, 5)
+            # "+5 Cards" instruction — Way of the Chameleon swaps to +$5.
+            chameleon_plus_cards(game_state, player, 5)
             return
 
         # Simple heuristic: discard unless hand already has Province-buying power
@@ -30,4 +35,5 @@ class HuntingLodge(Card):
             cards_to_discard = list(player.hand)
             player.hand = []
             game_state.discard_cards(player, cards_to_discard)
-            game_state.draw_cards(player, 5)
+            # "+5 Cards" instruction — Way of the Chameleon swaps to +$5.
+            chameleon_plus_cards(game_state, player, 5)
