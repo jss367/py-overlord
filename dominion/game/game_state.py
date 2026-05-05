@@ -732,6 +732,22 @@ class GameState:
                 player.coins += 1
             self.discard_boon(boon)
 
+        # Nocturne — Druid's set-aside Boons fire their next-turn bonus too,
+        # but they are NOT discarded; they remain set aside for the rest of
+        # the game so future Druid plays still see all three.
+        druid_boons = list(getattr(player, "druid_active_boons", []))
+        player.druid_active_boons = []
+        for boon in druid_boons:
+            if boon == "The Field's Gift":
+                if not player.ignore_action_bonuses:
+                    player.actions += 1
+                player.coins += 1
+            elif boon == "The Forest's Gift":
+                player.buys += 1
+                player.coins += 1
+            # The River's Gift +1 Card was already delivered at end of last
+            # turn during cleanup. No discard — Boon stays set aside.
+
         # Nocturne — Lost in the Woods (Fool): receive a Boon
         if getattr(player, "lost_in_the_woods", False):
             self.receive_boon(player)
@@ -1914,9 +1930,15 @@ class GameState:
         outpost_extra_turn = bool(getattr(player, "outpost_pending", False))
         cards_to_draw = 3 if outpost_extra_turn else 5
 
-        # Nocturne — The River's Gift: +1 Card at end of turn (per active copy)
+        # Nocturne — The River's Gift: +1 Card at end of turn (per active copy).
+        # Druid's set-aside River's Gift also delivers the cleanup draw.
         rivers_count = sum(
             1 for b in getattr(player, "active_boons", []) if b == "The River's Gift"
+        )
+        rivers_count += sum(
+            1
+            for b in getattr(player, "druid_active_boons", [])
+            if b == "The River's Gift"
         )
         cards_to_draw += rivers_count
         # Allies "Order of Masons" bonus: +1 Card per 2 Favors spent
@@ -2499,7 +2521,112 @@ class GameState:
             if hook is not None:
                 hook(self, player, actual_card)
 
+        # Nocturne Changeling: when you gain a non-Changeling card costing
+        # $3+, you may exchange it for a Changeling from the supply.
+        actual_card = self._maybe_exchange_for_changeling(player, actual_card)
+
         return actual_card
+
+    def _maybe_exchange_for_changeling(
+        self, player: PlayerState, gained_card: Card
+    ) -> Card:
+        """If the player has the option, exchange ``gained_card`` for a Changeling.
+
+        Returns whatever card now occupies the gain slot — either the
+        original ``gained_card`` (no exchange) or the Changeling that
+        replaced it. Exchanging means: the original card is returned to
+        its supply pile, a Changeling is removed from the Changeling pile,
+        and the Changeling is placed where the original card was.
+        """
+
+        if self.supply.get("Changeling", 0) <= 0:
+            return gained_card
+        if gained_card.name == "Changeling":
+            return gained_card
+        # Use the EFFECTIVE cost-at-gain (after Bridge/Highway/Quarry/Peddler
+        # cost_modifier/etc.) rather than the printed cost. Cards like
+        # Peddler, Destrier, and Wayfarer have variable cost: their printed
+        # `cost.coins` is much higher than what they actually cost in many
+        # game states, and Changeling's "$3+" trigger applies to the actual
+        # gain-time cost.
+        if self.get_card_cost(player, gained_card) < 3:
+            return gained_card
+        # Changeling's exchange requires returning the gained card to its
+        # pile. If the gained card has no Supply pile to return to (e.g.
+        # Zombies live in `nocturne_trash_piles` and may end up in `trash`,
+        # Spirits live in non-supply piles, etc.), the exchange is simply
+        # unavailable — otherwise the card would silently vanish from the
+        # game. Skip exchange in that case rather than try to route the
+        # card back to its non-supply origin.
+        #
+        # Ordered piles (Knights, Ruins) use a single supply key
+        # ("Knights"/"Ruins") that does NOT match the gained card's name
+        # (e.g. "Sir Martin"). Resolve the owning pile by checking
+        # is_knight/is_ruins first, then falling back to a pile_order scan.
+        pile_name = self._resolve_changeling_pile_name(gained_card)
+        if pile_name is None:
+            return gained_card
+        # Skip cards that did not enter a normal zone (e.g. Watchtower
+        # already moved them to the trash or to the deck-top set-aside).
+        zone = None
+        if gained_card in player.discard:
+            zone = player.discard
+        elif gained_card in player.deck:
+            zone = player.deck
+        elif gained_card in player.hand:
+            zone = player.hand
+        else:
+            return gained_card
+
+        if not player.ai.should_exchange_changeling(self, player, gained_card):
+            return gained_card
+
+        from ..cards.registry import get_card
+
+        # Capture the index where the gained card sits so the Changeling
+        # replaces it in the same slot. This matters for topdeck-style gains
+        # (e.g. Watchtower / Royal Seal placing on top of deck) where the
+        # exchanged card must keep that position.
+        original_index = zone.index(gained_card)
+        zone.pop(original_index)
+        # Return the gained card to its Supply pile. For ordered piles
+        # (Knights, Ruins) push the card name back onto the top of
+        # pile_order so it's the next card to come off; for normal piles
+        # just bump the count.
+        if pile_name in self.pile_order:
+            self.pile_order[pile_name].append(gained_card.name)
+        self.supply[pile_name] = self.supply.get(pile_name, 0) + 1
+        # Take a Changeling from the Changeling pile.
+        self.supply["Changeling"] -= 1
+        changeling = get_card("Changeling")
+        zone.insert(original_index, changeling)
+        self.log_callback(
+            ("action", player.ai.name, f"exchanges {gained_card} for Changeling", {})
+        )
+        return changeling
+
+    def _resolve_changeling_pile_name(self, gained_card: Card) -> "str | None":
+        """Find the Supply pile key that owns ``gained_card``, or None.
+
+        Direct supply name first; then is_knight/is_ruins for the
+        Dark Ages ordered piles whose key is "Knights"/"Ruins" rather
+        than the specific card name; then a generic pile_order scan to
+        catch any other ordered-pile arrangement. Returns None for cards
+        that have no Supply origin (Zombies, Spirits, Wish, Bat, Ghost,
+        Madman, Mercenary in their non-supply states, etc.) so the
+        caller can skip the exchange rather than letting the card vanish.
+        """
+
+        if gained_card.name in self.supply:
+            return gained_card.name
+        if gained_card.is_knight and "Knights" in self.supply:
+            return "Knights"
+        if gained_card.is_ruins and "Ruins" in self.supply:
+            return "Ruins"
+        for pile_key, names in self.pile_order.items():
+            if gained_card.name in names and pile_key in self.supply:
+                return pile_key
+        return None
 
     def _handle_sailor_gain(self, player: PlayerState, gained_card: Card) -> None:
         """Trigger Sailor's "may play this gain" effect for the gainer's own gains."""
@@ -3275,9 +3402,24 @@ class GameState:
             self.tax_tokens[card_name] = 0
 
     def _setup_nocturne_extras(self, kingdom_cards: list[Card]) -> None:
-        """Add non-supply piles needed by Nocturne kingdom cards."""
+        """Add non-supply piles needed by Nocturne kingdom cards.
+
+        Most Nocturne extras (Spirits, Wish, Bat) live in supply piles even
+        though they are not buyable. Necromancer is special: the three
+        Zombies (``Zombie Apprentice``, ``Zombie Mason``, ``Zombie Spy``)
+        start in the trash so Necromancer has legal targets from turn 1.
+        Cards may opt into the trash setup by listing names in
+        ``nocturne_trash_piles``; otherwise ``nocturne_piles`` entries go
+        to the supply as non-buyable piles.
+        """
+
+        from ..cards.registry import get_card as _get_card
 
         for card in kingdom_cards:
+            trash_extras: dict[str, int] = getattr(card, "nocturne_trash_piles", {})
+            for name, count in trash_extras.items():
+                for _ in range(count):
+                    self.trash.append(_get_card(name))
             extras: dict[str, int] = getattr(card, "nocturne_piles", {})
             for name, count in extras.items():
                 if name not in self.supply:

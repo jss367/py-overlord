@@ -130,6 +130,11 @@ class PlayerState:
     gained_action_or_treasure_this_buy_phase: bool = False
     # Nocturne — persistent Boons received this/last turn.
     active_boons: list[str] = field(default_factory=list)
+    # Nocturne — persistent Boons received via Druid. These behave like
+    # ``active_boons`` for purposes of next-turn effects (Field/Forest) and
+    # cleanup-time draws (River) but they are NEVER discarded — Druid's three
+    # Boons stay set aside for the entire game.
+    druid_active_boons: list[str] = field(default_factory=list)
     # Nocturne — Lost in the Woods state from Fool.
     lost_in_the_woods: bool = False
     # Nocturne — Cards gained this turn (count). Used by Devil's Workshop, Monastery.
@@ -280,6 +285,7 @@ class PlayerState:
         self.priest_played_this_turn = 0
         self.gained_action_or_treasure_this_buy_phase = False
         self.active_boons = []
+        self.druid_active_boons = []
         self.lost_in_the_woods = False
         self.cards_gained_this_turn_count = 0
         self.pending_cobbler_gains = 0

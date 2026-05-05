@@ -455,3 +455,407 @@ def test_werewolf_night_phase_attacks():
     # Other player got a hex (Greed → topdecked Copper)
     other = state.players[1]
     assert any(c.name == "Copper" for c in other.deck) or len(state.hex_discard) > 0
+
+
+# ----- PR #191 review fixes -----
+
+
+def test_bat_is_typed_as_night_only():
+    """Bat must be a Night card, not Action/Shadow, so it cannot be played in
+    the Action phase (or from the deck via Shadow handling)."""
+    bat = get_card("Bat")
+    assert bat.is_night
+    assert not bat.is_action
+    assert not bat.is_shadow
+
+
+def test_raider_attack_works_against_small_hand():
+    """Raider must force a discard whenever the target has a matching card,
+    regardless of hand size; previous code immunized hands of <5 cards."""
+
+    state, player = _setup(players=2)
+    raider = get_card("Raider")
+    other = state.players[1]
+    # Make sure Raider's in-play set will match a card in the target's small
+    # hand. Use Copper (always in the supply) as the matched card.
+    player.in_play = [raider, get_card("Copper")]
+    other.hand = [get_card("Copper"), get_card("Estate")]
+    raider.play_effect(state)
+    # The matching Copper should have been discarded.
+    assert any(c.name == "Copper" for c in other.discard)
+    assert not any(c.name == "Copper" for c in other.hand)
+
+
+def test_druid_persistent_boon_attaches_to_player():
+    """Druid granting a persistent Boon (Field's Gift) must track it on the
+    player so its next-turn effect survives — but on the Druid-specific
+    list, not on ``active_boons`` (which gets discarded each turn)."""
+
+    state, player = _setup()
+    state.druid_boons = ["The Field's Gift", "The Sea's Gift", "The Mountain's Gift"]
+    druid = get_card("Druid")
+    player.in_play.append(druid)
+    actions_before = player.actions
+    druid.play_effect(state)
+    # The Field's Gift gave +1 Action and +$1 immediately.
+    assert player.actions >= actions_before + 1
+    # Tracked on the Druid-specific list so the start-of-turn cleanup
+    # applies the bonus without sending it to the boon discard pile.
+    assert hasattr(player, "druid_active_boons")
+    assert "The Field's Gift" in player.druid_active_boons
+    # Must NOT leak into the regular active_boons list, otherwise the
+    # next-turn cleanup would discard it.
+    assert "The Field's Gift" not in getattr(player, "active_boons", [])
+
+
+def test_necromancer_zombies_start_in_trash():
+    """Necromancer's three Zombies must start in the trash, not in the
+    supply, so Necromancer has legal targets from turn 1."""
+
+    from dominion.cards.nocturne.necromancer import Necromancer
+
+    state, player = _setup()
+    state.trash = []
+    state._setup_nocturne_extras([Necromancer()])
+    trash_names = {c.name for c in state.trash}
+    assert "Zombie Apprentice" in trash_names
+    assert "Zombie Mason" in trash_names
+    assert "Zombie Spy" in trash_names
+    # And they should NOT be in the supply.
+    assert "Zombie Apprentice" not in state.supply
+    assert "Zombie Mason" not in state.supply
+    assert "Zombie Spy" not in state.supply
+
+
+def test_changeling_exchange_on_gain_when_ai_opts_in():
+    """Gaining a $3+ card with Changeling in supply must offer the exchange
+    (when the AI opts in, the gain becomes a Changeling)."""
+
+    class ExchangeAI(_PlayAllAI):
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=ExchangeAI())
+    state.supply["Changeling"] = 10
+    state.supply["Smithy"] = 10
+    smithy_before = state.supply["Smithy"]
+    changeling_before = state.supply["Changeling"]
+    smithy = get_card("Smithy")  # cost $4
+    state.supply["Smithy"] -= 1
+    state.gain_card(player, smithy)
+    # Exchanged: Smithy returned, Changeling came out, Changeling now in
+    # the player's discard.
+    assert state.supply["Smithy"] == smithy_before
+    assert state.supply["Changeling"] == changeling_before - 1
+    assert any(c.name == "Changeling" for c in player.discard)
+    assert not any(c.name == "Smithy" for c in player.discard)
+
+
+def test_changeling_exchange_skipped_for_cheap_gains():
+    """Gaining a card costing <$3 must not trigger Changeling exchange."""
+
+    class ExchangeAI(_PlayAllAI):
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=ExchangeAI())
+    state.supply["Changeling"] = 10
+    changeling_before = state.supply["Changeling"]
+    estate = get_card("Estate")  # cost $2
+    state.supply["Estate"] -= 1
+    state.gain_card(player, estate)
+    assert state.supply["Changeling"] == changeling_before
+    assert any(c.name == "Estate" for c in player.discard)
+
+
+def test_changeling_exchange_skipped_when_gaining_changeling():
+    """Gaining a Changeling itself must not trigger an exchange loop."""
+
+    class ExchangeAI(_PlayAllAI):
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=ExchangeAI())
+    state.supply["Changeling"] = 10
+    changeling_before = state.supply["Changeling"]
+    state.supply["Changeling"] -= 1
+    state.gain_card(player, get_card("Changeling"))
+    # Net: one Changeling came out of the pile and ended up in discard.
+    assert state.supply["Changeling"] == changeling_before - 1
+    assert sum(1 for c in player.discard if c.name == "Changeling") == 1
+
+
+def test_changeling_exchange_preserves_topdeck_position():
+    """When a gained card is topdecked (e.g. via Royal Seal) and then
+    exchanged for a Changeling, the Changeling must replace the gained
+    card in the SAME deck slot (the top), not get appended to the
+    bottom."""
+
+    class TopdeckExchangeAI(_PlayAllAI):
+        def should_topdeck_with_royal_seal(self, state, player, gained_card):
+            return True
+
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=TopdeckExchangeAI())
+    state.supply["Changeling"] = 10
+    state.supply["Smithy"] = 10
+
+    # Pre-existing deck contents (these are below the topdecked gain).
+    estate_a = get_card("Estate")
+    estate_b = get_card("Estate")
+    player.deck = [estate_a, estate_b]
+
+    # Royal Seal in play so the gain gets topdecked.
+    player.in_play.append(get_card("Royal Seal"))
+
+    smithy = get_card("Smithy")  # cost $4
+    state.supply["Smithy"] -= 1
+    state.gain_card(player, smithy)
+
+    # Changeling must sit at the top of the deck (last element), where
+    # Royal Seal placed Smithy before the exchange replaced it.
+    assert player.deck, "deck should not be empty after exchange"
+    assert player.deck[-1].name == "Changeling", (
+        f"top-of-deck should be Changeling, got {[c.name for c in player.deck]}"
+    )
+    # And the original deck order below it must be untouched.
+    assert player.deck[0] is estate_a
+    assert player.deck[1] is estate_b
+    # Smithy returned to the supply, no Smithy/Changeling leaked into discard.
+    assert not any(c.name == "Smithy" for c in player.discard)
+    assert not any(c.name == "Changeling" for c in player.discard)
+
+
+def test_changeling_uses_effective_cost_at_gain_peddler_full_cost():
+    """At full printed cost ($8), Peddler is well above Changeling's $3
+    threshold, so the exchange MUST be offered."""
+
+    class ExchangeAI(_PlayAllAI):
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=ExchangeAI())
+    state.supply["Changeling"] = 10
+    state.supply["Peddler"] = 10
+    # No Actions in play -> Peddler's effective cost == printed cost ($8).
+    player.in_play = []
+    changeling_before = state.supply["Changeling"]
+    peddler_before = state.supply["Peddler"]
+
+    peddler = get_card("Peddler")  # printed cost $8
+    state.supply["Peddler"] -= 1
+    state.gain_card(player, peddler)
+
+    # Exchange happened: Peddler returned, a Changeling was taken.
+    assert state.supply["Peddler"] == peddler_before
+    assert state.supply["Changeling"] == changeling_before - 1
+    assert any(c.name == "Changeling" for c in player.discard)
+    assert not any(c.name == "Peddler" for c in player.discard)
+
+
+def test_changeling_uses_effective_cost_at_gain_peddler_reduced_below_three():
+    """Bridge in play reduces every card's cost by $1. With 2 Bridges +
+    actions in play that drop Peddler to $0–$2, gaining a Peddler must
+    NOT trigger the Changeling exchange because the effective cost is
+    below $3."""
+
+    class ExchangeAI(_PlayAllAI):
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=ExchangeAI())
+    state.supply["Changeling"] = 10
+    state.supply["Peddler"] = 10
+
+    # Stack three Bridges in play -> player.cost_reduction = 3, so
+    # every card gets -$3. Combined with 2 actions in play
+    # (Peddler -$4 from cost_modifier), Peddler effective cost is
+    # max(0, 8 - 4 - 3) = 1, which is below $3.
+    player.cost_reduction = 3
+    # Two Action cards in play to trigger Peddler's cost_modifier.
+    player.in_play = [get_card("Village"), get_card("Smithy")]
+
+    # Sanity: confirm get_card_cost agrees the effective cost is < 3.
+    peddler_template = get_card("Peddler")
+    assert state.get_card_cost(player, peddler_template) < 3
+
+    changeling_before = state.supply["Changeling"]
+    peddler_before = state.supply["Peddler"]
+
+    peddler = get_card("Peddler")
+    state.supply["Peddler"] -= 1
+    state.gain_card(player, peddler)
+
+    # No exchange: Changeling pile untouched, Peddler stays in discard.
+    assert state.supply["Changeling"] == changeling_before
+    assert state.supply["Peddler"] == peddler_before - 1
+    assert any(c.name == "Peddler" for c in player.discard)
+    assert not any(c.name == "Changeling" for c in player.discard)
+
+
+def test_changeling_exchange_works_for_knights_pile():
+    """Knights live in a single supply pile keyed "Knights" with each
+    individual Knight (e.g. Sir Martin) tracked in pile_order. Gaining a
+    specific Knight must still allow Changeling exchange — return the
+    Knight to the TOP of pile_order["Knights"] and increment the
+    "Knights" supply count, then hand the player a Changeling. The
+    earlier guard `if gained_card.name not in self.supply` mistakenly
+    skipped Knights because "Sir Martin" is not a supply key."""
+
+    class ExchangeAI(_PlayAllAI):
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=ExchangeAI())
+    state.supply["Changeling"] = 10
+    # Set up the Knights pile the way _setup_dark_ages_piles does:
+    # supply key "Knights" with pile_order["Knights"] listing variants.
+    state.pile_order["Knights"] = ["Dame Anna", "Sir Bailey", "Sir Martin"]
+    state.supply["Knights"] = 3
+
+    knights_supply_before = state.supply["Knights"]
+    changeling_before = state.supply["Changeling"]
+
+    sir_martin = get_card("Sir Martin")  # the specific top-Knight gained
+    # Simulate the buyer having popped the top of pile_order and decremented
+    # supply["Knights"] (matching how buy_card resolves Knight gains).
+    state.pile_order["Knights"].remove("Sir Martin")
+    state.supply["Knights"] -= 1
+    state.gain_card(player, sir_martin)
+
+    # After the exchange:
+    # - Sir Martin must be back on top of pile_order["Knights"]
+    # - supply["Knights"] must be restored to its pre-buy count
+    # - supply["Changeling"] decreased by one
+    # - Player's discard contains Changeling, NOT Sir Martin
+    assert state.pile_order["Knights"][-1] == "Sir Martin", (
+        f"Sir Martin should be back on top of Knights pile; "
+        f"pile_order={state.pile_order['Knights']}"
+    )
+    assert state.supply["Knights"] == knights_supply_before
+    assert state.supply["Changeling"] == changeling_before - 1
+    assert any(c.name == "Changeling" for c in player.discard)
+    assert not any(c.name == "Sir Martin" for c in player.discard)
+
+
+def test_changeling_exchange_skipped_for_non_supply_card():
+    """If a card without a Supply pile (e.g. Necromancer's Zombies, which
+    live in `nocturne_trash_piles` and start in the trash) somehow reaches
+    a player's hand/discard/deck via gain_card, Changeling must NOT
+    exchange it — there's no pile to return the original to. The card
+    must remain wherever gain_card put it; nothing must vanish from the
+    game and no Changeling must be granted."""
+
+    class ExchangeAI(_PlayAllAI):
+        def should_exchange_changeling(self, state, player, gained_card):
+            return True
+
+    state, player = _setup(ai=ExchangeAI())
+    state.supply["Changeling"] = 10
+    # Zombie is intentionally NOT in state.supply — it lives in
+    # nocturne_trash_piles and is normally only ever in state.trash.
+    assert "Zombie Apprentice" not in state.supply
+
+    changeling_before = state.supply["Changeling"]
+    zombie = get_card("Zombie Apprentice")  # cost $3, qualifies on cost
+    state.gain_card(player, zombie)
+
+    # The Zombie must still be in the player's discard (where gain_card
+    # placed it) — it must NOT have vanished from the game.
+    assert any(c is zombie for c in player.discard), (
+        "Non-supply gained card vanished from the game during attempted "
+        "Changeling exchange"
+    )
+    # No Changeling came out of the pile, no Changeling in discard.
+    assert state.supply["Changeling"] == changeling_before
+    assert not any(c.name == "Changeling" for c in player.discard)
+
+
+def test_druid_boons_persist_across_multiple_turns():
+    """Druid's three set-aside Boons must NEVER be sent to the boons
+    discard pile — they remain set aside for the entire game and continue
+    delivering their next-turn bonuses every turn until something else
+    happens."""
+
+    state, player = _setup()
+    state.druid_boons = ["The Field's Gift", "The Forest's Gift", "The River's Gift"]
+    boons_discard_before = list(state.boons_discard)
+
+    druid = get_card("Druid")
+    player.in_play.append(druid)
+
+    # Receive Field's Gift via Druid (immediate +1 Action +$1).
+    actions_before = player.actions
+    coins_before = player.coins
+    druid.play_effect(state)
+    assert player.actions == actions_before + 1
+    assert player.coins == coins_before + 1
+    assert player.druid_active_boons == ["The Field's Gift"]
+
+    # Simulate several start-of-turn cleanups. The Druid Boon should
+    # fire its bonus EACH start-of-turn (via the cleanup hook) but never
+    # appear in the boons discard, and the Druid set-aside list must
+    # stay intact.
+    for turn_idx in range(3):
+        actions_before = player.actions
+        coins_before = player.coins
+        state.handle_start_phase()
+        # Field's Gift fires +1 Action +$1.
+        assert player.actions >= actions_before + 1, (
+            f"turn {turn_idx}: Druid Field's Gift should give +1 Action"
+        )
+        assert player.coins >= coins_before + 1, (
+            f"turn {turn_idx}: Druid Field's Gift should give +$1"
+        )
+        # The boon must not have been discarded.
+        assert "The Field's Gift" not in state.boons_discard, (
+            f"turn {turn_idx}: Druid Boon leaked into boons discard"
+        )
+        # The 3 set-aside Boons remain set aside.
+        assert set(state.druid_boons) == {
+            "The Field's Gift",
+            "The Forest's Gift",
+            "The River's Gift",
+        }
+        # Re-attach for next iteration: the player's druid_active_boons
+        # was cleared by handle_start_phase. Re-play Druid to re-receive
+        # Field's Gift so the next iteration can verify continued effect.
+        druid.play_effect(state)
+
+    # Final invariant: nothing Druid-related ended up in boons_discard.
+    new_in_discard = [b for b in state.boons_discard if b not in boons_discard_before]
+    for b in new_in_discard:
+        assert b not in {"The Field's Gift", "The Forest's Gift", "The River's Gift"}
+
+
+def test_druid_river_gift_grants_cleanup_draw_without_discarding():
+    """Druid receiving River's Gift grants the +1-card cleanup draw, and
+    the Boon stays set aside (not in active_boons, not in boons discard)."""
+
+    state, player = _setup()
+    state.druid_boons = ["The River's Gift", "The Sea's Gift", "The Mountain's Gift"]
+
+    # Player needs cards in deck to draw (cleanup draws the new hand).
+    player.deck = [get_card("Copper") for _ in range(10)]
+    player.hand = []
+    player.discard = []
+    player.in_play.append(get_card("Druid"))
+
+    druid = get_card("Druid")
+    druid.play_effect(state)
+    # River's Gift was chosen.
+    assert player.druid_active_boons == ["The River's Gift"]
+    # Persistent Boon must not appear on the regular active_boons list.
+    assert "The River's Gift" not in player.active_boons
+
+    # Cleanup the turn: River's Gift adds +1 to the cleanup draw, so the
+    # newly drawn hand should be 5 + 1 = 6 cards.
+    state.handle_cleanup_phase()
+    assert len(player.hand) == 6, (
+        f"River's Gift cleanup draw should produce a 6-card hand, got {len(player.hand)}"
+    )
+    # Boon stayed set aside, not discarded.
+    assert "The River's Gift" not in state.boons_discard
+    assert "The River's Gift" in state.druid_boons
