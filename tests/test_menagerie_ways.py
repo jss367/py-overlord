@@ -410,3 +410,100 @@ def test_way_of_the_horse_does_not_create_synthetic_pile():
     state.handle_action_phase()
     # The Way must not have manufactured a Smithy pile from nothing.
     assert "Smithy" not in state.supply
+
+
+def test_way_of_the_horse_returns_dame_anna_to_knights_pile():
+    """Knights live under a shared "Knights" pile_order; ``card.name`` is
+    e.g. "Dame Anna" — not a key in ``state.supply``. Way of the Horse
+    must still return the played Knight to the top of its owning
+    "Knights" pile.
+    """
+    state, p1 = _state(
+        "Way of the Horse",
+        kingdom=[get_card("Village"), get_card("Knights")],
+    )
+    p1.actions = 1
+    dame_anna = get_card("Dame Anna")
+    p1.hand = [dame_anna]
+    knights_before = state.supply.get("Knights", 0)
+    # Sanity: there is no per-Knight supply pile.
+    assert "Dame Anna" not in state.supply
+    state.phase = "action"
+    state.handle_action_phase()
+    # Dame Anna left play and was returned to the Knights pile.
+    assert dame_anna not in p1.in_play
+    assert state.supply["Knights"] == knights_before + 1
+    # The specific Knight is now on top of the pile_order.
+    assert state.pile_order["Knights"][-1] == "Dame Anna"
+
+
+def test_way_of_the_chameleon_runs_full_on_play_for_bauble():
+    """Bauble defines its effects in ``on_play`` (Treasure-Liaison: +1 Buy,
+    +1 Favor, choose +$1 / +1 Card / +1 Favor). Played as Way of the
+    Chameleon, the +1 Buy and +1 Favor must still happen, and Bauble's
+    "+$1" choice swaps to "+1 Card".
+
+    Treasures are playable in the Action phase (where Ways are choosable)
+    under Rising Sun's Enlightenment prophecy. We invoke the Way directly
+    here to isolate the swap behavior from Enlightenment's "+1 Card +1
+    Action" treasure-as-action substitution.
+    """
+    state, p1 = _state(
+        "Way of the Chameleon",
+        kingdom=[get_card("Village"), get_card("Bauble")],
+    )
+    bauble = get_card("Bauble")
+    p1.in_play.append(bauble)
+    # Force Bauble's heuristic into the +$1 branch (hand has > 2 cards).
+    p1.hand = [get_card("Copper"), get_card("Copper"), get_card("Copper")]
+    p1.deck = [get_card("Estate")] * 5
+    favors_before = p1.favors
+    buys_before = p1.buys
+    coins_before = p1.coins
+    hand_size_before = len(p1.hand)
+    way = get_way("Way of the Chameleon")
+    way.apply(state, bauble)
+    # Core ``on_play`` effects (driven through the actual subclass override)
+    # still ran: +1 Buy, +1 Favor.
+    assert p1.favors == favors_before + 1
+    assert p1.buys == buys_before + 1
+    # Bauble's "+$1" choice swapped to "+1 Card": no extra coins, +1 card
+    # drawn from deck.
+    assert p1.coins == coins_before
+    assert len(p1.hand) == hand_size_before + 1
+    assert p1.hand[-1].name == "Estate"
+
+
+def test_way_of_the_chameleon_runs_full_on_play_for_contract():
+    """Contract is a Treasure-Duration-Liaison whose effects live in an
+    overridden ``on_play``: +$2, +1 Favor, set aside an Action to play
+    next turn. Played as Way of the Chameleon, the +1 Favor and
+    set-aside should still happen; the +$2 swaps to +2 Cards.
+
+    See ``test_way_of_the_chameleon_runs_full_on_play_for_bauble`` for
+    why we apply the Way directly rather than going through the action
+    phase.
+    """
+    state, p1 = _state(
+        "Way of the Chameleon",
+        kingdom=[get_card("Village"), get_card("Contract")],
+    )
+    contract = get_card("Contract")
+    p1.in_play.append(contract)
+    # Provide an Action in hand so Contract's set-aside can fire.
+    village = get_card("Village")
+    p1.hand = [village]
+    p1.deck = [get_card("Estate")] * 5
+    favors_before = p1.favors
+    coins_before = p1.coins
+    way = get_way("Way of the Chameleon")
+    way.apply(state, contract)
+    # +1 Favor still runs (Contract's overridden on_play executed).
+    assert p1.favors == favors_before + 1
+    # +$2 swapped to +2 Cards: no extra coins, two cards drawn.
+    assert p1.coins == coins_before
+    estates_in_hand = sum(1 for c in p1.hand if c.name == "Estate")
+    assert estates_in_hand == 2
+    # Set-aside-action behavior: Village was set aside on Contract.
+    assert contract._set_aside is village
+    assert village not in p1.hand

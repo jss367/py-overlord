@@ -28,6 +28,11 @@ class Bauble(Card):
         )
 
     def on_play(self, game_state):
+        from dominion.ways.chameleon import (
+            chameleon_plus_cards,
+            chameleon_plus_coins,
+        )
+
         player = game_state.current_player
         # Liaison: +1 Favor when played.
         player.favors += 1
@@ -35,10 +40,13 @@ class Bauble(Card):
         # Choose one: heuristic — prefer +$1 by default, +1 Favor if
         # the Ally is starved, +1 Card if hand is short, topdeck if a
         # second play this turn would be useful (rare without a TR).
+        # The "+1 Card" / "+$1" choices are explicit +Cards / +$
+        # wording on the card, so they route through the chameleon
+        # helpers (a no-op outside of a Way of the Chameleon swap).
         if len(player.hand) <= 2:
-            game_state.draw_cards(player, 1)
+            chameleon_plus_cards(game_state, player, 1)
         else:
-            player.coins += 1
+            chameleon_plus_coins(player, 1)
 
 
 class Sycophant(Card):
@@ -369,9 +377,11 @@ class Contract(Card):
         self._set_aside: Optional[Card] = None
 
     def on_play(self, game_state):
+        from dominion.ways.chameleon import chameleon_plus_coins
+
         player = game_state.current_player
         # Treasure body: +$2 +1 Favor.
-        player.coins += 2
+        chameleon_plus_coins(player, 2)
         player.favors += 1
 
         actions = [c for c in player.hand if c.is_action and not c.is_duration]

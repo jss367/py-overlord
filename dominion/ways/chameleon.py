@@ -124,37 +124,59 @@ class WayOfTheChameleon(Way):
             state["depth"] += 1
             try:
                 if state["depth"] == 1:
-                    # Mimic Card.on_play but skip the stat-block +Cards
-                    # and +$ (those will be swapped). Other stat-block
-                    # values (actions, buys, potions) apply normally.
-                    p = gs.current_player
-
-                    # Rising Sun: Omen "+1 Sun" still triggers first.
-                    if self_card.is_omen:
-                        gs.remove_sun_token(1)
-
-                    if not p.ignore_action_bonuses:
-                        p.actions += self_card.stats.actions
-                    p.potions += self_card.stats.potions
-                    p.buys += self_card.stats.buys
-
-                    # Capture stat-block +Cards / +$ for the swap.
+                    # Capture the chosen card's stat-block ``+Cards`` and
+                    # ``+$`` for the swap, then temporarily zero them so
+                    # the card's *actual* ``on_play`` runs every other
+                    # effect (overridden ``on_play`` bodies, ``play_effect``
+                    # subclass code, etc.) without re-applying them.
+                    #
+                    # Cards that move their ``+Cards`` / ``+$`` wording
+                    # into ``on_play`` / ``play_effect`` (e.g. Bauble's
+                    # "+$1" choice, Contract's "+$2", Hunting Lodge's
+                    # "+5 Cards" branch) should call the helpers
+                    # ``chameleon_plus_cards`` / ``chameleon_plus_coins``;
+                    # those route through the swap accumulator while a
+                    # swap is active.
                     if self_card.stats.cards > 0:
                         state["cards_requested"] += self_card.stats.cards
                     if self_card.stats.coins > 0:
                         state["coins_requested"] += self_card.stats.coins
 
-                    # Run the card's additional effects. play_effect
-                    # bodies that have "+Cards"/"+$" wording use the
-                    # chameleon_plus_cards / chameleon_plus_coins
-                    # helpers; everything else (imperative draws like
-                    # "draw until 6", direct ``player.coins +=`` from
-                    # non-``+$`` triggers) runs unchanged.
-                    self_card.play_effect(gs)
+                    saved_cards = self_card.stats.cards
+                    saved_coins = self_card.stats.coins
+                    self_card.stats.cards = 0
+                    self_card.stats.coins = 0
+                    try:
+                        # Run the card's real ``on_play`` (which may be
+                        # overridden by the subclass — e.g. Bauble,
+                        # Contract). Stat-block ``+Cards`` and ``+$`` are
+                        # zeroed out for the duration of this call so they
+                        # don't double-apply alongside the swap.
+                        #
+                        # Use the subclass's MRO-resolved ``on_play`` so
+                        # that overrides (Bauble, Contract, ...) run their
+                        # full body. ``Card.on_play`` is currently patched
+                        # to ``wrapped_on_play``; subclasses that define
+                        # their own ``on_play`` are unaffected by that
+                        # patch and resolve to their override directly.
+                        cls_on_play = type(self_card).on_play
+                        if cls_on_play is wrapped_on_play:
+                            # No subclass override — use the original
+                            # ``Card.on_play`` body.
+                            original_on_play(self_card, gs)
+                        else:
+                            cls_on_play(self_card, gs)
+                    finally:
+                        self_card.stats.cards = saved_cards
+                        self_card.stats.coins = saved_coins
                 else:
                     # Nested play: run the unpatched original on_play so
                     # the nested card's +Cards / +$ are NOT swapped.
-                    original_on_play(self_card, gs)
+                    cls_on_play = type(self_card).on_play
+                    if cls_on_play is wrapped_on_play:
+                        original_on_play(self_card, gs)
+                    else:
+                        cls_on_play(self_card, gs)
             finally:
                 state["depth"] -= 1
 
