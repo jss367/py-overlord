@@ -34,9 +34,8 @@ class Cavalry(Card):
         player.buys += 1
 
         # If we're in the Buy phase, return to Action phase (once per turn).
+        # The card text only specifies returning to the Action phase; it does
+        # not grant extra Actions, so leave ``player.actions`` untouched.
         if game_state.phase == "buy" and not getattr(player, "cavalry_returned_this_turn", False):
             player.cavalry_returned_this_turn = True
             game_state.phase = "action"
-            # Give back at least 1 action so they can play something
-            if player.actions < 1:
-                player.actions = 1
