@@ -507,3 +507,58 @@ def test_way_of_the_chameleon_runs_full_on_play_for_contract():
     # Set-aside-action behavior: Village was set aside on Contract.
     assert contract._set_aside is village
     assert village not in p1.hand
+
+
+def test_way_of_the_chameleon_does_not_swap_nested_overridden_on_play():
+    """When a Chameleon-targeted card plays a *side-effect* card whose
+    ``on_play`` is overridden and uses the chameleon helpers (e.g.
+    Bauble's "+$1" choice), that nested play must NOT be swapped.
+
+    Setup: Fortune Hunter is played as Way of the Chameleon. Fortune
+    Hunter is an Action ($4): +$2; look at top 3 cards, play a Treasure
+    from among them, return the rest. We seed the top of deck with a
+    Bauble so Fortune Hunter plays it as a side effect.
+
+    Expected:
+      - Fortune Hunter's own +$2 swaps to +2 Cards (Way applies to it).
+      - Bauble (played as Fortune Hunter's side effect) keeps its
+        native effect: +1 Buy, +1 Favor, and +$1 (its heuristic choice
+        with hand > 2 picks the +$1 branch). The +$1 must NOT be
+        swapped to +1 Card by Chameleon.
+    """
+    state, p1 = _state(
+        "Way of the Chameleon",
+        kingdom=[get_card("Village"), get_card("Fortune Hunter"),
+                 get_card("Bauble")],
+    )
+    fortune_hunter = get_card("Fortune Hunter")
+    p1.in_play.append(fortune_hunter)
+    bauble = get_card("Bauble")
+    # Hand has > 2 cards so Bauble's heuristic chooses +$1 (the branch
+    # that exercises chameleon_plus_coins from a nested overridden
+    # on_play).
+    p1.hand = [get_card("Copper"), get_card("Copper"), get_card("Copper")]
+    # Top of deck (last element popped first by Fortune Hunter): Bauble.
+    # Two Estates underneath (non-treasures, returned to deck).
+    p1.deck = [get_card("Estate"), get_card("Estate"), bauble]
+    favors_before = p1.favors
+    buys_before = p1.buys
+    coins_before = p1.coins
+    hand_size_before = len(p1.hand)
+    way = get_way("Way of the Chameleon")
+    way.apply(state, fortune_hunter)
+    # Fortune Hunter's +$2 swaps to +2 Cards. Two cards drawn from deck
+    # (after Fortune Hunter looked at the top 3 and put back the two
+    # non-treasures). So we draw 2 of the returned Estates.
+    # Bauble's +$1 (nested side-effect play) is NOT swapped: +1 coin.
+    assert p1.coins == coins_before + 1, (
+        f"Bauble's nested +$1 must not be swapped; got coins delta "
+        f"{p1.coins - coins_before}"
+    )
+    # Bauble's +1 Buy still ran (its on_play ran fully).
+    assert p1.buys == buys_before + 1
+    # Bauble's +1 Favor (Liaison) still ran.
+    assert p1.favors == favors_before + 1
+    # Hand grew by 2 (Fortune Hunter's swapped +2 Cards). Bauble's
+    # +$1 branch did not draw.
+    assert len(p1.hand) == hand_size_before + 2

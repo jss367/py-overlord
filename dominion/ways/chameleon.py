@@ -9,14 +9,17 @@ that are written as "+Cards" or "+$". It does NOT apply to:
   not "+Cards" instructions.
 - Imperative coin gains that aren't "+$" wording.
 - Cards played as a side effect of the chosen card (e.g. Vassal -> Action,
-  Throne Room -> Action). Those run their own normal effects.
+  Throne Room -> Action, Fortune Hunter -> Treasure). Those run their own
+  normal effects, even if the side-effect card overrides ``on_play`` and
+  uses the chameleon helpers.
 
 To support cards whose "+Cards"/"+$" appears in ``play_effect`` (because
 the value depends on a choice or condition), play_effect bodies use the
 helpers ``chameleon_plus_cards`` / ``chameleon_plus_coins`` exposed below.
-When a chameleon swap is active (depth 1 of the chosen card) those
-helpers route the value into the swap accumulator; otherwise they fall
-back to ``draw_cards`` / ``player.coins +=`` exactly as before.
+The helpers route the value into the swap accumulator only when the
+currently-resolving card is the chameleon-targeted card itself; when a
+nested side-effect play is in progress, the helpers fall back to
+``draw_cards`` / ``player.coins +=`` exactly as before.
 """
 
 from contextlib import contextmanager
@@ -30,13 +33,23 @@ _active_state: dict | None = None
 
 
 def _chameleon_is_active(player) -> bool:
-    """Return True when a Chameleon swap is in progress for ``player``.
+    """Return True when a Chameleon swap is in progress for ``player`` AND
+    the currently-resolving card is the chameleon-targeted card itself.
 
-    Only depth-1 (the chosen outer card itself) participates in the swap;
-    nested plays (Vassal->Village, Throne Room->Smithy, etc.) don't.
+    Side-effect plays (Vassal->Village, Throne Room->Smithy, Fortune
+    Hunter->Bauble, etc.) push a nested entry onto the resolution stack,
+    so they do not see the swap even if the nested card uses the helpers
+    via an overridden ``on_play``.
     """
     s = _active_state
-    return bool(s and s["player"] is player and s["depth"] == 1)
+    if not s or s["player"] is not player:
+        return False
+    stack = s["stack"]
+    target = s["target_card"]
+    # Only swap when the chameleon-targeted card is currently on top of
+    # the resolution stack (i.e. we are inside its body, not inside a
+    # nested side-effect play).
+    return bool(stack) and stack[-1] is target
 
 
 def chameleon_plus_cards(game_state, player, count: int) -> None:
@@ -100,93 +113,103 @@ class WayOfTheChameleon(Way):
 
         player = game_state.current_player
 
-        # Patch Card.on_play to:
-        #   - at depth 1 (the chosen card itself) skip the stat-block
-        #     +Cards and +$ (capture them for the swap), then run
-        #     play_effect — which may further accumulate via the
-        #     chameleon_plus_cards / chameleon_plus_coins helpers.
-        #   - at depth >= 2 (any nested play caused by the chosen card)
-        #     run the ORIGINAL on_play with no patches: nested cards keep
-        #     their real effects and don't see the chameleon swap.
+        # Strategy: maintain a resolution stack of card instances. The
+        # helpers (``chameleon_plus_cards`` / ``chameleon_plus_coins``)
+        # consult ``_chameleon_is_active`` which compares the stack top
+        # against the chameleon-targeted card. Side-effect plays (e.g.
+        # Vassal->Action, Throne Room->Smithy, Fortune Hunter->Bauble)
+        # push a nested entry onto the stack, so even if the nested card
+        # has its own ``on_play`` override that calls a helper, the
+        # helper sees a non-target stack top and does not swap.
+        #
+        # To capture every ``on_play`` call — including subclass
+        # overrides that bypass ``Card.on_play`` entirely — we patch
+        # both ``Card.on_play`` and any subclass that defines its own
+        # ``on_play``. Each patched method updates the stack on enter
+        # and exit.
         from dominion.cards.base_card import Card
 
-        original_on_play = Card.on_play
+        def _all_subclasses(cls):
+            seen = set()
+            stack = [cls]
+            while stack:
+                c = stack.pop()
+                for s in c.__subclasses__():
+                    if s in seen:
+                        continue
+                    seen.add(s)
+                    yield s
+                    stack.append(s)
 
         prev_state = _active_state
         state: dict = {
             "player": player,
-            "depth": 0,
+            "target_card": card,
+            "stack": [],
             "cards_requested": 0,
             "coins_requested": 0,
         }
 
-        def wrapped_on_play(self_card, gs):
-            state["depth"] += 1
-            try:
-                if state["depth"] == 1:
-                    # Capture the chosen card's stat-block ``+Cards`` and
-                    # ``+$`` for the swap, then temporarily zero them so
-                    # the card's *actual* ``on_play`` runs every other
-                    # effect (overridden ``on_play`` bodies, ``play_effect``
-                    # subclass code, etc.) without re-applying them.
-                    #
-                    # Cards that move their ``+Cards`` / ``+$`` wording
-                    # into ``on_play`` / ``play_effect`` (e.g. Bauble's
-                    # "+$1" choice, Contract's "+$2", Hunting Lodge's
-                    # "+5 Cards" branch) should call the helpers
-                    # ``chameleon_plus_cards`` / ``chameleon_plus_coins``;
-                    # those route through the swap accumulator while a
-                    # swap is active.
-                    if self_card.stats.cards > 0:
-                        state["cards_requested"] += self_card.stats.cards
-                    if self_card.stats.coins > 0:
-                        state["coins_requested"] += self_card.stats.coins
+        def make_wrapper(original):
+            def wrapped(self_card, gs):
+                stack = state["stack"]
+                stack.append(self_card)
+                try:
+                    if self_card is card and len(stack) == 1:
+                        # The chameleon-targeted card is resolving at
+                        # the outer level. Capture its stat-block
+                        # ``+Cards`` and ``+$`` for the swap, then zero
+                        # them so the card's real ``on_play`` runs
+                        # every other effect without re-applying them.
+                        if self_card.stats.cards > 0:
+                            state["cards_requested"] += self_card.stats.cards
+                        if self_card.stats.coins > 0:
+                            state["coins_requested"] += self_card.stats.coins
 
-                    saved_cards = self_card.stats.cards
-                    saved_coins = self_card.stats.coins
-                    self_card.stats.cards = 0
-                    self_card.stats.coins = 0
-                    try:
-                        # Run the card's real ``on_play`` (which may be
-                        # overridden by the subclass — e.g. Bauble,
-                        # Contract). Stat-block ``+Cards`` and ``+$`` are
-                        # zeroed out for the duration of this call so they
-                        # don't double-apply alongside the swap.
-                        #
-                        # Use the subclass's MRO-resolved ``on_play`` so
-                        # that overrides (Bauble, Contract, ...) run their
-                        # full body. ``Card.on_play`` is currently patched
-                        # to ``wrapped_on_play``; subclasses that define
-                        # their own ``on_play`` are unaffected by that
-                        # patch and resolve to their override directly.
-                        cls_on_play = type(self_card).on_play
-                        if cls_on_play is wrapped_on_play:
-                            # No subclass override — use the original
-                            # ``Card.on_play`` body.
-                            original_on_play(self_card, gs)
-                        else:
-                            cls_on_play(self_card, gs)
-                    finally:
-                        self_card.stats.cards = saved_cards
-                        self_card.stats.coins = saved_coins
-                else:
-                    # Nested play: run the unpatched original on_play so
-                    # the nested card's +Cards / +$ are NOT swapped.
-                    cls_on_play = type(self_card).on_play
-                    if cls_on_play is wrapped_on_play:
-                        original_on_play(self_card, gs)
+                        saved_cards = self_card.stats.cards
+                        saved_coins = self_card.stats.coins
+                        self_card.stats.cards = 0
+                        self_card.stats.coins = 0
+                        try:
+                            original(self_card, gs)
+                        finally:
+                            self_card.stats.cards = saved_cards
+                            self_card.stats.coins = saved_coins
                     else:
-                        cls_on_play(self_card, gs)
-            finally:
-                state["depth"] -= 1
+                        # Nested side-effect play, OR the targeted card
+                        # being re-entered from inside its own body
+                        # (rare). Either way, run the original on_play
+                        # unchanged; the helpers will see a non-target
+                        # stack top and refuse to swap.
+                        original(self_card, gs)
+                finally:
+                    stack.pop()
+            return wrapped
 
-        Card.on_play = wrapped_on_play  # type: ignore[assignment]
+        # Patch Card.on_play and every subclass that has its own
+        # on_play override. Save originals so we can restore them.
+        patched: list[tuple[type, str, object]] = []
+
+        def patch(cls):
+            original = cls.__dict__["on_play"]
+            patched.append((cls, "on_play", original))
+            cls.on_play = make_wrapper(original)  # type: ignore[assignment]
+
+        patch(Card)
+        for sub in _all_subclasses(Card):
+            if "on_play" in sub.__dict__:
+                patch(sub)
+
         _active_state = state
         card._chameleon_active = True
         try:
-            wrapped_on_play(card, game_state)
+            # Invoke through the patched ``on_play`` resolution so the
+            # most-derived override (Bauble.on_play, Contract.on_play,
+            # ...) runs and the stack is updated correctly.
+            type(card).on_play(card, game_state)
         finally:
-            Card.on_play = original_on_play  # type: ignore[assignment]
+            for cls, attr, original in patched:
+                setattr(cls, attr, original)
             _active_state = prev_state
             card._chameleon_active = False
 
