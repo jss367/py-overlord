@@ -42,6 +42,22 @@ class Squire(Card):
         for name, count in game_state.supply.items():
             if count <= 0:
                 continue
+            # Dark Ages: the "Knights" placeholder isn't directly buyable —
+            # the actual gainable card is the top Knight in pile_order. Use
+            # that top card so Squire can gain a Knight when Knights is the
+            # only Attack pile.
+            if name == "Knights" and "Knights" in game_state.pile_order:
+                pile = game_state.pile_order.get("Knights") or []
+                if not pile:
+                    continue
+                top_name = pile[-1]
+                try:
+                    c = get_card(top_name)
+                except ValueError:
+                    continue
+                if c.is_attack:
+                    candidates.append(c)
+                continue
             try:
                 c = get_card(name)
             except ValueError:
@@ -55,6 +71,20 @@ class Squire(Card):
         choice = player.ai.choose_attack_to_gain_from_squire(
             game_state, player, candidates
         )
-        if choice and game_state.supply.get(choice.name, 0) > 0:
-            game_state.supply[choice.name] -= 1
+        if not choice:
+            return
+
+        # Resolve the supply pile (Knights → "Knights"; otherwise card name).
+        pile_name = "Knights" if choice.is_knight and "Knights" in game_state.pile_order else choice.name
+        if game_state.supply.get(pile_name, 0) <= 0:
+            return
+        if pile_name == "Knights":
+            order = game_state.pile_order.get("Knights") or []
+            if not order:
+                return
+            top_name = order.pop()
+            game_state.supply["Knights"] -= 1
+            game_state.gain_card(player, get_card(top_name))
+        else:
+            game_state.supply[pile_name] -= 1
             game_state.gain_card(player, get_card(choice.name))

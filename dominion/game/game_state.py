@@ -1183,6 +1183,11 @@ class GameState:
                                 {},
                             )
                         )
+                        # Per Enchantress's wording, the card is still PLAYED
+                        # (only its effect is replaced). If it is an Attack,
+                        # any Urchin in play still reacts. Card.on_play was
+                        # not invoked, so fire the reaction explicitly here.
+                        self._fire_urchin_reaction(player, choice)
                     else:
                         choice.on_play(self)
                     if training_pile and choice.name == training_pile:
@@ -1197,16 +1202,13 @@ class GameState:
                         if choice.is_attack:
                             self.prophecy.on_play_attack(self, player, choice)
 
-                    # Dark Ages: Urchin reacts to a freshly played Attack.
-                    if choice.is_attack and choice.name != "Urchin":
-                        for urchin in [
-                            c for c in list(player.in_play)
-                            if c.name == "Urchin" and c is not choice
-                        ]:
-                            try:
-                                urchin.react_to_attack_played(self, player, choice)
-                            except AttributeError:
-                                pass
+                    # Note: Urchin's react_to_attack_played is fired from
+                    # Card.on_play, so it correctly catches Attacks played
+                    # indirectly via Throne Room, King's Court, Procession,
+                    # or Band of Misfits as well. The Enchantress branch
+                    # above does not call on_play, so it triggers Urchin's
+                    # reaction explicitly via _fire_urchin_reaction.
+
                     # Allies hook: any Ally that reacts to plays
                     # (Circle of Witches, League of Shopkeepers,
                     # Fellowship of Scribes).
@@ -1224,6 +1226,27 @@ class GameState:
             self._maybe_inspiring_extra_play(player, choice)
 
         self.phase = "treasure"
+
+    def _fire_urchin_reaction(self, player: PlayerState, attack_card: Card) -> None:
+        """Trigger Urchin's react_to_attack_played for any Urchins this player
+        has in play, when an Attack card is played but Card.on_play did not
+        run (e.g. Enchantress substitutes its effect). Mirrors the trigger in
+        Card.on_play so both code paths agree.
+        """
+        if not attack_card.is_attack or attack_card.name == "Urchin":
+            return
+        urchins = [
+            c for c in list(player.in_play)
+            if c.name == "Urchin" and c is not attack_card
+        ]
+        for urchin in urchins:
+            react = getattr(urchin, "react_to_attack_played", None)
+            if react is None:
+                continue
+            try:
+                react(self, player, attack_card)
+            except AttributeError:
+                pass
 
     def _maybe_inspiring_extra_play(self, player: PlayerState, just_played: Card) -> None:
         if self.pile_traits.get(just_played.name) != "Inspiring":
@@ -1486,11 +1509,14 @@ class GameState:
                     choice.on_overpay(self, player, overpay_amount)
 
                 self._handle_on_buy_in_play_effects(player, choice, gained_card)
-                self._apply_embargo_tokens(player, choice.name)
+                # Embargo / Tax tokens key off the supply pile, which for
+                # Knights is the shared "Knights" pile rather than the
+                # specific Knight (e.g. "Dame Sylvia") that was bought.
+                self._apply_embargo_tokens(player, pile_name)
                 # Dark Ages: Hovel reacts to buying a Victory card.
                 if choice.is_victory:
                     self._handle_hovel_reaction(player)
-                self._apply_tax_tokens(player, choice.name)
+                self._apply_tax_tokens(player, pile_name)
 
                 # Empires Landmarks: react to buys (Basilica, Colonnade, Defiled Shrine).
                 for landmark in self.landmarks:

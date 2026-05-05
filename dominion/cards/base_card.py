@@ -184,6 +184,25 @@ class Card:
         # Let subclasses add additional effects
         self.play_effect(game_state)
 
+        # Dark Ages — Urchin reacts to any Attack played while it is in
+        # play, including Attacks played indirectly via Throne Room,
+        # King's Court, Procession, Band of Misfits, etc. We trigger this
+        # at the end of on_play so every Attack play (no matter how it was
+        # initiated) is observed exactly once.
+        if self.is_attack and self.name != "Urchin":
+            urchins = [
+                c for c in list(player.in_play)
+                if c.name == "Urchin" and c is not self
+            ]
+            for urchin in urchins:
+                react = getattr(urchin, "react_to_attack_played", None)
+                if react is None:
+                    continue
+                try:
+                    react(game_state, player, self)
+                except AttributeError:
+                    pass
+
     def play_effect(self, game_state):
         """Additional effects when card is played. Override in subclasses."""
         pass
