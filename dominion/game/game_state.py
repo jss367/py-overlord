@@ -618,9 +618,12 @@ class GameState:
 
     @property
     def empty_piles(self) -> int:
-        """Return number of empty supply piles, counting split/Wizards piles once."""
+        """Return number of empty supply piles, counting split/Wizards/Castles piles once."""
         from dominion.cards.allies.wizards import WIZARDS_PILE_ORDER, WizardsSplitCard
         from dominion.cards.allies._split_base import AlliesSplitCard
+        from dominion.cards.empires.castles import CASTLE_ORDER
+
+        castle_names = set(CASTLE_ORDER)
 
         counted: set[str] = set()
         empties = 0
@@ -632,6 +635,19 @@ class GameState:
             # piles end condition.
             if name in self.non_supply_pile_names:
                 counted.add(name)
+                continue
+            # Empires Castles: all 8 distinct Castle cards form one supply pile
+            # for game-end purposes. Counting them individually would let
+            # emptying three Castle ranks trip the "three piles depleted"
+            # condition even when Castles as a whole still has cards.
+            if name in castle_names:
+                counted.update(castle_names)
+                if all(
+                    self.supply.get(n, 0) == 0
+                    for n in castle_names
+                    if n in self.supply
+                ):
+                    empties += 1
                 continue
             card = get_card(name)
             if isinstance(card, WizardsSplitCard):
@@ -1151,9 +1167,12 @@ class GameState:
                     ):
                         # Empires Enchantress: opponent's first Action this
                         # turn under Enchantress's duration is replaced with
-                        # "+1 Card, +1 Action".
+                        # "+1 Card, +1 Action". The ``enchantress_active``
+                        # flag stays set until the caster's next turn so
+                        # extra turns (e.g. Outpost) before then are still
+                        # affected; ``enchantress_used_this_turn`` is reset
+                        # at each turn start to re-arm the override.
                         player.enchantress_used_this_turn = True
-                        player.enchantress_active = False
                         self.draw_cards(player, 1)
                         player.actions += 1
                         self.log_callback(
@@ -1557,12 +1576,10 @@ class GameState:
             if hasattr(card, "on_cleanup_return_province"):
                 card.on_cleanup_return_province(player)
 
-        # Empires Donate: resolve any pending Donate buys at end of buy phase.
-        donates = getattr(player, "donate_pending", 0)
-        if donates:
-            for _ in range(donates):
-                self._resolve_donate(player)
-            player.donate_pending = 0
+        # Empires Donate is deferred until AFTER cleanup completes, so the
+        # Donate-drawn hand isn't immediately discarded by the cleanup
+        # discard-and-draw cycle. ``donate_pending`` is consumed in
+        # ``handle_cleanup_phase`` after the new hand has been drawn.
 
         # Renaissance: end-of-buy-phase project triggers (Pageant, Exploration)
         for project in player.projects:
@@ -2012,6 +2029,17 @@ class GameState:
             player.hand.extend(player.hound_set_aside)
             player.hound_set_aside = []
 
+        # Empires Donate: resolved AFTER cleanup's normal discard-and-draw so
+        # the Donate-drawn hand survives into the next turn instead of being
+        # immediately discarded. Per the Empires rules, Donate fires "between
+        # turns": put hand+deck+discard together, trash any, shuffle the rest
+        # into the deck, and draw 5.
+        donates = getattr(player, "donate_pending", 0)
+        if donates:
+            for _ in range(donates):
+                self._resolve_donate(player)
+            player.donate_pending = 0
+
         # Reset resources
         player.actions = 1
         player.buys = 1
@@ -2103,6 +2131,19 @@ class GameState:
         normal_end = (
             self.supply.get("Province", 0) == 0 or self.empty_piles >= 3
         )
+
+        # If the current player is mid-turn (has not yet finished cleanup),
+        # never short-circuit into the Fleet extra round or game-end logic.
+        # The current turn must complete first so end-of-turn / between-turn
+        # effects (Empires Donate, Outpost handoff, duration draws, etc.)
+        # actually resolve. Without this guard, ``is_game_over`` would switch
+        # to a Fleet player's start phase between this player's buy and
+        # cleanup phases, dropping their pending Donate.
+        mid_turn = self.phase != "start" and (
+            normal_end or self.fleet_extra_round_active or self.turn_number > 100
+        )
+        if mid_turn:
+            return False
 
         # Renaissance Fleet: if normal end-game would trigger and any player
         # owns Fleet, grant one extra round to all Fleet owners before the
