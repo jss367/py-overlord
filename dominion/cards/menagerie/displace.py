@@ -42,14 +42,23 @@ class Displace(Card):
         player.hand.remove(choice)
         player.exile.append(choice)
 
-        options = []
+        # Track the supply pile each candidate is drawn from, since ordered
+        # piles (Knights, Ruins) gain via the pile placeholder name even
+        # though the actual gained card is the visible top of the pile.
+        options: list = []
+        pile_for_card: dict[int, str] = {}
         for name, count in game_state.supply.items():
             if count <= 0:
                 continue
-            try:
-                candidate = get_card(name)
-            except ValueError:
-                continue
+            if name in game_state.pile_order:
+                candidate = game_state.top_of_pile(name)
+                if candidate is None:
+                    continue
+            else:
+                try:
+                    candidate = get_card(name)
+                except ValueError:
+                    continue
             if candidate.name == choice.name:
                 continue
             if game_state.get_card_cost(player, candidate) > max_cost:
@@ -59,6 +68,7 @@ class Displace(Card):
             if candidate.cost.debt > max_debt:
                 continue
             options.append(candidate)
+            pile_for_card[id(candidate)] = name
 
         if not options:
             return
@@ -71,9 +81,12 @@ class Displace(Card):
             )
             gain_choice = options[0]
 
-        if game_state.supply.get(gain_choice.name, 0) <= 0:
+        pile_name = pile_for_card.get(id(gain_choice), gain_choice.name)
+        if game_state.supply.get(pile_name, 0) <= 0:
             return
-        game_state.supply[gain_choice.name] -= 1
+        game_state.supply[pile_name] -= 1
+        if pile_name in game_state.pile_order and game_state.pile_order[pile_name]:
+            game_state.pile_order[pile_name].pop()
         game_state.gain_card(player, gain_choice)
 
     @staticmethod

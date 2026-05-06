@@ -221,7 +221,8 @@ def test_fisherman_cost_with_empty_discard():
     player = state.current_player
     player.discard = []
     fish = get_card("Fisherman")
-    assert state.get_card_cost(player, fish) == 4
+    # Empty discard → costs $2 (the $3 discount from card text).
+    assert state.get_card_cost(player, fish) == 2
 
 
 def test_fisherman_full_cost_with_non_empty_discard():

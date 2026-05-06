@@ -6,7 +6,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 class Fisherman(Card):
     """+1 Card, +1 Action, +$1.
 
-    During your turns, this costs $1 less while your discard pile is empty.
+    While your discard pile is empty, this costs $2.
     """
 
     def __init__(self):
@@ -18,6 +18,6 @@ class Fisherman(Card):
         )
 
     def cost_modifier(self, game_state, player) -> int:
-        if game_state.current_player is player and not player.discard:
-            return -1
+        if not player.discard:
+            return -3
         return 0

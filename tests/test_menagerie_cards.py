@@ -345,6 +345,34 @@ def test_displace_rejects_higher_debt_candidates():
     assert state.supply["City Quarter"] == pre_supply
 
 
+def test_displace_resolves_knights_top_card_not_pile_placeholder():
+    """An ordered pile like Knights should expose its top card as the
+    candidate, not the pile placeholder; gaining decrements the pile and
+    pops its order list."""
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    # Silver ($3) → ceiling $5. Knights are $5; the visible top knight
+    # should be a legal Displace target.
+    p1.hand = [get_card("Displace"), get_card("Silver")]
+    state.supply = {"Knights": 10}
+    state.pile_order = dict(getattr(state, "pile_order", {}))
+    # Mimic how Knights piles are normally seeded — top of pile is the last
+    # element of pile_order["Knights"].
+    state.pile_order["Knights"] = ["Dame Anna", "Dame Josephine"]
+    pre_supply = state.supply["Knights"]
+    pre_order_len = len(state.pile_order["Knights"])
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Silver" for c in p1.exile)
+    assert state.supply["Knights"] == pre_supply - 1
+    assert len(state.pile_order["Knights"]) == pre_order_len - 1
+    # The placeholder pile name "Knights" must NOT appear in the player's
+    # cards (it isn't a real, instantiable card).
+    assert not any(
+        c.name == "Knights" for c in p1.discard + p1.deck + p1.hand
+    )
+
+
 def test_displace_uses_effective_cost_for_candidates():
     """Cost-reducing cards in play (e.g. Bridge) must lower a candidate's
     effective cost, allowing a Province-cost gain when discounted."""
