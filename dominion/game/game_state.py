@@ -42,6 +42,8 @@ class GameState:
     embargo_tokens: dict[str, int] = field(default_factory=dict)
     # Empires Tax: pile_name -> debt tokens currently on the pile.
     tax_tokens: dict[str, int] = field(default_factory=dict)
+    # Adventures: per-pile-per-player tokens, keyed by (player_index, pile_name).
+    pile_tokens: dict[tuple, set] = field(default_factory=dict)
 
     # Dark Ages: ordered piles where the top card matters (Ruins, Knights).
     # ``pile_order[name]`` is a list of card-name strings; the top of the pile
@@ -817,6 +819,42 @@ class GameState:
             for c in turtle_set_aside:
                 self.current_player.in_play.append(c)
                 c.on_play(self)
+        # Adventures Save: cards set aside last turn return to hand.
+        if self.current_player.save_set_aside:
+            self.current_player.hand.extend(self.current_player.save_set_aside)
+            self.current_player.save_set_aside = []
+
+        # Adventures: reset once-per-turn caps for events.
+        self.current_player.borrow_used_this_turn = False
+        self.current_player.alms_used_this_turn = False
+        self.current_player.pilgrimage_used_this_turn = False
+        self.current_player.travelling_fair_active = False
+        # Adventures Mission: if the player bought Mission last turn, the
+        # turn that's just starting IS the granted extra turn — apply the
+        # "no buys" restriction now. Setting it here (rather than in
+        # Mission.on_buy) ensures the player can finish buying on the turn
+        # they bought Mission. The flag is cleared at the end of this extra
+        # turn during cleanup (see ``handle_cleanup_phase``).
+        if getattr(self.current_player, "mission_extra_turn_pending", False):
+            self.current_player.mission_no_buy_turn = True
+            self.current_player.mission_extra_turn_pending = False
+        self.current_player.mission_used_this_turn = False
+        # NOTE: Haunted Woods / Swamp Hag attack counters are NOT cleared
+        # here. The card text says "Until your next turn ..." — the
+        # penalty must apply *during* the victim's next turn (including
+        # their buy phase). The counters are cleared at end-of-turn cleanup
+        # for the victim instead (see ``handle_cleanup_phase``).
+
+        # Adventures Hireling: while in play, +1 Card at start of each turn.
+        hireling_count = sum(
+            1 for c in self.current_player.duration if c.name == "Hireling"
+        )
+        if hireling_count:
+            self.draw_cards(self.current_player, hireling_count)
+
+        # Adventures: dispatch start-of-turn tavern triggers (Guide,
+        # Ratcatcher, Transmogrify, Teacher).
+        self._call_tavern_triggers(self.current_player, "start_of_turn")
 
         # Resolve project effects that occur at the start of the turn
         for project in self.current_player.projects:
@@ -1043,6 +1081,14 @@ class GameState:
 
         while True:
             action_cards = [card for card in player.hand if card.is_action]
+            # Adventures Inheritance: each Estate in hand can be played as the
+            # inherited Action card.
+            inherited = getattr(player, "inherited_action_name", None)
+            if inherited:
+                action_cards += [
+                    card for card in player.hand
+                    if card.name == "Estate"
+                ]
             # Rising Sun: Enlightenment turns Treasures into Actions for all
             # purposes — they can be played from your hand in the Action phase.
             if enlightened:
@@ -1188,6 +1234,16 @@ class GameState:
                         # any Urchin in play still reacts. Card.on_play was
                         # not invoked, so fire the reaction explicitly here.
                         self._fire_urchin_reaction(player, choice)
+                    elif (
+                        choice.name == "Estate"
+                        and getattr(player, "inherited_action_name", None)
+                    ):
+                        # Adventures Inheritance: the Estate plays as the
+                        # inherited Action card. Resolve the inherited card's
+                        # effect *through* the Estate instance so any Reserve
+                        # / Duration / Tavern logic operates on the Estate
+                        # itself, not on a phantom new instance.
+                        self._play_inherited_estate(player, choice)
                     else:
                         choice.on_play(self)
                     if training_pile and choice.name == training_pile:
@@ -1195,6 +1251,13 @@ class GameState:
 
                     # Menagerie: Kiln — next card played, gain a copy of it.
                     self._maybe_kiln_gain(player, choice)
+                    # NOTE: Adventures pile-token bonuses (+1 Card / +1 Action
+                    # / +1 Buy / +$1) and Champion's "+1 Action per Action
+                    # play" are now applied inside ``Card.on_play`` so they
+                    # fire on EVERY play of the card (Throne Room, King's
+                    # Court, Procession, Crown, Captain, Imp, Conclave,
+                    # Vassal, Band of Misfits, etc.) — not just here in the
+                    # main action-phase loop.
 
                     # Rising Sun: Prophecy hooks fire after each play
                     if self.prophecy is not None and self.prophecy.is_active:
@@ -1213,6 +1276,10 @@ class GameState:
                     # (Circle of Witches, League of Shopkeepers,
                     # Fellowship of Scribes).
                     self.fire_ally_play_hooks(player, choice)
+
+                    # Adventures: Tavern triggers — Coin of the Realm and
+                    # Royal Carriage may call themselves after an Action play.
+                    self._call_tavern_triggers(player, "action_played", choice)
 
             # Harbor Village bonus: +$1 if the action gave +$
             if harbor_pending > 0 and choice.name != "Harbor Village":
@@ -1525,6 +1592,19 @@ class GameState:
                 # Plunder Nearby trait: +1 Buy when buying from Nearby pile.
                 if self.pile_traits.get(choice.name) == "Nearby":
                     player.buys += 1
+                # Adventures: opponents under Haunted Woods / Swamp Hag suffer
+                # on each buy.
+                self._apply_adventures_attack_on_buy(player, choice)
+                # Adventures Plan: when buying from a piled-with-trash-token
+                # pile, may trash a card from hand.
+                if choice.name in getattr(player, "plan_trash_piles", set()) and player.hand:
+                    trashable = list(player.hand)
+                    selected = player.ai.choose_card_to_trash(self, trashable + [None])
+                    if selected and selected in player.hand:
+                        player.hand.remove(selected)
+                        self.trash_card(player, selected)
+                # Adventures: Tavern dispatch on buy.
+                self._call_tavern_triggers(player, "buy", choice)
 
                 if player.goons_played:
                     player.vp_tokens += player.goons_played
@@ -1671,12 +1751,32 @@ class GameState:
         if tokens:
             cost -= tokens
 
+        # Adventures Ferry: -$2 cost token on a pile makes that pile cost $2
+        # less for the token's owner.
+        if self.has_pile_token(player, card.name, "-$2 cost"):
+            cost -= 2
+
+        # Adventures Bridge Troll: while in play, all cards cost $1 less for
+        # ALL players (the effect is global until the owner's next turn
+        # cleanup). Scan every player's in_play and duration zones.
+        bt_count = 0
+        for tracker in self.players:
+            bt_count += sum(1 for c in tracker.duration if c.name == "Bridge Troll")
+            bt_count += sum(1 for c in tracker.in_play if c.name == "Bridge Troll")
+        if bt_count:
+            cost -= bt_count
+
         return max(0, cost)
 
     def _get_affordable_cards(self, player):
         """Helper to get list of affordable cards, events and projects."""
 
         if player.debt > 0:
+            return []
+
+        # Adventures Mission: on the extra turn granted by Mission, the player
+        # cannot buy cards.
+        if getattr(player, "mission_no_buy_turn", False):
             return []
 
         affordable = []
@@ -1847,6 +1947,9 @@ class GameState:
             if hook is not None:
                 hook(self, player)
 
+        # Adventures: tavern dispatch at cleanup-start (Wine Merchant).
+        self._call_tavern_triggers(player, "cleanup_start")
+
         # Discard hand and in-play cards
         scheme_count = sum(1 for card in player.in_play if card.name == "Scheme")
         if scheme_count:
@@ -2004,6 +2107,24 @@ class GameState:
                     self.log_callback(
                         ("action", player.ai.name, "gains 6 Debt from Capital", context)
                     )
+                # Adventures Traveller exchange: when a Traveller is discarded
+                # from play, the player may exchange it for the next card in
+                # the chain (Page → Treasure Hunter → ... → Champion).
+                if (
+                    getattr(card, "is_traveller", False)
+                    and getattr(card, "next_traveller", None)
+                    and player.ai.should_exchange_traveller(self, player, card)
+                ):
+                    next_name = card.next_traveller
+                    if self.supply.get(next_name, 0) > 0:
+                        self.supply[next_name] -= 1
+                        replacement = get_card(next_name)
+                        # Return the original to its pile (per Traveller rules).
+                        self.supply[card.name] = self.supply.get(card.name, 0) + 1
+                        # Discard the replacement (Travellers go to discard
+                        # like a normal gain after exchange).
+                        self.gain_card(player, replacement, from_supply=False)
+                        continue
                 # Tireless trait: set aside instead of discarding
                 if card.name in self.tireless_piles:
                     tireless_set_aside.append(card)
@@ -2036,6 +2157,17 @@ class GameState:
         if bonus:
             cards_to_draw += bonus
             player.order_of_masons_bonus = 0
+
+        # Adventures Expedition: +2 cards at end-of-turn redraw.
+        cards_to_draw += getattr(player, "expedition_extra_draws", 0)
+        player.expedition_extra_draws = 0
+
+        # Adventures: -1 Card tokens (Borrow, Relic, Bridge Troll). Each token
+        # removes one card from the next end-of-turn draw and is then removed.
+        minus_tokens = getattr(player, "minus_card_tokens", 0)
+        if minus_tokens > 0:
+            cards_to_draw = max(0, cards_to_draw - minus_tokens)
+            player.minus_card_tokens = 0
 
         # Draw new hand
         player.draw_cards(cards_to_draw)
@@ -2071,6 +2203,14 @@ class GameState:
         player.buys = 1
         player.coins = 0
         player.potions = 0
+        # Adventures: clear Mission no-buy flag at end of the bonus turn.
+        player.mission_no_buy_turn = False
+        # Adventures Haunted Woods / Swamp Hag: the attack lingers "until
+        # your next turn" — i.e. through the victim's whole next turn. We
+        # clear at end-of-turn cleanup so it expires AFTER the victim
+        # finishes their turn (and before the attacker's following turn).
+        player.haunted_woods_attacks = 0
+        player.swamp_hag_attacks = 0
         player.ignore_action_bonuses = False
         player.collection_played = 0
         player.goons_played = 0
@@ -2619,6 +2759,21 @@ class GameState:
 
         # Plunder Mining Road: first Treasure gained → gain a Treasure to hand.
         self._handle_mining_road_gain(player, actual_card)
+        # Adventures: Tavern triggers — Duplicate may be called when a card is
+        # gained costing up to $6.
+        self._call_tavern_triggers(player, "gain", actual_card)
+
+        # Adventures Travelling Fair: optionally topdeck this gain.
+        if (
+            getattr(player, "travelling_fair_active", False)
+            and self.phase == "buy"
+            and player is self.current_player
+            and not destination_is_deck
+        ):
+            if player.ai.should_topdeck_with_travelling_fair(self, player, actual_card):
+                if actual_card in player.discard:
+                    player.discard.remove(actual_card)
+                    player.deck.append(actual_card)
 
         # Plunder Deliver event: set aside the next gain to return to hand
         # at the start of the next turn. The pending count is always
@@ -3329,6 +3484,10 @@ class GameState:
         if any(card.name == "Guardian" for card in player.duration):
             self.log_callback(("action", player.ai.name, "is protected by Guardian", {}))
             return True
+        # Adventures: Champion in play (in duration) makes its owner immune to
+        # opposing Attacks.
+        if any(card.name == "Champion" for card in player.duration):
+            return True
 
         # Generic Reaction-card dispatch: any Reaction card in hand may
         # provide a `react_to_attack` override that returns True to block.
@@ -3603,6 +3762,22 @@ class GameState:
                 self.supply["Will-o'-Wisp"] = wisp.starting_supply(self)
             except ValueError:
                 pass
+    def _apply_adventures_attack_on_buy(
+        self, buyer: PlayerState, bought_card: Card
+    ) -> None:
+        """Adventures Haunted Woods / Swamp Hag triggers on opponent buys."""
+        if getattr(buyer, "haunted_woods_attacks", 0) > 0 and buyer.hand:
+            ordered = buyer.ai.order_cards_for_topdeck(
+                self, buyer, list(buyer.hand)
+            )
+            buyer.hand = []
+            for card in ordered:
+                buyer.deck.append(card)
+        if getattr(buyer, "swamp_hag_attacks", 0) > 0:
+            for _ in range(buyer.swamp_hag_attacks):
+                if self.supply.get("Curse", 0) <= 0:
+                    break
+                self.give_curse_to_player(buyer)
 
     def _apply_embargo_tokens(self, buyer: PlayerState, card_name: str) -> None:
         """Give the buyer a Curse for each Embargo token on the bought pile."""
@@ -3646,3 +3821,166 @@ class GameState:
         for player in self.players:
             vp = player.get_victory_points(self)
             self.logger.current_metrics.victory_points[player.ai.name] = vp
+
+    # ------------------------------------------------------------------
+    # Adventures: Tavern mat / Reserve helpers
+    # ------------------------------------------------------------------
+
+    def set_aside_on_tavern(self, player: PlayerState, card: Card) -> None:
+        """Move ``card`` from in_play to ``player.tavern_mat`` after on_play.
+
+        The Reserve cards' ``play_effect`` should call this AFTER doing
+        any "when you play this" effects — the card is removed from in_play
+        and stored on the mat to be called later.
+        """
+        if card in player.in_play:
+            player.in_play.remove(card)
+        player.tavern_mat.append(card)
+
+    def call_from_tavern(self, player: PlayerState, card: Card) -> None:
+        """Move ``card`` from the tavern mat to discard (the call has resolved)."""
+        if card in player.tavern_mat:
+            player.tavern_mat.remove(card)
+            player.discard.append(card)
+
+    def _call_tavern_triggers(
+        self,
+        player: PlayerState,
+        trigger: str,
+        *args,
+        **kwargs,
+    ) -> None:
+        """Iterate the player's Tavern mat and offer each Reserve card the
+        chance to be called for the given trigger."""
+        if not player.tavern_mat:
+            return
+        # Snapshot — calls remove cards from the mat.
+        for card in list(player.tavern_mat):
+            if card not in player.tavern_mat:
+                continue
+            try:
+                card.on_call_from_tavern(self, player, trigger, *args, **kwargs)
+            except TypeError:
+                # Backwards-compat for cards without the *args signature.
+                card.on_call_from_tavern(self, player, trigger)
+
+    def _play_inherited_estate(self, player: PlayerState, estate: Card) -> None:
+        """Resolve Inheritance: an Estate plays as the inherited Action card.
+
+        We resolve the inherited card's effect *through the Estate instance*,
+        so any Reserve / Duration / Tavern interactions operate on the Estate
+        (which is already in ``player.in_play``) rather than on a freshly
+        instantiated phantom card. This avoids leaking phantom Guides /
+        Ratcatchers / Gears onto the Tavern mat or the duration zone.
+
+        Implementation: bind the inherited class's ``on_play`` to the Estate
+        instance so ``self`` inside the effect refers to the Estate. The
+        inherited card's stats (cards/actions/coins/buys) are also applied to
+        the player via the inherited class's ``on_play``.
+        """
+        inherited_name = getattr(player, "inherited_action_name", None)
+        if not inherited_name:
+            return
+        inherited_card = get_card(inherited_name)
+        inherited_cls = inherited_card.__class__
+        # Snapshot Estate's normal attributes that may be overlaid by the
+        # inherited card during this single play.
+        original_stats = estate.stats
+        original_play_effect = estate.play_effect
+        original_on_duration = getattr(estate, "on_duration", None)
+        try:
+            # Inherit the inherited card's stats so the base Card.on_play
+            # applies the +Cards/+Actions/+Coins/+Buys correctly to the
+            # Estate-as-inherited-card.
+            estate.stats = inherited_card.stats
+            # Bind the inherited class's play_effect to the Estate instance.
+            # ``self`` inside the inherited effect now refers to the Estate.
+            estate.play_effect = inherited_cls.play_effect.__get__(
+                estate, type(estate)
+            )
+            # Also bind on_duration so a Duration-inherited card resolves its
+            # next-turn effect through the Estate at start-of-next-turn.
+            if hasattr(inherited_cls, "on_duration"):
+                estate.on_duration = inherited_cls.on_duration.__get__(
+                    estate, type(estate)
+                )
+            estate.on_play(self)
+        finally:
+            estate.stats = original_stats
+            estate.play_effect = original_play_effect
+            if original_on_duration is not None:
+                estate.on_duration = original_on_duration
+
+    # ------------------------------------------------------------------
+    # Adventures: Pile tokens (Lost Arts / Training / Pathfinding / Seaway /
+    # Ferry / Plan etc.)
+    # ------------------------------------------------------------------
+
+    def add_pile_token(
+        self, player: PlayerState, pile_name: str, token_kind: str
+    ) -> None:
+        """Place ``token_kind`` on ``pile_name`` for ``player``."""
+        idx = self.players.index(player)
+        key = (idx, pile_name)
+        self.pile_tokens.setdefault(key, set()).add(token_kind)
+
+    def remove_pile_token(
+        self, player: PlayerState, pile_name: str, token_kind: str
+    ) -> None:
+        idx = self.players.index(player)
+        key = (idx, pile_name)
+        if key in self.pile_tokens and token_kind in self.pile_tokens[key]:
+            self.pile_tokens[key].discard(token_kind)
+            if not self.pile_tokens[key]:
+                del self.pile_tokens[key]
+
+    def has_pile_token(
+        self, player: PlayerState, pile_name: str, token_kind: str
+    ) -> bool:
+        idx = self.players.index(player)
+        return token_kind in self.pile_tokens.get((idx, pile_name), set())
+
+    def player_token_pile(
+        self, player: PlayerState, token_kind: str
+    ) -> "str | None":
+        """Return the pile name where ``player`` has placed ``token_kind``, if any."""
+        idx = self.players.index(player)
+        for (p_idx, pile), tokens in self.pile_tokens.items():
+            if p_idx == idx and token_kind in tokens:
+                return pile
+        return None
+
+    def move_player_token(
+        self, player: PlayerState, token_kind: str, new_pile: str
+    ) -> None:
+        """Move ``player``'s ``token_kind`` to ``new_pile`` (Adventures: each
+        player has only one of each token, so placing it removes any prior
+        placement).
+        """
+        existing = self.player_token_pile(player, token_kind)
+        if existing == new_pile:
+            return
+        if existing is not None:
+            self.remove_pile_token(player, existing, token_kind)
+        self.add_pile_token(player, new_pile, token_kind)
+
+    def _apply_pile_token_play_bonuses(
+        self, player: PlayerState, card: Card
+    ) -> None:
+        """Apply the Adventures token bonuses when ``card`` is played.
+
+        Tokens "+1 Card", "+1 Action", "+1 Buy", and "+$1" provide the matching
+        bonus when their pile's card is played.
+        """
+        idx = self.players.index(player)
+        tokens = self.pile_tokens.get((idx, card.name))
+        if not tokens:
+            return
+        if "+1 Action" in tokens:
+            player.actions += 1
+        if "+1 Buy" in tokens:
+            player.buys += 1
+        if "+$1" in tokens:
+            player.coins += 1
+        if "+1 Card" in tokens:
+            self.draw_cards(player, 1)

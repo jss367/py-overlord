@@ -677,13 +677,12 @@ class AI(ABC):
         self, state: GameState, player: PlayerState
     ) -> bool:
         """Decide whether to discard the deck when playing Messenger."""
+        return False
 
     def should_topdeck_with_insignia(
         self, state: GameState, player: PlayerState, gained_card: Card
     ) -> bool:
         """Decide whether to topdeck a card gained while Insignia is active."""
-
-
         return False
 
     def order_cards_for_topdeck(
@@ -1862,6 +1861,258 @@ class AI(ABC):
         if card.is_victory and not card.is_action:
             return "discard"
         return "topdeck"
+
+    # ------------------------------------------------------------------
+    # Adventures hooks
+    # ------------------------------------------------------------------
+
+    def should_call_from_tavern(
+        self, state: GameState, player: PlayerState, card: Card, trigger: str, *args
+    ) -> bool:
+        """Decide whether to call ``card`` off the Tavern mat for a trigger.
+
+        Each Reserve card override decides which trigger applies to it; this
+        hook lets AIs opt out (e.g. save Coin of the Realm for a bigger turn).
+        Default: always call when offered — Reserve effects are always at
+        least neutral.
+        """
+        return True
+
+    def should_exchange_traveller(
+        self, state: GameState, player: PlayerState, card: Card
+    ) -> bool:
+        """Decide whether to exchange a Traveller for the next in its chain."""
+        return True
+
+    def choose_traveller_exchange(
+        self, state: GameState, player: PlayerState, card: Card
+    ) -> bool:
+        """Same as above; alias used by some pathways."""
+        return self.should_exchange_traveller(state, player, card)
+
+    def should_topdeck_with_travelling_fair(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """Topdeck a gain through Travelling Fair? Default: yes for valuable
+        cards (Action / Treasure costing $3+)."""
+        if gained_card.name in {"Curse", "Copper", "Ruins"}:
+            return False
+        if gained_card.is_action or gained_card.is_treasure:
+            return gained_card.cost.coins >= 3
+        return False
+
+    def choose_pile_for_token(
+        self, state: GameState, player: PlayerState, token_kind: str
+    ) -> "str | None":
+        """Pick an Action Supply pile to place the given token on."""
+        from ..cards.registry import get_card
+
+        candidates: list[tuple[int, str]] = []
+        for name, count in state.supply.items():
+            if count <= 0:
+                continue
+            try:
+                card = get_card(name)
+            except ValueError:
+                continue
+            if not card.is_action:
+                continue
+            # Don't replace own existing token on the same pile.
+            if state.has_pile_token(player, name, token_kind):
+                continue
+            score = player.count_in_deck(name) * 10 + card.cost.coins
+            candidates.append((score, name))
+        if not candidates:
+            return None
+        candidates.sort(reverse=True)
+        return candidates[0][1]
+
+    def choose_quest_mode(
+        self, state: GameState, player: PlayerState, options: list[str]
+    ) -> "str | None":
+        """Pick which Quest cost to pay (attack / two_curses / six_cards)."""
+        if "attack" in options:
+            return "attack"
+        if "two_curses" in options:
+            return "two_curses"
+        if "six_cards" in options:
+            return "six_cards"
+        return None
+
+    def choose_card_to_save(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Pick a card from hand to set aside for the Save event.
+
+        Default: prefer to save the most expensive Action so it survives
+        the cleanup discard.
+        """
+        if not choices:
+            return None
+        actions = [c for c in choices if c.is_action]
+        if actions:
+            return max(actions, key=lambda c: (c.cost.coins, c.name))
+        treasures = [c for c in choices if c.is_treasure and c.name != "Copper"]
+        if treasures:
+            return max(treasures, key=lambda c: (c.cost.coins, c.name))
+        # Fallback: save anything (better than nothing).
+        return max(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_card_to_inherit(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Pick which non-Victory Action ($0-$4) to set aside via Inheritance."""
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+
+    def choose_card_to_raze(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Pick a card to trash with Raze."""
+        if not choices:
+            return None
+        # Prefer trashing junk first for thinning.
+        priorities = ["Curse", "Estate", "Copper"]
+        for name in priorities:
+            for c in choices:
+                if c.name == name:
+                    return c
+        return min(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_card_to_keep_from_raze(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Among the cards Raze peeked, choose one to add to hand."""
+        if not choices:
+            return None
+        actions = [c for c in choices if c.is_action]
+        if actions:
+            return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+        treasures = [c for c in choices if c.is_treasure and c.name != "Copper"]
+        if treasures:
+            return max(treasures, key=lambda c: (c.cost.coins, c.name))
+        return max(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_amulet_mode(
+        self, state: GameState, player: PlayerState, options: list[str]
+    ) -> str:
+        """Pick Amulet's mode: 'coin', 'trash', or 'silver'."""
+        # Priority: trash junk if available, else coin, else silver.
+        if "trash" in options:
+            for c in player.hand:
+                if c.name in {"Curse", "Estate", "Copper"}:
+                    return "trash"
+        if "coin" in options:
+            return "coin"
+        if "silver" in options:
+            return "silver"
+        return options[0]
+
+    def choose_gear_set_aside(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> list[Card]:
+        """Pick up to 2 cards to set aside with Gear, returned next turn.
+
+        Default: set aside Action cards that won't be useful this turn (extras),
+        or low-value cards we'd rather draw next turn.
+        """
+        actions = [c for c in choices if c.is_action]
+        if len(actions) >= 2 and player.actions <= 0:
+            return actions[:2]
+        # Default: don't set aside aggressively; just pick any 2 spare cards
+        # so the set-aside pile isn't empty for tests.
+        return choices[:2]
+
+    def choose_gain_for_alms(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Pick a card to gain via Alms ($0-$4)."""
+        if not choices:
+            return None
+        actions = [c for c in choices if c.is_action]
+        if actions:
+            return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+        return max(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_gain_for_ball(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Pick one of two Ball gains ($0-$4)."""
+        return self.choose_gain_for_alms(state, player, choices)
+
+    def choose_gain_for_bargain(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        return self.choose_gain_for_alms(state, player, choices)
+
+    def choose_gain_for_seaway(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Pick which $0-$4 Action to gain (and place +1 Buy token on its pile)."""
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+
+    def choose_treasures_to_play_for_storyteller(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> list[Card]:
+        """Pick up to 3 Treasures to play with Storyteller."""
+        ordered = sorted(choices, key=lambda c: (c.stats.coins, c.cost.coins), reverse=True)
+        return ordered[:3]
+
+    def choose_card_to_transmogrify(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Pick a card to trash for Transmogrify."""
+        priorities = ["Curse", "Estate", "Copper"]
+        for name in priorities:
+            for c in choices:
+                if c.name == name:
+                    return c
+        if not choices:
+            return None
+        return min(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_gain_for_transmogrify(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.is_action, c.name))
+
+    def choose_disciple_action_to_replay(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+
+    def choose_treasure_for_hero(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_card_to_set_aside_for_ratcatcher(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        priorities = ["Curse", "Estate", "Copper"]
+        for name in priorities:
+            for c in choices:
+                if c.name == name:
+                    return c
+        return None
+
+    def choose_teacher_token(
+        self, state: GameState, player: PlayerState, options: list[str]
+    ) -> str:
+        """Teacher: pick which token to place when called."""
+        for kind in ("+1 Card", "+1 Action", "+$1", "+1 Buy"):
+            if kind in options:
+                return kind
+        return options[0] if options else "+1 Card"
 
     def choose_herald_overpay_topdeck(
         self,

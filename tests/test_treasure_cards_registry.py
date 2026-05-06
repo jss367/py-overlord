@@ -90,6 +90,10 @@ EXPECTED_TREASURE_CARDS = {
     "Tools",
     "Bauble",
     "Contract",
+    # Adventures
+    "Coin of the Realm",
+    "Relic",
+    "Treasure Trove",
 }
 
 MULTI_TYPE_TREASURES = {
@@ -125,6 +129,8 @@ MULTI_TYPE_TREASURES = {
     "Stowaway": {CardType.TREASURE, CardType.DURATION, CardType.REACTION},
     "Bauble": {CardType.TREASURE, CardType.LIAISON},
     "Contract": {CardType.TREASURE, CardType.DURATION, CardType.LIAISON},
+    "Coin of the Realm": {CardType.TREASURE, CardType.RESERVE},
+    "Relic": {CardType.TREASURE, CardType.ATTACK},
 }
 
 

@@ -71,6 +71,27 @@ from .plunder_events import (
     Rush,
     Scrounge,
 )
+from .adventures_events import (
+    Alms,
+    Ball,
+    Bonfire,
+    Borrow,
+    Expedition,
+    Ferry,
+    Inheritance,
+    LostArts,
+    Mission,
+    Pathfinding,
+    Pilgrimage,
+    Plan,
+    Quest,
+    Raid,
+    Save,
+    ScoutingParty,
+    Seaway,
+    Trade,
+    TravellingFair,
+)
 
 EVENT_TYPES: dict[str, Type[Event]] = {
     "Gain Silver": GainSilver,
@@ -136,6 +157,26 @@ EVENT_TYPES: dict[str, Type[Event]] = {
     "Prosper": Prosper,
     "Rush": Rush,
     "Scrounge": Scrounge,
+    # Adventures
+    "Alms": Alms,
+    "Ball": Ball,
+    "Bonfire": Bonfire,
+    "Borrow": Borrow,
+    "Expedition": Expedition,
+    "Ferry": Ferry,
+    "Inheritance": Inheritance,
+    "Lost Arts": LostArts,
+    "Mission": Mission,
+    "Pathfinding": Pathfinding,
+    "Pilgrimage": Pilgrimage,
+    "Plan": Plan,
+    "Quest": Quest,
+    "Raid": Raid,
+    "Save": Save,
+    "Scouting Party": ScoutingParty,
+    "Seaway": Seaway,
+    "Trade": Trade,
+    "Travelling Fair": TravellingFair,
 }
 
 
