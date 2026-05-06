@@ -285,6 +285,116 @@ def test_sheepdog_off_turn_reacts_for_owner():
     assert len(p1.hand) == p1_hand_before
 
 
+def test_displace_exiles_and_gains_upgraded_card():
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    p1.hand = [get_card("Displace"), get_card("Estate")]
+    state.supply["Duchy"] = state.supply.get("Duchy", 8)
+    pre_exile = list(p1.exile)
+    state.phase = "action"
+    state.handle_action_phase()
+    # Estate (cost 2) exiled; nothing else moved through exile mat.
+    assert any(c.name == "Estate" for c in p1.exile)
+    assert len(p1.exile) == len(pre_exile) + 1
+    # A non-Estate replacement card costing up to $4 was gained.
+    new_cards = p1.discard + p1.deck
+    assert any(
+        c.name != "Estate" and c.cost.coins <= 4 for c in new_cards
+    )
+
+
+def test_displace_does_not_gain_same_named_card():
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    p1.hand = [get_card("Displace"), get_card("Copper")]
+    # Restrict supply to only Copper (cost 0) → no differently named affordable
+    # card exists, so nothing should be gained.
+    state.supply = {"Copper": 40}
+    pre_supply = state.supply["Copper"]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Copper" for c in p1.exile)
+    # Supply Copper count unchanged — no Copper was gained as replacement.
+    assert state.supply["Copper"] == pre_supply
+
+
+def test_displace_can_gain_duration_card():
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    # Silver (cost $3) → ceiling $5. Wharf is $5 Duration, gainable.
+    p1.hand = [get_card("Displace"), get_card("Silver")]
+    state.supply = {"Wharf": 10}
+    pre_supply = state.supply["Wharf"]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Silver" for c in p1.exile)
+    assert state.supply["Wharf"] == pre_supply - 1
+
+
+def test_displace_rejects_higher_debt_candidates():
+    """Exiling an Estate (0 debt) must not allow gaining a card with debt
+    cost (e.g. City Quarter at $0 + 8 debt), even if its coin cost fits."""
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    p1.hand = [get_card("Displace"), get_card("Estate")]
+    state.supply = {"City Quarter": 10}
+    pre_supply = state.supply["City Quarter"]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Estate" for c in p1.exile)
+    assert state.supply["City Quarter"] == pre_supply
+
+
+def test_displace_resolves_knights_top_card_not_pile_placeholder():
+    """An ordered pile like Knights should expose its top card as the
+    candidate, not the pile placeholder; gaining decrements the pile and
+    pops its order list."""
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    # Silver ($3) → ceiling $5. Knights are $5; the visible top knight
+    # should be a legal Displace target.
+    p1.hand = [get_card("Displace"), get_card("Silver")]
+    state.supply = {"Knights": 10}
+    state.pile_order = dict(getattr(state, "pile_order", {}))
+    # Mimic how Knights piles are normally seeded — top of pile is the last
+    # element of pile_order["Knights"].
+    state.pile_order["Knights"] = ["Dame Anna", "Dame Josephine"]
+    pre_supply = state.supply["Knights"]
+    pre_order_len = len(state.pile_order["Knights"])
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Silver" for c in p1.exile)
+    assert state.supply["Knights"] == pre_supply - 1
+    assert len(state.pile_order["Knights"]) == pre_order_len - 1
+    # The placeholder pile name "Knights" must NOT appear in the player's
+    # cards (it isn't a real, instantiable card).
+    assert not any(
+        c.name == "Knights" for c in p1.discard + p1.deck + p1.hand
+    )
+
+
+def test_displace_uses_effective_cost_for_candidates():
+    """Cost-reducing cards in play (e.g. Bridge) must lower a candidate's
+    effective cost, allowing a Province-cost gain when discounted."""
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    # Bridge in play reduces every card's cost by $1.
+    p1.in_play.append(get_card("Bridge"))
+    p1.hand = [get_card("Displace"), get_card("Silver")]  # Silver costs $3
+    # Supply contains Gold ($6, but $5 with Bridge). Silver's effective cost
+    # is $2; ceiling = $4. Without the Bridge fix, Gold (printed $6) is
+    # rejected; with the fix, Gold ($5 effective) is still > $4, so still
+    # rejected. Use Province ($8 → $7) — also rejected. Use Duchy ($5 → $4)
+    # which should now be gainable.
+    state.supply = {"Duchy": 8}
+    pre_supply = state.supply["Duchy"]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Silver" for c in p1.exile)
+    # Duchy is now gainable because Bridge brings its effective cost to $4.
+    assert state.supply["Duchy"] == pre_supply - 1
+
+
 def test_kiln_consumes_trigger_when_pile_empty():
     """If the next-played card has no supply pile to copy from, Kiln still
     consumes its pending charge so it cannot carry over to a later card."""

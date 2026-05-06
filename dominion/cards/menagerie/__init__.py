@@ -9,6 +9,7 @@ from .cardinal import Cardinal
 from .cavalry import Cavalry
 from .coven import Coven
 from .destrier import Destrier
+from .displace import Displace
 from .falconer import Falconer
 from .gatekeeper import Gatekeeper
 from .goatherd import Goatherd
@@ -39,6 +40,7 @@ __all__ = [
     "Cavalry",
     "Coven",
     "Destrier",
+    "Displace",
     "Falconer",
     "Gatekeeper",
     "Goatherd",

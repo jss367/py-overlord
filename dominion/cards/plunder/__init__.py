@@ -22,6 +22,7 @@ from .flagship import Flagship
 from .trickster import Trickster
 from .highwayman import Highwayman
 from .astrolabe import Astrolabe
+from .fisherman import Fisherman
 from .pickaxe import Pickaxe
 from .harbor_village import HarborVillage
 from .kingdom_cards import (
@@ -81,6 +82,7 @@ __all__ = [
     'Highwayman',
     'LOOT_CARD_NAMES',
     'Astrolabe',
+    'Fisherman',
     'Pickaxe',
     'HarborVillage',
     'Abundance',

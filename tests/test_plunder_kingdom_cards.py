@@ -204,6 +204,35 @@ def test_swamp_shacks_gives_basics_and_attacks():
     assert len(foe.hand) == pre_foe_hand - 1
 
 
+def test_fisherman_basic_play():
+    state = _make_state()
+    player = state.current_player
+    pre_coins = player.coins
+    pre_actions = player.actions
+    fish = get_card("Fisherman")
+    fish.on_play(state)
+    # +1 Card draws, +1 Action, +$1.
+    assert player.coins == pre_coins + 1
+    assert player.actions == pre_actions + 1
+
+
+def test_fisherman_cost_with_empty_discard():
+    state = _make_state()
+    player = state.current_player
+    player.discard = []
+    fish = get_card("Fisherman")
+    # Empty discard → costs $2 (the $3 discount from card text).
+    assert state.get_card_cost(player, fish) == 2
+
+
+def test_fisherman_full_cost_with_non_empty_discard():
+    state = _make_state()
+    player = state.current_player
+    player.discard = [get_card("Copper")]
+    fish = get_card("Fisherman")
+    assert state.get_card_cost(player, fish) == 5
+
+
 def test_maroon_draws_per_type():
     state = _make_state()
     player = state.current_player
