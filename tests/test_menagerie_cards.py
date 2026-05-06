@@ -285,6 +285,53 @@ def test_sheepdog_off_turn_reacts_for_owner():
     assert len(p1.hand) == p1_hand_before
 
 
+def test_displace_exiles_and_gains_upgraded_card():
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    p1.hand = [get_card("Displace"), get_card("Estate")]
+    state.supply["Duchy"] = state.supply.get("Duchy", 8)
+    pre_exile = list(p1.exile)
+    state.phase = "action"
+    state.handle_action_phase()
+    # Estate (cost 2) exiled; nothing else moved through exile mat.
+    assert any(c.name == "Estate" for c in p1.exile)
+    assert len(p1.exile) == len(pre_exile) + 1
+    # A non-Estate replacement card costing up to $4 was gained.
+    new_cards = p1.discard + p1.deck
+    assert any(
+        c.name != "Estate" and c.cost.coins <= 4 and not c.is_duration
+        for c in new_cards
+    )
+
+
+def test_displace_does_not_gain_same_named_card():
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    p1.hand = [get_card("Displace"), get_card("Copper")]
+    # Restrict supply to only Copper (cost 0) → no differently named affordable
+    # card exists, so nothing should be gained.
+    state.supply = {"Copper": 40}
+    pre_supply = state.supply["Copper"]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Copper" for c in p1.exile)
+    # Supply Copper count unchanged — no Copper was gained as replacement.
+    assert state.supply["Copper"] == pre_supply
+
+
+def test_displace_cannot_gain_duration_card():
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    p1.hand = [get_card("Displace"), get_card("Estate")]
+    # Supply contains only a Duration card (Wharf, $5) — cannot be gained.
+    state.supply = {"Wharf": 10}
+    pre_supply = state.supply["Wharf"]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Estate" for c in p1.exile)
+    assert state.supply["Wharf"] == pre_supply
+
+
 def test_kiln_consumes_trigger_when_pile_empty():
     """If the next-played card has no supply pile to copy from, Kiln still
     consumes its pending charge so it cannot carry over to a later card."""
