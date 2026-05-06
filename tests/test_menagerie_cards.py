@@ -299,8 +299,7 @@ def test_displace_exiles_and_gains_upgraded_card():
     # A non-Estate replacement card costing up to $4 was gained.
     new_cards = p1.discard + p1.deck
     assert any(
-        c.name != "Estate" and c.cost.coins <= 4 and not c.is_duration
-        for c in new_cards
+        c.name != "Estate" and c.cost.coins <= 4 for c in new_cards
     )
 
 
@@ -319,17 +318,17 @@ def test_displace_does_not_gain_same_named_card():
     assert state.supply["Copper"] == pre_supply
 
 
-def test_displace_cannot_gain_duration_card():
+def test_displace_can_gain_duration_card():
     state, p1, _ = _two_player_state()
     p1.actions = 1
-    p1.hand = [get_card("Displace"), get_card("Estate")]
-    # Supply contains only a Duration card (Wharf, $5) — cannot be gained.
+    # Silver (cost $3) → ceiling $5. Wharf is $5 Duration, gainable.
+    p1.hand = [get_card("Displace"), get_card("Silver")]
     state.supply = {"Wharf": 10}
     pre_supply = state.supply["Wharf"]
     state.phase = "action"
     state.handle_action_phase()
-    assert any(c.name == "Estate" for c in p1.exile)
-    assert state.supply["Wharf"] == pre_supply
+    assert any(c.name == "Silver" for c in p1.exile)
+    assert state.supply["Wharf"] == pre_supply - 1
 
 
 def test_displace_rejects_higher_debt_candidates():

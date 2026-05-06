@@ -5,7 +5,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 class Displace(Card):
     """Exile a card from your hand. Gain a differently named card costing up
-    to $2 more than it, that is not a Duration card.
+    to $2 more than it.
     """
 
     def __init__(self):
@@ -51,8 +51,6 @@ class Displace(Card):
             except ValueError:
                 continue
             if candidate.name == choice.name:
-                continue
-            if candidate.is_duration:
                 continue
             if game_state.get_card_cost(player, candidate) > max_cost:
                 continue
