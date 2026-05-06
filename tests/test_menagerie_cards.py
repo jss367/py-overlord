@@ -332,6 +332,42 @@ def test_displace_cannot_gain_duration_card():
     assert state.supply["Wharf"] == pre_supply
 
 
+def test_displace_rejects_higher_debt_candidates():
+    """Exiling an Estate (0 debt) must not allow gaining a card with debt
+    cost (e.g. City Quarter at $0 + 8 debt), even if its coin cost fits."""
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    p1.hand = [get_card("Displace"), get_card("Estate")]
+    state.supply = {"City Quarter": 10}
+    pre_supply = state.supply["City Quarter"]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Estate" for c in p1.exile)
+    assert state.supply["City Quarter"] == pre_supply
+
+
+def test_displace_uses_effective_cost_for_candidates():
+    """Cost-reducing cards in play (e.g. Bridge) must lower a candidate's
+    effective cost, allowing a Province-cost gain when discounted."""
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    # Bridge in play reduces every card's cost by $1.
+    p1.in_play.append(get_card("Bridge"))
+    p1.hand = [get_card("Displace"), get_card("Silver")]  # Silver costs $3
+    # Supply contains Gold ($6, but $5 with Bridge). Silver's effective cost
+    # is $2; ceiling = $4. Without the Bridge fix, Gold (printed $6) is
+    # rejected; with the fix, Gold ($5 effective) is still > $4, so still
+    # rejected. Use Province ($8 → $7) — also rejected. Use Duchy ($5 → $4)
+    # which should now be gainable.
+    state.supply = {"Duchy": 8}
+    pre_supply = state.supply["Duchy"]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Silver" for c in p1.exile)
+    # Duchy is now gainable because Bridge brings its effective cost to $4.
+    assert state.supply["Duchy"] == pre_supply - 1
+
+
 def test_kiln_consumes_trigger_when_pile_empty():
     """If the next-played card has no supply pile to copy from, Kiln still
     consumes its pending charge so it cannot carry over to a later card."""

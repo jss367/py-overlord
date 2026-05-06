@@ -31,11 +31,16 @@ class Displace(Card):
         if choice is None or choice not in player.hand:
             return
 
+        # Compute the upgrade ceiling using the exiled card's effective cost
+        # (so Bridge/Highway/etc. discounts on the exiled card apply), and
+        # match the potion/debt dimensions against printed cost as Dominion's
+        # cost rules require those to be respected exactly.
+        max_cost = game_state.get_card_cost(player, choice) + 2
+        max_potions = choice.cost.potions
+        max_debt = choice.cost.debt
+
         player.hand.remove(choice)
         player.exile.append(choice)
-
-        max_cost = choice.cost.coins + 2
-        max_potions = choice.cost.potions
 
         options = []
         for name, count in game_state.supply.items():
@@ -49,9 +54,11 @@ class Displace(Card):
                 continue
             if candidate.is_duration:
                 continue
-            if candidate.cost.coins > max_cost:
+            if game_state.get_card_cost(player, candidate) > max_cost:
                 continue
             if candidate.cost.potions > max_potions:
+                continue
+            if candidate.cost.debt > max_debt:
                 continue
             options.append(candidate)
 
