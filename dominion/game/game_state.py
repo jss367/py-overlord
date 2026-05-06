@@ -829,16 +829,21 @@ class GameState:
         self.current_player.alms_used_this_turn = False
         self.current_player.pilgrimage_used_this_turn = False
         self.current_player.travelling_fair_active = False
-        # Mission grants an extra turn; if this is that extra turn, clear the
-        # flag at start of the *next* turn (i.e. when mission_used_this_turn
-        # is set, the *current* turn is the bonus one). We clear both here so
-        # that subsequent turns aren't restricted.
+        # Adventures Mission: if the player bought Mission last turn, the
+        # turn that's just starting IS the granted extra turn — apply the
+        # "no buys" restriction now. Setting it here (rather than in
+        # Mission.on_buy) ensures the player can finish buying on the turn
+        # they bought Mission. The flag is cleared at the end of this extra
+        # turn during cleanup (see ``handle_cleanup_phase``).
+        if getattr(self.current_player, "mission_extra_turn_pending", False):
+            self.current_player.mission_no_buy_turn = True
+            self.current_player.mission_extra_turn_pending = False
         self.current_player.mission_used_this_turn = False
-        # Mission's "no buy" flag carries over on the extra turn; clear after
-        # entering the start phase of that extra turn (set by the event itself).
-        # Clear duration-attack pending counts at the start of attacker's turn.
-        self.current_player.haunted_woods_attacks = 0
-        self.current_player.swamp_hag_attacks = 0
+        # NOTE: Haunted Woods / Swamp Hag attack counters are NOT cleared
+        # here. The card text says "Until your next turn ..." — the
+        # penalty must apply *during* the victim's next turn (including
+        # their buy phase). The counters are cleared at end-of-turn cleanup
+        # for the victim instead (see ``handle_cleanup_phase``).
 
         # Adventures Hireling: while in play, +1 Card at start of each turn.
         hireling_count = sum(
@@ -1246,14 +1251,13 @@ class GameState:
 
                     # Menagerie: Kiln — next card played, gain a copy of it.
                     self._maybe_kiln_gain(player, choice)
-                    # Adventures: pile-token bonuses (+1 Card / +1 Action /
-                    # +1 Buy / +$1) fire on each play of the card.
-                    self._apply_pile_token_play_bonuses(player, choice)
-
-                    # Adventures Champion: while in play, your Action plays
-                    # give +1 Action.
-                    if getattr(player, "champions_in_play", 0) > 0 and choice.is_action:
-                        player.actions += getattr(player, "champions_in_play", 0)
+                    # NOTE: Adventures pile-token bonuses (+1 Card / +1 Action
+                    # / +1 Buy / +$1) and Champion's "+1 Action per Action
+                    # play" are now applied inside ``Card.on_play`` so they
+                    # fire on EVERY play of the card (Throne Room, King's
+                    # Court, Procession, Crown, Captain, Imp, Conclave,
+                    # Vassal, Band of Misfits, etc.) — not just here in the
+                    # main action-phase loop.
 
                     # Rising Sun: Prophecy hooks fire after each play
                     if self.prophecy is not None and self.prophecy.is_active:
@@ -1946,20 +1950,6 @@ class GameState:
         # Adventures: tavern dispatch at cleanup-start (Wine Merchant).
         self._call_tavern_triggers(player, "cleanup_start")
 
-        # Prosperity 2E: Anvil and similar "when you discard this from play"
-        # cards trigger BEFORE the hand is discarded so the player can choose
-        # to discard a Treasure from their actual end-of-turn hand. Cards
-        # that opt in expose ``on_discard_from_play``; we resolve them here
-        # while leaving the card itself in play (the regular cleanup loop
-        # below will then discard it normally).
-        for card in list(player.in_play):
-            if (
-                hasattr(card, "on_discard_from_play")
-                and card not in player.duration
-                and card not in player.multiplied_durations
-            ):
-                card.on_discard_from_play(self, player)
-
         # Discard hand and in-play cards
         scheme_count = sum(1 for card in player.in_play if card.name == "Scheme")
         if scheme_count:
@@ -2215,6 +2205,12 @@ class GameState:
         player.potions = 0
         # Adventures: clear Mission no-buy flag at end of the bonus turn.
         player.mission_no_buy_turn = False
+        # Adventures Haunted Woods / Swamp Hag: the attack lingers "until
+        # your next turn" — i.e. through the victim's whole next turn. We
+        # clear at end-of-turn cleanup so it expires AFTER the victim
+        # finishes their turn (and before the attacker's following turn).
+        player.haunted_woods_attacks = 0
+        player.swamp_hag_attacks = 0
         player.ignore_action_bonuses = False
         player.collection_played = 0
         player.goons_played = 0
@@ -3867,6 +3863,53 @@ class GameState:
             except TypeError:
                 # Backwards-compat for cards without the *args signature.
                 card.on_call_from_tavern(self, player, trigger)
+
+    def _play_inherited_estate(self, player: PlayerState, estate: Card) -> None:
+        """Resolve Inheritance: an Estate plays as the inherited Action card.
+
+        We resolve the inherited card's effect *through the Estate instance*,
+        so any Reserve / Duration / Tavern interactions operate on the Estate
+        (which is already in ``player.in_play``) rather than on a freshly
+        instantiated phantom card. This avoids leaking phantom Guides /
+        Ratcatchers / Gears onto the Tavern mat or the duration zone.
+
+        Implementation: bind the inherited class's ``on_play`` to the Estate
+        instance so ``self`` inside the effect refers to the Estate. The
+        inherited card's stats (cards/actions/coins/buys) are also applied to
+        the player via the inherited class's ``on_play``.
+        """
+        inherited_name = getattr(player, "inherited_action_name", None)
+        if not inherited_name:
+            return
+        inherited_card = get_card(inherited_name)
+        inherited_cls = inherited_card.__class__
+        # Snapshot Estate's normal attributes that may be overlaid by the
+        # inherited card during this single play.
+        original_stats = estate.stats
+        original_play_effect = estate.play_effect
+        original_on_duration = getattr(estate, "on_duration", None)
+        try:
+            # Inherit the inherited card's stats so the base Card.on_play
+            # applies the +Cards/+Actions/+Coins/+Buys correctly to the
+            # Estate-as-inherited-card.
+            estate.stats = inherited_card.stats
+            # Bind the inherited class's play_effect to the Estate instance.
+            # ``self`` inside the inherited effect now refers to the Estate.
+            estate.play_effect = inherited_cls.play_effect.__get__(
+                estate, type(estate)
+            )
+            # Also bind on_duration so a Duration-inherited card resolves its
+            # next-turn effect through the Estate at start-of-next-turn.
+            if hasattr(inherited_cls, "on_duration"):
+                estate.on_duration = inherited_cls.on_duration.__get__(
+                    estate, type(estate)
+                )
+            estate.on_play(self)
+        finally:
+            estate.stats = original_stats
+            estate.play_effect = original_play_effect
+            if original_on_duration is not None:
+                estate.on_duration = original_on_duration
 
     # ------------------------------------------------------------------
     # Adventures: Pile tokens (Lost Arts / Training / Pathfinding / Seaway /

@@ -138,8 +138,43 @@ def test_mission_grants_extra_no_buy_turn():
     Mission = get_event("Mission")
     Mission.on_buy(state, player)
     assert player.mission_used_this_turn
-    assert player.mission_no_buy_turn
+    # Mission's "no buys" restriction must NOT apply to the current turn —
+    # it only applies on the granted extra turn. So the flag is deferred.
+    assert not player.mission_no_buy_turn
+    assert player.mission_extra_turn_pending
     assert state.extra_turn
+
+
+def test_mission_does_not_block_remaining_buys_on_buy_turn():
+    """Buying Mission with remaining Buys must NOT shut off further buys
+    on the current turn. The "no buys" restriction is only for the extra
+    turn that Mission grants."""
+    state = _new_state()
+    player = state.players[0]
+    player.buys = 2
+    player.coins = 4
+    Mission = get_event("Mission")
+    Mission.on_buy(state, player)
+    # Player should still be able to buy from the supply this turn.
+    affordable = state._get_affordable_cards(player)
+    assert affordable, "Player must still be able to buy after Mission on the same turn"
+
+
+def test_mission_no_buys_on_granted_extra_turn():
+    """On the extra turn granted by Mission, buys are not allowed."""
+    state = _new_state()
+    player = state.players[0]
+    Mission = get_event("Mission")
+    Mission.on_buy(state, player)
+    # Simulate cleanup ending the buy turn and entering the extra turn.
+    state.handle_cleanup_phase()
+    # The extra turn now begins. Re-enter start phase.
+    state.phase = "start"
+    state.handle_start_phase()
+    # On the extra (Mission) turn, the no-buy flag is now set.
+    assert player.mission_no_buy_turn
+    affordable = state._get_affordable_cards(player)
+    assert affordable == [], "On Mission's extra turn, no cards may be bought"
 
 
 def test_pilgrimage_gains_action_copies():
@@ -233,6 +268,30 @@ def test_inheritance_estate_plays_as_inherited_action():
     assert player.actions == 2
 
 
+def test_inheritance_estate_as_guide_sets_aside_estate_on_tavern():
+    """Inheriting a Reserve card like Guide must set aside the *Estate
+    instance itself* on the Tavern mat — NOT a fresh phantom Guide. The
+    fresh-Guide bug would leak persistent phantom cards onto the Tavern
+    mat that re-fire each turn."""
+    state = _new_state(["Guide"])
+    player = state.players[0]
+    player.inherited_action_name = "Guide"
+    estate = get_card("Estate")
+    player.hand = [estate]
+    player.deck = [get_card("Copper") for _ in range(5)]
+    player.actions = 1
+    state.phase = "action"
+    state.handle_action_phase()
+    # The Estate (not a Guide) should be on the Tavern mat now.
+    assert estate in player.tavern_mat, (
+        "Inherited-as-Guide must place the Estate on the Tavern mat"
+    )
+    # No phantom Guide on the mat.
+    assert not any(c.name == "Guide" for c in player.tavern_mat), (
+        "A fresh Guide instance must NOT appear on the Tavern mat"
+    )
+
+
 def test_inheritance_sets_aside_card():
     state = _new_state(["Village"])
     player = state.players[0]
@@ -271,3 +330,27 @@ def test_pile_token_card_bonus_draws_extra():
     # Village normally draws 1; with +1 Card token, draws 2.
     coppers_in_hand = sum(1 for c in player.hand if c.name == "Copper")
     assert coppers_in_hand == 2
+
+
+def test_pile_token_bonus_fires_per_throne_room_replay():
+    """Throne Room replays a card; each replay must trigger pile-token
+    bonuses. With +1 Card token on Smithy, Throne Room on Smithy draws
+    Smithy's 3 cards x 2 plays + 2 token bonuses = 8 cards total."""
+    state = _new_state(["Smithy", "Throne Room"])
+    player = state.players[0]
+    state.add_pile_token(player, "Smithy", "+1 Card")
+    throne = get_card("Throne Room")
+    smithy = get_card("Smithy")
+    player.hand = [throne, smithy]
+    # 8 unique-ish coppers in deck so we can count drawn cards precisely.
+    player.deck = [get_card("Copper") for _ in range(10)]
+    player.discard = []
+    player.actions = 1
+    state.phase = "action"
+    state.handle_action_phase()
+    # Throne Room (no +cards) → Smithy played twice. Smithy = +3 cards.
+    # Token = +1 card per Smithy play. So 3+1 + 3+1 = 8.
+    coppers_in_hand = sum(1 for c in player.hand if c.name == "Copper")
+    assert coppers_in_hand == 8, (
+        f"Expected 8 cards drawn (3+1 per Smithy play, twice), got {coppers_in_hand}"
+    )

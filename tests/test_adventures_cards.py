@@ -304,13 +304,45 @@ def test_magpie_draws_card_or_treasure_or_gains():
     assert any(c.name == "Silver" for c in player.hand)
 
 
-def test_port_buys_extra_port():
+def test_port_gains_extra_port_via_buy():
+    """Buying a Port gains TWO Ports total (the bought one and the bonus).
+    The trigger is on gain, so any path that gains Port (Workshop, Buy,
+    Inheritance, etc.) fires it."""
     state = _state_with_card("Port")
     player = state.players[0]
-    port = get_card("Port")
     initial_supply = state.supply["Port"]
-    port.on_buy(state)
-    assert state.supply["Port"] == initial_supply - 1
+    state.supply["Port"] -= 1
+    state.gain_card(player, get_card("Port"))
+    # After: 1 main Port (just gained) + 1 bonus Port from on_gain. Two
+    # supply decrements total (the manual one above + the on_gain bonus).
+    assert state.supply["Port"] == initial_supply - 2
+    assert sum(1 for c in player.discard if c.name == "Port") == 2
+
+
+def test_port_gain_via_workshop_grants_bonus():
+    """Gaining a Port via Workshop (or any non-buy gain path) must still
+    grant the bonus Port — the trigger is on gain, not on buy."""
+    state = _state_with_card("Port")
+    player = state.players[0]
+    initial_supply = state.supply["Port"]
+    # Simulate Workshop-like gain: decrement supply, call gain_card.
+    state.supply["Port"] -= 1
+    state.gain_card(player, get_card("Port"))
+    assert state.supply["Port"] == initial_supply - 2
+    assert sum(1 for c in player.discard if c.name == "Port") == 2
+
+
+def test_port_bonus_copy_does_not_recurse():
+    """The bonus Port that Port gains must NOT itself gain another Port —
+    otherwise gaining one Port would empty the pile."""
+    state = _state_with_card("Port")
+    player = state.players[0]
+    initial_supply = state.supply["Port"]
+    state.supply["Port"] -= 1
+    state.gain_card(player, get_card("Port"))
+    # Exactly TWO Ports gained, not three or more.
+    assert sum(1 for c in player.discard if c.name == "Port") == 2
+    assert state.supply["Port"] == initial_supply - 2
 
 
 def test_ranger_flips_journey_token():
@@ -395,6 +427,40 @@ def test_haunted_woods_attack():
     assert p2.haunted_woods_attacks >= 1
 
 
+def test_haunted_woods_persists_through_victims_turn():
+    """The Haunted Woods penalty must remain active for the victim's
+    *entire* next turn — start-of-turn must NOT clear it (otherwise the
+    topdeck-on-gain effect evaporates before the buy phase). It is cleared
+    at end-of-turn cleanup instead."""
+    state = _state_with_card("Haunted Woods", n_players=2)
+    p1, p2 = state.players
+    p2.haunted_woods_attacks = 1
+    # Start the victim's turn. The flag must persist.
+    state.current_player_index = state.players.index(p2)
+    state.phase = "start"
+    state.handle_start_phase()
+    assert p2.haunted_woods_attacks == 1, (
+        "Haunted Woods must remain active during the victim's whole turn"
+    )
+    # End the victim's turn via cleanup. Now it clears.
+    state.handle_cleanup_phase()
+    assert p2.haunted_woods_attacks == 0
+
+
+def test_swamp_hag_persists_through_victims_turn():
+    """Swamp Hag's curse-on-buy effect must remain active during the
+    victim's entire next turn. It clears at end-of-turn cleanup."""
+    state = _state_with_card("Swamp Hag", n_players=2)
+    p1, p2 = state.players
+    p2.swamp_hag_attacks = 1
+    state.current_player_index = state.players.index(p2)
+    state.phase = "start"
+    state.handle_start_phase()
+    assert p2.swamp_hag_attacks == 1
+    state.handle_cleanup_phase()
+    assert p2.swamp_hag_attacks == 0
+
+
 def test_bridge_troll_reduces_costs():
     state = _state_with_card("Bridge Troll", n_players=2)
     p1, _p2 = state.players
@@ -404,6 +470,37 @@ def test_bridge_troll_reduces_costs():
     initial_cost = village.cost.coins
     cost_with_troll = state.get_card_cost(p1, village)
     assert cost_with_troll == max(0, initial_cost - 1)
+
+
+def test_bridge_troll_reduction_is_global():
+    """Bridge Troll's cost reduction applies to ALL players' purchases
+    while it remains in play (the effect is global until the owner's
+    next-turn cleanup), not just the owner's."""
+    state = _state_with_card("Bridge Troll", n_players=2)
+    p1, p2 = state.players
+    # p2 has a Bridge Troll in their duration zone — p1 should still get
+    # the cost reduction on their own buys.
+    bt = get_card("Bridge Troll")
+    p2.duration = [bt]
+    province = get_card("Province")
+    cost_for_p1 = state.get_card_cost(p1, province)
+    assert cost_for_p1 == province.cost.coins - 1, (
+        "Opponent's Bridge Troll must reduce p1's costs (the effect is global)"
+    )
+
+
+def test_bridge_troll_reductions_stack_globally():
+    """Two opponents each with a Bridge Troll in play should stack: -$2
+    on a Province for the buyer, regardless of who owns each Troll."""
+    ais = [ChooseFirstActionAI() for _ in range(3)]
+    state = GameState(players=[])
+    state.initialize_game(ais, [get_card("Bridge Troll"), get_card("Province")])
+    p1, p2, p3 = state.players
+    p2.duration = [get_card("Bridge Troll")]
+    p3.in_play = [get_card("Bridge Troll")]
+    province = get_card("Province")
+    cost_for_p1 = state.get_card_cost(p1, province)
+    assert cost_for_p1 == province.cost.coins - 2
 
 
 def test_champion_immunity_and_action_bonus():

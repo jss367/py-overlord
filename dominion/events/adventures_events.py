@@ -233,8 +233,13 @@ class Mission(Event):
 
     def on_buy(self, game_state, player) -> None:
         player.mission_used_this_turn = True
-        player.mission_no_buy_turn = True
-        # Schedule an extra turn for this player.
+        # Schedule an extra turn for this player. The "no buys" restriction
+        # applies to the GRANTED extra turn, not the current turn — setting it
+        # here would immediately shut off any remaining buys on the current
+        # turn. Instead, we defer the restriction to the start of the extra
+        # turn (see GameState start-of-turn handling, which detects the
+        # Mission-granted turn and sets ``mission_no_buy_turn`` then).
+        player.mission_extra_turn_pending = True
         game_state.extra_turn = True
 
 
