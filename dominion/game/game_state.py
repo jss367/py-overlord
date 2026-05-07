@@ -832,6 +832,14 @@ class GameState:
             self.current_player.hand.extend(self.current_player.save_set_aside)
             self.current_player.save_set_aside = []
 
+        # Promo Summon: play any cards set aside by Summon last turn.
+        summoned = list(self.current_player.summon_set_aside)
+        if summoned:
+            self.current_player.summon_set_aside = []
+            for card in summoned:
+                self.current_player.in_play.append(card)
+                card.on_play(self)
+
         # Adventures: reset once-per-turn caps for events.
         self.current_player.borrow_used_this_turn = False
         self.current_player.alms_used_this_turn = False

@@ -40,6 +40,7 @@ from .rising_sun_events import (
     ReceiveTribute,
     SeaTrade,
 )
+from .promo_events import Summon
 from .training import Training
 from .empires_events import (
     Advance,
@@ -177,6 +178,8 @@ EVENT_TYPES: dict[str, Type[Event]] = {
     "Seaway": Seaway,
     "Trade": Trade,
     "Travelling Fair": TravellingFair,
+    # Promo
+    "Summon": Summon,
 }
 
 
