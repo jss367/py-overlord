@@ -47,11 +47,10 @@ class Displace(Card):
         # though the actual gained card is the visible top of the pile.
         options: list = []
         pile_for_card: dict[int, str] = {}
-        # Non-Supply piles live in game_state.supply for lookup convenience
-        # but are not legal targets for gain-from-Supply effects. Most are
-        # filtered by may_be_bought=False, but a few (notably the Menagerie
-        # Horse pile) are unflagged and need an explicit blocklist that
-        # mirrors the Black Market deck-builder exclusions.
+        # Horse lives in state.supply for lookup convenience but is a
+        # non-Supply pile (no may_be_bought=False marker, no
+        # non_supply_pile_names entry). Blocklist it explicitly so it is
+        # never a Displace gain target.
         non_supply_blocklist = game_state.non_supply_pile_names | {"Horse"}
         for name, count in game_state.supply.items():
             if count <= 0:
@@ -62,7 +61,7 @@ class Displace(Card):
                 candidate = game_state.top_of_pile(name)
                 if candidate is None:
                     continue
-                # Individual Knight/Ruins cards return may_be_bought=False
+                # Individual Knight/Ruins cards return may_be_gained=False
                 # because direct supply access uses the pile placeholder;
                 # the pile itself is the gainable entry. Skip the per-card
                 # check for ordered piles.
@@ -71,29 +70,13 @@ class Displace(Card):
                     candidate = get_card(name)
                 except ValueError:
                     continue
-                # Apply structural pile-accessibility restrictions, but
-                # NOT general may_be_bought rules — gain effects ignore
-                # buy-only conditions (e.g. Grand Market with Copper in
-                # play is still gainable).
-                #
-                # Split piles: bottom card is inaccessible while its
-                # partner top card is present.
-                if getattr(candidate, "bottom", False):
-                    partner = getattr(candidate, "partner_card_name", "")
-                    if partner and game_state.supply.get(partner, 0) > 0:
-                        continue
-                # Allies split piles (Wizards/_split_base) expose multiple
-                # upper partners.
-                upper_partners = getattr(candidate, "upper_partners", None)
-                if upper_partners and any(
-                    game_state.supply.get(p, 0) > 0 for p in upper_partners
-                ):
-                    continue
-                # Castles: only the next-in-order Castle is gainable; the
-                # may_be_bought check enforces the structural ordering.
-                if candidate.is_castle and not candidate.may_be_bought(
-                    game_state
-                ):
+                # may_be_gained handles non-Supply cards (Spirits, Madman,
+                # Mercenary, Spoils, Loot, Prizes, Rewards) and structural
+                # pile-accessibility restrictions (split-pile bottoms,
+                # Castle ordering). It defers to may_be_bought except for
+                # cards with buy-only restrictions (Grand Market) that
+                # remain valid gain targets.
+                if not candidate.may_be_gained(game_state):
                     continue
             if candidate.name == choice.name:
                 continue

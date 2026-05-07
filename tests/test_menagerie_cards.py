@@ -417,6 +417,23 @@ def test_displace_does_not_gain_horse_from_non_supply_pile():
     assert not any(c.name == "Horse" for c in p1.discard + p1.deck + p1.hand)
 
 
+def test_displace_skips_non_supply_piles_even_when_untagged():
+    """Madman, Mercenary, Imp, etc. are added to state.supply by setup
+    paths that don't tag non_supply_pile_names. Their may_be_gained
+    must filter them out so Displace can't illegally gain them."""
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    p1.hand = [get_card("Displace"), get_card("Copper")]
+    state.supply = {"Madman": 10, "Mercenary": 10, "Imp": 13}
+    pre = dict(state.supply)
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Copper" for c in p1.exile)
+    # No non-Supply cards were gained.
+    for name, count in pre.items():
+        assert state.supply[name] == count
+
+
 def test_displace_can_gain_grand_market_with_copper_in_play():
     """Grand Market's may_be_bought returns False while Copper is in
     play, but that's a buy-only restriction — Displace gains can still
