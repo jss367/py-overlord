@@ -346,6 +346,32 @@ def test_baths_fires_through_cleanup_phase():
     assert landmark.vp_pool == pool_before - 2
 
 
+def test_baths_unaffected_by_out_of_turn_forced_gains():
+    """Forced gains during opponents' turns (Witch/Sea Hag-style attacks) must
+    not suppress Baths on the victim's own next turn. The invariant is that
+    handle_start_phase resets cards_gained_this_turn before the victim's own
+    turn runs, so on_turn_end only sees this-turn gains.
+    """
+    landmark = Baths()
+    state = _make_game([landmark])
+    attacker, defender = state.players[0], state.players[1]
+    # Out-of-turn forced gain on attacker's turn.
+    state.current_player_index = 0
+    state.gain_card(defender, get_card("Curse"))
+    assert defender.cards_gained_this_turn == 1
+    # Defender's own turn starts: counter resets, defender gains nothing,
+    # cleanup fires Baths.
+    state.current_player_index = 1
+    state.phase = "start"
+    state.handle_start_phase()
+    assert defender.cards_gained_this_turn == 0
+    pool_before = landmark.vp_pool
+    state.phase = "cleanup"
+    state.handle_cleanup_phase()
+    assert defender.vp_tokens == 2
+    assert landmark.vp_pool == pool_before - 2
+
+
 def test_landmarks_contribute_to_final_vp():
     landmark = Tomb()
     state = _make_game([landmark])
