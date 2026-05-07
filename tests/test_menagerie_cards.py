@@ -436,6 +436,30 @@ def test_displace_skips_split_pile_bottom_when_covered():
     assert state.supply["Catapult"] == pre_cat - 1
 
 
+def test_displace_does_not_double_restore_pile_on_changeling_exchange():
+    """When Displace gains from an ordered pile and Changeling exchanges
+    the gain, gain_card's Changeling path already restores the pile.
+    Displace must not restore a second time."""
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    p1.hand = [get_card("Displace"), get_card("Silver")]
+    p1.ai.should_exchange_changeling = lambda *args, **kwargs: True
+    state.supply = {"Knights": 10, "Changeling": 10}
+    state.pile_order = dict(getattr(state, "pile_order", {}))
+    state.pile_order["Knights"] = ["Dame Anna", "Dame Josephine"]
+    pre_supply = state.supply["Knights"]
+    pre_order = list(state.pile_order["Knights"])
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Silver" for c in p1.exile)
+    # After Changeling exchange, the Knights pile must be exactly as it
+    # was before — not double-restored. The placeholder count must not
+    # exceed pre-game state, and pile_order must not contain duplicates.
+    assert state.supply["Knights"] == pre_supply
+    assert state.pile_order["Knights"] == pre_order
+    assert any(c.name == "Changeling" for c in p1.discard + p1.deck)
+
+
 def test_displace_uses_effective_cost_for_candidates():
     """Cost-reducing cards in play (e.g. Bridge) must lower a candidate's
     effective cost, allowing a Province-cost gain when discounted."""

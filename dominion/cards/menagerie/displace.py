@@ -105,13 +105,28 @@ class Displace(Card):
         is_ordered_pile = pile_name in game_state.pile_order
         if is_ordered_pile and game_state.pile_order[pile_name]:
             game_state.pile_order[pile_name].pop()
+        # Snapshot the pile state immediately after decrement+pop so we can
+        # tell, post-gain, whether something else restored the pile already.
+        post_decrement_supply = game_state.supply[pile_name]
+        post_decrement_order_len = (
+            len(game_state.pile_order[pile_name]) if is_ordered_pile else 0
+        )
         gained = game_state.gain_card(player, gain_choice)
         # gain_card's Trader-replacement path restores supply via
         # original_card.name, which for ordered piles (Knights) is the
         # specific top card (e.g. "Dame Josephine") and not the pile
-        # placeholder, so the restore silently no-ops. Detect replacement
-        # here and put the card back on the pile manually.
-        if is_ordered_pile and gained is not None and gained.name != gain_choice.name:
+        # placeholder, so the restore silently no-ops there. Changeling's
+        # exchange, however, *does* push the gained card back onto the
+        # ordered pile correctly. Detect a name change and only restore
+        # the pile if no other path already did so.
+        if (
+            is_ordered_pile
+            and gained is not None
+            and gained.name != gain_choice.name
+            and game_state.supply.get(pile_name, 0) == post_decrement_supply
+            and len(game_state.pile_order.get(pile_name, []))
+            == post_decrement_order_len
+        ):
             game_state.supply[pile_name] = game_state.supply.get(pile_name, 0) + 1
             game_state.pile_order.setdefault(pile_name, []).append(gain_choice.name)
 
