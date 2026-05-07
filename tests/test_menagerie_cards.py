@@ -373,6 +373,34 @@ def test_displace_resolves_knights_top_card_not_pile_placeholder():
     )
 
 
+def test_displace_restores_ordered_pile_when_trader_replaces_gain():
+    """If Trader replaces a Displace gain from an ordered pile, the pile's
+    supply count and order list must be restored — gain_card's standard
+    Trader restore keys off the specific knight name and silently misses
+    for the pile placeholder."""
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    p1.hand = [
+        get_card("Displace"),
+        get_card("Silver"),
+        get_card("Trader"),
+    ]
+    # Force the Trader reaction to fire on any gain.
+    p1.ai.should_reveal_trader = lambda *args, **kwargs: True
+    state.supply = {"Knights": 10, "Silver": 40}
+    state.pile_order = dict(getattr(state, "pile_order", {}))
+    state.pile_order["Knights"] = ["Dame Anna", "Dame Josephine"]
+    pre_supply = state.supply["Knights"]
+    pre_order = list(state.pile_order["Knights"])
+    state.phase = "action"
+    state.handle_action_phase()
+    # Trader should have intercepted the Knight gain and given a Silver
+    # instead. The Knights pile must look untouched.
+    assert state.supply["Knights"] == pre_supply
+    assert state.pile_order["Knights"] == pre_order
+    assert any(c.name == "Silver" for c in p1.discard + p1.deck)
+
+
 def test_displace_uses_effective_cost_for_candidates():
     """Cost-reducing cards in play (e.g. Bridge) must lower a candidate's
     effective cost, allowing a Province-cost gain when discounted."""

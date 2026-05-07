@@ -85,9 +85,18 @@ class Displace(Card):
         if game_state.supply.get(pile_name, 0) <= 0:
             return
         game_state.supply[pile_name] -= 1
-        if pile_name in game_state.pile_order and game_state.pile_order[pile_name]:
+        is_ordered_pile = pile_name in game_state.pile_order
+        if is_ordered_pile and game_state.pile_order[pile_name]:
             game_state.pile_order[pile_name].pop()
-        game_state.gain_card(player, gain_choice)
+        gained = game_state.gain_card(player, gain_choice)
+        # gain_card's Trader-replacement path restores supply via
+        # original_card.name, which for ordered piles (Knights) is the
+        # specific top card (e.g. "Dame Josephine") and not the pile
+        # placeholder, so the restore silently no-ops. Detect replacement
+        # here and put the card back on the pile manually.
+        if is_ordered_pile and gained is not None and gained.name != gain_choice.name:
+            game_state.supply[pile_name] = game_state.supply.get(pile_name, 0) + 1
+            game_state.pile_order.setdefault(pile_name, []).append(gain_choice.name)
 
     @staticmethod
     def _exile_priority(card):
