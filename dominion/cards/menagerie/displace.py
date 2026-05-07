@@ -71,10 +71,29 @@ class Displace(Card):
                     candidate = get_card(name)
                 except ValueError:
                     continue
-                # Filter out cards present in supply but not currently
-                # gainable: split-pile bottoms covered by their partner,
-                # non-supply piles (Spirits, Madman, Mercenary), etc.
-                if not candidate.may_be_bought(game_state):
+                # Apply structural pile-accessibility restrictions, but
+                # NOT general may_be_bought rules — gain effects ignore
+                # buy-only conditions (e.g. Grand Market with Copper in
+                # play is still gainable).
+                #
+                # Split piles: bottom card is inaccessible while its
+                # partner top card is present.
+                if getattr(candidate, "bottom", False):
+                    partner = getattr(candidate, "partner_card_name", "")
+                    if partner and game_state.supply.get(partner, 0) > 0:
+                        continue
+                # Allies split piles (Wizards/_split_base) expose multiple
+                # upper partners.
+                upper_partners = getattr(candidate, "upper_partners", None)
+                if upper_partners and any(
+                    game_state.supply.get(p, 0) > 0 for p in upper_partners
+                ):
+                    continue
+                # Castles: only the next-in-order Castle is gainable; the
+                # may_be_bought check enforces the structural ordering.
+                if candidate.is_castle and not candidate.may_be_bought(
+                    game_state
+                ):
                     continue
             if candidate.name == choice.name:
                 continue

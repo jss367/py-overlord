@@ -417,6 +417,25 @@ def test_displace_does_not_gain_horse_from_non_supply_pile():
     assert not any(c.name == "Horse" for c in p1.discard + p1.deck + p1.hand)
 
 
+def test_displace_can_gain_grand_market_with_copper_in_play():
+    """Grand Market's may_be_bought returns False while Copper is in
+    play, but that's a buy-only restriction — Displace gains can still
+    target Grand Market."""
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    # Copper in play makes Grand Market unbuyable; doesn't block gains.
+    p1.in_play.append(get_card("Copper"))
+    # Estate ($2) → ceiling $4. Use Silver ($3) → ceiling $5. Grand
+    # Market is $6 — too expensive. Use Gold ($6) → ceiling $8.
+    p1.hand = [get_card("Displace"), get_card("Gold")]
+    state.supply = {"Grand Market": 10}
+    pre_supply = state.supply["Grand Market"]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Gold" for c in p1.exile)
+    assert state.supply["Grand Market"] == pre_supply - 1
+
+
 def test_displace_skips_split_pile_bottom_when_covered():
     """Catapult/Rocks split pile: while Catapult (top) is present, Rocks
     (bottom) is not gainable via Displace even though Rocks is in supply
