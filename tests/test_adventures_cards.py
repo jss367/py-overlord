@@ -226,6 +226,31 @@ def test_coin_of_the_realm_reacts_to_royal_carriage_replay():
     assert coppers_in_hand == 6
 
 
+def test_royal_carriage_not_reshuffled_during_replay():
+    """If the replayed Action triggers a reshuffle (e.g. drawing past an
+    empty deck), Royal Carriage itself must not be among the cards
+    reshuffled — it is set aside until the replay resolves."""
+    state = _state_with_card("Royal Carriage")
+    player = state.players[0]
+    rc = get_card("Royal Carriage")
+    player.tavern_mat = [rc]
+    smithy = get_card("Smithy")
+    player.hand = [smithy]
+    player.actions = 1
+    # Empty deck and discard so Smithy's first +1 Card draws the last
+    # Copper, then a reshuffle is needed for the next draw.
+    player.deck = [get_card("Copper")]
+    player.discard = []
+    state.phase = "action"
+    state.handle_action_phase()
+    # RC must end up in discard exactly once, never reshuffled into deck/hand.
+    assert rc in player.discard
+    assert player.discard.count(rc) == 1
+    assert rc not in player.deck
+    assert rc not in player.hand
+    assert rc not in player.tavern_mat
+
+
 def test_distant_lands_vp_when_on_tavern():
     state = _state_with_card("Distant Lands")
     player = state.players[0]
