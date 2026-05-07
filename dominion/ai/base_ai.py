@@ -34,6 +34,34 @@ class AI(ABC):
         """Choose a card to trash from available choices."""
         pass
 
+    def choose_night_card(
+        self, state: GameState, player: PlayerState, choices: list[Optional[Card]]
+    ) -> Optional[Card]:
+        """Choose a Night card from the hand to play, or ``None`` to stop.
+
+        Default behaviour plays Night cards greedily in the order presented
+        so Coffer- or attack-style effects fire on every turn they are
+        available.
+        """
+        for choice in choices:
+            if choice is not None:
+                return choice
+        return None
+
+    def choose_reserve_call_at_turn_start(
+        self, state: GameState, player: PlayerState, choices: list[Optional[Card]]
+    ) -> Optional[Card]:
+        """Choose a Reserve card on the Tavern mat to call at turn start.
+
+        Returning ``None`` declines further calls. The default plays each
+        available Reserve card greedily so that effects like Transmogrify
+        and Royal Carriage fire whenever they could.
+        """
+        for choice in choices:
+            if choice is not None:
+                return choice
+        return None
+
     def choose_charm_option(self, state: GameState, player: PlayerState, options: list[str]) -> str:
         """Select which of Charm's modes to use when played."""
 

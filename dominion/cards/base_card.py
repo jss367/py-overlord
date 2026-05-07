@@ -34,6 +34,8 @@ class CardType(Enum):
     COMMAND = "command"
     SHADOW = "shadow"
     OMEN = "omen"
+    NIGHT = "night"
+    RESERVE = "reserve"
 
 
 class Card:
@@ -86,6 +88,14 @@ class Card:
     @property
     def is_omen(self) -> bool:
         return CardType.OMEN in self.types
+
+    @property
+    def is_night(self) -> bool:
+        return CardType.NIGHT in self.types
+
+    @property
+    def is_reserve(self) -> bool:
+        return CardType.RESERVE in self.types
 
     def get_victory_points(self, player) -> int:
         """Get victory points this card provides for the given player."""
@@ -147,6 +157,18 @@ class Card:
 
     def on_trash(self, game_state, player):
         """Effects that happen when card is trashed. Override in subclasses."""
+        pass
+
+    def can_call_at_turn_start(self, game_state, player) -> bool:
+        """Whether this Reserve card may be called at the start of a turn."""
+        return False
+
+    def on_call_at_turn_start(self, game_state, player) -> None:
+        """Resolve the Reserve "call" effect at the start of the player's turn.
+
+        Implementations should perform the card's effect; the engine moves
+        the card from the Tavern mat to discard after this returns.
+        """
         pass
 
     def get_additional_piles(self) -> dict[str, int]:

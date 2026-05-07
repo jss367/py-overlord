@@ -1,11 +1,10 @@
 """Implementation of the Transmogrify card from Adventures.
 
-The official card is an Action-Reserve: it sets itself aside on the Tavern
-mat, and you may call it at the start of a future turn to trash a card and
-gain a card costing up to $1 more (into your hand). This codebase has no
-Tavern/Reserve infrastructure, so the simplified implementation here resolves
-the trash-and-gain immediately upon playing the card. The +1 Action keeps it
-playable mid-turn as a cantrip remodel-into-hand.
+Action-Reserve ($4):
++1 Action; put this on your Tavern mat.
+At the start of your turn, you may call this, to trash a card from
+your hand and gain a card costing up to $1 more than it; put it into
+your hand.
 """
 
 from ..base_card import Card, CardCost, CardStats, CardType
@@ -17,13 +16,23 @@ class Transmogrify(Card):
             name="Transmogrify",
             cost=CardCost(coins=4),
             stats=CardStats(actions=1),
-            types=[CardType.ACTION],
+            types=[CardType.ACTION, CardType.RESERVE],
         )
 
     def play_effect(self, game_state):
+        player = game_state.current_player
+        # Move from in-play to the Tavern mat.
+        if self in player.in_play:
+            player.in_play.remove(self)
+        if self not in player.tavern_mat:
+            player.tavern_mat.append(self)
+
+    def can_call_at_turn_start(self, game_state, player) -> bool:
+        return bool(player.hand)
+
+    def on_call_at_turn_start(self, game_state, player) -> None:
         from ..registry import get_card
 
-        player = game_state.current_player
         if not player.hand:
             return
 

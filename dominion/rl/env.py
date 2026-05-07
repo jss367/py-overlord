@@ -202,8 +202,8 @@ class DominionEnv(gym.Env):
     def _calculate_reward(self) -> float:
         rl_player = self.game_state.players[0]
         opponent = self.game_state.players[1]
-        rl_vp = rl_player.get_victory_points()
-        opp_vp = opponent.get_victory_points()
+        rl_vp = rl_player.get_victory_points(self.game_state)
+        opp_vp = opponent.get_victory_points(self.game_state)
         if rl_vp > opp_vp:
             return 1.0
         elif rl_vp < opp_vp:

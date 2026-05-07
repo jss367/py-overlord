@@ -55,7 +55,6 @@ from ..empires import (
     Settlers,
     Temple,
     Villa,
-    Wall,
     WildHunt,
 )
 from ..nocturne.crypt import Crypt
@@ -222,7 +221,6 @@ __all__ = [
     'OpulentCastle',
     'SmallCastle',
     'SprawlingCastle',
-    'Wall',
     'Catapult',
     'Charm',
     'ChariotRace',

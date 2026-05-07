@@ -18,6 +18,7 @@ class GameState:
     projects: list = field(default_factory=list)
     ways: list = field(default_factory=list)
     allies: list = field(default_factory=list)
+    landmarks: list = field(default_factory=list)
     current_player_index: int = 0
     phase: str = "start"
     turn_number: int = 1
@@ -133,6 +134,7 @@ class GameState:
         projects: list = None,
         ways: list = None,
         allies: list = None,
+        landmarks: list = None,
         prophecy: object = None,
         riverboat_set_aside: Card = None,
     ):
@@ -158,6 +160,7 @@ class GameState:
         self.projects = projects or []
         self.ways = ways or []
         self.allies = allies or []
+        self.landmarks = landmarks or []
 
         # Rising Sun: a Prophecy is dealt out whenever any Omen card is in the
         # supply. Sun tokens are placed based on player count.
@@ -440,6 +443,9 @@ class GameState:
         # Rising Sun: Prophecy start-of-turn hook (Kind Emperor)
         if self.prophecy is not None and self.prophecy.is_active:
             self.prophecy.on_turn_start(self, self.current_player)
+
+        # Adventures: Reserve cards on the Tavern mat may be called now.
+        self._handle_tavern_mat_calls(self.current_player)
 
         # Log turn header with complete state
         resources = {
@@ -832,6 +838,39 @@ class GameState:
 
 
         self._handle_buy_phase_end(player)
+        self.phase = "night"
+
+    def handle_night_phase(self):
+        """Handle the Night phase of a turn.
+
+        Night cards are played from the hand without consuming Actions.
+        Players choose Night cards one at a time until none remain in hand
+        or they decline to play any more.
+        """
+        player = self.current_player
+
+        while True:
+            night_cards = [card for card in player.hand if card.is_night]
+            if not night_cards:
+                break
+
+            choice = player.ai.choose_night_card(self, player, night_cards + [None])
+            if choice is None:
+                break
+            if choice not in player.hand:
+                break
+
+            if self.logger:
+                self.logger.current_metrics.cards_played[choice.name] = (
+                    self.logger.current_metrics.cards_played.get(choice.name, 0) + 1
+                )
+
+            self.log_callback(("action", player.ai.name, f"plays {choice} (Night)", {}))
+
+            player.hand.remove(choice)
+            player.in_play.append(choice)
+            choice.on_play(self)
+
         self.phase = "cleanup"
 
     def _handle_buy_phase_end(self, player: PlayerState) -> None:
@@ -841,6 +880,37 @@ class GameState:
                 card.on_buy_phase_end(self)
             if hasattr(card, "on_cleanup_return_province"):
                 card.on_cleanup_return_province(player)
+
+    def _handle_tavern_mat_calls(self, player: PlayerState) -> None:
+        """Offer the player each callable Reserve card on the Tavern mat.
+
+        The AI picks one card at a time (or ``None`` to stop). When a
+        card is called, its ``on_call_at_turn_start`` runs and then the
+        card moves from the Tavern mat to the discard pile.
+        """
+        while True:
+            callable_cards = [
+                card
+                for card in player.tavern_mat
+                if card.is_reserve and card.can_call_at_turn_start(self, player)
+            ]
+            if not callable_cards:
+                break
+
+            choice = player.ai.choose_reserve_call_at_turn_start(
+                self, player, callable_cards + [None]
+            )
+            if choice is None or choice not in player.tavern_mat:
+                break
+
+            self.log_callback(
+                ("action", player.ai.name, f"calls {choice} from Tavern mat", {})
+            )
+
+            choice.on_call_at_turn_start(self, player)
+            if choice in player.tavern_mat:
+                player.tavern_mat.remove(choice)
+                player.discard.append(choice)
 
     def get_card_cost(self, player: PlayerState, card: Card) -> int:
         """Return the coin cost of a card after modifiers."""
@@ -1113,6 +1183,8 @@ class GameState:
             self.handle_treasure_phase()
         elif self.phase == "buy":
             self.handle_buy_phase()
+        elif self.phase == "night":
+            self.handle_night_phase()
         elif self.phase == "cleanup":
             self.handle_cleanup_phase()
 
@@ -1791,5 +1863,5 @@ class GameState:
 
         # Calculate and store final victory points for each player
         for player in self.players:
-            vp = player.get_victory_points()
+            vp = player.get_victory_points(self)
             self.logger.current_metrics.victory_points[player.ai.name] = vp

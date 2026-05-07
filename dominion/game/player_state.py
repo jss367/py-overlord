@@ -28,6 +28,7 @@ class PlayerState:
     projects: list = field(default_factory=list)
     exile: list[Card] = field(default_factory=list)
     invested_exile: list[Card] = field(default_factory=list)
+    tavern_mat: list[Card] = field(default_factory=list)
 
     # States and hex penalties
     deluded: bool = False
@@ -130,6 +131,7 @@ class PlayerState:
         self.projects = []
         self.exile = []
         self.invested_exile = []
+        self.tavern_mat = []
 
         # Reset resources
         self.actions = 1
@@ -255,20 +257,23 @@ class PlayerState:
     def count(self, card_name: str) -> int:
         return self.count_in_deck(card_name)
 
-    def get_victory_points(self, _game_state=None) -> int:
+    def get_victory_points(self, game_state=None) -> int:
         """Calculate total victory points for the player.
 
-        ``PlayerState.get_victory_points`` is frequently called with an unused
-        ``game_state`` argument throughout the project.  The tests mimic that
-        behaviour and pass ``None`` explicitly, so keep a placeholder
-        parameter to remain compatible with those call sites while ignoring it
-        internally.
+        When ``game_state`` is provided, any landmarks on the table also
+        contribute their (typically negative) VP. Callers in older code
+        may pass ``None`` or omit the argument; in that case landmark
+        scoring is skipped.
         """
-        return (
+        total = (
             sum(card.get_victory_points(self) for card in self.all_cards())
             + self.vp_tokens
             - 2 * self.misery
         )
+        if game_state is not None:
+            for landmark in getattr(game_state, "landmarks", []):
+                total += landmark.score(game_state, self)
+        return total
 
     def all_cards(self) -> list[Card]:
         """Return a list of all cards the player possesses."""
@@ -281,6 +286,7 @@ class PlayerState:
             self.multiplied_durations,
             self.exile,
             self.invested_exile,
+            self.tavern_mat,
             self.native_village_mat,
             self.island_mat,
             self.trickster_set_aside,

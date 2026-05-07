@@ -559,23 +559,74 @@ def test_abundance_immediate_and_duration_effect():
 
 # --- Transmogrify ---
 
-def test_transmogrify_trashes_and_gains_one_more_to_hand():
+def test_transmogrify_play_moves_to_tavern_mat():
     ai = GainFirstBuyAI()
     state, player = _setup(ai)
     trans = get_card("Transmogrify")
-    silver = get_card("Silver")
-    player.hand = [trans, silver]
+    player.hand = [trans]
     player.actions = 1
 
     player.hand.remove(trans)
     player.in_play.append(trans)
     trans.on_play(state)
 
-    assert silver in state.trash
-    # Should gain a card costing up to $4 — some kingdom card lands in hand
-    assert any(c is not silver for c in player.hand)
-    # +1 Action
+    # +1 Action from stats; card moved to Tavern mat (not in play)
     assert player.actions == 2
+    assert trans in player.tavern_mat
+    assert trans not in player.in_play
+
+
+def test_transmogrify_call_at_turn_start_trashes_and_gains_into_hand():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai)
+    trans = get_card("Transmogrify")
+    silver = get_card("Silver")
+    player.hand = [silver]
+    player.tavern_mat = [trans]
+
+    state._handle_tavern_mat_calls(player)
+
+    assert silver in state.trash
+    # Should have gained a card costing up to $4 — it went into hand
+    assert any(c is not silver for c in player.hand)
+    # The called Transmogrify went to discard
+    assert trans in player.discard
+    assert trans not in player.tavern_mat
+
+
+def test_transmogrify_does_not_call_with_empty_hand():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai)
+    trans = get_card("Transmogrify")
+    player.hand = []
+    player.tavern_mat = [trans]
+
+    state._handle_tavern_mat_calls(player)
+
+    # No trash, Transmogrify stays on Tavern mat for next turn
+    assert state.trash == []
+    assert trans in player.tavern_mat
+
+
+def test_reserve_call_fires_during_start_phase():
+    """The engine should automatically offer Reserve calls in handle_start_phase."""
+    ai = GainFirstBuyAI()
+    state = GameState(players=[])
+    state.initialize_game([ai], [get_card("Transmogrify")])
+    p = state.players[0]
+    trans = get_card("Transmogrify")
+    p.tavern_mat = [trans]
+    p.hand = [get_card("Estate")]
+    p.deck = [get_card("Copper") for _ in range(5)]
+
+    state.current_player_index = 0
+    state.phase = "start"
+    state.handle_start_phase()
+
+    assert get_card("Estate").name == "Estate"  # sanity
+    assert any(c.name == "Estate" for c in state.trash)
+    assert trans in p.discard
+    assert trans not in p.tavern_mat
 
 
 # --- Footpad ---
@@ -626,27 +677,69 @@ def test_footpad_does_nothing_to_small_hand():
     assert len(p2.hand) == 2  # already at/below 3
 
 
-# --- Wall ---
+def test_night_phase_runs_after_buy_phase():
+    """Confirm Footpad is played by the engine during the dedicated Night phase."""
+    ai = GainFirstBuyAI()
+    ai2 = DummyAI()
+    state = GameState(players=[])
+    state.initialize_game([ai, ai2], [get_card("Footpad")])
+    p1 = state.players[0]
+    p2 = state.players[1]
 
-def test_wall_penalizes_decks_above_fifteen_cards():
+    footpad = get_card("Footpad")
+    p1.hand = [footpad]
+    p1.coin_tokens = 0
+    p2.hand = [get_card("Copper")] * 5
+
+    state.current_player_index = 0
+    state.phase = "night"
+    state.handle_night_phase()
+
+    assert footpad in p1.in_play
+    assert p1.coin_tokens == 2
+    assert len(p2.hand) == 3
+    assert state.phase == "cleanup"
+
+
+def test_night_card_not_played_in_action_phase():
     ai = GainFirstBuyAI()
     state, player = _setup(ai)
-    wall = get_card("Wall")
-    player.deck = [get_card("Copper") for _ in range(20)] + [wall]
+    footpad = get_card("Footpad")
+    player.hand = [footpad]
+    player.actions = 1
 
-    # 21 cards total, 15 free, so -6 VP
-    assert wall.get_victory_points(player) == -6
+    state.current_player_index = 0
+    state.handle_action_phase()
+
+    # Footpad should remain in hand: it's a Night card, not an Action
+    assert footpad in player.hand
+    assert footpad not in player.in_play
 
 
-def test_wall_penalty_not_double_counted_with_multiple_walls():
+# --- Wall (Landmark) ---
+
+def test_wall_landmark_penalizes_decks_above_fifteen_cards():
+    from dominion.landmarks import Wall
+
     ai = GainFirstBuyAI()
     state, player = _setup(ai)
-    wall1 = get_card("Wall")
-    wall2 = get_card("Wall")
-    player.deck = [get_card("Copper") for _ in range(15)] + [wall1, wall2]
+    state.landmarks = [Wall()]
+    player.deck = [get_card("Copper") for _ in range(21)]
+    player.hand = []
 
-    # 17 cards; first wall scores -2, second scores 0
-    assert wall1.get_victory_points(player) + wall2.get_victory_points(player) == -2
+    base_vp = sum(c.get_victory_points(player) for c in player.all_cards())
+    total = player.get_victory_points(state)
+    assert total == base_vp - 6  # 21 cards, 15 free, -6 from Wall
+
+
+def test_wall_landmark_penalty_not_applied_when_landmark_absent():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai)
+    player.deck = [get_card("Copper") for _ in range(20)]
+    player.hand = []
+
+    base_vp = sum(c.get_victory_points(player) for c in player.all_cards())
+    assert player.get_victory_points(state) == base_vp
 
 
 # --- Castles ---

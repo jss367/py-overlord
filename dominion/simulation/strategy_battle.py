@@ -112,14 +112,17 @@ class StrategyBattle:
         projects = []
         ways = []
         allies = []
+        landmarks = []
 
         if self.board_config:
             events = [get_event(name) for name in self.board_config.events]
             projects = [get_project(name) for name in self.board_config.projects]
             ways = [get_way(name) for name in self.board_config.ways]
             allies = [get_ally(name) for name in self.board_config.allies]
+            from dominion.landmarks.registry import get_landmark
+            landmarks = [get_landmark(name) for name in self.board_config.landmarks]
 
-        return kingdom_cards, events, projects, ways, allies
+        return kingdom_cards, events, projects, ways, allies, landmarks
 
     def run_battle(self, strategy1_name: str, strategy2_name: str, num_games: int = 100) -> dict[str, Any]:
         """Run multiple games between two strategies"""
@@ -233,7 +236,7 @@ class StrategyBattle:
         game_state.set_logger(self.logger)
 
         # Initialize game
-        kingdom_cards, events, projects, ways, allies = self._prepare_board_components(kingdom_card_names)
+        kingdom_cards, events, projects, ways, allies, landmarks = self._prepare_board_components(kingdom_card_names)
         game_state.initialize_game(
             [ai1, ai2],
             kingdom_cards,
@@ -242,6 +245,7 @@ class StrategyBattle:
             projects=projects,
             ways=ways,
             allies=allies,
+            landmarks=landmarks,
         )
 
         # Apply traits from board config
@@ -256,8 +260,8 @@ class StrategyBattle:
 
         # Get results
         final_turns = game_state.turn_number
-        scores = {p.ai.name: p.get_victory_points() for p in game_state.players}
-        winner = max(game_state.players, key=lambda p: p.get_victory_points()).ai
+        scores = {p.ai.name: p.get_victory_points(game_state) for p in game_state.players}
+        winner = max(game_state.players, key=lambda p: p.get_victory_points(game_state)).ai
 
         # End game logging and capture log path if any
         log_path = self.logger.end_game(winner.name, scores, game_state.supply, game_state.players)

@@ -1,9 +1,8 @@
 """Implementation of the Footpad card from Nocturne.
 
-The card is officially Night-Attack: +2 Coffers, each other player discards
-down to 3 cards in hand. The codebase has no Night phase, so Footpad is
-modeled as Action-Attack here. Coffers are tracked via the existing
-``coin_tokens`` field, which auto-spends like Coffers during the buy phase.
+Night-Attack ($5):
++2 Coffers (modeled via the existing ``coin_tokens`` field).
+Each other player discards down to 3 cards in hand.
 """
 
 from ..base_card import Card, CardCost, CardStats, CardType
@@ -15,7 +14,7 @@ class Footpad(Card):
             name="Footpad",
             cost=CardCost(coins=5),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.ATTACK],
+            types=[CardType.NIGHT, CardType.ATTACK],
         )
 
     def play_effect(self, game_state):

@@ -36,7 +36,6 @@ from .sacrifice import Sacrifice
 from .settlers import Settlers
 from .temple import Temple
 from .villa import Villa
-from .wall import Wall
 from .wild_hunt import WildHunt
 
 __all__ = [
@@ -76,6 +75,5 @@ __all__ = [
     'Settlers',
     'Temple',
     'Villa',
-    'Wall',
     'WildHunt',
 ]

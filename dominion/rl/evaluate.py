@@ -52,8 +52,8 @@ def evaluate(
 
             obs, reward, terminated, truncated, info = env.step(action.item())
 
-        rl_vp = env.game_state.players[0].get_victory_points()
-        opp_vp = env.game_state.players[1].get_victory_points()
+        rl_vp = env.game_state.players[0].get_victory_points(env.game_state)
+        opp_vp = env.game_state.players[1].get_victory_points(env.game_state)
         total_vp += rl_vp
         total_opp_vp += opp_vp
 
