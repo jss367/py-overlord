@@ -112,17 +112,20 @@ class Displace(Card):
             len(game_state.pile_order[pile_name]) if is_ordered_pile else 0
         )
         gained = game_state.gain_card(player, gain_choice)
-        # gain_card's Trader-replacement path restores supply via
-        # original_card.name, which for ordered piles (Knights) is the
-        # specific top card (e.g. "Dame Josephine") and not the pile
-        # placeholder, so the restore silently no-ops there. Changeling's
-        # exchange, however, *does* push the gained card back onto the
-        # ordered pile correctly. Detect a name change and only restore
-        # the pile if no other path already did so.
+        # gain_card's Trader-replacement and Exile-reclamation paths both
+        # try to restore the Supply via gain_choice.name, which for
+        # ordered piles (Knights, Ruins) is the specific top card (e.g.
+        # "Dame Josephine") rather than the pile placeholder, so the
+        # restore silently no-ops there. Changeling's exchange, in
+        # contrast, restores the pile placeholder directly. We treat any
+        # case where gain_card returned a different object as
+        # potentially needing a manual restore, then use the post-
+        # decrement snapshot to skip the Changeling case (where the
+        # pile state was already restored for us).
         if (
             is_ordered_pile
             and gained is not None
-            and gained.name != gain_choice.name
+            and gained is not gain_choice
             and game_state.supply.get(pile_name, 0) == post_decrement_supply
             and len(game_state.pile_order.get(pile_name, []))
             == post_decrement_order_len

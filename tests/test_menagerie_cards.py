@@ -436,6 +436,30 @@ def test_displace_skips_split_pile_bottom_when_covered():
     assert state.supply["Catapult"] == pre_cat - 1
 
 
+def test_displace_restores_ordered_pile_on_exile_reclamation():
+    """If the player has the top Knight already on their Exile mat,
+    gain_card reclaims that exile copy and tries to restore the supply
+    via the specific knight's name — which doesn't exist as a supply
+    key for ordered piles — silently no-opping. The Knights pile must
+    be restored manually so it isn't permanently decremented."""
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    p1.hand = [get_card("Displace"), get_card("Silver")]
+    state.supply = {"Knights": 10}
+    state.pile_order = dict(getattr(state, "pile_order", {}))
+    state.pile_order["Knights"] = ["Dame Anna", "Dame Josephine"]
+    # Top knight already exiled — Displace's gain will reclaim it.
+    p1.exile.append(get_card("Dame Josephine"))
+    pre_supply = state.supply["Knights"]
+    pre_order = list(state.pile_order["Knights"])
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Silver" for c in p1.exile)
+    assert state.supply["Knights"] == pre_supply
+    assert state.pile_order["Knights"] == pre_order
+    assert any(c.name == "Dame Josephine" for c in p1.discard)
+
+
 def test_displace_does_not_double_restore_pile_on_changeling_exchange():
     """When Displace gains from an ordered pile and Changeling exchanges
     the gain, gain_card's Changeling path already restores the pile.
