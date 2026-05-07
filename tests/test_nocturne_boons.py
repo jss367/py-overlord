@@ -50,6 +50,66 @@ def _setup_state(ai=None):
     return state, state.players[0]
 
 
+class _LostInWoodsDiscardAI(DummyAI):
+    """Always discards the first available card for Lost in the Woods."""
+
+    def choose_cards_to_discard(self, state, player, choices, count, *, reason=None):
+        if reason == "lost_in_the_woods" and choices:
+            return [choices[0]]
+        return []
+
+
+class _LostInWoodsDeclineAI(DummyAI):
+    """Always declines the Lost-in-the-Woods discard option."""
+
+    def choose_cards_to_discard(self, state, player, choices, count, *, reason=None):
+        return []
+
+
+def test_lost_in_the_woods_discards_card_to_receive_boon():
+    """When player has Lost in the Woods, start-of-turn must offer the
+    discard-a-card-to-receive-a-Boon choice. If AI elects to discard, the
+    chosen card moves to discard and a Boon is resolved."""
+    state, player = _setup_state(_LostInWoodsDiscardAI())
+    player.lost_in_the_woods = True
+    copper = get_card("Copper")
+    player.hand = [copper]
+    player.discard = []
+    state.boons_deck = ["The Mountain's Gift"]  # +Silver
+    silver_before = state.supply["Silver"]
+    state.handle_start_phase()
+    assert copper not in player.hand
+    assert copper in player.discard
+    assert state.supply["Silver"] == silver_before - 1
+
+
+def test_lost_in_the_woods_decline_skips_boon_and_discard():
+    """When AI declines, no card is discarded and no Boon is received."""
+    state, player = _setup_state(_LostInWoodsDeclineAI())
+    player.lost_in_the_woods = True
+    copper = get_card("Copper")
+    player.hand = [copper]
+    player.discard = []
+    state.boons_deck = ["The Mountain's Gift"]
+    silver_before = state.supply["Silver"]
+    state.handle_start_phase()
+    assert copper in player.hand
+    assert copper not in player.discard
+    assert state.supply["Silver"] == silver_before
+
+
+def test_lost_in_the_woods_with_empty_hand_skips():
+    """With no cards to discard, the option is unavailable and no Boon is
+    received."""
+    state, player = _setup_state(_LostInWoodsDiscardAI())
+    player.lost_in_the_woods = True
+    player.hand = []
+    state.boons_deck = ["The Mountain's Gift"]
+    silver_before = state.supply["Silver"]
+    state.handle_start_phase()
+    assert state.supply["Silver"] == silver_before
+
+
 def test_create_boons_deck_has_all_twelve():
     deck = create_boons_deck()
     assert len(deck) == 12
