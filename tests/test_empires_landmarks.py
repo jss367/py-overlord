@@ -10,6 +10,7 @@ from dominion.landmarks import (
     Arena,
     BanditFort,
     Basilica,
+    Baths,
     Battlefield,
     Colonnade,
     DefiledShrine,
@@ -44,10 +45,10 @@ def _make_game(landmarks=None, num_players=2):
     return state
 
 
-def test_twenty_landmarks_registered():
-    assert len(LANDMARK_TYPES) == 20
+def test_twentyone_landmarks_registered():
+    assert len(LANDMARK_TYPES) == 21
     instances = all_landmarks()
-    assert len(instances) == 20
+    assert len(instances) == 21
 
 
 def test_aqueduct_moves_vp_on_treasure_and_victory_gain():
@@ -290,6 +291,85 @@ def test_wolf_den_neg_three_per_singleton_card():
     player.deck = [get_card("Village"), get_card("Smithy"), get_card("Smithy")]
     # Village=1 (singleton), Smithy=2 -> -3.
     assert landmark.vp_for(state, player) == -3
+
+
+def test_baths_setup_pool_six_per_player():
+    landmark = Baths()
+    state = _make_game([landmark], num_players=3)
+    assert landmark.vp_pool == 18
+
+
+def test_baths_grants_vp_when_no_card_gained_this_turn():
+    landmark = Baths()
+    state = _make_game([landmark])
+    player = state.players[0]
+    state.current_player_index = 0
+    # Simulate end of a turn with no gains: trigger directly.
+    landmark.on_turn_end(state, player)
+    assert player.vp_tokens == 2
+    assert landmark.vp_pool == 6 * len(state.players) - 2
+
+
+def test_baths_does_nothing_when_card_was_gained():
+    landmark = Baths()
+    state = _make_game([landmark])
+    player = state.players[0]
+    state.current_player_index = 0
+    state.gain_card(player, get_card("Copper"))
+    pool_before = landmark.vp_pool
+    vp_before = player.vp_tokens
+    landmark.on_turn_end(state, player)
+    assert player.vp_tokens == vp_before
+    assert landmark.vp_pool == pool_before
+
+
+def test_baths_capped_by_remaining_pool():
+    landmark = Baths()
+    state = _make_game([landmark])
+    player = state.players[0]
+    landmark.vp_pool = 1
+    landmark.on_turn_end(state, player)
+    assert player.vp_tokens == 1
+    assert landmark.vp_pool == 0
+
+
+def test_baths_fires_through_cleanup_phase():
+    """End-to-end: ending a turn with no gain triggers Baths via game flow."""
+    landmark = Baths()
+    state = _make_game([landmark])
+    player = state.players[0]
+    state.current_player_index = 0
+    player.cards_gained_this_turn = 0
+    pool_before = landmark.vp_pool
+    state.handle_cleanup_phase()
+    assert player.vp_tokens == 2
+    assert landmark.vp_pool == pool_before - 2
+
+
+def test_baths_unaffected_by_out_of_turn_forced_gains():
+    """Forced gains during opponents' turns (Witch/Sea Hag-style attacks) must
+    not suppress Baths on the victim's own next turn. The invariant is that
+    handle_start_phase resets cards_gained_this_turn before the victim's own
+    turn runs, so on_turn_end only sees this-turn gains.
+    """
+    landmark = Baths()
+    state = _make_game([landmark])
+    attacker, defender = state.players[0], state.players[1]
+    # Out-of-turn forced gain on attacker's turn.
+    state.current_player_index = 0
+    state.gain_card(defender, get_card("Curse"))
+    assert defender.cards_gained_this_turn == 1
+    # Defender's own turn starts: counter resets, defender gains nothing,
+    # cleanup fires Baths.
+    state.current_player_index = 1
+    state.phase = "start"
+    state.handle_start_phase()
+    assert defender.cards_gained_this_turn == 0
+    pool_before = landmark.vp_pool
+    state.phase = "cleanup"
+    state.handle_cleanup_phase()
+    assert defender.vp_tokens == 2
+    assert landmark.vp_pool == pool_before - 2
 
 
 def test_landmarks_contribute_to_final_vp():

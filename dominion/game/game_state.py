@@ -2220,6 +2220,12 @@ class GameState:
         player.envious_effect_active = False
         player.cost_reduction = 0
         player.innovation_used = False
+
+        # Empires Landmarks: end-of-turn hook (Baths). Fired before
+        # cards_gained_this_turn resets so the landmark can inspect it.
+        for landmark in self.landmarks:
+            landmark.on_turn_end(self, player)
+
         player.cards_gained_this_turn = 0
         player.cards_gained_this_buy_phase = 0
         player.gained_victory_this_buy_phase = False
