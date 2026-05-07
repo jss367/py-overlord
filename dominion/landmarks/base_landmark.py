@@ -44,3 +44,11 @@ class Landmark:
 
     def on_buy_phase_start(self, game_state, player) -> None:
         pass
+
+    def on_turn_end(self, game_state, player) -> None:
+        """Fired during cleanup, before per-turn flags reset.
+
+        ``player.cards_gained_this_turn`` still reflects this turn's gains
+        when this hook runs (used by Baths).
+        """
+        pass

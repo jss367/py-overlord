@@ -1,4 +1,4 @@
-"""Empires Landmarks (20 total)."""
+"""Empires Landmarks (21 total)."""
 
 from collections import Counter
 
@@ -103,6 +103,29 @@ class Basilica(Landmark):
             take = min(2, self.vp_pool)
             self.vp_pool -= take
             player.vp_tokens += take
+
+
+class Baths(Landmark):
+    """End of turn without a gain: take 2 VP from here.
+    Setup: 6 VP per player."""
+
+    def __init__(self):
+        super().__init__(
+            name="Baths",
+            description="End of turn without gaining a card: +2 VP from Baths.",
+        )
+
+    def setup(self, game_state) -> None:
+        self.vp_pool = 6 * len(game_state.players)
+
+    def on_turn_end(self, game_state, player) -> None:
+        if self.vp_pool <= 0:
+            return
+        if getattr(player, "cards_gained_this_turn", 0) > 0:
+            return
+        take = min(2, self.vp_pool)
+        self.vp_pool -= take
+        player.vp_tokens += take
 
 
 class Battlefield(Landmark):
@@ -452,6 +475,7 @@ ALL_LANDMARKS = [
     Arena,
     BanditFort,
     Basilica,
+    Baths,
     Battlefield,
     Colonnade,
     DefiledShrine,
