@@ -54,10 +54,19 @@ class Displace(Card):
                 candidate = game_state.top_of_pile(name)
                 if candidate is None:
                     continue
+                # Individual Knight/Ruins cards return may_be_bought=False
+                # because direct supply access uses the pile placeholder;
+                # the pile itself is the gainable entry. Skip the per-card
+                # check for ordered piles.
             else:
                 try:
                     candidate = get_card(name)
                 except ValueError:
+                    continue
+                # Filter out cards present in supply but not currently
+                # gainable: split-pile bottoms covered by their partner,
+                # non-supply piles (Spirits, Madman, Mercenary), etc.
+                if not candidate.may_be_bought(game_state):
                     continue
             if candidate.name == choice.name:
                 continue

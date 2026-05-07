@@ -18,6 +18,11 @@ class Fisherman(Card):
         )
 
     def cost_modifier(self, game_state, player) -> int:
-        if not player.discard:
+        # The discount is turn-scoped: only the player whose turn it is
+        # sees Fisherman drop to $2 when their discard is empty. Off-turn
+        # cost queries (e.g. Changeling's $3+ exchange trigger when a
+        # card is gained on another player's turn) must see the printed
+        # cost.
+        if game_state.current_player is player and not player.discard:
             return -3
         return 0

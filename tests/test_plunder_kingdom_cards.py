@@ -233,6 +233,22 @@ def test_fisherman_full_cost_with_non_empty_discard():
     assert state.get_card_cost(player, fish) == 5
 
 
+def test_fisherman_discount_only_on_owners_turn():
+    """Off-turn cost queries (e.g. Changeling on a gain triggered by an
+    opponent) must see the printed $5, not the empty-discard discount."""
+    state = _make_state(num_players=2)
+    me = state.players[0]
+    foe = state.players[1]
+    me.discard = []
+    foe.discard = []
+    state.current_player_index = 0
+    fish = get_card("Fisherman")
+    # Active player with empty discard: discount applies.
+    assert state.get_card_cost(me, fish) == 2
+    # Off-turn player querying their own Fisherman cost: no discount.
+    assert state.get_card_cost(foe, fish) == 5
+
+
 def test_maroon_draws_per_type():
     state = _make_state()
     player = state.current_player

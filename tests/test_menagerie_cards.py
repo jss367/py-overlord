@@ -401,6 +401,25 @@ def test_displace_restores_ordered_pile_when_trader_replaces_gain():
     assert any(c.name == "Silver" for c in p1.discard + p1.deck)
 
 
+def test_displace_skips_split_pile_bottom_when_covered():
+    """Catapult/Rocks split pile: while Catapult (top) is present, Rocks
+    (bottom) is not gainable via Displace even though Rocks is in supply
+    at a permitted cost."""
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    # Silver ($3) → ceiling $5. Rocks costs $4; Catapult costs $3.
+    p1.hand = [get_card("Displace"), get_card("Silver")]
+    state.supply = {"Catapult": 5, "Rocks": 5}
+    pre_rocks = state.supply["Rocks"]
+    pre_cat = state.supply["Catapult"]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Silver" for c in p1.exile)
+    # Rocks is still untouched; only Catapult could legally be gained.
+    assert state.supply["Rocks"] == pre_rocks
+    assert state.supply["Catapult"] == pre_cat - 1
+
+
 def test_displace_uses_effective_cost_for_candidates():
     """Cost-reducing cards in play (e.g. Bridge) must lower a candidate's
     effective cost, allowing a Province-cost gain when discounted."""
