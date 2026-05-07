@@ -766,9 +766,17 @@ class GameState:
             # The River's Gift +1 Card was already delivered at end of last
             # turn during cleanup. No discard — Boon stays set aside.
 
-        # Nocturne — Lost in the Woods (Fool): receive a Boon
-        if getattr(player, "lost_in_the_woods", False):
-            self.receive_boon(player)
+        # Nocturne — Lost in the Woods (Fool): may discard a card to receive a Boon
+        if getattr(player, "lost_in_the_woods", False) and player.hand:
+            chosen = player.ai.choose_cards_to_discard(
+                self, player, list(player.hand), 1, reason="lost_in_the_woods"
+            )
+            if chosen:
+                card = chosen[0]
+                if card in player.hand:
+                    player.hand.remove(card)
+                    self.discard_card(player, card)
+                    self.receive_boon(player)
 
         # Nocturne — Blessed Village pending Boons
         for _ in range(getattr(player, "pending_blessed_boons", 0)):
@@ -3755,11 +3763,13 @@ class GameState:
             for name, count in extras.items():
                 if name not in self.supply:
                     self.supply[name] = count
+                self.non_supply_pile_names.add(name)
         needs_boons = any(getattr(c, "uses_boons", False) for c in kingdom_cards)
         if needs_boons and "Will-o'-Wisp" not in self.supply:
             try:
                 wisp = get_card("Will-o'-Wisp")
                 self.supply["Will-o'-Wisp"] = wisp.starting_supply(self)
+                self.non_supply_pile_names.add("Will-o'-Wisp")
             except ValueError:
                 pass
     def _apply_adventures_attack_on_buy(

@@ -147,3 +147,44 @@ def test_zombie_spy_discards_junk():
     # Silver was drawn into hand by +1 Card. Then Estate is on top (looked at)
     # and discarded since it's a Victory.
     assert any(c.name == "Estate" for c in player.discard)
+
+
+def test_nocturne_extras_register_as_non_supply():
+    """Bat/Imp/Wish/Will-o'-Wisp/Ghost piles are non-Supply and must be
+    registered in ``non_supply_pile_names`` so they don't count toward the
+    three-empty-piles end-of-game condition."""
+    state = GameState(players=[])
+    state.log_callback = lambda *_: None
+    kingdom = [
+        get_card("Vampire"),       # adds Bat
+        get_card("Pixie"),         # adds Wish (Pixie also uses_boons)
+        get_card("Devil's Workshop"),  # adds Imp
+        get_card("Exorcist"),      # adds Will-o'-Wisp, Imp, Ghost
+    ]
+    state._setup_nocturne_extras(kingdom)
+    for name in ("Bat", "Wish", "Imp", "Will-o'-Wisp", "Ghost"):
+        assert name in state.supply, f"{name} should be in supply for lookup"
+        assert name in state.non_supply_pile_names, (
+            f"{name} must be a non-Supply pile (not counted toward 3-empty)"
+        )
+
+
+def test_emptied_non_supply_piles_do_not_advance_empty_count():
+    """Three emptied non-Supply piles must NOT trigger the 3-empty end-game
+    condition on their own."""
+    state = GameState(players=[])
+    state.log_callback = lambda *_: None
+    state.supply = {
+        "Copper": 30, "Silver": 20, "Gold": 10,
+        "Estate": 8, "Duchy": 8, "Province": 8, "Curse": 10,
+    }
+    state._setup_nocturne_extras([
+        get_card("Vampire"),
+        get_card("Pixie"),
+        get_card("Devil's Workshop"),
+    ])
+    # Empty all three non-Supply piles.
+    for name in ("Bat", "Wish", "Imp"):
+        assert name in state.supply
+        state.supply[name] = 0
+    assert state.empty_piles == 0
