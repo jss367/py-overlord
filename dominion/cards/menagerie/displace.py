@@ -47,8 +47,16 @@ class Displace(Card):
         # though the actual gained card is the visible top of the pile.
         options: list = []
         pile_for_card: dict[int, str] = {}
+        # Non-Supply piles live in game_state.supply for lookup convenience
+        # but are not legal targets for gain-from-Supply effects. Most are
+        # filtered by may_be_bought=False, but a few (notably the Menagerie
+        # Horse pile) are unflagged and need an explicit blocklist that
+        # mirrors the Black Market deck-builder exclusions.
+        non_supply_blocklist = game_state.non_supply_pile_names | {"Horse"}
         for name, count in game_state.supply.items():
             if count <= 0:
+                continue
+            if name in non_supply_blocklist:
                 continue
             if name in game_state.pile_order:
                 candidate = game_state.top_of_pile(name)

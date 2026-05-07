@@ -401,6 +401,22 @@ def test_displace_restores_ordered_pile_when_trader_replaces_gain():
     assert any(c.name == "Silver" for c in p1.discard + p1.deck)
 
 
+def test_displace_does_not_gain_horse_from_non_supply_pile():
+    """Horse lives in game_state.supply for lookup convenience but is a
+    non-Supply pile per Menagerie rules. Displace must not gain Horses."""
+    state, p1, _ = _two_player_state()
+    p1.actions = 1
+    # Copper ($0) → ceiling $2; Horse ($0) would otherwise fit.
+    p1.hand = [get_card("Displace"), get_card("Copper")]
+    state.supply = {"Horse": 30}
+    pre_supply = state.supply["Horse"]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Copper" for c in p1.exile)
+    assert state.supply["Horse"] == pre_supply
+    assert not any(c.name == "Horse" for c in p1.discard + p1.deck + p1.hand)
+
+
 def test_displace_skips_split_pile_bottom_when_covered():
     """Catapult/Rocks split pile: while Catapult (top) is present, Rocks
     (bottom) is not gainable via Displace even though Rocks is in supply
