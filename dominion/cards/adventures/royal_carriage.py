@@ -29,11 +29,12 @@ class RoyalCarriage(Card):
             game_state, player, self, trigger, *args
         ):
             return False
+        # Move this Royal Carriage off the mat first so the replay's own
+        # ``action_played`` trigger doesn't re-enter this same instance.
+        game_state.call_from_tavern(player, self)
         # Replay the action card.
         action_card.on_play(game_state)
-        # Apply pile-token bonuses again on the replay.
-        game_state._apply_pile_token_play_bonuses(player, action_card)
-        if getattr(player, "champions_in_play", 0) > 0 and action_card.is_action:
-            player.actions += player.champions_in_play
-        game_state.call_from_tavern(player, self)
+        # The replay is itself a play of the action: other Reserves on the mat
+        # (another Royal Carriage, Coin of the Realm) get to react.
+        game_state._call_tavern_triggers(player, "action_played", action_card)
         return True
