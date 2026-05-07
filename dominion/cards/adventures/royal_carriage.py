@@ -29,11 +29,18 @@ class RoyalCarriage(Card):
             game_state, player, self, trigger, *args
         ):
             return False
+        # Set this Royal Carriage aside while the replay resolves: pull it
+        # off the mat (so the replay's own ``action_played`` trigger can't
+        # re-enter this same instance) but don't put it in discard yet — a
+        # reshuffle during the replay (e.g. Smithy with an empty deck) would
+        # otherwise pull it back out of the discard mid-replay.
+        if self in player.tavern_mat:
+            player.tavern_mat.remove(self)
         # Replay the action card.
         action_card.on_play(game_state)
-        # Apply pile-token bonuses again on the replay.
-        game_state._apply_pile_token_play_bonuses(player, action_card)
-        if getattr(player, "champions_in_play", 0) > 0 and action_card.is_action:
-            player.actions += player.champions_in_play
-        game_state.call_from_tavern(player, self)
+        # The replay is itself a play of the action: other Reserves on the mat
+        # (another Royal Carriage, Coin of the Realm) get to react.
+        game_state._call_tavern_triggers(player, "action_played", action_card)
+        # Replay has fully resolved — Royal Carriage now goes to discard.
+        player.discard.append(self)
         return True

@@ -273,9 +273,12 @@ class Card:
         """Optional hook for Reserve cards on the Tavern mat.
 
         Called by the engine on each known trigger ("start_of_turn",
-        "action_played", "buy", "gain", "cleanup_start"). Subclasses should
-        return True if they actually called this card off the mat (the engine
-        will then move the card from ``tavern_mat`` to ``discard``).
+        "action_played", "buy", "gain", "cleanup_start"). If a Reserve
+        decides to call itself off the mat, it must invoke
+        ``game_state.call_from_tavern(player, self)`` itself (Teacher is
+        the exception — it returns to the mat instead). Returning True
+        simply signals that the card resolved its trigger; the engine
+        does not move the card on its own.
         """
         return False
 

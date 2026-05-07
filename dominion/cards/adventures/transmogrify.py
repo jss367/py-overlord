@@ -45,7 +45,11 @@ class Transmogrify(Card):
                 card = get_card(name)
             except ValueError:
                 continue
-            if card.cost.coins <= max_cost and card.cost.potions <= player.potions:
+            if (
+                card.cost.coins <= max_cost
+                and card.cost.potions <= target.cost.potions
+                and card.cost.debt <= target.cost.debt
+            ):
                 candidates.append(card)
         if candidates:
             choice = player.ai.choose_gain_for_transmogrify(

@@ -116,8 +116,10 @@ def test_guide_calls_at_start_of_turn():
     player.discard = []
     state.phase = "start"
     state.handle_start_phase()
-    # Guide called: hand discarded, drew 5.
-    assert guide in player.discard or guide not in player.tavern_mat
+    # Guide called: moved off the mat to discard, hand discarded, drew 5.
+    assert guide in player.discard
+    assert guide not in player.tavern_mat
+    assert len(player.hand) == 5
     assert all(c.name == "Copper" for c in player.hand)
 
 
@@ -175,6 +177,78 @@ def test_royal_carriage_replays_action():
     # action, played village -1, so 0; +4 = 4 actions remaining (4 from 2x play).
     assert rc in player.discard
     assert player.actions >= 2  # at minimum, two Village plays
+
+
+def test_royal_carriage_chains_with_second_royal_carriage():
+    """A Royal Carriage's replay is itself a play, so a second Royal Carriage
+    on the Tavern mat must be callable on it."""
+    state = _state_with_card("Royal Carriage")
+    player = state.players[0]
+    rc1 = get_card("Royal Carriage")
+    rc2 = get_card("Royal Carriage")
+    player.tavern_mat = [rc1, rc2]
+    village = get_card("Village")
+    player.hand = [village]
+    player.actions = 1
+    player.deck = [get_card("Copper") for _ in range(6)]
+    state.phase = "action"
+    state.handle_action_phase()
+    # Both Royal Carriages should have been called; Village played 3 times.
+    assert rc1 in player.discard
+    assert rc2 in player.discard
+    # Village = +1 Card / +2 Actions. Three plays = +3 Coppers drawn,
+    # actions: 1 (start) - 1 (play Village) + 2*3 (Village bonuses) = 6.
+    coppers_in_hand = sum(1 for c in player.hand if c.name == "Copper")
+    assert coppers_in_hand == 3
+    assert player.actions == 6
+
+
+def test_coin_of_the_realm_reacts_to_royal_carriage_replay():
+    """Royal Carriage's replay of an Action should also trigger Coin of the
+    Realm on the Tavern mat."""
+    state = _state_with_card("Royal Carriage")
+    player = state.players[0]
+    rc = get_card("Royal Carriage")
+    cotr = get_card("Coin of the Realm")
+    player.tavern_mat = [rc, cotr]
+    smithy = get_card("Smithy")
+    player.hand = [smithy]
+    player.actions = 1
+    player.deck = [get_card("Copper") for _ in range(8)]
+    state.phase = "action"
+    state.handle_action_phase()
+    # Smithy was played (consumes the action), Royal Carriage replayed it.
+    # Coin of the Realm fires on each Smithy play giving +2 Actions each time.
+    assert rc in player.discard
+    assert cotr in player.discard
+    # Two Smithy plays = +6 Cards drawn.
+    coppers_in_hand = sum(1 for c in player.hand if c.name == "Copper")
+    assert coppers_in_hand == 6
+
+
+def test_royal_carriage_not_reshuffled_during_replay():
+    """If the replayed Action triggers a reshuffle (e.g. drawing past an
+    empty deck), Royal Carriage itself must not be among the cards
+    reshuffled — it is set aside until the replay resolves."""
+    state = _state_with_card("Royal Carriage")
+    player = state.players[0]
+    rc = get_card("Royal Carriage")
+    player.tavern_mat = [rc]
+    smithy = get_card("Smithy")
+    player.hand = [smithy]
+    player.actions = 1
+    # Empty deck and discard so Smithy's first +1 Card draws the last
+    # Copper, then a reshuffle is needed for the next draw.
+    player.deck = [get_card("Copper")]
+    player.discard = []
+    state.phase = "action"
+    state.handle_action_phase()
+    # RC must end up in discard exactly once, never reshuffled into deck/hand.
+    assert rc in player.discard
+    assert player.discard.count(rc) == 1
+    assert rc not in player.deck
+    assert rc not in player.hand
+    assert rc not in player.tavern_mat
 
 
 def test_distant_lands_vp_when_on_tavern():
