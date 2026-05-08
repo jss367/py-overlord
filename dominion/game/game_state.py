@@ -553,7 +553,19 @@ class GameState:
             self.original_kingdom_pile_names.add(candidate_name)
 
     def _setup_ferryman_pile(self, kingdom_cards: list[Card]) -> None:
-        """Designate an unused Action card costing exactly $3 for Ferryman."""
+        """Designate an unused Action card costing exactly $3 for Ferryman.
+
+        Split-pile cards (Allies four-card piles, Wizards, Empires
+        SplitPileMixin pairs, Castles) are excluded: their pile setup
+        requires partner piles whose registration lives in
+        :meth:`setup_supply`. Restricting Ferryman to ordinary single-pile
+        $3 Actions avoids a half-initialised split pile.
+        """
+        from dominion.cards.allies._split_base import AlliesSplitCard
+        from dominion.cards.allies.wizards import WizardsSplitCard
+        from dominion.cards.empires.castles import CASTLE_ORDER
+        from dominion.cards.split_pile import SplitPileMixin
+
         BASIC_NAMES = {
             "Copper", "Silver", "Gold", "Platinum",
             "Estate", "Duchy", "Province", "Colony", "Curse",
@@ -566,6 +578,8 @@ class GameState:
                 continue
             if name in self.supply:
                 continue
+            if name in CASTLE_ORDER:
+                continue
             try:
                 card = get_card(name)
             except ValueError:
@@ -577,6 +591,8 @@ class GameState:
             if card.cost.potions != 0 or card.cost.debt != 0:
                 continue
             if getattr(card, "is_event", False) or getattr(card, "is_project", False):
+                continue
+            if isinstance(card, (SplitPileMixin, WizardsSplitCard, AlliesSplitCard)):
                 continue
             if not card.may_be_bought(self):
                 continue

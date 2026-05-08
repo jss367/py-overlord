@@ -189,6 +189,23 @@ def test_shop_does_not_consume_action_to_play_card():
     assert player.actions >= 2
 
 
+def test_shop_chain_blocked_when_another_shop_already_in_play():
+    """A Shop currently resolving counts as 'in play', so a second Shop in
+    hand cannot be auto-played by the resolving Shop's effect."""
+
+    state, player = _make_state()
+    shop_a = get_card("Shop")
+    shop_b = get_card("Shop")
+    player.hand = [shop_b]
+    player.in_play = [shop_a]  # the first Shop is mid-resolution
+
+    shop_a.play_effect(state)
+
+    # Shop B remained in hand — chaining was blocked.
+    assert shop_b in player.hand
+    assert shop_b not in player.in_play
+
+
 def test_shop_with_no_eligible_actions_just_grants_basics():
     state, player = _make_state()
     shop = get_card("Shop")
@@ -279,6 +296,40 @@ def test_infirmary_overpay_two_plays_twice():
     # Two plays of Infirmary = 2 Coppers drawn (each play: +1 Card, decline trash).
     coppers_in_hand = sum(1 for c in player.hand if c.name == "Copper")
     assert coppers_in_hand == 2, f"Expected 2 Coppers drawn, got {coppers_in_hand}"
+
+
+def test_infirmary_overpay_moves_card_into_play_before_replaying():
+    """The just-bought Infirmary should be in player.in_play during the
+    overpay replays so a mid-replay shuffle cannot pull it back into the
+    deck and effects keying on the in-play zone see it correctly."""
+
+    ai = InfirmaryBuyer(overpay=2, trash_target=None)
+    player = PlayerState(ai)
+    state = GameState(players=[player])
+    state.setup_supply([])
+    state.supply["Infirmary"] = 10
+    player.hand = []
+    # Empty deck, no discard either: each replay's +1 Card finds nothing.
+    # If Infirmary were left in discard during replay, the empty-deck
+    # shuffle would put it into the deck and we could draw it.
+    player.deck = []
+    player.discard = []
+    player.in_play = []
+    player.actions = 0
+    player.buys = 1
+    player.coins = 5  # cost 3 + overpay 2
+    state.current_player_index = 0
+    state.phase = "buy"
+
+    state.handle_buy_phase()
+
+    # The Infirmary should be in play after overpay (not back in discard,
+    # not shuffled into deck/hand).
+    infirmaries_in_play = [c for c in player.in_play if c.name == "Infirmary"]
+    assert len(infirmaries_in_play) == 1
+    assert not any(c.name == "Infirmary" for c in player.deck)
+    assert not any(c.name == "Infirmary" for c in player.hand)
+    assert not any(c.name == "Infirmary" for c in player.discard)
 
 
 def test_infirmary_overpay_zero_does_not_play():
@@ -609,11 +660,15 @@ def test_ferryman_setup_designates_a_three_cost_pile():
     assert state.ferryman_card_name in state.supply
 
 
-def test_ferryman_play_grants_cards_action_and_gains_chosen_card():
+def test_ferryman_play_grants_cards_and_action_only():
+    """Playing Ferryman grants +2 Cards / +1 Action; the bonus gain is
+    NOT triggered by play — it triggers only when Ferryman is gained."""
+
     state = GameState(players=[])
     state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
     player = state.players[0]
-    player.hand = [get_card("Ferryman")]
+    ferryman = get_card("Ferryman")
+    player.hand = [ferryman]
     player.deck = [get_card("Copper"), get_card("Copper")]
     player.discard = []
     player.in_play = []
@@ -622,16 +677,54 @@ def test_ferryman_play_grants_cards_action_and_gains_chosen_card():
     chosen_name = state.ferryman_card_name
     initial_pile = state.supply[chosen_name]
 
-    ferryman = player.hand[0]
     player.hand.remove(ferryman)
     player.in_play.append(ferryman)
     ferryman.on_play(state)
 
-    # +2 cards drawn, +1 action.
+    # +2 cards drawn.
     assert sum(1 for c in player.hand if c.name == "Copper") == 2
-    # Gained the chosen $3 card.
+    # Bonus gain did NOT happen (only on gain).
+    assert not any(c.name == chosen_name for c in player.discard)
+    assert state.supply[chosen_name] == initial_pile
+
+
+def test_ferryman_on_gain_grants_chosen_card():
+    """Gaining Ferryman (e.g., from a buy or Workshop) gains the chosen
+    $3 card from the Supply."""
+
+    state = GameState(players=[])
+    state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
+    player = state.players[0]
+    player.hand = []
+    player.deck = []
+    player.discard = []
+    player.in_play = []
+
+    chosen_name = state.ferryman_card_name
+    initial_pile = state.supply[chosen_name]
+    state.supply["Ferryman"] = 10
+
+    state.supply["Ferryman"] -= 1
+    state.gain_card(player, get_card("Ferryman"))
+
     assert any(c.name == chosen_name for c in player.discard)
     assert state.supply[chosen_name] == initial_pile - 1
+
+
+def test_ferryman_setup_skips_split_pile_cards():
+    """Ferryman picks an unused $3 Action; split-pile $3 cards (Tent,
+    Old Map, Catapult, Humble Castle) must be skipped to avoid leaving
+    partner piles unregistered."""
+
+    # Run the setup many times to make a missed split-pile candidate
+    # statistically improbable.
+    bad_names = {"Tent", "Old Map", "Catapult", "Humble Castle"}
+    for _ in range(50):
+        state = GameState(players=[])
+        state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
+        assert state.ferryman_card_name not in bad_names, (
+            f"Ferryman picked split-pile card {state.ferryman_card_name}"
+        )
 
 
 # ---------------------------------------------------------------------------

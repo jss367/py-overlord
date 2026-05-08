@@ -29,9 +29,16 @@ class Infirmary(Card):
         return True
 
     def on_overpay(self, game_state, player, amount: int) -> None:
-        # Each $1 overpaid plays this card again. The first play (the buy
-        # itself) is not counted; the buy flow puts Infirmary in discard
-        # before this hook fires, but the replays still apply their effects
-        # to the buying player as a regular play.
-        for _ in range(max(0, amount)):
+        # Each $1 overpaid plays this card. The buy flow has just put the
+        # gained Infirmary into ``player.discard``. Move it into play before
+        # replaying so that effects which inspect the in-play zone (and any
+        # mid-replay shuffle that would otherwise re-include this card) see
+        # it correctly. It stays in play through cleanup, where it will be
+        # discarded normally.
+        if amount <= 0:
+            return
+        if self in player.discard:
+            player.discard.remove(self)
+            player.in_play.append(self)
+        for _ in range(amount):
             self.on_play(game_state)
