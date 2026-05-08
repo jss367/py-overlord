@@ -4,15 +4,15 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Displace(Card):
-    """Exile a card from your hand. Gain a differently named card costing up
-    to $2 more than it.
+    """+1 Action. Exile a card from your hand. Gain a differently named card
+    costing up to $2 more than it.
     """
 
     def __init__(self):
         super().__init__(
             name="Displace",
             cost=CardCost(coins=5),
-            stats=CardStats(),
+            stats=CardStats(actions=1),
             types=[CardType.ACTION],
         )
 
