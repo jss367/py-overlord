@@ -332,12 +332,10 @@ class Journey(Event):
         if getattr(player, "journey_used_this_turn", False):
             return False
         # "Not a 3rd in a row": refuse if the current turn is already an extra
-        # turn from Outpost or a previous Journey. (Mission's extra turn
-        # already blocks all buys via mission_no_buy_turn, so it's covered
-        # earlier in the buy pipeline.)
-        if getattr(player, "outpost_taken_last_turn", False):
-            return False
-        if getattr(player, "journey_taken_last_turn", False):
+        # turn from any source (Outpost, Journey, Seize the Day, etc.).
+        # Mission's extra turn already blocks all buys via mission_no_buy_turn,
+        # so it's covered earlier in the buy pipeline as well.
+        if getattr(player, "took_extra_turn_last_turn", False):
             return False
         return True
 

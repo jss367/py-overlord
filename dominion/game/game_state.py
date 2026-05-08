@@ -2262,9 +2262,7 @@ class GameState:
         # Outpost bookkeeping.
         player.outpost_taken_last_turn = outpost_extra_turn
         player.outpost_pending = False
-        # Journey bookkeeping (mirrors Outpost): track whether the upcoming
-        # turn is the Journey-granted extra turn, for 3-in-a-row prevention.
-        player.journey_taken_last_turn = journey_extra_turn
+        # Journey bookkeeping.
         player.journey_extra_turn_pending = False
 
         # Move to next player
@@ -2272,6 +2270,11 @@ class GameState:
             self.extra_turn = True
         if journey_extra_turn:
             self.extra_turn = True
+
+        # Generic "the upcoming turn is an extra turn" flag — set after all
+        # extra-turn sources (Outpost, Journey, Seize the Day, Mission, ...)
+        # have been settled. Used by Journey for "not a 3rd in a row".
+        player.took_extra_turn_last_turn = bool(self.extra_turn)
 
         if self.fleet_extra_round_active and not self.extra_turn:
             # Fleet extra round: pop the player whose turn just ended and

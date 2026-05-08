@@ -440,7 +440,7 @@ def test_journey_keeps_action_cards_in_play_through_cleanup():
     # Pending flag consumed; "took extra turn" flag now set so Journey
     # can't be re-bought on the granted extra turn.
     assert player.journey_extra_turn_pending is False
-    assert player.journey_taken_last_turn is True
+    assert player.took_extra_turn_last_turn is True
 
 
 def test_journey_extra_turn_blocks_a_third_in_a_row():
@@ -451,9 +451,9 @@ def test_journey_extra_turn_blocks_a_third_in_a_row():
     journey.on_buy(state, player)
     state.handle_cleanup_phase()
     # We are now about to take the Journey-granted extra turn.
-    assert player.journey_taken_last_turn is True
+    assert player.took_extra_turn_last_turn is True
     # On that extra turn, journey_used_this_turn resets but
-    # journey_taken_last_turn keeps Journey unbuyable (no 3rd in a row).
+    # took_extra_turn_last_turn keeps Journey unbuyable (no 3rd in a row).
     state.handle_start_phase()
     assert player.journey_used_this_turn is False
     assert not journey.may_be_bought(state, player)
@@ -478,8 +478,8 @@ def test_journey_kept_actions_discard_at_end_of_extra_turn():
     # (hand/deck/discard), but never in the trash.
     assert village in player.hand + player.deck + player.discard
     assert village not in state.trash
-    # journey_taken_last_turn cleared so Journey is buyable again next turn.
-    assert player.journey_taken_last_turn is False
+    # took_extra_turn_last_turn cleared so Journey is buyable again next turn.
+    assert player.took_extra_turn_last_turn is False
 
 
 def test_journey_lockout_clears_at_turn_start():
@@ -511,6 +511,25 @@ def test_journey_blocked_after_outpost_extra_turn():
     state = _make_state(num_players=2)
     player = state.players[0]
     state.current_player_index = 0
+    # Simulate cleanup of the Outpost-buy turn having scheduled an extra turn.
     player.outpost_taken_last_turn = True
+    player.took_extra_turn_last_turn = True
+    journey = get_event("Journey")
+    assert not journey.may_be_bought(state, player)
+
+
+def test_journey_blocked_during_seize_the_day_extra_turn():
+    """Regression: Journey must also be unbuyable during a Seize the Day
+    extra turn — that would also be a 3rd turn in a row."""
+    state = _make_state(num_players=2)
+    player = state.players[0]
+    state.current_player_index = 0
+    seize = get_event("Seize the Day")
+    seize.on_buy(state, player)
+    # End the Seize-the-Day-buy turn; cleanup should record that the next
+    # turn is an extra turn from any source.
+    state.handle_cleanup_phase()
+    assert player.took_extra_turn_last_turn is True
+    state.handle_start_phase()
     journey = get_event("Journey")
     assert not journey.may_be_bought(state, player)
