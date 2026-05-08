@@ -165,3 +165,56 @@ def test_summoned_card_is_owned_by_player_for_scoring():
     set_aside = player.summon_set_aside[0]
     # The set-aside zone is part of the player's owned cards.
     assert set_aside in player.all_cards()
+
+
+def test_summon_routes_gain_through_pipeline_so_on_gain_fires():
+    """Summon must route through gain_card so on-gain hooks (Collection,
+    Groundskeeper, projects, etc.) fire for the gained card.
+
+    Collection gives +1 VP token whenever you gain an Action card while
+    Collection has been played. Use it as a witness that on_gain fired.
+    """
+    state = _new_state(["Village"])
+    player = state.players[0]
+    player.collection_played = 1
+    starting_vp = player.vp_tokens
+
+    summon = get_event("Summon")
+    summon.on_buy(state, player)
+    assert len(player.summon_set_aside) == 1
+    assert player.vp_tokens == starting_vp + 1
+
+
+def test_summon_uses_effective_cost_so_cost_reduction_widens_choices():
+    """A $5 Action becomes Summon-eligible when the player has $1 of cost
+    reduction, because Summon should filter on effective cost (not printed).
+    """
+    # Festival is $5 printed.
+    state = _new_state(["Festival"])
+    player = state.players[0]
+    player.cost_reduction = 1
+
+    summon = get_event("Summon")
+    summon.on_buy(state, player)
+    assert len(player.summon_set_aside) == 1
+    assert player.summon_set_aside[0].name == "Festival"
+
+
+def test_summon_watchtower_trash_diverts_set_aside():
+    """If Watchtower trashes the gained card, it must not be set aside."""
+    state = _new_state(["Village"])
+    player = state.players[0]
+    player.hand = [get_card("Watchtower")]
+
+    # Force Watchtower to always trash the gain.
+    player.ai.choose_watchtower_reaction = lambda s, p, c: "trash"
+
+    summon = get_event("Summon")
+    starting_supply = state.supply["Village"]
+    summon.on_buy(state, player)
+    # Set-aside zone must be empty.
+    assert player.summon_set_aside == []
+    # The gained Village must be in the trash, not in the player's deck/discard.
+    assert any(c.name == "Village" for c in state.trash)
+    # Supply still decremented (the gain happened).
+    assert state.supply["Village"] == starting_supply - 1

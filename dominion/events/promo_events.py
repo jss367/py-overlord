@@ -23,19 +23,30 @@ class Summon(Event):
                 card = get_card(name)
             except ValueError:
                 continue
-            if (
-                card.is_action
-                and card.cost.coins <= 4
-                and card.cost.potions == 0
-                and card.cost.debt == 0
-            ):
-                candidates.append(card)
+            if not card.is_action:
+                continue
+            if card.cost.potions or card.cost.debt:
+                continue
+            if game_state.get_card_cost(player, card) > 4:
+                continue
+            candidates.append(card)
         if not candidates:
             return
         choice = player.ai.choose_gain_for_summon(game_state, player, candidates)
         if choice is None or game_state.supply.get(choice.name, 0) <= 0:
             return
+        # Route through gain_card so reactions (Watchtower / Royal Seal /
+        # Trader) and on-gain hooks (Groundskeeper, projects, Falconer, etc.)
+        # all fire normally. Then move whatever ended up in discard/deck to
+        # the Summon set-aside zone so it gets played at the start of the
+        # next turn. If the gain was diverted (Watchtower trash, Exile),
+        # the card stays where it landed and Summon's "play it" effect just
+        # has nothing to do.
         game_state.supply[choice.name] -= 1
-        gained = get_card(choice.name)
-        player.summon_set_aside.append(gained)
-        gained.on_gain(game_state, player)
+        gained = game_state.gain_card(player, get_card(choice.name))
+        if gained in player.discard:
+            player.discard.remove(gained)
+            player.summon_set_aside.append(gained)
+        elif gained in player.deck:
+            player.deck.remove(gained)
+            player.summon_set_aside.append(gained)
