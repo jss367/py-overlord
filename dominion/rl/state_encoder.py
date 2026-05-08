@@ -29,7 +29,13 @@ class StateEncoder:
     def __init__(self, kingdom_cards: list[str]):
         """Initialize encoder with the kingdom card names."""
         self.kingdom_cards = list(kingdom_cards)
-        self.all_cards = BASE_CARDS + self.kingdom_cards
+        # Alchemy: include Potion in the encoding when a potion-cost kingdom
+        # card is present, since GameState.setup_supply auto-adds the Potion
+        # pile in that case and the encoder must observe/index it.
+        extras: list[str] = []
+        if any(get_card(name).cost.potions > 0 for name in self.kingdom_cards):
+            extras.append("Potion")
+        self.all_cards = BASE_CARDS + extras + self.kingdom_cards
         self.card_to_idx = {name: i for i, name in enumerate(self.all_cards)}
 
         # Calculate observation size

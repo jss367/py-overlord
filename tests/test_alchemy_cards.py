@@ -374,6 +374,73 @@ def test_university_skips_potion_cost_actions():
     assert not any(c.name == "Familiar" for c in p1.discard + p1.deck + p1.hand)
 
 
+def test_university_restores_ordered_pile_when_trader_replaces_gain():
+    """Mirror of the Displace ordered-pile test. If Trader replaces
+    University's gain from an ordered pile (Knights), the pile's supply
+    count and order list must be restored — gain_card's standard Trader
+    restore keys off the specific knight name and silently misses for the
+    pile placeholder."""
+    state, p1, _ = _two_player_state(["University"])
+    p1.ai = GainPickerAI()
+    p1.actions = 1
+    p1.hand = [get_card("University"), get_card("Trader")]
+    # Force the Trader reaction to fire on any gain.
+    p1.ai.should_reveal_trader = lambda *args, **kwargs: True
+    # Set up a Knights pile with two known knights on top so University
+    # treats it as an ordered pile and pops "Dame Josephine".
+    state.supply = {"Knights": 10, "Silver": 40}
+    state.pile_order = dict(getattr(state, "pile_order", {}))
+    state.pile_order["Knights"] = ["Dame Anna", "Dame Josephine"]
+    pre_supply = state.supply["Knights"]
+    pre_order = list(state.pile_order["Knights"])
+    state.phase = "action"
+    state.handle_action_phase()
+    # Trader replaced the Knight gain with a Silver. The Knights pile
+    # must look untouched.
+    assert state.supply["Knights"] == pre_supply
+    assert state.pile_order["Knights"] == pre_order
+    assert any(c.name == "Silver" for c in p1.discard + p1.deck)
+
+
+# --------- RL encoder integration ---------
+
+def test_rl_action_encoder_includes_potion_for_alchemy_kingdoms():
+    """When the kingdom contains a potion-cost card, GameState.setup_supply
+    auto-adds Potion to the Supply. The RL ActionEncoder must reserve a
+    slot for Potion so action masking can index it without raising
+    KeyError."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "_action_encoder", "dominion/rl/action_encoder.py"
+    )
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    enc = mod.ActionEncoder(["Alchemist", "Familiar"])
+    assert "Potion" in enc.all_cards
+    # Round-trip a Potion card object through the encoder without error.
+    idx = enc.card_to_action(get_card("Potion"))
+    assert enc.all_cards[idx] == "Potion"
+
+    # Non-Alchemy kingdoms should NOT have Potion in their action space.
+    enc_plain = mod.ActionEncoder(["Village", "Smithy"])
+    assert "Potion" not in enc_plain.all_cards
+
+
+def test_rl_state_encoder_includes_potion_for_alchemy_kingdoms():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "_state_encoder", "dominion/rl/state_encoder.py"
+    )
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    enc = mod.StateEncoder(["Alchemist", "Familiar"])
+    assert "Potion" in enc.all_cards
+    enc_plain = mod.StateEncoder(["Village", "Smithy"])
+    assert "Potion" not in enc_plain.all_cards
+
+
 # --------- Vineyard ---------
 
 def test_vineyard_scores_one_per_three_actions():

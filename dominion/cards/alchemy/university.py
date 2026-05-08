@@ -60,6 +60,31 @@ class University(Card):
         if game_state.supply.get(pile_name, 0) <= 0:
             return
         game_state.supply[pile_name] -= 1
-        if pile_name in game_state.pile_order and game_state.pile_order[pile_name]:
+        is_ordered_pile = pile_name in game_state.pile_order
+        if is_ordered_pile and game_state.pile_order[pile_name]:
             game_state.pile_order[pile_name].pop()
-        game_state.gain_card(player, choice)
+        # Snapshot pile state immediately after decrement+pop so we can
+        # detect, post-gain, whether something else (Changeling) restored
+        # the pile already. Mirrors Displace's ordered-pile bookkeeping.
+        post_decrement_supply = game_state.supply[pile_name]
+        post_decrement_order_len = (
+            len(game_state.pile_order[pile_name]) if is_ordered_pile else 0
+        )
+        gained = game_state.gain_card(player, choice)
+        # gain_card's Trader-replacement and Exile-reclamation paths both
+        # try to restore the Supply via gained.name, which for ordered
+        # piles (Knights, Ruins) is the specific top card name (e.g.
+        # "Sir Bailey") rather than the pile placeholder, so the restore
+        # silently no-ops there. Manually restore the placeholder pile
+        # in that case, but skip when the pile state was already restored
+        # for us (e.g. by Changeling's exchange).
+        if (
+            is_ordered_pile
+            and gained is not None
+            and gained is not choice
+            and game_state.supply.get(pile_name, 0) == post_decrement_supply
+            and len(game_state.pile_order.get(pile_name, []))
+            == post_decrement_order_len
+        ):
+            game_state.supply[pile_name] = game_state.supply.get(pile_name, 0) + 1
+            game_state.pile_order.setdefault(pile_name, []).append(choice.name)

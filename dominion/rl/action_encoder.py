@@ -20,7 +20,14 @@ class ActionEncoder:
     def __init__(self, kingdom_cards: list[str]):
         """Initialize encoder with kingdom card names."""
         self.kingdom_cards = list(kingdom_cards)
-        self.all_cards = BASE_CARDS + self.kingdom_cards
+        # Alchemy: when any kingdom card has a Potion cost, the Potion
+        # Treasure is auto-added to the supply (see GameState.setup_supply)
+        # and may legally appear in choose_buy/choose_treasure choice lists.
+        # Reserve a slot for it so action masking doesn't KeyError mid-game.
+        extras: list[str] = []
+        if any(get_card(name).cost.potions > 0 for name in self.kingdom_cards):
+            extras.append("Potion")
+        self.all_cards = BASE_CARDS + extras + self.kingdom_cards
         self.card_to_idx = {name: i for i, name in enumerate(self.all_cards)}
         self._pass_index = len(self.all_cards)
         self._action_size = len(self.all_cards) + 1
