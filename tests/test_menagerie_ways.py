@@ -603,7 +603,34 @@ def test_way_of_the_seal_does_not_persist_past_turn():
     p1.hand = [get_card("Village")]
     state.phase = "action"
     state.handle_action_phase()
-    assert p1.topdeck_gains is True
+    assert p1.way_of_seal_active is True
     # Advance past this player's turn so the flag is cleared.
     state.handle_cleanup_phase()
-    assert p1.topdeck_gains is False
+    assert p1.way_of_seal_active is False
+
+
+def test_way_of_the_seal_respects_ai_decline():
+    """If the AI declines the topdeck, the gained card stays in discard."""
+
+    class DeclineSealAI(WayPickerAI):
+        def should_topdeck_with_way_of_seal(self, state, player, gained_card):
+            return False
+
+    kingdom = [get_card("Village"), get_card("Smithy")]
+    ais = [DeclineSealAI("Way of the Seal"), ChooseFirstActionAI()]
+    state = GameState(players=[])
+    state.initialize_game(ais, kingdom, ways=[get_way("Way of the Seal")])
+    state.supply.setdefault("Silver", 40)
+    p1 = state.players[0]
+    p1.actions = 1
+    p1.hand = [get_card("Village")]
+    state.phase = "action"
+    state.handle_action_phase()
+    discard_before = len(p1.discard)
+    deck_before = len(p1.deck)
+    silver = get_card("Silver")
+    state.supply["Silver"] -= 1
+    state.gain_card(p1, silver)
+    assert len(p1.discard) == discard_before + 1
+    assert len(p1.deck) == deck_before
+    assert p1.discard[-1].name == "Silver"

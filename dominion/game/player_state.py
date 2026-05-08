@@ -95,6 +95,7 @@ class PlayerState:
     delayed_cards: list[Card] = field(default_factory=list)
     seize_the_day_used: bool = False
     topdeck_gains: bool = False
+    way_of_seal_active: bool = False
     gained_five_this_turn: bool = False
     gained_five_last_turn: bool = False
     cards_gained_this_turn: int = 0
@@ -293,6 +294,7 @@ class PlayerState:
         self.delayed_cards = []
         self.seize_the_day_used = False
         self.topdeck_gains = False
+        self.way_of_seal_active = False
         self.gained_five_this_turn = False
         self.gained_five_last_turn = False
         self.cards_gained_this_turn = 0

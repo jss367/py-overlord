@@ -10,4 +10,4 @@ class WayOfTheSeal(Way):
     def apply(self, game_state, card) -> None:
         player = game_state.current_player
         player.coins += 1
-        player.topdeck_gains = True
+        player.way_of_seal_active = True
