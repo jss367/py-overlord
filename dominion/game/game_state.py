@@ -907,6 +907,8 @@ class GameState:
         self.current_player.search_triggered = False
         # Plunder Launch event: reset the once-per-turn lockout.
         self.current_player.launch_used = False
+        # Plunder Journey event: reset the once-per-turn lockout.
+        self.current_player.journey_used_this_turn = False
 
         # Only log duration phase if there are duration cards
         if self.current_player.duration:
@@ -1986,6 +1988,16 @@ class GameState:
         # Duration cards remain in play until their lingering effects finish.
         durations_to_keep = set(player.duration + player.multiplied_durations)
 
+        # Plunder Journey event: "Don't discard your Action cards from play
+        # this turn." Keep every Action card from in_play in the same set so
+        # they survive cleanup. They will be discarded normally at the end of
+        # the granted extra turn.
+        journey_extra_turn = bool(getattr(player, "journey_extra_turn_pending", False))
+        if journey_extra_turn:
+            for card in player.in_play:
+                if card.is_action:
+                    durations_to_keep.add(card)
+
         # Determine which Treasures (if any) Trickster will set aside before
         # firing discard-from-play hooks, so we don't trigger those hooks on
         # cards that ultimately won't be discarded this cleanup.
@@ -2252,10 +2264,19 @@ class GameState:
         # Outpost bookkeeping.
         player.outpost_taken_last_turn = outpost_extra_turn
         player.outpost_pending = False
+        # Journey bookkeeping.
+        player.journey_extra_turn_pending = False
 
         # Move to next player
         if outpost_extra_turn:
             self.extra_turn = True
+        if journey_extra_turn:
+            self.extra_turn = True
+
+        # Generic "the upcoming turn is an extra turn" flag — set after all
+        # extra-turn sources (Outpost, Journey, Seize the Day, Mission, ...)
+        # have been settled. Used by Journey for "not a 3rd in a row".
+        player.took_extra_turn_last_turn = bool(self.extra_turn)
 
         if self.fleet_extra_round_active and not self.extra_turn:
             # Fleet extra round: pop the player whose turn just ended and

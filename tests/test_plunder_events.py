@@ -82,8 +82,9 @@ def test_all_15_plunder_events_registered():
     plunder_events = {
         "Bury", "Avoid", "Deliver", "Peril", "Rush", "Foray", "Launch",
         "Mirror", "Prepare", "Scrounge", "Maelstrom", "Invasion", "Prosper",
-        "Looting",
+        "Journey", "Looting",
     }
+    assert len(plunder_events) == 15
     for name in plunder_events:
         evt = get_event(name)
         assert evt.name == name
@@ -398,3 +399,137 @@ def test_deliver_consumes_trigger_when_gained_card_trashed_by_watchtower():
     assert gold not in state.trash
     # Gold should land in the discard normally.
     assert gold in player.discard
+
+
+def test_journey_costs_4():
+    journey = get_event("Journey")
+    assert journey.cost.coins == 4
+
+
+def test_journey_schedules_extra_turn_and_locks_out_for_turn():
+    state = _make_state(num_players=2)
+    player = state.players[0]
+    state.current_player_index = 0
+    journey = get_event("Journey")
+    assert journey.may_be_bought(state, player)
+    journey.on_buy(state, player)
+    assert player.journey_used_this_turn is True
+    assert player.journey_extra_turn_pending is True
+    assert state.extra_turn is True
+    # Once-per-turn lockout takes effect immediately.
+    assert not journey.may_be_bought(state, player)
+
+
+def test_journey_keeps_action_cards_in_play_through_cleanup():
+    state = _make_state(num_players=2)
+    player = state.players[0]
+    state.current_player_index = 0
+    village = get_card("Village")
+    smithy = get_card("Smithy")
+    silver = get_card("Silver")
+    player.in_play = [village, smithy, silver]
+    journey = get_event("Journey")
+    journey.on_buy(state, player)
+    state.handle_cleanup_phase()
+    # Action cards stay in play; Treasures (and other non-Actions) are
+    # discarded normally.
+    assert village in player.in_play
+    assert smithy in player.in_play
+    assert silver not in player.in_play
+    assert silver in player.discard
+    # Pending flag consumed; "took extra turn" flag now set so Journey
+    # can't be re-bought on the granted extra turn.
+    assert player.journey_extra_turn_pending is False
+    assert player.took_extra_turn_last_turn is True
+
+
+def test_journey_extra_turn_blocks_a_third_in_a_row():
+    state = _make_state(num_players=2)
+    player = state.players[0]
+    state.current_player_index = 0
+    journey = get_event("Journey")
+    journey.on_buy(state, player)
+    state.handle_cleanup_phase()
+    # We are now about to take the Journey-granted extra turn.
+    assert player.took_extra_turn_last_turn is True
+    # On that extra turn, journey_used_this_turn resets but
+    # took_extra_turn_last_turn keeps Journey unbuyable (no 3rd in a row).
+    state.handle_start_phase()
+    assert player.journey_used_this_turn is False
+    assert not journey.may_be_bought(state, player)
+
+
+def test_journey_kept_actions_discard_at_end_of_extra_turn():
+    state = _make_state(num_players=2)
+    player = state.players[0]
+    state.current_player_index = 0
+    village = get_card("Village")
+    player.in_play = [village]
+    journey = get_event("Journey")
+    journey.on_buy(state, player)
+    state.handle_cleanup_phase()
+    assert village in player.in_play
+    # Cycle through start of the extra turn, then its cleanup.
+    state.handle_start_phase()
+    state.handle_cleanup_phase()
+    assert village not in player.in_play
+    # After the second cleanup, draw-5 may have shuffled the discard back
+    # into the deck; the village must end up in the player's possession
+    # (hand/deck/discard), but never in the trash.
+    assert village in player.hand + player.deck + player.discard
+    assert village not in state.trash
+    # took_extra_turn_last_turn cleared so Journey is buyable again next turn.
+    assert player.took_extra_turn_last_turn is False
+
+
+def test_journey_lockout_clears_at_turn_start():
+    state = _make_state(num_players=2)
+    player = state.players[0]
+    state.current_player_index = 0
+    journey = get_event("Journey")
+    journey.on_buy(state, player)
+    assert player.journey_used_this_turn is True
+    # Cycle: end turn (player 0) → next player → back to player 0.
+    state.handle_cleanup_phase()  # Player 0's cleanup, schedules extra turn.
+    # Before player 0's extra turn starts, the extra-turn flag is still set;
+    # simulate the extra turn itself completing without buying Journey.
+    state.handle_start_phase()
+    state.handle_cleanup_phase()
+    # Now opponent's turn, then back to player 0.
+    state.current_player_index = 1
+    state.handle_start_phase()
+    state.handle_cleanup_phase()
+    state.current_player_index = 0
+    state.handle_start_phase()
+    assert player.journey_used_this_turn is False
+    assert journey.may_be_bought(state, player)
+
+
+def test_journey_blocked_after_outpost_extra_turn():
+    """Journey can't be bought during an Outpost-granted extra turn (would be
+    a 3rd turn in a row)."""
+    state = _make_state(num_players=2)
+    player = state.players[0]
+    state.current_player_index = 0
+    # Simulate cleanup of the Outpost-buy turn having scheduled an extra turn.
+    player.outpost_taken_last_turn = True
+    player.took_extra_turn_last_turn = True
+    journey = get_event("Journey")
+    assert not journey.may_be_bought(state, player)
+
+
+def test_journey_blocked_during_seize_the_day_extra_turn():
+    """Regression: Journey must also be unbuyable during a Seize the Day
+    extra turn — that would also be a 3rd turn in a row."""
+    state = _make_state(num_players=2)
+    player = state.players[0]
+    state.current_player_index = 0
+    seize = get_event("Seize the Day")
+    seize.on_buy(state, player)
+    # End the Seize-the-Day-buy turn; cleanup should record that the next
+    # turn is an extra turn from any source.
+    state.handle_cleanup_phase()
+    assert player.took_extra_turn_last_turn is True
+    state.handle_start_phase()
+    journey = get_event("Journey")
+    assert not journey.may_be_bought(state, player)
