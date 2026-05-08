@@ -405,8 +405,8 @@ def test_guildmaster_grants_favor_per_gain():
     coins_before = player.coins
     actions_before = player.actions
     gm.on_play(state)
-    # +1 Action +$3.
-    assert player.actions == actions_before + 1
+    # Terminal +$3. Guildmaster does NOT give +1 Action.
+    assert player.actions == actions_before
     assert player.coins == coins_before + 3
     # While in play, every gain produces +1 Favor.
     state.gain_card(player, get_card("Silver"))

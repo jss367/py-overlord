@@ -769,14 +769,16 @@ class CapitalCity(Card):
 
 
 class Guildmaster(Card):
-    """$5 Action-Liaison. +1 Action +$3. While this is in play, when you
-    gain a card, +1 Favor."""
+    """$5 Action-Liaison. +$3. This turn, when you gain a card, +1 Favor.
+
+    Terminal — Guildmaster does not give +1 Action despite being a Liaison.
+    """
 
     def __init__(self):
         super().__init__(
             name="Guildmaster",
             cost=CardCost(coins=5),
-            stats=CardStats(actions=1, coins=3),
+            stats=CardStats(coins=3),
             types=[CardType.ACTION, CardType.LIAISON],
         )
 
