@@ -263,6 +263,95 @@ def test_summon_resolves_knights_pile_correctly():
     assert len(state.pile_order["Knights"]) == starting_order_len - 1
 
 
+def test_summon_exile_reclaim_on_knight_keeps_pile_intact():
+    """If the Summoned Knight is reclaimed from Exile (a same-named copy
+    is on the Exile mat), the Knights pile must NOT be consumed: pile_order
+    keeps its top card and the supply count is restored.
+    """
+    state = _new_state(["Knights"])
+    player = state.players[0]
+    player.cost_reduction = 1
+    top_knight_name = state.pile_order["Knights"][-1]
+    # Pre-place the same-named knight on Exile.
+    player.exile.append(get_card(top_knight_name))
+
+    starting_supply = state.supply["Knights"]
+    starting_order_len = len(state.pile_order["Knights"])
+
+    summon = get_event("Summon")
+    summon.on_buy(state, player)
+
+    # Pile untouched.
+    assert state.supply["Knights"] == starting_supply
+    assert len(state.pile_order["Knights"]) == starting_order_len
+    assert state.pile_order["Knights"][-1] == top_knight_name
+    # Exile reclaimed — the previously-exiled instance is now in set-aside.
+    assert player.exile == []
+    assert len(player.summon_set_aside) == 1
+    assert player.summon_set_aside[0].name == top_knight_name
+
+
+def test_summon_changeling_exchange_on_knight_no_double_restore():
+    """When Summon gains a Knight and Changeling exchanges it, the engine
+    already restores both ``supply["Knights"]`` and pushes the variant back
+    onto ``pile_order["Knights"]``. Summon must NOT double-restore — the
+    pile and supply must look untouched, and the player gets a Changeling.
+    """
+    state = _new_state(["Knights", "Changeling"])
+    player = state.players[0]
+    player.cost_reduction = 1
+    player.ai.should_exchange_changeling = lambda s, p, c: True
+
+    starting_knights_supply = state.supply["Knights"]
+    starting_changeling_supply = state.supply["Changeling"]
+    starting_order_len = len(state.pile_order["Knights"])
+    starting_top = state.pile_order["Knights"][-1]
+
+    summon = get_event("Summon")
+    summon.on_buy(state, player)
+
+    # Knights pile unchanged (Changeling pushed the knight back).
+    assert state.supply["Knights"] == starting_knights_supply
+    assert len(state.pile_order["Knights"]) == starting_order_len
+    assert state.pile_order["Knights"][-1] == starting_top
+    # Changeling pile decreased by 1.
+    assert state.supply["Changeling"] == starting_changeling_supply - 1
+    # Player set aside a Changeling.
+    assert len(player.summon_set_aside) == 1
+    assert player.summon_set_aside[0].name == "Changeling"
+
+
+def test_summon_skips_non_supply_piles():
+    """Madman lives in ``state.supply`` (it's a non-Supply pile registered
+    when Hermit is in the kingdom) but is not actually a Supply pile.
+    Summon must NOT consider it as a candidate even though it's a $0 Action.
+    """
+    state = _new_state(["Hermit", "Smithy"])
+    player = state.players[0]
+
+    # Madman lives in state.supply (Hermit-game registers it directly) but
+    # is NOT a Supply pile and Summon must not gain it.
+    assert "Madman" in state.supply
+
+    # Zero out every legitimate Action ≤ $4 in the Supply so that, if the
+    # filter were missing, Summon would have no choice but to pick Madman.
+    for name in list(state.supply.keys()):
+        if name == "Madman":
+            continue
+        try:
+            card = get_card(name)
+        except Exception:
+            continue
+        if card.is_action and card.cost.coins <= 4:
+            state.supply[name] = 0
+
+    summon = get_event("Summon")
+    summon.on_buy(state, player)
+    assert player.summon_set_aside == []
+    # And Madman supply is untouched.
+    assert state.supply["Madman"] == 10
+
+
 def test_summon_trader_replacement_on_knight_restores_pile_state():
     """If Trader replaces the Summoned Knight gain with a Silver, the
     Knights pile must be left untouched: pile_order keeps its top card and

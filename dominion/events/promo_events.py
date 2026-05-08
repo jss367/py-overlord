@@ -5,6 +5,20 @@ from dominion.cards.registry import get_card
 
 from .base_event import Event
 
+# Names that live in ``state.supply`` for lookup convenience but are NOT
+# real Supply piles. The engine tracks Spirits/Wishes/Bats/Zombies/
+# Tournament Prizes via ``state.non_supply_pile_names``, but a few older
+# non-Supply piles (Madman, Mercenary, Spoils, Horse) are added directly
+# to ``state.supply`` without that flag, so we keep an explicit fallback
+# set to make Summon's filter robust regardless of which path registered
+# the pile.
+_KNOWN_NON_SUPPLY_NAMES = frozenset({
+    "Madman",
+    "Mercenary",
+    "Spoils",
+    "Horse",
+})
+
 
 class Summon(Event):
     """$5 — Gain an Action card costing up to $4. Set it aside, and at the
@@ -16,8 +30,15 @@ class Summon(Event):
 
     def on_buy(self, game_state, player) -> None:
         candidates: list = []
+        non_supply = getattr(game_state, "non_supply_pile_names", set())
         for name, count in game_state.supply.items():
             if count <= 0:
+                continue
+            # Some non-Supply piles (Madman, Mercenary, Spirits, Wish, Bat,
+            # Zombies, Horse, Spoils, Tournament prizes) live in
+            # ``state.supply`` but are not actually Supply piles. Summon may
+            # only gain from the Supply, so skip them.
+            if name in non_supply or name in _KNOWN_NON_SUPPLY_NAMES:
                 continue
             # Dark Ages: ordered piles ("Knights", "Ruins") expose a
             # placeholder under their pile name. Resolve to the actual top
@@ -45,14 +66,9 @@ class Summon(Event):
         if choice is None:
             return
 
-        # Resolve the supply pile to decrement. For Knights / Ruins the
-        # supply count lives under the pile name; the chosen card is the
-        # specific top card. PEEK at pile_order rather than popping — the
-        # pop must wait until ``gain_card`` confirms the variant card was
-        # actually gained, since Trader / Exile-reclaim can replace it
-        # (and ``gain_card``'s built-in restoration keys off the variant
-        # name like "Sir Martin", which is not in ``state.supply``, so
-        # neither the supply count nor pile_order would otherwise heal).
+        # Resolve the supply pile to decrement and the actual card name to
+        # gain. For Knights / Ruins the supply count lives under the pile
+        # name; the chosen card is the specific top of ``pile_order``.
         pile_name = choice.name
         gain_target_name = choice.name
         ordered_pile = False
@@ -73,29 +89,40 @@ class Summon(Event):
         if game_state.supply.get(pile_name, 0) <= 0:
             return
 
-        # Route through gain_card so reactions (Watchtower / Royal Seal /
-        # Trader) and on-gain hooks (Groundskeeper, projects, Falconer, etc.)
-        # all fire normally. Only move the card from discard to the Summon
-        # set-aside zone — if the gain was redirected to the deck (Royal
-        # Seal, Tiara, Insignia, Travelling Fair, Watchtower-topdeck) or
-        # to the trash (Watchtower-trash) or to Exile, the player's chosen
-        # destination is honored and Summon's "play it next turn" effect
-        # has no card to play.
+        # For ordered piles, pop ``pile_order`` BEFORE calling ``gain_card``
+        # so a Changeling exchange (which appends back to ``pile_order``)
+        # does not produce a duplicate top entry. If a replacement happens
+        # that the engine doesn't heal (Trader, Exile-reclaim), we push
+        # back ourselves below.
         game_state.supply[pile_name] -= 1
-        gained = game_state.gain_card(player, get_card(gain_target_name))
-
         if ordered_pile:
-            if gained.name == gain_target_name:
-                # Variant actually came from the ordered pile — pop it.
-                order = game_state.pile_order.get(pile_name) or []
-                if order and order[-1] == gain_target_name:
-                    order.pop()
-            else:
-                # Trader/Exile-reclaim replaced the gain. The engine's
-                # restoration didn't fire for the pile name, so heal it.
-                game_state.supply[pile_name] = (
-                    game_state.supply.get(pile_name, 0) + 1
-                )
+            game_state.pile_order[pile_name].pop()
+
+        # Route through gain_card so reactions (Watchtower / Royal Seal /
+        # Trader) and on-gain hooks (Groundskeeper, projects, Falconer,
+        # Changeling exchange, etc.) all fire normally. Only move the card
+        # from discard to the Summon set-aside zone — if the gain was
+        # redirected to the deck (Royal Seal, Tiara, Insignia, Travelling
+        # Fair, Watchtower-topdeck) or to the trash (Watchtower-trash) or
+        # to Exile, the player's chosen destination is honored and
+        # Summon's "play it next turn" effect has no card to play.
+        passed_card = get_card(gain_target_name)
+        supply_before_gain = game_state.supply.get(pile_name, 0)
+        gained = game_state.gain_card(player, passed_card)
+
+        if ordered_pile and gained is not passed_card:
+            # Replacement happened (Trader / Exile-reclaim / Changeling).
+            # Identity check distinguishes from a normal gain: same-name
+            # Exile reclaim returns the prior exiled instance; Trader
+            # returns a fresh Silver; Changeling returns a fresh Changeling.
+            # Restore the pile ONLY if the engine didn't already — Changeling
+            # appends back to ``pile_order`` and bumps ``supply[pile_name]``,
+            # while Trader / Exile-reclaim's restoration keys off the variant
+            # name (e.g. "Sir Martin"), which isn't in ``state.supply`` for
+            # ordered piles, and so doesn't heal.
+            if game_state.supply.get(pile_name, 0) == supply_before_gain:
+                game_state.pile_order[pile_name].append(gain_target_name)
+                game_state.supply[pile_name] = supply_before_gain + 1
 
         if gained in player.discard:
             player.discard.remove(gained)
