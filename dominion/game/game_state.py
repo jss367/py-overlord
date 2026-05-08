@@ -1181,6 +1181,17 @@ class GameState:
                 # played using a Way: the card itself was played, just with
                 # different text. Match the non-Way branch's behaviour.
                 self.fire_ally_play_hooks(player, choice)
+                # Renaissance Citadel: a Way-played Action still counts as
+                # the first Action played this turn, so Citadel triggers
+                # and replays it (using normal text, not the Way again).
+                if (
+                    choice.is_action
+                    and not player.citadel_used
+                    and any(p.name == "Citadel" for p in player.projects)
+                ):
+                    player.citadel_used = True
+                    choice.on_play(self)
+                    self.fire_ally_play_hooks(player, choice)
             else:
                 flagships_to_resolve: list[Card] = []
                 pending_flagships = getattr(player, "flagship_pending", [])
@@ -1211,9 +1222,12 @@ class GameState:
                 # Renaissance Citadel: first Action played each turn is
                 # replayed afterwards. Implemented as an extra iteration of
                 # the play loop (matches Daimyo / Reckless / Rush).
+                # Gated on is_action so Enlightenment-played Treasures in
+                # the Action phase don't consume / trigger Citadel.
                 citadel_extra = 0
                 if (
-                    not player.citadel_used
+                    choice.is_action
+                    and not player.citadel_used
                     and any(p.name == "Citadel" for p in player.projects)
                 ):
                     player.citadel_used = True

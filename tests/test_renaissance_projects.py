@@ -300,6 +300,82 @@ def test_citadel_only_fires_once_per_turn():
     assert p.actions == 5
 
 
+def test_citadel_does_not_trigger_on_treasure_under_enlightenment():
+    """Under Rising Sun's Enlightenment, Treasures may be played in the
+    Action phase. Citadel must only trigger on Action cards, not Treasures —
+    the Treasure should not be replayed nor consume citadel_used.
+    """
+    from dominion.prophecies.enlightenment import Enlightenment
+
+    class TreasureFirstAI(ChooseFirstActionAI):
+        def choose_action(self, state, choices):
+            for ch in choices:
+                if ch is not None and ch.is_treasure and not ch.is_action:
+                    return ch
+            for ch in choices:
+                if ch is not None:
+                    return ch
+            return None
+
+    ai = TreasureFirstAI()
+    state = GameState(players=[])
+    prophecy = Enlightenment()
+    prophecy.is_active = True
+    state.initialize_game(
+        [ai], [get_card("Village")], projects=[Citadel()], prophecy=prophecy
+    )
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    silver = get_card("Silver")
+    p.hand = [silver]
+    # Empty deck so reshuffles don't pull more Actions in.
+    p.deck = []
+    p.actions = 1
+    state.phase = "action"
+    state.handle_action_phase()
+    # Silver played as the only "action" under Enlightenment: +1 Card,
+    # +1 Action, no replay. citadel_used must remain False so a future
+    # Action this turn would still trigger Citadel.
+    assert p.citadel_used is False
+    # Started with 1 action, -1 to play Silver, +1 from Enlightenment text.
+    assert p.actions == 1
+
+
+def test_citadel_replays_first_action_played_via_way():
+    """A Way-played Action still counts as the first Action played, and
+    Citadel replays it using the card's normal text.
+    """
+    from dominion.ways.otter import WayOfTheOtter
+
+    class WayOtterAI(ChooseFirstActionAI):
+        def choose_way(self, state, card, ways):
+            for w in ways:
+                if w and w.name == "Way of the Otter":
+                    return w
+            return None
+
+    ai = WayOtterAI()
+    state = GameState(players=[])
+    state.initialize_game(
+        [ai], [get_card("Village")], projects=[Citadel()], ways=[WayOfTheOtter()]
+    )
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    village = get_card("Village")
+    p.hand = [village]
+    p.deck = [get_card("Copper") for _ in range(10)]
+    p.actions = 1
+    state.phase = "action"
+    state.handle_action_phase()
+    # Village played via Way of the Otter (+2 Cards from Otter, no actions).
+    # Citadel replays Village using normal text (+1 Card, +2 Actions).
+    # Actions: 1 - 1 (play) + 2 (replay) = 2.
+    assert p.citadel_used
+    assert p.actions == 2
+
+
 def test_citadel_resets_at_turn_start():
     state = make_state(Citadel())
     p = state.players[0]
