@@ -200,6 +200,42 @@ def test_summon_uses_effective_cost_so_cost_reduction_widens_choices():
     assert player.summon_set_aside[0].name == "Festival"
 
 
+def test_summon_play_increments_actions_this_turn():
+    """The Summon-played Action must count toward actions_this_turn so
+    Conspirator and similar cards see the play (matching Hasty/Patient).
+    """
+    state = _new_state(["Village"])
+    player = state.players[0]
+    summon = get_event("Summon")
+    summon.on_buy(state, player)
+    starting_actions_count = player.actions_this_turn
+
+    state.phase = "start"
+    state.handle_start_phase()
+
+    assert player.actions_this_turn == starting_actions_count + 1
+
+
+def test_summon_topdeck_via_royal_seal_stays_on_deck():
+    """If the gain was redirected to the deck (here via Royal Seal), the
+    card must NOT be yanked off into Summon's set-aside zone — the
+    player's chosen destination is honored.
+    """
+    state = _new_state(["Village"])
+    player = state.players[0]
+    royal_seal = get_card("Royal Seal")
+    player.in_play.append(royal_seal)
+    player.ai.should_topdeck_with_royal_seal = lambda s, p, c: True
+
+    summon = get_event("Summon")
+    starting_deck_size = len(player.deck)
+    summon.on_buy(state, player)
+
+    assert player.summon_set_aside == []
+    assert len(player.deck) == starting_deck_size + 1
+    assert player.deck[-1].name == "Village"
+
+
 def test_summon_watchtower_trash_diverts_set_aside():
     """If Watchtower trashes the gained card, it must not be set aside."""
     state = _new_state(["Village"])

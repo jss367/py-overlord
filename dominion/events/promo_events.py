@@ -37,16 +37,14 @@ class Summon(Event):
             return
         # Route through gain_card so reactions (Watchtower / Royal Seal /
         # Trader) and on-gain hooks (Groundskeeper, projects, Falconer, etc.)
-        # all fire normally. Then move whatever ended up in discard/deck to
-        # the Summon set-aside zone so it gets played at the start of the
-        # next turn. If the gain was diverted (Watchtower trash, Exile),
-        # the card stays where it landed and Summon's "play it" effect just
-        # has nothing to do.
+        # all fire normally. Only move the card from discard to the Summon
+        # set-aside zone — if the gain was redirected to the deck (Royal
+        # Seal, Tiara, Insignia, Travelling Fair, Watchtower-topdeck) or
+        # to the trash (Watchtower-trash) or to Exile, the player's chosen
+        # destination is honored and Summon's "play it next turn" effect
+        # has no card to play.
         game_state.supply[choice.name] -= 1
         gained = game_state.gain_card(player, get_card(choice.name))
         if gained in player.discard:
             player.discard.remove(gained)
-            player.summon_set_aside.append(gained)
-        elif gained in player.deck:
-            player.deck.remove(gained)
             player.summon_set_aside.append(gained)

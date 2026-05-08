@@ -833,11 +833,16 @@ class GameState:
             self.current_player.save_set_aside = []
 
         # Promo Summon: play any cards set aside by Summon last turn.
+        # Increment ``actions_this_turn`` before ``on_play`` so cards keyed
+        # off that counter (e.g. Conspirator) see the Summoned play, matching
+        # ``_handle_hasty_start_of_turn`` / ``_handle_patient_start_of_turn``.
         summoned = list(self.current_player.summon_set_aside)
         if summoned:
             self.current_player.summon_set_aside = []
             for card in summoned:
                 self.current_player.in_play.append(card)
+                if card.is_action:
+                    self.current_player.actions_this_turn += 1
                 card.on_play(self)
 
         # Adventures: reset once-per-turn caps for events.
