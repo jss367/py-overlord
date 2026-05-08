@@ -423,6 +423,94 @@ def test_citadel_replays_captain_supply_play_on_duration():
     assert p.actions == actions_before + 4
 
 
+def test_citadel_replays_capitalism_treasure_phase_action():
+    """With Capitalism, an Action with +$ can be played in the Treasure
+    phase. That play still counts as the first Action of the turn and
+    Citadel replays it.
+    """
+    from typing import Optional
+    from dominion.cards.base_card import Card
+
+    class PlayAllTreasuresAI(DummyAI):
+        def choose_treasure(self, state, choices) -> Optional[Card]:
+            for c in choices:
+                if c is not None:
+                    return c
+            return None
+
+    ai = PlayAllTreasuresAI()
+    state = GameState(players=[])
+    state.initialize_game(
+        [ai], [get_card("Village")], projects=[Capitalism(), Citadel()]
+    )
+    p = state.players[0]
+    p.projects.extend(state.projects)
+    state.current_player_index = 0
+    bazaar = get_card("Bazaar")  # +1 Card +2 Actions +$1 (Action with +$)
+    p.hand = [bazaar]
+    # Empty deck so the +1 Card doesn't pull more treasures into hand.
+    p.deck = []
+    coins_before = p.coins
+    state.phase = "treasure"
+    state.handle_treasure_phase()
+    # Bazaar plays as Treasure (Capitalism), Citadel replays it once.
+    # Each play gives +$1 → coins increase by 2.
+    assert p.citadel_used
+    assert p.coins == coins_before + 2
+
+
+def test_citadel_does_not_trigger_on_plain_treasure_in_buy_phase():
+    """Plain Treasures (Silver/Gold/Copper) don't trigger Citadel even
+    when played first this turn — they aren't Action cards.
+    """
+    from typing import Optional
+    from dominion.cards.base_card import Card
+
+    class PlayAllTreasuresAI(DummyAI):
+        def choose_treasure(self, state, choices) -> Optional[Card]:
+            for c in choices:
+                if c is not None:
+                    return c
+            return None
+
+    ai = PlayAllTreasuresAI()
+    state = GameState(players=[])
+    state.initialize_game([ai], [get_card("Village")], projects=[Citadel()])
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    p.hand = [get_card("Silver")]
+    p.deck = [get_card("Copper") for _ in range(5)]
+    state.phase = "treasure"
+    state.handle_treasure_phase()
+    assert p.citadel_used is False
+
+
+def test_citadel_replays_inherited_estate():
+    """Adventures Inheritance: an Estate played as the inherited Action
+    is an Action play, and Citadel must trigger / replay it.
+    """
+    ai = ChooseFirstActionAI()
+    state = GameState(players=[])
+    state.initialize_game(
+        [ai], [get_card("Village")], projects=[Citadel()]
+    )
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    p.inherited_action_name = "Village"
+    estate = get_card("Estate")
+    p.hand = [estate]
+    p.deck = [get_card("Copper") for _ in range(10)]
+    p.actions = 1
+    state.phase = "action"
+    state.handle_action_phase()
+    # Estate played as Village twice (once + Citadel replay): +2 Actions
+    # per play. Started 1, -1 to play, +2 +2 from replays = 4.
+    assert p.citadel_used
+    assert p.actions == 4
+
+
 def test_citadel_resets_at_turn_start():
     state = make_state(Citadel())
     p = state.players[0]

@@ -1248,9 +1248,15 @@ class GameState:
                 # the play loop (matches Daimyo / Reckless / Rush).
                 # Gated on is_action so Enlightenment-played Treasures in
                 # the Action phase don't consume / trigger Citadel.
+                # Inherited Estates (Adventures Inheritance) play as the
+                # inherited Action card and count as Action plays here.
                 citadel_extra = 0
+                inherited_action_play = (
+                    choice.name == "Estate"
+                    and getattr(player, "inherited_action_name", None)
+                )
                 if (
-                    choice.is_action
+                    (choice.is_action or inherited_action_play)
                     and not player.citadel_used
                     and any(p.name == "Citadel" for p in player.projects)
                 ):
@@ -1519,6 +1525,13 @@ class GameState:
                 # Allies hook: City-state, League of Shopkeepers,
                 # Fellowship of Scribes can react to treasures played.
                 self.fire_ally_play_hooks(player, choice)
+
+                # Renaissance Citadel: if Capitalism makes an Action card
+                # playable in the Buy/Treasure phase, that play still
+                # counts as the first Action played this turn and Citadel
+                # replays it. The helper's is_action gate filters regular
+                # Treasures out automatically.
+                self._maybe_citadel_replay(player, choice)
 
                 # Prosperity 2E: Tiara — once per turn, when you play a
                 # Treasure, you may play it again. Tiara may target itself
