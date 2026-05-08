@@ -5,8 +5,10 @@ from dominion.game.game_state import GameState
 from dominion.projects import (
     Academy,
     Barracks,
+    Canal,
     Capitalism,
     Cathedral,
+    Citadel,
     CityGate,
     CropRotation,
     Exploration,
@@ -19,7 +21,7 @@ from dominion.projects import (
     SinisterPlot,
     StarChart,
 )
-from tests.utils import BuyEventAI, DummyAI, TrashFirstAI
+from tests.utils import BuyEventAI, ChooseFirstActionAI, DummyAI, TrashFirstAI
 
 
 def make_state(project, kingdom: str = "Village", n: int = 1):
@@ -229,6 +231,86 @@ def test_barracks_adds_action():
     state.phase = "start"
     state.handle_start_phase()
     assert p.actions == actions_before + 1
+
+
+def test_canal_reduces_cost_during_turn():
+    state = make_state(Canal())
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    p.deck = [get_card("Copper")]
+    p.hand = []
+    state.phase = "start"
+    state.handle_start_phase()
+    assert p.cost_reduction == 1
+    # A Province costs $8 normally; with Canal in effect it costs $7.
+    province = get_card("Province")
+    assert state.get_card_cost(p, province) == 7
+
+
+def test_canal_does_not_reduce_below_zero():
+    state = make_state(Canal())
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    p.hand = []
+    p.deck = [get_card("Copper")]
+    state.phase = "start"
+    state.handle_start_phase()
+    copper = get_card("Copper")  # costs $0
+    assert state.get_card_cost(p, copper) >= 0
+
+
+def test_citadel_replays_first_action():
+    ai = ChooseFirstActionAI()
+    state = GameState(players=[])
+    state.initialize_game([ai], [get_card("Village")], projects=[Citadel()])
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    village = get_card("Village")
+    p.hand = [village]
+    p.deck = [get_card("Copper") for _ in range(5)]
+    p.actions = 1
+    state.phase = "action"
+    state.handle_action_phase()
+    # Village played twice: +1 Card +2 Actions per play.
+    # Started with 1 action, used 1 to play Village, +2 from each of 2 plays = 4.
+    assert p.actions == 4
+    assert p.citadel_used
+
+
+def test_citadel_only_fires_once_per_turn():
+    ai = ChooseFirstActionAI()
+    state = GameState(players=[])
+    state.initialize_game([ai], [get_card("Village")], projects=[Citadel()])
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    v1 = get_card("Village")
+    v2 = get_card("Village")
+    p.hand = [v1, v2]
+    p.deck = [get_card("Copper") for _ in range(10)]
+    p.actions = 1
+    state.phase = "action"
+    state.handle_action_phase()
+    # First Village played twice (+4 actions, -1 to play = +3); +2 actions free.
+    # Second Village plays once (no Citadel replay): +2 actions, -1 to play = +1.
+    # Net: started 1, ended 1 + 3 + 1 = 5.
+    assert p.actions == 5
+
+
+def test_citadel_resets_at_turn_start():
+    state = make_state(Citadel())
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    p.citadel_used = True
+    state.current_player_index = 0
+    p.deck = [get_card("Copper")]
+    p.hand = []
+    state.phase = "start"
+    state.handle_start_phase()
+    assert p.citadel_used is False
 
 
 def test_crop_rotation_discards_victory_for_cards():

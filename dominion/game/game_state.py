@@ -688,6 +688,7 @@ class GameState:
         player.merchant_guilds_played = 0
         player.cost_reduction = 0
         player.innovation_used = False
+        player.citadel_used = False
         player.groundskeeper_bonus = 0
         player.crossroads_played = 0
         player.fools_gold_played = 0
@@ -1207,7 +1208,25 @@ class GameState:
                     rush_extra = 1
                     self.rush_pending[id(player)] = rush_count - 1
 
-                plays = 1 + len(flagships_to_resolve) + daimyo_replays + reckless_extra + rush_extra
+                # Renaissance Citadel: first Action played each turn is
+                # replayed afterwards. Implemented as an extra iteration of
+                # the play loop (matches Daimyo / Reckless / Rush).
+                citadel_extra = 0
+                if (
+                    not player.citadel_used
+                    and any(p.name == "Citadel" for p in player.projects)
+                ):
+                    player.citadel_used = True
+                    citadel_extra = 1
+
+                plays = (
+                    1
+                    + len(flagships_to_resolve)
+                    + daimyo_replays
+                    + reckless_extra
+                    + rush_extra
+                    + citadel_extra
+                )
                 for _ in range(plays):
                     if enlightened and choice.is_treasure and not choice.is_action:
                         # Treasure played in Action phase under Enlightenment:
@@ -2228,6 +2247,7 @@ class GameState:
         player.envious_effect_active = False
         player.cost_reduction = 0
         player.innovation_used = False
+        player.citadel_used = False
 
         # Empires Landmarks: end-of-turn hook (Baths). Fired before
         # cards_gained_this_turn resets so the landmark can inspect it.
