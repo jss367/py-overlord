@@ -8,6 +8,7 @@ from .frog import WayOfTheFrog
 from .goat import WayOfTheGoat
 from .horse import WayOfTheHorse
 from .mole import WayOfTheMole
+from .monkey import WayOfTheMonkey
 from .mouse import WayOfTheMouse
 from .mule import WayOfTheMule
 from .otter import WayOfTheOtter
@@ -15,6 +16,7 @@ from .owl import WayOfTheOwl
 from .ox import WayOfTheOx
 from .pig import WayOfThePig
 from .rat import WayOfTheRat
+from .seal import WayOfTheSeal
 from .sheep import WayOfTheSheep
 from .squirrel import WayOfTheSquirrel
 from .turtle import WayOfTheTurtle
@@ -28,6 +30,7 @@ WAY_TYPES: dict[str, Type[Way]] = {
     "Way of the Goat": WayOfTheGoat,
     "Way of the Horse": WayOfTheHorse,
     "Way of the Mole": WayOfTheMole,
+    "Way of the Monkey": WayOfTheMonkey,
     "Way of the Mouse": WayOfTheMouse,
     "Way of the Mule": WayOfTheMule,
     "Way of the Otter": WayOfTheOtter,
@@ -35,6 +38,7 @@ WAY_TYPES: dict[str, Type[Way]] = {
     "Way of the Ox": WayOfTheOx,
     "Way of the Pig": WayOfThePig,
     "Way of the Rat": WayOfTheRat,
+    "Way of the Seal": WayOfTheSeal,
     "Way of the Sheep": WayOfTheSheep,
     "Way of the Squirrel": WayOfTheSquirrel,
     "Way of the Turtle": WayOfTheTurtle,

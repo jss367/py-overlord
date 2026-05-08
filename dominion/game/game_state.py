@@ -706,6 +706,7 @@ class GameState:
         player.coins_spent_this_turn = 0
         player.banned_buys = []
         player.topdeck_gains = False
+        player.way_of_seal_active = False
         player.charm_next_buy_copies = 0
         player.cannot_buy_actions = False
         player.envious_effect_active = False
@@ -2224,6 +2225,7 @@ class GameState:
         player.goons_played = 0
         player.groundskeeper_bonus = 0
         player.topdeck_gains = False
+        player.way_of_seal_active = False
         player.cannot_buy_actions = False
         player.envious_effect_active = False
         player.cost_reduction = 0
@@ -2665,6 +2667,13 @@ class GameState:
             )
 
         if not destination_is_deck and getattr(player, "topdeck_gains", False):
+            destination_is_deck = True
+
+        if (
+            not destination_is_deck
+            and getattr(player, "way_of_seal_active", False)
+            and player.ai.should_topdeck_with_way_of_seal(self, player, actual_card)
+        ):
             destination_is_deck = True
 
         if (

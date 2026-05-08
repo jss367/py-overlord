@@ -672,6 +672,17 @@ class AI(ABC):
 
         return False
 
+    def should_topdeck_with_way_of_seal(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """Decide whether to topdeck a gain thanks to Way of the Seal.
+
+        Defaults to True: the player chose to play this Way specifically to
+        topdeck gains, so the safe default is to take the topdeck.
+        """
+
+        return True
+
 
     def should_discard_deck_with_messenger(
         self, state: GameState, player: PlayerState
