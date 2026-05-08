@@ -18,11 +18,13 @@ class Fisherman(Card):
         )
 
     def cost_modifier(self, game_state, player) -> int:
-        # The discount is turn-scoped: only the player whose turn it is
-        # sees Fisherman drop to $2 when their discard is empty. Off-turn
-        # cost queries (e.g. Changeling's $3+ exchange trigger when a
-        # card is gained on another player's turn) must see the printed
-        # cost.
-        if game_state.current_player is player and not player.discard:
+        # "Your discard pile" refers to the active player's discard for
+        # the duration of their turn, and the resulting cost applies
+        # globally to every cost query during that turn (analogous to
+        # Highway/Bridge). Compute the discount from the active turn
+        # context, not from the `player` argument being queried, so
+        # off-turn cost lookups see the same cost the active player sees.
+        active = game_state.current_player
+        if active is not None and not active.discard:
             return -3
         return 0
