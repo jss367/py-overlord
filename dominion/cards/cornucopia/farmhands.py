@@ -43,16 +43,11 @@ class Farmhands(Card):
 
     def on_duration(self, game_state):
         player = game_state.current_player
-        # Play any Farmhands set-aside cards at the start of next turn.
-        # Each Farmhands gained sets aside one card; resolving the duration
-        # consumes the queue once.
-        if player.farmhands_set_aside:
-            to_play = list(player.farmhands_set_aside)
-            player.farmhands_set_aside = []
-            for card in to_play:
-                player.in_play.append(card)
-                card.on_play(game_state)
-                game_state.fire_ally_play_hooks(player, card)
+        # NOTE: the on-gain set-aside queue is drained at the start of every
+        # turn by GameState._resolve_farmhands_set_aside, independent of
+        # whether a Farmhands is in duration. The duration ability below is
+        # the printed "may play a non-Duration Action or Treasure from hand"
+        # half of the card.
 
         # May play a non-Duration Action or Treasure from hand.
         playable = [

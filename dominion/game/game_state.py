@@ -875,6 +875,13 @@ class GameState:
             for c in turtle_set_aside:
                 self.current_player.in_play.append(c)
                 c.on_play(self)
+
+        # Cornucopia & Guilds 2E Farmhands on-gain set-aside: play any cards
+        # queued by gaining Farmhands last turn. This fires independently of
+        # whether a Farmhands is currently in duration — the on-gain trigger
+        # belongs to the gain itself, not to a played Farmhands.
+        self._resolve_farmhands_set_aside(self.current_player)
+
         # Adventures Save: cards set aside last turn return to hand.
         if self.current_player.save_set_aside:
             self.current_player.hand.extend(self.current_player.save_set_aside)
@@ -978,6 +985,18 @@ class GameState:
         self._handle_quartermaster_start_of_turn(self.current_player)
 
         self.phase = "action"
+
+    def _resolve_farmhands_set_aside(self, player: PlayerState) -> None:
+        """Play any cards queued by Farmhands' on-gain trigger."""
+        queue = getattr(player, "farmhands_set_aside", None)
+        if not queue:
+            return
+        to_play = list(queue)
+        player.farmhands_set_aside = []
+        for card in to_play:
+            player.in_play.append(card)
+            card.on_play(self)
+            self.fire_ally_play_hooks(player, card)
 
     def _handle_shy_start_of_turn(self, player: PlayerState) -> None:
         shy_pile = self.trait_piles.get("Shy")

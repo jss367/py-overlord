@@ -534,25 +534,46 @@ def test_farmhands_does_not_set_aside_card_costing_more_than_four():
 
 
 def test_farmhands_plays_set_aside_card_at_start_of_next_turn():
+    """Set-aside card plays at start of next turn via the engine's
+    farmhands resolution hook (independent of the duration ability)."""
+
     state, player = _make_state(ai=FarmhandsAI())
-    farmhands = get_card("Farmhands")
-    # Manually arrange: Farmhands is in_play (was played this turn) and
-    # set-aside Copper is queued to play start of next turn.
-    player.in_play = [farmhands]
-    player.duration = [farmhands]
-    farmhands.duration_persistent = True
-    # Stash a Copper in the Farmhands set-aside.
     copper = get_card("Copper")
     player.farmhands_set_aside = [copper]
     player.hand = []
     player.coins = 0
 
-    # Trigger duration phase (start of next turn).
-    state.do_duration_phase()
-    # Farmhands' duration also offers playing a non-Duration card from hand.
+    state._resolve_farmhands_set_aside(player)
 
-    # The Copper should have been played (added $1).
     assert player.coins == 1
+    assert copper in player.in_play
+    assert player.farmhands_set_aside == []
+
+
+def test_farmhands_set_aside_resolves_even_without_a_played_farmhands():
+    """If a player gains Farmhands but never PLAYS one (e.g., gained via
+    Workshop, or simply bought without ever drawing it), the on-gain
+    set-aside card must still play at the start of the next turn."""
+
+    state = GameState(players=[])
+    state.initialize_game([FarmhandsAI()], [get_card("Farmhands")])
+    player = state.players[0]
+    player.hand = []
+    player.deck = []
+    player.discard = []
+    player.in_play = []
+    player.duration = []  # crucially: NO Farmhands in duration
+    player.farmhands_set_aside = [get_card("Copper")]
+    player.coins = 0
+    state.current_player_index = 0
+    # End the previous turn cleanly so we re-enter start phase fresh.
+    state.phase = "start"
+    state.handle_start_phase()
+
+    # The Copper should have been played even though no Farmhands was in
+    # duration this turn.
+    assert player.coins == 1
+    assert player.farmhands_set_aside == []
 
 
 def test_farmhands_duration_offers_play_from_hand():
