@@ -166,6 +166,14 @@ class Card:
         """Check if this card can currently be bought."""
         return True
 
+    def may_be_gained(self, game_state) -> bool:
+        """Whether this card can be gained from its Supply pile via card
+        effects (Workshop, Displace, etc.). Defaults to may_be_bought;
+        cards with buy-only restrictions (e.g. Grand Market while a
+        Copper is in play) should override to ignore them.
+        """
+        return self.may_be_bought(game_state)
+
     def on_play(self, game_state):
         """Execute this card's effects when played."""
         player = game_state.current_player

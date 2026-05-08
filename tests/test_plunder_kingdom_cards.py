@@ -204,6 +204,60 @@ def test_swamp_shacks_gives_basics_and_attacks():
     assert len(foe.hand) == pre_foe_hand - 1
 
 
+def test_fisherman_basic_play():
+    state = _make_state()
+    player = state.current_player
+    pre_coins = player.coins
+    pre_actions = player.actions
+    fish = get_card("Fisherman")
+    fish.on_play(state)
+    # +1 Card draws, +1 Action, +$1.
+    assert player.coins == pre_coins + 1
+    assert player.actions == pre_actions + 1
+
+
+def test_fisherman_cost_with_empty_discard():
+    state = _make_state()
+    player = state.current_player
+    player.discard = []
+    fish = get_card("Fisherman")
+    # Empty discard → costs $2 (the $3 discount from card text).
+    assert state.get_card_cost(player, fish) == 2
+
+
+def test_fisherman_full_cost_with_non_empty_discard():
+    state = _make_state()
+    player = state.current_player
+    player.discard = [get_card("Copper")]
+    fish = get_card("Fisherman")
+    assert state.get_card_cost(player, fish) == 5
+
+
+def test_fisherman_cost_uses_active_player_discard():
+    """Fisherman's discount keys off the active player's discard. During
+    that turn, every cost query (including off-turn queries for other
+    players' gains, e.g. Changeling exchanges) sees the same cost the
+    active player sees."""
+    state = _make_state(num_players=2)
+    me = state.players[0]
+    foe = state.players[1]
+    state.current_player_index = 0
+    fish = get_card("Fisherman")
+
+    # Active player has empty discard → $2 globally.
+    me.discard = []
+    foe.discard = [get_card("Copper")]
+    assert state.get_card_cost(me, fish) == 2
+    assert state.get_card_cost(foe, fish) == 2
+
+    # Active player has non-empty discard → $5 globally, even if foe's
+    # discard is empty.
+    me.discard = [get_card("Copper")]
+    foe.discard = []
+    assert state.get_card_cost(me, fish) == 5
+    assert state.get_card_cost(foe, fish) == 5
+
+
 def test_maroon_draws_per_type():
     state = _make_state()
     player = state.current_player

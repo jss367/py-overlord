@@ -15,3 +15,8 @@ class GrandMarket(Card):
         if any(card.name == "Copper" for card in player.in_play):
             return False
         return super().may_be_bought(game_state)
+
+    def may_be_gained(self, game_state) -> bool:
+        # The "no Copper in play" rule is buy-only; gain effects
+        # (Workshop, Displace, etc.) can still target Grand Market.
+        return True
