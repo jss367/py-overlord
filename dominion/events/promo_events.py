@@ -47,21 +47,29 @@ class Summon(Event):
 
         # Resolve the supply pile to decrement. For Knights / Ruins the
         # supply count lives under the pile name; the chosen card is the
-        # specific top card whose name must be popped off pile_order.
+        # specific top card. PEEK at pile_order rather than popping — the
+        # pop must wait until ``gain_card`` confirms the variant card was
+        # actually gained, since Trader / Exile-reclaim can replace it
+        # (and ``gain_card``'s built-in restoration keys off the variant
+        # name like "Sir Martin", which is not in ``state.supply``, so
+        # neither the supply count nor pile_order would otherwise heal).
         pile_name = choice.name
         gain_target_name = choice.name
+        ordered_pile = False
         if choice.is_knight and "Knights" in game_state.pile_order:
             pile_name = "Knights"
             order = game_state.pile_order.get("Knights") or []
             if not order:
                 return
-            gain_target_name = order.pop()
+            gain_target_name = order[-1]
+            ordered_pile = True
         elif choice.is_ruins and "Ruins" in game_state.pile_order:
             pile_name = "Ruins"
             order = game_state.pile_order.get("Ruins") or []
             if not order:
                 return
-            gain_target_name = order.pop()
+            gain_target_name = order[-1]
+            ordered_pile = True
         if game_state.supply.get(pile_name, 0) <= 0:
             return
 
@@ -75,6 +83,20 @@ class Summon(Event):
         # has no card to play.
         game_state.supply[pile_name] -= 1
         gained = game_state.gain_card(player, get_card(gain_target_name))
+
+        if ordered_pile:
+            if gained.name == gain_target_name:
+                # Variant actually came from the ordered pile — pop it.
+                order = game_state.pile_order.get(pile_name) or []
+                if order and order[-1] == gain_target_name:
+                    order.pop()
+            else:
+                # Trader/Exile-reclaim replaced the gain. The engine's
+                # restoration didn't fire for the pile name, so heal it.
+                game_state.supply[pile_name] = (
+                    game_state.supply.get(pile_name, 0) + 1
+                )
+
         if gained in player.discard:
             player.discard.remove(gained)
             player.summon_set_aside.append(gained)

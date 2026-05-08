@@ -263,6 +263,37 @@ def test_summon_resolves_knights_pile_correctly():
     assert len(state.pile_order["Knights"]) == starting_order_len - 1
 
 
+def test_summon_trader_replacement_on_knight_restores_pile_state():
+    """If Trader replaces the Summoned Knight gain with a Silver, the
+    Knights pile must be left untouched: pile_order keeps its top card and
+    the Knights supply count is not decremented (since no Knight was
+    actually gained from the pile).
+    """
+    state = _new_state(["Knights"])
+    player = state.players[0]
+    player.cost_reduction = 1  # makes Knights effectively $4
+    player.hand = [get_card("Trader")]
+    player.ai.should_reveal_trader = lambda s, p, original, to_deck=False: True
+
+    starting_supply = state.supply["Knights"]
+    starting_order_top = state.pile_order["Knights"][-1]
+    starting_order_len = len(state.pile_order["Knights"])
+    starting_silver_supply = state.supply["Silver"]
+
+    summon = get_event("Summon")
+    summon.on_buy(state, player)
+
+    # Knights pile must be unchanged.
+    assert state.supply["Knights"] == starting_supply
+    assert len(state.pile_order["Knights"]) == starting_order_len
+    assert state.pile_order["Knights"][-1] == starting_order_top
+    # A Silver was gained instead. It went to discard via Trader; my
+    # post-gain rerouting moves the Silver into summon_set_aside.
+    assert state.supply["Silver"] == starting_silver_supply - 1
+    assert len(player.summon_set_aside) == 1
+    assert player.summon_set_aside[0].name == "Silver"
+
+
 def test_summon_watchtower_trash_diverts_set_aside():
     """If Watchtower trashes the gained card, it must not be set aside."""
     state = _new_state(["Village"])
