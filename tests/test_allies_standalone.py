@@ -340,6 +340,171 @@ def test_hunter_picks_one_per_type():
     assert "Smithy" in hand_names
 
 
+def test_capital_city_cantrips_with_no_options_taken():
+    state, player = _state()
+    cap = get_card("Capital City")
+    player.in_play.append(cap)
+    player.hand = [get_card("Gold")]  # No junk; not low on cards.
+    actions_before = player.actions
+    coins_before = player.coins
+    cap.on_play(state)
+    # +1 Action; neither optional clause should trigger.
+    assert player.actions == actions_before + 1
+    assert player.coins == coins_before  # No discard-for-$2 trigger.
+    assert len(player.hand) == 1  # No pay-for-cards trigger.
+
+
+def test_capital_city_discards_two_for_two_coins():
+    state, player = _state()
+    cap = get_card("Capital City")
+    player.in_play.append(cap)
+    # Six cards with two pieces of junk; hand is large enough that the
+    # second clause (pay $2 for +2 Cards) won't fire on its hand-size check.
+    player.hand = [
+        get_card("Estate"),
+        get_card("Copper"),
+        get_card("Gold"),
+        get_card("Gold"),
+        get_card("Gold"),
+        get_card("Gold"),
+    ]
+
+    class _AI(DummyAI):
+        def choose_cards_to_discard(self, state, player, choices, count, *, reason=None):
+            order = sorted(choices, key=lambda c: c.cost.coins)
+            return order[:count]
+
+    player.ai = _AI()
+    coins_before = player.coins
+    cap.on_play(state)
+    assert player.coins == coins_before + 2
+    assert sum(1 for c in player.discard if c.name in {"Estate", "Copper"}) == 2
+
+
+def test_capital_city_pays_two_for_two_cards():
+    state, player = _state()
+    cap = get_card("Capital City")
+    player.in_play.append(cap)
+    player.deck = [get_card("Gold"), get_card("Silver")]
+    player.hand = [get_card("Gold")]
+    player.coins = 5  # Enough to pay $2.
+    cap.on_play(state)
+    # Hand was short (<=4) and we had >=$2: pay $2, draw 2.
+    assert player.coins == 3
+    assert len(player.hand) == 3
+
+
+def test_guildmaster_grants_favor_per_gain():
+    state, player = _state()
+    state.supply = {"Silver": 5, "Estate": 5}
+    gm = get_card("Guildmaster")
+    player.in_play.append(gm)
+    favors_before = player.favors
+    coins_before = player.coins
+    actions_before = player.actions
+    gm.on_play(state)
+    # +1 Action +$3.
+    assert player.actions == actions_before + 1
+    assert player.coins == coins_before + 3
+    # While in play, every gain produces +1 Favor.
+    state.gain_card(player, get_card("Silver"))
+    state.gain_card(player, get_card("Estate"))
+    assert player.favors == favors_before + 2
+
+
+def test_marquis_draws_per_card_then_discards_to_ten():
+    state, player = _state()
+    player.deck = [get_card("Copper") for _ in range(20)]
+    # 8 cards in hand → draw 8 → 16 in hand → discard 6 → 10 left.
+    player.hand = [get_card("Estate") for _ in range(4)] + [
+        get_card("Copper") for _ in range(4)
+    ]
+
+    class _AI(DummyAI):
+        def choose_cards_to_discard(self, state, player, choices, count, *, reason=None):
+            order = sorted(choices, key=lambda c: c.cost.coins)
+            return order[:count]
+
+    player.ai = _AI()
+    buys_before = player.buys
+    marquis = get_card("Marquis")
+    player.in_play.append(marquis)
+    marquis.on_play(state)
+    assert player.buys == buys_before + 1
+    assert len(player.hand) == 10
+
+
+def test_marquis_no_discard_when_under_ten():
+    state, player = _state()
+    player.deck = [get_card("Copper") for _ in range(5)]
+    player.hand = [get_card("Estate"), get_card("Estate")]
+    marquis = get_card("Marquis")
+    player.in_play.append(marquis)
+    marquis.on_play(state)
+    # Drew 2; total hand is 4 — no discard required.
+    assert len(player.hand) == 4
+
+
+def test_merchant_camp_topdecks_on_cleanup():
+    state, player = _state()
+    state.supply = {}
+    state.current_player_index = 0
+    camp = get_card("Merchant Camp")
+    player.actions = 1
+    player.in_play.append(camp)
+    actions_before = player.actions
+    coins_before = player.coins
+    camp.on_play(state)
+    # +1 Action +$1.
+    assert player.actions == actions_before + 1
+    assert player.coins == coins_before + 1
+    # Now run cleanup; Merchant Camp should topdeck instead of discarding.
+    # Cleanup itself draws the next 5-card hand, so a topdecked card ends
+    # up at the top of the deck and is drawn first into the new hand.
+    state.phase = "buy"
+    state.handle_cleanup_phase()
+    assert any(c.name == "Merchant Camp" for c in player.hand)
+    assert all(c.name != "Merchant Camp" for c in player.discard)
+
+
+def test_sentinel_trashes_junk_and_keeps_the_rest():
+    state, player = _state()
+    # ``deck.pop()`` draws from the end, so the LAST item in this list is
+    # the first card Sentinel reveals.
+    player.deck = [
+        get_card("Gold"),     # 5th revealed
+        get_card("Silver"),   # 4th revealed
+        get_card("Smithy"),   # 3rd revealed
+        get_card("Estate"),   # 2nd revealed (junk, should trash)
+        get_card("Curse"),    # 1st revealed (junk, should trash)
+    ]
+    sentinel = get_card("Sentinel")
+    player.in_play.append(sentinel)
+    sentinel.on_play(state)
+    trashed_names = {c.name for c in state.trash}
+    assert "Curse" in trashed_names
+    assert "Estate" in trashed_names
+    # Three non-junk cards are back on the deck.
+    deck_names = [c.name for c in player.deck]
+    assert sorted(deck_names) == sorted(["Gold", "Silver", "Smithy"])
+
+
+def test_sentinel_no_trash_when_only_good_cards():
+    state, player = _state()
+    player.deck = [
+        get_card("Gold"),
+        get_card("Silver"),
+        get_card("Smithy"),
+        get_card("Village"),
+        get_card("Market"),
+    ]
+    sentinel = get_card("Sentinel")
+    player.in_play.append(sentinel)
+    sentinel.on_play(state)
+    assert state.trash == []
+    assert len(player.deck) == 5
+
+
 def test_royal_galley_plays_action_twice():
     state, player = _state()
     village = get_card("Village")
