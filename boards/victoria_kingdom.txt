@@ -1,0 +1,13 @@
+Stockpile
+Change
+Duplicate
+Flag Bearer
+Sailor
+Charlatan
+Treasury
+Sack of Loot
+Wayfarer
+Daimyo
+
+Event: Windfall
+Way: Way of the Butterfly
