@@ -120,6 +120,11 @@ class PlayerState:
     prepare_set_aside: list = field(default_factory=list)
     # Plunder Launch event: once-per-turn lockout (reset at turn start).
     launch_used: bool = False
+    # Plunder Journey event: once-per-turn lockout, extra-turn pending flag,
+    # and "current turn is a Journey extra turn" flag for 3-in-a-row prevention.
+    journey_used_this_turn: bool = False
+    journey_extra_turn_pending: bool = False
+    journey_taken_last_turn: bool = False
     cage_state: object = None
     grotto_set_aside: list = field(default_factory=list)
     # Prosperity 2E: Tiara grants once-per-turn replay-treasure
@@ -313,6 +318,9 @@ class PlayerState:
         self.bury_mat = []
         self.prepare_set_aside = []
         self.launch_used = False
+        self.journey_used_this_turn = False
+        self.journey_extra_turn_pending = False
+        self.journey_taken_last_turn = False
         self.cage_state = None
         self.grotto_set_aside = []
         self.tiara_replay_used = False

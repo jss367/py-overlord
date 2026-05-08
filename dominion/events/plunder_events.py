@@ -3,12 +3,9 @@
 The Plunder expansion ships 15 Events. ``Looting`` already exists as a
 standalone module; this file covers the remaining 14.
 
-Plunder Events: Bury, Avoid, Deliver, Peril, Rush, Foray, Launch, Mirror,
-Prepare, Scrounge, Maelstrom, Invasion, Prosper, Looting (existing),
-Cheap (Trait), Cursed (Trait). The actual canonical 15 events are the
-above minus the Trait names plus Pursue/Stash etc. depending on edition.
-This file implements the 14 not-yet-built ones; combined with ``Looting``
-that yields 15 Plunder Events in the registry.
+Plunder Events implemented here: Bury, Avoid, Deliver, Peril, Rush, Foray,
+Launch, Mirror, Prepare, Scrounge, Maelstrom, Invasion, Prosper, Journey.
+Combined with ``Looting`` that yields 15 Plunder Events in the registry.
 """
 
 import random
@@ -322,5 +319,31 @@ class Prosper(Event):
 
         for name in LOOT_CARD_NAMES:
             game_state.gain_card(player, get_card(name))
+
+
+class Journey(Event):
+    """$4: Once per turn. Don't discard your Action cards from play this turn.
+    Take an extra turn after this one (but not a 3rd in a row)."""
+
+    def __init__(self):
+        super().__init__("Journey", CardCost(coins=4))
+
+    def may_be_bought(self, game_state, player) -> bool:
+        if getattr(player, "journey_used_this_turn", False):
+            return False
+        # "Not a 3rd in a row": refuse if the current turn is already an extra
+        # turn from Outpost or a previous Journey. (Mission's extra turn
+        # already blocks all buys via mission_no_buy_turn, so it's covered
+        # earlier in the buy pipeline.)
+        if getattr(player, "outpost_taken_last_turn", False):
+            return False
+        if getattr(player, "journey_taken_last_turn", False):
+            return False
+        return True
+
+    def on_buy(self, game_state, player) -> None:
+        player.journey_used_this_turn = True
+        player.journey_extra_turn_pending = True
+        game_state.extra_turn = True
 
 
