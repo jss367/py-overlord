@@ -562,3 +562,48 @@ def test_way_of_the_chameleon_does_not_swap_nested_overridden_on_play():
     # Hand grew by 2 (Fortune Hunter's swapped +2 Cards). Bauble's
     # +$1 branch did not draw.
     assert len(p1.hand) == hand_size_before + 2
+
+
+def test_way_of_the_monkey_gives_buy_and_coin():
+    state, p1 = _state("Way of the Monkey")
+    p1.actions = 1
+    buys_before = p1.buys
+    coins_before = p1.coins
+    p1.hand = [get_card("Smithy")]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert p1.buys == buys_before + 1
+    assert p1.coins == coins_before + 1
+    # Smithy's +3 Cards must NOT have happened.
+    assert all(c.name != "Smithy" for c in p1.hand)
+    assert len(p1.hand) == 0
+
+
+def test_way_of_the_seal_topdecks_subsequent_gain():
+    state, p1 = _state("Way of the Seal")
+    p1.actions = 1
+    coins_before = p1.coins
+    p1.hand = [get_card("Village")]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert p1.coins == coins_before + 1
+    # A subsequent gain this turn lands on top of the deck.
+    deck_before = len(p1.deck)
+    state.supply["Silver"] = state.supply.get("Silver", 0)
+    silver = get_card("Silver")
+    state.supply["Silver"] -= 1
+    state.gain_card(p1, silver)
+    assert len(p1.deck) == deck_before + 1
+    assert p1.deck[0].name == "Silver"
+
+
+def test_way_of_the_seal_does_not_persist_past_turn():
+    state, p1 = _state("Way of the Seal")
+    p1.actions = 1
+    p1.hand = [get_card("Village")]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert p1.topdeck_gains is True
+    # Advance past this player's turn so the flag is cleared.
+    state.handle_cleanup_phase()
+    assert p1.topdeck_gains is False
