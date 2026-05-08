@@ -653,8 +653,11 @@ class MerchantCamp(Card):
 
     Implementation: always topdeck. Merchant Camp is a non-drawing village,
     so saving it for next turn (or the next draw) dominates leaving it in
-    the discard. Cleanup honours ``_merchant_camp_topdeck`` analogously to
-    Walled Village.
+    the discard. The "when you discard from play" trigger is independent of
+    how the card was played, so cleanup honours it by name (like Walled
+    Village) — this matters when Merchant Camp is played via a Way (which
+    bypasses ``play_effect``) or under Enchantress (whose effect replaces
+    ``on_play`` entirely).
     """
 
     def __init__(self):
@@ -664,9 +667,6 @@ class MerchantCamp(Card):
             stats=CardStats(actions=2, coins=1),
             types=[CardType.ACTION],
         )
-
-    def play_effect(self, game_state):
-        self._merchant_camp_topdeck = True
 
 
 class Sentinel(Card):

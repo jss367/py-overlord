@@ -447,6 +447,47 @@ def test_marquis_no_discard_when_under_ten():
     assert len(player.hand) == 4
 
 
+def test_merchant_camp_topdecks_when_played_via_way():
+    """Merchant Camp's "when discarded from play" rider must fire even when
+    play_effect is bypassed (e.g. played via a Way like Frog/Sheep). The
+    cleanup logic identifies the card by name, not via a flag set inside
+    play_effect.
+    """
+    from dominion.cards.registry import get_card as _get_card
+    from dominion.game.game_state import GameState
+    from dominion.ways.registry import get_way
+    from tests.utils import ChooseFirstActionAI
+
+    class WayPickerAI(ChooseFirstActionAI):
+        def choose_way(self, state, card, ways):
+            for w in ways:
+                if w and w.name == "Way of the Sheep":
+                    return w
+            return None
+
+    state = GameState(players=[])
+    state.initialize_game(
+        [WayPickerAI(), ChooseFirstActionAI()],
+        [_get_card("Village"), _get_card("Merchant Camp")],
+        ways=[get_way("Way of the Sheep")],
+    )
+    state.supply.setdefault("Silver", 40)
+    state.supply.setdefault("Copper", 46)
+    p1 = state.players[0]
+    p1.actions = 1
+    camp = _get_card("Merchant Camp")
+    p1.hand = [camp]
+    state.phase = "action"
+    state.handle_action_phase()  # plays Merchant Camp via Way of the Sheep
+    state.handle_treasure_phase()
+    state.handle_buy_phase()
+    state.handle_cleanup_phase()
+    # Merchant Camp should land on top of the deck (drawn into the next
+    # hand by the cleanup-end draw), not into the discard pile.
+    assert any(c.name == "Merchant Camp" for c in p1.hand)
+    assert all(c.name != "Merchant Camp" for c in p1.discard)
+
+
 def test_merchant_camp_topdecks_on_cleanup():
     state, player = _state()
     state.supply = {}

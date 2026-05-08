@@ -2025,7 +2025,7 @@ class GameState:
                 return False
             if getattr(card, "_frog_topdeck", False):
                 return False
-            if getattr(card, "_merchant_camp_topdeck", False):
+            if card.name == "Merchant Camp":
                 return False
             if (
                 card.name == "Walled Village"
@@ -2087,11 +2087,15 @@ class GameState:
                 # Menagerie Way of the Frog: topdeck on cleanup.
                 card._frog_topdeck = False
                 player.deck.insert(0, card)
-            elif getattr(card, "_merchant_camp_topdeck", False):
-                # Allies Merchant Camp: "you may put this onto your deck
-                # after you play it". Append puts the card at the top of
-                # the deck — ``deck.pop()`` draws from the end.
-                card._merchant_camp_topdeck = False
+            elif card.name == "Merchant Camp":
+                # Allies Merchant Camp: "When you discard this card from
+                # play, you may put it on top of your deck." We always take
+                # the option (this is a cantrip-village whose only payoff
+                # is cycling). Honoured by name so it fires regardless of
+                # how the card was played — including via a Way or under
+                # Enchantress, both of which bypass ``play_effect``.
+                # ``deck.append`` puts the card on top (``deck.pop()`` draws
+                # from the end).
                 player.deck.append(card)
             elif (
                 card.name == "Walled Village"
