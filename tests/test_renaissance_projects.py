@@ -547,6 +547,47 @@ def test_citadel_replays_inherited_estate_played_via_way():
     assert p.actions == 2
 
 
+def test_citadel_replays_ghost_pending_action():
+    """Ghost (Nocturne) plays a set-aside Action at start of turn before
+    the action phase. If that's the turn's first Action, Citadel must
+    trigger and replay it.
+    """
+    state = make_state(Citadel())
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    village = get_card("Village")
+    p.ghost_pending_actions = [(village, 1)]
+    p.deck = [get_card("Copper") for _ in range(10)]
+    p.hand = []
+    actions_before = p.actions
+    state.phase = "start"
+    state.handle_start_phase()
+    # Ghost plays Village (+2 actions); Citadel replays it (+2 actions).
+    assert p.citadel_used
+    assert p.actions == actions_before + 4
+
+
+def test_citadel_replays_turtle_set_aside_action():
+    """Way of the Turtle sets an Action aside to be played at start of
+    next turn. That play is the turn's first Action and Citadel replays.
+    """
+    state = make_state(Citadel())
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    village = get_card("Village")
+    p.turtle_set_aside = [village]
+    p.deck = [get_card("Copper") for _ in range(10)]
+    p.hand = []
+    actions_before = p.actions
+    state.phase = "start"
+    state.handle_start_phase()
+    # Turtle plays Village (+2 actions); Citadel replays it (+2 actions).
+    assert p.citadel_used
+    assert p.actions == actions_before + 4
+
+
 def test_citadel_resets_at_turn_start():
     state = make_state(Citadel())
     p = state.players[0]

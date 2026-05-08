@@ -797,6 +797,10 @@ class GameState:
                     ("action", player.ai.name, f"Ghost replays {action_card}", {})
                 )
                 action_card.on_play(self)
+                # Renaissance Citadel: a Ghost-driven Action play before
+                # the action phase still counts as the first Action of the
+                # turn.
+                self._maybe_citadel_replay(player, action_card)
                 plays_left -= 1
                 if plays_left > 0:
                     updated.append((action_card, plays_left))
@@ -828,6 +832,9 @@ class GameState:
             for c in turtle_set_aside:
                 self.current_player.in_play.append(c)
                 c.on_play(self)
+                # Renaissance Citadel: a Turtle-played Action before the
+                # action phase still counts as the first Action of the turn.
+                self._maybe_citadel_replay(self.current_player, c)
         # Adventures Save: cards set aside last turn return to hand.
         if self.current_player.save_set_aside:
             self.current_player.hand.extend(self.current_player.save_set_aside)
