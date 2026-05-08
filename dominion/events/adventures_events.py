@@ -413,10 +413,9 @@ class Inheritance(Event):
     def __init__(self):
         super().__init__("Inheritance", CardCost(coins=7))
 
-    def may_be_bought(self, game_state, player) -> bool:
-        return not getattr(player, "inheritance_used", False)
-
-    def on_buy(self, game_state, player) -> None:
+    @staticmethod
+    def _eligible_candidates(game_state) -> list:
+        """Return the list of Action cards a player could currently inherit."""
         candidates = []
         for name, count in game_state.supply.items():
             if count <= 0:
@@ -439,6 +438,25 @@ class Inheritance(Event):
             if card.cost.coins > 4 or card.cost.potions != 0 or card.cost.debt != 0:
                 continue
             candidates.append(card)
+        return candidates
+
+    def may_be_bought(self, game_state, player) -> bool:
+        if getattr(player, "inheritance_used", False):
+            return False
+        # Don't offer Inheritance to the AI when no Action would be eligible
+        # (e.g. all $0-$4 non-Victory Action piles are empty, or only
+        # Reserve / Duration cards qualify). Avoids wasting $7 on a dead
+        # event and prevents the once-per-game lock from being silently
+        # bypassed if ``on_buy`` ever ran with no candidates.
+        return bool(self._eligible_candidates(game_state))
+
+    def on_buy(self, game_state, player) -> None:
+        # Once-per-game restriction: lock immediately, before any early
+        # return. Even if the candidate list is empty (e.g. the supply
+        # changed since ``may_be_bought`` was last queried), buying
+        # Inheritance consumes the once-per-game opportunity.
+        player.inheritance_used = True
+        candidates = self._eligible_candidates(game_state)
         if not candidates:
             return
         choice = player.ai.choose_card_to_inherit(game_state, player, candidates)
@@ -448,7 +466,6 @@ class Inheritance(Event):
         if game_state.supply.get(choice.name, 0) > 0:
             game_state.supply[choice.name] -= 1
         player.inherited_action_name = choice.name
-        player.inheritance_used = True
 
 
 class Pathfinding(Event):

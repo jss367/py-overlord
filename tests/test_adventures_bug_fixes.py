@@ -95,6 +95,28 @@ def test_inheritance_picks_eligible_action_when_both_present():
     assert p.inherited_action_name == "Smithy"
 
 
+def test_inheritance_locks_after_buy_even_with_empty_candidates():
+    """Once-per-game restriction must apply even when no cards are eligible
+    to inherit, so the player can't repeatedly buy a dead Inheritance event."""
+    state = _new_state(["Guide", "Ratcatcher"])  # all-Reserve kingdom
+    p = state.players[0]
+    inh = get_event("Inheritance")
+
+    # Pre-condition: with the Reserve/Duration filter, no candidates exist.
+    assert inh._eligible_candidates(state) == []
+
+    # may_be_bought should report False so the AI never wastes $7.
+    assert not inh.may_be_bought(state, p)
+
+    # Defensive: even if on_buy is called directly, the once-per-game lock
+    # must engage so a future may_be_bought call (e.g. after a new pile is
+    # added) returns False.
+    inh.on_buy(state, p)
+    assert p.inheritance_used
+    assert p.inherited_action_name is None
+    assert not inh.may_be_bought(state, p)
+
+
 # ----------------------------------------------------------------------
 # P2: Dungeon enforces the mandatory second discard
 # ----------------------------------------------------------------------
