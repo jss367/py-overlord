@@ -144,3 +144,50 @@ def test_inheritance_estate_seen_as_inherited_type_for_training_token():
     assert p.coins == 1, (
         "Estate-as-Smithy must trigger the training-token bonus on Smithy"
     )
+
+
+# ----------------------------------------------------------------------
+# P1: Royal Carriage must accept an inherited Estate as the played card
+# ----------------------------------------------------------------------
+
+def test_royal_carriage_replays_inherited_estate():
+    """Royal Carriage's ``action_card in player.in_play`` identity check
+    must succeed for an Estate played under Inheritance, so the inherited
+    play can be replayed via the Tavern mat.
+
+    Without preserving the Estate's identity (e.g. via the rebinding
+    approach), Royal Carriage refuses to call because it sees a fresh
+    inherited-card substitute object that is not in ``in_play``."""
+    state = _new_state(["Smithy", "Royal Carriage"])
+    p = state.players[0]
+    p.inherited_action_name = "Smithy"
+
+    # Place a Royal Carriage on the Tavern mat ready to replay.
+    rc = get_card("Royal Carriage")
+    p.tavern_mat.append(rc)
+
+    # Play the Estate as Smithy.
+    p.hand = [get_card("Estate")]
+    p.deck = [get_card("Copper") for _ in range(10)]
+    p.actions = 1
+    p.coins = 0
+
+    state.phase = "action"
+    state.handle_action_phase()
+
+    # Smithy played twice (once originally, once replayed by Royal Carriage)
+    # → drew 6 cards from a 10-card deck of Coppers. Royal Carriage moves
+    # from the Tavern mat to the discard.
+    assert rc in p.discard, (
+        "Royal Carriage must call from the Tavern mat to replay an "
+        "inherited Estate"
+    )
+    assert rc not in p.tavern_mat
+    # Hand is whatever Smithy drew (3 from each play). The original Estate
+    # has been discarded from in_play during draw shuffles or remains in
+    # in_play; either way the hand should contain the drawn Coppers.
+    coppers_in_hand = sum(1 for c in p.hand if c.name == "Copper")
+    assert coppers_in_hand >= 5, (
+        f"expected Smithy to play twice (≥6 cards drawn, ≥5 still in hand "
+        f"after the Estate moves), got {coppers_in_hand}"
+    )
