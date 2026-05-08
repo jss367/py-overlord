@@ -147,8 +147,10 @@ class Teacher(Card):
     """$5 Action-Duration-Reserve.
 
     Put this on your Tavern mat. At the start of your turn, you may call
-    this to place a +1 Card / +1 Action / +1 Buy / +$1 token on a Supply pile
-    you have no token on yet. Teacher then returns to the Tavern mat.
+    this to move one of your +1 Card / +1 Action / +1 Buy / +$1 tokens to
+    an Action Supply pile you have no tokens on. Calling Teacher discards
+    it from the Tavern mat per the standard Reserve "call" rule (Teacher
+    has no special clause overriding that default).
     """
 
     next_traveller = None
