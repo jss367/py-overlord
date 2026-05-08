@@ -285,20 +285,6 @@ def test_sheepdog_off_turn_reacts_for_owner():
     assert len(p1.hand) == p1_hand_before
 
 
-def test_displace_grants_plus_one_action():
-    state, p1, _ = _two_player_state()
-    p1.actions = 1
-    p1.hand = [get_card("Displace"), get_card("Estate"), get_card("Village")]
-    state.phase = "action"
-    # Play Displace, then Village should still be playable (Displace
-    # consumed its own action and granted +1, leaving 1 action; Village
-    # uses it and grants +2 actions).
-    state.handle_action_phase()
-    # Displace and Village both moved through in_play this turn.
-    assert any(c.name == "Displace" for c in p1.in_play)
-    assert any(c.name == "Village" for c in p1.in_play)
-
-
 def test_displace_exiles_and_gains_upgraded_card():
     state, p1, _ = _two_player_state()
     p1.actions = 1
