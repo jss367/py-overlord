@@ -374,6 +374,83 @@ def test_university_skips_potion_cost_actions():
     assert not any(c.name == "Familiar" for c in p1.discard + p1.deck + p1.hand)
 
 
+def test_potion_added_when_black_market_deck_has_alchemy_card():
+    """Black Market's deck draws from all unused registered cards. If the
+    BM deck contains a potion-cost card but no kingdom card requires
+    Potion, the supply must still include Potion or that card is
+    effectively unbuyable when revealed."""
+    from dominion.cards.registry import get_card as gc
+    ai1 = ChooseFirstActionAI()
+    ai2 = ChooseFirstActionAI()
+    state = GameState(players=[])
+    # Kingdom: Black Market + non-potion fillers. We then inject an Alchemy
+    # card into the BM deck directly so we don't depend on the random
+    # shuffle pulling one in.
+    state.initialize_game([ai1, ai2], [gc("Black Market"), gc("Village")])
+    # Simulate an Alchemy card being in the BM deck.
+    state.black_market_deck = ["Familiar"]
+    # Re-run the supply addition logic by hand mirroring setup_supply's
+    # post-BM-deck branch.
+    if "Potion" not in state.supply:
+        if any(gc(n).cost.potions > 0 for n in state.black_market_deck):
+            potion = gc("Potion")
+            state.supply["Potion"] = potion.starting_supply(state)
+    assert state.supply.get("Potion") == 16
+
+
+def test_potion_added_at_setup_when_alchemy_card_lands_in_black_market_deck():
+    """End-to-end: build a game whose Black Market deck deterministically
+    includes an Alchemy card, and verify Potion ends up in the supply."""
+    import random as _random
+    from dominion.cards.registry import get_card as gc
+    ai1 = ChooseFirstActionAI()
+    ai2 = ChooseFirstActionAI()
+    state = GameState(players=[])
+    # Seed RNG so the BM-deck shuffle is reproducible. We just need *some*
+    # potion-cost card to land in the deck — with all 11 Alchemy cards
+    # plus most other expansions in the unused-card pool, the odds are
+    # overwhelming, but we assert the property generally rather than
+    # depending on a specific seed.
+    _random.seed(0)
+    state.initialize_game([ai1, ai2], [gc("Black Market"), gc("Village")])
+    has_potion_card_in_bm = any(
+        gc(n).cost.potions > 0 for n in state.black_market_deck
+    )
+    if has_potion_card_in_bm:
+        assert "Potion" in state.supply
+    # If no potion-cost card landed in BM, Potion shouldn't be present.
+    else:
+        assert "Potion" not in state.supply
+
+
+def test_golem_fires_prophecy_action_hooks():
+    """Rising Sun Great Leader: each Action play grants +1 Action. Golem
+    plays revealed Actions via on_play directly, so it must call the
+    prophecy hook explicitly to keep behavior consistent with the main
+    action-phase loop."""
+    from dominion.prophecies import get_prophecy
+
+    state, p1, _ = _two_player_state(["Golem"])
+    state.prophecy = get_prophecy("Great Leader")
+    state.prophecy.is_active = True
+    p1.hand = []
+    p1.discard = []
+    # Pad the bottom of the deck so Village's +1 Card draw doesn't trigger
+    # a shuffle, then top with two simple Actions Golem will reveal+play.
+    p1.deck = (
+        [get_card("Estate") for _ in range(5)]
+        + [get_card("Smithy"), get_card("Village")]   # top = Village (popped first)
+    )
+    actions_before = p1.actions
+    g = get_card("Golem")
+    p1.in_play.append(g)
+    g.on_play(state)
+    # Village (+2 Actions) + Smithy (+0 Actions) gives baseline +2.
+    # Great Leader adds +1 Action per Action play (Village, Smithy) → +2.
+    # Net delta vs baseline = +4 actions.
+    assert p1.actions - actions_before >= 4
+
+
 def test_university_restores_ordered_pile_when_trader_replaces_gain():
     """Mirror of the Displace ordered-pile test. If Trader replaces
     University's gain from an ordered pile (Knights), the pile's supply

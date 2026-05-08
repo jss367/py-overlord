@@ -457,12 +457,6 @@ class GameState:
             if card.name == "Baker":
                 self.baker_in_supply = True
 
-        # Alchemy: any kingdom card with a Potion cost adds the Potion
-        # Treasure to the basic Supply (16 copies regardless of player count).
-        if any(c.cost.potions > 0 for c in kingdom_cards):
-            potion_card = get_card("Potion")
-            self.supply["Potion"] = potion_card.starting_supply(self)
-
         # Empires Castles: any Castle in the kingdom expands the pile to all
         # 8 distinct Castle cards, each with player-count-aware supply.
         from dominion.cards.empires.castles import CASTLE_ORDER
@@ -487,6 +481,24 @@ class GameState:
             self._prepare_black_market_deck(kingdom_cards)
         else:
             self.black_market_deck = []
+
+        # Alchemy: add the Potion treasure to the basic Supply (16 copies)
+        # whenever a potion-cost card is reachable this game — either as a
+        # kingdom pile, OR via the Black Market deck (which is built from
+        # all unused registered cards and may include Alchemy actions even
+        # when no kingdom card requires Potion).
+        needs_potion = any(c.cost.potions > 0 for c in kingdom_cards)
+        if not needs_potion and self.black_market_deck:
+            for bm_name in self.black_market_deck:
+                try:
+                    if get_card(bm_name).cost.potions > 0:
+                        needs_potion = True
+                        break
+                except ValueError:
+                    continue
+        if needs_potion and "Potion" not in self.supply:
+            potion_card = get_card("Potion")
+            self.supply["Potion"] = potion_card.starting_supply(self)
 
         # Cornucopia: Young Witch designates a Bane Kingdom pile costing $2 or
         # $3. If one of the already-chosen Kingdom cards qualifies, use it;
