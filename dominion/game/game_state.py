@@ -457,6 +457,12 @@ class GameState:
             if card.name == "Baker":
                 self.baker_in_supply = True
 
+        # Alchemy: any kingdom card with a Potion cost adds the Potion
+        # Treasure to the basic Supply (16 copies regardless of player count).
+        if any(c.cost.potions > 0 for c in kingdom_cards):
+            potion_card = get_card("Potion")
+            self.supply["Potion"] = potion_card.starting_supply(self)
+
         # Empires Castles: any Castle in the kingdom expands the pile to all
         # 8 distinct Castle cards, each with player-count-aware supply.
         from dominion.cards.empires.castles import CASTLE_ORDER

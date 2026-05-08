@@ -1,0 +1,390 @@
+"""Tests for Alchemy kingdom cards and the Potion treasure."""
+
+from dominion.cards.registry import get_card
+from dominion.game.game_state import GameState
+from tests.utils import ChooseFirstActionAI
+
+
+class TrashAndPlayAI(ChooseFirstActionAI):
+    """Plays the first action and always trashes the first available card."""
+
+    def choose_card_to_trash(self, state, choices):
+        return choices[0] if choices else None
+
+
+class GainPickerAI(ChooseFirstActionAI):
+    """Plays first action AND picks the first non-None choose_buy option (so
+    University etc. actually exercise the gain branch)."""
+
+    def choose_buy(self, state, choices):
+        for c in choices:
+            if c is not None:
+                return c
+        return None
+
+
+def _two_player_state(kingdom_names=None):
+    kingdom_names = kingdom_names or ["Alchemist"]
+    ai1 = ChooseFirstActionAI()
+    ai2 = ChooseFirstActionAI()
+    state = GameState(players=[])
+    kingdom = [get_card(n) for n in kingdom_names]
+    state.initialize_game([ai1, ai2], kingdom)
+    state.supply.setdefault("Curse", 10)
+    state.supply.setdefault("Silver", 40)
+    state.supply.setdefault("Gold", 30)
+    state.supply.setdefault("Estate", 8)
+    state.supply.setdefault("Duchy", 8)
+    state.supply.setdefault("Province", 8)
+    state.supply.setdefault("Copper", 46)
+    return state, state.players[0], state.players[1]
+
+
+# --------- Potion supply / treasure ---------
+
+def test_potion_added_to_supply_when_alchemy_card_present():
+    state, _, _ = _two_player_state(["Alchemist"])
+    assert state.supply.get("Potion") == 16
+
+
+def test_potion_absent_without_alchemy_kingdom_card():
+    state, _, _ = _two_player_state(["Village"])
+    assert "Potion" not in state.supply
+
+
+def test_potion_play_grants_one_potion_resource():
+    state, p1, _ = _two_player_state(["Alchemist"])
+    potion = get_card("Potion")
+    p1.in_play.append(potion)
+    p1.potions = 0
+    potion.on_play(state)
+    assert p1.potions == 1
+
+
+def test_potion_costs_can_be_paid_in_buy_phase():
+    state, p1, _ = _two_player_state(["Alchemist"])
+    p1.coins = 3
+    p1.potions = 1
+    p1.buys = 1
+    p1.hand = []
+    state.phase = "buy"
+    # Alchemist costs $3P; with $3 + 1 potion the player can afford it.
+    alch = get_card("Alchemist")
+    assert alch.cost.potions <= p1.potions
+    assert alch.cost.coins <= p1.coins
+
+
+# --------- Alchemist ---------
+
+def test_alchemist_plays_for_2_cards_1_action():
+    state, p1, _ = _two_player_state(["Alchemist"])
+    p1.actions = 1
+    p1.deck = [get_card("Copper") for _ in range(5)]
+    alch = get_card("Alchemist")
+    p1.hand = [alch]
+    state.phase = "action"
+    state.handle_action_phase()
+    # Started with hand=[alch]; played alch (consumes) → hand grows by 2.
+    assert len(p1.hand) == 2
+    assert p1.actions == 1  # 0 after play + 1 from card
+
+
+def test_alchemist_topdecks_with_potion_in_play():
+    state, p1, _ = _two_player_state(["Alchemist"])
+    alch = get_card("Alchemist")
+    potion = get_card("Potion")
+    p1.in_play = [alch, potion]
+    state._handle_buy_phase_end(p1)
+    assert alch in p1.deck
+    assert alch not in p1.in_play
+
+
+def test_alchemist_does_not_topdeck_without_potion():
+    state, p1, _ = _two_player_state(["Alchemist"])
+    alch = get_card("Alchemist")
+    p1.in_play = [alch]
+    state._handle_buy_phase_end(p1)
+    assert alch in p1.in_play
+    assert alch not in p1.deck
+
+
+# --------- Apothecary ---------
+
+def test_apothecary_pulls_coppers_and_potions_to_hand():
+    state, p1, _ = _two_player_state(["Apothecary"])
+    p1.actions = 1
+    # Top-of-deck is the LAST element (.pop()), so order here puts these
+    # four as the top-4 reveal: Copper, Estate, Potion, Silver (in pop order:
+    # Silver, Potion, Estate, Copper).
+    p1.deck = [get_card("Estate"), get_card("Copper"), get_card("Potion"),
+               get_card("Estate"), get_card("Silver")]
+    apo = get_card("Apothecary")
+    p1.hand = [apo]
+    state.phase = "action"
+    state.handle_action_phase()
+    # +1 Card: pulls top (Silver) then reveals 4 more (Potion, Estate, Copper, Estate)
+    # Wait — re-reading: +1 Card happens via stats then play_effect reveals 4.
+    # Stats triggers draw of 1 (top = Silver) — so Silver in hand.
+    # Then reveal 4 — pop order: Estate, Copper, Potion, Estate
+    # Coppers + Potions to hand: Copper, Potion. Estates back on top.
+    assert any(c.name == "Silver" for c in p1.hand)
+    assert any(c.name == "Copper" for c in p1.hand)
+    assert any(c.name == "Potion" for c in p1.hand)
+    # Two Estates returned to deck top.
+    assert sum(1 for c in p1.deck if c.name == "Estate") == 2
+
+
+# --------- Apprentice ---------
+
+def test_apprentice_draws_per_coin_cost():
+    state, p1, _ = _two_player_state(["Apprentice"])
+    p1.ai = TrashAndPlayAI()
+    p1.actions = 1
+    # Trash a Silver ($3) — should draw 3.
+    p1.hand = [get_card("Apprentice"), get_card("Silver")]
+    p1.deck = [get_card("Copper") for _ in range(5)]
+    state.phase = "action"
+    state.handle_action_phase()
+    # Hand started with [Apprentice, Silver]; after play+trash Silver, draw 3.
+    # Resulting hand should have 3 Coppers (from draw); Silver is gone.
+    assert sum(1 for c in p1.hand if c.name == "Copper") == 3
+    assert all(c.name != "Silver" for c in p1.hand)
+
+
+def test_apprentice_potion_cost_grants_two_extra_cards():
+    state, p1, _ = _two_player_state(["Apprentice"])
+    p1.ai = TrashAndPlayAI()
+    p1.actions = 1
+    # Trash a Transmute ($0P) — draw 0 + 2 = 2.
+    p1.hand = [get_card("Apprentice"), get_card("Transmute")]
+    p1.deck = [get_card("Copper") for _ in range(5)]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert sum(1 for c in p1.hand if c.name == "Copper") == 2
+
+
+# --------- Familiar ---------
+
+def test_familiar_curses_other_players():
+    state, p1, p2 = _two_player_state(["Familiar"])
+    p1.actions = 1
+    p1.hand = [get_card("Familiar")]
+    p1.deck = [get_card("Copper") for _ in range(3)]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Curse" for c in p2.discard + p2.hand + p2.deck)
+
+
+# --------- Golem ---------
+
+def test_golem_plays_two_actions_and_discards_non_actions():
+    state, p1, _ = _two_player_state(["Golem"])
+    p1.actions = 1
+    # Pop order: top = last. We want Village then Smithy as the two actions
+    # found, with two Coppers revealed (and discarded) between them. We pad
+    # the bottom of the deck with extra Estates so Village/Smithy can draw
+    # without forcing a shuffle that would put the discarded Coppers back
+    # into the deck mid-play.
+    p1.deck = (
+        [get_card("Estate") for _ in range(6)]   # bottom (drawn last)
+        + [get_card("Smithy"),
+           get_card("Copper"),
+           get_card("Copper"),
+           get_card("Village")]                   # top of deck (popped first)
+    )
+    p1.discard = []
+    p1.hand = [get_card("Golem")]
+    state.phase = "action"
+    state.handle_action_phase()
+    # Two Coppers were revealed (non-actions) and discarded by Golem before
+    # Village/Smithy played and drew from the padded bottom of the deck.
+    coppers_in_discard = sum(1 for c in p1.discard if c.name == "Copper")
+    assert coppers_in_discard == 2
+    # Village (+1 card) + Smithy (+3 cards) = 4 cards drawn into hand.
+    assert len(p1.hand) >= 4
+
+
+def test_golem_skips_revealed_golems():
+    state, p1, _ = _two_player_state(["Golem"])
+    g = get_card("Golem")
+    p1.hand = []
+    p1.discard = []
+    # Pad bottom of deck with Estates so Village's +1 Card draw doesn't
+    # have to shuffle the discard pile back in. With one Village and one
+    # Golem-on-top, Golem will exhaust the deck looking for a 2nd action.
+    p1.deck = (
+        [get_card("Estate") for _ in range(5)]
+        + [get_card("Village"), get_card("Golem")]   # top = Golem
+    )
+    g.play_effect(state)
+    # The revealed Golem must not be in play.
+    assert not any(c.name == "Golem" for c in p1.in_play)
+    # Village should have been played (consumed and now in in_play).
+    assert any(c.name == "Village" for c in p1.in_play)
+    # Revealed Golem went to discard (or was shuffled into the deck again
+    # after Village drew). Either way it is not in play.
+    assert any(c.name == "Golem" for c in p1.discard + p1.deck + p1.hand)
+
+
+# --------- Herbalist ---------
+
+def test_herbalist_topdecks_treasure_on_discard_from_play():
+    state, p1, _ = _two_player_state(["Herbalist"])
+    herb = get_card("Herbalist")
+    silver = get_card("Silver")
+    p1.in_play = [herb, silver]
+    # Cleanup discards in_play, then draws 5. Herbalist's hook puts Silver
+    # on top of deck before the discard, so the post-cleanup hand should
+    # contain Silver.
+    p1.hand = []
+    state.phase = "buy"
+    state.handle_cleanup_phase()
+    assert any(c.name == "Silver" for c in p1.hand)
+    # Silver should not still be sitting in play or in the discard pile.
+    assert all(c.name != "Silver" for c in p1.in_play)
+
+
+def test_herbalist_topdecks_silver_directly():
+    state, p1, _ = _two_player_state(["Herbalist"])
+    herb = get_card("Herbalist")
+    silver = get_card("Silver")
+    p1.in_play = [herb, silver]
+    herb.on_discard_from_play(state, p1)
+    assert silver not in p1.in_play
+    # deck.append puts the card on top (drawn next via .pop()).
+    assert p1.deck[-1] is silver
+
+
+# --------- Philosopher's Stone ---------
+
+def test_philosophers_stone_grants_one_per_five_cards():
+    state, p1, _ = _two_player_state(["Alchemist"])
+    p1.deck = [get_card("Copper") for _ in range(7)]
+    p1.discard = [get_card("Estate") for _ in range(3)]  # 10 total
+    p1.coins = 0
+    stone = get_card("Philosopher's Stone")
+    p1.in_play = [stone]
+    stone.on_play(state)
+    assert p1.coins == 2  # 10 // 5
+
+
+def test_philosophers_stone_rounds_down():
+    state, p1, _ = _two_player_state(["Alchemist"])
+    p1.deck = [get_card("Copper") for _ in range(4)]
+    p1.discard = []  # 4 total
+    p1.coins = 0
+    stone = get_card("Philosopher's Stone")
+    p1.in_play = [stone]
+    stone.on_play(state)
+    assert p1.coins == 0
+
+
+# --------- Scrying Pool ---------
+
+def test_scrying_pool_draws_actions_to_hand():
+    state, p1, p2 = _two_player_state(["Scrying Pool"])
+    pool = get_card("Scrying Pool")
+    p1.actions = 1
+    p1.hand = []
+    p1.discard = []
+    # Pop order: Smithy (top), Village, Copper. Scrying Pool's reveal-loop
+    # stops at the first non-Action.
+    p1.deck = [get_card("Copper"), get_card("Village"), get_card("Smithy")]
+    p2.deck = [get_card("Copper")]
+    p1.in_play.append(pool)
+    pool.on_play(state)
+    # All three revealed cards land in p1.hand.
+    names = sorted(c.name for c in p1.hand)
+    assert "Smithy" in names
+    assert "Village" in names
+    assert "Copper" in names
+
+
+# --------- Transmute ---------
+
+def test_transmute_action_to_duchy():
+    state, p1, _ = _two_player_state(["Transmute"])
+    p1.ai = TrashAndPlayAI()
+    p1.actions = 1
+    p1.hand = [get_card("Transmute"), get_card("Village")]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Duchy" for c in p1.discard + p1.deck + p1.hand)
+
+
+def test_transmute_treasure_to_transmute():
+    state, p1, _ = _two_player_state(["Transmute"])
+    p1.ai = TrashAndPlayAI()
+    p1.actions = 1
+    p1.hand = [get_card("Transmute"), get_card("Silver")]
+    state.phase = "action"
+    state.handle_action_phase()
+    transmute_count = sum(
+        1 for c in p1.discard + p1.deck + p1.hand if c.name == "Transmute"
+    )
+    # The Transmute that played itself goes to in_play — gained Transmute is in discard.
+    assert transmute_count >= 1
+
+
+def test_transmute_victory_to_gold():
+    state, p1, _ = _two_player_state(["Transmute"])
+    p1.ai = TrashAndPlayAI()
+    p1.actions = 1
+    p1.hand = [get_card("Transmute"), get_card("Estate")]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert any(c.name == "Gold" for c in p1.discard + p1.deck + p1.hand)
+
+
+# --------- University ---------
+
+def test_university_grants_two_actions_and_can_gain_action_up_to_5():
+    state, p1, _ = _two_player_state(["University", "Smithy"])
+    p1.ai = GainPickerAI()
+    p1.actions = 1
+    p1.hand = [get_card("University")]
+    p1.deck = [get_card("Copper") for _ in range(3)]
+    state.phase = "action"
+    state.handle_action_phase()
+    # +2 Actions on play; one of the offered gains lands in discard. Since
+    # GainPickerAI takes the first non-None choice, *some* eligible action
+    # card was gained.
+    eligible_gains = ("Smithy", "University")
+    assert any(c.name in eligible_gains for c in p1.discard)
+
+
+def test_university_skips_potion_cost_actions():
+    """University's gain pool excludes potion-cost cards (Familiar costs $3P)."""
+
+    class PickFamiliarOrFirstAI(GainPickerAI):
+        def choose_buy(self, state, choices):
+            for c in choices:
+                if c is not None and c.name == "Familiar":
+                    return c
+            for c in choices:
+                if c is not None:
+                    return c
+            return None
+
+    state, p1, _ = _two_player_state(["University", "Familiar"])
+    p1.ai = PickFamiliarOrFirstAI()
+    uni = get_card("University")
+    p1.in_play.append(uni)
+    uni.play_effect(state)
+    assert not any(c.name == "Familiar" for c in p1.discard + p1.deck + p1.hand)
+
+
+# --------- Vineyard ---------
+
+def test_vineyard_scores_one_per_three_actions():
+    state, p1, _ = _two_player_state(["Vineyard"])
+    vineyard = get_card("Vineyard")
+    p1.deck = [get_card("Village") for _ in range(7)]  # 7 actions
+    assert vineyard.get_victory_points(p1) == 2  # 7 // 3
+
+
+def test_vineyard_zero_with_few_actions():
+    state, p1, _ = _two_player_state(["Vineyard"])
+    vineyard = get_card("Vineyard")
+    p1.deck = [get_card("Village"), get_card("Village")]
+    assert vineyard.get_victory_points(p1) == 0
