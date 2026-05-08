@@ -575,10 +575,26 @@ class GameState:
             "Estate", "Duchy", "Province", "Colony", "Curse",
         }
 
+        # Cards in this set require engine-level setup (Black Market deck,
+        # Young Witch bane, Madman/Mercenary/Spoils piles, Tournament Prize
+        # piles) that ``setup_supply`` only triggers when the card is in
+        # ``kingdom_cards``. Skipping them here avoids leaving them broken
+        # when Ferryman picks them after that branch has already run.
+        SPECIAL_SETUP_NAMES = {
+            "Black Market",
+            "Young Witch",
+            "Hermit",
+            "Urchin",
+            "Marauder",
+            "Tournament",
+        }
+
         kingdom_names = {c.name for c in kingdom_cards}
         candidates: list[tuple[str, Card]] = []
         for name in get_all_card_names():
             if name in kingdom_names or name in BASIC_NAMES:
+                continue
+            if name in SPECIAL_SETUP_NAMES:
                 continue
             if name in self.supply:
                 continue

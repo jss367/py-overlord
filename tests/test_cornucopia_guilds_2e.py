@@ -332,6 +332,94 @@ def test_infirmary_overpay_moves_card_into_play_before_replaying():
     assert not any(c.name == "Infirmary" for c in player.discard)
 
 
+def test_infirmary_overpay_finds_card_in_deck_after_topdeck_on_gain():
+    """If a topdeck-on-gain effect has moved Infirmary from discard onto
+    the deck before on_overpay fires, the replays should still find and
+    move the card to in-play, not phantom-replay while it sits on deck."""
+
+    ai = InfirmaryBuyer(overpay=2, trash_target=None)
+    player = PlayerState(ai)
+    state = GameState(players=[player])
+    state.setup_supply([])
+    state.supply["Infirmary"] = 10
+    player.hand = []
+    player.deck = []
+    player.discard = []
+    player.in_play = []
+    player.actions = 0
+    player.buys = 1
+    player.coins = 5
+    state.current_player_index = 0
+    state.phase = "buy"
+
+    # Patch _prompt_overpay: between gain and overpay, simulate a topdeck
+    # effect by moving the gained Infirmary from discard to deck.
+    real_prompt = state._prompt_overpay
+
+    def topdeck_then_prompt(player_, card_):
+        amt = real_prompt(player_, card_)
+        if card_.name == "Infirmary" and card_ in player_.discard:
+            player_.discard.remove(card_)
+            player_.deck.append(card_)
+        return amt
+
+    state._prompt_overpay = topdeck_then_prompt
+
+    state.handle_buy_phase()
+
+    in_play_names = [c.name for c in player.in_play]
+    assert in_play_names.count("Infirmary") == 1, (
+        f"Infirmary should be moved into play before replay, got in_play={in_play_names}"
+    )
+    assert not any(c.name == "Infirmary" for c in player.deck)
+    assert not any(c.name == "Infirmary" for c in player.discard)
+
+
+def test_infirmary_overpay_skips_replays_if_card_was_trashed():
+    """If Watchtower trashed the Infirmary, the replays don't run — the
+    card no longer exists in the player's zones to be played."""
+
+    ai = InfirmaryBuyer(overpay=2, trash_target=None)
+    player = PlayerState(ai)
+    state = GameState(players=[player])
+    state.setup_supply([])
+    player.hand = []
+    player.deck = [get_card("Copper") for _ in range(5)]
+    player.discard = []
+    player.in_play = []
+    player.actions = 0
+    state.current_player_index = 0
+    state.phase = "buy"
+
+    # Simulate post-gain Watchtower trash: the Infirmary instance lives in
+    # state.trash, not in any player zone.
+    infirmary = get_card("Infirmary")
+    state.trash.append(infirmary)
+
+    infirmary.on_overpay(state, player, 2)
+
+    # No replays happened, so no Coppers were drawn.
+    assert sum(1 for c in player.hand if c.name == "Copper") == 0
+    # Infirmary remains in trash, not moved to in-play.
+    assert infirmary in state.trash
+    assert not any(c is infirmary for c in player.in_play)
+
+
+def test_ferryman_setup_skips_cards_needing_special_engine_setup():
+    """Cards like Black Market and Young Witch have engine-level setup that
+    only fires when they're in the original kingdom list. Ferryman must
+    skip them so it doesn't leave them broken."""
+
+    excluded = {"Black Market", "Young Witch", "Hermit", "Urchin",
+                "Marauder", "Tournament"}
+    for _ in range(80):
+        state = GameState(players=[])
+        state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
+        assert state.ferryman_card_name not in excluded, (
+            f"Ferryman picked special-setup card {state.ferryman_card_name}"
+        )
+
+
 def test_infirmary_overpay_zero_does_not_play():
     """Buying Infirmary with no overpay does not play it; the bought card
     goes straight to discard."""
