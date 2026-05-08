@@ -1,0 +1,76 @@
+from ..base_card import Card, CardCost, CardStats, CardType
+
+
+class Farmhands(Card):
+    """At the start of your next turn, you may play a non-Duration Action or
+    Treasure from your hand. When you gain this, set aside an Action or
+    Treasure from your hand costing up to $4; play it at the start of your
+    next turn."""
+
+    def __init__(self):
+        super().__init__(
+            name="Farmhands",
+            cost=CardCost(coins=5),
+            stats=CardStats(),
+            types=[CardType.ACTION, CardType.DURATION],
+        )
+
+    def play_effect(self, game_state):
+        player = game_state.current_player
+        player.duration.append(self)
+        self.duration_persistent = True
+
+    def on_gain(self, game_state, player):
+        super().on_gain(game_state, player)
+        eligible = [
+            c for c in player.hand
+            if (c.is_action or c.is_treasure) and c.cost.coins <= 4
+            and c.cost.potions == 0 and c.cost.debt == 0
+        ]
+        if not eligible:
+            return
+        chooser = getattr(player.ai, "choose_card_to_set_aside_for_farmhands", None)
+        if chooser is None:
+            choice = eligible[0]
+        else:
+            choice = chooser(game_state, player, list(eligible))
+            if choice is None:
+                return
+        if choice not in player.hand:
+            return
+        player.hand.remove(choice)
+        player.farmhands_set_aside.append(choice)
+
+    def on_duration(self, game_state):
+        player = game_state.current_player
+        # Play any Farmhands set-aside cards at the start of next turn.
+        # Each Farmhands gained sets aside one card; resolving the duration
+        # consumes the queue once.
+        if player.farmhands_set_aside:
+            to_play = list(player.farmhands_set_aside)
+            player.farmhands_set_aside = []
+            for card in to_play:
+                player.in_play.append(card)
+                card.on_play(game_state)
+                game_state.fire_ally_play_hooks(player, card)
+
+        # May play a non-Duration Action or Treasure from hand.
+        playable = [
+            c for c in player.hand
+            if (c.is_action or c.is_treasure) and not c.is_duration
+        ]
+        if playable:
+            choice = None
+            actions = [c for c in playable if c.is_action]
+            treasures = [c for c in playable if c.is_treasure and not c.is_action]
+            if actions:
+                choice = player.ai.choose_action(game_state, actions + [None])
+            if choice is None and treasures:
+                choice = player.ai.choose_treasure(game_state, treasures + [None])
+            if choice is not None and choice in player.hand:
+                player.hand.remove(choice)
+                player.in_play.append(choice)
+                choice.on_play(game_state)
+                game_state.fire_ally_play_hooks(player, choice)
+
+        self.duration_persistent = False

@@ -98,3 +98,57 @@ class Renown(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
         player.cost_reduction += 2
+
+
+class Courser(Card):
+    """Choose two: +2 Cards; +2 Actions; +$2; gain 4 Silvers. The choices
+    must be different. (Cornucopia & Guilds 2E Joust Reward.)"""
+
+    OPTIONS = ("cards", "actions", "coins", "silvers")
+
+    def __init__(self):
+        super().__init__(
+            name="Courser",
+            cost=CardCost(coins=0),
+            stats=CardStats(),
+            types=[CardType.ACTION],
+        )
+
+    def may_be_bought(self, game_state) -> bool:
+        return False
+
+    def play_effect(self, game_state):
+        from ..registry import get_card
+
+        player = game_state.current_player
+        chooser = getattr(player.ai, "choose_courser_options", None)
+        if chooser is None:
+            chosen = ["cards", "actions"]
+        else:
+            raw = list(chooser(game_state, player, list(self.OPTIONS)))
+            chosen = []
+            for opt in raw:
+                if opt in self.OPTIONS and opt not in chosen:
+                    chosen.append(opt)
+                if len(chosen) == 2:
+                    break
+            for opt in self.OPTIONS:
+                if len(chosen) == 2:
+                    break
+                if opt not in chosen:
+                    chosen.append(opt)
+            chosen = chosen[:2]
+
+        for opt in chosen:
+            if opt == "cards":
+                game_state.draw_cards(player, 2)
+            elif opt == "actions":
+                player.actions += 2
+            elif opt == "coins":
+                player.coins += 2
+            elif opt == "silvers":
+                for _ in range(4):
+                    if game_state.supply.get("Silver", 0) <= 0:
+                        break
+                    game_state.supply["Silver"] -= 1
+                    game_state.gain_card(player, get_card("Silver"))

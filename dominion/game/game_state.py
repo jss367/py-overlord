@@ -83,6 +83,11 @@ class GameState:
     # attack against the holder.
     bane_card_name: str = ""
 
+    # Cornucopia & Guilds 2E: Ferryman designates a $3-cost Action pile at
+    # game start. Whenever Ferryman is played, the player gains a copy of
+    # this card (the same one for the entire game).
+    ferryman_card_name: str = ""
+
     # Renaissance: Artifacts. Populated by ``initialize_game`` when the
     # corresponding Kingdom card is in the supply.
     artifacts: dict = field(default_factory=dict)
@@ -488,6 +493,11 @@ class GameState:
         if any(card.name == "Young Witch" for card in kingdom_cards):
             self._setup_young_witch_bane(kingdom_cards)
 
+        # Cornucopia & Guilds 2E: Ferryman picks an unused Action pile costing
+        # exactly $3 and adds it to the Supply.
+        if any(card.name == "Ferryman" for card in kingdom_cards):
+            self._setup_ferryman_pile(kingdom_cards)
+
         self._setup_dark_ages_piles(kingdom_cards)
 
     def _setup_young_witch_bane(self, kingdom_cards: list[Card]) -> None:
@@ -541,6 +551,44 @@ class GameState:
             self.supply[candidate_name] = candidate_card.starting_supply(self)
             self.bane_card_name = candidate_name
             self.original_kingdom_pile_names.add(candidate_name)
+
+    def _setup_ferryman_pile(self, kingdom_cards: list[Card]) -> None:
+        """Designate an unused Action card costing exactly $3 for Ferryman."""
+        BASIC_NAMES = {
+            "Copper", "Silver", "Gold", "Platinum",
+            "Estate", "Duchy", "Province", "Colony", "Curse",
+        }
+
+        kingdom_names = {c.name for c in kingdom_cards}
+        candidates: list[tuple[str, Card]] = []
+        for name in get_all_card_names():
+            if name in kingdom_names or name in BASIC_NAMES:
+                continue
+            if name in self.supply:
+                continue
+            try:
+                card = get_card(name)
+            except ValueError:
+                continue
+            if not card.is_action:
+                continue
+            if card.cost.coins != 3:
+                continue
+            if card.cost.potions != 0 or card.cost.debt != 0:
+                continue
+            if getattr(card, "is_event", False) or getattr(card, "is_project", False):
+                continue
+            if not card.may_be_bought(self):
+                continue
+            candidates.append((name, card))
+
+        if not candidates:
+            return
+
+        chosen_name, chosen_card = random.choice(candidates)
+        self.supply[chosen_name] = chosen_card.starting_supply(self)
+        self.ferryman_card_name = chosen_name
+        self.original_kingdom_pile_names.add(chosen_name)
 
     def _setup_dark_ages_piles(self, kingdom_cards: list[Card]) -> None:
         """Build the shuffled Ruins / Knights piles and Madman / Mercenary piles."""
@@ -2169,6 +2217,10 @@ class GameState:
         # Adventures Expedition: +2 cards at end-of-turn redraw.
         cards_to_draw += getattr(player, "expedition_extra_draws", 0)
         player.expedition_extra_draws = 0
+
+        # Cornucopia & Guilds 2E Farrier overpay: +N cards into next hand.
+        cards_to_draw += getattr(player, "farrier_pending_draw", 0)
+        player.farrier_pending_draw = 0
 
         # Adventures: -1 Card tokens (Borrow, Relic, Bridge Troll). Each token
         # removes one card from the next end-of-turn draw and is then removed.
