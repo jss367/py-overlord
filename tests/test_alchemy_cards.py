@@ -503,6 +503,12 @@ def test_rl_action_encoder_includes_potion_for_alchemy_kingdoms():
     enc_plain = mod.ActionEncoder(["Village", "Smithy"])
     assert "Potion" not in enc_plain.all_cards
 
+    # Black Market in the kingdom must also reserve a Potion slot, since
+    # BM's deck can pull in any unused Alchemy card and force a Potion
+    # pile into the supply.
+    enc_bm = mod.ActionEncoder(["Black Market", "Village"])
+    assert "Potion" in enc_bm.all_cards
+
 
 def test_rl_state_encoder_includes_potion_for_alchemy_kingdoms():
     import importlib.util
@@ -516,6 +522,10 @@ def test_rl_state_encoder_includes_potion_for_alchemy_kingdoms():
     assert "Potion" in enc.all_cards
     enc_plain = mod.StateEncoder(["Village", "Smithy"])
     assert "Potion" not in enc_plain.all_cards
+
+    # Black Market case: encoder must include a Potion slot.
+    enc_bm = mod.StateEncoder(["Black Market", "Village"])
+    assert "Potion" in enc_bm.all_cards
 
 
 # --------- Vineyard ---------

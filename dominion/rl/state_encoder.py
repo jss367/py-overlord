@@ -29,11 +29,18 @@ class StateEncoder:
     def __init__(self, kingdom_cards: list[str]):
         """Initialize encoder with the kingdom card names."""
         self.kingdom_cards = list(kingdom_cards)
-        # Alchemy: include Potion in the encoding when a potion-cost kingdom
-        # card is present, since GameState.setup_supply auto-adds the Potion
-        # pile in that case and the encoder must observe/index it.
+        # Alchemy: include Potion in the encoding whenever the supply may
+        # contain a Potion pile — either because a kingdom card has a
+        # potion cost, or because Black Market is in the kingdom and its
+        # deck can pull any unused Alchemy card (see
+        # GameState.setup_supply). Conservative for Black Market because
+        # the encoder only knows the kingdom list, not the runtime BM deck.
         extras: list[str] = []
-        if any(get_card(name).cost.potions > 0 for name in self.kingdom_cards):
+        kingdom_has_potion_cost = any(
+            get_card(name).cost.potions > 0 for name in self.kingdom_cards
+        )
+        black_market_in_kingdom = "Black Market" in self.kingdom_cards
+        if kingdom_has_potion_cost or black_market_in_kingdom:
             extras.append("Potion")
         self.all_cards = BASE_CARDS + extras + self.kingdom_cards
         self.card_to_idx = {name: i for i, name in enumerate(self.all_cards)}
