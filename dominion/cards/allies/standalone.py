@@ -648,10 +648,10 @@ class Swap(Card):
 # ---------------------------------------------------------------------------
 
 class MerchantCamp(Card):
-    """$3 Action. +1 Action +$1. You may put this onto your deck after you
-    play it.
+    """$3 Action. +2 Actions +$1. When you discard this card from play, you
+    may put it onto your deck.
 
-    Implementation: always topdeck. Merchant Camp is a non-drawing cantrip,
+    Implementation: always topdeck. Merchant Camp is a non-drawing village,
     so saving it for next turn (or the next draw) dominates leaving it in
     the discard. Cleanup honours ``_merchant_camp_topdeck`` analogously to
     Walled Village.
@@ -661,7 +661,7 @@ class MerchantCamp(Card):
         super().__init__(
             name="Merchant Camp",
             cost=CardCost(coins=3),
-            stats=CardStats(actions=1, coins=1),
+            stats=CardStats(actions=2, coins=1),
             types=[CardType.ACTION],
         )
 
@@ -669,19 +669,68 @@ class MerchantCamp(Card):
         self._merchant_camp_topdeck = True
 
 
+class Sentinel(Card):
+    """$3 Action. Look at the top 5 cards of your deck. Trash up to 2 of
+    them. Put the rest back on top in any order."""
+
+    def __init__(self):
+        super().__init__(
+            name="Sentinel",
+            cost=CardCost(coins=3),
+            stats=CardStats(),
+            types=[CardType.ACTION],
+        )
+
+    def play_effect(self, game_state):
+        player = game_state.current_player
+        revealed: list[Card] = []
+        for _ in range(5):
+            if not player.deck and player.discard:
+                player.shuffle_discard_into_deck()
+            if not player.deck:
+                break
+            revealed.append(player.deck.pop())
+
+        # Trash up to 2 of the worst cards seen.
+        trash_priority = {
+            "Curse": 0,
+            "Overgrown Estate": 1,
+            "Ruined Village": 2,
+            "Ruined Market": 2,
+            "Ruined Library": 2,
+            "Survivors": 2,
+            "Abandoned Mine": 2,
+            "Estate": 3,
+            "Hovel": 4,
+            "Copper": 5,
+        }
+        candidates = [c for c in revealed if c.name in trash_priority]
+        candidates.sort(key=lambda c: (trash_priority[c.name], c.name))
+        for card in candidates[:2]:
+            revealed.remove(card)
+            game_state.trash_card(player, card)
+
+        # Put the rest back on top of the deck. ``deck.pop()`` takes from
+        # the end, so the last appended card is the next one drawn — order
+        # the remainder so cheap victory clutter sinks to the bottom.
+        revealed.sort(key=lambda c: (c.is_victory, c.cost.coins))
+        for card in revealed:
+            player.deck.append(card)
+
+
 # ---------------------------------------------------------------------------
 # $5 standalone
 # ---------------------------------------------------------------------------
 
 class CapitalCity(Card):
-    """$5 Action. +1 Action. You may discard 2 cards for +$2. You may pay
-    $2 for +2 Cards."""
+    """$5 Action. +1 Card +2 Actions. You may discard 2 cards for +$2. You
+    may pay $2 for +2 Cards."""
 
     def __init__(self):
         super().__init__(
             name="Capital City",
             cost=CardCost(coins=5),
-            stats=CardStats(actions=1),
+            stats=CardStats(actions=2, cards=1),
             types=[CardType.ACTION],
         )
 
@@ -733,55 +782,6 @@ class Guildmaster(Card):
 
     def on_owner_gain(self, game_state, player, gained_card: Card) -> None:
         player.favors += 1
-
-
-class Sentinel(Card):
-    """$5 Action. Look at the top 5 cards of your deck. Trash up to 2 of
-    them. Put the rest back on top in any order."""
-
-    def __init__(self):
-        super().__init__(
-            name="Sentinel",
-            cost=CardCost(coins=5),
-            stats=CardStats(),
-            types=[CardType.ACTION],
-        )
-
-    def play_effect(self, game_state):
-        player = game_state.current_player
-        revealed: list[Card] = []
-        for _ in range(5):
-            if not player.deck and player.discard:
-                player.shuffle_discard_into_deck()
-            if not player.deck:
-                break
-            revealed.append(player.deck.pop())
-
-        # Trash up to 2 of the worst cards seen.
-        trash_priority = {
-            "Curse": 0,
-            "Overgrown Estate": 1,
-            "Ruined Village": 2,
-            "Ruined Market": 2,
-            "Ruined Library": 2,
-            "Survivors": 2,
-            "Abandoned Mine": 2,
-            "Estate": 3,
-            "Hovel": 4,
-            "Copper": 5,
-        }
-        candidates = [c for c in revealed if c.name in trash_priority]
-        candidates.sort(key=lambda c: (trash_priority[c.name], c.name))
-        for card in candidates[:2]:
-            revealed.remove(card)
-            game_state.trash_card(player, card)
-
-        # Put the rest back on top of the deck. ``deck.pop()`` takes from
-        # the end, so the last appended card is the next one drawn — order
-        # the remainder so cheap victory clutter sinks to the bottom.
-        revealed.sort(key=lambda c: (c.is_victory, c.cost.coins))
-        for card in revealed:
-            player.deck.append(card)
 
 
 # ---------------------------------------------------------------------------

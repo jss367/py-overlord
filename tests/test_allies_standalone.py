@@ -340,18 +340,20 @@ def test_hunter_picks_one_per_type():
     assert "Smithy" in hand_names
 
 
-def test_capital_city_cantrips_with_no_options_taken():
+def test_capital_city_base_payload():
     state, player = _state()
     cap = get_card("Capital City")
     player.in_play.append(cap)
+    player.deck = [get_card("Silver")]
     player.hand = [get_card("Gold")]  # No junk; not low on cards.
     actions_before = player.actions
     coins_before = player.coins
     cap.on_play(state)
-    # +1 Action; neither optional clause should trigger.
-    assert player.actions == actions_before + 1
+    # Base: +1 Card +2 Actions; neither optional clause should trigger.
+    assert player.actions == actions_before + 2
     assert player.coins == coins_before  # No discard-for-$2 trigger.
-    assert len(player.hand) == 1  # No pay-for-cards trigger.
+    # Drew the Silver from deck; pay-for-cards clause did not fire.
+    assert sorted(c.name for c in player.hand) == ["Gold", "Silver"]
 
 
 def test_capital_city_discards_two_for_two_coins():
@@ -455,8 +457,8 @@ def test_merchant_camp_topdecks_on_cleanup():
     actions_before = player.actions
     coins_before = player.coins
     camp.on_play(state)
-    # +1 Action +$1.
-    assert player.actions == actions_before + 1
+    # +2 Actions +$1.
+    assert player.actions == actions_before + 2
     assert player.coins == coins_before + 1
     # Now run cleanup; Merchant Camp should topdeck instead of discarding.
     # Cleanup itself draws the next 5-card hand, so a topdecked card ends
