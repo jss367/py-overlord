@@ -499,6 +499,15 @@ class GameState:
         if needs_potion and "Potion" not in self.supply:
             potion_card = get_card("Potion")
             self.supply["Potion"] = potion_card.starting_supply(self)
+            # Black Market's deck was built from cards "not in supply" before
+            # Potion was added; Potion may therefore be sitting in the deck
+            # alongside the new Supply pile. That would create a second
+            # source of Potion (effectively 17) and double-decrement bugs
+            # via gain_card(..., from_supply=True) on BM purchase. Strip it
+            # out now that Potion is a normal Supply pile.
+            self.black_market_deck = [
+                name for name in self.black_market_deck if name != "Potion"
+            ]
 
         # Cornucopia: Young Witch designates a Bane Kingdom pile costing $2 or
         # $3. If one of the already-chosen Kingdom cards qualifies, use it;

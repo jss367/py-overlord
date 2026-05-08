@@ -374,6 +374,29 @@ def test_university_skips_potion_cost_actions():
     assert not any(c.name == "Familiar" for c in p1.discard + p1.deck + p1.hand)
 
 
+def test_potion_removed_from_black_market_deck_when_promoted_to_supply():
+    """End-to-end regression: a Black-Market kingdom with no kingdom
+    potion-cost card builds the BM deck before Potion is in supply, so
+    Potion gets included in the BM deck. Once any potion-cost card is in
+    the deck, setup_supply promotes Potion to a real Supply pile — and
+    must strip it from the BM deck so it isn't a second purchase source
+    (which would also corrupt pile counts via Trader since BM purchases
+    use gain_card(from_supply=True))."""
+    from dominion.cards.registry import get_card as gc
+    state = GameState(players=[])
+    ai1 = ChooseFirstActionAI()
+    ai2 = ChooseFirstActionAI()
+    state.initialize_game([ai1, ai2], [gc("Black Market"), gc("Village")])
+
+    # The BM deck for a 2-card kingdom contains essentially every other
+    # registered card, so it deterministically includes potion-cost
+    # Alchemy cards (Familiar, Alchemist, etc.). Setup must therefore
+    # promote Potion to the basic Supply *and* strip it from the BM deck.
+    assert "Potion" in state.supply
+    assert "Familiar" in state.black_market_deck   # sanity: BM deck wide
+    assert "Potion" not in state.black_market_deck
+
+
 def test_potion_added_when_black_market_deck_has_alchemy_card():
     """Black Market's deck draws from all unused registered cards. If the
     BM deck contains a potion-cost card but no kingdom card requires
