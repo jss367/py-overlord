@@ -650,25 +650,52 @@ def test_farmhands_duration_offers_play_from_hand():
 # ---------------------------------------------------------------------------
 
 
-def test_ferryman_setup_designates_a_three_cost_pile():
+def test_ferryman_setup_designates_a_three_or_four_cost_pile():
     state = GameState(players=[])
     state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
-    assert state.ferryman_card_name, "Ferryman setup should pick a $3 card"
+    assert state.ferryman_card_name, "Ferryman setup should pick a $3/$4 card"
     chosen = get_card(state.ferryman_card_name)
-    assert chosen.cost.coins == 3
+    assert chosen.cost.coins in (3, 4)
     # The chosen pile must exist in the supply.
     assert state.ferryman_card_name in state.supply
 
 
-def test_ferryman_play_grants_cards_and_action_only():
-    """Playing Ferryman grants +2 Cards / +1 Action; the bonus gain is
-    NOT triggered by play — it triggers only when Ferryman is gained."""
+def test_ferryman_setup_can_pick_either_three_or_four_cost():
+    """Across many setups, Ferryman should sample from both $3 and $4
+    Kingdom piles (not just $3)."""
+
+    saw_three = saw_four = False
+    for _ in range(80):
+        state = GameState(players=[])
+        state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
+        cost = get_card(state.ferryman_card_name).cost.coins
+        if cost == 3:
+            saw_three = True
+        elif cost == 4:
+            saw_four = True
+        if saw_three and saw_four:
+            break
+    assert saw_three, "Ferryman never picked a $3 pile across 80 setups"
+    assert saw_four, "Ferryman never picked a $4 pile across 80 setups"
+
+
+class FerrymanDiscardingAI(FirstChoiceAI):
+    """Discards the first card from hand when prompted (Ferryman play)."""
+
+    def choose_cards_to_discard(self, state, player, hand, count, reason=""):
+        return list(hand)[:count]
+
+
+def test_ferryman_play_grants_cards_action_and_discards():
+    """Playing Ferryman: +2 Cards / +1 Action / discard a card. Bonus
+    gain only triggers on GAIN, not on play."""
 
     state = GameState(players=[])
-    state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
+    state.initialize_game([FerrymanDiscardingAI()], [get_card("Ferryman")])
     player = state.players[0]
     ferryman = get_card("Ferryman")
-    player.hand = [ferryman]
+    estate = get_card("Estate")
+    player.hand = [ferryman, estate]
     player.deck = [get_card("Copper"), get_card("Copper")]
     player.discard = []
     player.in_play = []
@@ -681,34 +708,88 @@ def test_ferryman_play_grants_cards_and_action_only():
     player.in_play.append(ferryman)
     ferryman.on_play(state)
 
-    # +2 cards drawn.
-    assert sum(1 for c in player.hand if c.name == "Copper") == 2
+    # +2 cards drawn (2 Coppers), then 1 card discarded — net +1 card in
+    # hand (the original Estate stayed, Coppers drawn, then one discarded).
+    # Hand size before: 1 (Estate). After draw: 3. After discard: 2.
+    assert len(player.hand) == 2
+    # Exactly one card moved to discard.
+    assert len(player.discard) == 1
     # Bonus gain did NOT happen (only on gain).
     assert not any(c.name == chosen_name for c in player.discard)
     assert state.supply[chosen_name] == initial_pile
 
 
+def test_ferryman_play_with_empty_hand_after_draws_discards_nothing():
+    """If hand is empty after the +2 Cards (deck and discard exhausted),
+    there's nothing to discard. The card should not error out."""
+
+    state = GameState(players=[])
+    state.initialize_game([FerrymanDiscardingAI()], [get_card("Ferryman")])
+    player = state.players[0]
+    ferryman = get_card("Ferryman")
+    player.hand = [ferryman]
+    player.deck = []
+    player.discard = []
+    player.in_play = []
+    player.actions = 1
+
+    player.hand.remove(ferryman)
+    player.in_play.append(ferryman)
+    # No-op discard: deck is empty, so +2 Cards draws 0; then nothing to
+    # discard. Should not raise.
+    ferryman.on_play(state)
+    assert player.hand == []
+    assert player.discard == []
+
+
 def test_ferryman_on_gain_grants_chosen_card():
-    """Gaining Ferryman (e.g., from a buy or Workshop) gains the chosen
-    $3 card from the Supply."""
+    """Gaining Ferryman gains a copy of the chosen pile. We pin the chosen
+    pile to a benign card (Smithy) to avoid triggering unrelated on-gain
+    cascades from cards like Siren which gain extra Actions on gain."""
 
     state = GameState(players=[])
     state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
+    # Override the random pick with a known well-behaved $4 Action.
+    state.supply.setdefault("Smithy", get_card("Smithy").starting_supply(state))
+    state.ferryman_card_name = "Smithy"
     player = state.players[0]
     player.hand = []
     player.deck = []
     player.discard = []
     player.in_play = []
+    player.duration = []
 
-    chosen_name = state.ferryman_card_name
-    initial_pile = state.supply[chosen_name]
+    initial_pile = state.supply["Smithy"]
     state.supply["Ferryman"] = 10
-
     state.supply["Ferryman"] -= 1
     state.gain_card(player, get_card("Ferryman"))
 
-    assert any(c.name == chosen_name for c in player.discard)
-    assert state.supply[chosen_name] == initial_pile - 1
+    assert state.supply["Smithy"] == initial_pile - 1
+    assert any(c.name == "Smithy" for c in player.discard)
+
+
+def test_ferryman_on_gain_does_not_fire_on_play():
+    """Sanity: playing Ferryman does NOT trigger the bonus gain — only
+    gaining Ferryman does."""
+
+    state = GameState(players=[])
+    state.initialize_game([FerrymanDiscardingAI()], [get_card("Ferryman")])
+    state.supply.setdefault("Smithy", 10)
+    state.ferryman_card_name = "Smithy"
+    player = state.players[0]
+    ferryman = get_card("Ferryman")
+    player.hand = [ferryman, get_card("Estate")]
+    player.deck = [get_card("Copper"), get_card("Copper")]
+    player.discard = []
+    player.in_play = []
+    player.actions = 1
+
+    initial_smithy = state.supply["Smithy"]
+    player.hand.remove(ferryman)
+    player.in_play.append(ferryman)
+    ferryman.on_play(state)
+    assert state.supply["Smithy"] == initial_smithy
+    assert not any(c.name == "Smithy" for c in player.discard)
 
 
 def test_ferryman_setup_skips_split_pile_cards():

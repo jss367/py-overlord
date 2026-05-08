@@ -553,17 +553,17 @@ class GameState:
             self.original_kingdom_pile_names.add(candidate_name)
 
     def _setup_ferryman_pile(self, kingdom_cards: list[Card]) -> None:
-        """Designate an unused Kingdom card costing exactly $3 for Ferryman.
+        """Designate an unused Kingdom card costing $3 or $4 for Ferryman.
 
-        Per the 2E rule, the chosen pile is any unused Kingdom card costing
-        exactly $3 — not restricted to Actions, so $3 Kingdom Treasures
-        (e.g. Loan) are eligible too.
+        Per the 2E rule, the chosen pile is any unused Kingdom card pile
+        costing $3 or $4 — not restricted to Actions, so $3/$4 Kingdom
+        Treasures and Victory cards are eligible too.
 
         Split-pile cards (Allies four-card piles, Wizards, Empires
         SplitPileMixin pairs, Castles) are excluded: their pile setup
         requires partner piles whose registration lives in
         :meth:`setup_supply`. Restricting Ferryman to ordinary single-pile
-        $3 Kingdom cards avoids a half-initialised split pile.
+        $3/$4 Kingdom cards avoids a half-initialised split pile.
         """
         from dominion.cards.allies._split_base import AlliesSplitCard
         from dominion.cards.allies.wizards import WizardsSplitCard
@@ -588,13 +588,18 @@ class GameState:
                 card = get_card(name)
             except ValueError:
                 continue
-            if card.cost.coins != 3:
+            if card.cost.coins not in (3, 4):
                 continue
             if card.cost.potions != 0 or card.cost.debt != 0:
                 continue
             if getattr(card, "is_event", False) or getattr(card, "is_project", False):
                 continue
             if isinstance(card, (SplitPileMixin, WizardsSplitCard, AlliesSplitCard)):
+                continue
+            if card.is_heirloom:
+                # Heirlooms start with 0 copies in the Supply.
+                continue
+            if card.starting_supply(self) <= 0:
                 continue
             if not card.may_be_bought(self):
                 continue
