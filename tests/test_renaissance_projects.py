@@ -511,6 +511,42 @@ def test_citadel_replays_inherited_estate():
     assert p.actions == 4
 
 
+def test_citadel_replays_inherited_estate_played_via_way():
+    """Inheritance + Way: an Estate played via a Way (e.g. Way of the
+    Otter) is still an Action play because Inheritance binds an Action
+    to it. Citadel must trigger and replay it via the inherited card.
+    """
+    from dominion.ways.otter import WayOfTheOtter
+
+    class WayOtterAI(ChooseFirstActionAI):
+        def choose_way(self, state, card, ways):
+            for w in ways:
+                if w and w.name == "Way of the Otter":
+                    return w
+            return None
+
+    ai = WayOtterAI()
+    state = GameState(players=[])
+    state.initialize_game(
+        [ai], [get_card("Village")], projects=[Citadel()], ways=[WayOfTheOtter()]
+    )
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    p.inherited_action_name = "Village"
+    estate = get_card("Estate")
+    p.hand = [estate]
+    p.deck = [get_card("Copper") for _ in range(10)]
+    p.actions = 1
+    state.phase = "action"
+    state.handle_action_phase()
+    # Estate played via Way of the Otter (+2 Cards). Citadel replays it
+    # as the inherited Village (+1 Card, +2 Actions). Started 1 action,
+    # -1 to play, +2 from inherited Village = 2.
+    assert p.citadel_used
+    assert p.actions == 2
+
+
 def test_citadel_resets_at_turn_start():
     state = make_state(Citadel())
     p = state.players[0]

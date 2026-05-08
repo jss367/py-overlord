@@ -960,14 +960,24 @@ class GameState:
         it for Citadel to behave correctly per its "first time you play an
         Action" wording.
         """
-        if not card.is_action:
+        # Adventures Inheritance: an Estate played as the inherited Action
+        # card counts as an Action play here even though Estate.is_action
+        # is False.
+        inherited_action_play = (
+            card.name == "Estate"
+            and getattr(player, "inherited_action_name", None)
+        )
+        if not (card.is_action or inherited_action_play):
             return False
         if player.citadel_used:
             return False
         if not any(p.name == "Citadel" for p in player.projects):
             return False
         player.citadel_used = True
-        card.on_play(self)
+        if inherited_action_play:
+            self._play_inherited_estate(player, card)
+        else:
+            card.on_play(self)
         training_pile = getattr(player, "training_pile", None)
         if training_pile and card.name == training_pile:
             player.coins += 1
