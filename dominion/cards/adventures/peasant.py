@@ -220,10 +220,7 @@ class Teacher(Card):
             key=lambda c: (player.count_in_deck(c.name), c.cost.coins, c.name),
         )
         game_state.add_pile_token(player, target.name, chosen_kind)
-        # Teacher goes back to the Tavern mat (it doesn't actually leave).
-        # In our framework "calling" moves to discard; but Teacher's text says
-        # it returns to the Tavern mat. Implement: don't move it. Just consume
-        # the call by returning True so we don't keep re-asking this turn.
-        # We achieve "stays on mat" simply by NOT calling
-        # ``call_from_tavern``. The trigger dispatcher calls each card once.
+        # Teacher is a Reserve card — calling it discards it (one token
+        # placement per Teacher copy, like every other Reserve card).
+        game_state.call_from_tavern(player, self)
         return True

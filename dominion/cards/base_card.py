@@ -143,6 +143,8 @@ class Card:
     @property
     def is_heirloom(self) -> bool:
         return CardType.HEIRLOOM in self.types
+
+    @property
     def is_reserve(self) -> bool:
         return CardType.RESERVE in self.types
 

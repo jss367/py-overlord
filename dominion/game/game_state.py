@@ -1253,6 +1253,15 @@ class GameState:
                         # / Duration / Tavern logic operates on the Estate
                         # itself, not on a phantom new instance.
                         self._play_inherited_estate(player, choice)
+                        # Rebind ``choice`` to a fresh inherited-card
+                        # substitute so downstream type-gated hooks (kiln,
+                        # prophecy, allies, tavern, training, harbor-village,
+                        # inspiring) see this play as the inherited card's
+                        # type/name rather than Estate's. The Estate itself
+                        # stays in ``player.in_play`` (and goes to discard at
+                        # cleanup) — this rebinding only affects the local
+                        # variable used by post-play hooks.
+                        choice = get_card(player.inherited_action_name)
                     else:
                         choice.on_play(self)
                     if training_pile and choice.name == training_pile:
@@ -3889,52 +3898,66 @@ class GameState:
                 # Backwards-compat for cards without the *args signature.
                 card.on_call_from_tavern(self, player, trigger)
 
-    def _play_inherited_estate(self, player: PlayerState, estate: Card) -> None:
-        """Resolve Inheritance: an Estate plays as the inherited Action card.
+    def _begin_inherited_estate_overlay(
+        self, player: PlayerState, estate: Card
+    ) -> "dict | None":
+        """Apply Inheritance overlay to ``estate`` and return a restore handle.
 
-        We resolve the inherited card's effect *through the Estate instance*,
-        so any Reserve / Duration / Tavern interactions operate on the Estate
-        (which is already in ``player.in_play``) rather than on a freshly
-        instantiated phantom card. This avoids leaking phantom Guides /
-        Ratcatchers / Gears onto the Tavern mat or the duration zone.
-
-        Implementation: bind the inherited class's ``on_play`` to the Estate
-        instance so ``self`` inside the effect refers to the Estate. The
-        inherited card's stats (cards/actions/coins/buys) are also applied to
-        the player via the inherited class's ``on_play``.
+        Resolves Inheritance by binding the inherited card's stats, types,
+        play_effect, and on_duration onto the Estate instance, so any Reserve
+        / Duration / Tavern interactions and any type-gated downstream hooks
+        (allies, prophecy, kiln, training, tavern, harbor-village, inspiring)
+        operate on the Estate rather than on a phantom new instance. The
+        caller must invoke ``_end_inherited_estate_overlay`` once all play
+        and post-play hooks have completed.
         """
         inherited_name = getattr(player, "inherited_action_name", None)
         if not inherited_name:
-            return
+            return None
         inherited_card = get_card(inherited_name)
         inherited_cls = inherited_card.__class__
-        # Snapshot Estate's normal attributes that may be overlaid by the
-        # inherited card during this single play.
-        original_stats = estate.stats
-        original_play_effect = estate.play_effect
-        original_on_duration = getattr(estate, "on_duration", None)
-        try:
-            # Inherit the inherited card's stats so the base Card.on_play
-            # applies the +Cards/+Actions/+Coins/+Buys correctly to the
-            # Estate-as-inherited-card.
-            estate.stats = inherited_card.stats
-            # Bind the inherited class's play_effect to the Estate instance.
-            # ``self`` inside the inherited effect now refers to the Estate.
-            estate.play_effect = inherited_cls.play_effect.__get__(
+        saved = {
+            "stats": estate.stats,
+            "types": estate.types,
+            "play_effect": estate.play_effect,
+            "on_duration": getattr(estate, "on_duration", None),
+        }
+        # Stats: the base Card.on_play applies +Cards/+Actions/+Coins/+Buys
+        # off ``self.stats``.
+        estate.stats = inherited_card.stats
+        # Types: ``Card.is_action``/``is_attack``/etc. are @property reads off
+        # ``self.types``, so overlaying types makes downstream type checks
+        # see the inherited card's type without any cache to invalidate.
+        estate.types = inherited_card.types
+        estate.play_effect = inherited_cls.play_effect.__get__(
+            estate, type(estate)
+        )
+        if hasattr(inherited_cls, "on_duration"):
+            estate.on_duration = inherited_cls.on_duration.__get__(
                 estate, type(estate)
             )
-            # Also bind on_duration so a Duration-inherited card resolves its
-            # next-turn effect through the Estate at start-of-next-turn.
-            if hasattr(inherited_cls, "on_duration"):
-                estate.on_duration = inherited_cls.on_duration.__get__(
-                    estate, type(estate)
-                )
+        return saved
+
+    def _end_inherited_estate_overlay(
+        self, estate: Card, saved: "dict | None"
+    ) -> None:
+        if not saved:
+            return
+        estate.stats = saved["stats"]
+        estate.types = saved["types"]
+        estate.play_effect = saved["play_effect"]
+        if saved["on_duration"] is not None:
+            estate.on_duration = saved["on_duration"]
+
+    def _play_inherited_estate(self, player: PlayerState, estate: Card) -> None:
+        """Backward-compatible wrapper: overlay → on_play → restore. Use the
+        ``_begin_*`` / ``_end_*`` pair when the overlay needs to persist
+        across post-play hooks."""
+        saved = self._begin_inherited_estate_overlay(player, estate)
+        try:
             estate.on_play(self)
         finally:
-            estate.stats = original_stats
-            estate.play_effect = original_play_effect
-            if original_on_duration is not None:
-                estate.on_duration = original_on_duration
+            self._end_inherited_estate_overlay(estate, saved)
 
     # ------------------------------------------------------------------
     # Adventures: Pile tokens (Lost Arts / Training / Pathfinding / Seaway /

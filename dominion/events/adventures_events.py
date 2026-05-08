@@ -429,6 +429,13 @@ class Inheritance(Event):
                 continue
             if card.is_victory:
                 continue
+            # This engine plays the inherited card by running its effects
+            # against an Estate proxy. Reserve / Duration cards rely on the
+            # played-card *instance* being tracked in the Tavern / duration
+            # zone, which would leave a phantom card the player never
+            # actually owns. Skip them rather than corrupt state.
+            if card.is_reserve or card.is_duration:
+                continue
             if card.cost.coins > 4 or card.cost.potions != 0 or card.cost.debt != 0:
                 continue
             candidates.append(card)
