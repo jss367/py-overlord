@@ -236,6 +236,33 @@ def test_summon_topdeck_via_royal_seal_stays_on_deck():
     assert player.deck[-1].name == "Village"
 
 
+def test_summon_resolves_knights_pile_correctly():
+    """Knights is an ordered pile: the placeholder name is "Knights" but the
+    gainable card is the actual top knight (e.g. "Sir Bailey"). Summon
+    must use top_of_pile and pop pile_order, not gain the placeholder.
+    Knights are $5 normally, so apply $1 of cost reduction to make them
+    Summon-eligible.
+    """
+    state = _new_state(["Knights"])
+    player = state.players[0]
+    player.cost_reduction = 1
+
+    starting_supply = state.supply["Knights"]
+    starting_order_len = len(state.pile_order["Knights"])
+    expected_top_name = state.pile_order["Knights"][-1]
+
+    summon = get_event("Summon")
+    summon.on_buy(state, player)
+
+    assert len(player.summon_set_aside) == 1
+    gained = player.summon_set_aside[0]
+    assert gained.is_knight
+    assert gained.name == expected_top_name
+    assert gained.name != "Knights"  # not the placeholder
+    assert state.supply["Knights"] == starting_supply - 1
+    assert len(state.pile_order["Knights"]) == starting_order_len - 1
+
+
 def test_summon_watchtower_trash_diverts_set_aside():
     """If Watchtower trashes the gained card, it must not be set aside."""
     state = _new_state(["Village"])
