@@ -946,6 +946,35 @@ class GameState:
                 self.discard_card(player, card)
                 self.draw_cards(player, 2)
 
+    def _maybe_citadel_replay(self, player: PlayerState, card: Card) -> bool:
+        """Renaissance Citadel: if this is the first Action played this turn
+        and the player owns Citadel, mark the per-turn flag and replay the
+        card using its normal text. Fires per-play side effects (training
+        token bonus, Kiln, ally play hooks) so the replay matches a regular
+        play. Returns True if Citadel triggered.
+
+        Callers should invoke this immediately after a successful Action
+        play so it runs at most once per turn — every play site (the action
+        phase loop, Way-played plays, Hasty / Patient start-of-turn, and
+        Command cards like Captain that play other Actions) needs to call
+        it for Citadel to behave correctly per its "first time you play an
+        Action" wording.
+        """
+        if not card.is_action:
+            return False
+        if player.citadel_used:
+            return False
+        if not any(p.name == "Citadel" for p in player.projects):
+            return False
+        player.citadel_used = True
+        card.on_play(self)
+        training_pile = getattr(player, "training_pile", None)
+        if training_pile and card.name == training_pile:
+            player.coins += 1
+        self._maybe_kiln_gain(player, card)
+        self.fire_ally_play_hooks(player, card)
+        return True
+
     def _handle_hasty_start_of_turn(self, player: PlayerState) -> None:
         cards = self.hasty_set_aside.pop(id(player), [])
         for card in cards:
@@ -953,6 +982,7 @@ class GameState:
                 player.in_play.append(card)
                 player.actions_this_turn += 1
                 card.on_play(self)
+                self._maybe_citadel_replay(player, card)
             elif card.is_treasure:
                 player.in_play.append(card)
                 card.on_play(self)
@@ -966,6 +996,7 @@ class GameState:
                 player.in_play.append(card)
                 player.actions_this_turn += 1
                 card.on_play(self)
+                self._maybe_citadel_replay(player, card)
             elif card.is_treasure:
                 player.in_play.append(card)
                 card.on_play(self)
@@ -1182,16 +1213,9 @@ class GameState:
                 # different text. Match the non-Way branch's behaviour.
                 self.fire_ally_play_hooks(player, choice)
                 # Renaissance Citadel: a Way-played Action still counts as
-                # the first Action played this turn, so Citadel triggers
-                # and replays it (using normal text, not the Way again).
-                if (
-                    choice.is_action
-                    and not player.citadel_used
-                    and any(p.name == "Citadel" for p in player.projects)
-                ):
-                    player.citadel_used = True
-                    choice.on_play(self)
-                    self.fire_ally_play_hooks(player, choice)
+                # the first Action played this turn — replay it using the
+                # card's normal text (not the Way again).
+                self._maybe_citadel_replay(player, choice)
             else:
                 flagships_to_resolve: list[Card] = []
                 pending_flagships = getattr(player, "flagship_pending", [])

@@ -376,6 +376,53 @@ def test_citadel_replays_first_action_played_via_way():
     assert p.actions == 2
 
 
+def test_citadel_replays_hasty_played_action():
+    """A Hasty-trait Action played at start of turn (before the action
+    phase loop) is the first Action of the turn, so Citadel replays it.
+    """
+    state = make_state(Citadel())
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    village = get_card("Village")
+    p.deck = [get_card("Copper") for _ in range(10)]
+    p.hand = []
+    p.actions = 1
+    state.hasty_set_aside.setdefault(id(p), []).append(village)
+    state._handle_hasty_start_of_turn(p)
+    # Village played twice (Hasty + Citadel replay): +2 cards drawn,
+    # +4 actions. Started with 1 → 5.
+    assert p.citadel_used
+    assert p.actions == 5
+
+
+def test_citadel_replays_captain_supply_play_on_duration():
+    """Captain plays an Action from Supply via on_duration. If that's
+    the first Action of the new turn, Citadel must replay it.
+    """
+    ai = ChooseFirstActionAI()
+    state = GameState(players=[])
+    state.initialize_game(
+        [ai],
+        [get_card("Captain"), get_card("Village")],
+        projects=[Citadel()],
+    )
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    captain = get_card("Captain")
+    p.duration.append(captain)
+    p.citadel_used = False
+    p.deck = [get_card("Copper") for _ in range(10)]
+    p.hand = []
+    actions_before = p.actions
+    captain.on_duration(state)
+    # Captain plays a Village from Supply (+2 actions); Citadel replays
+    # that Village (+2 actions). Net: +4 actions.
+    assert p.citadel_used
+    assert p.actions == actions_before + 4
+
+
 def test_citadel_resets_at_turn_start():
     state = make_state(Citadel())
     p = state.players[0]
