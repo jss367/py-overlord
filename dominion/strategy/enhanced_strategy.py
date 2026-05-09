@@ -260,6 +260,21 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.or_({sources})")
 
 
+@dataclass
+class WayRule:
+    """A rule selecting a Way to use when playing a particular card.
+
+    When the engine asks ``choose_way`` for ``card``, the strategy walks
+    ``way_policy`` in order and picks the first rule whose ``card_name``
+    matches the played card, whose ``condition`` (if any) passes, and whose
+    ``way_name`` is in the list of available Ways for the kingdom.
+    """
+
+    card_name: str
+    way_name: str
+    condition: Optional[Callable[["GameState", "PlayerState"], bool]] = None
+
+
 class EnhancedStrategy:
     """Base strategy container.
 
@@ -276,6 +291,7 @@ class EnhancedStrategy:
         self.action_priority: list[PriorityRule] = []
         self.trash_priority: list[PriorityRule] = []
         self.treasure_priority: list[PriorityRule] = []
+        self.way_policy: list[WayRule] = []
 
     # ------------------------------------------------------------------
     def _choose_from_priority(
@@ -392,7 +408,27 @@ class EnhancedStrategy:
         return self._choose_from_priority(self.trash_priority, choices, state, player)
 
     def choose_way(self, state, player, card, ways):
-        """Default: butterfly Trail into the highest-priority $5 target."""
+        """Consult ``way_policy`` first; fall back to hardcoded Trail/Butterfly.
+
+        Each :class:`WayRule` matches when (a) its ``card_name`` equals the
+        played card, (b) its ``condition`` (if any) passes, and (c) the named
+        Way is present in ``ways``. The first matching rule wins.
+        """
+        for rule in self.way_policy:
+            if rule.card_name != card.name:
+                continue
+            cond = rule.condition
+            if cond is not None:
+                try:
+                    if not cond(state, player):
+                        continue
+                except Exception:
+                    continue
+            for w in ways:
+                if w is not None and getattr(w, "name", None) == rule.way_name:
+                    return w
+
+        # Fallback: butterfly Trail into the highest-priority +$1 target.
         if card.name != "Trail":
             return None
         target = self._best_butterfly_target(state, player, card.cost.coins + 1)
