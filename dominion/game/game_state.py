@@ -148,6 +148,35 @@ class GameState:
     def current_player(self) -> PlayerState:
         return self.players[self.current_player_index]
 
+    def play_action_indirectly(self, player: PlayerState, card: Card) -> None:
+        """Resolve a single Action play that originates outside the main
+        action-phase loop, applying the bookkeeping that loop would.
+
+        Used by replay helpers (Throne Room, King's Court, Procession, Crown,
+        Royal Carriage, Mastermind) and by reveal-and-play helpers (Vassal,
+        Golem, Ghost, Conclave, Necromancer). Each *play* — including each
+        replay by a multiplier — must:
+
+        - bump ``player.actions_this_turn`` / ``player.actions_played`` so
+          cards keying off "Actions played this turn" (Conspirator, Peddler)
+          see the correct count
+        - call ``card.on_play``
+        - fire Prophecy hooks (Rising Sun: Great Leader, Approaching Army)
+        - fire Ally on-play hooks (League of Shopkeepers, etc.)
+        - fire Tavern "action_played" triggers (Coin of the Realm,
+          Royal Carriage)
+
+        The caller is still responsible for moving the card into ``in_play``
+        beforehand and for any helper-specific bookkeeping (e.g. Procession
+        trashes the multiplied card after both replays).
+        """
+        player.actions_this_turn += 1
+        player.actions_played += 1
+        card.on_play(self)
+        self.fire_prophecy_action_hooks(player, card)
+        self.fire_ally_play_hooks(player, card)
+        self._call_tavern_triggers(player, "action_played", card)
+
     def fire_prophecy_action_hooks(self, player: PlayerState, card: Card) -> None:
         """Fire the active Prophecy's after-Action-play hooks for ``card``.
 
@@ -482,6 +511,33 @@ class GameState:
         else:
             self.black_market_deck = []
 
+        # Alchemy: add the Potion treasure to the basic Supply (16 copies)
+        # whenever a potion-cost card is reachable this game — either as a
+        # kingdom pile, OR via the Black Market deck (which is built from
+        # all unused registered cards and may include Alchemy actions even
+        # when no kingdom card requires Potion).
+        needs_potion = any(c.cost.potions > 0 for c in kingdom_cards)
+        if not needs_potion and self.black_market_deck:
+            for bm_name in self.black_market_deck:
+                try:
+                    if get_card(bm_name).cost.potions > 0:
+                        needs_potion = True
+                        break
+                except ValueError:
+                    continue
+        if needs_potion and "Potion" not in self.supply:
+            potion_card = get_card("Potion")
+            self.supply["Potion"] = potion_card.starting_supply(self)
+            # Black Market's deck was built from cards "not in supply" before
+            # Potion was added; Potion may therefore be sitting in the deck
+            # alongside the new Supply pile. That would create a second
+            # source of Potion (effectively 17) and double-decrement bugs
+            # via gain_card(..., from_supply=True) on BM purchase. Strip it
+            # out now that Potion is a normal Supply pile.
+            self.black_market_deck = [
+                name for name in self.black_market_deck if name != "Potion"
+            ]
+
         # Cornucopia: Young Witch designates a Bane Kingdom pile costing $2 or
         # $3. If one of the already-chosen Kingdom cards qualifies, use it;
         # otherwise add an extra $2/$3 pile to the Supply.
@@ -796,7 +852,7 @@ class GameState:
                 self.log_callback(
                     ("action", player.ai.name, f"Ghost replays {action_card}", {})
                 )
-                action_card.on_play(self)
+                self.play_action_indirectly(player, action_card)
                 plays_left -= 1
                 if plays_left > 0:
                     updated.append((action_card, plays_left))

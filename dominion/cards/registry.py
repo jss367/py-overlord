@@ -616,6 +616,20 @@ from dominion.cards.rising_sun import (
 )
 from dominion.cards.renaissance import CargoShip
 
+from dominion.cards.alchemy import (
+    Alchemist,
+    Apothecary,
+    Apprentice,
+    Familiar,
+    Golem,
+    Herbalist,
+    PhilosophersStone,
+    Potion,
+    ScryingPool,
+    Transmute,
+    University,
+    Vineyard,
+)
 from dominion.cards.treasures import Copper, Gold, Silver
 from dominion.cards.victory import Curse, Duchy, Estate, Province
 
@@ -1227,6 +1241,19 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Pillage": Pillage,
     "Rogue": Rogue,
     "Altar": Altar,
+    # Alchemy
+    "Potion": Potion,
+    "Alchemist": Alchemist,
+    "Apothecary": Apothecary,
+    "Apprentice": Apprentice,
+    "Familiar": Familiar,
+    "Golem": Golem,
+    "Herbalist": Herbalist,
+    "Philosopher's Stone": PhilosophersStone,
+    "Scrying Pool": ScryingPool,
+    "Transmute": Transmute,
+    "University": University,
+    "Vineyard": Vineyard,
 }
 
 CARD_ALIASES: dict[str, str] = {
