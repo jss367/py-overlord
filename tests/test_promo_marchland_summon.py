@@ -321,6 +321,36 @@ def test_summon_changeling_exchange_on_knight_no_double_restore():
     assert player.summon_set_aside[0].name == "Changeling"
 
 
+def test_summon_start_play_fires_action_play_hooks():
+    """When the Summoned card auto-plays at start of turn, the post-play
+    hook chain (notably the Adventures tavern trigger "action_played")
+    must fire so Reserve cards on the Tavern mat get a chance to react.
+
+    Witness: Coin of the Realm on the Tavern mat grants +2 Actions when
+    called after an Action play. With our default AI saying "yes" to the
+    call, playing the Summoned Village should trigger Coin of the Realm.
+    """
+    state = _new_state(["Village", "Coin of the Realm"])
+    player = state.players[0]
+    coin = get_card("Coin of the Realm")
+    player.tavern_mat.append(coin)
+    player.ai.should_call_from_tavern = lambda s, p, c, trigger, *args: True
+
+    summon = get_event("Summon")
+    summon.on_buy(state, player)
+    assert len(player.summon_set_aside) == 1
+
+    starting_actions = player.actions
+    state.phase = "start"
+    state.handle_start_phase()
+
+    # Coin of the Realm should have been called: +2 Actions on top of
+    # whatever Village's own +2 Actions already added.
+    assert player.actions == starting_actions + 2 + 2
+    # Coin of the Realm leaves the tavern mat when called.
+    assert coin not in player.tavern_mat
+
+
 def test_summon_skips_buried_split_pile_cards():
     """Wizards split pile (Student / Conjurer / Sorcerer / Lich): Conjurer
     is a $4 Action but is buried under Student. While Student has copies,

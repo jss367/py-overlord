@@ -836,14 +836,27 @@ class GameState:
         # Increment ``actions_this_turn`` before ``on_play`` so cards keyed
         # off that counter (e.g. Conspirator) see the Summoned play, matching
         # ``_handle_hasty_start_of_turn`` / ``_handle_patient_start_of_turn``.
+        # After ``on_play`` we also run the post-play hook chain that the
+        # main action loop fires (Rising Sun prophecy, Allies play hooks,
+        # Adventures Tavern triggers like Coin of the Realm / Royal
+        # Carriage), so Reserve/ally/prophecy effects keyed on "when you
+        # play an Action" trigger for Summoned plays too.
         summoned = list(self.current_player.summon_set_aside)
         if summoned:
             self.current_player.summon_set_aside = []
             for card in summoned:
-                self.current_player.in_play.append(card)
+                player = self.current_player
+                player.in_play.append(card)
                 if card.is_action:
-                    self.current_player.actions_this_turn += 1
+                    player.actions_this_turn += 1
                 card.on_play(self)
+                if card.is_action:
+                    if self.prophecy is not None and self.prophecy.is_active:
+                        self.prophecy.on_play_action(self, player, card)
+                        if card.is_attack:
+                            self.prophecy.on_play_attack(self, player, card)
+                    self.fire_ally_play_hooks(player, card)
+                    self._call_tavern_triggers(player, "action_played", card)
 
         # Adventures: reset once-per-turn caps for events.
         self.current_player.borrow_used_this_turn = False
