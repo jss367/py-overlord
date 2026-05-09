@@ -998,6 +998,9 @@ class GameState:
             if training_pile and card.name == training_pile:
                 player.coins += 1
             self._maybe_kiln_gain(player, card)
+            # Active Prophecies (Great Leader, Approaching Army, etc.)
+            # react to every Action play, including this replay.
+            self.fire_prophecy_action_hooks(player, card)
             self.fire_ally_play_hooks(player, card)
             # Adventures Reserves (Coin of the Realm, Royal Carriage)
             # react to action plays via Tavern triggers. Fire them on

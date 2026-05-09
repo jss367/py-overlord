@@ -694,6 +694,94 @@ def test_citadel_helper_fires_tavern_triggers():
     assert rc in p.discard
 
 
+def test_citadel_helper_fires_prophecy_hooks():
+    """Citadel's helper-path replay must fire active Prophecy hooks
+    (Great Leader's +1 Action, etc.), matching the action-phase loop.
+    Use Way of the Otter so the replay goes through the helper.
+    """
+    from dominion.prophecies.great_leader import GreatLeader
+    from dominion.ways.otter import WayOfTheOtter
+
+    class WayOtterAI(ChooseFirstActionAI):
+        def choose_way(self, state, card, ways):
+            for w in ways:
+                if w and w.name == "Way of the Otter":
+                    return w
+            return None
+
+    ai = WayOtterAI()
+    state = GameState(players=[])
+    prophecy = GreatLeader()
+    prophecy.is_active = True
+    state.initialize_game(
+        [ai],
+        [get_card("Village")],
+        projects=[Citadel()],
+        ways=[WayOfTheOtter()],
+        prophecy=prophecy,
+    )
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    village = get_card("Village")
+    p.hand = [village]
+    p.deck = []
+    p.actions = 1
+    state.phase = "action"
+    state.handle_action_phase()
+    # Way play: no actions. Citadel replay: +2 (Village). Great Leader
+    # fires once on the helper replay → +1 more. Started 1, -1 to play,
+    # +2 (replay) +1 (Great Leader) = 3.
+    assert p.citadel_used
+    assert p.actions == 3
+
+
+def test_citadel_replays_prince_set_aside_action():
+    """Prince plays its set-aside Action via on_duration. If that's the
+    turn's first Action, Citadel must replay it.
+    """
+    from dominion.cards.promo.prince import Prince
+
+    state = make_state(Citadel())
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    village = get_card("Village")
+    prince = Prince()
+    prince.set_aside_card = village
+    p.deck = [get_card("Copper") for _ in range(10)]
+    p.hand = []
+    actions_before = p.actions
+    prince.on_duration(state)
+    # Village plays once via Prince (+2 actions); Citadel replays it
+    # via the helper (+2 actions).
+    assert p.citadel_used
+    assert p.actions == actions_before + 4
+
+
+def test_citadel_replays_riverboat_target_action():
+    """Riverboat plays the set-aside target Action via on_duration. If
+    that's the turn's first Action, Citadel must replay it.
+    """
+    from dominion.cards.rising_sun.riverboat import Riverboat
+
+    state = make_state(Citadel())
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    village = get_card("Village")
+    state.riverboat_set_aside = village
+    riverboat = Riverboat()
+    p.deck = [get_card("Copper") for _ in range(10)]
+    p.hand = []
+    actions_before = p.actions
+    riverboat.on_duration(state)
+    # Village plays once via Riverboat (+2 actions); Citadel replays
+    # via the helper (+2 actions).
+    assert p.citadel_used
+    assert p.actions == actions_before + 4
+
+
 def test_citadel_resets_at_turn_start():
     state = make_state(Citadel())
     p = state.players[0]

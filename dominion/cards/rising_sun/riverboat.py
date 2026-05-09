@@ -36,4 +36,7 @@ class Riverboat(Card):
         # this play just like an Action-phase play would.
         game_state.fire_prophecy_action_hooks(player, target)
         game_state.fire_ally_play_hooks(player, target)
+        # Renaissance Citadel: a Riverboat-driven Action play before the
+        # action phase counts as the first Action of the turn.
+        game_state._maybe_citadel_replay(player, target)
         self.duration_persistent = False
