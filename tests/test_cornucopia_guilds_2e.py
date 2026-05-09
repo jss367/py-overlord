@@ -189,6 +189,26 @@ def test_shop_does_not_consume_action_to_play_card():
     assert player.actions >= 2
 
 
+def test_shop_treats_duration_actions_as_in_play():
+    """A Duration Action sitting in player.duration is still 'in play';
+    Shop must not allow chaining a same-named Action from hand."""
+
+    state, player = _make_state()
+    haunted_woods = get_card("Haunted Woods")
+    shop = get_card("Shop")
+    duplicate_haunted_woods = get_card("Haunted Woods")
+    player.duration = [haunted_woods]
+    player.in_play = []
+    player.hand = [duplicate_haunted_woods]
+
+    shop.play_effect(state)
+
+    # The Haunted Woods in hand was NOT played because there is already
+    # one in duration.
+    assert duplicate_haunted_woods in player.hand
+    assert duplicate_haunted_woods not in player.in_play
+
+
 def test_shop_chain_blocked_when_another_shop_already_in_play():
     """A Shop currently resolving counts as 'in play', so a second Shop in
     hand cannot be auto-played by the resolving Shop's effect."""
@@ -408,11 +428,13 @@ def test_infirmary_overpay_skips_replays_if_card_was_trashed():
 def test_ferryman_setup_skips_cards_needing_special_engine_setup():
     """Cards like Black Market and Young Witch have engine-level setup that
     only fires when they're in the original kingdom list. Ferryman must
-    skip them so it doesn't leave them broken."""
+    skip them so it doesn't leave them broken. Also skip cards whose
+    additional piles (e.g., Death Cart's Ruins) need engine-side variant
+    shuffling we don't replicate."""
 
     excluded = {"Black Market", "Young Witch", "Hermit", "Urchin",
-                "Marauder", "Tournament"}
-    for _ in range(80):
+                "Marauder", "Tournament", "Death Cart"}
+    for _ in range(120):
         state = GameState(players=[])
         state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
         assert state.ferryman_card_name not in excluded, (

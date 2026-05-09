@@ -580,6 +580,10 @@ class GameState:
         # piles) that ``setup_supply`` only triggers when the card is in
         # ``kingdom_cards``. Skipping them here avoids leaving them broken
         # when Ferryman picks them after that branch has already run.
+        # Cards that need an extra pile via ``get_additional_piles()`` /
+        # ``get_additional_non_supply_piles()`` (Death Cart's Ruins, etc.)
+        # are filtered programmatically below — they don't need to be in
+        # this list.
         SPECIAL_SETUP_NAMES = {
             "Black Market",
             "Young Witch",
@@ -618,6 +622,11 @@ class GameState:
             if card.starting_supply(self) <= 0:
                 continue
             if not card.may_be_bought(self):
+                continue
+            # Skip cards whose pile setup pulls in extra piles we can't
+            # reliably initialise here (e.g. Death Cart -> Ruins, which
+            # needs the engine's variant-shuffling Ruins setup).
+            if card.get_additional_piles() or card.get_additional_non_supply_piles():
                 continue
             candidates.append((name, card))
 
