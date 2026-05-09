@@ -2441,6 +2441,16 @@ class AI(ABC):
         """Default: react if a Curse can be given to opponents."""
         return state.supply.get("Curse", 0) > 0
 
+    def should_react_with_footpad(
+        self,
+        state: GameState,
+        player: PlayerState,
+        gainer: PlayerState,
+        gained_card: Card,
+    ) -> bool:
+        """Default: always reveal Footpad for the +1 Card."""
+        return True
+
     def choose_sleigh_reaction(
         self, state: GameState, player: PlayerState, gained_card: Card
     ) -> Optional[str]:

@@ -352,6 +352,45 @@ def test_infirmary_overpay_moves_card_into_play_before_replaying():
     assert not any(c.name == "Infirmary" for c in player.discard)
 
 
+def test_infirmary_overpay_replays_when_reclaimed_from_exile():
+    """If the player has an Infirmary on the Exile mat, gain_card reclaims
+    that instance instead of placing the freshly-bought one. on_overpay is
+    called on the freshly-bought ``self`` (not the reclaimed instance), so
+    the handler must search for any Infirmary by name rather than ``self``
+    identity. The replays must still happen."""
+
+    ai = InfirmaryBuyer(overpay=2, trash_target=None)
+    player = PlayerState(ai)
+    state = GameState(players=[player])
+    state.setup_supply([])
+    state.supply["Infirmary"] = 10
+    player.hand = []
+    player.deck = [get_card("Copper"), get_card("Copper")]
+    player.discard = []
+    player.in_play = []
+    player.duration = []
+    # Simulate an Infirmary already on the Exile mat.
+    exiled_infirmary = get_card("Infirmary")
+    player.exile = [exiled_infirmary]
+    player.actions = 0
+    player.buys = 1
+    player.coins = 5  # cost 3 + overpay 2
+    state.current_player_index = 0
+    state.phase = "buy"
+
+    state.handle_buy_phase()
+
+    # 2 replays of Infirmary = 2 Coppers drawn (each play: +1 Card).
+    coppers_in_hand = sum(1 for c in player.hand if c.name == "Copper")
+    assert coppers_in_hand == 2, (
+        f"Reclaim-from-Exile case should still replay Infirmary; got "
+        f"{coppers_in_hand} Coppers"
+    )
+    # The Infirmary in play is the reclaimed (formerly exiled) instance.
+    assert exiled_infirmary in player.in_play
+    assert exiled_infirmary not in player.exile
+
+
 def test_infirmary_overpay_finds_card_in_deck_after_topdeck_on_gain():
     """If a topdeck-on-gain effect has moved Infirmary from discard onto
     the deck before on_overpay fires, the replays should still find and
@@ -618,6 +657,29 @@ def test_footpad_reaction_when_other_player_gains_victory():
     assert any(c.name == "Gold" for c in p0.hand), "Footpad should have drawn +1 Card"
     # Footpad stays in hand (it's a reveal, not a play).
     assert footpad in p0.hand
+
+
+def test_footpad_reaction_default_with_no_custom_ai_hook():
+    """An AI without a custom ``should_react_with_footpad`` hook should
+    still trigger Footpad's +1 Card reaction (default behaviour)."""
+
+    state, players = _make_state(players_count=2)
+    # Default AIs from FirstChoiceAI — no should_react_with_footpad override.
+    state.players[0].ai = FirstChoiceAI()
+    state.players[1].ai = FirstChoiceAI()
+    p0, p1 = players
+    footpad = get_card("Footpad")
+    p0.hand = [footpad]
+    p0.deck = [get_card("Gold")]
+    state.supply["Estate"] = 8
+
+    state.current_player_index = 1
+    state.gain_card(p1, get_card("Estate"))
+
+    # Default behaviour: Footpad reacted, Gold drawn into hand.
+    assert any(c.name == "Gold" for c in p0.hand), (
+        "Footpad must use a sensible default reaction even without a custom AI hook"
+    )
 
 
 def test_footpad_does_not_react_to_non_victory_gain():

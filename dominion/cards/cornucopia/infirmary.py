@@ -33,25 +33,32 @@ class Infirmary(Card):
         # in ``player.discard`` after the buy, but topdeck-on-gain effects
         # (Royal Seal, Watchtower topdeck, Tiara, Travelling Fair, ...) can
         # have already moved it onto the deck or into hand by the time this
-        # hook fires. Watchtower trash sends it to the trash. Search the
-        # player's zones (and the trash, which can still source a play of
-        # the card per Watchtower-trashed Infirmary's overpay rule) for
-        # ``self`` and move it into play before replaying so the in-play
-        # zone reflects the card actually being played and a mid-replay
-        # shuffle cannot re-include this card via the discard pile.
+        # hook fires. Watchtower trash sends it to the trash. We also need
+        # to handle the Exile-reclaim case: ``gain_card`` may substitute a
+        # different Infirmary instance (the one reclaimed from Exile) for
+        # ``self``, so we search by name across the player's zones rather
+        # than for the exact ``self`` reference. Move that Infirmary into
+        # play before replaying so the in-play zone reflects the card
+        # actually being played and a mid-replay shuffle cannot re-include
+        # this card via the discard pile.
         if amount <= 0:
             return
+        target = None
         for zone in (player.discard, player.deck, player.hand):
-            if self in zone:
-                zone.remove(self)
-                player.in_play.append(self)
+            for card in zone:
+                if card.name == self.name:
+                    target = card
+                    zone.remove(card)
+                    break
+            if target is not None:
                 break
-        else:
+        if target is None:
             # Card was redirected to trash/exile/elsewhere. Don't try to
             # play it from there — silently drop the replays. (Per Donald
             # X, an Infirmary that was Watchtower-trashed before overpay
             # resolves cannot be played.)
             return
+        player.in_play.append(target)
         for _ in range(amount):
-            self.on_play(game_state)
-            game_state.fire_ally_play_hooks(player, self)
+            target.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, target)

@@ -50,8 +50,9 @@ class Footpad(Card):
             return
         if self not in player.hand:
             return
-        decision = getattr(player.ai, "should_react_with_footpad", None)
-        if decision is None or not decision(game_state, player, gainer, gained_card):
+        if not player.ai.should_react_with_footpad(
+            game_state, player, gainer, gained_card
+        ):
             return
         # Reveal (do not move). +1 Card.
         game_state.draw_cards(player, 1)
