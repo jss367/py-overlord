@@ -999,6 +999,11 @@ class GameState:
                 player.coins += 1
             self._maybe_kiln_gain(player, card)
             self.fire_ally_play_hooks(player, card)
+            # Adventures Reserves (Coin of the Realm, Royal Carriage)
+            # react to action plays via Tavern triggers. Fire them on
+            # the replay so the helper-driven plays match the action-
+            # phase loop's behaviour.
+            self._call_tavern_triggers(player, "action_played", card)
         finally:
             if inherited_action_play:
                 self._end_inherited_estate_overlay(card, inheritance_overlay)

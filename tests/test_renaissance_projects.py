@@ -649,6 +649,51 @@ def test_citadel_replays_turtle_set_aside_action():
     assert p.actions == actions_before + 4
 
 
+def test_citadel_helper_fires_tavern_triggers():
+    """Royal Carriage on the Tavern mat must react to a Citadel-helper
+    replay (e.g. Way-played first Action), the same way it would in the
+    non-Way action-phase loop. The replay is a real play of the action.
+    """
+    from dominion.cards.adventures.royal_carriage import RoyalCarriage
+    from dominion.ways.otter import WayOfTheOtter
+
+    class WayOtterAI(ChooseFirstActionAI):
+        def choose_way(self, state, card, ways):
+            for w in ways:
+                if w and w.name == "Way of the Otter":
+                    return w
+            return None
+
+        def should_call_from_tavern(self, state, player, card, trigger, *args):
+            return True
+
+    ai = WayOtterAI()
+    state = GameState(players=[])
+    state.initialize_game(
+        [ai], [get_card("Village")], projects=[Citadel()], ways=[WayOfTheOtter()]
+    )
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    rc = RoyalCarriage()
+    p.tavern_mat.append(rc)
+    village = get_card("Village")
+    p.hand = [village]
+    p.deck = []
+    p.actions = 1
+    state.phase = "action"
+    state.handle_action_phase()
+    # Way of the Otter draws (no actions); Citadel helper-path replays
+    # Village (+2 actions); Royal Carriage reacts to the replay's
+    # action_played trigger and replays Village again (+2 actions).
+    # Started 1 action, -1 to play, +2 +2 = 4.
+    assert p.citadel_used
+    assert p.actions == 4
+    # Royal Carriage moved from tavern_mat to discard after firing.
+    assert rc not in p.tavern_mat
+    assert rc in p.discard
+
+
 def test_citadel_resets_at_turn_start():
     state = make_state(Citadel())
     p = state.players[0]
