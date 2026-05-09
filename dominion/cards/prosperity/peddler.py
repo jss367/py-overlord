@@ -11,5 +11,8 @@ class Peddler(Card):
         )
 
     def cost_modifier(self, game_state, player) -> int:
+        # Discount only applies "during your Buy phase" per card text.
+        if getattr(game_state, "phase", None) != "buy":
+            return 0
         actions_in_play = sum(1 for c in player.in_play if c.is_action)
         return -2 * actions_in_play
