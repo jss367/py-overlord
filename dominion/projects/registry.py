@@ -5,9 +5,11 @@ from typing import Type
 from .academy import Academy
 from .barracks import Barracks
 from .base_project import Project
+from .canal import Canal
 from .capitalism import Capitalism
 from .card_draw import CardDraw
 from .cathedral import Cathedral
+from .citadel import Citadel
 from .city_gate import CityGate
 from .crop_rotation import CropRotation
 from .exploration import Exploration
@@ -43,6 +45,8 @@ PROJECT_TYPES: dict[str, Type[Project]] = {
     "Piazza": Piazza,
     "Barracks": Barracks,
     "Crop Rotation": CropRotation,
+    "Canal": Canal,
+    "Citadel": Citadel,
 }
 
 

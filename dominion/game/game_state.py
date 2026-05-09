@@ -176,6 +176,12 @@ class GameState:
         self.fire_prophecy_action_hooks(player, card)
         self.fire_ally_play_hooks(player, card)
         self._call_tavern_triggers(player, "action_played", card)
+        # Renaissance Citadel: if this is the turn's first Action play
+        # (the helper checks citadel_used + project ownership), replay
+        # the card. Centralised here so every indirect-play caller —
+        # Captain, Ghost, Riverboat, Royal Carriage, Throne Room et al
+        # — funnels through the same Citadel trigger.
+        self._maybe_citadel_replay(player, card)
 
     def fire_prophecy_action_hooks(self, player: PlayerState, card: Card) -> None:
         """Fire the active Prophecy's after-Action-play hooks for ``card``.
@@ -744,6 +750,7 @@ class GameState:
         player.merchant_guilds_played = 0
         player.cost_reduction = 0
         player.innovation_used = False
+        player.citadel_used = False
         player.groundskeeper_bonus = 0
         player.crossroads_played = 0
         player.fools_gold_played = 0
@@ -884,6 +891,9 @@ class GameState:
             for c in turtle_set_aside:
                 self.current_player.in_play.append(c)
                 c.on_play(self)
+                # Renaissance Citadel: a Turtle-played Action before the
+                # action phase still counts as the first Action of the turn.
+                self._maybe_citadel_replay(self.current_player, c)
         # Adventures Save: cards set aside last turn return to hand.
         if self.current_player.save_set_aside:
             self.current_player.hand.extend(self.current_player.save_set_aside)
@@ -914,6 +924,10 @@ class GameState:
                             self.prophecy.on_play_attack(self, player, card)
                     self.fire_ally_play_hooks(player, card)
                     self._call_tavern_triggers(player, "action_played", card)
+                    # Renaissance Citadel: a Summoned Action played at
+                    # start of turn counts as the first Action of the
+                    # turn, so Citadel marks used and replays it.
+                    self._maybe_citadel_replay(player, card)
 
         # Adventures: reset once-per-turn caps for events.
         self.current_player.borrow_used_this_turn = False
@@ -1030,6 +1044,62 @@ class GameState:
                 self.discard_card(player, card)
                 self.draw_cards(player, 2)
 
+    def _maybe_citadel_replay(self, player: PlayerState, card: Card) -> bool:
+        """Renaissance Citadel: if this is the first Action played this turn
+        and the player owns Citadel, mark the per-turn flag and replay the
+        card using its normal text. Fires per-play side effects (training
+        token bonus, Kiln, ally play hooks) so the replay matches a regular
+        play. Returns True if Citadel triggered.
+
+        Callers should invoke this immediately after a successful Action
+        play so it runs at most once per turn — every play site (the action
+        phase loop, Way-played plays, Hasty / Patient start-of-turn, and
+        Command cards like Captain that play other Actions) needs to call
+        it for Citadel to behave correctly per its "first time you play an
+        Action" wording.
+        """
+        # Adventures Inheritance: an Estate played as the inherited Action
+        # card counts as an Action play here even though Estate.is_action
+        # is False.
+        inherited_action_play = (
+            card.name == "Estate"
+            and getattr(player, "inherited_action_name", None)
+        )
+        if not (card.is_action or inherited_action_play):
+            return False
+        if player.citadel_used:
+            return False
+        if not any(p.name == "Citadel" for p in player.projects):
+            return False
+        player.citadel_used = True
+        # Hold the Inheritance overlay through the post-play hooks so
+        # name-gated effects (training token, Kiln, ally play hooks) see
+        # the inherited card's identity, matching the action-phase loop.
+        inheritance_overlay = (
+            self._begin_inherited_estate_overlay(player, card)
+            if inherited_action_play
+            else None
+        )
+        try:
+            card.on_play(self)
+            training_pile = getattr(player, "training_pile", None)
+            if training_pile and card.name == training_pile:
+                player.coins += 1
+            self._maybe_kiln_gain(player, card)
+            # Active Prophecies (Great Leader, Approaching Army, etc.)
+            # react to every Action play, including this replay.
+            self.fire_prophecy_action_hooks(player, card)
+            self.fire_ally_play_hooks(player, card)
+            # Adventures Reserves (Coin of the Realm, Royal Carriage)
+            # react to action plays via Tavern triggers. Fire them on
+            # the replay so the helper-driven plays match the action-
+            # phase loop's behaviour.
+            self._call_tavern_triggers(player, "action_played", card)
+        finally:
+            if inherited_action_play:
+                self._end_inherited_estate_overlay(card, inheritance_overlay)
+        return True
+
     def _handle_hasty_start_of_turn(self, player: PlayerState) -> None:
         cards = self.hasty_set_aside.pop(id(player), [])
         for card in cards:
@@ -1037,6 +1107,7 @@ class GameState:
                 player.in_play.append(card)
                 player.actions_this_turn += 1
                 card.on_play(self)
+                self._maybe_citadel_replay(player, card)
             elif card.is_treasure:
                 player.in_play.append(card)
                 card.on_play(self)
@@ -1050,6 +1121,7 @@ class GameState:
                 player.in_play.append(card)
                 player.actions_this_turn += 1
                 card.on_play(self)
+                self._maybe_citadel_replay(player, card)
             elif card.is_treasure:
                 player.in_play.append(card)
                 card.on_play(self)
@@ -1265,6 +1337,10 @@ class GameState:
                 # played using a Way: the card itself was played, just with
                 # different text. Match the non-Way branch's behaviour.
                 self.fire_ally_play_hooks(player, choice)
+                # Renaissance Citadel: a Way-played Action still counts as
+                # the first Action played this turn — replay it using the
+                # card's normal text (not the Way again).
+                self._maybe_citadel_replay(player, choice)
             else:
                 flagships_to_resolve: list[Card] = []
                 pending_flagships = getattr(player, "flagship_pending", [])
@@ -1292,7 +1368,6 @@ class GameState:
                     rush_extra = 1
                     self.rush_pending[id(player)] = rush_count - 1
 
-                plays = 1 + len(flagships_to_resolve) + daimyo_replays + reckless_extra + rush_extra
                 # Adventures Inheritance: detect once (per chosen card) whether
                 # this play is an Estate proxying the inherited Action. Each
                 # iteration of the for-loop applies the overlay before play and
@@ -1307,6 +1382,30 @@ class GameState:
                 inheriting = (
                     choice.name == "Estate"
                     and bool(getattr(player, "inherited_action_name", None))
+                )
+
+                # Renaissance Citadel: first Action played each turn is
+                # replayed afterwards. Implemented as an extra iteration of
+                # the play loop (matches Daimyo / Reckless / Rush). Gated
+                # on is_action so Enlightenment-played Treasures in the
+                # Action phase don't consume / trigger Citadel. Inherited
+                # Estates count as Action plays here.
+                citadel_extra = 0
+                if (
+                    (choice.is_action or inheriting)
+                    and not player.citadel_used
+                    and any(p.name == "Citadel" for p in player.projects)
+                ):
+                    player.citadel_used = True
+                    citadel_extra = 1
+
+                plays = (
+                    1
+                    + len(flagships_to_resolve)
+                    + daimyo_replays
+                    + reckless_extra
+                    + rush_extra
+                    + citadel_extra
                 )
                 for _ in range(plays):
                     inheritance_overlay = (
@@ -1576,6 +1675,13 @@ class GameState:
                 # Allies hook: City-state, League of Shopkeepers,
                 # Fellowship of Scribes can react to treasures played.
                 self.fire_ally_play_hooks(player, choice)
+
+                # Renaissance Citadel: if Capitalism makes an Action card
+                # playable in the Buy/Treasure phase, that play still
+                # counts as the first Action played this turn and Citadel
+                # replays it. The helper's is_action gate filters regular
+                # Treasures out automatically.
+                self._maybe_citadel_replay(player, choice)
 
                 # Prosperity 2E: Tiara — once per turn, when you play a
                 # Treasure, you may play it again. Tiara may target itself
@@ -2365,6 +2471,7 @@ class GameState:
         player.envious_effect_active = False
         player.cost_reduction = 0
         player.innovation_used = False
+        player.citadel_used = False
 
         # Empires Landmarks: end-of-turn hook (Baths). Fired before
         # cards_gained_this_turn resets so the landmark can inspect it.

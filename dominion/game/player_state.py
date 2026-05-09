@@ -56,6 +56,7 @@ class PlayerState:
     merchant_guilds_played: int = 0
     cost_reduction: int = 0
     innovation_used: bool = False
+    citadel_used: bool = False
     journey_token_face_up: bool = True
     groundskeeper_bonus: int = 0
     crossroads_played: int = 0
@@ -270,6 +271,7 @@ class PlayerState:
         self.merchant_guilds_played = 0
         self.cost_reduction = 0
         self.innovation_used = False
+        self.citadel_used = False
         self.journey_token_face_up = True
         self.groundskeeper_bonus = 0
         self.crossroads_played = 0
