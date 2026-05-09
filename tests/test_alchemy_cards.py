@@ -151,6 +151,24 @@ def test_apprentice_draws_per_coin_cost():
     assert all(c.name != "Silver" for c in p1.hand)
 
 
+def test_apprentice_uses_effective_cost_with_bridge_active():
+    """Apprentice draws "+1 Card per $1 it costs" — effective cost, so a
+    Bridge in play (cost reduction -1) means trashing a $5 reduces to a
+    $4 trash, drawing 4 instead of 5."""
+    state, p1, _ = _two_player_state(["Apprentice"])
+    p1.ai = TrashAndPlayAI()
+    p1.actions = 0
+    # Simulate Bridge having been played: cost_reduction is 1.
+    p1.cost_reduction = 1
+    p1.hand = [get_card("Apprentice"), get_card("Mine")]   # Mine costs $5
+    p1.deck = [get_card("Copper") for _ in range(8)]
+    apprentice = get_card("Apprentice")
+    p1.in_play.append(apprentice)
+    apprentice.play_effect(state)
+    # Mine $5 reduced to $4 → 4 Coppers drawn into hand.
+    assert sum(1 for c in p1.hand if c.name == "Copper") == 4
+
+
 def test_apprentice_potion_cost_grants_two_extra_cards():
     state, p1, _ = _two_player_state(["Apprentice"])
     p1.ai = TrashAndPlayAI()

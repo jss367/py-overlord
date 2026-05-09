@@ -23,7 +23,14 @@ class Apprentice(Card):
         target = player.ai.choose_card_to_trash(game_state, list(player.hand))
         if target is None or target not in player.hand:
             return
-        cards_to_draw = target.cost.coins + (2 if target.cost.potions > 0 else 0)
+        # +1 Card per $1 the trashed card costs — use the effective coin
+        # cost so Bridge / Quarry / Highway / Cheap-trait reductions apply.
+        # Potion cost isn't reduced by any cost modifier in this engine, so
+        # use the printed potion field for the +2 Cards bonus.
+        effective_coins = game_state.get_card_cost(player, target)
+        cards_to_draw = max(0, effective_coins) + (
+            2 if target.cost.potions > 0 else 0
+        )
         player.hand.remove(target)
         game_state.trash_card(player, target)
         if cards_to_draw > 0:
