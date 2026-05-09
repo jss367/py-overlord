@@ -1554,6 +1554,34 @@ class GameState:
         player.actions_this_turn += 1
         choice.on_play(self)
 
+    def charlatan_curse_active(self) -> bool:
+        """Whether Charlatan's "Curses are Treasures worth $1" rule is active.
+
+        Per Prosperity 2E, this applies "for the entire game and in all
+        situations" once Charlatan is part of the kingdom — even when the
+        Charlatan pile has been emptied or no Charlatan is in play. Black
+        Market keeps its deck out of the Supply, so we also check that.
+        """
+        if "Charlatan" in self.supply:
+            return True
+        if "Charlatan" in self.black_market_deck:
+            return True
+        return False
+
+    def is_treasure(self, card: Card) -> bool:
+        """Treasure check that respects game-level type modifiers.
+
+        While ``card.is_treasure`` is a static type query, the live game
+        may add the Treasure type to a card (notably Charlatan does so for
+        Curse). Use this method whenever a card's effect needs to ask
+        "is this a Treasure right now?".
+        """
+        if card.is_treasure:
+            return True
+        if card.name == "Curse" and self.charlatan_curse_active():
+            return True
+        return False
+
     def _handle_start_of_buy_phase_effects(self) -> None:
         """Apply state effects that trigger at the start of the buy phase."""
 
@@ -1624,11 +1652,9 @@ class GameState:
                 ]
             # Prosperity 2E: in any kingdom that includes Charlatan, Curses
             # are Treasures (in addition to their other types) and produce $1
-            # when played. Per the rulebook this is a game-level modifier
-            # ("for the entire game and in all situations"), keyed off the
-            # presence of the Charlatan pile in the Supply, not whether a
-            # Charlatan is currently in play.
-            charlatan_active = "Charlatan" in self.supply
+            # when played. See ``charlatan_curse_active`` for the activation
+            # rule (game-level, not while-in-play).
+            charlatan_active = self.charlatan_curse_active()
             if charlatan_active:
                 treasures += [card for card in player.hand if card.name == "Curse"]
             if not treasures:

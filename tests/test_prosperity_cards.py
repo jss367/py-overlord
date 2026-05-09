@@ -1202,3 +1202,97 @@ def test_charlatan_curse_coin_applies_on_tiara_replay():
 
     # Curse played once as a Treasure (+$1), then replayed via Tiara (+$1)
     assert player.coins == 2
+
+
+def test_charlatan_makes_magnate_count_curses_in_hand():
+    """Magnate counts Curses as Treasures when Charlatan is in the kingdom."""
+    player = PlayerState(DummyAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Charlatan"), get_card("Magnate")])
+
+    magnate = get_card("Magnate")
+    # Hand revealed during Magnate: 1 Copper, 1 Silver, 2 Curses, 1 Estate.
+    # With Charlatan in kingdom: 4 "Treasures" → draw 4 cards.
+    player.hand = [
+        magnate,
+        get_card("Copper"),
+        get_card("Silver"),
+        get_card("Curse"),
+        get_card("Curse"),
+        get_card("Estate"),
+    ]
+    player.deck = [get_card("Gold"), get_card("Gold"), get_card("Gold"), get_card("Gold")]
+    hand_before = len(player.hand) - 1  # we'll move Magnate to in_play
+
+    play_action(state, player, "Magnate")
+
+    drew = len(player.hand) - hand_before
+    assert drew == 4
+
+
+def test_magnate_does_not_count_curses_without_charlatan():
+    """Without Charlatan in the kingdom, Curses are not Treasures for Magnate."""
+    player = PlayerState(DummyAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Magnate")])
+    state.supply.pop("Charlatan", None)
+
+    magnate = get_card("Magnate")
+    player.hand = [magnate, get_card("Copper"), get_card("Curse"), get_card("Curse")]
+    player.deck = [get_card("Gold"), get_card("Gold")]
+    hand_before = len(player.hand) - 1
+
+    play_action(state, player, "Magnate")
+
+    # Only the Copper counts — 1 card drawn.
+    assert len(player.hand) - hand_before == 1
+
+
+class BuyMintAI(DummyAI):
+    def choose_buy(self, state, choices):
+        for c in choices:
+            if c and c.name == "Mint":
+                return c
+        return None
+
+
+def test_mint_on_buy_trashes_charlataned_curses_in_play():
+    """Mint's on-buy trash-all-treasures-in-play must include Curses played
+    as Treasures via Charlatan."""
+    player = PlayerState(BuyMintAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Charlatan"), get_card("Mint")])
+
+    # A Curse already played as a Treasure sits in play.
+    player.in_play = [get_card("Curse"), get_card("Silver")]
+    player.coins = 5
+    player.buys = 1
+
+    state.handle_buy_phase()
+
+    # Both the Silver and the Curse-as-Treasure are trashed.
+    assert any(c.name == "Curse" for c in state.trash)
+    assert any(c.name == "Silver" for c in state.trash)
+    assert all(c.name not in {"Curse", "Silver"} for c in player.in_play)
+
+
+def test_charlatan_active_when_only_in_black_market_deck():
+    """Even if Charlatan is only in the Black Market deck (and not in the
+    Supply), Curse-as-Treasure must still be active."""
+    player = PlayerState(PlayAllTreasuresAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Village")])
+    # Simulate a Black Market deck containing Charlatan, with the kingdom
+    # not otherwise including it.
+    state.supply.pop("Charlatan", None)
+    state.black_market_deck = ["Charlatan"]
+
+    player.in_play = []
+    player.hand = [get_card("Curse")]
+    player.coins = 0
+    player.buys = 1
+
+    state.handle_treasure_phase()
+
+    assert player.coins == 1
+    assert any(c.name == "Curse" for c in player.in_play)
