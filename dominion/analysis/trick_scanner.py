@@ -73,7 +73,13 @@ COMMAND_TARGET_FILTERS: dict[str, Callable[["Card"], bool]] = {
         and c.cost.debt == 0
     ),
     # Band of Misfits: plays a non-Command Action from supply costing strictly
-    # less than its own $5, with no potion / debt cost.
+    # less than its own $5 *by printed cost*, with no potion / debt cost. The
+    # in-game implementation uses dynamic cost via get_card_cost(), so symmetric
+    # cost reducers (Bridge, Highway, Quarry on Actions, ...) do not change
+    # legality (both costs drop by the same amount). Pile-specific reducers
+    # (Family of Inventors -$1 tokens, Ferry -$2 token, Plunder "Cheap" trait)
+    # can unlock additional same-printed-cost targets at runtime; the static
+    # scanner can't see those without simulating the game.
     "Band of Misfits": lambda c: (
         c.is_action
         and not c.is_command
@@ -81,10 +87,11 @@ COMMAND_TARGET_FILTERS: dict[str, Callable[["Card"], bool]] = {
         and c.cost.potions == 0
         and c.cost.debt == 0
     ),
-    # Flagship: replays the next non-Duration Action played this turn.
-    "Flagship": lambda c: (
-        c.is_action and not c.is_duration and not c.is_command
-    ),
+    # Flagship: replays the next non-Command Action played this turn. The
+    # engine (game_state.py: pending_flagships consumed when a non-Command is
+    # played) does NOT exclude Durations — pairing Flagship with Wharf or
+    # other strong Durations is legal and a known interaction.
+    "Flagship": lambda c: c.is_action and not c.is_command,
 }
 
 

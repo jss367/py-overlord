@@ -210,6 +210,19 @@ def test_command_targets_per_card_filters_independent():
     assert "Nobles" not in by_card["Captain"].detail
 
 
+def test_command_targets_flagship_includes_duration_actions():
+    # Flagship's engine logic only excludes Commands, so Duration Actions like
+    # Wharf are legal targets. Regression for the prior over-exclusion of
+    # Durations in the Flagship filter.
+    board = _board(kingdom_cards=["Flagship", "Wharf", "Smithy"])
+
+    interactions = predicate_command_targets(board)
+
+    flagship = [i for i in interactions if "Flagship" in i.headline]
+    assert len(flagship) == 1
+    assert "Wharf" in flagship[0].detail
+
+
 # --- Predicate 5: cost-mod gateways -------------------------------------
 
 
