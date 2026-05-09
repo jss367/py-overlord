@@ -5,6 +5,7 @@ from .church import Church
 from .dismantle import Dismantle
 from .envoy import Envoy
 from .governor import Governor
+from .marchland import Marchland
 from .prince import Prince
 from .sauna import Sauna
 from .snowy_village import SnowyVillage
@@ -19,6 +20,7 @@ __all__ = [
     'Dismantle',
     'Envoy',
     'Governor',
+    'Marchland',
     'Prince',
     'Sauna',
     'SnowyVillage',

@@ -2065,6 +2065,14 @@ class AI(ABC):
             return None
         return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
 
+    def choose_gain_for_summon(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Pick which $0-$4 Action to gain via Summon (played at start of next turn)."""
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+
     def choose_treasures_to_play_for_storyteller(
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> list[Card]:

@@ -184,6 +184,8 @@ class PlayerState:
     travelling_fair_active: bool = False
     # Adventures Save event.
     save_set_aside: list[Card] = field(default_factory=list)
+    # Promo Summon event: cards gained via Summon, played at start of next turn.
+    summon_set_aside: list[Card] = field(default_factory=list)
     # Adventures Expedition.
     expedition_extra_draws: int = 0
     # Adventures Plan event: pile names where Plan placed the trash token.
@@ -364,6 +366,7 @@ class PlayerState:
         self.pilgrimage_used_this_turn = False
         self.travelling_fair_active = False
         self.save_set_aside = []
+        self.summon_set_aside = []
         self.expedition_extra_draws = 0
         self.plan_trash_piles = set()
         self.inherited_action_name = None
@@ -490,6 +493,7 @@ class PlayerState:
             self.clerk_pending_replay,
             self.tavern_mat,
             self.save_set_aside,
+            self.summon_set_aside,
         ]
 
         cards: list[Card] = []
