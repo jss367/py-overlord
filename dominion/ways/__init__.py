@@ -6,6 +6,7 @@ from .frog import WayOfTheFrog
 from .goat import WayOfTheGoat
 from .horse import WayOfTheHorse
 from .mole import WayOfTheMole
+from .monkey import WayOfTheMonkey
 from .mouse import WayOfTheMouse
 from .mule import WayOfTheMule
 from .otter import WayOfTheOtter
@@ -13,6 +14,7 @@ from .owl import WayOfTheOwl
 from .ox import WayOfTheOx
 from .pig import WayOfThePig
 from .rat import WayOfTheRat
+from .seal import WayOfTheSeal
 from .sheep import WayOfTheSheep
 from .squirrel import WayOfTheSquirrel
 from .turtle import WayOfTheTurtle
@@ -27,6 +29,7 @@ __all__ = [
     "WayOfTheGoat",
     "WayOfTheHorse",
     "WayOfTheMole",
+    "WayOfTheMonkey",
     "WayOfTheMouse",
     "WayOfTheMule",
     "WayOfTheOtter",
@@ -34,6 +37,7 @@ __all__ = [
     "WayOfTheOx",
     "WayOfThePig",
     "WayOfTheRat",
+    "WayOfTheSeal",
     "WayOfTheSheep",
     "WayOfTheSquirrel",
     "WayOfTheTurtle",

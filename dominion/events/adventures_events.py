@@ -413,10 +413,9 @@ class Inheritance(Event):
     def __init__(self):
         super().__init__("Inheritance", CardCost(coins=7))
 
-    def may_be_bought(self, game_state, player) -> bool:
-        return not getattr(player, "inheritance_used", False)
-
-    def on_buy(self, game_state, player) -> None:
+    @staticmethod
+    def _eligible_candidates(game_state) -> list:
+        """Return the list of Action cards a player could currently inherit."""
         candidates = []
         for name, count in game_state.supply.items():
             if count <= 0:
@@ -429,9 +428,52 @@ class Inheritance(Event):
                 continue
             if card.is_victory:
                 continue
+            # Engine limitation: this implementation plays the inherited
+            # card by binding its name/types/stats/play_effect/on_duration
+            # onto the Estate during the play, then restoring the Estate's
+            # identity at end of iteration. That correctly handles regular
+            # Actions, but it cannot soundly handle Reserve / Duration
+            # inheritance:
+            #   * Reserve play_effect calls ``set_aside_on_tavern(player, self)``
+            #     which puts the Estate on the Tavern mat. Because the
+            #     Estate has no inherited ``on_call_from_tavern`` after
+            #     teardown, it gets stuck on the mat for the rest of the
+            #     game and never delivers the call effect.
+            #   * Duration play_effect appends ``self`` to ``player.duration``;
+            #     the inherited ``on_duration`` is also unbound at iteration
+            #     end, so the next-turn duration effect never fires and the
+            #     Estate is stranded in the duration zone.
+            # Per strict Dominion rules these would be legal targets, but
+            # supporting them properly requires persisting the overlay
+            # across the Tavern / duration lifetime — significantly more
+            # engine work than the bug fix this PR addresses. We exclude
+            # them here as a pragmatic guard against silent state
+            # corruption; this is documented as a known limitation rather
+            # than being silently swallowed.
+            if card.is_reserve or card.is_duration:
+                continue
             if card.cost.coins > 4 or card.cost.potions != 0 or card.cost.debt != 0:
                 continue
             candidates.append(card)
+        return candidates
+
+    def may_be_bought(self, game_state, player) -> bool:
+        if getattr(player, "inheritance_used", False):
+            return False
+        # Don't offer Inheritance to the AI when no Action would be eligible
+        # (e.g. all $0-$4 non-Victory Action piles are empty, or only
+        # Reserve / Duration cards qualify). Avoids wasting $7 on a dead
+        # event and prevents the once-per-game lock from being silently
+        # bypassed if ``on_buy`` ever ran with no candidates.
+        return bool(self._eligible_candidates(game_state))
+
+    def on_buy(self, game_state, player) -> None:
+        # Once-per-game restriction: lock immediately, before any early
+        # return. Even if the candidate list is empty (e.g. the supply
+        # changed since ``may_be_bought`` was last queried), buying
+        # Inheritance consumes the once-per-game opportunity.
+        player.inheritance_used = True
+        candidates = self._eligible_candidates(game_state)
         if not candidates:
             return
         choice = player.ai.choose_card_to_inherit(game_state, player, candidates)
@@ -441,7 +483,6 @@ class Inheritance(Event):
         if game_state.supply.get(choice.name, 0) > 0:
             game_state.supply[choice.name] -= 1
         player.inherited_action_name = choice.name
-        player.inheritance_used = True
 
 
 class Pathfinding(Event):
