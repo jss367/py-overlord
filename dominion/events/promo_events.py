@@ -5,20 +5,6 @@ from dominion.cards.registry import get_card
 
 from .base_event import Event
 
-# Names that live in ``state.supply`` for lookup convenience but are NOT
-# real Supply piles. The engine tracks Spirits/Wishes/Bats/Zombies/
-# Tournament Prizes via ``state.non_supply_pile_names``, but a few older
-# non-Supply piles (Madman, Mercenary, Spoils, Horse) are added directly
-# to ``state.supply`` without that flag, so we keep an explicit fallback
-# set to make Summon's filter robust regardless of which path registered
-# the pile.
-_KNOWN_NON_SUPPLY_NAMES = frozenset({
-    "Madman",
-    "Mercenary",
-    "Spoils",
-    "Horse",
-})
-
 
 class Summon(Event):
     """$5 — Gain an Action card costing up to $4. Set it aside, and at the
@@ -30,15 +16,21 @@ class Summon(Event):
 
     def on_buy(self, game_state, player) -> None:
         candidates: list = []
-        non_supply = getattr(game_state, "non_supply_pile_names", set())
-        for name, count in game_state.supply.items():
+        # Allowlist: only iterate names that are real Supply piles. The
+        # engine populates ``original_kingdom_pile_names`` with the kingdom
+        # cards (and split-pile partners, Castle ranks, Bane). Ruins is
+        # technically a Supply pile in Looter games but isn't tracked
+        # there, so we add it explicitly when the ordered pile exists.
+        # Everything else in ``state.supply`` (Travellers like Treasure
+        # Hunter / Warrior / Soldier / Disciple, Joust Rewards, Madman,
+        # Mercenary, Spoils, Horse, Spirits, Wishes, Bats, Zombies,
+        # Tournament Prizes) is non-Supply and must be skipped.
+        allowed = set(getattr(game_state, "original_kingdom_pile_names", set()))
+        if "Ruins" in game_state.pile_order:
+            allowed.add("Ruins")
+        for name in allowed:
+            count = game_state.supply.get(name, 0)
             if count <= 0:
-                continue
-            # Some non-Supply piles (Madman, Mercenary, Spirits, Wish, Bat,
-            # Zombies, Horse, Spoils, Tournament prizes) live in
-            # ``state.supply`` but are not actually Supply piles. Summon may
-            # only gain from the Supply, so skip them.
-            if name in non_supply or name in _KNOWN_NON_SUPPLY_NAMES:
                 continue
             # Dark Ages: ordered piles ("Knights", "Ruins") expose a
             # placeholder under their pile name. Resolve to the actual top

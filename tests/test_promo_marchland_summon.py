@@ -321,6 +321,34 @@ def test_summon_changeling_exchange_on_knight_no_double_restore():
     assert player.summon_set_aside[0].name == "Changeling"
 
 
+def test_summon_skips_traveller_and_reward_piles():
+    """Page's Traveller chain (Treasure Hunter / Warrior / Hero / Champion)
+    and Joust Rewards are added to ``state.supply`` via ``get_additional_piles``
+    but are NOT Supply piles. Summon must filter them out — Treasure
+    Hunter is a $3 Action that would otherwise be eligible.
+    """
+    state = _new_state(["Page", "Joust"])
+    player = state.players[0]
+
+    # Sanity: the leak surface is real — these names are in supply.
+    assert "Treasure Hunter" in state.supply
+    assert "Warrior" in state.supply
+    assert "Coronet" in state.supply  # Joust Reward
+
+    # Zero out the kingdom Action piles so a missing filter would force
+    # Summon to pick a Traveller.
+    for kingdom_name in ("Page", "Joust"):
+        state.supply[kingdom_name] = 0
+
+    summon = get_event("Summon")
+    summon.on_buy(state, player)
+    assert player.summon_set_aside == []
+    # Non-Supply piles must be untouched.
+    assert state.supply["Treasure Hunter"] == 5
+    assert state.supply["Warrior"] == 5
+    assert state.supply["Coronet"] == 5
+
+
 def test_summon_skips_non_supply_piles():
     """Madman lives in ``state.supply`` (it's a non-Supply pile registered
     when Hermit is in the kingdom) but is not actually a Supply pile.
