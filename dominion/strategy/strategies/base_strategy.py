@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
 
 
 @dataclass
@@ -19,3 +19,4 @@ class BaseStrategy(EnhancedStrategy):
         self.action_priority: List[PriorityRule] = []
         self.trash_priority: List[PriorityRule] = []
         self.treasure_priority: List[PriorityRule] = []
+        self.way_policy: List[WayRule] = []
