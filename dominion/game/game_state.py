@@ -984,15 +984,24 @@ class GameState:
         if not any(p.name == "Citadel" for p in player.projects):
             return False
         player.citadel_used = True
-        if inherited_action_play:
-            self._play_inherited_estate(player, card)
-        else:
+        # Hold the Inheritance overlay through the post-play hooks so
+        # name-gated effects (training token, Kiln, ally play hooks) see
+        # the inherited card's identity, matching the action-phase loop.
+        inheritance_overlay = (
+            self._begin_inherited_estate_overlay(player, card)
+            if inherited_action_play
+            else None
+        )
+        try:
             card.on_play(self)
-        training_pile = getattr(player, "training_pile", None)
-        if training_pile and card.name == training_pile:
-            player.coins += 1
-        self._maybe_kiln_gain(player, card)
-        self.fire_ally_play_hooks(player, card)
+            training_pile = getattr(player, "training_pile", None)
+            if training_pile and card.name == training_pile:
+                player.coins += 1
+            self._maybe_kiln_gain(player, card)
+            self.fire_ally_play_hooks(player, card)
+        finally:
+            if inherited_action_play:
+                self._end_inherited_estate_overlay(card, inheritance_overlay)
         return True
 
     def _handle_hasty_start_of_turn(self, player: PlayerState) -> None:

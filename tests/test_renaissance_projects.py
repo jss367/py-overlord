@@ -248,6 +248,23 @@ def test_canal_reduces_cost_during_turn():
     assert state.get_card_cost(p, province) == 7
 
 
+def test_canal_discount_applies_immediately_on_buy():
+    """Buying Canal mid-turn must apply the -$1 discount to subsequent
+    buys this same turn — Canal's effect is "during your turns",
+    continuous from the moment it's owned.
+    """
+    state = make_state(Canal())
+    p = state.players[0]
+    state.current_player_index = 0
+    canal_project = state.projects[0]
+    # Simulate the buy-side hook firing.
+    canal_project.on_buy(state, p)
+    p.projects.append(canal_project)
+    province = get_card("Province")
+    # Province costs $8 normally; with Canal owned mid-turn it costs $7.
+    assert state.get_card_cost(p, province) == 7
+
+
 def test_canal_does_not_reduce_below_zero():
     state = make_state(Canal())
     p = state.players[0]
@@ -509,6 +526,50 @@ def test_citadel_replays_inherited_estate():
     # per play. Started 1, -1 to play, +2 +2 from replays = 4.
     assert p.citadel_used
     assert p.actions == 4
+
+
+def test_citadel_inheritance_replay_preserves_inherited_identity():
+    """Citadel's replay of an inherited Estate must keep the inheritance
+    overlay active through the per-play hooks, so name-gated effects
+    (training token, Kiln) see the inherited Action's name — matching
+    the action-phase loop's behaviour.
+    """
+    from dominion.ways.otter import WayOfTheOtter
+
+    class WayOtterAI(ChooseFirstActionAI):
+        def choose_way(self, state, card, ways):
+            for w in ways:
+                if w and w.name == "Way of the Otter":
+                    return w
+            return None
+
+    ai = WayOtterAI()
+    state = GameState(players=[])
+    state.initialize_game(
+        [ai], [get_card("Village")], projects=[Citadel()], ways=[WayOfTheOtter()]
+    )
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    p.inherited_action_name = "Village"
+    # Adventures: place the training-token on the inherited pile so the
+    # +$1 fires per-play of "Village" (not "Estate"). If the overlay is
+    # not held through the post-play hook, the helper would compare
+    # card.name == "Estate" and skip the bonus.
+    p.training_pile = "Village"
+    estate = get_card("Estate")
+    p.hand = [estate]
+    p.deck = []
+    p.actions = 1
+    coins_before = p.coins
+    state.phase = "action"
+    state.handle_action_phase()
+    # Way-played first play (Way of the Otter draws cards; no coin) +
+    # Citadel replay as inherited Village (+$1 from the training token
+    # because the helper now overlays the Estate's identity to "Village"
+    # during the post-play hooks).
+    assert p.citadel_used
+    assert p.coins == coins_before + 1
 
 
 def test_citadel_replays_inherited_estate_played_via_way():
