@@ -630,11 +630,18 @@ class GameState:
         from dominion.cards.allies._split_base import AlliesSplitCard
         from dominion.cards.allies.wizards import WizardsSplitCard
         from dominion.cards.empires.castles import CASTLE_ORDER
+        from dominion.cards.expansions import LOOT_CARD_NAMES
         from dominion.cards.split_pile import SplitPileMixin
 
+        # Non-Kingdom supply piles. Ferryman's setup text is "Choose an
+        # unused Kingdom card pile" — basics, the Alchemy Potion, and
+        # Plunder Loot are not Kingdom piles and must be skipped even
+        # though some of them pass the cost / starting_supply filters.
         BASIC_NAMES = {
             "Copper", "Silver", "Gold", "Platinum",
             "Estate", "Duchy", "Province", "Colony", "Curse",
+            "Potion",
+            *LOOT_CARD_NAMES,
         }
 
         # Cards in this set require engine-level setup (Black Market deck,

@@ -551,6 +551,21 @@ def test_infirmary_overpay_skips_replays_if_card_was_trashed():
     assert not any(c is infirmary for c in player.in_play)
 
 
+def test_ferryman_setup_never_picks_potion_or_other_non_kingdom_supply():
+    """Ferryman's setup says 'Choose an unused Kingdom card pile.'
+    Non-Kingdom piles (Potion, Plunder Loot) are not eligible even
+    though Potion passes the cost / starting_supply / may_be_bought
+    filters."""
+
+    bad = {"Potion"}
+    for _ in range(150):
+        state = GameState(players=[])
+        state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
+        assert state.ferryman_card_name not in bad, (
+            f"Ferryman picked non-Kingdom pile {state.ferryman_card_name}"
+        )
+
+
 def test_ferryman_setup_skips_cards_needing_special_engine_setup():
     """Cards with engine-level setup that only fires for the original
     kingdom list must not be picked by Ferryman: Black Market (deck),
