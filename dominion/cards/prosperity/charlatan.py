@@ -4,9 +4,11 @@ from ..base_card import Card, CardCost, CardStats, CardType
 class Charlatan(Card):
     """Action-Attack ($5): +$3. Each other player gains a Curse.
 
-    On the printed card Charlatan also makes Curse cards in the supply
-    "count as Curse-typed Treasures" for cost purposes; this implementation
-    treats Charlatan as a stronger Witch-style attack with +$3.
+    In any kingdom that includes Charlatan, Curses are Treasures (in
+    addition to their other types) and produce $1 when played — for the
+    entire game and in all situations. The Curse-as-Treasure effect is
+    wired in :meth:`GameState.handle_treasure_phase` and keyed off
+    Charlatan's presence in the Supply.
     """
 
     def __init__(self):

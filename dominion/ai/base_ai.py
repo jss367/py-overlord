@@ -672,6 +672,14 @@ class AI(ABC):
 
         return False
 
+    def choose_coppers_for_counting_house(
+        self, state: GameState, player: PlayerState, coppers: list[Card]
+    ) -> list[Card]:
+        """Choose which Coppers from the discard pile to reveal and take into
+        hand when playing Counting House. Default: take all."""
+
+        return list(coppers)
+
     def should_topdeck_with_way_of_seal(
         self, state: GameState, player: PlayerState, gained_card: Card
     ) -> bool:

@@ -817,7 +817,8 @@ class NameSilverAI(DummyAI):
         return supply_choices[0] if supply_choices else None
 
 
-def test_war_chest_grants_coin_and_buy():
+def test_war_chest_has_no_base_coin_or_buy():
+    """War Chest grants neither +Coins nor +Buys; it only enables a gain."""
     owner = PlayerState(WarChestAI())
     opp = PlayerState(NameSilverAI())
     state = GameState([owner, opp])
@@ -825,11 +826,12 @@ def test_war_chest_grants_coin_and_buy():
 
     wc = get_card("War Chest")
     owner.in_play.append(wc)
+    initial_coins = owner.coins
     initial_buys = owner.buys
     wc.on_play(state)
 
-    assert owner.coins == 1
-    assert owner.buys == initial_buys + 1
+    assert owner.coins == initial_coins
+    assert owner.buys == initial_buys
 
 
 def test_war_chest_gains_unnamed_card():
@@ -998,3 +1000,205 @@ def test_peddler_discount_only_applies_in_buy_phase():
 
     state.phase = "buy"
     assert state.get_card_cost(player, peddler) == 4
+
+
+# ---------------------------------------------------------------------------
+# City ($5 Action)
+# ---------------------------------------------------------------------------
+
+
+def test_city_no_empty_piles_just_card_and_actions():
+    player = PlayerState(DummyAI())
+    state = GameState([player])
+    state.setup_supply([get_card("City")])
+
+    city = get_card("City")
+    player.hand = [city]
+    player.deck = [get_card("Copper"), get_card("Silver"), get_card("Gold")]
+
+    coins_before = player.coins
+    buys_before = player.buys
+    play_action(state, player, "City")
+
+    # Base: +1 Card, +2 Actions, no extra coins/buys
+    assert player.coins == coins_before
+    assert player.buys == buys_before
+
+
+def test_city_one_empty_pile_grants_extra_card_only():
+    """At 1+ empty piles: +1 Card extra. No extra coins, no extra buys."""
+    player = PlayerState(DummyAI())
+    other = PlayerState(DummyAI())
+    state = GameState([player, other])
+    state.setup_supply([get_card("City"), get_card("Estate")])
+
+    # Empty out one pile
+    state.supply["Estate"] = 0
+
+    city = get_card("City")
+    player.hand = [city]
+    player.deck = [get_card("Copper"), get_card("Silver"), get_card("Gold"), get_card("Copper")]
+    hand_before = len(player.hand) - 1  # -1 because we'll play City out of hand
+
+    coins_before = player.coins
+    buys_before = player.buys
+    play_action(state, player, "City")
+
+    # +1 Card (base) + +1 Card (1+ empty) = 2 cards drawn into hand
+    assert len(player.hand) == hand_before + 2
+    # No extra coins or buys at 1 empty pile
+    assert player.coins == coins_before
+    assert player.buys == buys_before
+
+
+def test_city_two_empty_piles_grants_buy_and_coin_no_extra_card():
+    """At 2+ empty piles: +1 Card extra (from 1+ branch), +1 Buy and +$1.
+    Crucially, the +$1 fires only once (not twice)."""
+    player = PlayerState(DummyAI())
+    other = PlayerState(DummyAI())
+    state = GameState([player, other])
+    state.setup_supply([get_card("City"), get_card("Estate"), get_card("Duchy")])
+
+    state.supply["Estate"] = 0
+    state.supply["Duchy"] = 0
+
+    city = get_card("City")
+    player.hand = [city]
+    player.deck = [get_card("Copper"), get_card("Silver"), get_card("Gold"), get_card("Copper")]
+    hand_before = len(player.hand) - 1
+
+    coins_before = player.coins
+    buys_before = player.buys
+    play_action(state, player, "City")
+
+    # +1 Card (base) + +1 Card (1+ empty) — no additional card at 2+
+    assert len(player.hand) == hand_before + 2
+    # +$1 once (not +$2), +1 Buy
+    assert player.coins == coins_before + 1
+    assert player.buys == buys_before + 1
+
+
+# ---------------------------------------------------------------------------
+# Counting House ($5 Action)
+# ---------------------------------------------------------------------------
+
+
+class TakeFewCoppersAI(DummyAI):
+    """Take only the first Copper, to verify the choice is honoured."""
+
+    def choose_coppers_for_counting_house(self, state, player, coppers):
+        return coppers[:1]
+
+
+def test_counting_house_default_takes_all_coppers():
+    player = PlayerState(DummyAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Counting House")])
+
+    ch = get_card("Counting House")
+    player.hand = [ch]
+    player.discard = [get_card("Copper"), get_card("Copper"), get_card("Estate"), get_card("Copper")]
+
+    play_action(state, player, "Counting House")
+
+    assert sum(1 for c in player.hand if c.name == "Copper") == 3
+    assert all(c.name != "Copper" for c in player.discard)
+    # Estate stays in discard
+    assert any(c.name == "Estate" for c in player.discard)
+
+
+def test_counting_house_respects_ai_choice():
+    """AI may choose to take only some Coppers (or none)."""
+    player = PlayerState(TakeFewCoppersAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Counting House")])
+
+    ch = get_card("Counting House")
+    player.hand = [ch]
+    player.discard = [get_card("Copper"), get_card("Copper"), get_card("Copper")]
+
+    play_action(state, player, "Counting House")
+
+    assert sum(1 for c in player.hand if c.name == "Copper") == 1
+    assert sum(1 for c in player.discard if c.name == "Copper") == 2
+
+
+# ---------------------------------------------------------------------------
+# Charlatan ($5 Action-Attack) — Curse-as-Treasure effect
+# ---------------------------------------------------------------------------
+
+
+class PlayAllTreasuresAI(DummyAI):
+    def choose_treasure(self, state, choices):
+        for c in choices:
+            if c is not None:
+                return c
+        return None
+
+
+def test_charlatan_makes_curses_produce_one_coin():
+    """In a kingdom that includes Charlatan, Curses played in the Buy phase
+    produce $1 — even with no Charlatan currently in play."""
+    player = PlayerState(PlayAllTreasuresAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Charlatan"), get_card("Curse")])
+
+    # Deliberately no Charlatan in play. Per the rulebook the Curse-as-
+    # Treasure effect applies for the entire game once Charlatan is in the
+    # kingdom.
+    player.in_play = []
+    player.hand = [get_card("Curse"), get_card("Curse")]
+    player.coins = 0
+    player.buys = 1
+
+    state.handle_treasure_phase()
+
+    # Two Curses played as Treasures = +$2
+    assert player.coins == 2
+    assert sum(1 for c in player.in_play if c.name == "Curse") == 2
+    assert all(c.name != "Curse" for c in player.hand)
+
+
+def test_curses_are_not_treasures_without_charlatan_in_supply():
+    """Without Charlatan in the kingdom, Curses are not Treasures and stay in
+    hand during the Treasure phase."""
+    player = PlayerState(PlayAllTreasuresAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Village")])
+    # Curses live in the basic supply; explicitly remove Charlatan so the
+    # game-level modifier is inactive.
+    state.supply.pop("Charlatan", None)
+
+    player.in_play = []
+    player.hand = [get_card("Curse"), get_card("Curse")]
+    player.coins = 0
+    player.buys = 1
+
+    state.handle_treasure_phase()
+
+    assert player.coins == 0
+    assert sum(1 for c in player.hand if c.name == "Curse") == 2
+
+
+class TiaraReplayCurseAI(PlayAllTreasuresAI):
+    def should_replay_treasure_with_tiara(self, state, player, treasure):
+        return treasure.name == "Curse"
+
+
+def test_charlatan_curse_coin_applies_on_tiara_replay():
+    """Tiara's once-per-turn replay of a Curse-as-Treasure must also grant
+    the +$1 from Charlatan's effect — the coin attaches to the play, not just
+    the first one."""
+    player = PlayerState(TiaraReplayCurseAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Charlatan"), get_card("Tiara"), get_card("Curse")])
+
+    player.in_play = [get_card("Tiara")]
+    player.hand = [get_card("Curse")]
+    player.coins = 0
+    player.buys = 1
+
+    state.handle_treasure_phase()
+
+    # Curse played once as a Treasure (+$1), then replayed via Tiara (+$1)
+    assert player.coins == 2

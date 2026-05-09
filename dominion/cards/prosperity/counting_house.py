@@ -13,6 +13,10 @@ class CountingHouse(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
         coppers = [c for c in player.discard if c.name == "Copper"]
-        for copper in coppers:
-            player.discard.remove(copper)
-            player.hand.append(copper)
+        if not coppers:
+            return
+        chosen = player.ai.choose_coppers_for_counting_house(game_state, player, coppers)
+        for copper in chosen:
+            if copper in player.discard:
+                player.discard.remove(copper)
+                player.hand.append(copper)
