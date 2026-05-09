@@ -391,6 +391,34 @@ def test_infirmary_overpay_replays_when_reclaimed_from_exile():
     assert exiled_infirmary not in player.exile
 
 
+def test_infirmary_overpay_skips_replays_if_trader_swapped_for_silver():
+    """If Trader's reaction substitutes a Silver for the gained Infirmary,
+    on_overpay receives the Silver as ``gained_card``. The handler must
+    not move/replay the Silver as if it were an Infirmary."""
+
+    ai = InfirmaryBuyer(overpay=2, trash_target=None)
+    player = PlayerState(ai)
+    state = GameState(players=[player])
+    state.setup_supply([])
+    silver = get_card("Silver")
+    player.discard = [silver]  # the substituted Silver lives in discard
+    player.deck = [get_card("Copper") for _ in range(3)]
+    player.hand = []
+    player.in_play = []
+    player.actions = 0
+    state.current_player_index = 0
+    state.phase = "buy"
+
+    # Simulate post-Trader on_overpay: the gained_card is a Silver.
+    fresh_infirmary = get_card("Infirmary")
+    fresh_infirmary.on_overpay(state, player, 2, gained_card=silver)
+
+    # No Coppers drawn (no replays happened); Silver still in discard.
+    assert sum(1 for c in player.hand if c.name == "Copper") == 0
+    assert silver in player.discard
+    assert silver not in player.in_play
+
+
 def test_infirmary_overpay_replays_gained_copy_not_preexisting_one():
     """If the player already has an old Infirmary in discard, buying a
     new Infirmary with overpay must replay the just-gained copy — not

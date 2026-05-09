@@ -45,6 +45,11 @@ class Infirmary(Card):
         if amount <= 0:
             return
         target = gained_card if gained_card is not None else self
+        # Trader's reaction can substitute a Silver for the gained Infirmary
+        # (``gain_card`` returns the substituted card). In that case the
+        # player no longer owns a freshly-gained Infirmary to play.
+        if target.name != self.name:
+            return
         for zone in (player.discard, player.deck, player.hand):
             if target in zone:
                 zone.remove(target)
