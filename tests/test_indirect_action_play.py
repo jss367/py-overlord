@@ -145,6 +145,37 @@ def test_procession_bumps_actions_this_turn_for_both_plays():
     assert p1.actions_this_turn == 3
 
 
+def test_sailor_does_not_bump_action_counter_for_treasure_duration():
+    """Sailor can play any gained Duration, including Treasure-Durations
+    like Astrolabe. Playing a non-Action Duration must NOT bump
+    actions_this_turn / actions_played and must NOT fire action-played
+    Tavern triggers (Coin of the Realm)."""
+    state, p1, _ = _two_player_state([get_card("Sailor"), get_card("Astrolabe")])
+    p1.sailor_play_uses = 1
+    cotr = get_card("Coin of the Realm")
+    p1.tavern_mat = [cotr]
+    p1.coins = 0
+    p1.actions_this_turn = 0
+    p1.actions_played = 0
+
+    sailor = get_card("Sailor")
+    sailor.on_gain_for_owner.__self__  # ensure method binding
+    # Force the AI to opt in to playing the gain via Sailor.
+    p1.ai.should_play_gain_with_sailor = lambda *a, **kw: True
+
+    astrolabe = get_card("Astrolabe")
+    p1.discard.append(astrolabe)
+    sailor.on_gain_for_owner(state, p1, astrolabe)
+
+    # Astrolabe is a Treasure-Duration: Sailor's play should NOT count as
+    # an Action play (no action-counter bump, no Tavern trigger fire).
+    assert p1.actions_this_turn == 0
+    assert p1.actions_played == 0
+    assert cotr in p1.tavern_mat   # CotR did NOT fire
+    # Astrolabe's "$1 +1 Buy" should still apply on play.
+    assert p1.coins >= 1
+
+
 def test_vassal_bumps_actions_this_turn_for_revealed_action():
     state, p1, _ = _two_player_state([get_card("Vassal")])
     p1.hand = [get_card("Vassal")]

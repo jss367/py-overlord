@@ -62,5 +62,13 @@ class Sailor(Card):
             return False
 
         owner.in_play.append(gained_card)
-        game_state.play_action_indirectly(owner, gained_card)
+        # Sailor can play any gained Duration — including non-Action
+        # Treasure-Durations (Astrolabe, Cargo Ship). Only treat the play
+        # as an Action play (bumping actions_this_turn / firing
+        # action-played hooks) when the gained card actually is an Action.
+        if gained_card.is_action:
+            game_state.play_action_indirectly(owner, gained_card)
+        else:
+            gained_card.on_play(game_state)
+            game_state.fire_ally_play_hooks(owner, gained_card)
         return True
