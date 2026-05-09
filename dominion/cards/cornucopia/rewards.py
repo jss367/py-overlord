@@ -123,23 +123,27 @@ class Courser(Card):
         player = game_state.current_player
         chooser = getattr(player.ai, "choose_courser_options", None)
         if chooser is None:
-            chosen = ["cards", "actions"]
+            chosen = {"cards", "actions"}
         else:
             raw = list(chooser(game_state, player, list(self.OPTIONS)))
-            chosen = []
+            chosen = set()
             for opt in raw:
                 if opt in self.OPTIONS and opt not in chosen:
-                    chosen.append(opt)
+                    chosen.add(opt)
                 if len(chosen) == 2:
                     break
+            # Fill any missing picks (AI returned fewer than 2 distinct
+            # valid options) with the first remaining options in printed
+            # order. The choices must be different.
             for opt in self.OPTIONS:
                 if len(chosen) == 2:
                     break
-                if opt not in chosen:
-                    chosen.append(opt)
-            chosen = chosen[:2]
+                chosen.add(opt)
 
-        for opt in chosen:
+        # Resolve in printed order regardless of AI selection order.
+        for opt in self.OPTIONS:
+            if opt not in chosen:
+                continue
             if opt == "cards":
                 game_state.draw_cards(player, 2)
             elif opt == "actions":

@@ -956,6 +956,47 @@ def test_courser_coins_and_silvers():
     assert silvers == 4, f"Expected 4 Silvers, got {silvers}"
 
 
+def test_courser_resolves_choices_in_printed_order():
+    """When AI picks 'silvers' and 'cards', Silvers must NOT be gained
+    before the +2 Cards draw — printed order is cards, actions, coins,
+    silvers, so cards resolve first regardless of AI selection order."""
+
+    class TrackingAI(CourserAI):
+        def __init__(self):
+            super().__init__(options=["silvers", "cards"])
+            self.draw_call_seen_silvers_in_discard = None
+
+    ai = TrackingAI()
+    state, player = _make_state(ai=ai)
+    state.supply["Silver"] = 40
+    courser = get_card("Courser")
+    # Stack the deck so the +2 Cards draw is observable.
+    player.deck = [get_card("Copper"), get_card("Copper")]
+    player.discard = []
+
+    # Wrap draw_cards to record what's already in discard at draw time.
+    real_draw = state.draw_cards
+
+    def tracking_draw(p, n):
+        ai.draw_call_seen_silvers_in_discard = sum(
+            1 for c in p.discard if c.name == "Silver"
+        )
+        return real_draw(p, n)
+
+    state.draw_cards = tracking_draw
+
+    player.in_play.append(courser)
+    courser.on_play(state)
+
+    # +2 Cards drew first → no Silvers in discard at the moment of draw.
+    assert ai.draw_call_seen_silvers_in_discard == 0, (
+        "Cards effect must resolve before Silvers gain (printed order)"
+    )
+    # Final state: 2 Coppers drawn, 4 Silvers in discard.
+    assert sum(1 for c in player.hand if c.name == "Copper") == 2
+    assert sum(1 for c in player.discard if c.name == "Silver") == 4
+
+
 def test_courser_cannot_choose_same_option_twice():
     ai = CourserAI(options=["cards", "cards"])  # invalid: duplicate
     state, player = _make_state(ai=ai)
