@@ -2,15 +2,23 @@ name: Auto Merge
 
 # Enables auto-merge on a PR when a trusted actor (the repo owner or
 # the Codex review bot) signals approval via:
-#   - a 👍 reaction on the PR (polled), or
-#   - a comment on the PR whose body is exactly 👍 (event-driven).
+#   - a 👍 reaction on the PR, made AFTER the most recent push (polled
+#     every 15 minutes), or
+#   - a comment on the PR containing 👍 (event-driven).
 #
-# Before enabling auto-merge, the workflow verifies that the PR has no
-# unresolved review threads — otherwise correction comments left by
-# Codex (or any reviewer) would be ignored and merged over.
+# Skip conditions:
+#   - PR targets a branch other than main (event-driven posts a comment
+#     explaining; scheduled poll skips silently).
+#   - Open child PRs still target this PR's head branch (event-driven
+#     posts a comment; scheduled poll skips silently). This avoids
+#     merging the bottom of a stack and orphaning children.
 #
 # Auto-merge itself defers to GitHub's branch protection — the PR will
 # only actually merge once required status checks (test, lint) pass.
+#
+# Note: by design, this workflow does NOT check whether review threads
+# are resolved. The post-push reaction cutoff (and Codex's behavior of
+# only +1ing when it has no further suggestions) is the safety net.
 
 on:
   issue_comment:
@@ -26,7 +34,7 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
-  issues: read
+  issues: write
 
 jobs:
   merge-on-thumbsup-comment:
@@ -44,45 +52,33 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PR: ${{ github.event.issue.number }}
-          BODY: ${{ github.event.comment.body }}
         run: |
-          # Require the comment body to be exactly 👍 (whitespace tolerated).
-          # `contains(...)` at job level is a coarse pre-filter — a comment
-          # like "👍 but please fix X first" must NOT trigger a merge.
-          body_stripped=$(printf '%s' "$BODY" | tr -d '[:space:]')
-          if [[ "$body_stripped" != "👍" ]]; then
-            echo "Comment body is not exactly 👍 (got: $(printf '%q' "$BODY")) — skipping."
-            exit 0
-          fi
-
           base=$(gh pr view "$PR" --repo "$REPO" --json baseRefName -q .baseRefName)
+          head=$(gh pr view "$PR" --repo "$REPO" --json headRefName -q .headRefName)
+          head_repo=$(gh pr view "$PR" --repo "$REPO" \
+            --json headRepositoryOwner,headRepository \
+            -q '.headRepositoryOwner.login + "/" + .headRepository.name')
+
           if [[ "$base" != "main" ]]; then
-            echo "PR #${PR} targets '${base}', not main — skipping."
+            gh pr comment "$PR" --repo "$REPO" --body "🤖 Auto-merge skipped: PR targets \`$base\` instead of \`main\`. Stacked PRs must be merged manually from leaf to root."
             exit 0
           fi
 
-          # Paginate so that PRs with >100 review threads are handled correctly.
-          unresolved=$(gh api graphql --paginate -f query='
-            query($owner:String!,$name:String!,$num:Int!,$endCursor:String){
-              repository(owner:$owner,name:$name){
-                pullRequest(number:$num){
-                  reviewThreads(first:100, after:$endCursor){
-                    nodes{isResolved}
-                    pageInfo{hasNextPage,endCursor}
-                  }
-                }
-              }
-            }' -F owner="${REPO%/*}" -F name="${REPO#*/}" -F num="$PR" \
-            --jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false)] | length' \
-            | awk 'BEGIN{s=0} {s+=$1} END{print s}')
-          if [[ "${unresolved:-0}" -gt 0 ]]; then
-            echo "PR #${PR} has ${unresolved} unresolved review thread(s) — skipping."
-            exit 0
+          # Child-PR gate only applies to same-repo PRs. For a fork PR whose
+          # head branch happens to share a name with one in this repo,
+          # `gh pr list --base "$head"` would count unrelated upstream PRs.
+          if [[ "$head_repo" == "$REPO" ]]; then
+            children=$(gh pr list --repo "$REPO" --base "$head" --state open --json number -q 'length')
+            if [[ "$children" -gt 0 ]]; then
+              gh pr comment "$PR" --repo "$REPO" --body "🤖 Auto-merge skipped: $children open child PR(s) still target \`$head\`. Resolve or close children first, then re-react."
+              exit 0
+            fi
           fi
 
           title=$(gh pr view "$PR" --repo "$REPO" --json title -q .title)
           gh pr merge "$PR" --repo "$REPO" --squash --auto --delete-branch \
             --subject "${title} (#${PR})"
+          echo "Auto-merge enabled on PR #${PR}. GitHub will merge when CI passes."
 
   merge-on-reaction:
     if: >-
@@ -143,28 +139,23 @@ jobs:
           for pr in ${{ steps.approved.outputs.pr_numbers }}; do
             echo "=== Processing PR #${pr} ==="
             base=$(gh pr view "$pr" --repo "$REPO" --json baseRefName -q .baseRefName)
+            head=$(gh pr view "$pr" --repo "$REPO" --json headRefName -q .headRefName)
+            head_repo=$(gh pr view "$pr" --repo "$REPO" \
+              --json headRepositoryOwner,headRepository \
+              -q '.headRepositoryOwner.login + "/" + .headRepository.name')
+
             if [[ "$base" != "main" ]]; then
-              echo "PR #${pr}: targets '${base}', not main — skipping."
+              echo "PR #${pr}: targets '${base}' not 'main' — skipping (no comment posted by scheduled poll)."
               continue
             fi
 
-            # Paginate so that PRs with >100 review threads are handled correctly.
-            unresolved=$(gh api graphql --paginate -f query='
-              query($owner:String!,$name:String!,$num:Int!,$endCursor:String){
-                repository(owner:$owner,name:$name){
-                  pullRequest(number:$num){
-                    reviewThreads(first:100, after:$endCursor){
-                      nodes{isResolved}
-                      pageInfo{hasNextPage,endCursor}
-                    }
-                  }
-                }
-              }' -F owner="${REPO%/*}" -F name="${REPO#*/}" -F num="$pr" \
-              --jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false)] | length' \
-              | awk 'BEGIN{s=0} {s+=$1} END{print s}')
-            if [[ "${unresolved:-0}" -gt 0 ]]; then
-              echo "PR #${pr}: ${unresolved} unresolved review thread(s) — skipping."
-              continue
+            # Child-PR gate only applies to same-repo PRs (see merge-on-thumbsup-comment).
+            if [[ "$head_repo" == "$REPO" ]]; then
+              children=$(gh pr list --repo "$REPO" --base "$head" --state open --json number -q 'length')
+              if [[ "$children" -gt 0 ]]; then
+                echo "PR #${pr}: ${children} open child PR(s) target '${head}' — skipping (no comment posted by scheduled poll)."
+                continue
+              fi
             fi
 
             title=$(gh pr view "$pr" --repo "$REPO" --json title -q .title)

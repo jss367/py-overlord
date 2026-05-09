@@ -56,6 +56,7 @@ class PlayerState:
     merchant_guilds_played: int = 0
     cost_reduction: int = 0
     innovation_used: bool = False
+    citadel_used: bool = False
     journey_token_face_up: bool = True
     groundskeeper_bonus: int = 0
     crossroads_played: int = 0
@@ -95,6 +96,7 @@ class PlayerState:
     delayed_cards: list[Card] = field(default_factory=list)
     seize_the_day_used: bool = False
     topdeck_gains: bool = False
+    way_of_seal_active: bool = False
     gained_five_this_turn: bool = False
     gained_five_last_turn: bool = False
     cards_gained_this_turn: int = 0
@@ -120,6 +122,14 @@ class PlayerState:
     prepare_set_aside: list = field(default_factory=list)
     # Plunder Launch event: once-per-turn lockout (reset at turn start).
     launch_used: bool = False
+    # Plunder Journey event: once-per-turn lockout and extra-turn pending flag.
+    journey_used_this_turn: bool = False
+    journey_extra_turn_pending: bool = False
+    # Generic "the current turn is an extra turn from any source" flag, used
+    # by Journey to enforce its "not a 3rd in a row" restriction. Set at end
+    # of cleanup whenever the next turn is an extra turn (Outpost, Journey,
+    # Seize the Day, Mission, etc.).
+    took_extra_turn_last_turn: bool = False
     cage_state: object = None
     grotto_set_aside: list = field(default_factory=list)
     # Prosperity 2E: Tiara grants once-per-turn replay-treasure
@@ -175,6 +185,8 @@ class PlayerState:
     travelling_fair_active: bool = False
     # Adventures Save event.
     save_set_aside: list[Card] = field(default_factory=list)
+    # Promo Summon event: cards gained via Summon, played at start of next turn.
+    summon_set_aside: list[Card] = field(default_factory=list)
     # Adventures Expedition.
     expedition_extra_draws: int = 0
     # Adventures Plan event: pile names where Plan placed the trash token.
@@ -265,6 +277,7 @@ class PlayerState:
         self.merchant_guilds_played = 0
         self.cost_reduction = 0
         self.innovation_used = False
+        self.citadel_used = False
         self.journey_token_face_up = True
         self.groundskeeper_bonus = 0
         self.crossroads_played = 0
@@ -299,6 +312,7 @@ class PlayerState:
         self.delayed_cards = []
         self.seize_the_day_used = False
         self.topdeck_gains = False
+        self.way_of_seal_active = False
         self.gained_five_this_turn = False
         self.gained_five_last_turn = False
         self.cards_gained_this_turn = 0
@@ -319,6 +333,9 @@ class PlayerState:
         self.bury_mat = []
         self.prepare_set_aside = []
         self.launch_used = False
+        self.journey_used_this_turn = False
+        self.journey_extra_turn_pending = False
+        self.took_extra_turn_last_turn = False
         self.cage_state = None
         self.grotto_set_aside = []
         self.tiara_replay_used = False
@@ -357,6 +374,7 @@ class PlayerState:
         self.pilgrimage_used_this_turn = False
         self.travelling_fair_active = False
         self.save_set_aside = []
+        self.summon_set_aside = []
         self.expedition_extra_draws = 0
         self.plan_trash_piles = set()
         self.inherited_action_name = None
@@ -485,6 +503,7 @@ class PlayerState:
             self.clerk_pending_replay,
             self.tavern_mat,
             self.save_set_aside,
+            self.summon_set_aside,
         ]
 
         cards: list[Card] = []

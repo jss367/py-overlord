@@ -31,10 +31,12 @@ class Coronet(Card):
         if choice and choice in player.hand:
             player.hand.remove(choice)
             player.in_play.append(choice)
-            choice.on_play(game_state)
-            game_state.fire_ally_play_hooks(player, choice)
-            choice.on_play(game_state)
-            game_state.fire_ally_play_hooks(player, choice)
+            for _ in range(2):
+                if choice.is_action:
+                    game_state.play_action_indirectly(player, choice)
+                else:
+                    choice.on_play(game_state)
+                    game_state.fire_ally_play_hooks(player, choice)
 
 
 class Demesne(Card):

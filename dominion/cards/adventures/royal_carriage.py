@@ -36,11 +36,10 @@ class RoyalCarriage(Card):
         # otherwise pull it back out of the discard mid-replay.
         if self in player.tavern_mat:
             player.tavern_mat.remove(self)
-        # Replay the action card.
-        action_card.on_play(game_state)
-        # The replay is itself a play of the action: other Reserves on the mat
-        # (another Royal Carriage, Coin of the Realm) get to react.
-        game_state._call_tavern_triggers(player, "action_played", action_card)
+        # Replay the action card. play_action_indirectly applies counter
+        # bumps and fires prophecy / ally / tavern hooks (so other Reserves
+        # on the mat — another Royal Carriage, Coin of the Realm — react).
+        game_state.play_action_indirectly(player, action_card)
         # Replay has fully resolved — Royal Carriage now goes to discard.
         player.discard.append(self)
         return True

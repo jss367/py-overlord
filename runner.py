@@ -9,7 +9,7 @@ import yaml
 
 from dominion.boards.loader import BoardConfig, load_board
 from dominion.simulation.genetic_trainer import GeneticTrainer
-from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
 
 logger = logging.getLogger(__name__)
 coloredlogs.install(level="INFO", logger=logger)
@@ -47,8 +47,29 @@ def save_strategy_as_python(strategy: EnhancedStrategy, path: Path, class_name: 
         lines.append("        ]")
         return lines
 
+    def format_way_policy(rules: list[WayRule]) -> list[str]:
+        lines = ["        self.way_policy = ["]
+        for rule in rules:
+            cond_source = getattr(rule.condition, "_source", None) if rule.condition else None
+            if cond_source:
+                lines.append(
+                    f"            WayRule({rule.card_name!r}, {rule.way_name!r}, {cond_source}),"
+                )
+            else:
+                lines.append(
+                    f"            WayRule({rule.card_name!r}, {rule.way_name!r}),"
+                )
+        lines.append("        ]")
+        return lines
+
+    needs_way_rule = bool(getattr(strategy, "way_policy", None))
+    import_line = (
+        "from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule"
+        if needs_way_rule
+        else "from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule"
+    )
     lines = [
-        "from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule",
+        import_line,
         "",
         "",
         f"class {class_name}(EnhancedStrategy):",
@@ -74,6 +95,9 @@ def save_strategy_as_python(strategy: EnhancedStrategy, path: Path, class_name: 
         lines.append("")
     if getattr(strategy, "discard_priority", None):
         lines.extend(format_list("discard_priority", strategy.discard_priority))
+        lines.append("")
+    if needs_way_rule:
+        lines.extend(format_way_policy(strategy.way_policy))
         lines.append("")
 
     lines.extend(

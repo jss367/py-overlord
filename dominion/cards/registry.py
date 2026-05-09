@@ -135,6 +135,7 @@ from dominion.cards.expansions import (
     Dismantle,
     Envoy,
     Governor,
+    Marchland,
     Prince,
     SnowyVillage,
     Stash,
@@ -273,6 +274,7 @@ from dominion.cards.allies import (
     BattlePlan,
     Blacksmith,
     Broker,
+    CapitalCity,
     Carpenter,
     Conjurer,
     Contract,
@@ -282,16 +284,20 @@ from dominion.cards.allies import (
     Emissary,
     Galleria,
     Garrison,
+    Guildmaster,
     HerbGatherer,
     HillFort,
     Hunter,
     Importer,
     Innkeeper,
     Lich,
+    Marquis,
+    MerchantCamp,
     Miller,
     OldMap,
     Pilgrim,
     RoyalGalley,
+    Sentinel,
     Sibyl,
     Skirmisher,
     Sorcerer,
@@ -618,6 +624,20 @@ from dominion.cards.rising_sun import (
 )
 from dominion.cards.renaissance import CargoShip
 
+from dominion.cards.alchemy import (
+    Alchemist,
+    Apothecary,
+    Apprentice,
+    Familiar,
+    Golem,
+    Herbalist,
+    PhilosophersStone,
+    Potion,
+    ScryingPool,
+    Transmute,
+    University,
+    Vineyard,
+)
 from dominion.cards.treasures import Copper, Gold, Silver
 from dominion.cards.victory import Curse, Duchy, Estate, Province
 
@@ -702,6 +722,7 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Dismantle": Dismantle,
     "Envoy": Envoy,
     "Governor": Governor,
+    "Marchland": Marchland,
     "Prince": Prince,
     "Sauna": Sauna,
     "Avanto": Avanto,
@@ -1120,6 +1141,7 @@ CARD_TYPES: dict[str, Type[Card]] = {
     # Standalone Allies kingdom cards
     "Bauble": Bauble,
     "Sycophant": Sycophant,
+    "Merchant Camp": MerchantCamp,
     "Importer": Importer,
     "Underling": Underling,
     "Broker": Broker,
@@ -1128,13 +1150,17 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Innkeeper": Innkeeper,
     "Royal Galley": RoyalGalley,
     "Town": Town,
+    "Capital City": CapitalCity,
     "Contract": Contract,
     "Emissary": Emissary,
     "Galleria": Galleria,
+    "Guildmaster": Guildmaster,
     "Hunter": Hunter,
+    "Sentinel": Sentinel,
     "Skirmisher": Skirmisher,
     "Specialist": Specialist,
     "Swap": Swap,
+    "Marquis": Marquis,
     # Other Allies
     "Pilgrim": Pilgrim,
     # Intrigue
@@ -1232,6 +1258,19 @@ CARD_TYPES: dict[str, Type[Card]] = {
     "Pillage": Pillage,
     "Rogue": Rogue,
     "Altar": Altar,
+    # Alchemy
+    "Potion": Potion,
+    "Alchemist": Alchemist,
+    "Apothecary": Apothecary,
+    "Apprentice": Apprentice,
+    "Familiar": Familiar,
+    "Golem": Golem,
+    "Herbalist": Herbalist,
+    "Philosopher's Stone": PhilosophersStone,
+    "Scrying Pool": ScryingPool,
+    "Transmute": Transmute,
+    "University": University,
+    "Vineyard": Vineyard,
 }
 
 CARD_ALIASES: dict[str, str] = {

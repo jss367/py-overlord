@@ -974,3 +974,27 @@ def test_watchtower_reaction_only_fires_when_in_hand():
 
     assert all(c.name != "Estate" for c in state.trash)
     assert any(c.name == "Estate" for c in player.discard + player.deck)
+
+
+def test_peddler_discount_only_applies_in_buy_phase():
+    """Peddler's "$2 less per Action card you have in play" reduction is
+    a Buy-phase-only effect per the printed text. Outside the Buy phase
+    (e.g. when something gains a Peddler during the Action phase, or
+    when another card asks for Peddler's cost), the printed cost of
+    $8 must apply unchanged."""
+
+    player = PlayerState(DummyAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Peddler"), get_card("Village")])
+
+    # Two Action cards in play would reduce Peddler by $4 if the
+    # discount applied unconditionally.
+    player.in_play = [get_card("Village"), get_card("Village")]
+
+    peddler = get_card("Peddler")
+
+    state.phase = "action"
+    assert state.get_card_cost(player, peddler) == 8
+
+    state.phase = "buy"
+    assert state.get_card_cost(player, peddler) == 4

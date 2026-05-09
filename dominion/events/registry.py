@@ -40,6 +40,7 @@ from .rising_sun_events import (
     ReceiveTribute,
     SeaTrade,
 )
+from .promo_events import Summon
 from .training import Training
 from .empires_events import (
     Advance,
@@ -62,6 +63,7 @@ from .plunder_events import (
     Deliver,
     Foray,
     Invasion,
+    Journey,
     Launch,
     Maelstrom,
     Mirror,
@@ -149,6 +151,7 @@ EVENT_TYPES: dict[str, Type[Event]] = {
     "Deliver": Deliver,
     "Foray": Foray,
     "Invasion": Invasion,
+    "Journey": Journey,
     "Launch": Launch,
     "Maelstrom": Maelstrom,
     "Mirror": Mirror,
@@ -177,6 +180,8 @@ EVENT_TYPES: dict[str, Type[Event]] = {
     "Seaway": Seaway,
     "Trade": Trade,
     "Travelling Fair": TravellingFair,
+    # Promo
+    "Summon": Summon,
 }
 
 

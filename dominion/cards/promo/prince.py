@@ -37,6 +37,9 @@ class Prince(Card):
         card = self.set_aside_card
         player.in_play.append(card)
         card.on_play(game_state)
+        # Renaissance Citadel: a Prince-driven Action play before the
+        # action phase counts as the first Action of the turn.
+        game_state._maybe_citadel_replay(player, card)
         if card in player.in_play:
             player.in_play.remove(card)
         if self not in player.duration:

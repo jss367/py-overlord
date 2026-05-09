@@ -672,6 +672,17 @@ class AI(ABC):
 
         return False
 
+    def should_topdeck_with_way_of_seal(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """Decide whether to topdeck a gain thanks to Way of the Seal.
+
+        Defaults to True: the player chose to play this Way specifically to
+        topdeck gains, so the safe default is to take the topdeck.
+        """
+
+        return True
+
 
     def should_discard_deck_with_messenger(
         self, state: GameState, player: PlayerState
@@ -1358,6 +1369,45 @@ class AI(ABC):
     def should_topdeck_treasury(self, state: GameState, player: PlayerState) -> bool:
         """Decide whether to topdeck Treasury at end of buy phase."""
         return True
+
+    # --- Alchemy hooks -------------------------------------------------
+
+    def should_topdeck_alchemist(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Whether to topdeck Alchemist at end of buy phase (when a Potion
+        is in play). Default: yes — keeps the engine going."""
+        return True
+
+    def order_cards_for_apothecary_topdeck(
+        self, state: GameState, player: PlayerState, cards: list[Card]
+    ) -> list[Card]:
+        """Choose the order to put cards back on top of the deck after
+        Apothecary's reveal. Default: best card on top (drawn next)."""
+        return sorted(
+            cards,
+            key=lambda c: (c.cost.coins, c.stats.cards, c.is_action, c.name),
+        )
+
+    def choose_golem_play_order(
+        self, state: GameState, player: PlayerState, cards: list[Card]
+    ) -> list[Card]:
+        """Choose the order in which Golem plays the two revealed Actions.
+        Default: cheapest first (more reliable +Actions before bigger payoff).
+        """
+        return sorted(cards, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_treasure_to_topdeck_with_herbalist(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Choose a Treasure from play to topdeck via Herbalist's discard
+        trigger. Default: most valuable Treasure (skip Coppers if better
+        options exist)."""
+        if not choices:
+            return None
+        non_copper = [c for c in choices if c.name != "Copper"]
+        pool = non_copper or choices
+        return max(pool, key=lambda c: (c.cost.coins, c.stats.coins, c.name))
 
     # --- Seaside hooks -------------------------------------------------
 
@@ -2050,6 +2100,14 @@ class AI(ABC):
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> "Card | None":
         """Pick which $0-$4 Action to gain (and place +1 Buy token on its pile)."""
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+
+    def choose_gain_for_summon(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> "Card | None":
+        """Pick which $0-$4 Action to gain via Summon (played at start of next turn)."""
         if not choices:
             return None
         return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))

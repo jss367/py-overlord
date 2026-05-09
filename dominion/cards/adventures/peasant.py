@@ -136,8 +136,8 @@ class Disciple(Card):
             return
         player.hand.remove(chosen)
         player.in_play.append(chosen)
-        chosen.on_play(game_state)
-        chosen.on_play(game_state)
+        game_state.play_action_indirectly(player, chosen)
+        game_state.play_action_indirectly(player, chosen)
         if game_state.supply.get(chosen.name, 0) > 0:
             game_state.supply[chosen.name] -= 1
             game_state.gain_card(player, get_card(chosen.name))
@@ -147,8 +147,10 @@ class Teacher(Card):
     """$5 Action-Duration-Reserve.
 
     Put this on your Tavern mat. At the start of your turn, you may call
-    this to place a +1 Card / +1 Action / +1 Buy / +$1 token on a Supply pile
-    you have no token on yet. Teacher then returns to the Tavern mat.
+    this to move one of your +1 Card / +1 Action / +1 Buy / +$1 tokens to
+    an Action Supply pile you have no tokens on. Calling Teacher discards
+    it from the Tavern mat per the standard Reserve "call" rule (Teacher
+    has no special clause overriding that default).
     """
 
     next_traveller = None
@@ -220,10 +222,7 @@ class Teacher(Card):
             key=lambda c: (player.count_in_deck(c.name), c.cost.coins, c.name),
         )
         game_state.add_pile_token(player, target.name, chosen_kind)
-        # Teacher goes back to the Tavern mat (it doesn't actually leave).
-        # In our framework "calling" moves to discard; but Teacher's text says
-        # it returns to the Tavern mat. Implement: don't move it. Just consume
-        # the call by returning True so we don't keep re-asking this turn.
-        # We achieve "stays on mat" simply by NOT calling
-        # ``call_from_tavern``. The trigger dispatcher calls each card once.
+        # Teacher is a Reserve card — calling it discards it (one token
+        # placement per Teacher copy, like every other Reserve card).
+        game_state.call_from_tavern(player, self)
         return True
