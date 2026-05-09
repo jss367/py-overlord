@@ -54,3 +54,4 @@ class Infirmary(Card):
             return
         for _ in range(amount):
             self.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, self)
