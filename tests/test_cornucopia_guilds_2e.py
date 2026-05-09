@@ -391,6 +391,40 @@ def test_infirmary_overpay_replays_when_reclaimed_from_exile():
     assert exiled_infirmary not in player.exile
 
 
+def test_infirmary_overpay_replays_gained_copy_not_preexisting_one():
+    """If the player already has an old Infirmary in discard, buying a
+    new Infirmary with overpay must replay the just-gained copy — not
+    the stale one. The engine passes ``gained_card`` to make this
+    determination unambiguous."""
+
+    ai = InfirmaryBuyer(overpay=2, trash_target=None)
+    player = PlayerState(ai)
+    state = GameState(players=[player])
+    state.setup_supply([])
+    state.supply["Infirmary"] = 10
+    old_infirmary = get_card("Infirmary")
+    new_infirmary = get_card("Infirmary")
+    player.hand = []
+    player.deck = [get_card("Copper"), get_card("Copper")]
+    player.discard = [old_infirmary]  # pre-existing
+    player.in_play = []
+    player.actions = 0
+    player.buys = 1
+    player.coins = 5
+    state.current_player_index = 0
+    state.phase = "buy"
+
+    # Manually call on_overpay with the freshly-gained instance simulated.
+    state.gain_card(player, new_infirmary)
+    new_infirmary.on_overpay(state, player, 2, gained_card=new_infirmary)
+
+    # The freshly-gained Infirmary should be in play (got moved out of
+    # discard); the old one should still be sitting in discard.
+    assert new_infirmary in player.in_play
+    assert old_infirmary in player.discard
+    assert old_infirmary not in player.in_play
+
+
 def test_infirmary_overpay_finds_card_in_deck_after_topdeck_on_gain():
     """If a topdeck-on-gain effect has moved Infirmary from discard onto
     the deck before on_overpay fires, the replays should still find and

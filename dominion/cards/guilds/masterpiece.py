@@ -15,7 +15,9 @@ class Masterpiece(Card):
     def may_overpay(self, game_state) -> bool:
         return True
 
-    def on_overpay(self, game_state, player, amount: int) -> None:
+    def on_overpay(
+        self, game_state, player, amount: int, gained_card=None
+    ) -> None:
         if amount <= 0:
             return
         from ..registry import get_card

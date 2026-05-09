@@ -91,7 +91,7 @@ class BlackMarket(Card):
         gained = game_state.gain_card(player, get_card(card.name))
 
         if overpay_amount > 0:
-            card.on_overpay(game_state, player, overpay_amount)
+            card.on_overpay(game_state, player, overpay_amount, gained_card=gained)
 
         game_state._handle_on_buy_in_play_effects(player, card, gained)
         if player.goons_played:

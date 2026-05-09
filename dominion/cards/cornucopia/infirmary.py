@@ -28,31 +28,28 @@ class Infirmary(Card):
     def may_overpay(self, game_state) -> bool:
         return True
 
-    def on_overpay(self, game_state, player, amount: int) -> None:
-        # Each $1 overpaid plays this card. The gained Infirmary is normally
-        # in ``player.discard`` after the buy, but topdeck-on-gain effects
-        # (Royal Seal, Watchtower topdeck, Tiara, Travelling Fair, ...) can
-        # have already moved it onto the deck or into hand by the time this
-        # hook fires. Watchtower trash sends it to the trash. We also need
-        # to handle the Exile-reclaim case: ``gain_card`` may substitute a
-        # different Infirmary instance (the one reclaimed from Exile) for
-        # ``self``, so we search by name across the player's zones rather
-        # than for the exact ``self`` reference. Move that Infirmary into
-        # play before replaying so the in-play zone reflects the card
-        # actually being played and a mid-replay shuffle cannot re-include
-        # this card via the discard pile.
+    def on_overpay(
+        self, game_state, player, amount: int, gained_card=None
+    ) -> None:
+        # Each $1 overpaid plays this card. The buy flow passes the actual
+        # gained instance via ``gained_card`` — that may be ``self`` (the
+        # freshly-bought card) or a different Infirmary reclaimed from the
+        # Exile mat by ``gain_card``. The gained card is normally in
+        # ``player.discard``, but topdeck-on-gain effects (Royal Seal,
+        # Watchtower topdeck, Tiara, Travelling Fair, ...) can have moved
+        # it onto the deck or into hand by the time this hook fires, and
+        # Watchtower trash sends it to the trash. Move it from whichever
+        # zone holds it into play before replaying so the in-play zone
+        # reflects the card actually being played and a mid-replay shuffle
+        # cannot re-include it via the discard pile.
         if amount <= 0:
             return
-        target = None
+        target = gained_card if gained_card is not None else self
         for zone in (player.discard, player.deck, player.hand):
-            for card in zone:
-                if card.name == self.name:
-                    target = card
-                    zone.remove(card)
-                    break
-            if target is not None:
+            if target in zone:
+                zone.remove(target)
                 break
-        if target is None:
+        else:
             # Card was redirected to trash/exile/elsewhere. Don't try to
             # play it from there — silently drop the replays. (Per Donald
             # X, an Infirmary that was Watchtower-trashed before overpay

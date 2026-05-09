@@ -1701,7 +1701,9 @@ class GameState:
                 gained_card = self.gain_card(player, choice)
 
                 if overpay_amount > 0:
-                    choice.on_overpay(self, player, overpay_amount)
+                    choice.on_overpay(
+                        self, player, overpay_amount, gained_card=gained_card
+                    )
 
                 self._handle_on_buy_in_play_effects(player, choice, gained_card)
                 # Embargo / Tax tokens key off the supply pile, which for
@@ -2014,10 +2016,12 @@ class GameState:
         overpay_amount = self._prompt_overpay(player, card)
 
         card.on_buy(self)
-        self.gain_card(player, card)
+        gained_card = self.gain_card(player, card)
 
         if overpay_amount > 0:
-            card.on_overpay(self, player, overpay_amount)
+            card.on_overpay(
+                self, player, overpay_amount, gained_card=gained_card
+            )
 
         if player.goons_played:
             player.vp_tokens += player.goons_played
