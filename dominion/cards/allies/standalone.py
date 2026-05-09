@@ -1,8 +1,9 @@
 """Standalone Allies expansion kingdom cards (non-split).
 
 Bauble, Sycophant, Importer, Contract, Emissary, Galleria, Hunter,
-Skirmisher, Specialist, Swap, Underling, Broker, Carpenter, Courier,
-Innkeeper, Royal Galley, Town.
+Skirmisher, Specialist, Swap, Underling, Broker, Capital City, Carpenter,
+Courier, Guildmaster, Innkeeper, Marquis, Merchant Camp, Royal Galley,
+Sentinel, Town.
 """
 
 from typing import Optional
@@ -640,3 +641,180 @@ class Swap(Card):
             return
         game_state.supply[target.name] -= 1
         game_state.gain_card(player, target)
+
+
+# ---------------------------------------------------------------------------
+# $3 standalone
+# ---------------------------------------------------------------------------
+
+class MerchantCamp(Card):
+    """$3 Action. +2 Actions +$1. When you discard this card from play, you
+    may put it onto your deck.
+
+    Implementation: always topdeck. Merchant Camp is a non-drawing village,
+    so saving it for next turn (or the next draw) dominates leaving it in
+    the discard. The "when you discard from play" trigger is independent of
+    how the card was played, so cleanup honours it by name (like Walled
+    Village) — this matters when Merchant Camp is played via a Way (which
+    bypasses ``play_effect``) or under Enchantress (whose effect replaces
+    ``on_play`` entirely).
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Merchant Camp",
+            cost=CardCost(coins=3),
+            stats=CardStats(actions=2, coins=1),
+            types=[CardType.ACTION],
+        )
+
+
+class Sentinel(Card):
+    """$3 Action. Look at the top 5 cards of your deck. Trash up to 2 of
+    them. Put the rest back on top in any order."""
+
+    def __init__(self):
+        super().__init__(
+            name="Sentinel",
+            cost=CardCost(coins=3),
+            stats=CardStats(),
+            types=[CardType.ACTION],
+        )
+
+    def play_effect(self, game_state):
+        player = game_state.current_player
+        revealed: list[Card] = []
+        for _ in range(5):
+            if not player.deck and player.discard:
+                player.shuffle_discard_into_deck()
+            if not player.deck:
+                break
+            revealed.append(player.deck.pop())
+
+        # Trash up to 2 of the worst cards seen.
+        trash_priority = {
+            "Curse": 0,
+            "Overgrown Estate": 1,
+            "Ruined Village": 2,
+            "Ruined Market": 2,
+            "Ruined Library": 2,
+            "Survivors": 2,
+            "Abandoned Mine": 2,
+            "Estate": 3,
+            "Hovel": 4,
+            "Copper": 5,
+        }
+        candidates = [c for c in revealed if c.name in trash_priority]
+        candidates.sort(key=lambda c: (trash_priority[c.name], c.name))
+        for card in candidates[:2]:
+            revealed.remove(card)
+            game_state.trash_card(player, card)
+
+        # Put the rest back on top of the deck. ``deck.pop()`` takes from
+        # the end, so the last appended card is the next one drawn. Sort
+        # so Victory clutter sinks to the bottom (appended first → low
+        # index → drawn last) and the highest-cost non-Victory ends up on
+        # top (appended last → drawn first).
+        revealed.sort(key=lambda c: (not c.is_victory, c.cost.coins))
+        for card in revealed:
+            player.deck.append(card)
+
+
+# ---------------------------------------------------------------------------
+# $5 standalone
+# ---------------------------------------------------------------------------
+
+class CapitalCity(Card):
+    """$5 Action. +1 Card +2 Actions. You may discard 2 cards for +$2. You
+    may pay $2 for +2 Cards."""
+
+    def __init__(self):
+        super().__init__(
+            name="Capital City",
+            cost=CardCost(coins=5),
+            stats=CardStats(actions=2, cards=1),
+            types=[CardType.ACTION],
+        )
+
+    def play_effect(self, game_state):
+        player = game_state.current_player
+        hand_size_before = len(player.hand)
+
+        # Option 1: discard 2 for +$2. Take it when there are at least two
+        # low-value cards we'd rather not see this turn.
+        junk_names = {
+            "Curse", "Estate", "Copper", "Hovel", "Overgrown Estate",
+            "Ruined Village", "Ruined Market", "Ruined Library",
+            "Survivors", "Abandoned Mine", "Necropolis",
+        }
+        junk = [c for c in player.hand if c.name in junk_names]
+        if len(junk) >= 2:
+            picks = player.ai.choose_cards_to_discard(
+                game_state, player, list(player.hand), 2, reason="capital_city"
+            )
+            discarded = 0
+            for card in picks[:2]:
+                if card in player.hand:
+                    player.hand.remove(card)
+                    game_state.discard_card(player, card)
+                    discarded += 1
+            if discarded == 2:
+                player.coins += 2
+
+        # Option 2: pay $2 for +2 Cards. Take it when the hand was short
+        # entering the play — paying $2 to refill is worth it. We gate on
+        # the pre-play hand size so that "discard 2 for +$2" doesn't make
+        # the hand artificially small and immediately drain those coins.
+        if player.coins >= 2 and hand_size_before <= 2:
+            player.coins -= 2
+            game_state.draw_cards(player, 2)
+
+
+class Guildmaster(Card):
+    """$5 Action-Liaison. +$3. This turn, when you gain a card, +1 Favor.
+
+    Terminal — Guildmaster does not give +1 Action despite being a Liaison.
+    """
+
+    def __init__(self):
+        super().__init__(
+            name="Guildmaster",
+            cost=CardCost(coins=5),
+            stats=CardStats(coins=3),
+            types=[CardType.ACTION, CardType.LIAISON],
+        )
+
+    def on_owner_gain(self, game_state, player, gained_card: Card) -> None:
+        player.favors += 1
+
+
+# ---------------------------------------------------------------------------
+# $6 standalone
+# ---------------------------------------------------------------------------
+
+class Marquis(Card):
+    """$6 Action. +1 Buy. +1 Card per card in your hand. Then discard down
+    to 10 cards in hand."""
+
+    def __init__(self):
+        super().__init__(
+            name="Marquis",
+            cost=CardCost(coins=6),
+            stats=CardStats(buys=1),
+            types=[CardType.ACTION],
+        )
+
+    def play_effect(self, game_state):
+        player = game_state.current_player
+        n = len(player.hand)
+        if n > 0:
+            game_state.draw_cards(player, n)
+        excess = max(0, len(player.hand) - 10)
+        if excess > 0:
+            picks = player.ai.choose_cards_to_discard(
+                game_state, player, list(player.hand), excess, reason="marquis"
+            )
+            for card in picks[:excess]:
+                if card in player.hand:
+                    player.hand.remove(card)
+                    game_state.discard_card(player, card)

@@ -14,7 +14,8 @@ EXPECTED_LIAISONS = {
     # Standalone
     "Bauble", "Sycophant", "Importer", "Underling",
     "Broker", "Contract", "Emissary", "Galleria",
-    "Hunter", "Modify", "Skirmisher", "Specialist", "Swap",
+    "Guildmaster", "Hunter", "Modify", "Skirmisher",
+    "Specialist", "Swap",
 }
 
 
