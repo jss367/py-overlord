@@ -532,6 +532,33 @@ def test_sentinel_trashes_junk_and_keeps_the_rest():
     assert sorted(deck_names) == sorted(["Gold", "Silver", "Smithy"])
 
 
+def test_sentinel_redeck_sinks_victory_to_bottom():
+    """Untrashed Victory cards should land at the BOTTOM of the deck (drawn
+    last), and the highest-cost non-Victory should be on TOP (drawn first
+    next turn). ``deck.pop()`` draws from the end, so 'top' means high
+    index in ``player.deck``.
+    """
+    state, player = _state()
+    # All cards survive the trash step (none are in the junk-priority list
+    # apart from Estate, but only one Estate so up to 2 trashes — Estate
+    # gets trashed; the remaining four are kept).
+    player.deck = [
+        get_card("Gold"),     # 5th revealed
+        get_card("Silver"),   # 4th
+        get_card("Smithy"),   # 3rd
+        get_card("Province"), # 2nd  (Victory; should sink to bottom)
+        get_card("Duchy"),    # 1st  (Victory; should sink to bottom)
+    ]
+    sentinel = get_card("Sentinel")
+    player.in_play.append(sentinel)
+    sentinel.on_play(state)
+    # Victories should be at the BOTTOM (low index in deck).
+    assert player.deck[0].is_victory
+    assert player.deck[1].is_victory
+    # Highest-cost non-Victory (Gold, $6) on TOP (drawn first).
+    assert player.deck[-1].name == "Gold"
+
+
 def test_sentinel_no_trash_when_only_good_cards():
     state, player = _state()
     player.deck = [

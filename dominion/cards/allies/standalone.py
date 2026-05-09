@@ -711,9 +711,11 @@ class Sentinel(Card):
             game_state.trash_card(player, card)
 
         # Put the rest back on top of the deck. ``deck.pop()`` takes from
-        # the end, so the last appended card is the next one drawn — order
-        # the remainder so cheap victory clutter sinks to the bottom.
-        revealed.sort(key=lambda c: (c.is_victory, c.cost.coins))
+        # the end, so the last appended card is the next one drawn. Sort
+        # so Victory clutter sinks to the bottom (appended first → low
+        # index → drawn last) and the highest-cost non-Victory ends up on
+        # top (appended last → drawn first).
+        revealed.sort(key=lambda c: (not c.is_victory, c.cost.coins))
         for card in revealed:
             player.deck.append(card)
 
