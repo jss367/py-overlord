@@ -321,6 +321,30 @@ def test_summon_changeling_exchange_on_knight_no_double_restore():
     assert player.summon_set_aside[0].name == "Changeling"
 
 
+def test_summon_skips_buried_split_pile_cards():
+    """Wizards split pile (Student / Conjurer / Sorcerer / Lich): Conjurer
+    is a $4 Action but is buried under Student. While Student has copies,
+    ``may_be_bought`` returns False on Conjurer and Summon must NOT gain it.
+
+    Setup: Student ($2 Action) on top of Wizards. Default AI prefers the
+    higher-cost Action — without the filter, Conjurer ($4) wins; with the
+    filter, Student ($2) is the only eligible card.
+    """
+    state = _new_state(["Student"])
+    player = state.players[0]
+    # Verify pre-conditions for the test premise.
+    assert state.supply["Student"] > 0
+    assert state.supply["Conjurer"] > 0
+    assert get_card("Conjurer").may_be_bought(state) is False
+
+    summon = get_event("Summon")
+    summon.on_buy(state, player)
+    assert len(player.summon_set_aside) == 1
+    # Filter must exclude buried Conjurer; AI falls back to Student.
+    assert player.summon_set_aside[0].name == "Student"
+    assert state.supply["Conjurer"] == 4  # buried pile untouched
+
+
 def test_summon_skips_traveller_and_reward_piles():
     """Page's Traveller chain (Treasure Hunter / Warrior / Hero / Champion)
     and Joust Rewards are added to ``state.supply`` via ``get_additional_piles``

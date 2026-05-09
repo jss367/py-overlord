@@ -36,7 +36,8 @@ class Summon(Event):
             # placeholder under their pile name. Resolve to the actual top
             # card via ``top_of_pile`` so Summon sees the real Action that
             # would be gained, not the placeholder.
-            if name in game_state.pile_order:
+            ordered = name in game_state.pile_order
+            if ordered:
                 card = game_state.top_of_pile(name)
                 if card is None:
                     continue
@@ -50,6 +51,17 @@ class Summon(Event):
             if card.cost.potions or card.cost.debt:
                 continue
             if game_state.get_card_cost(player, card) > 4:
+                continue
+            # Allies/Wizards split piles bury cards under their upper
+            # partners; Acolyte is unavailable while Herb Gatherer remains,
+            # for example. ``may_be_bought`` enforces this for split-pile
+            # subclasses (and is the right gate for any future card that
+            # gates its own availability). Skip the check for ordered
+            # piles — Knights/Ruins variants return False from
+            # ``may_be_bought`` (the engine grants buyability via the
+            # placeholder pile name), so applying it here would block all
+            # Knight gains.
+            if not ordered and not card.may_be_bought(game_state):
                 continue
             candidates.append(card)
         if not candidates:
