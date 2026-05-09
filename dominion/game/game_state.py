@@ -924,12 +924,6 @@ class GameState:
                 self.current_player.in_play.append(c)
                 c.on_play(self)
 
-        # Cornucopia & Guilds 2E Farmhands on-gain set-aside: play any cards
-        # queued by gaining Farmhands last turn. This fires independently of
-        # whether a Farmhands is currently in duration — the on-gain trigger
-        # belongs to the gain itself, not to a played Farmhands.
-        self._resolve_farmhands_set_aside(self.current_player)
-
         # Adventures Save: cards set aside last turn return to hand.
         if self.current_player.save_set_aside:
             self.current_player.hand.extend(self.current_player.save_set_aside)
@@ -1020,6 +1014,15 @@ class GameState:
             self.current_player.hand.extend(deliver_set_aside)
             self.current_player.deliver_set_aside = []
 
+        # Cornucopia & Guilds 2E Farmhands on-gain set-aside: play any cards
+        # queued by gaining Farmhands last turn. This fires independently of
+        # whether a Farmhands is currently in duration — the on-gain trigger
+        # belongs to the gain itself, not to a played Farmhands. We resolve
+        # AFTER ``do_duration_phase`` so a Duration card played from the
+        # set-aside queue (e.g. Caravan, Haven) doesn't have its on_duration
+        # fire on the same turn it's played.
+        self._resolve_farmhands_set_aside(self.current_player)
+
         # Plunder Shy trait: discard Shy-pile cards in hand for +2 Cards.
         self._handle_shy_start_of_turn(self.current_player)
 
@@ -1043,6 +1046,8 @@ class GameState:
         player.farmhands_set_aside = []
         for card in to_play:
             player.in_play.append(card)
+            if card.is_action:
+                player.actions_this_turn += 1
             card.on_play(self)
             self.fire_ally_play_hooks(player, card)
 

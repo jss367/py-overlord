@@ -65,6 +65,8 @@ class Farmhands(Card):
             if choice is not None and choice in player.hand:
                 player.hand.remove(choice)
                 player.in_play.append(choice)
+                if choice.is_action:
+                    player.actions_this_turn += 1
                 choice.on_play(game_state)
                 game_state.fire_ally_play_hooks(player, choice)
 

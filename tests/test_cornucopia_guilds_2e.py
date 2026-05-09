@@ -711,6 +711,74 @@ def test_farmhands_plays_set_aside_card_at_start_of_next_turn():
     assert player.farmhands_set_aside == []
 
 
+def test_farmhands_set_aside_resolves_after_duration_phase():
+    """A Duration card played from Farmhands' set-aside queue must NOT
+    have its on_duration fire on the same turn it's played. The queue
+    must drain after do_duration_phase, not before."""
+
+    state = GameState(players=[])
+    state.initialize_game([FarmhandsAI()], [get_card("Farmhands")])
+    player = state.players[0]
+    player.hand = []
+    player.deck = [get_card("Copper") for _ in range(10)]
+    player.discard = []
+    player.in_play = []
+    player.duration = []
+    # Queue a Caravan to play at start of next turn. Caravan is
+    # Action-Duration: on play, +1 Card / +1 Action; on_duration: +1 Card.
+    caravan = get_card("Caravan")
+    player.farmhands_set_aside = [caravan]
+    player.coins = 0
+    state.current_player_index = 0
+    state.phase = "start"
+    state.handle_start_phase()
+
+    # Caravan's on_play drew 1 card; if on_duration also fired this turn
+    # (the bug), it would have drawn a 2nd card. We expect exactly 1 draw
+    # for the just-played Caravan.
+    coppers_in_hand = sum(1 for c in player.hand if c.name == "Copper")
+    assert coppers_in_hand == 1, (
+        f"Caravan played from set-aside should draw 1 card on play; got "
+        f"{coppers_in_hand} (likely on_duration fired too early)"
+    )
+    # Caravan is in duration, awaiting next turn for its on_duration.
+    assert caravan in player.duration
+
+
+def test_farmhands_set_aside_action_counts_toward_actions_this_turn():
+    """An Action played from Farmhands' on-gain queue should count toward
+    actions_this_turn (matters for Conspirator and similar threshold
+    effects)."""
+
+    state = GameState(players=[])
+    state.initialize_game([FarmhandsAI()], [get_card("Farmhands")])
+    player = state.players[0]
+    player.hand = []
+    player.deck = []
+    player.discard = []
+    player.in_play = []
+    player.duration = []
+    smithy = get_card("Smithy")
+    player.farmhands_set_aside = [smithy]
+    state.current_player_index = 0
+
+    before = player.actions_this_turn
+    state._resolve_farmhands_set_aside(player)
+    assert player.actions_this_turn == before + 1
+
+
+def test_shop_played_action_counts_toward_actions_this_turn():
+    state, player = _make_state()
+    shop = get_card("Shop")
+    village = get_card("Village")
+    player.hand = [village]
+    player.in_play = [shop]
+    player.actions_this_turn = 0
+
+    shop.play_effect(state)
+    assert player.actions_this_turn == 1
+
+
 def test_farmhands_set_aside_resolves_even_without_a_played_farmhands():
     """If a player gains Farmhands but never PLAYS one (e.g., gained via
     Workshop, or simply bought without ever drawing it), the on-gain
