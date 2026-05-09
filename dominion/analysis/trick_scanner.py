@@ -44,7 +44,12 @@ RETURN_TO_PILE_WAYS = frozenset({"Way of the Butterfly"})
 # Cards that, when played, exile or set aside themselves so they live outside
 # the player's deck and discard. Relevant for events that key on an empty deck
 # *and* empty discard.
-SELF_EXILE_OR_SET_ASIDE_CARDS = frozenset({"Stockpile", "Island", "Native Village"})
+#
+# Native Village is intentionally NOT here: its play_effect sets aside the
+# *top of the deck* onto the Native Village mat, while Native Village itself
+# stays in play and goes to discard at clean-up. Adding it would emit a
+# mechanically wrong hypothesis.
+SELF_EXILE_OR_SET_ASIDE_CARDS = frozenset({"Stockpile", "Island"})
 
 # Events that key on the player having an empty deck *and* empty discard.
 EMPTY_DECK_DISCARD_EVENTS = frozenset({"Windfall"})

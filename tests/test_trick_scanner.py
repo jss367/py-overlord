@@ -125,6 +125,15 @@ def test_empty_deck_discard_silent_without_self_exile_card():
     assert predicate_empty_deck_discard_triggers(board) == []
 
 
+def test_empty_deck_discard_does_not_flag_native_village():
+    # Native Village sets aside the top of the deck onto its mat — Native
+    # Village itself stays in play and discards normally, so it must not be
+    # treated as a self-exile/set-aside card.
+    board = _board(kingdom_cards=["Native Village"], events=["Windfall"])
+
+    assert predicate_empty_deck_discard_triggers(board) == []
+
+
 # --- Predicate 4: command targets ---------------------------------------
 
 
