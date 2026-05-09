@@ -224,6 +224,31 @@ class TestGeneticTrainerWayPolicy:
             assert rule.way_name == "Way of the Butterfly"
             assert rule.card_name in trainer._kingdom_action_cards
 
+    def test_parametric_mouse_way_is_canonicalized(self):
+        """Boards declared as ``Way of the Mouse (Native Village)`` round-trip
+        through ``WayRule.way_name`` as the unparameterised ``Way of the Mouse``
+        — so the rule actually matches the runtime ``Way.name`` and isn't
+        silently unreachable."""
+        from dominion.ways.registry import get_way
+
+        board = BoardConfig(
+            kingdom_cards=["Flag Bearer", "Village"],
+            ways=["Way of the Mouse (Native Village)"],
+        )
+        trainer = GeneticTrainer(
+            kingdom_cards=board.kingdom_cards,
+            population_size=1,
+            generations=1,
+            board_config=board,
+        )
+        assert trainer._kingdom_ways == ["Way of the Mouse"]
+
+        # The runtime Way object also has the unparameterised name, so the
+        # equality check in ``EnhancedStrategy._choose_from_way_policy``
+        # succeeds.
+        runtime_way = get_way("Way of the Mouse (Native Village)")
+        assert runtime_way.name == trainer._kingdom_ways[0]
+
 
 # ---------------------------------------------------------------------------
 # Round-trip serialization

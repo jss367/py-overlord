@@ -1,5 +1,6 @@
 import logging
 import random
+import re
 from copy import deepcopy
 from typing import Callable, Optional, Tuple
 
@@ -13,6 +14,23 @@ from dominion.strategy.strategies.base_strategy import BaseStrategy
 
 log = logging.getLogger(__name__)
 coloredlogs.install(level="INFO", logger=log)
+
+
+_WAY_PARAM_RE = re.compile(r"\s*\(.+\)$")
+
+
+def _canonical_way_name(way: str) -> str:
+    """Strip a parametric ``(...)`` suffix from a Way name.
+
+    The board loader stores ``Way of the Mouse: Native Village`` as
+    ``"Way of the Mouse (Native Village)"`` so the way registry's regex can
+    resolve the set-aside card. But the constructed ``WayOfTheMouse``
+    instance's ``.name`` is just ``"Way of the Mouse"`` — without the
+    parametric suffix. ``WayRule.way_name`` is matched against the runtime
+    ``Way.name`` in :meth:`EnhancedStrategy._choose_from_way_policy`, so we
+    canonicalise here to keep the two sides aligned.
+    """
+    return _WAY_PARAM_RE.sub("", way)
 
 
 def _distribute_games(total_budget: int, n_opponents: int) -> list[int]:
@@ -95,9 +113,13 @@ class GeneticTrainer:
         # Cache way names available on the board (for way_policy mutations).
         # Only populated when the board declares any Ways; otherwise way_policy
         # mutators are no-ops since there's nothing to bind a rule to.
+        # Parametric variants like "Way of the Mouse (Native Village)" are
+        # stripped to their base name ("Way of the Mouse") so WayRule.way_name
+        # matches the runtime ``Way.name`` (the ways/registry constructs the
+        # mouse instance with the unparameterised name).
         self._kingdom_ways: list[str] = []
         if board_config is not None and board_config.ways:
-            self._kingdom_ways = list(board_config.ways)
+            self._kingdom_ways = [_canonical_way_name(w) for w in board_config.ways]
 
     # Probability that ``_random_condition_with_compound`` wraps a normally
     # sampled inner condition in ``and_(card_in_play(X), inner)``. Tunable.
