@@ -681,6 +681,21 @@ class GameState:
             if card.is_heirloom:
                 # Heirlooms start with 0 copies in the Supply.
                 continue
+            # Nocturne: cards that bring in Heirloom replacements (Fool ->
+            # Lucky Coin, Cemetery -> Haunted Mirror, Shepherd -> Pasture,
+            # ...) require initialise-time deck-substitution that the
+            # ``initialize_game`` flow only does for the original kingdom
+            # list. Picking them via Ferryman would leave the heirloom
+            # association stale.
+            if getattr(card, "heirloom", None):
+                continue
+            # Nocturne: Fate cards bring Boons into the game and Doom
+            # cards bring Hexes. Both require initialise-time deck setup
+            # that only runs from the original kingdom list, so a
+            # Ferryman-selected Fate/Doom pile would have no Boons/Hexes
+            # to draw from.
+            if card.is_fate or card.is_doom:
+                continue
             if card.starting_supply(self) <= 0:
                 continue
             if not card.may_be_bought(self):

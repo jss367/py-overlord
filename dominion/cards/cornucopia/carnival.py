@@ -30,4 +30,7 @@ class Carnival(Card):
                 seen_names.add(card.name)
                 player.hand.append(card)
             else:
-                player.discard.append(card)
+                # Route the discard through the engine so cards with
+                # discard-side triggers (Tunnel, Trail, Friendly trait, ...)
+                # fire correctly.
+                game_state.discard_card(player, card)

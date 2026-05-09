@@ -123,6 +123,31 @@ def test_carnival_with_fewer_than_four_cards_in_deck():
     assert player.buys == 2
 
 
+def test_carnival_routes_duplicate_discards_through_engine():
+    """Duplicates discarded by Carnival should fire discard hooks
+    (Tunnel reveals to gain Gold, etc.). Routing through
+    ``game_state.discard_card`` ensures triggers don't silently drop."""
+
+    state, player = _make_state()
+    carnival = get_card("Carnival")
+    state.supply["Gold"] = 30
+    tunnel_a = get_card("Tunnel")
+    tunnel_b = get_card("Tunnel")
+    # Two Tunnels in a row -> the duplicate goes through discard_card,
+    # firing Tunnel's "on discard, gain a Gold" reaction.
+    player.deck = [tunnel_a, tunnel_b]
+    player.hand = [carnival]
+
+    player.hand.remove(carnival)
+    player.in_play.append(carnival)
+    carnival.on_play(state)
+
+    assert any(c.name == "Gold" for c in player.discard), (
+        "Tunnel discarded by Carnival should have triggered its on-discard "
+        "reaction (gain a Gold)"
+    )
+
+
 def test_carnival_all_distinct_keeps_all_four():
     state, player = _make_state()
     carnival = get_card("Carnival")
@@ -527,15 +552,24 @@ def test_infirmary_overpay_skips_replays_if_card_was_trashed():
 
 
 def test_ferryman_setup_skips_cards_needing_special_engine_setup():
-    """Cards like Black Market and Young Witch have engine-level setup that
-    only fires when they're in the original kingdom list. Ferryman must
-    skip them so it doesn't leave them broken. Also skip cards whose
-    additional piles (e.g., Death Cart's Ruins) need engine-side variant
-    shuffling we don't replicate."""
+    """Cards with engine-level setup that only fires for the original
+    kingdom list must not be picked by Ferryman: Black Market (deck),
+    Young Witch (bane), Hermit/Urchin (Madman/Mercenary), Marauder
+    (Spoils/Ruins), Tournament (Prizes), Death Cart (Ruins), Nocturne
+    Heirloom-bearers (Fool→Lucky Coin, Cemetery→Haunted Mirror,
+    Shepherd→Pasture, Pixie→Goat, Tracker→Pouch, Secret Cave→Magic
+    Lamp, Pooka→Cursed Gold, Leprechaun→none-needed-but-Fate),
+    Fate cards (need Boons), Doom cards (need Hexes)."""
 
-    excluded = {"Black Market", "Young Witch", "Hermit", "Urchin",
-                "Marauder", "Tournament", "Death Cart"}
-    for _ in range(120):
+    excluded = {
+        "Black Market", "Young Witch", "Hermit", "Urchin",
+        "Marauder", "Tournament", "Death Cart",
+        # Heirloom-bearers (need start-of-game Copper replacement).
+        "Fool", "Cemetery", "Shepherd", "Secret Cave",
+        # Fate / Doom (need Boons / Hexes setup).
+        "Bard", "Blessed Village", "Leprechaun",
+    }
+    for _ in range(150):
         state = GameState(players=[])
         state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
         assert state.ferryman_card_name not in excluded, (
