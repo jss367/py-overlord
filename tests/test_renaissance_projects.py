@@ -782,6 +782,27 @@ def test_citadel_replays_riverboat_target_action():
     assert p.actions == actions_before + 4
 
 
+def test_citadel_replays_summon_set_aside_action():
+    """Summon (promo) plays a set-aside Action at start of turn before
+    the action phase. If that's the turn's first Action, Citadel must
+    replay it.
+    """
+    state = make_state(Citadel())
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    village = get_card("Village")
+    p.summon_set_aside = [village]
+    p.deck = [get_card("Copper") for _ in range(10)]
+    p.hand = []
+    actions_before = p.actions
+    state.phase = "start"
+    state.handle_start_phase()
+    # Summon plays Village (+2 actions); Citadel replays (+2 actions).
+    assert p.citadel_used
+    assert p.actions == actions_before + 4
+
+
 def test_citadel_resets_at_turn_start():
     state = make_state(Citadel())
     p = state.players[0]

@@ -924,6 +924,10 @@ class GameState:
                             self.prophecy.on_play_attack(self, player, card)
                     self.fire_ally_play_hooks(player, card)
                     self._call_tavern_triggers(player, "action_played", card)
+                    # Renaissance Citadel: a Summoned Action played at
+                    # start of turn counts as the first Action of the
+                    # turn, so Citadel marks used and replays it.
+                    self._maybe_citadel_replay(player, card)
 
         # Adventures: reset once-per-turn caps for events.
         self.current_player.borrow_used_this_turn = False
