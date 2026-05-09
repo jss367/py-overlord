@@ -676,6 +676,8 @@ def test_changeling_uses_effective_cost_at_gain_peddler_reduced_below_three():
     player.cost_reduction = 3
     # Two Action cards in play to trigger Peddler's cost_modifier.
     player.in_play = [get_card("Village"), get_card("Smithy")]
+    # Peddler's discount only applies during the Buy phase.
+    state.phase = "buy"
 
     # Sanity: confirm get_card_cost agrees the effective cost is < 3.
     peddler_template = get_card("Peddler")
