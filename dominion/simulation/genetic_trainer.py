@@ -1,5 +1,6 @@
 import logging
 import random
+import re
 from copy import deepcopy
 from typing import Callable, Optional, Tuple
 
@@ -8,11 +9,28 @@ import coloredlogs
 from dominion.boards.loader import BoardConfig
 from dominion.simulation.game_logger import GameLogger
 from dominion.simulation.strategy_battle import StrategyBattle
-from dominion.strategy.enhanced_strategy import PriorityRule
+from dominion.strategy.enhanced_strategy import PriorityRule, WayRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
 
 log = logging.getLogger(__name__)
 coloredlogs.install(level="INFO", logger=log)
+
+
+_WAY_PARAM_RE = re.compile(r"\s*\(.+\)$")
+
+
+def _canonical_way_name(way: str) -> str:
+    """Strip a parametric ``(...)`` suffix from a Way name.
+
+    The board loader stores ``Way of the Mouse: Native Village`` as
+    ``"Way of the Mouse (Native Village)"`` so the way registry's regex can
+    resolve the set-aside card. But the constructed ``WayOfTheMouse``
+    instance's ``.name`` is just ``"Way of the Mouse"`` — without the
+    parametric suffix. ``WayRule.way_name`` is matched against the runtime
+    ``Way.name`` in :meth:`EnhancedStrategy._choose_from_way_policy`, so we
+    canonicalise here to keep the two sides aligned.
+    """
+    return _WAY_PARAM_RE.sub("", way)
 
 
 def _distribute_games(total_budget: int, n_opponents: int) -> list[int]:
@@ -91,6 +109,17 @@ class GeneticTrainer:
                     self._kingdom_treasure_cards.append(card_name)
             except ValueError:
                 pass
+
+        # Cache way names available on the board (for way_policy mutations).
+        # Only populated when the board declares any Ways; otherwise way_policy
+        # mutators are no-ops since there's nothing to bind a rule to.
+        # Parametric variants like "Way of the Mouse (Native Village)" are
+        # stripped to their base name ("Way of the Mouse") so WayRule.way_name
+        # matches the runtime ``Way.name`` (the ways/registry constructs the
+        # mouse instance with the unparameterised name).
+        self._kingdom_ways: list[str] = []
+        if board_config is not None and board_config.ways:
+            self._kingdom_ways = [_canonical_way_name(w) for w in board_config.ways]
 
     # Probability that ``_random_condition_with_compound`` wraps a normally
     # sampled inner condition in ``and_(card_in_play(X), inner)``. Tunable.
@@ -217,6 +246,21 @@ class GeneticTrainer:
             return PriorityRule.excess_actions(op, amount)
         return None
 
+    def _random_way_rule(self) -> Optional[WayRule]:
+        """Build a random :class:`WayRule` over this kingdom's actions and ways.
+
+        Returns ``None`` when the board has no ways (so callers can skip the
+        rule cleanly without growing way_policy with stub entries).
+        """
+        if not self._kingdom_ways or not self._kingdom_action_cards:
+            return None
+        card = random.choice(self._kingdom_action_cards)
+        way = random.choice(self._kingdom_ways)
+        condition = None
+        if random.random() < 0.5:
+            condition = self._random_condition_with_compound()
+        return WayRule(card, way, condition)
+
     def create_random_strategy(self) -> BaseStrategy:
         """Create a random strategy"""
         strategy = BaseStrategy()
@@ -272,6 +316,16 @@ class GeneticTrainer:
             PriorityRule("Estate", PriorityRule.provinces_left(">", 4)),
             PriorityRule("Copper", PriorityRule.has_cards(["Silver", "Gold"], 3)),
         ]
+
+        # Seed a small number of way_policy rules when the board has ways.
+        # Without seeding, no individual would ever try a non-default Way and
+        # the mutation-only path would discover them only by chance.
+        strategy.way_policy = []
+        if self._kingdom_ways:
+            for _ in range(random.randint(0, 2)):
+                rule = self._random_way_rule()
+                if rule is not None:
+                    strategy.way_policy.append(rule)
 
         return self._normalize(strategy)
 
@@ -407,6 +461,12 @@ class GeneticTrainer:
         if random.random() < 0.5:
             child.treasure_priority = deepcopy(parent2.treasure_priority)
 
+        # Crossover way_policy: 50/50 take parent2's whole list (way_policy is
+        # typically short, so single-point splice is overkill).
+        parent2_way_policy = getattr(parent2, "way_policy", None)
+        if parent2_way_policy and random.random() < 0.5:
+            child.way_policy = deepcopy(parent2_way_policy)
+
         return child
 
     def _mutate(self, strategy: BaseStrategy) -> BaseStrategy:
@@ -522,6 +582,49 @@ class GeneticTrainer:
                         elif priority.card_name == "Copper":
                             min_treasures = random.randint(2, 4)
                             priority.condition = PriorityRule.has_cards(["Silver", "Gold"], min_treasures)
+
+        # --- Mutate way_policy ---
+        # Only meaningful when the board has Ways. Skipped otherwise so the
+        # mutator can't grow way_policy on boards where the rules can never fire.
+        if getattr(strategy, "way_policy", None) is None:
+            strategy.way_policy = []
+
+        if self._kingdom_ways and self._kingdom_action_cards:
+            # Condition tweaks on existing way rules (drop / replace / add fresh)
+            for rule in strategy.way_policy:
+                if random.random() < self.mutation_rate and random.random() < 0.3:
+                    if rule.condition is None:
+                        rule.condition = self._random_condition_with_compound()
+                    else:
+                        if random.random() < 0.5:
+                            rule.condition = None
+                        else:
+                            rule.condition = self._random_condition_with_compound()
+
+            # Insert: try a fresh (card, way) rule
+            if random.random() < self.mutation_rate:
+                new_rule = self._random_way_rule()
+                if new_rule is not None:
+                    pos = random.randint(0, len(strategy.way_policy))
+                    strategy.way_policy.insert(pos, new_rule)
+
+            # Reorder: swap two adjacent rules
+            if random.random() < self.mutation_rate and len(strategy.way_policy) >= 2:
+                i = random.randint(0, len(strategy.way_policy) - 2)
+                strategy.way_policy[i], strategy.way_policy[i + 1] = (
+                    strategy.way_policy[i + 1],
+                    strategy.way_policy[i],
+                )
+
+            # Retarget: change the way_name on an existing rule
+            if random.random() < self.mutation_rate * 0.5 and strategy.way_policy:
+                rule = random.choice(strategy.way_policy)
+                rule.way_name = random.choice(self._kingdom_ways)
+
+            # Remove a rule occasionally to keep the genome lean
+            if random.random() < self.mutation_rate * 0.3 and strategy.way_policy:
+                i = random.randint(0, len(strategy.way_policy) - 1)
+                strategy.way_policy.pop(i)
 
         return strategy
 

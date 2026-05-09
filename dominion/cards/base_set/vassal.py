@@ -57,11 +57,10 @@ class Vassal(Card):
             return
 
         # Move the card to in_play and play it. Vassal's bonus play does NOT
-        # use up an Action and does fire on-play hooks (Prophecy etc.).
+        # use up an Action, but every Action *play* still bumps the
+        # actions-played counters and fires on-play hooks.
         player.in_play.append(top)
-        top.on_play(game_state)
-        game_state.fire_prophecy_action_hooks(player, top)
-        game_state.fire_ally_play_hooks(player, top)
+        game_state.play_action_indirectly(player, top)
         game_state.log_callback(
             (
                 "action",

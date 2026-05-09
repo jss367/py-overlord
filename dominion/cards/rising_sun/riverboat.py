@@ -31,12 +31,9 @@ class Riverboat(Card):
         # location. It doesn't count as in-play but its effects still resolve
         # (per rulebook: "This doesn't move the set aside card; it stays set
         # aside, even if it has instructions on it that would move it.").
-        target.on_play(game_state)
-        # Active prophecies (Great Leader, Approaching Army, etc.) react to
-        # this play just like an Action-phase play would.
-        game_state.fire_prophecy_action_hooks(player, target)
-        game_state.fire_ally_play_hooks(player, target)
-        # Renaissance Citadel: a Riverboat-driven Action play before the
-        # action phase counts as the first Action of the turn.
-        game_state._maybe_citadel_replay(player, target)
+        # Resolve as a normal indirect action play so play counters,
+        # prophecy hooks, ally hooks, and tavern triggers all fire — but
+        # note the card itself stays in its set-aside location (the helper
+        # plays the card; the caller manages its physical location).
+        game_state.play_action_indirectly(player, target)
         self.duration_persistent = False

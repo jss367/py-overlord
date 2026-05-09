@@ -94,6 +94,9 @@ EXPECTED_TREASURE_CARDS = {
     "Coin of the Realm",
     "Relic",
     "Treasure Trove",
+    # Alchemy
+    "Potion",
+    "Philosopher's Stone",
 }
 
 MULTI_TYPE_TREASURES = {

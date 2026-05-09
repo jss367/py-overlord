@@ -20,7 +20,21 @@ class ActionEncoder:
     def __init__(self, kingdom_cards: list[str]):
         """Initialize encoder with kingdom card names."""
         self.kingdom_cards = list(kingdom_cards)
-        self.all_cards = BASE_CARDS + self.kingdom_cards
+        # Alchemy: GameState.setup_supply auto-adds the Potion Treasure to
+        # the basic Supply whenever a potion-cost card is reachable —
+        # either as a kingdom pile, OR via Black Market's deck (built from
+        # all unused registered cards). Reserve a Potion slot in either
+        # case so action masking can't KeyError mid-game. Black Market is
+        # the conservative fallback because the encoder only sees the
+        # kingdom list, not the (random, runtime) Black Market deck.
+        extras: list[str] = []
+        kingdom_has_potion_cost = any(
+            get_card(name).cost.potions > 0 for name in self.kingdom_cards
+        )
+        black_market_in_kingdom = "Black Market" in self.kingdom_cards
+        if kingdom_has_potion_cost or black_market_in_kingdom:
+            extras.append("Potion")
+        self.all_cards = BASE_CARDS + extras + self.kingdom_cards
         self.card_to_idx = {name: i for i, name in enumerate(self.all_cards)}
         self._pass_index = len(self.all_cards)
         self._action_size = len(self.all_cards) + 1

@@ -49,12 +49,6 @@ class Captain(Card):
             choice = candidates[0]
         temp = get_card(choice.name)
         player.in_play.append(temp)
-        temp.on_play(game_state)
-        game_state.fire_ally_play_hooks(player, temp)
-        # Renaissance Citadel: a Captain-played Action from the Supply
-        # still counts as the first Action played this turn (relevant on
-        # Captain's start-of-next-turn Duration trigger, when nothing
-        # else has been played yet).
-        game_state._maybe_citadel_replay(player, temp)
+        game_state.play_action_indirectly(player, temp)
         if temp in player.in_play:
             player.in_play.remove(temp)
