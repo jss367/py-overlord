@@ -16,6 +16,21 @@ from dominion.game.player_state import PlayerState
 
 
 @dataclass
+class WayRule:
+    """Per-card Way usage rule.
+
+    When ``card_name`` is played and ``way_name`` is offered as one of the
+    available Ways, the rule fires if ``condition`` evaluates True (or is
+    None). The condition follows the same callable shape as
+    :class:`PriorityRule`: ``(state, player) -> bool``.
+    """
+
+    card_name: str
+    way_name: str
+    condition: Optional[Callable[["GameState", "PlayerState"], bool]] = None
+
+
+@dataclass
 class PriorityRule:
     """Represents a single priority rule.
 
@@ -276,6 +291,9 @@ class EnhancedStrategy:
         self.action_priority: list[PriorityRule] = []
         self.trash_priority: list[PriorityRule] = []
         self.treasure_priority: list[PriorityRule] = []
+        # Evolvable per-card Way usage. Walked first by ``choose_way``; falls
+        # back to the hardcoded Trail→Butterfly default below if no rule fires.
+        self.way_policy: list[WayRule] = []
 
     # ------------------------------------------------------------------
     def _choose_from_priority(
@@ -392,7 +410,17 @@ class EnhancedStrategy:
         return self._choose_from_priority(self.trash_priority, choices, state, player)
 
     def choose_way(self, state, player, card, ways):
-        """Default: butterfly Trail into the highest-priority $5 target."""
+        """Consult ``way_policy`` first; fall back to the Trail→Butterfly default.
+
+        ``way_policy`` lets the genetic evolver discover per-card Way usage
+        beyond the hardcoded Trail trick — e.g. butterflying Flag Bearer
+        into a $5 gain on the Victoria board.
+        """
+        chosen = self._choose_from_way_policy(state, player, card, ways)
+        if chosen is not None:
+            return chosen
+
+        # Fallback: butterfly Trail into the highest-priority $5 target.
         if card.name != "Trail":
             return None
         target = self._best_butterfly_target(state, player, card.cost.coins + 1)
@@ -401,6 +429,30 @@ class EnhancedStrategy:
         for w in ways:
             if w and getattr(w, "name", None) == "Way of the Butterfly":
                 return w
+        return None
+
+    def _choose_from_way_policy(self, state, player, card, ways):
+        """Walk ``way_policy`` and return the first matching Way."""
+        if not self.way_policy:
+            return None
+        for rule in self.way_policy:
+            if rule.card_name != card.name:
+                continue
+            way_obj = next(
+                (w for w in ways if w is not None and getattr(w, "name", None) == rule.way_name),
+                None,
+            )
+            if way_obj is None:
+                continue
+            cond = rule.condition
+            if cond is None:
+                return way_obj
+            if callable(cond):
+                try:
+                    if cond(state, player):
+                        return way_obj
+                except Exception:
+                    continue
         return None
 
     # -- Butterfly helpers -------------------------------------------------

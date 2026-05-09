@@ -32,10 +32,10 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Iterable, Optional
 
-from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
 
 
-def _condition_signature(rule: PriorityRule) -> Optional[str]:
+def _condition_signature(rule) -> Optional[str]:
     """Stable string identity for a rule's condition; None if unconditional."""
     cond = rule.condition
     if cond is None:
@@ -68,6 +68,35 @@ def _simplify_priority_list(rules: Iterable[PriorityRule]) -> list[PriorityRule]
     return output
 
 
+def _simplify_way_policy(rules: Iterable[WayRule]) -> list[WayRule]:
+    """Apply dedupe + unconditional-dominance to a way_policy list.
+
+    The matching key is ``(card_name, way_name)``: a later rule for the same
+    pair is dominated once an unconditional rule for that pair appears, and
+    duplicates with identical condition signatures are dropped.
+    """
+    seen_signatures: set[tuple[str, str, Optional[str]]] = set()
+    pairs_with_unconditional: set[tuple[str, str]] = set()
+    output: list[WayRule] = []
+
+    for rule in rules:
+        pair = (rule.card_name, rule.way_name)
+        if pair in pairs_with_unconditional:
+            continue
+
+        sig = (rule.card_name, rule.way_name, _condition_signature(rule))
+        if sig in seen_signatures:
+            continue
+
+        output.append(rule)
+        seen_signatures.add(sig)
+
+        if rule.condition is None:
+            pairs_with_unconditional.add(pair)
+
+    return output
+
+
 def simplify_strategy(strategy: EnhancedStrategy) -> EnhancedStrategy:
     """Return a deep copy of ``strategy`` with each priority list simplified.
 
@@ -80,4 +109,6 @@ def simplify_strategy(strategy: EnhancedStrategy) -> EnhancedStrategy:
     out.action_priority = _simplify_priority_list(out.action_priority)
     out.treasure_priority = _simplify_priority_list(out.treasure_priority)
     out.trash_priority = _simplify_priority_list(out.trash_priority)
+    if hasattr(out, "way_policy"):
+        out.way_policy = _simplify_way_policy(out.way_policy)
     return out
