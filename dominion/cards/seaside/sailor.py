@@ -62,6 +62,5 @@ class Sailor(Card):
             return False
 
         owner.in_play.append(gained_card)
-        gained_card.on_play(game_state)
-        game_state.fire_ally_play_hooks(owner, gained_card)
+        game_state.play_action_indirectly(owner, gained_card)
         return True

@@ -52,8 +52,4 @@ class Golem(Card):
 
         for action_card in order:
             player.in_play.append(action_card)
-            action_card.on_play(game_state)
-            game_state.fire_ally_play_hooks(player, action_card)
-            # Rising Sun: Great Leader / Approaching Army etc. fire on
-            # every Action play, including ones routed through Golem.
-            game_state.fire_prophecy_action_hooks(player, action_card)
+            game_state.play_action_indirectly(player, action_card)

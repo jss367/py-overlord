@@ -446,6 +446,49 @@ def test_potion_added_at_setup_when_alchemy_card_lands_in_black_market_deck():
         assert "Potion" not in state.supply
 
 
+def test_golem_bumps_actions_played_counter():
+    """Each Action played via Golem must increment actions_this_turn so
+    cards that key off "Actions played this turn" (Conspirator, Peddler)
+    see the correct count."""
+    state, p1, _ = _two_player_state(["Golem"])
+    p1.hand = []
+    p1.discard = []
+    # Pad bottom of deck so Village's draw doesn't shuffle.
+    p1.deck = (
+        [get_card("Estate") for _ in range(5)]
+        + [get_card("Smithy"), get_card("Village")]   # top = Village
+    )
+    actions_before = p1.actions_this_turn
+    g = get_card("Golem")
+    p1.in_play.append(g)
+    g.on_play(state)
+    # Two Action plays → +2 actions_this_turn.
+    assert p1.actions_this_turn - actions_before == 2
+
+
+def test_golem_fires_action_played_tavern_triggers():
+    """Coin of the Realm on the Tavern mat reacts to "action_played" events
+    on each Action play. Replays via Golem must also fire that trigger."""
+    state, p1, _ = _two_player_state(["Golem"])
+    p1.hand = []
+    p1.discard = []
+    cotr = get_card("Coin of the Realm")
+    p1.tavern_mat = [cotr]
+    # Single revealed Action so the test focuses on the trigger.
+    p1.deck = (
+        [get_card("Estate") for _ in range(6)]
+        + [get_card("Smithy")]   # top
+    )
+    actions_before = p1.actions
+    g = get_card("Golem")
+    p1.in_play.append(g)
+    g.on_play(state)
+    # Coin of the Realm calls itself off the mat, granting +2 Actions.
+    assert cotr in p1.discard
+    assert cotr not in p1.tavern_mat
+    assert p1.actions - actions_before >= 2
+
+
 def test_golem_fires_prophecy_action_hooks():
     """Rising Sun Great Leader: each Action play grants +1 Action. Golem
     plays revealed Actions via on_play directly, so it must call the

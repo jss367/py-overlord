@@ -40,8 +40,7 @@ class Cultist(Card):
         if next_cultist and player.ai.should_play_cultist_chain(game_state, player):
             player.hand.remove(next_cultist)
             player.in_play.append(next_cultist)
-            next_cultist.on_play(game_state)
-            game_state.fire_ally_play_hooks(player, next_cultist)
+            game_state.play_action_indirectly(player, next_cultist)
 
     def on_trash(self, game_state, player):
         game_state.draw_cards(player, 3)

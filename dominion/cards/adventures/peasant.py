@@ -136,8 +136,8 @@ class Disciple(Card):
             return
         player.hand.remove(chosen)
         player.in_play.append(chosen)
-        chosen.on_play(game_state)
-        chosen.on_play(game_state)
+        game_state.play_action_indirectly(player, chosen)
+        game_state.play_action_indirectly(player, chosen)
         if game_state.supply.get(chosen.name, 0) > 0:
             game_state.supply[chosen.name] -= 1
             game_state.gain_card(player, get_card(chosen.name))

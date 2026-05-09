@@ -41,5 +41,4 @@ class Necromancer(Card):
         game_state.log_callback(
             ("action", player.ai.name, f"Necromancer plays {choice} from trash", {})
         )
-        choice.on_play(game_state)
-        game_state.fire_ally_play_hooks(player, choice)
+        game_state.play_action_indirectly(player, choice)

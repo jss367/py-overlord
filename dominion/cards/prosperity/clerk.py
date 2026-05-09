@@ -60,10 +60,10 @@ class Clerk(Card):
         if player.ai.should_replay_clerk(game_state, player):
             self._replaying = True
             try:
-                # Resolve the on-play effects again ($2 + attack), but don't
-                # re-queue another duration trigger.
-                self.on_play(game_state)
-                game_state.fire_ally_play_hooks(player, self)
+                # Resolve the on-play effects again ($2 + attack) with the
+                # standard indirect-action-play bookkeeping, but don't
+                # re-queue another duration trigger (gated by _replaying).
+                game_state.play_action_indirectly(player, self)
             finally:
                 self._replaying = False
 
