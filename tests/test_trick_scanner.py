@@ -154,10 +154,60 @@ def test_command_targets_silent_without_command_card():
     assert predicate_command_targets(board) == []
 
 
-def test_command_targets_silent_without_non_command_action_targets():
+def test_command_targets_silent_without_legal_targets():
     board = _board(kingdom_cards=["Daimyo"])
 
     assert predicate_command_targets(board) == []
+
+
+def test_command_targets_captain_excludes_above_4_and_durations():
+    # Captain (promo, $6 Duration-Command) only plays non-Command non-Duration
+    # Actions costing up to $4. Nobles ($6) and Council Room ($5) must be
+    # excluded; Smithy ($4) and Village ($3) are legal.
+    board = _board(
+        kingdom_cards=["Captain", "Nobles", "Council Room", "Smithy", "Village"]
+    )
+
+    interactions = predicate_command_targets(board)
+
+    captain_interactions = [i for i in interactions if "Captain" in i.headline]
+    assert len(captain_interactions) == 1
+    detail = captain_interactions[0].detail
+    assert "Smithy" in detail
+    assert "Village" in detail
+    assert "Nobles" not in detail
+    assert "Council Room" not in detail
+
+
+def test_command_targets_band_of_misfits_excludes_equal_or_more_expensive():
+    # Band of Misfits ($5) plays a non-Command Action *cheaper* than itself.
+    board = _board(
+        kingdom_cards=["Band of Misfits", "Council Room", "Smithy", "Village"]
+    )
+
+    interactions = predicate_command_targets(board)
+
+    bom = [i for i in interactions if "Band of Misfits" in i.headline]
+    assert len(bom) == 1
+    detail = bom[0].detail
+    assert "Smithy" in detail
+    assert "Village" in detail
+    # Council Room costs exactly $5 → equal to Band of Misfits → not legal.
+    assert "Council Room" not in detail
+
+
+def test_command_targets_per_card_filters_independent():
+    # Captain and Daimyo on the same board must produce different target lists.
+    board = _board(kingdom_cards=["Captain", "Daimyo", "Nobles", "Smithy"])
+
+    interactions = predicate_command_targets(board)
+
+    by_card = {
+        next(name for name in ["Captain", "Daimyo"] if name in i.headline): i
+        for i in interactions
+    }
+    assert "Nobles" in by_card["Daimyo"].detail
+    assert "Nobles" not in by_card["Captain"].detail
 
 
 # --- Predicate 5: cost-mod gateways -------------------------------------

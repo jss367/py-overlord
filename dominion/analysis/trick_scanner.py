@@ -21,7 +21,7 @@ import argparse
 import inspect
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable
+from typing import Callable, Iterable
 
 from dominion.boards.loader import BoardConfig, load_board
 from dominion.cards.base_card import Card
@@ -53,6 +53,39 @@ SELF_EXILE_OR_SET_ASIDE_CARDS = frozenset({"Stockpile", "Island"})
 
 # Events that key on the player having an empty deck *and* empty discard.
 EMPTY_DECK_DISCARD_EVENTS = frozenset({"Windfall"})
+
+
+# Per-Command-card target filters. Each entry takes a candidate Card and
+# returns True iff this Command card can legally play / replay / copy it.
+# Commands whose only filter is "non-Command Action" use the default below.
+_DEFAULT_COMMAND_FILTER: Callable[["Card"], bool] = (
+    lambda c: c.is_action and not c.is_command
+)
+COMMAND_TARGET_FILTERS: dict[str, Callable[["Card"], bool]] = {
+    # Captain (promo): plays a non-Command non-Duration Action from supply
+    # costing up to $4, with no potion / debt cost.
+    "Captain": lambda c: (
+        c.is_action
+        and not c.is_command
+        and not c.is_duration
+        and c.cost.coins <= 4
+        and c.cost.potions == 0
+        and c.cost.debt == 0
+    ),
+    # Band of Misfits: plays a non-Command Action from supply costing strictly
+    # less than its own $5, with no potion / debt cost.
+    "Band of Misfits": lambda c: (
+        c.is_action
+        and not c.is_command
+        and c.cost.coins < 5
+        and c.cost.potions == 0
+        and c.cost.debt == 0
+    ),
+    # Flagship: replays the next non-Duration Action played this turn.
+    "Flagship": lambda c: (
+        c.is_action and not c.is_duration and not c.is_command
+    ),
+}
 
 
 # --- Public types --------------------------------------------------------
@@ -259,19 +292,16 @@ def predicate_empty_deck_discard_triggers(board: BoardConfig) -> list[Interactio
 def predicate_command_targets(board: BoardConfig) -> list[Interaction]:
     """Predicate 4 — Command targets.
 
-    For every Command card on this board (Daimyo, Royal Carriage, etc.), enumerate
-    the highest-payload non-Command Actions on the board. Command cards usually
-    replay another Action; on the rare board where the best target is something
-    surprising, this nudges the strategy designer to consider it.
+    For every Command card on this board (Daimyo, Royal Carriage, Captain, ...),
+    enumerate the highest-payload Action targets it can *legally* play / replay
+    on this board. Each Command's per-card filter (cost cap, type restrictions)
+    lives in :data:`COMMAND_TARGET_FILTERS`; cards without an explicit filter use
+    the default ``non-Command Action`` rule.
     """
 
     cards = _kingdom_card_objects(board)
     commands = [c for c in cards if c.is_command]
     if not commands:
-        return []
-
-    non_command_actions = [c for c in cards if c.is_action and not c.is_command]
-    if not non_command_actions:
         return []
 
     def _payload(c: Card) -> tuple[int, int, str]:
@@ -285,21 +315,25 @@ def predicate_command_targets(board: BoardConfig) -> list[Interaction]:
         )
         return (c.cost.coins + c.cost.debt, stat_sum, c.name)
 
-    ranked = sorted(non_command_actions, key=_payload, reverse=True)
-    top_targets = [c.name for c in ranked[:5]]
-
     interactions: list[Interaction] = []
     for command in commands:
+        target_filter = COMMAND_TARGET_FILTERS.get(
+            command.name, _DEFAULT_COMMAND_FILTER
+        )
+        candidates = [c for c in cards if c.name != command.name and target_filter(c)]
+        if not candidates:
+            continue
+        ranked = sorted(candidates, key=_payload, reverse=True)
+        top_targets = [c.name for c in ranked[:5]]
         interactions.append(
             Interaction(
                 kind="command_targets",
                 headline=(
-                    f"{command.name}: highest-payload non-Command Action targets "
-                    f"on this board"
+                    f"{command.name}: highest-payload legal Action targets on this board"
                 ),
                 detail=(
-                    f"{command.name} replays / copies a non-Command Action card. "
-                    f"Top targets here (by cost + stat payload): "
+                    f"{command.name} replays / copies an Action it is allowed to "
+                    f"target. Top legal targets here (by cost + stat payload): "
                     f"{', '.join(top_targets)}."
                 ),
                 refs=[_source_ref(command)],
