@@ -634,6 +634,14 @@ class GameState:
         if any(card.name == "Urchin" for card in kingdom_cards):
             self.supply["Mercenary"] = 10
 
+        # Latch the Charlatan game-level rule at setup time. If Charlatan is
+        # part of this game (Supply or Black Market deck), the "Curses are
+        # Treasures worth $1" effect applies for the entire game — even if
+        # the Charlatan pile is later removed by something like Divine Wind
+        # before the first Curse-as-Treasure check could observe it live.
+        if "Charlatan" in self.supply or "Charlatan" in self.black_market_deck:
+            self._charlatan_seen = True
+
     def gain_ruins(self, target) -> "Card | None":
         """Resolve a "gain a Ruins" by handing over the top of the Ruins pile."""
         order = self.pile_order.get("Ruins")

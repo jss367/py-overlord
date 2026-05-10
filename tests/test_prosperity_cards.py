@@ -1450,6 +1450,36 @@ class InvestmentTrashCurseAI(DummyAI):
         return choices[0] if choices else None
 
 
+def test_charlatan_latches_at_setup_survives_pile_removal():
+    """Charlatan's game-level rule is latched at setup so that subsequent
+    kingdom-pile mutations (e.g. Divine Wind deleting the Charlatan pile)
+    cannot deactivate it before the first Curse-as-Treasure check."""
+    player = PlayerState(PlayAllTreasuresAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Charlatan")])
+
+    # Simulate a Prophecy like Divine Wind: the Charlatan pile is removed
+    # outright. No Charlatan exists anywhere observable in the live state.
+    del state.supply["Charlatan"]
+    for p in state.players:
+        for zone_name in ("hand", "deck", "discard", "in_play", "duration"):
+            zone = getattr(p, zone_name, None)
+            if zone is not None:
+                zone[:] = [c for c in zone if c.name != "Charlatan"]
+    state.trash = [c for c in state.trash if c.name != "Charlatan"]
+    state.black_market_deck = [n for n in state.black_market_deck if n != "Charlatan"]
+
+    # Live scan would now fail; the setup-time latch must keep the rule on.
+    assert state.charlatan_curse_active() is True
+
+    player.in_play = []
+    player.hand = [get_card("Curse")]
+    player.coins = 0
+    player.buys = 1
+    state.handle_treasure_phase()
+    assert player.coins == 1
+
+
 def test_investment_can_trash_curse_as_treasure():
     """Investment's "trash a Treasure" must accept a Curse when Charlatan is
     in the game."""
