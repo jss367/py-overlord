@@ -660,6 +660,13 @@ class GameState:
             "Urchin",
             "Marauder",
             "Tournament",
+            # Trade Route seeds tokens onto Victory piles at setup; if it
+            # joins the supply later (via Ferryman), the tokens are absent
+            # and the card can't earn its coins.
+            "Trade Route",
+            # Riverboat picks a designated non-Duration Action at game
+            # start; that setup runs only for the original kingdom list.
+            "Riverboat",
         }
 
         kingdom_names = {c.name for c in kingdom_cards}
@@ -1168,9 +1175,10 @@ class GameState:
         for card in to_play:
             player.in_play.append(card)
             if card.is_action:
-                player.actions_this_turn += 1
-            card.on_play(self)
-            self.fire_ally_play_hooks(player, card)
+                self.play_action_indirectly(player, card)
+            else:
+                card.on_play(self)
+                self.fire_ally_play_hooks(player, card)
 
     def _handle_shy_start_of_turn(self, player: PlayerState) -> None:
         shy_pile = self.trait_piles.get("Shy")

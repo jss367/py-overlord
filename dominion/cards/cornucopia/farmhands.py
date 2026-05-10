@@ -66,8 +66,9 @@ class Farmhands(Card):
                 player.hand.remove(choice)
                 player.in_play.append(choice)
                 if choice.is_action:
-                    player.actions_this_turn += 1
-                choice.on_play(game_state)
-                game_state.fire_ally_play_hooks(player, choice)
+                    game_state.play_action_indirectly(player, choice)
+                else:
+                    choice.on_play(game_state)
+                    game_state.fire_ally_play_hooks(player, choice)
 
         self.duration_persistent = False

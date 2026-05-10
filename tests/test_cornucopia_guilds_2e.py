@@ -579,6 +579,8 @@ def test_ferryman_setup_skips_cards_needing_special_engine_setup():
     excluded = {
         "Black Market", "Young Witch", "Hermit", "Urchin",
         "Marauder", "Tournament", "Death Cart",
+        # Setup-keyed off kingdom_cards.
+        "Trade Route", "Riverboat",
         # Heirloom-bearers (need start-of-game Copper replacement).
         "Fool", "Cemetery", "Shepherd", "Secret Cave",
         # Fate / Doom (need Boons / Hexes setup).

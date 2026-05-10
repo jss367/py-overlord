@@ -39,8 +39,7 @@ class Shop(Card):
 
         player.hand.remove(choice)
         player.in_play.append(choice)
-        # Shop's free Action play counts as an Action played this turn
-        # (e.g., for Conspirator's "3+ Actions played" threshold).
-        player.actions_this_turn += 1
-        choice.on_play(game_state)
-        game_state.fire_ally_play_hooks(player, choice)
+        # Route through the indirect-play helper so all the bookkeeping
+        # (actions_this_turn, prophecy hooks, ally on-play hooks, tavern
+        # "action_played" triggers, Citadel replay) fires correctly.
+        game_state.play_action_indirectly(player, choice)

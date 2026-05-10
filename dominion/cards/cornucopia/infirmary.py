@@ -62,5 +62,4 @@ class Infirmary(Card):
             return
         player.in_play.append(target)
         for _ in range(amount):
-            target.on_play(game_state)
-            game_state.fire_ally_play_hooks(player, target)
+            game_state.play_action_indirectly(player, target)
