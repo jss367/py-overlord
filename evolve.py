@@ -23,6 +23,7 @@ from pathlib import Path
 import coloredlogs
 
 from dominion.ai.genetic_ai import GeneticAI
+from dominion.analysis.seed_genomes import build_seed_genomes, trick_signature
 from dominion.boards.loader import load_board
 from dominion.reporting.html_report import generate_leaderboard_html
 from dominion.simulation.genetic_trainer import GeneticTrainer
@@ -107,6 +108,12 @@ def main():
         help="module:function specs for seed strategy factories",
     )
     parser.add_argument(
+        "--no-trick-seeds", action="store_true",
+        help="Skip auto-generating seeds from the trick scanner. By default, "
+             "any interactions surfaced by dominion.analysis.trick_scanner are "
+             "mixed in alongside --seeds as additional starting points.",
+    )
+    parser.add_argument(
         "--population", type=int, default=25,
         help="Genetic algorithm population size (default: 25)",
     )
@@ -152,6 +159,25 @@ def main():
     for spec in args.seeds:
         name = _short_name(spec)
         seeds[name] = _load_factory(spec)
+
+    # Inject trick-scanner-derived seeds alongside the user-provided seeds.
+    # Each one becomes its own evolution lineage in Phase 2 — the evolver
+    # is expected to either build on the trick or prune it.
+    trick_seed_strategies: dict[str, EnhancedStrategy] = {}
+    if not args.no_trick_seeds:
+        for name, strategy in build_seed_genomes(board_config):
+            if name in seeds:
+                # Keep the user's version if a name happens to collide.
+                continue
+            seeds[name] = (lambda _s=strategy: deepcopy(_s))
+            trick_seed_strategies[name] = strategy
+        if trick_seed_strategies:
+            logger.info(
+                "Trick-scanner seeds added: %s",
+                ", ".join(trick_seed_strategies.keys()),
+            )
+        else:
+            logger.info("Trick-scanner surfaced no interactions for this board")
 
     if len(seeds) < 2:
         logger.error("Need at least 2 seed strategies for a tournament")
@@ -270,6 +296,57 @@ def main():
             "  #%d %s: %d-%d (%.1f%%)",
             rank, name, stats["wins"], stats["losses"], stats["win_rate"],
         )
+
+    # --- Trick-seed diversity report ---
+    # For each trick-scanner-derived seed, show its final rank, its evolved
+    # descendant's rank, and whether the descendant retained the structural
+    # fingerprint of the trick (way_policy entry, gain rule for the hook
+    # card, etc.). This is the report called out in issue #232's acceptance
+    # criteria: "seeded interactions are tried and either kept (when they
+    # work) or pruned (when they don't)".
+    if trick_seed_strategies:
+        rank_by_name = {name: rank for rank, (name, _) in enumerate(final_ranked, 1)}
+        logger.info("\n" + "=" * 60)
+        logger.info("TRICK-SEED DIVERSITY REPORT")
+        logger.info("=" * 60)
+        for seed_name, seed_strategy in trick_seed_strategies.items():
+            seed_sig = trick_signature(seed_strategy)
+            seed_rank = rank_by_name.get(seed_name)
+            evolved_name = f"Evolved {seed_name}"
+            evolved_rank = rank_by_name.get(evolved_name)
+            evolved_strategy = evolved.get(evolved_name)
+            kept = "n/a"
+            if evolved_strategy is not None:
+                evolved_sig = trick_signature(evolved_strategy)
+                # Trick is "kept" if the evolved strategy still contains
+                # the seed's way_policy entries (most discriminating
+                # fingerprint) or, in the absence of way_policy, still
+                # references the seed's primary gain card.
+                if seed_sig["way_policy"]:
+                    kept = "kept" if all(
+                        entry in evolved_sig["way_policy"]
+                        for entry in seed_sig["way_policy"]
+                    ) else "pruned"
+                else:
+                    primary_gain = next(
+                        (c for c in seed_sig["gain_cards"] if c != "Province"),
+                        None,
+                    )
+                    if primary_gain is None:
+                        kept = "n/a"
+                    else:
+                        kept = (
+                            "kept"
+                            if primary_gain in evolved_sig["gain_cards"]
+                            else "pruned"
+                        )
+            logger.info(
+                "  %s — seed rank: %s, evolved rank: %s, trick: %s",
+                seed_name,
+                f"#{seed_rank}" if seed_rank else "—",
+                f"#{evolved_rank}" if evolved_rank else "—",
+                kept,
+            )
 
     # Generate leaderboard report
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
