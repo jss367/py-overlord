@@ -44,10 +44,18 @@ class Ferryman(Card):
         super().on_gain(game_state, player)
         from ..registry import get_card
 
-        chosen = getattr(game_state, "ferryman_card_name", "")
-        if not chosen:
+        # The Ferryman pile may be a split pile; gain the current top of
+        # the pile (first non-empty name in pile order). Fall back to
+        # ``ferryman_card_name`` if pile order wasn't built (older saves
+        # / tests that set up Ferryman directly).
+        order = getattr(game_state, "ferryman_pile_order", None) or [
+            getattr(game_state, "ferryman_card_name", "")
+        ]
+        for name in order:
+            if not name:
+                continue
+            if game_state.supply.get(name, 0) <= 0:
+                continue
+            game_state.supply[name] -= 1
+            game_state.gain_card(player, get_card(name))
             return
-        if game_state.supply.get(chosen, 0) <= 0:
-            return
-        game_state.supply[chosen] -= 1
-        game_state.gain_card(player, get_card(chosen))

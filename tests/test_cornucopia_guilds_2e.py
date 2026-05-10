@@ -554,6 +554,42 @@ def test_infirmary_overpay_skips_replays_if_card_was_trashed():
     assert not any(c is infirmary for c in player.in_play)
 
 
+def test_ferryman_gain_iterates_pile_order_after_top_empties():
+    """If Ferryman's pile is a split pile, gaining Ferryman should
+    consume the current top — and once the top empties, gain from the
+    lower half."""
+
+    state = GameState(players=[])
+    state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
+    # Force a known split-pile setup so we can test the bottom-fallback.
+    state.ferryman_card_name = "Catapult"
+    state.ferryman_pile_order = ["Catapult", "Rocks"]
+    state.supply["Catapult"] = 1
+    state.supply["Rocks"] = 5
+    state.supply["Ferryman"] = 10
+    player = state.players[0]
+    player.hand = []
+    player.deck = []
+    player.discard = []
+    player.in_play = []
+    player.duration = []
+    player.exile = []
+
+    # Gain 1: Catapult is on top (1 copy), so we gain Catapult.
+    state.supply["Ferryman"] -= 1
+    state.gain_card(player, get_card("Ferryman"))
+    assert any(c.name == "Catapult" for c in player.discard)
+    assert state.supply["Catapult"] == 0
+    assert state.supply["Rocks"] == 5
+
+    # Gain 2: Catapult pile is empty, so Ferryman now gains Rocks.
+    player.discard.clear()
+    state.supply["Ferryman"] -= 1
+    state.gain_card(player, get_card("Ferryman"))
+    assert any(c.name == "Rocks" for c in player.discard)
+    assert state.supply["Rocks"] == 4
+
+
 def test_ferryman_setup_can_pick_split_pile_tops_and_adds_partners():
     """Split-pile tops (Tent for Forts, Old Map for Odysseys, Catapult
     for Catapult/Rocks, etc.) are eligible Ferryman picks. When picked,
@@ -1159,6 +1195,7 @@ def test_ferryman_on_gain_grants_chosen_card():
     # Override the random pick with a known well-behaved $4 Action.
     state.supply.setdefault("Smithy", get_card("Smithy").starting_supply(state))
     state.ferryman_card_name = "Smithy"
+    state.ferryman_pile_order = ["Smithy"]
     player = state.players[0]
     player.hand = []
     player.deck = []
@@ -1183,6 +1220,7 @@ def test_ferryman_on_gain_does_not_fire_on_play():
     state.initialize_game([FerrymanDiscardingAI()], [get_card("Ferryman")])
     state.supply.setdefault("Smithy", 10)
     state.ferryman_card_name = "Smithy"
+    state.ferryman_pile_order = ["Smithy"]
     player = state.players[0]
     ferryman = get_card("Ferryman")
     player.hand = [ferryman, get_card("Estate")]

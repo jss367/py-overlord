@@ -83,10 +83,14 @@ class GameState:
     # attack against the holder.
     bane_card_name: str = ""
 
-    # Cornucopia & Guilds 2E: Ferryman designates a $3-cost Action pile at
-    # game start. Whenever Ferryman is played, the player gains a copy of
-    # this card (the same one for the entire game).
+    # Cornucopia & Guilds 2E: Ferryman designates a $3/$4 Kingdom pile at
+    # game start. Whenever Ferryman is gained, the player gains a copy of
+    # the current top of that pile.
+    # ``ferryman_card_name`` is the initial top (for display / tests).
+    # ``ferryman_pile_order`` is the ordered list of names in the pile so
+    # split piles can keep gaining from the lower half once the top empties.
     ferryman_card_name: str = ""
+    ferryman_pile_order: list = field(default_factory=list)
 
     # Renaissance: Artifacts. Populated by ``initialize_game`` when the
     # corresponding Kingdom card is in the supply.
@@ -754,7 +758,21 @@ class GameState:
         # would be for an original-kingdom-list selection.
         self._register_kingdom_pile(chosen_card)
         self.ferryman_card_name = chosen_name
-        self.original_kingdom_pile_names.add(chosen_name)
+        # Build the ordered list of names in the chosen pile, so the
+        # gain hook can find the current top as the pile empties.
+        if isinstance(chosen_card, SplitPileMixin):
+            # Top, then partner (we only pick tops, see filter above).
+            self.ferryman_pile_order = [
+                chosen_name, chosen_card.partner_card_name
+            ]
+        elif isinstance(chosen_card, AlliesSplitCard):
+            self.ferryman_pile_order = list(chosen_card.pile_order)
+        elif isinstance(chosen_card, WizardsSplitCard):
+            self.ferryman_pile_order = list(WIZARDS_PILE_ORDER)
+        else:
+            self.ferryman_pile_order = [chosen_name]
+        for name in self.ferryman_pile_order:
+            self.original_kingdom_pile_names.add(name)
 
     def _setup_dark_ages_piles(self, kingdom_cards: list[Card]) -> None:
         """Build the shuffled Ruins / Knights piles and Madman / Mercenary piles."""
