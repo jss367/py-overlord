@@ -23,7 +23,9 @@ class Investment(Card):
             player.in_play.remove(self)
             game_state.trash_card(player, self)
 
-        treasures_in_hand = [card for card in player.hand if card.is_treasure]
+        treasures_in_hand = [
+            card for card in player.hand if game_state.is_treasure(card)
+        ]
         can_trash_treasure = bool(treasures_in_hand)
 
         mode = player.ai.choose_investment_mode(
@@ -40,7 +42,11 @@ class Investment(Card):
         choice = player.ai.choose_treasure_to_trash_for_investment(
             game_state, player, list(treasures_in_hand)
         )
-        if choice is None or choice not in player.hand or not choice.is_treasure:
+        if (
+            choice is None
+            or choice not in player.hand
+            or not game_state.is_treasure(choice)
+        ):
             # Fall back to coin if AI declined despite committing to trash.
             player.coins += 1
             return
@@ -50,6 +56,6 @@ class Investment(Card):
 
         # Reveal hand and count distinct treasure names (after trashing).
         distinct_treasure_names = {
-            card.name for card in player.hand if card.is_treasure
+            card.name for card in player.hand if game_state.is_treasure(card)
         }
         player.vp_tokens += len(distinct_treasure_names)

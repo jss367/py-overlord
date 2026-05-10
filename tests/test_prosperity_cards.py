@@ -1341,3 +1341,129 @@ def test_charlatan_active_when_seen_only_in_player_zone():
     player.discard = [get_card("Charlatan")]
 
     assert state.charlatan_curse_active() is True
+
+
+# ---------------------------------------------------------------------------
+# Charlatan-Curse-as-Treasure interactions across the Prosperity set
+# ---------------------------------------------------------------------------
+
+
+class RevealCurseForMintAI(DummyAI):
+    """Mint reveal: pick the Curse if available, else first treasure."""
+
+    def choose_treasure(self, state, choices):
+        for c in choices:
+            if c is not None and c.name == "Curse":
+                return c
+        for c in choices:
+            if c is not None:
+                return c
+        return None
+
+
+def test_mint_play_can_reveal_curse_as_treasure():
+    """With Charlatan in the kingdom, Mint's play effect should let the
+    player reveal a Curse-as-Treasure to gain a copy."""
+    player = PlayerState(RevealCurseForMintAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Charlatan"), get_card("Mint")])
+
+    mint = get_card("Mint")
+    player.hand = [mint, get_card("Curse")]
+
+    play_action(state, player, "Mint")
+
+    # A copy of Curse was gained from the supply.
+    assert any(c.name == "Curse" for c in player.discard)
+
+
+def test_bank_counts_charlataned_curses_in_play():
+    """Bank pays $1 per Treasure in play. A Curse played as a Treasure via
+    Charlatan must contribute."""
+    player = PlayerState(DummyAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Charlatan"), get_card("Bank")])
+
+    bank = get_card("Bank")
+    # 1 Copper + 1 Curse + Bank itself = 3 "treasures" in play.
+    player.in_play = [get_card("Copper"), get_card("Curse")]
+    player.coins = 0
+
+    player.in_play.append(bank)
+    bank.on_play(state)
+
+    assert player.coins == 3
+
+
+def test_venture_can_find_and_play_curse_as_treasure():
+    """Venture reveals deck until a Treasure is revealed and plays it. With
+    Charlatan in the game, a Curse counts and produces its own $1 via the
+    Curse-as-Treasure rule, on top of Venture's own $1."""
+    player = PlayerState(DummyAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Charlatan"), get_card("Venture")])
+
+    venture = get_card("Venture")
+    # Deck top will be popped first — a Curse is the first Treasure.
+    player.deck = [get_card("Estate"), get_card("Curse")]
+    player.hand = [venture]
+    player.coins = 0
+
+    play_action(state, player, "Venture")
+
+    # Venture's own +$1 + Curse-as-Treasure +$1 = +$2.
+    assert player.coins == 2
+    assert any(c.name == "Curse" for c in player.in_play)
+
+
+def test_loan_recognizes_curse_as_treasure():
+    """Loan reveals until a Treasure is found. With Charlatan in the game,
+    a Curse satisfies that search."""
+
+    class DiscardLoanFindAI(DummyAI):
+        def choose_card_to_trash(self, state, choices):
+            return None
+
+    player = PlayerState(DiscardLoanFindAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Charlatan"), get_card("Loan")])
+
+    loan = get_card("Loan")
+    player.deck = [get_card("Curse"), get_card("Estate")]  # Estate revealed first, then Curse
+    player.hand = [loan]
+
+    play_action(state, player, "Loan")
+
+    # The Curse is the first "treasure" revealed (under Charlatan); it
+    # ends up discarded (player chose not to trash).
+    assert any(c.name == "Curse" for c in player.discard)
+
+
+class InvestmentTrashCurseAI(DummyAI):
+    def choose_investment_mode(self, state, player, can_trash):
+        return "trash" if can_trash else "coin"
+
+    def choose_treasure_to_trash_for_investment(self, state, player, choices):
+        for c in choices:
+            if c.name == "Curse":
+                return c
+        return choices[0] if choices else None
+
+
+def test_investment_can_trash_curse_as_treasure():
+    """Investment's "trash a Treasure" must accept a Curse when Charlatan is
+    in the game."""
+    player = PlayerState(InvestmentTrashCurseAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Charlatan"), get_card("Investment")])
+
+    investment = get_card("Investment")
+    player.in_play = [investment]
+    player.hand = [get_card("Curse"), get_card("Copper")]
+
+    investment.play_effect(state)
+
+    # Investment self-trashes + Curse trashed
+    trashed_names = [c.name for c in state.trash]
+    assert "Investment" in trashed_names
+    assert "Curse" in trashed_names

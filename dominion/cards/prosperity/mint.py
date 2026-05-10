@@ -14,7 +14,7 @@ class Mint(Card):
         from ..registry import get_card
 
         player = game_state.current_player
-        treasures = [c for c in player.hand if c.is_treasure]
+        treasures = [c for c in player.hand if game_state.is_treasure(c)]
         if not treasures:
             return
 

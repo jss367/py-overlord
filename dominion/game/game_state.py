@@ -1658,22 +1658,17 @@ class GameState:
         )
 
         while True:
-            treasures = [card for card in player.hand if card.is_treasure]
+            # ``is_treasure`` respects game-level type modifiers — notably
+            # Charlatan, which makes Curses Treasures for the whole game.
+            treasures = [card for card in player.hand if self.is_treasure(card)]
             if capitalism:
                 treasures += [
                     card
                     for card in player.hand
                     if card.is_action
-                    and not card.is_treasure
+                    and not self.is_treasure(card)
                     and card.stats.coins > 0
                 ]
-            # Prosperity 2E: in any kingdom that includes Charlatan, Curses
-            # are Treasures (in addition to their other types) and produce $1
-            # when played. See ``charlatan_curse_active`` for the activation
-            # rule (game-level, not while-in-play).
-            charlatan_active = self.charlatan_curse_active()
-            if charlatan_active:
-                treasures += [card for card in player.hand if card.name == "Curse"]
             if not treasures:
                 break
 
@@ -1702,21 +1697,15 @@ class GameState:
             else:
                 # Corsair trashes AFTER on_play: the treasure is fully played
                 # (so its +$ applies and any "while in play" counters tick),
-                # then Corsair removes it from in-play to the trash.
-                # Prosperity 2E: Curses played as Treasures via Charlatan
-                # produce $1. ``Curse.on_play`` applies no stats, so we add
-                # the coin alongside every play of a Curse — including any
-                # replay paths below (Reckless, Tiara).
-                def play_choice() -> None:
-                    choice.on_play(self)
-                    if choice.name == "Curse" and charlatan_active:
-                        player.coins += 1
-
-                play_choice()
+                # then Corsair removes it from in-play to the trash. The
+                # Charlatan +$1 for a Curse-as-Treasure is applied inside
+                # ``Curse.play_effect``, so it fires automatically here and
+                # on any replay (Reckless, Tiara) below.
+                choice.on_play(self)
                 # Plunder Reckless trait: Treasures from Reckless pile play twice.
                 if self.pile_traits.get(choice.name) == "Reckless":
                     if choice in player.in_play:
-                        play_choice()
+                        choice.on_play(self)
                 self._maybe_corsair_trash(player, choice)
                 # Menagerie: Kiln — gain a copy of the next card played.
                 self._maybe_kiln_gain(player, choice)
@@ -1756,7 +1745,7 @@ class GameState:
                         self, player, choice
                     ):
                         player.tiara_replay_used = True
-                        play_choice()
+                        choice.on_play(self)
                         if self.prophecy is not None and self.prophecy.is_active:
                             self.prophecy.on_play_treasure(self, player, choice)
                         # Tiara's bonus replay is another play of the
