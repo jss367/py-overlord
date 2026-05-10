@@ -168,9 +168,10 @@ def test_carnival_all_distinct_keeps_all_four():
 # ---------------------------------------------------------------------------
 
 
-def test_shop_grants_card_action_coin_and_plays_unique_action_from_hand():
-    """+1 Card / +1 Action / +$1, may play an Action from hand whose name is
-    not already represented among Actions in play."""
+def test_shop_grants_card_and_coin_and_plays_unique_action_from_hand():
+    """+1 Card / +$1, may play an Action from hand whose name is not
+    already represented among Actions in play. Shop does NOT grant
+    +1 Action — the Action it plays is played without spending one."""
 
     state, player = _make_state()
     shop = get_card("Shop")
@@ -187,31 +188,33 @@ def test_shop_grants_card_action_coin_and_plays_unique_action_from_hand():
     shop.on_play(state)
 
     assert player.coins == 1
-    # Shop draws 1 (Copper) into hand. Smithy plays from hand → +3 cards (but
-    # deck is empty after the Copper draw); the play happens regardless.
+    # Shop draws 1 (Copper) into hand. Smithy plays from hand without
+    # spending an action.
     assert any(c.name == "Smithy" for c in player.in_play), (
         "Smithy should have been played from hand"
     )
-    # Smithy is no longer in hand.
     assert not any(c.name == "Smithy" for c in player.hand)
     # Village (already-named in_play) was not played: it stays in hand.
     assert any(c.name == "Village" for c in player.hand)
 
 
 def test_shop_does_not_consume_action_to_play_card():
-    """Shop's action play does NOT cost an action from the pool."""
+    """Shop plays an Action from hand WITHOUT spending an action from the
+    pool. Shop itself grants no +1 Action."""
+
     state, player = _make_state()
     shop = get_card("Shop")
     village = get_card("Village")
     player.hand = [shop, village]
-    player.actions = 1
+    player.actions = 0
 
     player.hand.remove(shop)
     player.in_play.append(shop)
     shop.on_play(state)
 
-    # +1 Action from Shop, then Village played for free, +2 actions from Village.
-    assert player.actions >= 2
+    # Village played for free → +2 actions from Village's effect, no
+    # contribution from Shop itself.
+    assert player.actions == 2
 
 
 def test_shop_treats_duration_actions_as_in_play():

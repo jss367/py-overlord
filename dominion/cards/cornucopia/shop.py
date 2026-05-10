@@ -2,14 +2,14 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Shop(Card):
-    """+1 Card / +1 Action / +$1. You may play an Action card from your hand
-    that you don't have a copy of in play."""
+    """+1 Card / +$1. You may play an Action card from your hand that you
+    don't have a copy of in play."""
 
     def __init__(self):
         super().__init__(
             name="Shop",
-            cost=CardCost(coins=4),
-            stats=CardStats(cards=1, actions=1, coins=1),
+            cost=CardCost(coins=3),
+            stats=CardStats(cards=1, coins=1),
             types=[CardType.ACTION],
         )
 
