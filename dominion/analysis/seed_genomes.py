@@ -269,11 +269,15 @@ def _seed_for_command_targets(
         PriorityRule(command_name, PriorityRule.max_in_deck(command_name, 3)),
         PriorityRule(primary, PriorityRule.max_in_deck(primary, 3)),
     ] + _baseline_gain_priority()
-    # Play the target first so Command has something to copy; if no target
-    # is in hand, fall back to playing the Command anyway.
+    # Play the Command FIRST so its pending-replay slot is registered;
+    # then the next non-Command Action played consumes the slot. Reversing
+    # this ordering breaks the trick on every "next non-Command Action"
+    # Command (Daimyo, Flagship): the payload would be played first and
+    # the pending counter set by the Command would have nothing to fire
+    # on for the rest of the turn.
     strat.action_priority = [
-        PriorityRule(primary),
         PriorityRule(command_name),
+        PriorityRule(primary),
     ]
     strat.treasure_priority = _baseline_treasure_priority()
     return strat.name, strat

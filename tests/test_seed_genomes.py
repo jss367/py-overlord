@@ -143,10 +143,16 @@ def test_command_seed_pairs_command_with_top_payload_target():
     seed = command_seeds[0]
     gain_cards = [r.card for r in seed.gain_priority]
     assert "Band of Misfits" in gain_cards
-    # Top payload among Witch / Village / Smithy is Witch ($3 + curser).
-    # Whatever the scanner ranks first, the seed must include it.
-    target_in_action = [r.card for r in seed.action_priority][0]
-    assert target_in_action in {"Witch", "Smithy", "Village"}
+
+    # Action priority must play the Command FIRST so its pending-replay
+    # slot is registered, then the payload that consumes the slot. The
+    # reverse order silently breaks every "next non-Command Action"
+    # Command (Daimyo, Flagship): the payload would be played first and
+    # the Command's pending counter would have nothing to fire on for the
+    # rest of the turn.
+    action_cards = [r.card for r in seed.action_priority]
+    assert action_cards[0] == "Band of Misfits", action_cards
+    assert action_cards[1] in {"Witch", "Smithy", "Village"}, action_cards
 
 
 def test_cost_mod_seed_stacks_reducer():
