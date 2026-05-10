@@ -504,6 +504,7 @@ class PlayerState:
             self.tavern_mat,
             self.save_set_aside,
             self.summon_set_aside,
+            self.farmhands_set_aside,
         ]
 
         cards: list[Card] = []
