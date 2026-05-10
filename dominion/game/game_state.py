@@ -423,6 +423,59 @@ class GameState:
             return card
         return None
 
+    def _register_kingdom_pile(self, card: Card) -> None:
+        """Add a single Kingdom card pile to the supply, including any
+        split-pile partner piles and additional piles that the card requires
+        (``get_additional_piles`` / ``get_additional_non_supply_piles``).
+
+        Used by ``setup_supply`` for each kingdom card and by
+        ``_setup_ferryman_pile`` for the Ferryman-designated pile.
+
+        Note: this helper does NOT replicate engine-level setup that's only
+        triggered by the original kingdom list (Black Market deck, Young
+        Witch bane, Dark Ages Ruins/Madman/Mercenary, Castles expansion,
+        Trade Route tokens, Riverboat pick, Boons/Hexes for Fate/Doom).
+        Callers must filter out cards that need that special setup.
+        """
+        from dominion.cards.allies._split_base import AlliesSplitCard
+        from dominion.cards.allies.wizards import (
+            WIZARDS_PILE_ORDER,
+            WizardsSplitCard,
+        )
+
+        self.supply[card.name] = card.starting_supply(self)
+
+        # Split-pile partners.
+        if isinstance(card, SplitPileMixin):
+            partner = get_card(card.partner_card_name)
+            if partner.name not in self.supply:
+                self.supply[partner.name] = partner.starting_supply(self)
+
+        if isinstance(card, WizardsSplitCard):
+            for partner_name in WIZARDS_PILE_ORDER:
+                if partner_name == card.name:
+                    continue
+                if partner_name not in self.supply:
+                    partner = get_card(partner_name)
+                    self.supply[partner_name] = partner.starting_supply(self)
+
+        if isinstance(card, AlliesSplitCard):
+            for partner_name in card.pile_order:
+                if partner_name == card.name:
+                    continue
+                if partner_name not in self.supply:
+                    partner = get_card(partner_name)
+                    self.supply[partner_name] = partner.starting_supply(self)
+
+        for name, count in card.get_additional_piles().items():
+            if name not in self.supply:
+                self.supply[name] = count
+
+        for name, count in card.get_additional_non_supply_piles().items():
+            if name not in self.supply:
+                self.supply[name] = count
+            self.non_supply_pile_names.add(name)
+
     def setup_supply(self, kingdom_cards: list[Card]):
         """Set up the initial supply piles."""
         # Add basic cards with proper counts
@@ -450,50 +503,7 @@ class GameState:
         self.baker_in_supply = False
         # Add kingdom cards
         for card in kingdom_cards:
-            self.supply[card.name] = card.starting_supply(self)
-
-            # Automatically add split pile partner cards
-            if isinstance(card, SplitPileMixin):
-                partner = get_card(card.partner_card_name)
-                if partner.name not in self.supply:
-                    self.supply[partner.name] = partner.starting_supply(self)
-
-            # Wizards split pile: add the other three partners with
-            # player-count-aware supply via each partner's starting_supply.
-            from dominion.cards.allies.wizards import (
-                WIZARDS_PILE_ORDER,
-                WizardsSplitCard,
-            )
-            if isinstance(card, WizardsSplitCard):
-                for partner_name in WIZARDS_PILE_ORDER:
-                    if partner_name == card.name:
-                        continue
-                    if partner_name not in self.supply:
-                        partner = get_card(partner_name)
-                        self.supply[partner_name] = partner.starting_supply(self)
-
-            # Allies four-card split piles (Augurs, Clashes, Forts,
-            # Odysseys, Townsfolk).
-            from dominion.cards.allies._split_base import AlliesSplitCard
-            if isinstance(card, AlliesSplitCard):
-                for partner_name in card.pile_order:
-                    if partner_name == card.name:
-                        continue
-                    if partner_name not in self.supply:
-                        partner = get_card(partner_name)
-                        self.supply[partner_name] = partner.starting_supply(self)
-
-            extras = card.get_additional_piles()
-            for name, count in extras.items():
-                if name not in self.supply:
-                    self.supply[name] = count
-
-            non_supply_extras = card.get_additional_non_supply_piles()
-            for name, count in non_supply_extras.items():
-                if name not in self.supply:
-                    self.supply[name] = count
-                self.non_supply_pile_names.add(name)
-
+            self._register_kingdom_pile(card)
             if card.name == "Baker":
                 self.baker_in_supply = True
 
@@ -621,14 +631,18 @@ class GameState:
         costing $3 or $4 — not restricted to Actions, so $3/$4 Kingdom
         Treasures and Victory cards are eligible too.
 
-        Split-pile cards (Allies four-card piles, Wizards, Empires
-        SplitPileMixin pairs, Castles) are excluded: their pile setup
-        requires partner piles whose registration lives in
-        :meth:`setup_supply`. Restricting Ferryman to ordinary single-pile
-        $3/$4 Kingdom cards avoids a half-initialised split pile.
+        Split piles (Allies four-card piles, Wizards, Empires
+        SplitPileMixin pairs, Empires Castles) are supported only if the
+        chosen card is the TOP of its pile, since gameplay can only buy
+        or gain from the top initially. When a split-pile top is picked,
+        ``_register_kingdom_pile`` adds all partner piles to the supply
+        so the pile evolves correctly during play.
         """
         from dominion.cards.allies._split_base import AlliesSplitCard
-        from dominion.cards.allies.wizards import WizardsSplitCard
+        from dominion.cards.allies.wizards import (
+            WIZARDS_PILE_ORDER,
+            WizardsSplitCard,
+        )
         from dominion.cards.empires.castles import CASTLE_ORDER
         from dominion.cards.expansions import LOOT_CARD_NAMES
         from dominion.cards.split_pile import SplitPileMixin
@@ -678,8 +692,6 @@ class GameState:
                 continue
             if name in self.supply:
                 continue
-            if name in CASTLE_ORDER:
-                continue
             try:
                 card = get_card(name)
             except ValueError:
@@ -690,7 +702,19 @@ class GameState:
                 continue
             if getattr(card, "is_event", False) or getattr(card, "is_project", False):
                 continue
-            if isinstance(card, (SplitPileMixin, WizardsSplitCard, AlliesSplitCard)):
+            # Split piles: only the top is buyable initially, so only the
+            # top is a valid Ferryman pick.
+            if isinstance(card, SplitPileMixin) and card.bottom:
+                continue
+            if isinstance(card, AlliesSplitCard) and name != card.pile_order[0]:
+                continue
+            if isinstance(card, WizardsSplitCard) and name != WIZARDS_PILE_ORDER[0]:
+                continue
+            if name in CASTLE_ORDER and name != CASTLE_ORDER[0]:
+                continue
+            # Castles also need the "expand all 8" engine setup that only
+            # runs for the original kingdom list — skip even the top.
+            if name in CASTLE_ORDER:
                 continue
             if card.is_heirloom:
                 # Heirlooms start with 0 copies in the Supply.
@@ -725,7 +749,10 @@ class GameState:
             return
 
         chosen_name, chosen_card = random.choice(candidates)
-        self.supply[chosen_name] = chosen_card.starting_supply(self)
+        # Register the chosen pile via the shared helper so split-pile
+        # partners and any additional piles are set up the same way they
+        # would be for an original-kingdom-list selection.
+        self._register_kingdom_pile(chosen_card)
         self.ferryman_card_name = chosen_name
         self.original_kingdom_pile_names.add(chosen_name)
 

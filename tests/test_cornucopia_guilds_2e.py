@@ -554,6 +554,57 @@ def test_infirmary_overpay_skips_replays_if_card_was_trashed():
     assert not any(c is infirmary for c in player.in_play)
 
 
+def test_ferryman_setup_can_pick_split_pile_tops_and_adds_partners():
+    """Split-pile tops (Tent for Forts, Old Map for Odysseys, Catapult
+    for Catapult/Rocks, etc.) are eligible Ferryman picks. When picked,
+    partner piles must also be added to the supply so the pile evolves
+    correctly as the top empties."""
+
+    # Force a deterministic seed sweep until we land on a known split-pile
+    # top, then verify the partner was registered.
+    import random as _random
+
+    tops_seen: dict[str, list[str]] = {
+        "Tent": ["Garrison", "Hill Fort", "Stronghold"],
+        "Old Map": ["Voyage", "Sunken Treasure", "Distant Shore"],
+        "Catapult": ["Rocks"],
+        "Encampment": ["Plunder"],
+        "Patrician": ["Emporium"],
+        "Settlers": ["Bustling Village"],
+        "Sauna": ["Avanto"],
+    }
+    found = False
+    for seed in range(500):
+        _random.seed(seed)
+        state = GameState(players=[])
+        state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
+        name = state.ferryman_card_name
+        if name in tops_seen:
+            found = True
+            for partner in tops_seen[name]:
+                assert partner in state.supply, (
+                    f"Ferryman picked {name} but partner {partner} "
+                    f"was not registered in supply"
+                )
+            break
+    assert found, "No split-pile top was selected in 500 seeds"
+
+
+def test_ferryman_setup_never_picks_split_pile_non_top():
+    """Only the TOP of a split pile is a legal Ferryman pick. Bottom
+    halves (Rocks, Plunder, Garrison, etc.) must be filtered out."""
+
+    bottoms = {"Rocks", "Plunder", "Emporium", "Bustling Village",
+               "Avanto", "Garrison", "Hill Fort", "Stronghold",
+               "Voyage", "Sunken Treasure", "Distant Shore"}
+    for _ in range(150):
+        state = GameState(players=[])
+        state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
+        assert state.ferryman_card_name not in bottoms, (
+            f"Ferryman picked split-pile bottom {state.ferryman_card_name}"
+        )
+
+
 def test_ferryman_setup_never_picks_potion_or_other_non_kingdom_supply():
     """Ferryman's setup says 'Choose an unused Kingdom card pile.'
     Non-Kingdom piles (Potion, Plunder Loot) are not eligible even
@@ -1148,19 +1199,26 @@ def test_ferryman_on_gain_does_not_fire_on_play():
     assert not any(c.name == "Smithy" for c in player.discard)
 
 
-def test_ferryman_setup_skips_split_pile_cards():
-    """Ferryman picks an unused $3 Action; split-pile $3 cards (Tent,
-    Old Map, Catapult, Humble Castle) must be skipped to avoid leaving
-    partner piles unregistered."""
+def test_ferryman_setup_skips_castles_and_split_pile_bottoms():
+    """Ferryman supports split-pile TOPs (Tent, Old Map, Catapult, ...)
+    but must not pick split-pile BOTTOMS or any Castle variant (the
+    Castles expansion is a special-case setup we don't replicate)."""
 
-    # Run the setup many times to make a missed split-pile candidate
-    # statistically improbable.
-    bad_names = {"Tent", "Old Map", "Catapult", "Humble Castle"}
-    for _ in range(50):
+    bad_names = {
+        "Humble Castle", "Crumbling Castle", "Small Castle",
+        "Haunted Castle", "Opulent Castle", "Sprawling Castle",
+        "Grand Castle", "King's Castle",
+        # Split-pile bottoms
+        "Rocks", "Plunder", "Bustling Village", "Emporium", "Avanto",
+        "Garrison", "Hill Fort", "Stronghold",
+        "Voyage", "Sunken Treasure", "Distant Shore",
+    }
+    for _ in range(200):
         state = GameState(players=[])
         state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
         assert state.ferryman_card_name not in bad_names, (
-            f"Ferryman picked split-pile card {state.ferryman_card_name}"
+            f"Ferryman picked illegal split-pile bottom / Castle "
+            f"{state.ferryman_card_name}"
         )
 
 
