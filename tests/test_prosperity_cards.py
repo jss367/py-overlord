@@ -226,6 +226,35 @@ def test_watchtower_draws_to_six_and_can_trash_gains():
     assert any(card.name == "Estate" for card in state.trash)
 
 
+def test_watchtower_terminates_when_deck_and_discard_empty():
+    """Regression: Watchtower's draw-to-6 loop must break if there are no
+    more cards to draw, otherwise a thinned-out player (deck and discard
+    both empty) infinite-loops during fitness evaluation in the GA.
+    """
+    import threading
+
+    player = PlayerState(DummyAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Watchtower")])
+
+    player.hand = [get_card("Watchtower")]
+    player.deck = []
+    player.discard = []
+
+    finished = threading.Event()
+
+    def run():
+        play_action(state, player, "Watchtower")
+        finished.set()
+
+    t = threading.Thread(target=run, daemon=True)
+    t.start()
+    t.join(timeout=2)
+
+    assert finished.is_set(), "Watchtower did not terminate with empty deck+discard"
+    assert len(player.hand) == 0  # nothing to draw
+
+
 def test_watchtower_can_topdeck_gains():
     gain_ai = DummyAI()
     reaction_ai = WatchtowerTopdeckAI()

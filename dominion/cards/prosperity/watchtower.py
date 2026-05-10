@@ -11,8 +11,15 @@ class Watchtower(Card):
         )
 
     def play_effect(self, game_state):
-        """Draw until the current player has six cards in hand."""
+        """Draw until the current player has six cards in hand.
+
+        Stops if the deck and discard are both exhausted — otherwise a
+        thinned-out player could loop forever while ``draw_cards`` returns
+        nothing but the hand never reaches six.
+        """
 
         player = game_state.current_player
         while len(player.hand) < 6:
-            game_state.draw_cards(player, 1)
+            drawn = game_state.draw_cards(player, 1)
+            if not drawn:
+                break
