@@ -1557,14 +1557,31 @@ class GameState:
     def charlatan_curse_active(self) -> bool:
         """Whether Charlatan's "Curses are Treasures worth $1" rule is active.
 
-        Per Prosperity 2E, this applies "for the entire game and in all
-        situations" once Charlatan is part of the kingdom — even when the
-        Charlatan pile has been emptied or no Charlatan is in play. Black
-        Market keeps its deck out of the Supply, so we also check that.
+        Per Prosperity 2E this applies "for the entire game and in all
+        situations" once Charlatan is part of the game. The check is a
+        latched lazy scan: as soon as a Charlatan is observed anywhere
+        (Supply, Black Market deck, any player zone, or the trash) the
+        flag is set to True and stays True for the remainder of the
+        game. This matters because Black Market removes purchased cards
+        from its deck permanently, so a supply/deck-only check would
+        deactivate the rule mid-game.
         """
+        if getattr(self, "_charlatan_seen", False):
+            return True
         if "Charlatan" in self.supply:
+            self._charlatan_seen = True
             return True
         if "Charlatan" in self.black_market_deck:
+            self._charlatan_seen = True
+            return True
+        for p in self.players:
+            for zone_name in ("hand", "deck", "discard", "in_play", "duration"):
+                zone = getattr(p, zone_name, ())
+                if any(getattr(c, "name", None) == "Charlatan" for c in zone):
+                    self._charlatan_seen = True
+                    return True
+        if any(c.name == "Charlatan" for c in self.trash):
+            self._charlatan_seen = True
             return True
         return False
 

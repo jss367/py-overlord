@@ -1296,3 +1296,48 @@ def test_charlatan_active_when_only_in_black_market_deck():
 
     assert player.coins == 1
     assert any(c.name == "Curse" for c in player.in_play)
+
+
+def test_charlatan_activation_persists_after_black_market_purchase():
+    """Black Market removes purchased cards from its deck permanently. Once
+    Charlatan has been observed in the game, the Curse-as-Treasure rule must
+    stay active even after the Charlatan leaves the Black Market deck."""
+    player = PlayerState(PlayAllTreasuresAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Village")])
+    state.supply.pop("Charlatan", None)
+    state.black_market_deck = ["Charlatan"]
+
+    # Activate the cache via a no-op call while Charlatan is in the BM deck.
+    assert state.charlatan_curse_active() is True
+
+    # Simulate a Black Market purchase: card leaves the deck and enters the
+    # buyer's discard. After this, the BM deck no longer contains Charlatan.
+    state.black_market_deck.remove("Charlatan")
+    player.discard.append(get_card("Charlatan"))
+
+    # The rule must still be active.
+    assert state.charlatan_curse_active() is True
+
+    player.in_play = []
+    player.hand = [get_card("Curse")]
+    player.coins = 0
+    player.buys = 1
+    state.handle_treasure_phase()
+    assert player.coins == 1
+
+
+def test_charlatan_active_when_seen_only_in_player_zone():
+    """A Charlatan present only in a player's deck/discard (e.g. after being
+    bought from Black Market with no other source) still activates the rule
+    on first call, before any caching."""
+    player = PlayerState(PlayAllTreasuresAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Village")])
+    state.supply.pop("Charlatan", None)
+    state.black_market_deck = []
+
+    # Charlatan exists only in a player's discard.
+    player.discard = [get_card("Charlatan")]
+
+    assert state.charlatan_curse_active() is True
