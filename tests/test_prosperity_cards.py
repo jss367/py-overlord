@@ -1462,6 +1462,22 @@ def test_charlatan_latch_resets_between_games_on_same_state():
     assert state.charlatan_curse_active() is False
 
 
+def test_charlatan_stale_trash_does_not_reactivate_rule():
+    """A trashed Charlatan from a prior game must not reactivate the rule
+    via the live-zone scan when the same GameState is re-initialized for
+    a Charlatan-free game."""
+    state = GameState([PlayerState(DummyAI())])
+    state.initialize_game([DummyAI()], [get_card("Charlatan")])
+    # Simulate a prior game leaving a trashed Charlatan in self.trash.
+    state.trash.append(get_card("Charlatan"))
+
+    # Re-initialize with a kingdom that does not include Charlatan.
+    state.initialize_game([DummyAI()], [get_card("Village")])
+
+    assert state.trash == []
+    assert state.charlatan_curse_active() is False
+
+
 class SmuggleEstateForCountingHouseAI(DummyAI):
     """A misbehaving AI that tries to return an Estate from discard."""
 
