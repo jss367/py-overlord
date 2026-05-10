@@ -8,7 +8,7 @@ class Farrier(Card):
     def __init__(self):
         super().__init__(
             name="Farrier",
-            cost=CardCost(coins=3),
+            cost=CardCost(coins=2),
             stats=CardStats(cards=1, actions=1, buys=1),
             types=[CardType.ACTION],
         )

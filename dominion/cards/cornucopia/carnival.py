@@ -8,7 +8,7 @@ class Carnival(Card):
     def __init__(self):
         super().__init__(
             name="Carnival",
-            cost=CardCost(coins=4),
+            cost=CardCost(coins=5),
             stats=CardStats(buys=1),
             types=[CardType.ACTION],
         )

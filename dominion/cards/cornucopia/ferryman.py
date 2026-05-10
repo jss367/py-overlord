@@ -9,7 +9,7 @@ class Ferryman(Card):
     def __init__(self):
         super().__init__(
             name="Ferryman",
-            cost=CardCost(coins=4),
+            cost=CardCost(coins=5),
             stats=CardStats(cards=2, actions=1),
             types=[CardType.ACTION],
         )

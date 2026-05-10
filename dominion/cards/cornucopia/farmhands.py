@@ -2,16 +2,16 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Farmhands(Card):
-    """At the start of your next turn, you may play a non-Duration Action or
-    Treasure from your hand. When you gain this, set aside an Action or
-    Treasure from your hand costing up to $4; play it at the start of your
-    next turn."""
+    """+1 Card / +2 Actions. At the start of your next turn, you may play
+    a non-Duration Action or Treasure from your hand. When you gain this,
+    set aside an Action or Treasure from your hand costing up to $4; play
+    it at the start of your next turn."""
 
     def __init__(self):
         super().__init__(
             name="Farmhands",
-            cost=CardCost(coins=5),
-            stats=CardStats(),
+            cost=CardCost(coins=4),
+            stats=CardStats(cards=1, actions=2),
             types=[CardType.ACTION, CardType.DURATION],
         )
 
