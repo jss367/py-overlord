@@ -1450,6 +1450,44 @@ class InvestmentTrashCurseAI(DummyAI):
         return choices[0] if choices else None
 
 
+def test_charlatan_latch_resets_between_games_on_same_state():
+    """A reused GameState must not carry _charlatan_seen across games — a
+    later Charlatan-free game should not treat Curses as Treasures."""
+    state = GameState([PlayerState(DummyAI())])
+    state.initialize_game([DummyAI()], [get_card("Charlatan")])
+    assert state.charlatan_curse_active() is True
+
+    # Re-initialize the same GameState with a Charlatan-free kingdom.
+    state.initialize_game([DummyAI()], [get_card("Village")])
+    assert state.charlatan_curse_active() is False
+
+
+class SmuggleEstateForCountingHouseAI(DummyAI):
+    """A misbehaving AI that tries to return an Estate from discard."""
+
+    def choose_coppers_for_counting_house(self, state, player, coppers):
+        # Try to smuggle the Estate (already in discard) past Counting House.
+        return [c for c in player.discard if c.name == "Estate"]
+
+
+def test_counting_house_rejects_non_copper_ai_picks():
+    """Counting House must validate AI picks against the offered Coppers
+    list; non-Copper cards from discard cannot be smuggled into hand."""
+    player = PlayerState(SmuggleEstateForCountingHouseAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Counting House")])
+
+    ch = get_card("Counting House")
+    player.hand = [ch]
+    player.discard = [get_card("Copper"), get_card("Estate")]
+
+    play_action(state, player, "Counting House")
+
+    # The Estate must remain in discard, not be moved to hand.
+    assert any(c.name == "Estate" for c in player.discard)
+    assert all(c.name != "Estate" for c in player.hand)
+
+
 def test_charlatan_latches_at_setup_survives_pile_removal():
     """Charlatan's game-level rule is latched at setup so that subsequent
     kingdom-pile mutations (e.g. Divine Wind deleting the Charlatan pile)

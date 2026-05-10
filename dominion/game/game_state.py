@@ -253,6 +253,10 @@ class GameState:
         landmarks: list = None,
     ):
         """Set up the game with given AIs and kingdom cards."""
+        # Reset latched per-game flags so a reused ``GameState`` doesn't
+        # carry state from a previous game (e.g. a prior Charlatan game
+        # leaving Curse-as-Treasure active in a Charlatan-free game).
+        self._charlatan_seen = False
         # Create PlayerState objects for each AI
         self.players = [PlayerState(ai) for ai in ais]
         # Provide a back-reference so PlayerState methods (notably
