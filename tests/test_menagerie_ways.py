@@ -594,7 +594,7 @@ def test_way_of_the_seal_topdecks_subsequent_gain():
     state.supply["Silver"] -= 1
     state.gain_card(p1, silver)
     assert len(p1.deck) == deck_before + 1
-    assert p1.deck[0].name == "Silver"
+    assert p1.deck[-1].name == "Silver"
 
 
 def test_way_of_the_seal_does_not_persist_past_turn():

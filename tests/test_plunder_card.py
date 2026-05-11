@@ -66,9 +66,9 @@ def test_plunder_play_topdecks_gold():
 
     plunder.on_play(state)
 
-    assert player.deck[0].name == "Gold"
+    assert player.deck[-1].name == "Gold"
     assert len(player.deck) == 2
-    assert player.deck[1].name == "Estate"
+    assert player.deck[0].name == "Estate"
     assert state.supply["Gold"] == 4
 
 
@@ -131,8 +131,8 @@ def test_insignia_respects_optional_topdecking():
 
     state.supply["Silver"] -= 1
     state.gain_card(player, get_card("Silver"))
-    assert player.deck[0].name == "Silver"
-    assert player.deck[1].name == "Copper"
+    assert player.deck[-1].name == "Silver"
+    assert player.deck[0].name == "Copper"
     assert not any(card.name == "Silver" for card in player.discard)
 
     state.supply["Estate"] -= 1
@@ -141,8 +141,8 @@ def test_insignia_respects_optional_topdecking():
 
     state.supply["Gold"] -= 1
     state.gain_card(player, get_card("Gold"))
-    assert player.deck[0].name == "Gold"
-    assert player.deck[1].name == "Silver"
+    assert player.deck[-1].name == "Gold"
+    assert player.deck[-2].name == "Silver"
     assert ai.decisions == []
     assert ai.seen_cards == ["Silver", "Estate", "Gold"]
 
