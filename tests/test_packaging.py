@@ -6,7 +6,17 @@ import zipfile
 def test_wheel_packages_console_entrypoint_and_runtime_metadata(tmp_path):
     wheel_dir = tmp_path / "dist"
     subprocess.run(
-        [sys.executable, "-m", "pip", "wheel", ".", "--no-deps", "--wheel-dir", str(wheel_dir)],
+        [
+            sys.executable,
+            "-m",
+            "pip",
+            "wheel",
+            ".",
+            "--no-deps",
+            "--no-build-isolation",
+            "--wheel-dir",
+            str(wheel_dir),
+        ],
         check=True,
     )
 
