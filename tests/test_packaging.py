@@ -1,4 +1,3 @@
-import importlib.util
 import subprocess
 import sys
 import zipfile
@@ -7,7 +6,9 @@ import pytest
 
 
 def test_wheel_packages_console_entrypoint_and_runtime_metadata(tmp_path):
-    if importlib.util.find_spec("setuptools.build_meta") is None:
+    try:
+        import setuptools.build_meta  # noqa: F401
+    except ModuleNotFoundError:
         pytest.skip("setuptools.build_meta is required for no-isolation wheel build")
 
     wheel_dir = tmp_path / "dist"
