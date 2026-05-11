@@ -325,6 +325,11 @@ class EnhancedStrategy:
                     passes = False
 
                 if passes:
+                    # Mark the rule as having fired at least once. The
+                    # ``rule_pruning`` module uses this signal during GA
+                    # evolution to drop rules that never affect a buy/play
+                    # decision across an entire fitness-eval window.
+                    rule._fired = True
                     return card
 
         return None
