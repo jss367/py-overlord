@@ -257,8 +257,19 @@ class Card:
         """
         return False
 
-    def on_overpay(self, game_state, player, amount: int) -> None:
-        """Effects when this card is bought with overpay. Override in subclasses."""
+    def on_overpay(
+        self, game_state, player, amount: int, gained_card: "Card | None" = None
+    ) -> None:
+        """Effects when this card is bought with overpay. Override in
+        subclasses.
+
+        ``gained_card`` is the actual instance the player owns after the
+        gain — usually identical to ``self``, but may differ when
+        :meth:`GameState.gain_card` substitutes a card reclaimed from the
+        Exile mat. Cards that need to manipulate the gained instance
+        (e.g. Infirmary's "play this card" replays) should use
+        ``gained_card`` rather than ``self``.
+        """
         pass
 
     def on_gain(self, game_state, player):

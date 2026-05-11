@@ -83,6 +83,15 @@ class GameState:
     # attack against the holder.
     bane_card_name: str = ""
 
+    # Cornucopia & Guilds 2E: Ferryman designates a $3/$4 Kingdom pile at
+    # game start. Whenever Ferryman is gained, the player gains a copy of
+    # the current top of that pile.
+    # ``ferryman_card_name`` is the initial top (for display / tests).
+    # ``ferryman_pile_order`` is the ordered list of names in the pile so
+    # split piles can keep gaining from the lower half once the top empties.
+    ferryman_card_name: str = ""
+    ferryman_pile_order: list = field(default_factory=list)
+
     # Renaissance: Artifacts. Populated by ``initialize_game`` when the
     # corresponding Kingdom card is in the supply.
     artifacts: dict = field(default_factory=dict)
@@ -418,6 +427,59 @@ class GameState:
             return card
         return None
 
+    def _register_kingdom_pile(self, card: Card) -> None:
+        """Add a single Kingdom card pile to the supply, including any
+        split-pile partner piles and additional piles that the card requires
+        (``get_additional_piles`` / ``get_additional_non_supply_piles``).
+
+        Used by ``setup_supply`` for each kingdom card and by
+        ``_setup_ferryman_pile`` for the Ferryman-designated pile.
+
+        Note: this helper does NOT replicate engine-level setup that's only
+        triggered by the original kingdom list (Black Market deck, Young
+        Witch bane, Dark Ages Ruins/Madman/Mercenary, Castles expansion,
+        Trade Route tokens, Riverboat pick, Boons/Hexes for Fate/Doom).
+        Callers must filter out cards that need that special setup.
+        """
+        from dominion.cards.allies._split_base import AlliesSplitCard
+        from dominion.cards.allies.wizards import (
+            WIZARDS_PILE_ORDER,
+            WizardsSplitCard,
+        )
+
+        self.supply[card.name] = card.starting_supply(self)
+
+        # Split-pile partners.
+        if isinstance(card, SplitPileMixin):
+            partner = get_card(card.partner_card_name)
+            if partner.name not in self.supply:
+                self.supply[partner.name] = partner.starting_supply(self)
+
+        if isinstance(card, WizardsSplitCard):
+            for partner_name in WIZARDS_PILE_ORDER:
+                if partner_name == card.name:
+                    continue
+                if partner_name not in self.supply:
+                    partner = get_card(partner_name)
+                    self.supply[partner_name] = partner.starting_supply(self)
+
+        if isinstance(card, AlliesSplitCard):
+            for partner_name in card.pile_order:
+                if partner_name == card.name:
+                    continue
+                if partner_name not in self.supply:
+                    partner = get_card(partner_name)
+                    self.supply[partner_name] = partner.starting_supply(self)
+
+        for name, count in card.get_additional_piles().items():
+            if name not in self.supply:
+                self.supply[name] = count
+
+        for name, count in card.get_additional_non_supply_piles().items():
+            if name not in self.supply:
+                self.supply[name] = count
+            self.non_supply_pile_names.add(name)
+
     def setup_supply(self, kingdom_cards: list[Card]):
         """Set up the initial supply piles."""
         # Add basic cards with proper counts
@@ -445,50 +507,7 @@ class GameState:
         self.baker_in_supply = False
         # Add kingdom cards
         for card in kingdom_cards:
-            self.supply[card.name] = card.starting_supply(self)
-
-            # Automatically add split pile partner cards
-            if isinstance(card, SplitPileMixin):
-                partner = get_card(card.partner_card_name)
-                if partner.name not in self.supply:
-                    self.supply[partner.name] = partner.starting_supply(self)
-
-            # Wizards split pile: add the other three partners with
-            # player-count-aware supply via each partner's starting_supply.
-            from dominion.cards.allies.wizards import (
-                WIZARDS_PILE_ORDER,
-                WizardsSplitCard,
-            )
-            if isinstance(card, WizardsSplitCard):
-                for partner_name in WIZARDS_PILE_ORDER:
-                    if partner_name == card.name:
-                        continue
-                    if partner_name not in self.supply:
-                        partner = get_card(partner_name)
-                        self.supply[partner_name] = partner.starting_supply(self)
-
-            # Allies four-card split piles (Augurs, Clashes, Forts,
-            # Odysseys, Townsfolk).
-            from dominion.cards.allies._split_base import AlliesSplitCard
-            if isinstance(card, AlliesSplitCard):
-                for partner_name in card.pile_order:
-                    if partner_name == card.name:
-                        continue
-                    if partner_name not in self.supply:
-                        partner = get_card(partner_name)
-                        self.supply[partner_name] = partner.starting_supply(self)
-
-            extras = card.get_additional_piles()
-            for name, count in extras.items():
-                if name not in self.supply:
-                    self.supply[name] = count
-
-            non_supply_extras = card.get_additional_non_supply_piles()
-            for name, count in non_supply_extras.items():
-                if name not in self.supply:
-                    self.supply[name] = count
-                self.non_supply_pile_names.add(name)
-
+            self._register_kingdom_pile(card)
             if card.name == "Baker":
                 self.baker_in_supply = True
 
@@ -550,6 +569,11 @@ class GameState:
         if any(card.name == "Young Witch" for card in kingdom_cards):
             self._setup_young_witch_bane(kingdom_cards)
 
+        # Cornucopia & Guilds 2E: Ferryman picks an unused Action pile costing
+        # exactly $3 and adds it to the Supply.
+        if any(card.name == "Ferryman" for card in kingdom_cards):
+            self._setup_ferryman_pile(kingdom_cards)
+
         self._setup_dark_ages_piles(kingdom_cards)
 
     def _setup_young_witch_bane(self, kingdom_cards: list[Card]) -> None:
@@ -603,6 +627,152 @@ class GameState:
             self.supply[candidate_name] = candidate_card.starting_supply(self)
             self.bane_card_name = candidate_name
             self.original_kingdom_pile_names.add(candidate_name)
+
+    def _setup_ferryman_pile(self, kingdom_cards: list[Card]) -> None:
+        """Designate an unused Kingdom card costing $3 or $4 for Ferryman.
+
+        Per the 2E rule, the chosen pile is any unused Kingdom card pile
+        costing $3 or $4 — not restricted to Actions, so $3/$4 Kingdom
+        Treasures and Victory cards are eligible too.
+
+        Split piles (Allies four-card piles, Wizards, Empires
+        SplitPileMixin pairs, Empires Castles) are supported only if the
+        chosen card is the TOP of its pile, since gameplay can only buy
+        or gain from the top initially. When a split-pile top is picked,
+        ``_register_kingdom_pile`` adds all partner piles to the supply
+        so the pile evolves correctly during play.
+        """
+        from dominion.cards.allies._split_base import AlliesSplitCard
+        from dominion.cards.allies.wizards import (
+            WIZARDS_PILE_ORDER,
+            WizardsSplitCard,
+        )
+        from dominion.cards.empires.castles import CASTLE_ORDER
+        from dominion.cards.expansions import LOOT_CARD_NAMES
+        from dominion.cards.split_pile import SplitPileMixin
+
+        # Non-Kingdom supply piles. Ferryman's setup text is "Choose an
+        # unused Kingdom card pile" — basics, the Alchemy Potion, and
+        # Plunder Loot are not Kingdom piles and must be skipped even
+        # though some of them pass the cost / starting_supply filters.
+        BASIC_NAMES = {
+            "Copper", "Silver", "Gold", "Platinum",
+            "Estate", "Duchy", "Province", "Colony", "Curse",
+            "Potion",
+            *LOOT_CARD_NAMES,
+        }
+
+        # Cards in this set require engine-level setup (Black Market deck,
+        # Young Witch bane, Madman/Mercenary/Spoils piles, Tournament Prize
+        # piles) that ``setup_supply`` only triggers when the card is in
+        # ``kingdom_cards``. Skipping them here avoids leaving them broken
+        # when Ferryman picks them after that branch has already run.
+        # Cards that need an extra pile via ``get_additional_piles()`` /
+        # ``get_additional_non_supply_piles()`` (Death Cart's Ruins, etc.)
+        # are filtered programmatically below — they don't need to be in
+        # this list.
+        SPECIAL_SETUP_NAMES = {
+            "Black Market",
+            "Young Witch",
+            "Hermit",
+            "Urchin",
+            "Marauder",
+            "Tournament",
+            # Trade Route seeds tokens onto Victory piles at setup; if it
+            # joins the supply later (via Ferryman), the tokens are absent
+            # and the card can't earn its coins.
+            "Trade Route",
+            # Riverboat picks a designated non-Duration Action at game
+            # start; that setup runs only for the original kingdom list.
+            "Riverboat",
+        }
+
+        kingdom_names = {c.name for c in kingdom_cards}
+        candidates: list[tuple[str, Card]] = []
+        for name in get_all_card_names():
+            if name in kingdom_names or name in BASIC_NAMES:
+                continue
+            if name in SPECIAL_SETUP_NAMES:
+                continue
+            if name in self.supply:
+                continue
+            try:
+                card = get_card(name)
+            except ValueError:
+                continue
+            if card.cost.coins not in (3, 4):
+                continue
+            if card.cost.potions != 0 or card.cost.debt != 0:
+                continue
+            if getattr(card, "is_event", False) or getattr(card, "is_project", False):
+                continue
+            # Split piles: only the top is buyable initially, so only the
+            # top is a valid Ferryman pick.
+            if isinstance(card, SplitPileMixin) and card.bottom:
+                continue
+            if isinstance(card, AlliesSplitCard) and name != card.pile_order[0]:
+                continue
+            if isinstance(card, WizardsSplitCard) and name != WIZARDS_PILE_ORDER[0]:
+                continue
+            if name in CASTLE_ORDER and name != CASTLE_ORDER[0]:
+                continue
+            # Castles also need the "expand all 8" engine setup that only
+            # runs for the original kingdom list — skip even the top.
+            if name in CASTLE_ORDER:
+                continue
+            if card.is_heirloom:
+                # Heirlooms start with 0 copies in the Supply.
+                continue
+            # Nocturne: cards that bring in Heirloom replacements (Fool ->
+            # Lucky Coin, Cemetery -> Haunted Mirror, Shepherd -> Pasture,
+            # ...) require initialise-time deck-substitution that the
+            # ``initialize_game`` flow only does for the original kingdom
+            # list. Picking them via Ferryman would leave the heirloom
+            # association stale.
+            if getattr(card, "heirloom", None):
+                continue
+            # Nocturne: Fate cards bring Boons into the game and Doom
+            # cards bring Hexes. Both require initialise-time deck setup
+            # that only runs from the original kingdom list, so a
+            # Ferryman-selected Fate/Doom pile would have no Boons/Hexes
+            # to draw from.
+            if card.is_fate or card.is_doom:
+                continue
+            if card.starting_supply(self) <= 0:
+                continue
+            if not card.may_be_bought(self):
+                continue
+            # Skip cards whose pile setup pulls in extra piles we can't
+            # reliably initialise here (e.g. Death Cart -> Ruins, which
+            # needs the engine's variant-shuffling Ruins setup).
+            if card.get_additional_piles() or card.get_additional_non_supply_piles():
+                continue
+            candidates.append((name, card))
+
+        if not candidates:
+            return
+
+        chosen_name, chosen_card = random.choice(candidates)
+        # Register the chosen pile via the shared helper so split-pile
+        # partners and any additional piles are set up the same way they
+        # would be for an original-kingdom-list selection.
+        self._register_kingdom_pile(chosen_card)
+        self.ferryman_card_name = chosen_name
+        # Build the ordered list of names in the chosen pile, so the
+        # gain hook can find the current top as the pile empties.
+        if isinstance(chosen_card, SplitPileMixin):
+            # Top, then partner (we only pick tops, see filter above).
+            self.ferryman_pile_order = [
+                chosen_name, chosen_card.partner_card_name
+            ]
+        elif isinstance(chosen_card, AlliesSplitCard):
+            self.ferryman_pile_order = list(chosen_card.pile_order)
+        elif isinstance(chosen_card, WizardsSplitCard):
+            self.ferryman_pile_order = list(WIZARDS_PILE_ORDER)
+        else:
+            self.ferryman_pile_order = [chosen_name]
+        for name in self.ferryman_pile_order:
+            self.original_kingdom_pile_names.add(name)
 
     def _setup_dark_ages_piles(self, kingdom_cards: list[Card]) -> None:
         """Build the shuffled Ruins / Knights piles and Madman / Mercenary piles."""
@@ -894,6 +1064,7 @@ class GameState:
                 # Renaissance Citadel: a Turtle-played Action before the
                 # action phase still counts as the first Action of the turn.
                 self._maybe_citadel_replay(self.current_player, c)
+
         # Adventures Save: cards set aside last turn return to hand.
         if self.current_player.save_set_aside:
             self.current_player.hand.extend(self.current_player.save_set_aside)
@@ -1016,6 +1187,15 @@ class GameState:
             self.current_player.hand.extend(deliver_set_aside)
             self.current_player.deliver_set_aside = []
 
+        # Cornucopia & Guilds 2E Farmhands on-gain set-aside: play any cards
+        # queued by gaining Farmhands last turn. This fires independently of
+        # whether a Farmhands is currently in duration — the on-gain trigger
+        # belongs to the gain itself, not to a played Farmhands. We resolve
+        # AFTER ``do_duration_phase`` so a Duration card played from the
+        # set-aside queue (e.g. Caravan, Haven) doesn't have its on_duration
+        # fire on the same turn it's played.
+        self._resolve_farmhands_set_aside(self.current_player)
+
         # Plunder Shy trait: discard Shy-pile cards in hand for +2 Cards.
         self._handle_shy_start_of_turn(self.current_player)
 
@@ -1029,6 +1209,21 @@ class GameState:
         self._handle_quartermaster_start_of_turn(self.current_player)
 
         self.phase = "action"
+
+    def _resolve_farmhands_set_aside(self, player: PlayerState) -> None:
+        """Play any cards queued by Farmhands' on-gain trigger."""
+        queue = getattr(player, "farmhands_set_aside", None)
+        if not queue:
+            return
+        to_play = list(queue)
+        player.farmhands_set_aside = []
+        for card in to_play:
+            player.in_play.append(card)
+            if card.is_action:
+                self.play_action_indirectly(player, card)
+            else:
+                card.on_play(self)
+                self.fire_ally_play_hooks(player, card)
 
     def _handle_shy_start_of_turn(self, player: PlayerState) -> None:
         shy_pile = self.trait_piles.get("Shy")
@@ -1801,7 +1996,9 @@ class GameState:
                 gained_card = self.gain_card(player, choice)
 
                 if overpay_amount > 0:
-                    choice.on_overpay(self, player, overpay_amount)
+                    choice.on_overpay(
+                        self, player, overpay_amount, gained_card=gained_card
+                    )
 
                 self._handle_on_buy_in_play_effects(player, choice, gained_card)
                 # Embargo / Tax tokens key off the supply pile, which for
@@ -2114,10 +2311,12 @@ class GameState:
         overpay_amount = self._prompt_overpay(player, card)
 
         card.on_buy(self)
-        self.gain_card(player, card)
+        gained_card = self.gain_card(player, card)
 
         if overpay_amount > 0:
-            card.on_overpay(self, player, overpay_amount)
+            card.on_overpay(
+                self, player, overpay_amount, gained_card=gained_card
+            )
 
         if player.goons_played:
             player.vp_tokens += player.goons_played
@@ -2411,6 +2610,10 @@ class GameState:
         # Adventures Expedition: +2 cards at end-of-turn redraw.
         cards_to_draw += getattr(player, "expedition_extra_draws", 0)
         player.expedition_extra_draws = 0
+
+        # Cornucopia & Guilds 2E Farrier overpay: +N cards into next hand.
+        cards_to_draw += getattr(player, "farrier_pending_draw", 0)
+        player.farrier_pending_draw = 0
 
         # Adventures: -1 Card tokens (Borrow, Relic, Bridge Troll). Each token
         # removes one card from the next end-of-turn draw and is then removed.

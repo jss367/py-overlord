@@ -202,6 +202,12 @@ class PlayerState:
     # Adventures Haunted Woods / Swamp Hag pending.
     haunted_woods_attacks: int = 0
     swamp_hag_attacks: int = 0
+    # Cornucopia & Guilds 2E — Farrier overpay: +N cards drawn at end of
+    # the buying turn (added to the cleanup redraw count).
+    farrier_pending_draw: int = 0
+    # Cornucopia & Guilds 2E — Farmhands on-gain set-aside: cards queued to
+    # be played at the start of the next turn.
+    farmhands_set_aside: list[Card] = field(default_factory=list)
 
     def initialize(self, use_shelters: bool = False, heirlooms: list[str] = None):
         """Set up starting deck and draw initial hand.
@@ -378,6 +384,8 @@ class PlayerState:
         self.bridge_trolls_in_play = 0
         self.haunted_woods_attacks = 0
         self.swamp_hag_attacks = 0
+        self.farrier_pending_draw = 0
+        self.farmhands_set_aside = []
 
         # Draw initial hand of 5 cards
         self.draw_cards(5)
@@ -496,6 +504,7 @@ class PlayerState:
             self.tavern_mat,
             self.save_set_aside,
             self.summon_set_aside,
+            self.farmhands_set_aside,
         ]
 
         cards: list[Card] = []

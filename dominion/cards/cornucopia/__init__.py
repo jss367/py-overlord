@@ -12,8 +12,16 @@ from .remake import Remake
 from .tournament import Tournament
 from .young_witch import YoungWitch
 from .joust import Joust
-from .rewards import Coronet, Demesne, Housecarl, HugeTurnip, Renown
+from .rewards import Coronet, Courser, Demesne, Housecarl, HugeTurnip, Renown
 from .prizes import BagOfGold, Diadem, Followers, Princess, TrustySteed
+# Cornucopia & Guilds 2E (2024) kingdom cards
+from .carnival import Carnival
+from .farmhands import Farmhands
+from .farrier import Farrier
+from .ferryman import Ferryman
+from .footpad import Footpad
+from .infirmary import Infirmary
+from .shop import Shop
 
 __all__ = [
     "Fairgrounds",
@@ -31,6 +39,7 @@ __all__ = [
     "YoungWitch",
     "Joust",
     "Coronet",
+    "Courser",
     "Demesne",
     "Housecarl",
     "HugeTurnip",
@@ -40,4 +49,11 @@ __all__ = [
     "Followers",
     "Princess",
     "TrustySteed",
+    "Carnival",
+    "Farmhands",
+    "Farrier",
+    "Ferryman",
+    "Footpad",
+    "Infirmary",
+    "Shop",
 ]

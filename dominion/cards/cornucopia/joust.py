@@ -3,6 +3,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 REWARD_CARD_NAMES = [
     "Coronet",
+    "Courser",
     "Demesne",
     "Housecarl",
     "Huge Turnip",

@@ -54,7 +54,9 @@ class Stonemason(Card):
     def may_overpay(self, game_state) -> bool:
         return True
 
-    def on_overpay(self, game_state, player, amount: int) -> None:
+    def on_overpay(
+        self, game_state, player, amount: int, gained_card=None
+    ) -> None:
         """Gain 2 Action cards each costing exactly ``amount`` coins."""
         if amount <= 0:
             return
