@@ -1,4 +1,4 @@
-from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
 
 
 class VictoriaEngine(EnhancedStrategy):
@@ -128,6 +128,10 @@ class VictoriaEngine(EnhancedStrategy):
             PriorityRule("Stockpile"),
             PriorityRule("Silver"),
             PriorityRule("Copper"),
+        ]
+
+        self.way_policy = [
+            WayRule("Flag Bearer", "Way of the Butterfly"),
         ]
 
 

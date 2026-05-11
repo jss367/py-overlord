@@ -121,6 +121,89 @@ class StrategyBattle:
 
         return kingdom_cards, events, projects, ways, allies
 
+    @staticmethod
+    def _empty_decision_firings(strategy_name: str) -> dict[str, Any]:
+        return {
+            "strategy_name": strategy_name,
+            "choose_way": {},
+            "choose_gain_overrides": {
+                "total": 0,
+                "by_selection": {},
+            },
+        }
+
+    @staticmethod
+    def _increment_nested_count(counts: dict[str, Any], first: str, second: str) -> None:
+        counts.setdefault(first, {})
+        counts[first][second] = counts[first].get(second, 0) + 1
+
+    @staticmethod
+    def _increment_count(counts: dict[str, int], key: str) -> None:
+        counts[key] = counts.get(key, 0) + 1
+
+    @staticmethod
+    def _merge_decision_firings(total: dict[str, Any], game: dict[str, Any]) -> None:
+        for card_name, ways in game["choose_way"].items():
+            for way_name, count in ways.items():
+                total["choose_way"].setdefault(card_name, {})
+                total["choose_way"][card_name][way_name] = (
+                    total["choose_way"][card_name].get(way_name, 0) + count
+                )
+
+        total_gain = total["choose_gain_overrides"]
+        game_gain = game["choose_gain_overrides"]
+        total_gain["total"] += game_gain["total"]
+        for selection, count in game_gain["by_selection"].items():
+            total_gain["by_selection"][selection] = total_gain["by_selection"].get(selection, 0) + count
+
+    @staticmethod
+    def _top_gain_priority_choice(strategy: EnhancedStrategy, state, player, choices) -> Optional[Any]:
+        if not choices:
+            return None
+        choose_from_priority = getattr(strategy, "_choose_from_priority", None)
+        if choose_from_priority is None:
+            return None
+        try:
+            return choose_from_priority(strategy.gain_priority, choices, state, player)
+        except Exception:
+            return None
+
+    def _instrument_ai_decisions(self, ai: GeneticAI, stats: dict[str, Any]) -> None:
+        original_choose_way = ai.choose_way
+        original_choose_buy = ai.choose_buy
+
+        def tracked_choose_way(state, card, ways):
+            way = original_choose_way(state, card, ways)
+            if way is not None:
+                self._increment_nested_count(
+                    stats["choose_way"],
+                    getattr(card, "name", str(card)),
+                    getattr(way, "name", str(way)),
+                )
+            return way
+
+        def tracked_choose_buy(state, choices):
+            valid_choices = [c for c in choices if c is not None]
+            player = getattr(state, "current_player", None)
+            top_priority = self._top_gain_priority_choice(ai.strategy, state, player, valid_choices)
+            selected = original_choose_buy(state, choices)
+            if (
+                selected is not None
+                and top_priority is not None
+                and getattr(selected, "name", None) != getattr(top_priority, "name", None)
+            ):
+                selected_name = getattr(selected, "name", str(selected))
+                top_name = getattr(top_priority, "name", str(top_priority))
+                stats["choose_gain_overrides"]["total"] += 1
+                self._increment_count(
+                    stats["choose_gain_overrides"]["by_selection"],
+                    f"{selected_name} over {top_name}",
+                )
+            return selected
+
+        ai.choose_way = tracked_choose_way
+        ai.choose_buy = tracked_choose_buy
+
     def run_battle(self, strategy1_name: str, strategy2_name: str, num_games: int = 100) -> dict[str, Any]:
         """Run multiple games between two strategies"""
         # Get strategies from loader
@@ -146,6 +229,10 @@ class StrategyBattle:
             "strategy2_total_score": 0,
             "games_played": num_games,
             "detailed_results": [],
+            "decision_firings": {
+                "strategy1": self._empty_decision_firings(strategy1_name),
+                "strategy2": self._empty_decision_firings(strategy2_name),
+            },
         }
 
         # Run the games
@@ -181,12 +268,30 @@ class StrategyBattle:
             # Create fresh AIs for each game using new strategy instances
             ai1 = GeneticAI(strategy1)
             ai2 = GeneticAI(strategy2)
+            game_decision_firings = {
+                "strategy1": self._empty_decision_firings(strategy1_name),
+                "strategy2": self._empty_decision_firings(strategy2_name),
+            }
+            decision_stats_by_ai = {
+                ai1: game_decision_firings["strategy1"],
+                ai2: game_decision_firings["strategy2"],
+            }
 
             # Alternate who goes first
             if game_num % 2 == 0:
-                winner, scores, log_path, turns = self.run_game(ai1, ai2, kingdom_card_names)
+                winner, scores, log_path, turns = self.run_game(
+                    ai1,
+                    ai2,
+                    kingdom_card_names,
+                    decision_stats_by_ai=decision_stats_by_ai,
+                )
             else:
-                winner, scores, log_path, turns = self.run_game(ai2, ai1, kingdom_card_names)
+                winner, scores, log_path, turns = self.run_game(
+                    ai2,
+                    ai1,
+                    kingdom_card_names,
+                    decision_stats_by_ai=decision_stats_by_ai,
+                )
 
             # Record results
             game_result = {
@@ -197,8 +302,17 @@ class StrategyBattle:
                 "margin": abs(scores[ai1.name] - scores[ai2.name]),
                 "turns": turns,
                 "log_path": log_path,
+                "decision_firings": game_decision_firings,
             }
             results["detailed_results"].append(game_result)
+            self._merge_decision_firings(
+                results["decision_firings"]["strategy1"],
+                game_decision_firings["strategy1"],
+            )
+            self._merge_decision_firings(
+                results["decision_firings"]["strategy2"],
+                game_decision_firings["strategy2"],
+            )
 
             if winner == ai1:
                 results["strategy1_wins"] += 1
@@ -223,8 +337,14 @@ class StrategyBattle:
         ai1: GeneticAI,
         ai2: GeneticAI,
         kingdom_card_names: list[str],
+        *,
+        decision_stats_by_ai: Optional[dict[GeneticAI, dict[str, Any]]] = None,
     ) -> tuple[GeneticAI, dict[str, int], Optional[str], int]:
         """Run a single game between two AIs. TODO: This shouldn't be within this class."""
+        if decision_stats_by_ai:
+            for ai, stats in decision_stats_by_ai.items():
+                self._instrument_ai_decisions(ai, stats)
+
         # Start game logging with actual AI objects for better descriptions
         self.logger.start_game([ai1, ai2])
 
@@ -361,6 +481,8 @@ def log_results(results: dict[str, Any]):
     logger.info("  Wins: %d (%.1f%%)", results['strategy2_wins'], results['strategy2_win_rate'])
     logger.info("  Average Score: %.1f", results['strategy2_avg_score'])
 
+    log_decision_firings(results)
+
     logger.info("\nDetailed game results:")
     for game in results["detailed_results"]:
         logger.info("\nGame %d:", game['game_number'])
@@ -376,6 +498,35 @@ def log_results(results: dict[str, Any]):
         logger.info("  Turns: %d", game['turns'])
         if game.get("log_path"):
             logger.info("  Log: %s", game['log_path'])
+
+
+def log_decision_firings(results: dict[str, Any]) -> None:
+    """Print choose_way and choose_gain instrumentation summaries."""
+    decision_firings = results.get("decision_firings") or {}
+    if not decision_firings:
+        return
+
+    logger.info("\nDecision firings:")
+    for role in ("strategy1", "strategy2"):
+        stats = decision_firings.get(role) or {}
+        logger.info("  %s:", stats.get("strategy_name", role))
+
+        way_rows = [
+            (card_name, way_name, count)
+            for card_name, ways in sorted((stats.get("choose_way") or {}).items())
+            for way_name, count in sorted(ways.items())
+        ]
+        if way_rows:
+            logger.info("    choose_way:")
+            for card_name, way_name, count in way_rows:
+                logger.info("      %s -> %s: %d", card_name, way_name, count)
+        else:
+            logger.info("    choose_way: 0")
+
+        gain_stats = stats.get("choose_gain_overrides") or {}
+        logger.info("    choose_gain special cases: %d", gain_stats.get("total", 0))
+        for selection, count in sorted((gain_stats.get("by_selection") or {}).items()):
+            logger.info("      %s: %d", selection, count)
 
 
 if __name__ == "__main__":
