@@ -262,6 +262,13 @@ class GameState:
         landmarks: list = None,
     ):
         """Set up the game with given AIs and kingdom cards."""
+        # Reset per-game state on the reused ``GameState`` so artifacts from
+        # a prior game can't leak into this one. In particular, a stale
+        # trashed Charlatan would otherwise let the live-zone scan in
+        # ``charlatan_curse_active`` re-activate Curse-as-Treasure in a
+        # Charlatan-free kingdom.
+        self._charlatan_seen = False
+        self.trash = []
         # Create PlayerState objects for each AI
         self.players = [PlayerState(ai) for ai in ais]
         # Provide a back-reference so PlayerState methods (notably
@@ -482,6 +489,11 @@ class GameState:
 
     def setup_supply(self, kingdom_cards: list[Card]):
         """Set up the initial supply piles."""
+        # Reset latches that depend on supply contents. Pairing the reset
+        # with the set (at the bottom of this method) means callers using
+        # ``setup_supply`` directly — e.g. tests rebuilding a kingdom on the
+        # same ``GameState`` — don't leak the prior setup's Charlatan flag.
+        self._charlatan_seen = False
         # Add basic cards with proper counts
         copper_card = get_card("Copper")
         silver_card = get_card("Silver")
@@ -803,6 +815,14 @@ class GameState:
 
         if any(card.name == "Urchin" for card in kingdom_cards):
             self.supply["Mercenary"] = 10
+
+        # Latch the Charlatan game-level rule at setup time. If Charlatan is
+        # part of this game (Supply or Black Market deck), the "Curses are
+        # Treasures worth $1" effect applies for the entire game — even if
+        # the Charlatan pile is later removed by something like Divine Wind
+        # before the first Curse-as-Treasure check could observe it live.
+        if "Charlatan" in self.supply or "Charlatan" in self.black_market_deck:
+            self._charlatan_seen = True
 
     def gain_ruins(self, target) -> "Card | None":
         """Resolve a "gain a Ruins" by handing over the top of the Ruins pile."""
@@ -1749,6 +1769,47 @@ class GameState:
         player.actions_this_turn += 1
         choice.on_play(self)
 
+    def charlatan_curse_active(self) -> bool:
+        """Whether Charlatan's "Curses are Treasures worth $1" rule is active.
+
+        Per Prosperity 2E this applies "for the entire game and in all
+        situations" once Charlatan is part of the game. The authoritative
+        source is a setup-time latch (``_charlatan_seen``) set in
+        ``setup_supply`` when Charlatan is in the Supply or the Black
+        Market deck. Once latched, the flag stays True for the remainder
+        of the game even if the Charlatan pile is later removed (e.g. by
+        Divine Wind) or bought out of the Black Market deck.
+
+        Live ``supply`` / ``black_market_deck`` checks act only as a
+        defensive backstop for code paths that may have skipped setup;
+        they never consult player zones or the trash, so stale state from
+        a prior game on a reused ``GameState`` cannot reactivate the
+        rule.
+        """
+        if getattr(self, "_charlatan_seen", False):
+            return True
+        if "Charlatan" in self.supply:
+            self._charlatan_seen = True
+            return True
+        if "Charlatan" in self.black_market_deck:
+            self._charlatan_seen = True
+            return True
+        return False
+
+    def is_treasure(self, card: Card) -> bool:
+        """Treasure check that respects game-level type modifiers.
+
+        While ``card.is_treasure`` is a static type query, the live game
+        may add the Treasure type to a card (notably Charlatan does so for
+        Curse). Use this method whenever a card's effect needs to ask
+        "is this a Treasure right now?".
+        """
+        if card.is_treasure:
+            return True
+        if card.name == "Curse" and self.charlatan_curse_active():
+            return True
+        return False
+
     def _handle_start_of_buy_phase_effects(self) -> None:
         """Apply state effects that trigger at the start of the buy phase."""
 
@@ -1808,13 +1869,15 @@ class GameState:
         )
 
         while True:
-            treasures = [card for card in player.hand if card.is_treasure]
+            # ``is_treasure`` respects game-level type modifiers — notably
+            # Charlatan, which makes Curses Treasures for the whole game.
+            treasures = [card for card in player.hand if self.is_treasure(card)]
             if capitalism:
                 treasures += [
                     card
                     for card in player.hand
                     if card.is_action
-                    and not card.is_treasure
+                    and not self.is_treasure(card)
                     and card.stats.coins > 0
                 ]
             if not treasures:
@@ -1845,7 +1908,10 @@ class GameState:
             else:
                 # Corsair trashes AFTER on_play: the treasure is fully played
                 # (so its +$ applies and any "while in play" counters tick),
-                # then Corsair removes it from in-play to the trash.
+                # then Corsair removes it from in-play to the trash. The
+                # Charlatan +$1 for a Curse-as-Treasure is applied inside
+                # ``Curse.play_effect``, so it fires automatically here and
+                # on any replay (Reckless, Tiara) below.
                 choice.on_play(self)
                 # Plunder Reckless trait: Treasures from Reckless pile play twice.
                 if self.pile_traits.get(choice.name) == "Reckless":

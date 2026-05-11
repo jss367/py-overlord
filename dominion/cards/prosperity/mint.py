@@ -14,7 +14,7 @@ class Mint(Card):
         from ..registry import get_card
 
         player = game_state.current_player
-        treasures = [c for c in player.hand if c.is_treasure]
+        treasures = [c for c in player.hand if game_state.is_treasure(c)]
         if not treasures:
             return
 
@@ -29,7 +29,10 @@ class Mint(Card):
 
     def on_buy(self, game_state):
         player = game_state.current_player
-        treasures = [c for c in list(player.in_play) if c.is_treasure]
+        # Use the game's Treasure check so Curses played as Treasures via
+        # Charlatan are also trashed when Mint is bought (Prosperity 2E
+        # rulebook explicitly calls this out).
+        treasures = [c for c in list(player.in_play) if game_state.is_treasure(c)]
         for treasure in treasures:
             player.in_play.remove(treasure)
             game_state.trash_card(player, treasure)

@@ -47,6 +47,15 @@ class Curse(Card):
     def __init__(self):
         super().__init__(name="Curse", cost=CardCost(coins=0), stats=CardStats(vp=-1), types=[CardType.CURSE])
 
+    def play_effect(self, game_state):
+        # Prosperity 2E: in any kingdom that includes Charlatan, Curses are
+        # Treasures worth $1 when played. Living here means every play path
+        # (treasure phase, Tiara replay, Reckless double-play, Venture,
+        # Crystal Ball, ...) grants the coin via the normal on_play hook —
+        # no special-cases needed at the call sites.
+        if game_state.charlatan_curse_active():
+            game_state.current_player.coins += 1
+
     def starting_supply(self, game_state) -> int:
         n_players = len(game_state.players)
         if n_players <= 1:

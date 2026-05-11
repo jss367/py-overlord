@@ -16,7 +16,6 @@ class City(Card):
 
         if empty_piles >= 1:
             game_state.draw_cards(player, 1)
-            player.coins += 1
 
         if empty_piles >= 2:
             player.buys += 1

@@ -20,7 +20,7 @@ class Loan(Card):
             if not player.deck:
                 break
             card = player.deck.pop()
-            if card.is_treasure:
+            if game_state.is_treasure(card):
                 revealed_treasure = card
                 break
             revealed.append(card)
