@@ -90,17 +90,19 @@ def test_harbinger_topdecks_from_discard():
     harbinger = get_card("Harbinger")
     silver = get_card("Silver")
     copper = get_card("Copper")
+    estate = get_card("Estate")
     player.hand = [harbinger]
-    player.deck = [copper]
+    player.deck = [estate, copper]
     player.discard = [silver]
 
     player.hand.remove(harbinger)
     player.in_play.append(harbinger)
     harbinger.on_play(state)
 
-    assert silver in player.deck
+    assert player.draw_cards(1) == [silver]
+    assert estate in player.deck
     assert silver not in player.discard
-    assert len(player.hand) == 1  # drew copper
+    assert copper in player.hand  # drew copper before Harbinger's effect
 
 
 def test_harbinger_empty_discard():
@@ -307,15 +309,69 @@ def test_graverobber_gain_from_trash():
     state, player = _setup(ai)
     graverobber = get_card("Graverobber")
     silver = get_card("Silver")
+    estate = get_card("Estate")
     state.trash = [silver]
     player.hand = [graverobber]
+    player.deck = [estate]
 
     player.hand.remove(graverobber)
     player.in_play.append(graverobber)
     graverobber.on_play(state)
 
     assert silver not in state.trash
-    assert silver in player.deck
+    assert player.draw_cards(1) == [silver]
+    assert estate in player.deck
+
+
+# --- Hinterlands topdeck regressions ---
+
+def test_nomad_camp_on_gain_topdecks_above_existing_deck():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai, [get_card("Nomad Camp")])
+    nomad_camp = get_card("Nomad Camp")
+    estate = get_card("Estate")
+    player.deck = [estate]
+
+    state.gain_card(player, nomad_camp, from_supply=False)
+
+    assert nomad_camp not in player.discard
+    assert player.draw_cards(1) == [nomad_camp]
+    assert estate in player.deck
+
+
+def test_mandarin_play_topdecks_from_hand_above_existing_deck():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai, [get_card("Mandarin")])
+    mandarin = get_card("Mandarin")
+    estate = get_card("Estate")
+    silver = get_card("Silver")
+    player.hand = [mandarin, estate, silver]
+    player.deck = [get_card("Copper")]
+
+    player.hand.remove(mandarin)
+    player.in_play.append(mandarin)
+    mandarin.on_play(state)
+
+    assert player.draw_cards(1) == [estate]
+    assert silver in player.hand
+
+
+def test_mandarin_on_gain_topdecks_treasures_above_existing_deck():
+    ai = GainFirstBuyAI()
+    state, player = _setup(ai, [get_card("Mandarin")])
+    mandarin = get_card("Mandarin")
+    copper = get_card("Copper")
+    silver = get_card("Silver")
+    estate = get_card("Estate")
+    player.in_play = [copper, silver]
+    player.deck = [estate]
+
+    state.gain_card(player, mandarin, from_supply=False)
+
+    assert copper not in player.in_play
+    assert silver not in player.in_play
+    assert player.draw_cards(2) == [copper, silver]
+    assert estate in player.deck
 
 
 def test_graverobber_upgrade():

@@ -15,4 +15,4 @@ class NomadCamp(Card):
 
         if self in player.discard:
             player.discard.remove(self)
-            player.deck.insert(0, self)
+            player.deck.append(self)

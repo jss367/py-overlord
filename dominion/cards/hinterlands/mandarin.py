@@ -18,7 +18,7 @@ class Mandarin(Card):
 
         choice = min(player.hand, key=self._topdeck_priority)
         player.hand.remove(choice)
-        player.deck.insert(0, choice)
+        player.deck.append(choice)
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
@@ -26,7 +26,7 @@ class Mandarin(Card):
         treasures = [card for card in player.in_play if card.is_treasure]
         for card in reversed(treasures):
             player.in_play.remove(card)
-            player.deck.insert(0, card)
+            player.deck.append(card)
 
     @staticmethod
     def _topdeck_priority(card):

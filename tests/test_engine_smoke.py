@@ -128,8 +128,9 @@ def test_watchtower_topdecks_gained_card():
     # Simulate buying Estate
     gs.supply["Estate"] -= 1
     gained = gs.gain_card(p, choice)
-    # Because AI always chooses 'topdeck' for Watchtower, the gained card should be in deck top, not discard
-    assert p.deck and p.deck[-1].name == "Estate" or p.deck[0].name == "Estate"
+    # Because AI always chooses 'topdeck' for Watchtower, the gained card
+    # should be on the drawable top of the deck, not discard.
+    assert p.deck and p.deck[-1].name == "Estate"
     assert gs.supply["Estate"] == pre_estate - 1  # supply decremented once
 
 
@@ -161,6 +162,7 @@ def test_scheme_topdecks_best_action_on_cleanup():
     p.discard = []
     gs.phase = "cleanup"
     gs.handle_cleanup_phase()
-    # Village should be topdecked (end or start depending on insert) rather than discarded
-    assert any(c.name == "Village" for c in p.deck)
+    # Village was topdecked before cleanup's redraw, so it should be drawn
+    # into the next hand rather than discarded.
+    assert any(c.name == "Village" for c in p.hand)
     assert not any(c.name == "Village" for c in p.discard)
