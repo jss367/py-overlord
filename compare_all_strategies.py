@@ -105,7 +105,10 @@ def main() -> None:
         "--output",
         type=Path,
         default=None,
-        help="Output HTML file (default: reports/leaderboard.html)",
+        help=(
+            "Output HTML file (default: reports/leaderboard_all.html, "
+            "or reports/leaderboard_<board>.html with --board)"
+        ),
     )
     args = parser.parse_args()
 
