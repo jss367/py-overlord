@@ -4,6 +4,7 @@ import pytest
 
 from dominion.boards.loader import BoardConfig, load_board
 from dominion.simulation.strategy_battle import StrategyBattle
+from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 
 def write_board(tmp_path: Path, contents: str) -> Path:
@@ -54,6 +55,31 @@ def test_strategy_battle_prepares_landscapes(tmp_path):
     assert events == []
     assert [project.name for project in projects] == board.projects
     assert [way.name for way in ways] == board.ways
+    assert allies == []
+
+
+def test_strategy_battle_splits_implicit_event_references():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Village"),
+        PriorityRule("Looting"),
+        PriorityRule("Silver"),
+    ]
+
+    battle = StrategyBattle()
+    refs = battle._determine_board_references(strategy, EnhancedStrategy())
+    kingdom, events, projects, ways, allies = battle._prepare_board_components(
+        refs.kingdom_cards,
+        refs.events,
+        refs.projects,
+        refs.ways,
+        refs.allies,
+    )
+
+    assert [card.name for card in kingdom] == ["Village"]
+    assert [event.name for event in events] == ["Looting"]
+    assert projects == []
+    assert ways == []
     assert allies == []
 
 

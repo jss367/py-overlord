@@ -1,6 +1,5 @@
 import logging
 import random
-import re
 from copy import deepcopy
 from typing import Callable, Optional, Tuple
 
@@ -8,29 +7,12 @@ import coloredlogs
 
 from dominion.boards.loader import BoardConfig
 from dominion.simulation.game_logger import GameLogger
-from dominion.simulation.strategy_battle import StrategyBattle
+from dominion.simulation.strategy_battle import StrategyBattle, canonical_way_name
 from dominion.strategy.enhanced_strategy import PriorityRule, WayRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
 
 log = logging.getLogger(__name__)
 coloredlogs.install(level="INFO", logger=log)
-
-
-_WAY_PARAM_RE = re.compile(r"\s*\(.+\)$")
-
-
-def _canonical_way_name(way: str) -> str:
-    """Strip a parametric ``(...)`` suffix from a Way name.
-
-    The board loader stores ``Way of the Mouse: Native Village`` as
-    ``"Way of the Mouse (Native Village)"`` so the way registry's regex can
-    resolve the set-aside card. But the constructed ``WayOfTheMouse``
-    instance's ``.name`` is just ``"Way of the Mouse"`` — without the
-    parametric suffix. ``WayRule.way_name`` is matched against the runtime
-    ``Way.name`` in :meth:`EnhancedStrategy._choose_from_way_policy`, so we
-    canonicalise here to keep the two sides aligned.
-    """
-    return _WAY_PARAM_RE.sub("", way)
 
 
 def _distribute_games(total_budget: int, n_opponents: int) -> list[int]:
@@ -125,7 +107,7 @@ class GeneticTrainer:
         # mouse instance with the unparameterised name).
         self._kingdom_ways: list[str] = []
         if board_config is not None and board_config.ways:
-            self._kingdom_ways = [_canonical_way_name(w) for w in board_config.ways]
+            self._kingdom_ways = [canonical_way_name(w) for w in board_config.ways]
 
     # Probability that ``_random_condition_with_compound`` wraps a normally
     # sampled inner condition in ``and_(card_in_play(X), inner)``. Tunable.
@@ -411,16 +393,37 @@ class GeneticTrainer:
             breakdown: list[tuple] = []
             for i, opponent in enumerate(panel):
                 games_per_opp = games_for_opp[i]
-                kingdom_card_names = self.battle_system._determine_kingdom_cards(strategy, opponent)
+                board_references = self.battle_system._determine_board_references(strategy, opponent)
+                kingdom_card_names = board_references.kingdom_cards
+                landscape_kwargs = {
+                    key: value
+                    for key, value in {
+                        "events": board_references.events,
+                        "projects": board_references.projects,
+                        "ways": board_references.ways,
+                        "allies": board_references.allies,
+                    }.items()
+                    if value
+                }
                 wins = 0
                 margin_total = 0.0
                 for game_num in range(games_per_opp):
                     ai1 = GeneticAI(strategy)
                     ai2 = GeneticAI(opponent)
                     if game_num % 2 == 0:
-                        winner, scores, _l, _t = self.battle_system.run_game(ai1, ai2, kingdom_card_names)
+                        winner, scores, _l, _t = self.battle_system.run_game(
+                            ai1,
+                            ai2,
+                            kingdom_card_names,
+                            **landscape_kwargs,
+                        )
                     else:
-                        winner, scores, _l, _t = self.battle_system.run_game(ai2, ai1, kingdom_card_names)
+                        winner, scores, _l, _t = self.battle_system.run_game(
+                            ai2,
+                            ai1,
+                            kingdom_card_names,
+                            **landscape_kwargs,
+                        )
                     if winner == ai1:
                         wins += 1
                     # ``scores`` is keyed by ai.name; if the mock omits scores

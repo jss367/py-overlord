@@ -5,8 +5,35 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 from dominion.boards.loader import BoardConfig, load_board
-from dominion.simulation.strategy_battle import BASIC_CARDS, StrategyBattle
+from dominion.simulation.strategy_battle import (
+    StrategyBattle,
+    StrategyBoardReferences,
+    canonical_way_name,
+)
 from dominion.reporting.html_report import generate_leaderboard_html
+
+
+def _missing_board_components(
+    refs: StrategyBoardReferences,
+    board_config: BoardConfig,
+    board_cards: set[str],
+) -> list[str]:
+    missing_cards = set(refs.kingdom_cards) - board_cards
+    missing_events = set(refs.events) - set(board_config.events)
+    missing_projects = set(refs.projects) - set(board_config.projects)
+    missing_ways = {canonical_way_name(w) for w in refs.ways} - {
+        canonical_way_name(w) for w in board_config.ways
+    }
+    missing_allies = set(refs.allies) - set(board_config.allies)
+
+    missing = [
+        f"cards: {', '.join(sorted(missing_cards))}" if missing_cards else "",
+        f"events: {', '.join(sorted(missing_events))}" if missing_events else "",
+        f"projects: {', '.join(sorted(missing_projects))}" if missing_projects else "",
+        f"ways: {', '.join(sorted(missing_ways))}" if missing_ways else "",
+        f"allies: {', '.join(sorted(missing_allies))}" if missing_allies else "",
+    ]
+    return [entry for entry in missing if entry]
 
 
 def run_full_battle(
@@ -38,14 +65,16 @@ def run_full_battle(
         strat = battle.strategy_loader.get_strategy(name)
         if not strat:
             continue
-        cards = battle._extract_cards_from_strategy(strat)
-        kingdom_cards = sorted(c for c in cards if c not in BASIC_CARDS)
+        refs = battle._split_board_references(battle._extract_cards_from_strategy(strat))
+        kingdom_cards = refs.kingdom_cards
         desc = getattr(strat, "description", "")
 
         if board_cards is not None:
-            # Only include strategies whose cards are all on the board
-            if not set(kingdom_cards).issubset(board_cards):
-                print(f"  Excluding {name}: uses cards not on board ({', '.join(sorted(set(kingdom_cards) - board_cards))})")
+            # Only include strategies whose referenced components are all on
+            # the explicit board.
+            missing = _missing_board_components(refs, board_config, board_cards)
+            if missing:
+                print(f"  Excluding {name}: uses components not on board ({'; '.join(missing)})")
                 continue
 
         compatible_names.append(name)
@@ -61,12 +90,14 @@ def run_full_battle(
     total_pairings = len(list(combinations(strategy_names, 2)))
     print(f"Running {total_pairings} pairings ({len(strategy_names)} strategies, {num_games} games each)...")
 
+    skipped_pairings = 0
     for i, (strat1, strat2) in enumerate(combinations(strategy_names, 2), 1):
         if i % 10 == 0 or i == total_pairings:
             print(f"  Pairing {i}/{total_pairings}: {strat1} vs {strat2}")
         try:
             results = battle.run_battle(strat1, strat2, num_games)
         except Exception as exc:
+            skipped_pairings += 1
             print(f"  Skipping {strat1} vs {strat2}: {exc}")
             continue
 
@@ -84,6 +115,9 @@ def run_full_battle(
             stats["win_rate"] = stats["wins"] / stats["games"] * 100
         else:
             stats["win_rate"] = 0.0
+
+    if skipped_pairings:
+        print(f"Skipped {skipped_pairings} of {total_pairings} pairings due to setup or runtime errors.")
 
     return aggregated
 
