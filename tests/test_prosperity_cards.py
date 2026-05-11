@@ -1478,6 +1478,33 @@ def test_charlatan_stale_trash_does_not_reactivate_rule():
     assert state.charlatan_curse_active() is False
 
 
+class DeclineCountingHouseAI(DummyAI):
+    """AI that returns None from the Counting House hook — the common
+    'decline' pattern used by other chooser hooks."""
+
+    def choose_coppers_for_counting_house(self, state, player, coppers):
+        return None
+
+
+def test_counting_house_handles_none_from_ai():
+    """A None return from the AI hook must be normalized to "no Coppers
+    moved" rather than raising TypeError mid-turn."""
+    player = PlayerState(DeclineCountingHouseAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Counting House")])
+
+    ch = get_card("Counting House")
+    player.hand = [ch]
+    player.discard = [get_card("Copper"), get_card("Copper")]
+
+    # Should not raise.
+    play_action(state, player, "Counting House")
+
+    # Coppers stay in discard; nothing moved to hand.
+    assert sum(1 for c in player.discard if c.name == "Copper") == 2
+    assert all(c.name != "Copper" for c in player.hand)
+
+
 class SmuggleEstateForCountingHouseAI(DummyAI):
     """A misbehaving AI that tries to return an Estate from discard."""
 

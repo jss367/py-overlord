@@ -16,6 +16,11 @@ class CountingHouse(Card):
         if not coppers:
             return
         chosen = player.ai.choose_coppers_for_counting_house(game_state, player, coppers)
+        # Normalize a None / non-iterable return to an empty list so an AI
+        # following the common "return None to decline" pattern (used by
+        # other chooser hooks) doesn't raise TypeError here.
+        if chosen is None:
+            chosen = []
         # The AI's pick must come from the offered Coppers; ignore anything
         # else (a buggy or adversarial AI cannot smuggle non-Coppers — e.g.
         # Estates — out of the discard pile this way).
