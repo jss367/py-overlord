@@ -27,3 +27,15 @@ def test_player_is_stuck_no_cards_no_supply():
     state = GameState([player])
     state.supply = {"Copper": 0}
     assert state.player_is_stuck(player)
+
+
+def test_gain_card_to_deck_places_card_on_top():
+    player = PlayerState(DummyAI())
+    state = GameState([player])
+    player.deck = [get_card("Estate")]
+
+    state.gain_card(player, get_card("Silver"), to_deck=True)
+
+    assert [card.name for card in player.deck] == ["Estate", "Silver"]
+    drawn = player.draw_cards(1)
+    assert [card.name for card in drawn] == ["Silver"]

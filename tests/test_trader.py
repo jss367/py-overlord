@@ -75,7 +75,7 @@ def test_trader_reaction_exchanges_gain_for_silver():
     gained = state.gain_card(player, estate, to_deck=True)
 
     assert gained.name == "Silver"
-    assert player.deck[0].name == "Silver"
+    assert player.deck[-1].name == "Silver"
     assert all(card.name != "Estate" for card in player.deck + player.discard)
     assert state.supply["Estate"] == 8
     assert state.supply["Silver"] == 39
