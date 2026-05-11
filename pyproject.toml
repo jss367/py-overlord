@@ -8,10 +8,18 @@ version = "0.1.0"
 description = "Dominion AI Genetic Trainer"
 readme = "README.md"
 requires-python = ">=3.8"
+dependencies = [
+    "coloredlogs",
+    "matplotlib",
+    "PyYAML",
+    "scipy",
+    "seaborn",
+    "tqdm",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["dominion*"]
 
 [project.scripts]
-dominion-trainer = "runner:main"
+dominion-trainer = "dominion.runner:main"
