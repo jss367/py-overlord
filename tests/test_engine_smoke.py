@@ -116,6 +116,18 @@ def test_gamestate_end_on_province_depletion():
     assert gs.is_game_over() is True
 
 
+def test_gamestate_end_on_colony_depletion_when_colonies_are_in_supply():
+    gs = make_game(kingdom=["Colony"])
+    gs.supply["Colony"] = 0
+    assert gs.is_game_over() is True
+
+
+def test_gamestate_does_not_end_on_missing_colony_pile():
+    gs = make_game()
+    assert "Colony" not in gs.supply
+    assert gs.is_game_over() is False
+
+
 def test_watchtower_topdecks_gained_card():
     gs = make_game(kingdom=["Watchtower"])
     p = gs.current_player
