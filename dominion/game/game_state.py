@@ -3152,7 +3152,7 @@ class GameState:
             self.supply[card.name] = self.supply.get(card.name, 0) + 1
 
         if destination_is_deck:
-            player.deck.insert(0, actual_card)
+            player.deck.append(actual_card)
         else:
             player.discard.append(actual_card)
 
