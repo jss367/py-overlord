@@ -146,6 +146,21 @@ def test_watchtower_topdecks_gained_card():
     assert gs.supply["Estate"] == pre_estate - 1  # supply decremented once
 
 
+def test_gain_card_to_deck_puts_card_on_draw_top():
+    gs = make_game()
+    p = gs.current_player
+    p.hand = []
+    p.discard = []
+    p.deck = [get_card("Estate")]
+
+    gained = gs.gain_card(p, get_card("Silver"), to_deck=True)
+
+    assert gained.name == "Silver"
+    assert [card.name for card in p.deck] == ["Estate", "Silver"]
+    p.draw_cards(1)
+    assert [card.name for card in p.hand] == ["Silver"]
+
+
 def test_trader_replaces_gain_with_silver():
     gs = make_game(kingdom=["Trader"])
     p = gs.current_player
