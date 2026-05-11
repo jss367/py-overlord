@@ -17,14 +17,17 @@ To run every strategy against each other and produce a leaderboard:
 python compare_all_strategies.py --games 5
 ```
 
-The leaderboard will be written to `leaderboard.html` by default.
+The leaderboard will be written to `reports/leaderboard_all.html` by default.
+When using `--board`, the default output is
+`reports/leaderboard_<board-name>.html`.
 
-Example reports can be generated using the generic comparison runner:
+Example strategy comparison reports can be generated with the strategy battle
+module:
 
 ```
-python compare_strategies.py "Chapel Witch" "Big Money" --games 50
+python -m dominion.simulation.strategy_battle "Chapel Witch" "Big Money" --games 50 --output reports/chapel_witch_vs_big_money.html
 ```
 
-Reports are written to the `reports` directory.
-
+If `--output` is omitted, reports are written to the `reports` directory with
+an auto-generated filename.
 
