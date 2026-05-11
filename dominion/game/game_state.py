@@ -2457,7 +2457,7 @@ class GameState:
                 playable_actions.remove(chosen)
                 if chosen in player.in_play:
                     player.in_play.remove(chosen)
-                player.deck.insert(0, chosen)
+                player.deck.append(chosen)
 
         # Plunder Pendant: +$1 per differently-named Treasure in play per Pendant.
         # Calculated before any hand-mutating cleanup hooks fire.
@@ -2581,7 +2581,7 @@ class GameState:
             elif getattr(card, "_frog_topdeck", False):
                 # Menagerie Way of the Frog: topdeck on cleanup.
                 card._frog_topdeck = False
-                player.deck.insert(0, card)
+                player.deck.append(card)
             elif card.name == "Merchant Camp":
                 # Allies Merchant Camp: "When you discard this card from
                 # play, you may put it on top of your deck." We always take
@@ -2596,14 +2596,14 @@ class GameState:
                 card.name == "Walled Village"
                 and getattr(player, "walled_villages_played", 0) <= 1
             ):
-                player.deck.insert(0, card)
+                player.deck.append(card)
             elif (
                 card.name == "Border Guard"
                 and getattr(card, "horn_topdeck_pending", False)
             ):
                 # Renaissance Horn: topdeck this Border Guard during cleanup.
                 card.horn_topdeck_pending = False
-                player.deck.insert(0, card)
+                player.deck.append(card)
             elif (
                 card.is_treasure
                 and getattr(player, "panic_active", False)
@@ -2699,7 +2699,7 @@ class GameState:
 
         # Tireless: put set-aside cards on top of deck after drawing
         for card in tireless_set_aside:
-            player.deck.insert(0, card)
+            player.deck.append(card)
 
         # Nocturne — Faithful Hound: set-aside Hounds return to hand at end of turn
         if getattr(player, "hound_set_aside", None):

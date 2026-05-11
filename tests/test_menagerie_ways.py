@@ -232,8 +232,10 @@ def test_way_of_the_frog_topdecks_on_cleanup():
     state.handle_treasure_phase()
     state.handle_buy_phase()
     state.handle_cleanup_phase()
-    # Village should be at top of deck (deck[0]) after cleanup
-    assert village in p1.deck
+    # Village was topdecked before cleanup's redraw, so it should be drawn
+    # into the next hand rather than discarded.
+    assert village in p1.hand
+    assert village not in p1.discard
 
 
 def test_way_of_the_chameleon_swaps_cards_and_coins():

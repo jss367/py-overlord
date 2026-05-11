@@ -415,7 +415,7 @@ class Transport(Event):
             player.exile.remove(card)
             if card in player.invested_exile:
                 player.invested_exile.remove(card)
-            player.deck.insert(0, card)
+            player.deck.append(card)
             return
 
         available = []

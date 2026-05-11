@@ -38,7 +38,7 @@ class Graverobber(Card):
         if not choice or choice not in candidates:
             choice = candidates[0]
         game_state.trash.remove(choice)
-        player.deck.insert(0, choice)
+        player.deck.append(choice)
 
     def _upgrade(self, game_state, player, action_cards):
         from ..registry import get_card
