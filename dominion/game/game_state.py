@@ -427,6 +427,11 @@ class GameState:
 
     def setup_supply(self, kingdom_cards: list[Card]):
         """Set up the initial supply piles."""
+        # Reset latches that depend on supply contents. Pairing the reset
+        # with the set (at the bottom of this method) means callers using
+        # ``setup_supply`` directly — e.g. tests rebuilding a kingdom on the
+        # same ``GameState`` — don't leak the prior setup's Charlatan flag.
+        self._charlatan_seen = False
         # Add basic cards with proper counts
         copper_card = get_card("Copper")
         silver_card = get_card("Silver")

@@ -1486,6 +1486,46 @@ class DeclineCountingHouseAI(DummyAI):
         return None
 
 
+class ReturnIntForCountingHouseAI(DummyAI):
+    """AI that misbehaves with a non-iterable return type."""
+
+    def choose_coppers_for_counting_house(self, state, player, coppers):
+        return 42
+
+
+def test_counting_house_handles_non_iterable_from_ai():
+    """A non-iterable return (e.g. an int from a buggy AI) must be
+    normalized rather than raising TypeError at iteration."""
+    player = PlayerState(ReturnIntForCountingHouseAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Counting House")])
+
+    ch = get_card("Counting House")
+    player.hand = [ch]
+    player.discard = [get_card("Copper")]
+
+    # Should not raise.
+    play_action(state, player, "Counting House")
+
+    assert sum(1 for c in player.discard if c.name == "Copper") == 1
+    assert all(c.name != "Copper" for c in player.hand)
+
+
+def test_charlatan_latch_clears_on_setup_supply_reuse():
+    """If a caller invokes ``setup_supply`` directly on a reused GameState
+    (a common test pattern), a prior Charlatan setup must not leak its
+    latch into a later Charlatan-free setup."""
+    player = PlayerState(PlayAllTreasuresAI())
+    state = GameState([player])
+
+    state.setup_supply([get_card("Charlatan")])
+    assert state.charlatan_curse_active() is True
+
+    # Rebuild the kingdom on the same GameState without Charlatan.
+    state.setup_supply([get_card("Village")])
+    assert state.charlatan_curse_active() is False
+
+
 def test_counting_house_handles_none_from_ai():
     """A None return from the AI hook must be normalized to "no Coppers
     moved" rather than raising TypeError mid-turn."""
