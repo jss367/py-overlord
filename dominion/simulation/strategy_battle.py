@@ -1,25 +1,28 @@
 import argparse
 import logging
 import re
+from dataclasses import dataclass
 from datetime import datetime
 from logging import getLogger
 from pathlib import Path
 from typing import Any, Optional
 
 from dominion.ai.genetic_ai import GeneticAI
-from dominion.allies.registry import get_ally
+from dominion.allies.registry import ALLY_TYPES, get_ally
 from dominion.boards.loader import BoardConfig, load_board
-from dominion.cards.registry import get_card
-from dominion.events.registry import get_event
+from dominion.cards.registry import CARD_ALIASES, CARD_TYPES, get_card
+from dominion.events.registry import EVENT_TYPES, get_event
 from dominion.game.game_state import GameState
-from dominion.projects.registry import get_project
+from dominion.projects.registry import PROJECT_TYPES, get_project
 from dominion.reporting.html_report import generate_html_report
 from dominion.simulation.game_logger import GameLogger
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 from dominion.strategy.strategy_loader import StrategyLoader
-from dominion.ways.registry import get_way
+from dominion.ways.registry import WAY_TYPES, get_way
 
 logger = getLogger(__name__)
+
+_WAY_PARAM_RE = re.compile(r"\s*\(.+\)$")
 
 DEFAULT_KINGDOM_CARDS = [
     "Village",
@@ -50,6 +53,21 @@ BASIC_CARDS = {
     "Necropolis",
     "Overgrown Estate",
 }
+
+
+@dataclass(frozen=True)
+class StrategyBoardReferences:
+    kingdom_cards: list[str]
+    events: list[str]
+    projects: list[str]
+    ways: list[str]
+    allies: list[str]
+
+
+def canonical_way_name(way: str) -> str:
+    """Return the runtime Way.name for a board or strategy Way reference."""
+    return _WAY_PARAM_RE.sub("", way)
+
 
 # Set up module-level logger
 logger = logging.getLogger(__name__)
@@ -82,8 +100,8 @@ class StrategyBattle:
         self.verbose = verbose
 
     def _extract_cards_from_strategy(self, strat: EnhancedStrategy) -> set[str]:
-        """Return all card names referenced by a strategy's priority lists."""
-        cards: set[str] = set()
+        """Return all names referenced by a strategy's priority lists."""
+        references: set[str] = set()
         for priority_list in [
             strat.gain_priority,
             strat.action_priority,
@@ -92,32 +110,96 @@ class StrategyBattle:
         ]:
             for rule in priority_list:
                 if isinstance(rule, PriorityRule):
-                    cards.add(rule.card_name)
-        return cards
+                    references.add(rule.card_name)
+
+        for rule in getattr(strat, "way_policy", []) or []:
+            card_name = getattr(rule, "card_name", None)
+            way_name = getattr(rule, "way_name", None)
+            if card_name:
+                references.add(card_name)
+            if way_name:
+                references.add(way_name)
+
+        return references
+
+    @staticmethod
+    def _is_card_reference(name: str) -> bool:
+        return CARD_ALIASES.get(name, name) in CARD_TYPES
+
+    @staticmethod
+    def _is_way_reference(name: str) -> bool:
+        if name in WAY_TYPES:
+            return True
+
+        match = re.match(r"^(Way of the Mouse)\s*\((.+)\)$", name)
+        return bool(match and match.group(1) in WAY_TYPES)
+
+    def _split_board_references(self, names: set[str]) -> StrategyBoardReferences:
+        """Split strategy references into cards and supported landscapes."""
+
+        kingdom_cards: list[str] = []
+        events: list[str] = []
+        projects: list[str] = []
+        ways: list[str] = []
+        allies: list[str] = []
+
+        for name in sorted(names):
+            if name in BASIC_CARDS:
+                continue
+
+            if self._is_card_reference(name):
+                kingdom_cards.append(name)
+            elif name in EVENT_TYPES:
+                events.append(name)
+            elif name in PROJECT_TYPES:
+                projects.append(name)
+            elif self._is_way_reference(name):
+                ways.append(name)
+            elif name in ALLY_TYPES:
+                allies.append(name)
+            else:
+                # Preserve the old failure mode for typos and unsupported
+                # references: board preparation will raise Unknown card.
+                kingdom_cards.append(name)
+
+        return StrategyBoardReferences(kingdom_cards, events, projects, ways, allies)
+
+    def _determine_board_references(
+        self, strat1: EnhancedStrategy, strat2: EnhancedStrategy
+    ) -> StrategyBoardReferences:
+        """Compute cards and landscapes from both strategies if not explicitly set."""
+        if self.kingdom_cards is not None:
+            return StrategyBoardReferences(self.kingdom_cards, [], [], [], [])
+
+        all_names = self._extract_cards_from_strategy(strat1) | self._extract_cards_from_strategy(strat2)
+        return self._split_board_references(all_names)
 
     def _determine_kingdom_cards(self, strat1: EnhancedStrategy, strat2: EnhancedStrategy) -> list[str]:
         """Compute kingdom cards from both strategies if not explicitly set."""
-        if self.kingdom_cards is not None:
-            return self.kingdom_cards
+        return self._determine_board_references(strat1, strat2).kingdom_cards
 
-        all_cards = self._extract_cards_from_strategy(strat1) | self._extract_cards_from_strategy(strat2)
-        return sorted(c for c in all_cards if c not in BASIC_CARDS)
-
-    def _prepare_board_components(self, kingdom_card_names: list[str]):
+    def _prepare_board_components(
+        self,
+        kingdom_card_names: list[str],
+        event_names: Optional[list[str]] = None,
+        project_names: Optional[list[str]] = None,
+        way_names: Optional[list[str]] = None,
+        ally_names: Optional[list[str]] = None,
+    ):
         """Instantiate cards and landscape components for a game."""
 
         kingdom_cards = [get_card(name) for name in kingdom_card_names]
 
-        events = []
-        projects = []
-        ways = []
-        allies = []
-
         if self.board_config:
-            events = [get_event(name) for name in self.board_config.events]
-            projects = [get_project(name) for name in self.board_config.projects]
-            ways = [get_way(name) for name in self.board_config.ways]
-            allies = [get_ally(name) for name in self.board_config.allies]
+            event_names = self.board_config.events
+            project_names = self.board_config.projects
+            way_names = self.board_config.ways
+            ally_names = self.board_config.allies
+
+        events = [get_event(name) for name in event_names or []]
+        projects = [get_project(name) for name in project_names or []]
+        ways = [get_way(name) for name in way_names or []]
+        allies = [get_ally(name) for name in ally_names or []]
 
         return kingdom_cards, events, projects, ways, allies
 
@@ -241,9 +323,26 @@ class StrategyBattle:
             logger.info("Strategy 1: %s", strategy1_name)
             logger.info("Strategy 2: %s\n", strategy2_name)
 
-        kingdom_card_names = self._determine_kingdom_cards(strategy1, strategy2)
+        board_references = self._determine_board_references(strategy1, strategy2)
+        kingdom_card_names = board_references.kingdom_cards
         if self.verbose:
             logger.info("Using kingdom cards: %s", ", ".join(kingdom_card_names))
+            if not self.board_config:
+                logger.info(
+                    "Using landscapes: %s",
+                    ", ".join(
+                        filter(
+                            None,
+                            [
+                                f"Ways={len(board_references.ways)}" if board_references.ways else "",
+                                f"Projects={len(board_references.projects)}" if board_references.projects else "",
+                                f"Events={len(board_references.events)}" if board_references.events else "",
+                                f"Allies={len(board_references.allies)}" if board_references.allies else "",
+                            ],
+                        ),
+                    )
+                    or "(no landscapes)",
+                )
 
         if self.board_config and self.verbose:
             logger.info(
@@ -284,6 +383,10 @@ class StrategyBattle:
                     ai2,
                     kingdom_card_names,
                     decision_stats_by_ai=decision_stats_by_ai,
+                    events=board_references.events,
+                    projects=board_references.projects,
+                    ways=board_references.ways,
+                    allies=board_references.allies,
                 )
             else:
                 winner, scores, log_path, turns = self.run_game(
@@ -291,6 +394,10 @@ class StrategyBattle:
                     ai1,
                     kingdom_card_names,
                     decision_stats_by_ai=decision_stats_by_ai,
+                    events=board_references.events,
+                    projects=board_references.projects,
+                    ways=board_references.ways,
+                    allies=board_references.allies,
                 )
 
             # Record results
@@ -339,6 +446,10 @@ class StrategyBattle:
         kingdom_card_names: list[str],
         *,
         decision_stats_by_ai: Optional[dict[GeneticAI, dict[str, Any]]] = None,
+        events: Optional[list[str]] = None,
+        projects: Optional[list[str]] = None,
+        ways: Optional[list[str]] = None,
+        allies: Optional[list[str]] = None,
     ) -> tuple[GeneticAI, dict[str, int], Optional[str], int]:
         """Run a single game between two AIs. TODO: This shouldn't be within this class."""
         if decision_stats_by_ai:
@@ -353,15 +464,21 @@ class StrategyBattle:
         game_state.set_logger(self.logger)
 
         # Initialize game
-        kingdom_cards, events, projects, ways, allies = self._prepare_board_components(kingdom_card_names)
+        kingdom_cards, event_objs, project_objs, way_objs, ally_objs = self._prepare_board_components(
+            kingdom_card_names,
+            events,
+            projects,
+            ways,
+            allies,
+        )
         game_state.initialize_game(
             [ai1, ai2],
             kingdom_cards,
             use_shelters=self.use_shelters,
-            events=events,
-            projects=projects,
-            ways=ways,
-            allies=allies,
+            events=event_objs,
+            projects=project_objs,
+            ways=way_objs,
+            allies=ally_objs,
         )
 
         # Apply traits from board config
