@@ -2754,8 +2754,9 @@ class GameState:
 
         The game ends if:
         1. Province pile is empty
-        2. Any three supply piles are empty
-        3. Maximum turns (100) reached to prevent infinite games
+        2. Colony pile is empty, when Colonies are in the supply
+        3. Any three supply piles are empty
+        4. Maximum turns (100) reached to prevent infinite games
 
         Returns:
             bool: True if the game is over, False otherwise
@@ -2764,9 +2765,9 @@ class GameState:
         if self.logger:
             self.logger.current_metrics.turn_count = self.turn_number
 
-        normal_end = (
-            self.supply.get("Province", 0) == 0 or self.empty_piles >= 3
-        )
+        province_depleted = self.supply.get("Province", 0) == 0
+        colony_depleted = "Colony" in self.supply and self.supply.get("Colony", 0) == 0
+        normal_end = province_depleted or colony_depleted or self.empty_piles >= 3
 
         # If the current player is mid-turn (has not yet finished cleanup),
         # never short-circuit into the Fleet extra round or game-end logic.
@@ -2823,19 +2824,25 @@ class GameState:
             return True
 
         # 1. Province pile empty
-        if self.supply.get("Province", 0) == 0:
+        if province_depleted:
             self._update_final_metrics()
             self.log_callback("Game over: Provinces depleted")
             return True
 
-        # 2. Three supply piles empty
+        # 2. Colony pile empty, if present
+        if colony_depleted:
+            self._update_final_metrics()
+            self.log_callback("Game over: Colonies depleted")
+            return True
+
+        # 3. Three supply piles empty
         empty_piles = self.empty_piles
         if empty_piles >= 3:
             self._update_final_metrics()
             self.log_callback("Game over: Three piles depleted")
             return True
 
-        # 3. Hard turn limit
+        # 4. Hard turn limit
         if self.turn_number > 100:
             self._update_final_metrics()
             self.log_callback("Game over: Maximum turns reached")
