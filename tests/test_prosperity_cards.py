@@ -1327,20 +1327,26 @@ def test_charlatan_activation_persists_after_black_market_purchase():
     assert player.coins == 1
 
 
-def test_charlatan_active_when_seen_only_in_player_zone():
-    """A Charlatan present only in a player's deck/discard (e.g. after being
-    bought from Black Market with no other source) still activates the rule
-    on first call, before any caching."""
+def test_charlatan_stale_trash_does_not_reactivate_on_setup_supply_reuse():
+    """If ``setup_supply`` is reused on the same GameState to swap from a
+    Charlatan kingdom to a Charlatan-free kingdom, a Charlatan left in
+    ``self.trash`` from the prior game must not reactivate the rule. The
+    setup-time latch is the source of truth — live state is only consulted
+    via ``supply`` and ``black_market_deck``, not player zones or trash."""
     player = PlayerState(PlayAllTreasuresAI())
     state = GameState([player])
-    state.setup_supply([get_card("Village")])
-    state.supply.pop("Charlatan", None)
-    state.black_market_deck = []
 
-    # Charlatan exists only in a player's discard.
-    player.discard = [get_card("Charlatan")]
-
+    state.setup_supply([get_card("Charlatan")])
+    # Simulate a trashed Charlatan from the prior "game".
+    state.trash.append(get_card("Charlatan"))
     assert state.charlatan_curse_active() is True
+
+    # Rebuild kingdom without Charlatan on the same GameState. Trash is
+    # not reset by ``setup_supply``, so the test deliberately leaves the
+    # stale Charlatan there.
+    state.setup_supply([get_card("Village")])
+
+    assert state.charlatan_curse_active() is False
 
 
 # ---------------------------------------------------------------------------

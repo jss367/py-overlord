@@ -1578,13 +1578,18 @@ class GameState:
         """Whether Charlatan's "Curses are Treasures worth $1" rule is active.
 
         Per Prosperity 2E this applies "for the entire game and in all
-        situations" once Charlatan is part of the game. The check is a
-        latched lazy scan: as soon as a Charlatan is observed anywhere
-        (Supply, Black Market deck, any player zone, or the trash) the
-        flag is set to True and stays True for the remainder of the
-        game. This matters because Black Market removes purchased cards
-        from its deck permanently, so a supply/deck-only check would
-        deactivate the rule mid-game.
+        situations" once Charlatan is part of the game. The authoritative
+        source is a setup-time latch (``_charlatan_seen``) set in
+        ``setup_supply`` when Charlatan is in the Supply or the Black
+        Market deck. Once latched, the flag stays True for the remainder
+        of the game even if the Charlatan pile is later removed (e.g. by
+        Divine Wind) or bought out of the Black Market deck.
+
+        Live ``supply`` / ``black_market_deck`` checks act only as a
+        defensive backstop for code paths that may have skipped setup;
+        they never consult player zones or the trash, so stale state from
+        a prior game on a reused ``GameState`` cannot reactivate the
+        rule.
         """
         if getattr(self, "_charlatan_seen", False):
             return True
@@ -1592,15 +1597,6 @@ class GameState:
             self._charlatan_seen = True
             return True
         if "Charlatan" in self.black_market_deck:
-            self._charlatan_seen = True
-            return True
-        for p in self.players:
-            for zone_name in ("hand", "deck", "discard", "in_play", "duration"):
-                zone = getattr(p, zone_name, ())
-                if any(getattr(c, "name", None) == "Charlatan" for c in zone):
-                    self._charlatan_seen = True
-                    return True
-        if any(c.name == "Charlatan" for c in self.trash):
             self._charlatan_seen = True
             return True
         return False
