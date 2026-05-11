@@ -2,9 +2,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class WarChest(Card):
-    """Treasure ($5): +1 Buy. +$1.
-
-    When you play this, the player to your left names a card. Gain a card
+    """Treasure ($5): The player to your left names a card. Gain a card
     costing up to $5 that wasn't named (this turn).
 
     Multi-shot: every War Chest played in a turn names a different card; the
@@ -15,7 +13,7 @@ class WarChest(Card):
         super().__init__(
             name="War Chest",
             cost=CardCost(coins=5),
-            stats=CardStats(coins=1, buys=1),
+            stats=CardStats(),
             types=[CardType.TREASURE],
         )
 

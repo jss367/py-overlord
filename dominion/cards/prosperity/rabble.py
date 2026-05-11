@@ -22,7 +22,9 @@ class Rabble(Card):
                     break
                 revealed.append(target.deck.pop())
 
-            to_discard = [c for c in list(revealed) if c.is_action or c.is_treasure]
+            to_discard = [
+                c for c in list(revealed) if c.is_action or game_state.is_treasure(c)
+            ]
             for card in to_discard:
                 if card in revealed:
                     revealed.remove(card)

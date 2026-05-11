@@ -19,4 +19,4 @@ class Harbinger(Card):
         )
         if choice and choice in player.discard:
             player.discard.remove(choice)
-            player.deck.insert(0, choice)
+            player.deck.append(choice)

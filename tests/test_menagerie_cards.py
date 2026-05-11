@@ -30,7 +30,7 @@ def test_supplies_gain_horse_on_top_of_deck():
     state.supply["Supplies"] = state.supply.get("Supplies", 10)
     state.supply["Supplies"] -= 1
     state.gain_card(p1, supplies)
-    # to_deck=True places at deck[0] per existing trader test convention.
+    # to_deck=True places at deck[-1], which draw_cards pops next.
     assert any(c.name == "Horse" for c in p1.deck)
 
 

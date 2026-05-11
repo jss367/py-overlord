@@ -23,14 +23,18 @@ class Anvil(Card):
         Treasure is offered, discard it and gain a card costing up to $4.
         """
 
-        treasures = [card for card in player.hand if card.is_treasure]
+        treasures = [card for card in player.hand if game_state.is_treasure(card)]
         if not treasures:
             return
 
         choice = player.ai.choose_anvil_treasure_to_discard(
             game_state, player, list(treasures)
         )
-        if choice is None or choice not in player.hand or not choice.is_treasure:
+        if (
+            choice is None
+            or choice not in player.hand
+            or not game_state.is_treasure(choice)
+        ):
             return
 
         # Discard the chosen Treasure from hand.

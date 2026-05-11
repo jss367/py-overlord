@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from html import escape
 import io
 import os
 from pathlib import Path
@@ -19,6 +20,67 @@ def fig_to_base64(fig: plt.Figure) -> str:
     fig.savefig(buf, format="png", bbox_inches="tight")
     buf.seek(0)
     return base64.b64encode(buf.read()).decode("ascii")
+
+
+def _decision_firings_section(results: dict) -> str:
+    decision_firings = results.get("decision_firings") or {}
+    if not decision_firings:
+        return ""
+
+    sections = []
+    for role in ("strategy1", "strategy2"):
+        stats = decision_firings.get(role) or {}
+        strategy_name = escape(str(stats.get("strategy_name", role)))
+        rows = []
+
+        for card_name, ways in sorted((stats.get("choose_way") or {}).items()):
+            for way_name, count in sorted(ways.items()):
+                rows.append(
+                    "<tr>"
+                    "<td>choose_way</td>"
+                    f"<td>{escape(str(card_name))}</td>"
+                    f"<td>{escape(str(way_name))}</td>"
+                    f"<td>{count}</td>"
+                    "</tr>"
+                )
+
+        gain_stats = stats.get("choose_gain_overrides") or {}
+        for selection, count in sorted((gain_stats.get("by_selection") or {}).items()):
+            rows.append(
+                "<tr>"
+                "<td>choose_gain special case</td>"
+                "<td>Top priority bypassed</td>"
+                f"<td>{escape(str(selection))}</td>"
+                f"<td>{count}</td>"
+                "</tr>"
+            )
+
+        if not rows:
+            rows.append(
+                "<tr>"
+                "<td>None</td>"
+                "<td>-</td>"
+                "<td>No non-default Way choices or gain special cases</td>"
+                "<td>0</td>"
+                "</tr>"
+            )
+
+        total_gain_overrides = gain_stats.get("total", 0)
+        sections.append(
+            f"""
+            <h3>{strategy_name}</h3>
+            <p>choose_gain special cases: {total_gain_overrides}</p>
+            <table>
+                <tr><th>Decision</th><th>Card / Baseline</th><th>Selected</th><th>Count</th></tr>
+                {''.join(rows)}
+            </table>
+            """
+        )
+
+    return f"""
+    <h2>Decision Firings</h2>
+    {''.join(sections)}
+    """
 
 
 def generate_html_report(results: dict, output_path: Path, *, verbose: bool = False) -> None:
@@ -110,6 +172,7 @@ def generate_html_report(results: dict, output_path: Path, *, verbose: bool = Fa
             log_items += f'<li>Game {game["game_number"]}: No log available</li>'
 
     title = f"{strat1} vs {strat2}"
+    decision_firings_section = _decision_firings_section(results)
 
     html = f"""
     <html>
@@ -119,6 +182,10 @@ def generate_html_report(results: dict, output_path: Path, *, verbose: bool = Fa
             body {{ font-family: Arial, sans-serif; margin: 40px; }}
             h1 {{ text-align: center; }}
             img {{ max-width: 800px; display: block; margin: 20px auto; }}
+            table {{ margin: 20px auto; border-collapse: collapse; width: 80%; }}
+            th, td {{ border: 1px solid #ccc; padding: 8px 12px; text-align: left; }}
+            th {{ background: #f5f5f5; }}
+            tr:nth-child(even) {{ background: #fafafa; }}
         </style>
     </head>
     <body>
@@ -133,6 +200,7 @@ def generate_html_report(results: dict, output_path: Path, *, verbose: bool = Fa
     <img src="data:image/png;base64,{margin_hist}" />
     <h2>Margin by Game</h2>
     <img src="data:image/png;base64,{margin_scatter}" />
+    {decision_firings_section}
     <h2>Game Logs</h2>
     <ul>{log_items}</ul>
     </body>
