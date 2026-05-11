@@ -64,6 +64,9 @@ class GeneticTrainer:
         sharing_threshold: float = 0.8,
         shape_rewards: bool = True,
         simplify_genomes: bool = True,
+        rule_pruning: bool = True,
+        prune_warmup_generations: int = 3,
+        prune_min_rules: int = 3,
     ):
         if kingdom_cards is None:
             if board_config is None:
@@ -81,6 +84,9 @@ class GeneticTrainer:
         self.sharing_threshold = sharing_threshold
         self.shape_rewards = shape_rewards
         self.simplify_genomes = simplify_genomes
+        self.rule_pruning = rule_pruning
+        self.prune_warmup_generations = prune_warmup_generations
+        self.prune_min_rules = prune_min_rules
         self.battle_system = StrategyBattle(kingdom_cards, log_folder, board_config=board_config)
         if not self.kingdom_cards:
             raise ValueError("kingdom_cards cannot be empty")
@@ -392,6 +398,14 @@ class GeneticTrainer:
         try:
             panel = self._resolve_panel()
             from dominion.ai.genetic_ai import GeneticAI
+            from dominion.strategy.rule_pruning import reset_fire_flags
+
+            # Reset fire flags so this eval's window is fresh. The walker
+            # will mark rule._fired = True for every rule that matches
+            # during the games below; the next-generation step uses those
+            # flags to prune dead code.
+            if self.rule_pruning:
+                reset_fire_flags(strategy)
 
             games_for_opp = _distribute_games(self.games_per_eval, len(panel))
             breakdown: list[tuple] = []
@@ -721,10 +735,24 @@ class GeneticTrainer:
         for _ in range(immigrants):
             new_population.append(self.create_random_strategy())
 
+        # Prune dead rules from non-elite parents after a warmup period.
+        # Skipping the warmup avoids prematurely shrinking genomes before
+        # the population has had a chance to exercise conditional rules
+        # across varied game states.
+        pruning_active = (
+            self.rule_pruning
+            and self.current_generation >= self.prune_warmup_generations
+        )
+
         # Fill remaining slots via tournament selection + crossover + mutation
         while len(new_population) < self.population_size:
             parent1 = self._tournament_select(population, selection_fitness)
             parent2 = self._tournament_select(population, selection_fitness)
+
+            if pruning_active:
+                from dominion.strategy.rule_pruning import prune_unfired_rules
+                prune_unfired_rules(parent1, min_rules=self.prune_min_rules)
+                prune_unfired_rules(parent2, min_rules=self.prune_min_rules)
 
             child = self._crossover(parent1, parent2)
             child = self._mutate(child)
