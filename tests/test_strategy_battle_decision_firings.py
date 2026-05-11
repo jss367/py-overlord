@@ -54,6 +54,27 @@ def test_choose_gain_bypassing_priority_and_choose_way_are_counted():
     assert stats["choose_way"] == {"Flag Bearer": {"Way of the Butterfly": 1}}
 
 
+def test_custom_choose_gain_without_priority_baseline_is_not_counted_as_override():
+    class DynamicStrategy(EnhancedStrategy):
+        def choose_gain(self, state, player, choices):
+            return next(card for card in choices if card.name == "Smithy")
+
+    strategy = DynamicStrategy()
+    strategy.gain_priority = []
+    ai = GeneticAI(strategy)
+    battle = StrategyBattle()
+    stats = battle._empty_decision_firings("Dynamic Strategy")
+    state = SimpleNamespace(current_player=SimpleNamespace())
+
+    battle._instrument_ai_decisions(ai, stats)
+
+    selected = ai.choose_buy(state, [_card("Smithy"), _card("Silver"), None])
+
+    assert selected.name == "Smithy"
+    assert stats["choose_gain_overrides"]["total"] == 0
+    assert stats["choose_gain_overrides"]["by_selection"] == {}
+
+
 def test_html_decision_firings_section_renders_zero_rows():
     results = {
         "decision_firings": {

@@ -187,11 +187,13 @@ class StrategyBattle:
             player = getattr(state, "current_player", None)
             top_priority = self._top_gain_priority_choice(ai.strategy, state, player, valid_choices)
             selected = original_choose_buy(state, choices)
-            if selected is not None and (
-                top_priority is None or getattr(selected, "name", None) != getattr(top_priority, "name", None)
+            if (
+                selected is not None
+                and top_priority is not None
+                and getattr(selected, "name", None) != getattr(top_priority, "name", None)
             ):
                 selected_name = getattr(selected, "name", str(selected))
-                top_name = getattr(top_priority, "name", "None") if top_priority is not None else "None"
+                top_name = getattr(top_priority, "name", str(top_priority))
                 stats["choose_gain_overrides"]["total"] += 1
                 self._increment_count(
                     stats["choose_gain_overrides"]["by_selection"],
