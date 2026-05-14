@@ -16,8 +16,11 @@ from ..base_card import Card, CardCost, CardStats, CardType
 # ---------------------------------------------------------------------------
 
 class Bauble(Card):
-    """$2 Treasure-Liaison. +1 Buy. Choose one: +$1; +1 Favor; +1 Card;
-    or topdeck this. (Always grants +1 Favor as a Liaison too.)
+    """$2 Treasure-Liaison. Choose two different options: +1 Buy; +1 Coffer;
+    +1 Favor; or this turn when you gain a card, you may put it onto your
+    deck. Simulator heuristic picks +1 Buy plus one of +$1/+1 Card;
+    selecting +1 Coffer, +1 Favor, or the on-gain topdeck option is a
+    follow-up.
     """
 
     def __init__(self):
@@ -35,15 +38,10 @@ class Bauble(Card):
         )
 
         player = game_state.current_player
-        # Liaison: +1 Favor when played.
-        player.favors += 1
+        # Heuristic: pick +1 Buy as one of the two options, then either
+        # +1 Card or "+$1" (via chameleon helpers). Per the official text,
+        # Favor is one of four options — not granted unconditionally.
         player.buys += 1
-        # Choose one: heuristic — prefer +$1 by default, +1 Favor if
-        # the Ally is starved, +1 Card if hand is short, topdeck if a
-        # second play this turn would be useful (rare without a TR).
-        # The "+1 Card" / "+$1" choices are explicit +Cards / +$
-        # wording on the card, so they route through the chameleon
-        # helpers (a no-op outside of a Way of the Chameleon swap).
         if len(player.hand) <= 2:
             chameleon_plus_cards(game_state, player, 1)
         else:
@@ -51,7 +49,12 @@ class Bauble(Card):
 
 
 class Sycophant(Card):
-    """$2 Action-Liaison. +1 Action. Discard 3 cards. If any, +2 Favors."""
+    """$2 Action-Liaison. +1 Action. Discard 3 cards. When you gain or
+    trash this, +2 Favors.
+
+    NOTE: the printed +$3 payout for actually discarding cards is not yet
+    wired (current code grants +1 Action via stats and discards up to 3).
+    """
 
     def __init__(self):
         super().__init__(
@@ -68,16 +71,18 @@ class Sycophant(Card):
         picks = player.ai.choose_cards_to_discard(
             game_state, player, list(player.hand), 3, reason="sycophant"
         )
-        discarded = 0
         for card in picks:
             if card in player.hand:
                 player.hand.remove(card)
                 game_state.discard_card(player, card)
-                discarded += 1
-        if discarded > 0:
-            # Official: +2 Favors when you discard any (per most printings;
-            # accept simplification of "+1 Favor if discarded any").
-            player.favors += 2
+
+    def on_gain(self, game_state, player):
+        super().on_gain(game_state, player)
+        player.favors += 2
+
+    def on_trash(self, game_state, player):
+        super().on_trash(game_state, player)
+        player.favors += 2
 
 
 # ---------------------------------------------------------------------------
@@ -85,8 +90,9 @@ class Sycophant(Card):
 # ---------------------------------------------------------------------------
 
 class Importer(Card):
-    """$3 Action-Liaison. At start of next turn, gain a card costing up to $5.
-    +1 Favor."""
+    """$3 Action-Duration-Liaison. At start of next turn, gain a card
+    costing up to $5. Setup: each player starts with 5 Favors instead of
+    1; Importer does not grant any Favors on play."""
 
     def __init__(self):
         super().__init__(
@@ -98,7 +104,6 @@ class Importer(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        player.favors += 1
         self.duration_persistent = False
         player.duration.append(self)
 
@@ -362,8 +367,10 @@ class Town(Card):
 # ---------------------------------------------------------------------------
 
 class Contract(Card):
-    """$5 Treasure-Duration-Liaison. $2 +1 Favor. Set aside an Action from
-    hand. Play it at start of next turn.
+    """$5 Treasure-Duration-Liaison. +$2. You may set aside an Action from
+    your hand; if you do, play it at the start of your next turn.
+
+    Per official Allies rules, Contract does not grant +1 Favor on play.
     """
 
     def __init__(self):
@@ -379,9 +386,7 @@ class Contract(Card):
         from dominion.ways.chameleon import chameleon_plus_coins
 
         player = game_state.current_player
-        # Treasure body: +$2 +1 Favor.
         chameleon_plus_coins(player, 2)
-        player.favors += 1
 
         actions = [c for c in player.hand if c.is_action and not c.is_duration]
         if actions:
@@ -405,8 +410,16 @@ class Contract(Card):
 
 
 class Emissary(Card):
-    """$5 Action-Liaison. Reveal hand; +1 Card per differently-named
-    Action revealed. Discard down to 4. +1 Favor."""
+    """$5 Action-Liaison. +3 Cards. If drawing those cards caused you to
+    shuffle (i.e. you had at least one card in your discard pile when the
+    +3 Cards resolved), +1 Action and +2 Favors.
+
+    NOTE: the prior implementation (+1 Card per unique Action revealed,
+    discard down to 4) was unrelated to the printed card text; this is a
+    best-effort fix that wires the actual +3 Cards body but does not yet
+    detect the shuffle correctly for the conditional bonus, so that
+    conditional bonus is skipped (i.e. never fires) until a follow-up.
+    """
 
     def __init__(self):
         super().__init__(
@@ -418,48 +431,35 @@ class Emissary(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        player.favors += 1
-
-        action_names = {c.name for c in player.hand if c.is_action}
-        bonus = len(action_names)
-        if bonus > 0:
-            game_state.draw_cards(player, bonus)
-
-        excess = max(0, len(player.hand) - 4)
-        if excess > 0:
-            picks = player.ai.choose_cards_to_discard(
-                game_state, player, list(player.hand), excess, reason="emissary"
-            )
-            for card in picks:
-                if card in player.hand:
-                    player.hand.remove(card)
-                    game_state.discard_card(player, card)
+        game_state.draw_cards(player, 3)
+        # The conditional +1 Action / +2 Favors is intentionally deferred
+        # (see class docstring). The previous unconditional +1 Favor was
+        # not in the card text.
 
 
 class Galleria(Card):
-    """$5 Action-Liaison. +$2. While this is in play, when you gain a card
-    costing $3-$5, +1 Buy. +1 Favor."""
+    """$5 Action-Liaison. +$3. This turn, when you gain a card costing $3
+    or more, +1 Buy.
+
+    Per official Allies rules, Galleria does not grant +1 Favor on play.
+    """
 
     def __init__(self):
         super().__init__(
             name="Galleria",
             cost=CardCost(coins=5),
-            stats=CardStats(coins=2),
+            stats=CardStats(coins=3),
             types=[CardType.ACTION, CardType.LIAISON],
         )
 
-    def play_effect(self, game_state):
-        player = game_state.current_player
-        player.favors += 1
-
     def on_owner_gain(self, game_state, player, gained_card: Card) -> None:
-        if 3 <= gained_card.cost.coins <= 5:
+        if gained_card.cost.coins >= 3:
             player.buys += 1
 
 
 class Hunter(Card):
     """$5 Action-Liaison. +1 Action. Reveal top 3 cards; put one Action,
-    one Treasure, one Victory into hand; discard the rest. +1 Favor."""
+    one Treasure, one Victory into hand; discard the rest."""
 
     def __init__(self):
         super().__init__(
@@ -471,7 +471,6 @@ class Hunter(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        player.favors += 1
 
         revealed: list[Card] = []
         for _ in range(3):
@@ -531,8 +530,11 @@ class Skirmisher(Card):
 
 
 class Specialist(Card):
-    """$5 Action-Liaison. You may play an Action from hand. Then choose:
-    play it again; or gain a copy of it. +1 Favor."""
+    """$5 Action-Liaison. You may play an Action or Treasure card from your
+    hand. If you did, choose: play it again; or gain a copy of it.
+
+    Per official Allies rules, Specialist does not grant +1 Favor on play.
+    """
 
     def __init__(self):
         super().__init__(
@@ -546,7 +548,6 @@ class Specialist(Card):
         from ..registry import get_card
 
         player = game_state.current_player
-        player.favors += 1
 
         actions = [c for c in player.hand if c.is_action]
         if not actions:
@@ -576,9 +577,13 @@ class Specialist(Card):
 
 
 class Swap(Card):
-    """$5 Action-Liaison. +1 Card +1 Action. You may return an Action from
-    hand to its pile to gain a different non-duplicate Action costing
-    exactly the returned card's cost +1. +1 Favor."""
+    """$5 Action-Liaison. +1 Card, +1 Action. You may return an Action card
+    from your hand to its pile; if you do, gain an Action card from the
+    Supply costing up to $5 (not the same name as the returned card), and
+    put it into your hand.
+
+    Per official Allies rules, Swap does not grant +1 Favor on play.
+    """
 
     def __init__(self):
         super().__init__(
@@ -592,7 +597,6 @@ class Swap(Card):
         from ..registry import get_card
 
         player = game_state.current_player
-        player.favors += 1
 
         actions_in_hand = [
             c for c in player.hand

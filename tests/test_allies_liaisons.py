@@ -69,3 +69,36 @@ def test_modify_grants_favor():
     favors_before = player.favors
     modify.on_play(state)
     assert player.favors == favors_before + 1
+
+
+def test_importer_setup_gives_each_player_five_favors():
+    """Allies rules: 'At the start of the game, each player gets five Favors
+    instead of one' when Importer is in the kingdom."""
+    from dominion.ai.genetic_ai import GeneticAI
+    from dominion.game.game_state import GameState
+    from dominion.strategy.strategies.big_money import create_big_money
+
+    state = GameState(players=[])
+    state.initialize_game(
+        [GeneticAI(create_big_money()), GeneticAI(create_big_money())],
+        [get_card("Importer"), get_card("Smithy")],
+    )
+    for p in state.players:
+        assert p.favors == 5, (
+            f"Importer setup should grant 5 Favors (got {p.favors})"
+        )
+
+
+def test_non_importer_liaison_setup_gives_one_favor():
+    """Sanity: a Liaison kingdom WITHOUT Importer follows the default (+1)."""
+    from dominion.ai.genetic_ai import GeneticAI
+    from dominion.game.game_state import GameState
+    from dominion.strategy.strategies.big_money import create_big_money
+
+    state = GameState(players=[])
+    state.initialize_game(
+        [GeneticAI(create_big_money()), GeneticAI(create_big_money())],
+        [get_card("Hunter"), get_card("Smithy")],
+    )
+    for p in state.players:
+        assert p.favors == 1

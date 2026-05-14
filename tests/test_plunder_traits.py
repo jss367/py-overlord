@@ -301,3 +301,67 @@ def test_inspiring_lets_player_play_extra_action():
     state._maybe_inspiring_extra_play(player, village)
     # Smithy should now be in play.
     assert any(c.name == "Smithy" for c in player.in_play)
+
+
+def test_inspiring_treasure_triggers_extra_action_play():
+    """Inspiring applied to a Treasure pile must fire its extra-play hook
+    when the treasure is played during the treasure phase."""
+
+    class PickSmithy:
+        name = "pickSmithy"
+
+        def choose_action(self, state, choices):
+            for c in choices:
+                if c is not None and c.name == "Smithy":
+                    return c
+            return None
+
+        def choose_treasure(self, state, choices):
+            for c in choices:
+                if c is not None and c.name == "Silver":
+                    return c
+            return None
+
+        def choose_buy(self, *args, **kwargs):
+            return None
+
+        def choose_card_to_trash(self, *args, **kwargs):
+            return None
+
+        def should_topdeck_with_insignia(self, *args, **kwargs):
+            return False
+
+        def should_topdeck_with_royal_seal(self, *args, **kwargs):
+            return False
+
+        def choose_watchtower_reaction(self, *args, **kwargs):
+            return None
+
+        def should_react_with_market_square(self, *args, **kwargs):
+            return False
+
+        def should_play_guard_dog(self, *args, **kwargs):
+            return False
+
+        def should_reveal_moat(self, *args, **kwargs):
+            return True
+
+        def should_replay_treasure_with_tiara(self, *args, **kwargs):
+            return False
+
+    state = _make_state()
+    apply_trait(state, "Inspiring", "Silver")
+    player = state.current_player
+    player.ai = PickSmithy()
+    player.hand = [get_card("Silver"), get_card("Smithy")]
+    player.deck = [get_card("Copper") for _ in range(5)]
+    state.phase = "treasure"
+    state.handle_treasure_phase()
+    # Playing Silver (with Inspiring trait) should chain into playing
+    # Smithy from hand via the Inspiring extra-play.
+    in_play_names = [c.name for c in player.in_play]
+    assert "Silver" in in_play_names
+    assert "Smithy" in in_play_names, (
+        f"Inspiring on a Treasure should have triggered an extra Action play; "
+        f"in_play={in_play_names}"
+    )
