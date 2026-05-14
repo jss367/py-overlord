@@ -41,9 +41,13 @@ piles deplete.
 - ``City`` at rule 1 of the gain list means we buy City at every
   affordable price point ($5-$10) until that pile empties. After it
   empties, the rule falls through to ``Colony``.
-- ``Colony`` is gated by ``provinces_left <= 8`` (always true in a
-  2-player game since the pile starts at 8) — effectively
-  unconditional, just placed below City in the walk order.
+- ``Colony`` is unconditional, placed below City in the walk order.
+  The GA originally produced a ``provinces_left <= 8`` gate here,
+  which is vacuously true in 2-player play (Province pile starts at
+  8) but would block Colony purchases in 3+ player games until
+  several Provinces had been bought (pile starts at 12 there). The
+  gate is dropped so this strategy works correctly at any seat
+  count.
 - ``Clerk`` at rule 3 backstops every $4 hand and supplies terminal
   +$2 plus a topdeck attack on opponent.
 - ``Peddler`` is bought through turn 14 — once the action chain is
@@ -77,7 +81,7 @@ class CityPileEngine(EnhancedStrategy):
 
         self.gain_priority = [
             PriorityRule("City"),
-            PriorityRule("Colony", PriorityRule.provinces_left("<=", 8)),
+            PriorityRule("Colony"),
             PriorityRule("Clerk"),
             PriorityRule("Peddler", PriorityRule.turn_number("<=", 14)),
             PriorityRule("Gardens", PriorityRule.turn_number(">", 12)),
