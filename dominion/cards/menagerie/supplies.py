@@ -3,6 +3,9 @@
 from ..base_card import Card, CardCost, CardStats, CardType
 
 
+HORSE_PILE_COUNT = 30
+
+
 class Supplies(Card):
     """$1. When you gain this, gain a Horse, putting it on top of your deck."""
 
@@ -13,6 +16,9 @@ class Supplies(Card):
             stats=CardStats(coins=1),
             types=[CardType.TREASURE],
         )
+
+    def get_additional_non_supply_piles(self) -> dict[str, int]:
+        return {"Horse": HORSE_PILE_COUNT}
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)

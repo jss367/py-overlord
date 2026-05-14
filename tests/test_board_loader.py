@@ -3,8 +3,11 @@ from pathlib import Path
 import pytest
 
 from dominion.boards.loader import BoardConfig, load_board
+from dominion.cards.registry import get_card
+from dominion.game.game_state import GameState
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+from tests.utils import DummyAI
 
 
 def write_board(tmp_path: Path, contents: str) -> Path:
@@ -35,6 +38,34 @@ def test_load_board_parses_kingdom_and_landscapes(tmp_path):
     assert board.events == ["Gamble"]
 
 
+def test_load_board_parses_trait_dash_format(tmp_path):
+    path = write_board(
+        tmp_path,
+        """
+        Supplies
+        Trait: Inspiring - Supplies
+        """,
+    )
+
+    board = load_board(path)
+
+    assert board.traits == {"Supplies": "Inspiring"}
+
+
+def test_load_board_parses_trait_parenthetical_format(tmp_path):
+    path = write_board(
+        tmp_path,
+        """
+        Armory
+        Trait: Shy (Armory)
+        """,
+    )
+
+    board = load_board(path)
+
+    assert board.traits == {"Armory": "Shy"}
+
+
 def test_strategy_battle_prepares_landscapes(tmp_path):
     path = write_board(
         tmp_path,
@@ -56,6 +87,18 @@ def test_strategy_battle_prepares_landscapes(tmp_path):
     assert [project.name for project in projects] == board.projects
     assert [way.name for way in ways] == board.ways
     assert allies == []
+
+
+def test_strategy_battle_applies_board_traits():
+    board = BoardConfig(["Supplies"], traits={"Supplies": "Inspiring"})
+    battle = StrategyBattle(board_config=board)
+    state = GameState(players=[])
+    state.initialize_game([DummyAI(), DummyAI()], [get_card("Supplies")])
+
+    battle._apply_board_traits(state)
+
+    assert state.trait_piles["Inspiring"] == "Supplies"
+    assert state.pile_traits["Supplies"] == "Inspiring"
 
 
 def test_strategy_battle_splits_implicit_event_references():
