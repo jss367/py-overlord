@@ -32,11 +32,11 @@ def _normalise_entry(entry: str) -> str:
 def _parse_trait_value(value: str) -> tuple[str, str]:
     """Return ``(trait_name, card_name)`` for supported Trait line formats."""
 
-    trait_name, separator, card_name = value.partition("-")
-    if separator:
-        return trait_name.strip(), card_name.strip()
-
     match = re.fullmatch(r"(.+?)\s*\((.+)\)", value)
+    if match:
+        return match.group(1).strip(), match.group(2).strip()
+
+    match = re.fullmatch(r"(.+?)\s+-\s+(.+)", value)
     if match:
         return match.group(1).strip(), match.group(2).strip()
 

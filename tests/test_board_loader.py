@@ -66,6 +66,20 @@ def test_load_board_parses_trait_parenthetical_format(tmp_path):
     assert board.traits == {"Armory": "Shy"}
 
 
+def test_load_board_parses_parenthetical_trait_with_hyphenated_card(tmp_path):
+    path = write_board(
+        tmp_path,
+        """
+        Ill-Gotten Gains
+        Trait: Shy (Ill-Gotten Gains)
+        """,
+    )
+
+    board = load_board(path)
+
+    assert board.traits == {"Ill-Gotten Gains": "Shy"}
+
+
 def test_strategy_battle_prepares_landscapes(tmp_path):
     path = write_board(
         tmp_path,
