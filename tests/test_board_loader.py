@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from dominion.boards.loader import BoardConfig, load_board
+from dominion.game.game_state import GameState
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
@@ -56,6 +57,24 @@ def test_strategy_battle_prepares_landscapes(tmp_path):
     assert [project.name for project in projects] == board.projects
     assert [way.name for way in ways] == board.ways
     assert allies == []
+
+
+def test_strategy_battle_applies_board_traits(tmp_path):
+    path = write_board(
+        tmp_path,
+        """
+        Supplies
+        Trait: Inspiring - Supplies
+        """,
+    )
+
+    board = load_board(path)
+    battle = StrategyBattle(board_config=board)
+    state = GameState(players=[], supply={})
+
+    battle._apply_board_traits(state)
+
+    assert state.pile_traits["Supplies"] == "Inspiring"
 
 
 def test_strategy_battle_splits_implicit_event_references():

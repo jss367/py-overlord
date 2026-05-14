@@ -30,7 +30,7 @@ class InspiringFestivalEngine(EnhancedStrategy):
             "Festival + Council Room + Smithy draw engine with Vault payload; "
             "uses Inspiring-Supplies for Horse generation and free Action plays."
         )
-        self.version = "1.0"
+        self.version = "1.1"
 
         self.gain_priority = [
             PriorityRule("Colony"),
@@ -49,6 +49,8 @@ class InspiringFestivalEngine(EnhancedStrategy):
         ]
         self.action_priority = [
             PriorityRule("Festival"),
+            PriorityRule("Horse"),
+            PriorityRule("Necropolis"),
             PriorityRule("Hunter"),
             PriorityRule("Mystic"),
             PriorityRule("Vault"),

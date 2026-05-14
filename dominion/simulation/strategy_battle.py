@@ -18,6 +18,7 @@ from dominion.reporting.html_report import generate_html_report
 from dominion.simulation.game_logger import GameLogger
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 from dominion.strategy.strategy_loader import StrategyLoader
+from dominion.traits.registry import apply_trait
 from dominion.ways.registry import WAY_TYPES, get_way
 
 logger = getLogger(__name__)
@@ -202,6 +203,12 @@ class StrategyBattle:
         allies = [get_ally(name) for name in ally_names or []]
 
         return kingdom_cards, events, projects, ways, allies
+
+    def _apply_board_traits(self, game_state: GameState) -> None:
+        if not self.board_config:
+            return
+        for card_name, trait in self.board_config.traits.items():
+            apply_trait(game_state, trait, card_name)
 
     @staticmethod
     def _empty_decision_firings(strategy_name: str) -> dict[str, Any]:
@@ -481,11 +488,7 @@ class StrategyBattle:
             allies=ally_objs,
         )
 
-        # Apply traits from board config
-        if self.board_config:
-            for card_name, trait in self.board_config.traits.items():
-                if trait.lower() == "tireless":
-                    game_state.tireless_piles.add(card_name)
+        self._apply_board_traits(game_state)
 
         # Run game
         while not game_state.is_game_over():
