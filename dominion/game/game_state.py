@@ -392,9 +392,13 @@ class GameState:
         # Allies rules: when an Ally is in the game, each player starts with
         # 1 Favor. Without this, Ally abilities can't be activated until a
         # Liaison resolves, which skews early-turn behavior on Ally boards.
+        # Importer overrides this: each player gets 5 Favors instead of 1.
         if self.allies:
+            base_favors = (
+                5 if any(c.name == "Importer" for c in kingdom_cards) else 1
+            )
             for player in self.players:
-                player.favors += 1
+                player.favors += base_favors
 
         # Create a more readable player list for logging
         player_descriptions = []
@@ -1963,6 +1967,11 @@ class GameState:
                         # treasure, so Allies that react to plays should
                         # fire again here.
                         self.fire_ally_play_hooks(player, choice)
+
+                # Plunder Inspiring trait: applies to any pile, including
+                # Treasures. After playing this Treasure, the player may play
+                # an Action from hand they don't already have in play.
+                self._maybe_inspiring_extra_play(player, choice)
 
             remaining = [c.name for c in player.hand if c.is_treasure]
             context = {

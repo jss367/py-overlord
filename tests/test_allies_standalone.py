@@ -14,17 +14,41 @@ def _state() -> tuple[GameState, PlayerState]:
     return state, player
 
 
-def test_bauble_grants_favor_and_buy():
+def test_bauble_does_not_grant_unconditional_favor():
+    """Bauble offers +1 Favor as ONE of four choices. Without a choice
+    mechanism wired up, it must not grant Favor unconditionally."""
     state, player = _state()
     bauble = get_card("Bauble")
     player.in_play.append(bauble)
     favors_before = player.favors
     bauble.on_play(state)
-    assert player.favors == favors_before + 1
-    assert player.buys == 2  # 1 default + 1 from Bauble
+    # Bauble's printed text: "Choose two different options: +1 Buy,
+    # +1 Coffer, +1 Favor, or this turn when you gain a card you may
+    # put it onto your deck." Favor is one of four options, not automatic.
+    assert player.favors == favors_before
 
 
-def test_sycophant_grants_favor_when_discarding():
+def test_sycophant_grants_favor_on_gain():
+    """Per Allies rules: '+2 Favors when you gain or trash this'."""
+    state, player = _state()
+    sycophant = get_card("Sycophant")
+    state.supply = {"Sycophant": 5}
+    favors_before = player.favors
+    state.gain_card(player, sycophant)
+    assert player.favors == favors_before + 2
+
+
+def test_sycophant_grants_favor_on_trash():
+    state, player = _state()
+    sycophant = get_card("Sycophant")
+    player.in_play.append(sycophant)
+    favors_before = player.favors
+    state.trash_card(player, sycophant)
+    assert player.favors == favors_before + 2
+
+
+def test_sycophant_does_not_grant_favor_on_play():
+    """Sycophant's +2 Favors trigger is on gain/trash, not on play."""
     state, player = _state()
     sycophant = get_card("Sycophant")
     player.in_play.append(sycophant)
@@ -36,8 +60,7 @@ def test_sycophant_grants_favor_when_discarding():
     ]
     favors_before = player.favors
     sycophant.on_play(state)
-    # +1 Action, discard 3, +2 Favors when any discarded.
-    assert player.favors == favors_before + 2
+    assert player.favors == favors_before
 
 
 def test_underling_cantrips_with_favor():
@@ -57,7 +80,7 @@ def test_galleria_grants_buy_on_3_to_5_gain():
     state, player = _state()
     galleria = get_card("Galleria")
     player.in_play.append(galleria)
-    galleria.on_play(state)  # +$2, +1 Favor
+    galleria.on_play(state)  # +$3
     state.supply["Silver"] = 5
     silver = get_card("Silver")
     buys_before = player.buys
@@ -74,6 +97,17 @@ def test_galleria_no_buy_below_range():
     state.gain_card(player, get_card("Copper"))
     # Copper cost $0; no extra buy.
     assert player.buys == 1
+
+
+def test_galleria_does_not_grant_favor_on_play():
+    """Galleria's printed text is '+$3' and a buys-on-gain trigger;
+    it does not grant +1 Favor on play."""
+    state, player = _state()
+    galleria = get_card("Galleria")
+    player.in_play.append(galleria)
+    favors_before = player.favors
+    galleria.on_play(state)
+    assert player.favors == favors_before
 
 
 def test_skirmisher_attacks_on_action_gain():
@@ -174,20 +208,19 @@ def test_innkeeper_3_minus_3_with_clutter():
     assert sum(1 for c in player.discard if c.name == "Curse") == 2
 
 
-def test_emissary_draws_per_unique_action():
+def test_emissary_does_not_grant_unconditional_favor():
+    """Per Allies rules, Emissary's +1 Action and +2 Favors are conditional on
+    shuffling while drawing. The bonus must not fire unconditionally on play."""
     state, player = _state()
-    player.deck = [get_card("Gold") for _ in range(3)]
-    player.hand = [
-        get_card("Village"),
-        get_card("Smithy"),
-        get_card("Smithy"),
-    ]
+    # No discard pile -> drawing 3 cards from the deck cannot cause a shuffle,
+    # so Emissary's conditional bonus must not trigger.
+    player.discard = []
+    player.deck = [get_card("Gold") for _ in range(5)]
     emissary = get_card("Emissary")
     player.in_play.append(emissary)
     favors_before = player.favors
     emissary.on_play(state)
-    assert player.favors == favors_before + 1
-    # Two unique action names -> +2 cards (then discard down to 4).
+    assert player.favors == favors_before
 
 
 def test_specialist_gains_copy_or_replays():
@@ -338,6 +371,67 @@ def test_hunter_picks_one_per_type():
     assert "Copper" in hand_names
     assert "Estate" in hand_names
     assert "Smithy" in hand_names
+
+
+def test_hunter_does_not_grant_favor():
+    """Hunter is a Liaison but its printed text does not include +1 Favor."""
+    state, player = _state()
+    player.deck = [get_card("Copper"), get_card("Estate"), get_card("Smithy")]
+    hunter = get_card("Hunter")
+    player.in_play.append(hunter)
+    favors_before = player.favors
+    hunter.on_play(state)
+    assert player.favors == favors_before, (
+        f"Hunter should not grant a Favor on play (got {player.favors - favors_before})"
+    )
+
+
+def test_importer_does_not_grant_favor_on_play():
+    """Per Allies rules, Importer's only Favor effect is at setup (+5 instead
+    of +1). Playing Importer must not grant any Favor."""
+    state, player = _state()
+    state.supply = {"Smithy": 5}
+    importer = get_card("Importer")
+    player.in_play.append(importer)
+    favors_before = player.favors
+    importer.on_play(state)
+    assert player.favors == favors_before
+
+
+def test_contract_does_not_grant_favor_on_play():
+    """Contract's printed text: +$2 + set-aside Action. No on-play Favor."""
+    state, player = _state()
+    contract = get_card("Contract")
+    player.in_play.append(contract)
+    player.hand = []
+    favors_before = player.favors
+    contract.on_play(state)
+    assert player.favors == favors_before
+
+
+def test_specialist_does_not_grant_favor_on_play():
+    """Specialist's printed text: play an Action/Treasure, then replay it or
+    gain a copy. No on-play Favor."""
+    state, player = _state()
+    state.supply = {"Village": 5}
+    specialist = get_card("Specialist")
+    player.in_play.append(specialist)
+    player.hand = []  # nothing to specialize on; trigger should be a no-op
+    favors_before = player.favors
+    specialist.on_play(state)
+    assert player.favors == favors_before
+
+
+def test_swap_does_not_grant_favor_on_play():
+    """Swap's printed text: +1 Card, +1 Action, return-and-gain. No on-play Favor."""
+    state, player = _state()
+    state.supply = {"Village": 5}
+    swap = get_card("Swap")
+    player.in_play.append(swap)
+    player.hand = []  # nothing to return; trigger should be a no-op
+    favors_before = player.favors
+    swap.on_play(state)
+    assert player.favors == favors_before
 
 
 def test_capital_city_base_payload():

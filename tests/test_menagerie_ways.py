@@ -466,8 +466,9 @@ def test_way_of_the_chameleon_runs_full_on_play_for_bauble():
     way = get_way("Way of the Chameleon")
     way.apply(state, bauble)
     # Core ``on_play`` effects (driven through the actual subclass override)
-    # still ran: +1 Buy, +1 Favor.
-    assert p1.favors == favors_before + 1
+    # still ran: +1 Buy. Bauble does not grant +1 Favor unconditionally
+    # (per official rules, Favor is one of four chooseable options).
+    assert p1.favors == favors_before
     assert p1.buys == buys_before + 1
     # Bauble's "+$1" choice swapped to "+1 Card": no extra coins, +1 card
     # drawn from deck.
@@ -478,9 +479,11 @@ def test_way_of_the_chameleon_runs_full_on_play_for_bauble():
 
 def test_way_of_the_chameleon_runs_full_on_play_for_contract():
     """Contract is a Treasure-Duration-Liaison whose effects live in an
-    overridden ``on_play``: +$2, +1 Favor, set aside an Action to play
-    next turn. Played as Way of the Chameleon, the +1 Favor and
-    set-aside should still happen; the +$2 swaps to +2 Cards.
+    overridden ``on_play``: +$2 and set-aside-an-Action-for-next-turn.
+    Played as Way of the Chameleon, the set-aside should still happen;
+    the +$2 swaps to +2 Cards.
+
+    Per official Allies rules, Contract does NOT grant +1 Favor on play.
 
     See ``test_way_of_the_chameleon_runs_full_on_play_for_bauble`` for
     why we apply the Way directly rather than going through the action
@@ -500,8 +503,8 @@ def test_way_of_the_chameleon_runs_full_on_play_for_contract():
     coins_before = p1.coins
     way = get_way("Way of the Chameleon")
     way.apply(state, contract)
-    # +1 Favor still runs (Contract's overridden on_play executed).
-    assert p1.favors == favors_before + 1
+    # No on-play +Favor.
+    assert p1.favors == favors_before
     # +$2 swapped to +2 Cards: no extra coins, two cards drawn.
     assert p1.coins == coins_before
     estates_in_hand = sum(1 for c in p1.hand if c.name == "Estate")
@@ -524,9 +527,9 @@ def test_way_of_the_chameleon_does_not_swap_nested_overridden_on_play():
     Expected:
       - Fortune Hunter's own +$2 swaps to +2 Cards (Way applies to it).
       - Bauble (played as Fortune Hunter's side effect) keeps its
-        native effect: +1 Buy, +1 Favor, and +$1 (its heuristic choice
-        with hand > 2 picks the +$1 branch). The +$1 must NOT be
-        swapped to +1 Card by Chameleon.
+        native effect: +1 Buy and +$1 (its heuristic choice with hand
+        > 2 picks the +$1 branch). The +$1 must NOT be swapped to
+        +1 Card by Chameleon. Bauble does not grant Favor unconditionally.
     """
     state, p1 = _state(
         "Way of the Chameleon",
@@ -559,8 +562,9 @@ def test_way_of_the_chameleon_does_not_swap_nested_overridden_on_play():
     )
     # Bauble's +1 Buy still ran (its on_play ran fully).
     assert p1.buys == buys_before + 1
-    # Bauble's +1 Favor (Liaison) still ran.
-    assert p1.favors == favors_before + 1
+    # Bauble does not grant +1 Favor unconditionally (per official rules,
+    # Favor is one of four chooseable options).
+    assert p1.favors == favors_before
     # Hand grew by 2 (Fortune Hunter's swapped +2 Cards). Bauble's
     # +$1 branch did not draw.
     assert len(p1.hand) == hand_size_before + 2
