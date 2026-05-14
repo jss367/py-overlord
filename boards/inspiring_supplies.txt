@@ -1,0 +1,19 @@
+# Colony board with the Plunder Inspiring trait on Supplies.
+# Pair with Shelters when playing through the simulator.
+
+Council Room
+Festival
+Hunter
+Mystic
+Vault
+Supplies
+Storeroom
+Infirmary
+Change
+Smithy
+
+Colony
+Platinum
+
+Event: Triumph
+Trait: Inspiring - Supplies
