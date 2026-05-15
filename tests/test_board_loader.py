@@ -115,6 +115,30 @@ def test_strategy_battle_applies_board_traits():
     assert state.pile_traits["Supplies"] == "Inspiring"
 
 
+def test_strategy_battle_applies_inherited_trait_before_initial_hands(monkeypatch, tmp_path):
+    board = BoardConfig(["Supplies"], traits={"Supplies": "Inherited"})
+    battle = StrategyBattle(
+        board_config=board,
+        log_folder=str(tmp_path),
+        log_frequency=0,
+    )
+    hands: list[list[str]] = []
+
+    monkeypatch.setattr("dominion.game.player_state.random.shuffle", lambda deck: None)
+    monkeypatch.setattr(GameState, "is_game_over", lambda self: True)
+
+    def capture_end_game(winner, scores, supply_state, players):
+        hands.extend([[card.name for card in player.hand] for player in players])
+        return None
+
+    battle.logger.end_game = capture_end_game
+
+    battle.run_game(DummyAI(), DummyAI(), board.kingdom_cards)
+
+    assert hands
+    assert all("Supplies" in hand for hand in hands)
+
+
 def test_strategy_battle_splits_implicit_event_references():
     strategy = EnhancedStrategy()
     strategy.gain_priority = [

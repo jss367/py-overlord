@@ -260,6 +260,7 @@ class GameState:
         prophecy: object = None,
         riverboat_set_aside: Card = None,
         landmarks: list = None,
+        draw_initial_hands: bool = True,
     ):
         """Set up the game with given AIs and kingdom cards."""
         # Reset per-game state on the reused ``GameState`` so artifacts from
@@ -336,7 +337,11 @@ class GameState:
 
         # Initialize players
         for player in self.players:
-            player.initialize(use_shelters, heirlooms=heirlooms)
+            player.initialize(
+                use_shelters,
+                heirlooms=heirlooms,
+                draw_initial_hand=draw_initial_hands,
+            )
 
         # Nocturne: setup Boons-related infrastructure when needed.
         needs_boons = any(
