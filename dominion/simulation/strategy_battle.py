@@ -18,7 +18,6 @@ from dominion.reporting.html_report import generate_html_report
 from dominion.simulation.game_logger import GameLogger
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 from dominion.strategy.strategy_loader import StrategyLoader
-from dominion.traits import apply_trait
 from dominion.ways.registry import WAY_TYPES, get_way
 
 logger = getLogger(__name__)
@@ -480,12 +479,8 @@ class StrategyBattle:
             projects=project_objs,
             ways=way_objs,
             allies=ally_objs,
+            traits=self.board_config.traits if self.board_config else None,
         )
-
-        # Apply traits from board config
-        if self.board_config:
-            for card_name, trait in self.board_config.traits.items():
-                apply_trait(game_state, trait, card_name)
 
         # Run game
         while not game_state.is_game_over():

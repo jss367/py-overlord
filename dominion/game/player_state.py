@@ -209,7 +209,12 @@ class PlayerState:
     # be played at the start of the next turn.
     farmhands_set_aside: list[Card] = field(default_factory=list)
 
-    def initialize(self, use_shelters: bool = False, heirlooms: list[str] = None):
+    def initialize(
+        self,
+        use_shelters: bool = False,
+        heirlooms: list[str] = None,
+        draw_initial_hand: bool = True,
+    ):
         """Set up starting deck and draw initial hand.
 
         If ``use_shelters`` is ``True``, start with Necropolis, Hovel and
@@ -387,8 +392,8 @@ class PlayerState:
         self.farrier_pending_draw = 0
         self.farmhands_set_aside = []
 
-        # Draw initial hand of 5 cards
-        self.draw_cards(5)
+        if draw_initial_hand:
+            self.draw_cards(5)
 
     def draw_cards(self, count: int) -> list[Card]:
         """Draw specified number of cards from deck, shuffling if needed."""

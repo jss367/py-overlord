@@ -365,3 +365,19 @@ def test_inspiring_treasure_triggers_extra_action_play():
         f"Inspiring on a Treasure should have triggered an extra Action play; "
         f"in_play={in_play_names}"
     )
+
+
+def test_initialize_game_applies_setup_traits_before_opening_draw():
+    state = GameState(players=[])
+    state.initialize_game(
+        [_NullAI(), _NullAI()],
+        [get_card("Village")],
+        traits={"Village": "Inherited"},
+    )
+
+    assert state.supply["Village"] == 8
+    for player in state.players:
+        all_names = [card.name for card in player.all_cards()]
+        assert all_names.count("Village") == 1
+        assert all_names.count("Estate") == 2
+        assert len(player.hand) == 5
