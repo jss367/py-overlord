@@ -36,7 +36,7 @@ def test_supplies_gain_horse_on_top_of_deck():
 
 def test_supplies_registers_horse_non_supply_pile():
     state = GameState(players=[])
-    state.initialize_game([DummyAI(), DummyAI()], [get_card("Supplies")])
+    state.initialize_game([ChooseFirstActionAI(), ChooseFirstActionAI()], [get_card("Supplies")])
 
     assert state.supply["Horse"] == 30
     assert "Horse" in state.non_supply_pile_names

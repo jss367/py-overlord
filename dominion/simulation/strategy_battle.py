@@ -481,7 +481,6 @@ class StrategyBattle:
             ways,
             allies,
         )
-        delay_initial_draw = bool(self.board_config and self.board_config.traits)
         game_state.initialize_game(
             [ai1, ai2],
             kingdom_cards,
@@ -490,13 +489,8 @@ class StrategyBattle:
             projects=project_objs,
             ways=way_objs,
             allies=ally_objs,
-            draw_initial_hands=not delay_initial_draw,
+            traits=self.board_config.traits if self.board_config else None,
         )
-
-        self._apply_board_traits(game_state)
-        if delay_initial_draw:
-            for player in game_state.players:
-                player.draw_cards(5)
 
         # Run game
         while not game_state.is_game_over():

@@ -260,7 +260,7 @@ class GameState:
         prophecy: object = None,
         riverboat_set_aside: Card = None,
         landmarks: list = None,
-        draw_initial_hands: bool = True,
+        traits: dict[str, str] | None = None,
     ):
         """Set up the game with given AIs and kingdom cards."""
         # Reset per-game state on the reused ``GameState`` so artifacts from
@@ -335,13 +335,23 @@ class GameState:
             if getattr(c, "heirloom", None)
         ]
 
-        # Initialize players
+        # Initialize player decks, then apply setup-time traits before the
+        # opening hands are drawn.
         for player in self.players:
             player.initialize(
                 use_shelters,
                 heirlooms=heirlooms,
-                draw_initial_hand=draw_initial_hands,
+                draw_starting_hand=False,
             )
+
+        if traits:
+            from dominion.traits.registry import apply_trait
+
+            for card_name, trait in traits.items():
+                apply_trait(self, trait, card_name)
+
+        for player in self.players:
+            player.draw_cards(5)
 
         # Nocturne: setup Boons-related infrastructure when needed.
         needs_boons = any(
