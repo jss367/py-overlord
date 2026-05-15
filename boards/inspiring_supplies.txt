@@ -1,4 +1,5 @@
 # Colony board with the Plunder Inspiring trait on Supplies.
+# No +action village in the kingdom; Festival is the only +Actions source.
 # Pair with Shelters when playing through the simulator.
 
 Council Room

@@ -14,6 +14,9 @@ class Supplies(Card):
             types=[CardType.TREASURE],
         )
 
+    def get_additional_non_supply_piles(self) -> dict[str, int]:
+        return {"Horse": 30}
+
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
         from ..registry import get_card

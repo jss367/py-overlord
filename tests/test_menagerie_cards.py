@@ -34,6 +34,14 @@ def test_supplies_gain_horse_on_top_of_deck():
     assert any(c.name == "Horse" for c in p1.deck)
 
 
+def test_supplies_sets_up_horse_non_supply_pile():
+    state = GameState(players=[])
+    state.initialize_game([ChooseFirstActionAI(), ChooseFirstActionAI()], [get_card("Supplies")])
+
+    assert state.supply["Horse"] == 30
+    assert "Horse" in state.non_supply_pile_names
+
+
 def test_camel_train_exiles_non_victory():
     state, p1, _ = _two_player_state()
     p1.actions = 1
