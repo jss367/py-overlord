@@ -222,6 +222,8 @@ class PlayerState:
 
         ``heirlooms`` is a list of Heirloom card names (Nocturne). For each
         heirloom, one starting Copper is replaced with the matching Heirloom.
+        ``draw_starting_hand`` allows game setup code to apply start-of-game
+        effects to the shuffled deck before the opening hand is drawn.
         """
 
         # Create starting deck

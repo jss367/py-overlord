@@ -34,12 +34,24 @@ def test_supplies_gain_horse_on_top_of_deck():
     assert any(c.name == "Horse" for c in p1.deck)
 
 
-def test_supplies_sets_up_horse_non_supply_pile():
+def test_supplies_registers_horse_non_supply_pile():
     state = GameState(players=[])
     state.initialize_game([ChooseFirstActionAI(), ChooseFirstActionAI()], [get_card("Supplies")])
 
     assert state.supply["Horse"] == 30
     assert "Horse" in state.non_supply_pile_names
+
+
+def test_supplies_gains_horse_when_in_kingdom():
+    state = GameState(players=[])
+    state.initialize_game([DummyAI(), DummyAI()], [get_card("Supplies")])
+    p1 = state.players[0]
+
+    state.supply["Supplies"] -= 1
+    state.gain_card(p1, get_card("Supplies"))
+
+    assert state.supply["Horse"] == 29
+    assert any(c.name == "Horse" for c in p1.deck)
 
 
 def test_camel_train_exiles_non_victory():

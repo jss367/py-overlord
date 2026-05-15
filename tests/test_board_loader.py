@@ -4,11 +4,11 @@ import pytest
 
 from dominion.boards.loader import BoardConfig, load_board
 from dominion.cards.registry import get_card
-from dominion.game.game_state import GameState
 from dominion.game import player_state as player_state_module
+from dominion.game.game_state import GameState
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
-from tests.utils import ChooseFirstActionAI
+from tests.utils import ChooseFirstActionAI, DummyAI
 
 
 def write_board(tmp_path: Path, contents: str) -> Path:
@@ -39,6 +39,48 @@ def test_load_board_parses_kingdom_and_landscapes(tmp_path):
     assert board.events == ["Gamble"]
 
 
+def test_load_board_parses_trait_dash_format(tmp_path):
+    path = write_board(
+        tmp_path,
+        """
+        Supplies
+        Trait: Inspiring - Supplies
+        """,
+    )
+
+    board = load_board(path)
+
+    assert board.traits == {"Supplies": "Inspiring"}
+
+
+def test_load_board_parses_trait_parenthetical_format(tmp_path):
+    path = write_board(
+        tmp_path,
+        """
+        Armory
+        Trait: Shy (Armory)
+        """,
+    )
+
+    board = load_board(path)
+
+    assert board.traits == {"Armory": "Shy"}
+
+
+def test_load_board_parses_parenthetical_trait_with_hyphenated_card(tmp_path):
+    path = write_board(
+        tmp_path,
+        """
+        Ill-Gotten Gains
+        Trait: Shy (Ill-Gotten Gains)
+        """,
+    )
+
+    board = load_board(path)
+
+    assert board.traits == {"Ill-Gotten Gains": "Shy"}
+
+
 def test_strategy_battle_prepares_landscapes(tmp_path):
     path = write_board(
         tmp_path,
@@ -60,6 +102,42 @@ def test_strategy_battle_prepares_landscapes(tmp_path):
     assert [project.name for project in projects] == board.projects
     assert [way.name for way in ways] == board.ways
     assert allies == []
+
+
+def test_strategy_battle_applies_board_traits():
+    board = BoardConfig(["Supplies"], traits={"Supplies": "Inspiring"})
+    battle = StrategyBattle(board_config=board)
+    state = GameState(players=[])
+    state.initialize_game([DummyAI(), DummyAI()], [get_card("Supplies")])
+
+    battle._apply_board_traits(state)
+
+    assert state.trait_piles["Inspiring"] == "Supplies"
+    assert state.pile_traits["Supplies"] == "Inspiring"
+
+
+def test_strategy_battle_applies_inherited_trait_before_initial_hands(monkeypatch, tmp_path):
+    board = BoardConfig(["Supplies"], traits={"Supplies": "Inherited"})
+    battle = StrategyBattle(
+        board_config=board,
+        log_folder=str(tmp_path),
+        log_frequency=0,
+    )
+    hands: list[list[str]] = []
+
+    monkeypatch.setattr("dominion.game.player_state.random.shuffle", lambda deck: None)
+    monkeypatch.setattr(GameState, "is_game_over", lambda self: True)
+
+    def capture_end_game(winner, scores, supply_state, players):
+        hands.extend([[card.name for card in player.hand] for player in players])
+        return None
+
+    battle.logger.end_game = capture_end_game
+
+    battle.run_game(DummyAI(), DummyAI(), board.kingdom_cards)
+
+    assert hands
+    assert all("Supplies" in hand for hand in hands)
 
 
 def test_game_initialization_applies_traits_before_opening_draw(monkeypatch):

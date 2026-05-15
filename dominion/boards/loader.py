@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
+import re
 
 
 @dataclass(slots=True)
@@ -26,6 +27,20 @@ def _normalise_entry(entry: str) -> str:
     if not value:
         raise ValueError("Board entry cannot be empty")
     return value
+
+
+def _parse_trait_value(value: str) -> tuple[str, str]:
+    """Return ``(trait_name, card_name)`` for supported Trait line formats."""
+
+    match = re.fullmatch(r"(.+?)\s*\((.+)\)", value)
+    if match:
+        return match.group(1).strip(), match.group(2).strip()
+
+    match = re.fullmatch(r"(.+?)\s+-\s+(.+)", value)
+    if match:
+        return match.group(1).strip(), match.group(2).strip()
+
+    return "", ""
 
 
 def _parse_special_line(line: str, config: BoardConfig) -> bool:
@@ -57,10 +72,8 @@ def _parse_special_line(line: str, config: BoardConfig) -> bool:
     elif key == "ally":
         config.allies.append(value)
     elif key == "trait":
-        # Format: "Trait: TraitName - CardName"
-        trait_name, _, card_name = value.partition("-")
-        trait_name = trait_name.strip()
-        card_name = card_name.strip()
+        # Formats: "Trait: TraitName - CardName" or "Trait: TraitName (CardName)".
+        trait_name, card_name = _parse_trait_value(value)
         if trait_name and card_name:
             config.traits[card_name] = trait_name
     else:
@@ -99,4 +112,3 @@ def load_board(path: Path | str) -> BoardConfig:
         raise ValueError(f"Board file {board_path} does not list any kingdom cards")
 
     return config
-
