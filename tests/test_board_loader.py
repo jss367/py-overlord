@@ -3,8 +3,12 @@ from pathlib import Path
 import pytest
 
 from dominion.boards.loader import BoardConfig, load_board
+from dominion.cards.registry import get_card
+from dominion.game.game_state import GameState
+from dominion.game import player_state as player_state_module
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+from tests.utils import ChooseFirstActionAI
 
 
 def write_board(tmp_path: Path, contents: str) -> Path:
@@ -56,6 +60,21 @@ def test_strategy_battle_prepares_landscapes(tmp_path):
     assert [project.name for project in projects] == board.projects
     assert [way.name for way in ways] == board.ways
     assert allies == []
+
+
+def test_game_initialization_applies_traits_before_opening_draw(monkeypatch):
+    monkeypatch.setattr(player_state_module.random, "shuffle", lambda _cards: None)
+    state = GameState(players=[], supply={})
+
+    state.initialize_game(
+        [ChooseFirstActionAI(), ChooseFirstActionAI()],
+        [get_card("Village")],
+        traits={"Village": "Inherited"},
+    )
+
+    for player in state.players:
+        assert player.count_in_deck("Village") == 1
+        assert player.count_in_deck("Estate") == 2
 
 
 def test_strategy_battle_splits_implicit_event_references():
