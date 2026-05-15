@@ -24,6 +24,9 @@ class Supplies(Card):
         super().on_gain(game_state, player)
         from ..registry import get_card
 
+        if "Horse" not in game_state.supply:
+            game_state.supply["Horse"] = 30
+            game_state.non_supply_pile_names.add("Horse")
         if game_state.supply.get("Horse", 0) <= 0:
             return
         game_state.supply["Horse"] -= 1

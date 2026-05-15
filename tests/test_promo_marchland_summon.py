@@ -6,12 +6,18 @@ from dominion.game.game_state import GameState
 from tests.utils import ChooseFirstActionAI
 
 
+class _NoOpAlly:
+    name = "No-op Ally"
+
+
 def _new_state(kingdom_card_names=None):
     if kingdom_card_names is None:
         kingdom_card_names = ["Village", "Smithy"]
     ai = ChooseFirstActionAI()
     state = GameState(players=[])
-    state.initialize_game([ai], [get_card(n) for n in kingdom_card_names])
+    kingdom_cards = [get_card(n) for n in kingdom_card_names]
+    allies = [_NoOpAlly()] if any(card.is_liaison for card in kingdom_cards) else None
+    state.initialize_game([ai], kingdom_cards, allies=allies)
     return state
 
 
