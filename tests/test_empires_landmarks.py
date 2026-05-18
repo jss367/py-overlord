@@ -218,6 +218,21 @@ def test_obelisk_can_use_configured_chosen_pile():
     assert landmark.vp_for(state, player) == 4
 
 
+def test_obelisk_canonicalizes_configured_chosen_pile_alias():
+    landmark = get_landmark("Obelisk (Council room)")
+    state = GameState(players=[], supply={})
+    state.initialize_game(
+        [DummyAI(), DummyAI()],
+        [get_card("Council Room"), get_card("Village")],
+        landmarks=[landmark],
+    )
+    player = state.players[0]
+
+    assert landmark.chosen_pile == "Council Room"
+    player.deck = [get_card("Council Room") for _ in range(2)]
+    assert landmark.vp_for(state, player) == 4
+
+
 def test_orchard_four_vp_per_action_with_three_copies():
     landmark = Orchard()
     state = _make_game([landmark])

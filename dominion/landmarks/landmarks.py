@@ -345,6 +345,7 @@ class Obelisk(Landmark):
                 raise ValueError(
                     f"Obelisk chosen pile is not a known card: {self.chosen_pile}"
                 ) from exc
+            self.chosen_pile = card.name
             if (
                 self.chosen_pile not in game_state.supply
                 or not card.is_action
