@@ -42,6 +42,20 @@ python runner.py --config kingdom_config.yaml --population-size 30 --generations
 - `--generations`: Number of generations to run (default: 10)
 - `--mutation-rate`: Mutation rate (default: 0.1)
 - `--games-per-eval`: Number of games to play per strategy evaluation (default: 10)
+- `--seed-strategy`: Inject one existing `module:function` strategy into the initial population
+- `--seed-strategies`: Inject multiple existing strategy factories
+- `--baseline-strategy`: Evaluate against one existing strategy instead of Big Money
+- `--baseline-panel`: Evaluate against multiple existing strategy factories
+- `--reuse-compatible-strategies`: Automatically find existing strategies that reference cards on this board, inject them as seeds, and add them to the baseline panel
+- `--reuse-top-k`: Maximum number of compatible strategies to reuse (default: 3)
+- `--reuse-min-overlap`: Minimum non-base card overlap required for automatic reuse (default: 2)
+
+Example automatic reuse:
+
+```bash
+python runner.py --kingdom-cards Village Smithy Festival Workshop Market \
+  --reuse-compatible-strategies --reuse-top-k 3
+```
 
 ## YAML Configuration Format
 

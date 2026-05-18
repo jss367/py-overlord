@@ -74,7 +74,7 @@ class GeneticTrainer:
             raise ValueError("kingdom_cards cannot be empty")
         self.current_generation = 0
         self.logger = GameLogger(log_folder)
-        self._strategy_to_inject = None
+        self._strategies_to_inject: list[BaseStrategy] = []
         self._baseline_strategy = None
         self._baseline_panel: list[BaseStrategy] = []
         # List of per-opponent breakdown tuples. With ``shape_rewards=False``
@@ -773,11 +773,26 @@ class GeneticTrainer:
             log.info("Initializing population...")
             population = [self.create_random_strategy() for _ in range(self.population_size)]
 
-            # Inject strategy if one was provided
-            if self._strategy_to_inject is not None:
-                replace_idx = random.randint(0, len(population) - 1)
-                population[replace_idx] = deepcopy(self._strategy_to_inject)
-                self._strategy_to_inject = None
+            # Inject existing strategies if provided. Each seed gets one exact
+            # copy and, when there is room, one mutated neighbor so evolution
+            # starts near proven ideas without collapsing the whole population
+            # into clones.
+            if self._strategies_to_inject:
+                injected: list[BaseStrategy] = []
+                for strategy in self._strategies_to_inject:
+                    injected.append(deepcopy(strategy))
+                    variant = self._mutate(deepcopy(strategy))
+                    variant = self._normalize(variant)
+                    variant.name = f"seed-variant-{id(variant)}"
+                    injected.append(variant)
+
+                slot_count = min(len(population), len(injected))
+                for slot, strategy in zip(
+                    random.sample(range(len(population)), slot_count),
+                    injected[:slot_count],
+                ):
+                    population[slot] = strategy
+                self._strategies_to_inject = []
 
             best_strategy = None
             # Shaped fitness can be negative, so seed below any possible value
@@ -872,4 +887,8 @@ class GeneticTrainer:
     def inject_strategy(self, strategy: BaseStrategy):
         """Inject an existing strategy into the initial population.
         This should be called before train() is called."""
-        self._strategy_to_inject = strategy
+        self._strategies_to_inject.append(strategy)
+
+    def inject_strategies(self, strategies: list[BaseStrategy]):
+        """Inject multiple existing strategies into the initial population."""
+        self._strategies_to_inject.extend(strategies)

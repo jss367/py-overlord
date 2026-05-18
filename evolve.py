@@ -23,6 +23,7 @@ from pathlib import Path
 import coloredlogs
 
 from dominion.ai.genetic_ai import GeneticAI
+from dominion.analysis.strategy_library import find_compatible_strategies
 from dominion.analysis.seed_genomes import build_seed_genomes, trick_signature
 from dominion.boards.loader import load_board
 from dominion.reporting.html_report import generate_leaderboard_html
@@ -114,6 +115,23 @@ def main():
              "mixed in alongside --seeds as additional starting points.",
     )
     parser.add_argument(
+        "--reuse-compatible-strategies",
+        action="store_true",
+        help="Automatically add existing strategies whose referenced cards overlap this board as seeds.",
+    )
+    parser.add_argument(
+        "--reuse-top-k",
+        type=int,
+        default=3,
+        help="Maximum compatible strategies to reuse when --reuse-compatible-strategies is set (default: 3).",
+    )
+    parser.add_argument(
+        "--reuse-min-overlap",
+        type=int,
+        default=2,
+        help="Minimum non-base card overlap for automatic strategy reuse (default: 2).",
+    )
+    parser.add_argument(
         "--population", type=int, default=25,
         help="Genetic algorithm population size (default: 25)",
     )
@@ -159,6 +177,28 @@ def main():
     for spec in args.seeds:
         name = _short_name(spec)
         seeds[name] = _load_factory(spec)
+
+    if args.reuse_compatible_strategies:
+        reusable_entries = find_compatible_strategies(
+            board_config.kingdom_cards,
+            top_k=args.reuse_top_k,
+            min_overlap=args.reuse_min_overlap,
+        )
+        for entry in reusable_entries:
+            name = f"Reuse {entry.name}"
+            if name in seeds:
+                continue
+            seeds[name] = entry.factory
+        if reusable_entries:
+            logger.info(
+                "Reusable strategy seeds added: %s",
+                ", ".join(
+                    f"{entry.name} ({', '.join(sorted(entry.matched_cards))})"
+                    for entry in reusable_entries
+                ),
+            )
+        else:
+            logger.info("No reusable strategies met the compatibility threshold")
 
     # Inject trick-scanner-derived seeds alongside the user-provided seeds.
     # Each one becomes its own evolution lineage in Phase 2 — the evolver
@@ -238,6 +278,13 @@ def main():
             board_config=board_config,
         )
         trainer.inject_strategy(seed_factory())
+        reusable_factories = [
+            factory
+            for other_name, factory in seeds.items()
+            if other_name != seed_name and other_name.startswith("Reuse ")
+        ]
+        if reusable_factories:
+            trainer.inject_strategies([factory() for factory in reusable_factories])
         if panel_strategies:
             trainer.set_baseline_panel(panel_strategies)
         else:
