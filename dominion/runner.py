@@ -8,6 +8,7 @@ import coloredlogs
 import yaml
 
 from dominion.boards.loader import BoardConfig, load_board
+from dominion.analysis.strategy_library import find_compatible_strategies
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
 
@@ -130,6 +131,29 @@ def main():
         "(e.g. generated_strategies.torture_campaign_v2:create_torture_campaign_v2)",
     )
     parser.add_argument(
+        "--seed-strategies",
+        nargs="+",
+        help="Additional module:function seed strategies to inject into the initial population.",
+    )
+    parser.add_argument(
+        "--reuse-compatible-strategies",
+        action="store_true",
+        help="Automatically reuse existing strategies whose referenced cards overlap this board. "
+        "Selected strategies are injected as seeds and added to the baseline panel.",
+    )
+    parser.add_argument(
+        "--reuse-top-k",
+        type=int,
+        default=3,
+        help="Maximum compatible strategies to reuse when --reuse-compatible-strategies is set (default: 3).",
+    )
+    parser.add_argument(
+        "--reuse-min-overlap",
+        type=int,
+        default=2,
+        help="Minimum non-base card overlap for automatic strategy reuse (default: 2).",
+    )
+    parser.add_argument(
         "--baseline-strategy",
         help="Python module path to a strategy factory function to evaluate against instead of Big Money "
         "(e.g. generated_strategies.torture_campaign_v2:create_torture_campaign_v2)",
@@ -215,14 +239,47 @@ def main():
         mod = importlib.import_module(module_path)
         return getattr(mod, func_name)()
 
-    # Inject seed strategy if provided
-    if args.seed_strategy:
+    reusable_entries = []
+    if args.reuse_compatible_strategies:
         try:
-            seed = _load_strategy(args.seed_strategy)
+            reusable_entries = find_compatible_strategies(
+                kingdom_cards,
+                top_k=args.reuse_top_k,
+                min_overlap=args.reuse_min_overlap,
+            )
+            if reusable_entries:
+                logger.info(
+                    "Reusable strategy seeds: %s",
+                    ", ".join(
+                        f"{entry.name} ({', '.join(sorted(entry.matched_cards))})"
+                        for entry in reusable_entries
+                    ),
+                )
+            else:
+                logger.info("No reusable strategies met the compatibility threshold")
+        except Exception as exc:
+            logger.error("Failed to discover reusable strategies: %s", exc)
+            sys.exit(1)
+
+    # Inject seed strategies if provided or discovered
+    seed_specs = []
+    if args.seed_strategy:
+        seed_specs.append(args.seed_strategy)
+    if args.seed_strategies:
+        seed_specs.extend(args.seed_strategies)
+    seed_specs.extend(entry.spec for entry in reusable_entries)
+
+    seen_seed_specs: set[str] = set()
+    for spec in seed_specs:
+        if spec in seen_seed_specs:
+            continue
+        seen_seed_specs.add(spec)
+        try:
+            seed = _load_strategy(spec)
             trainer.inject_strategy(seed)
             logger.info("Injected seed strategy: %s", seed.name)
         except Exception as exc:
-            logger.error("Failed to load seed strategy: %s", exc)
+            logger.error("Failed to load seed strategy %s: %s", spec, exc)
             sys.exit(1)
 
     # Set baseline panel (preferred) or single baseline
@@ -244,6 +301,25 @@ def main():
         except Exception as exc:
             logger.error("Failed to load baseline strategy: %s", exc)
             sys.exit(1)
+
+    if reusable_entries:
+        reused_panel_specs = [
+            entry.spec
+            for entry in reusable_entries
+            if entry.spec not in set(args.baseline_panel or [])
+        ]
+        try:
+            reused_panel = [_load_strategy(spec) for spec in reused_panel_specs]
+        except Exception as exc:
+            logger.error("Failed to load reusable baseline strategy: %s", exc)
+            sys.exit(1)
+        if reused_panel:
+            panel.extend(reused_panel)
+            trainer.set_baseline_panel(panel)
+            logger.info(
+                "Added reusable strategies to baseline panel: %s",
+                ", ".join(strategy.name for strategy in reused_panel),
+            )
 
     logger.info("Training parameters:")
     logger.info("  Population size: %d", population_size)

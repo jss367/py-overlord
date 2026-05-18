@@ -69,6 +69,9 @@ def _make_mock_player(coins=3, actions=1, buys=1, vp=3, all_cards=None):
     player.actions = actions
     player.buys = buys
     player.hand = []
+    player.in_play = []
+    player.actions_gained_this_turn = 0
+    player.cards_gained_this_turn = 0
     player.count_in_deck = lambda card_name: {"Silver": 2, "Gold": 1}.get(card_name, 0)
     cards = all_cards if all_cards is not None else []
     player.all_cards = lambda _cards=cards: list(_cards)
@@ -726,6 +729,39 @@ class TestRandomImmigrants:
         assert differing >= 2, (
             f"Expected at least 2 immigrants with differing top-5; got {differing}"
         )
+
+
+class TestInjectedSeedStrategies:
+    def test_train_injects_multiple_exact_seed_strategies(self, monkeypatch):
+        trainer = GeneticTrainer(
+            ["Village", "Smithy", "Festival"],
+            population_size=4,
+            generations=1,
+            games_per_eval=2,
+            mutation_rate=0.0,
+        )
+        seed_a = _strategy_with_gain("Village", "Province")
+        seed_a.name = "SeedA"
+        seed_b = _strategy_with_gain("Smithy", "Province")
+        seed_b.name = "SeedB"
+        trainer.inject_strategies([seed_a, seed_b])
+
+        evaluated_names = []
+        monkeypatch.setattr(
+            trainer,
+            "evaluate_strategy",
+            lambda strategy: evaluated_names.append(strategy.name) or 50.0,
+        )
+        monkeypatch.setattr(
+            trainer,
+            "create_next_generation",
+            lambda population, fitness_scores, **kwargs: population,
+        )
+
+        trainer.train()
+
+        assert "SeedA" in evaluated_names
+        assert "SeedB" in evaluated_names
 
 
 def _deepcopy_strategy(s: BaseStrategy) -> BaseStrategy:
