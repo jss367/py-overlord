@@ -148,7 +148,7 @@ class StrategyBattle:
             return True
 
         match = re.match(r"^(.+?)\s*\(.+\)$", name)
-        return bool(match and match.group(1) in LANDMARK_TYPES)
+        return bool(match and match.group(1) == "Obelisk")
 
     def _split_board_references(self, names: set[str]) -> StrategyBoardReferences:
         """Split strategy references into cards and supported landscapes."""

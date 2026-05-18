@@ -1,6 +1,6 @@
 from compare_all_strategies import _missing_board_components
 from dominion.boards.loader import BoardConfig
-from dominion.simulation.strategy_battle import StrategyBoardReferences
+from dominion.simulation.strategy_battle import StrategyBattle, StrategyBoardReferences
 
 
 def test_board_compatibility_canonicalizes_parametric_way_names():
@@ -35,3 +35,12 @@ def test_board_compatibility_canonicalizes_parametric_obelisk_name():
     )
 
     assert _missing_board_components(refs, board, set(board.kingdom_cards)) == []
+
+
+def test_only_obelisk_is_treated_as_parametric_landmark_reference():
+    battle = StrategyBattle()
+
+    refs = battle._split_board_references({"Bandit Fort (Village)"})
+
+    assert refs.landmarks == []
+    assert refs.kingdom_cards == ["Bandit Fort (Village)"]
