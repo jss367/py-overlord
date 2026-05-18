@@ -43,6 +43,20 @@ def _parse_trait_value(value: str) -> tuple[str, str]:
     return "", ""
 
 
+def _parse_landmark_value(value: str) -> str:
+    """Return a normalized Landmark entry.
+
+    Obelisk has a setup-time chosen pile. Board files can express that as
+    ``Landmark: Obelisk (Temple)`` or ``Landmark: Obelisk - Temple``; the
+    registry understands the parenthetical form.
+    """
+
+    landmark_name, chosen_pile = _parse_trait_value(value)
+    if landmark_name and chosen_pile and landmark_name == "Obelisk":
+        return f"{landmark_name} ({chosen_pile})"
+    return value
+
+
 def _parse_special_line(line: str, config: BoardConfig) -> bool:
     """Attempt to parse a special prefix line like ``Way: Foo``.
 
@@ -68,7 +82,7 @@ def _parse_special_line(line: str, config: BoardConfig) -> bool:
         # parametric-Way regex resolves the target.
         config.ways.append(f"{prefix.strip()} ({value})")
     elif key == "landmark":
-        config.landmarks.append(value)
+        config.landmarks.append(_parse_landmark_value(value))
     elif key == "ally":
         config.allies.append(value)
     elif key == "trait":

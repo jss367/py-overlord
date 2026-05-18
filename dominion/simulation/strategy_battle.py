@@ -13,6 +13,7 @@ from dominion.boards.loader import BoardConfig, load_board
 from dominion.cards.registry import CARD_ALIASES, CARD_TYPES, get_card
 from dominion.events.registry import EVENT_TYPES, get_event
 from dominion.game.game_state import GameState
+from dominion.landmarks.registry import LANDMARK_TYPES, get_landmark
 from dominion.projects.registry import PROJECT_TYPES, get_project
 from dominion.reporting.html_report import generate_html_report
 from dominion.simulation.game_logger import GameLogger
@@ -62,12 +63,18 @@ class StrategyBoardReferences:
     events: list[str]
     projects: list[str]
     ways: list[str]
+    landmarks: list[str]
     allies: list[str]
 
 
 def canonical_way_name(way: str) -> str:
     """Return the runtime Way.name for a board or strategy Way reference."""
     return _WAY_PARAM_RE.sub("", way)
+
+
+def canonical_landmark_name(landmark: str) -> str:
+    """Return the runtime Landmark.name for a board or strategy reference."""
+    return _WAY_PARAM_RE.sub("", landmark)
 
 
 # Set up module-level logger
@@ -135,6 +142,14 @@ class StrategyBattle:
         match = re.match(r"^(Way of the Mouse)\s*\((.+)\)$", name)
         return bool(match and match.group(1) in WAY_TYPES)
 
+    @staticmethod
+    def _is_landmark_reference(name: str) -> bool:
+        if name in LANDMARK_TYPES:
+            return True
+
+        match = re.match(r"^(.+?)\s*\(.+\)$", name)
+        return bool(match and match.group(1) == "Obelisk")
+
     def _split_board_references(self, names: set[str]) -> StrategyBoardReferences:
         """Split strategy references into cards and supported landscapes."""
 
@@ -142,6 +157,7 @@ class StrategyBattle:
         events: list[str] = []
         projects: list[str] = []
         ways: list[str] = []
+        landmarks: list[str] = []
         allies: list[str] = []
 
         for name in sorted(names):
@@ -156,6 +172,8 @@ class StrategyBattle:
                 projects.append(name)
             elif self._is_way_reference(name):
                 ways.append(name)
+            elif self._is_landmark_reference(name):
+                landmarks.append(name)
             elif name in ALLY_TYPES:
                 allies.append(name)
             else:
@@ -163,14 +181,23 @@ class StrategyBattle:
                 # references: board preparation will raise Unknown card.
                 kingdom_cards.append(name)
 
-        return StrategyBoardReferences(kingdom_cards, events, projects, ways, allies)
+        return StrategyBoardReferences(kingdom_cards, events, projects, ways, landmarks, allies)
 
     def _determine_board_references(
         self, strat1: EnhancedStrategy, strat2: EnhancedStrategy
     ) -> StrategyBoardReferences:
         """Compute cards and landscapes from both strategies if not explicitly set."""
         if self.kingdom_cards is not None:
-            return StrategyBoardReferences(self.kingdom_cards, [], [], [], [])
+            if self.board_config:
+                return StrategyBoardReferences(
+                    self.kingdom_cards,
+                    list(self.board_config.events),
+                    list(self.board_config.projects),
+                    list(self.board_config.ways),
+                    list(self.board_config.landmarks),
+                    list(self.board_config.allies),
+                )
+            return StrategyBoardReferences(self.kingdom_cards, [], [], [], [], [])
 
         all_names = self._extract_cards_from_strategy(strat1) | self._extract_cards_from_strategy(strat2)
         return self._split_board_references(all_names)
@@ -185,6 +212,7 @@ class StrategyBattle:
         event_names: Optional[list[str]] = None,
         project_names: Optional[list[str]] = None,
         way_names: Optional[list[str]] = None,
+        landmark_names: Optional[list[str]] = None,
         ally_names: Optional[list[str]] = None,
     ):
         """Instantiate cards and landscape components for a game."""
@@ -195,14 +223,16 @@ class StrategyBattle:
             event_names = self.board_config.events
             project_names = self.board_config.projects
             way_names = self.board_config.ways
+            landmark_names = self.board_config.landmarks
             ally_names = self.board_config.allies
 
         events = [get_event(name) for name in event_names or []]
         projects = [get_project(name) for name in project_names or []]
         ways = [get_way(name) for name in way_names or []]
+        landmarks = [get_landmark(name) for name in landmark_names or []]
         allies = [get_ally(name) for name in ally_names or []]
 
-        return kingdom_cards, events, projects, ways, allies
+        return kingdom_cards, events, projects, ways, landmarks, allies
 
     def _apply_board_traits(self, game_state: GameState) -> None:
         """Apply Plunder traits declared by the loaded board config."""
@@ -396,6 +426,7 @@ class StrategyBattle:
                     events=board_references.events,
                     projects=board_references.projects,
                     ways=board_references.ways,
+                    landmarks=board_references.landmarks,
                     allies=board_references.allies,
                 )
             else:
@@ -407,6 +438,7 @@ class StrategyBattle:
                     events=board_references.events,
                     projects=board_references.projects,
                     ways=board_references.ways,
+                    landmarks=board_references.landmarks,
                     allies=board_references.allies,
                 )
 
@@ -459,6 +491,7 @@ class StrategyBattle:
         events: Optional[list[str]] = None,
         projects: Optional[list[str]] = None,
         ways: Optional[list[str]] = None,
+        landmarks: Optional[list[str]] = None,
         allies: Optional[list[str]] = None,
     ) -> tuple[GeneticAI, dict[str, int], Optional[str], int]:
         """Run a single game between two AIs. TODO: This shouldn't be within this class."""
@@ -474,11 +507,12 @@ class StrategyBattle:
         game_state.set_logger(self.logger)
 
         # Initialize game
-        kingdom_cards, event_objs, project_objs, way_objs, ally_objs = self._prepare_board_components(
+        kingdom_cards, event_objs, project_objs, way_objs, landmark_objs, ally_objs = self._prepare_board_components(
             kingdom_card_names,
             events,
             projects,
             ways,
+            landmarks,
             allies,
         )
         game_state.initialize_game(
@@ -488,6 +522,7 @@ class StrategyBattle:
             events=event_objs,
             projects=project_objs,
             ways=way_objs,
+            landmarks=landmark_objs,
             allies=ally_objs,
             traits=self.board_config.traits if self.board_config else None,
         )

@@ -401,6 +401,7 @@ class GeneticTrainer:
                         "events": board_references.events,
                         "projects": board_references.projects,
                         "ways": board_references.ways,
+                        "landmarks": board_references.landmarks,
                         "allies": board_references.allies,
                     }.items()
                     if value

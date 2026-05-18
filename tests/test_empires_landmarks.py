@@ -29,6 +29,7 @@ from dominion.landmarks import (
     Wall,
     WolfDen,
     all_landmarks,
+    get_landmark,
 )
 
 from tests.utils import DummyAI
@@ -205,6 +206,31 @@ def test_obelisk_chosen_pile_grants_two_vp_per_copy():
     assert chosen
     player.deck = [get_card(chosen) for _ in range(3)]
     assert landmark.vp_for(state, player) == 6
+
+
+def test_obelisk_can_use_configured_chosen_pile():
+    landmark = get_landmark("Obelisk (Smithy)")
+    state = _make_game([landmark])
+    player = state.players[0]
+
+    assert landmark.chosen_pile == "Smithy"
+    player.deck = [get_card("Smithy") for _ in range(2)]
+    assert landmark.vp_for(state, player) == 4
+
+
+def test_obelisk_canonicalizes_configured_chosen_pile_alias():
+    landmark = get_landmark("Obelisk (Council room)")
+    state = GameState(players=[], supply={})
+    state.initialize_game(
+        [DummyAI(), DummyAI()],
+        [get_card("Council Room"), get_card("Village")],
+        landmarks=[landmark],
+    )
+    player = state.players[0]
+
+    assert landmark.chosen_pile == "Council Room"
+    player.deck = [get_card("Council Room") for _ in range(2)]
+    assert landmark.vp_for(state, player) == 4
 
 
 def test_orchard_four_vp_per_action_with_three_copies():
