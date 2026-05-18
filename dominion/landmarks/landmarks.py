@@ -328,14 +328,33 @@ class Museum(Landmark):
 class Obelisk(Landmark):
     """Setup: choose an Action Supply pile. End: +2 VP per copy you have from that pile."""
 
-    def __init__(self):
+    def __init__(self, chosen_pile: str = ""):
         super().__init__(
             name="Obelisk",
             description="+2 VP per copy of the chosen Action pile.",
         )
+        self.chosen_pile = chosen_pile
 
     def setup(self, game_state) -> None:
         from dominion.cards.registry import get_card
+
+        if self.chosen_pile:
+            try:
+                card = get_card(self.chosen_pile)
+            except ValueError as exc:
+                raise ValueError(
+                    f"Obelisk chosen pile is not a known card: {self.chosen_pile}"
+                ) from exc
+            if (
+                self.chosen_pile not in game_state.supply
+                or not card.is_action
+                or card.is_victory
+            ):
+                raise ValueError(
+                    "Obelisk chosen pile must be a non-Victory Action Supply pile: "
+                    f"{self.chosen_pile}"
+                )
+            return
 
         # Pick the first Action pile in supply alphabetically (deterministic).
         candidates = []

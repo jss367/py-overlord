@@ -1,5 +1,6 @@
 """Registry of Empires Landmarks."""
 
+import re
 from typing import Type
 
 from .base_landmark import Landmark
@@ -51,8 +52,18 @@ LANDMARK_TYPES: dict[str, Type[Landmark]] = {
     "Wolf Den": WolfDen,
 }
 
+_PARAMETRIC_LANDMARK_RE = re.compile(r"^(?P<name>.+?)\s*\((?P<target>.+)\)$")
+
 
 def get_landmark(name: str) -> Landmark:
+    match = _PARAMETRIC_LANDMARK_RE.fullmatch(name)
+    if match:
+        landmark_name = match.group("name").strip()
+        target = match.group("target").strip()
+        if landmark_name != "Obelisk":
+            raise ValueError(f"Landmark does not support a chosen pile: {name}")
+        return Obelisk(chosen_pile=target)
+
     try:
         cls = LANDMARK_TYPES[name]
     except KeyError as exc:

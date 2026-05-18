@@ -24,6 +24,7 @@ def _missing_board_components(
     missing_ways = {canonical_way_name(w) for w in refs.ways} - {
         canonical_way_name(w) for w in board_config.ways
     }
+    missing_landmarks = set(refs.landmarks) - set(board_config.landmarks)
     missing_allies = set(refs.allies) - set(board_config.allies)
 
     missing = [
@@ -31,6 +32,7 @@ def _missing_board_components(
         f"events: {', '.join(sorted(missing_events))}" if missing_events else "",
         f"projects: {', '.join(sorted(missing_projects))}" if missing_projects else "",
         f"ways: {', '.join(sorted(missing_ways))}" if missing_ways else "",
+        f"landmarks: {', '.join(sorted(missing_landmarks))}" if missing_landmarks else "",
         f"allies: {', '.join(sorted(missing_allies))}" if missing_allies else "",
     ]
     return [entry for entry in missing if entry]

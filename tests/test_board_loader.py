@@ -67,6 +67,21 @@ def test_load_board_parses_trait_parenthetical_format(tmp_path):
     assert board.traits == {"Armory": "Shy"}
 
 
+def test_load_board_parses_obelisk_chosen_pile(tmp_path):
+    path = write_board(
+        tmp_path,
+        """
+        Temple
+        Ironmonger
+        Landmark: Obelisk - Temple
+        """,
+    )
+
+    board = load_board(path)
+
+    assert board.landmarks == ["Obelisk (Temple)"]
+
+
 def test_load_board_parses_parenthetical_trait_with_hyphenated_card(tmp_path):
     path = write_board(
         tmp_path,
@@ -89,19 +104,42 @@ def test_strategy_battle_prepares_landscapes(tmp_path):
         Ironmonger
         Way: Way of the Butterfly
         Project: Innovation
+        Landmark: Obelisk (Ironmonger)
         """,
     )
 
     board = load_board(path)
     battle = StrategyBattle(board_config=board)
 
-    kingdom, events, projects, ways, allies = battle._prepare_board_components(board.kingdom_cards)
+    kingdom, events, projects, ways, landmarks, allies = battle._prepare_board_components(board.kingdom_cards)
 
     assert [card.name for card in kingdom] == board.kingdom_cards
     assert events == []
     assert [project.name for project in projects] == board.projects
     assert [way.name for way in ways] == board.ways
+    assert [landmark.name for landmark in landmarks] == ["Obelisk"]
+    assert landmarks[0].chosen_pile == "Ironmonger"
     assert allies == []
+
+
+def test_strategy_battle_passes_board_landmarks_to_game(monkeypatch):
+    board = BoardConfig(["Village"], landmarks=["Obelisk (Village)"])
+    battle = StrategyBattle(board_config=board, log_frequency=0)
+    captured_landmarks = []
+
+    original_initialize = GameState.initialize_game
+
+    def capture_initialize(self, *args, **kwargs):
+        captured_landmarks.extend(kwargs.get("landmarks") or [])
+        return original_initialize(self, *args, **kwargs)
+
+    monkeypatch.setattr(GameState, "initialize_game", capture_initialize)
+    monkeypatch.setattr(GameState, "is_game_over", lambda self: True)
+
+    battle.run_game(DummyAI(), DummyAI(), board.kingdom_cards)
+
+    assert [landmark.name for landmark in captured_landmarks] == ["Obelisk"]
+    assert captured_landmarks[0].chosen_pile == "Village"
 
 
 def test_strategy_battle_applies_board_traits():
@@ -165,11 +203,12 @@ def test_strategy_battle_splits_implicit_event_references():
 
     battle = StrategyBattle()
     refs = battle._determine_board_references(strategy, EnhancedStrategy())
-    kingdom, events, projects, ways, allies = battle._prepare_board_components(
+    kingdom, events, projects, ways, landmarks, allies = battle._prepare_board_components(
         refs.kingdom_cards,
         refs.events,
         refs.projects,
         refs.ways,
+        refs.landmarks,
         refs.allies,
     )
 
@@ -177,6 +216,7 @@ def test_strategy_battle_splits_implicit_event_references():
     assert [event.name for event in events] == ["Looting"]
     assert projects == []
     assert ways == []
+    assert landmarks == []
     assert allies == []
 
 

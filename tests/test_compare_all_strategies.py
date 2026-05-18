@@ -13,6 +13,7 @@ def test_board_compatibility_canonicalizes_parametric_way_names():
         events=[],
         projects=[],
         ways=["Way of the Mouse"],
+        landmarks=[],
         allies=[],
     )
 
