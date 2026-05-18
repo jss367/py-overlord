@@ -18,3 +18,20 @@ def test_board_compatibility_canonicalizes_parametric_way_names():
     )
 
     assert _missing_board_components(refs, board, set(board.kingdom_cards)) == []
+
+
+def test_board_compatibility_canonicalizes_parametric_obelisk_name():
+    board = BoardConfig(
+        kingdom_cards=["Temple", "Village"],
+        landmarks=["Obelisk (Temple)"],
+    )
+    refs = StrategyBoardReferences(
+        kingdom_cards=["Temple"],
+        events=[],
+        projects=[],
+        ways=[],
+        landmarks=["Obelisk"],
+        allies=[],
+    )
+
+    assert _missing_board_components(refs, board, set(board.kingdom_cards)) == []

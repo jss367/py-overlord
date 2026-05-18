@@ -8,6 +8,7 @@ from dominion.boards.loader import BoardConfig, load_board
 from dominion.simulation.strategy_battle import (
     StrategyBattle,
     StrategyBoardReferences,
+    canonical_landmark_name,
     canonical_way_name,
 )
 from dominion.reporting.html_report import generate_leaderboard_html
@@ -24,7 +25,11 @@ def _missing_board_components(
     missing_ways = {canonical_way_name(w) for w in refs.ways} - {
         canonical_way_name(w) for w in board_config.ways
     }
-    missing_landmarks = set(refs.landmarks) - set(board_config.landmarks)
+    missing_landmarks = {
+        canonical_landmark_name(l) for l in refs.landmarks
+    } - {
+        canonical_landmark_name(l) for l in board_config.landmarks
+    }
     missing_allies = set(refs.allies) - set(board_config.allies)
 
     missing = [

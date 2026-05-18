@@ -72,6 +72,11 @@ def canonical_way_name(way: str) -> str:
     return _WAY_PARAM_RE.sub("", way)
 
 
+def canonical_landmark_name(landmark: str) -> str:
+    """Return the runtime Landmark.name for a board or strategy reference."""
+    return _WAY_PARAM_RE.sub("", landmark)
+
+
 # Set up module-level logger
 logger = logging.getLogger(__name__)
 
