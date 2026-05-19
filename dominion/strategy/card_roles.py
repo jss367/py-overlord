@@ -36,7 +36,13 @@ def _class_source(card: Card) -> str:
 def infer_card_roles(card_name: str) -> CardRoleProfile:
     """Infer broad strategic roles for a card name."""
 
-    card = get_card(card_name)
+    try:
+        card = get_card(card_name)
+    except (KeyError, ValueError):
+        return CardRoleProfile(card_name, frozenset())
+    if card is None:
+        return CardRoleProfile(card_name, frozenset())
+
     roles: set[str] = set()
     source = _class_source(card)
 

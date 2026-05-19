@@ -79,6 +79,7 @@ class GeneticTrainer:
         self._strategies_to_inject: list[BaseStrategy] = []
         self._baseline_strategy = None
         self._baseline_panel: list[BaseStrategy] = []
+        self._default_baseline_panel_cache: list[BaseStrategy] | None = None
         # List of per-opponent breakdown tuples. With ``shape_rewards=False``
         # each entry is ``(name, win_rate)``; with shaping on each entry is
         # ``(name, win_rate, avg_margin, shaped_fitness)``. Stored as a list
@@ -373,9 +374,10 @@ class GeneticTrainer:
         if self._baseline_strategy is not None:
             return [self._baseline_strategy]
         if self.default_baseline_panel:
-            panel = self.build_default_baseline_panel()
-            if panel:
-                return panel
+            if self._default_baseline_panel_cache is None:
+                self._default_baseline_panel_cache = self.build_default_baseline_panel()
+            if self._default_baseline_panel_cache:
+                return self._default_baseline_panel_cache
         big_money = self.battle_system.strategy_loader.get_strategy("Big Money")
         if not big_money:
             raise ValueError("Big Money strategy not found")

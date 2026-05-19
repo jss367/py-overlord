@@ -596,6 +596,27 @@ class TestPanelEvaluation:
         assert "BigMoneySmithy" in names
         assert "ChapelWitch" in names
 
+    def test_default_baseline_panel_is_cached(self, monkeypatch):
+        trainer = GeneticTrainer(
+            ["Village", "Smithy"],
+            population_size=1,
+            generations=1,
+            default_baseline_panel=True,
+        )
+        calls = {"n": 0}
+
+        def fake_panel():
+            calls["n"] += 1
+            return [_make_dummy_opponent("CachedOpp")]
+
+        monkeypatch.setattr(trainer, "build_default_baseline_panel", fake_panel)
+
+        first = trainer._resolve_panel()
+        second = trainer._resolve_panel()
+
+        assert first is second
+        assert calls["n"] == 1
+
 
 def _strategy_with_gain(*card_names: str) -> BaseStrategy:
     s = BaseStrategy()

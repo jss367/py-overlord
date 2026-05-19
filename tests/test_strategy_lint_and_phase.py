@@ -66,6 +66,14 @@ def test_card_role_inference_identifies_village_and_terminal_draw():
     assert "Village" in cards_with_role(["Village", "Smithy"], "village")
 
 
+def test_card_role_inference_handles_unknown_cards():
+    unknown = infer_card_roles("Definitely Not A Card")
+
+    assert unknown.name == "Definitely Not A Card"
+    assert unknown.roles == frozenset()
+    assert cards_with_role(["Village", "Definitely Not A Card"], "village") == ["Village"]
+
+
 def test_phase_aware_strategy_uses_phase_priority_then_fallback():
     strategy = PhaseAwareStrategy()
     strategy.gain_priority = [PriorityRule("Silver")]
