@@ -25,6 +25,7 @@ def test_choose_gain_matching_top_priority_is_not_counted_as_override():
     assert selected.name == "Gold"
     assert stats["choose_gain_overrides"]["total"] == 0
     assert stats["choose_gain_overrides"]["by_selection"] == {}
+    assert stats["priority_rules"]["gain"]["Gold [always]"] == 1
 
 
 def test_choose_gain_bypassing_priority_and_choose_way_are_counted():
@@ -73,6 +74,27 @@ def test_custom_choose_gain_without_priority_baseline_is_not_counted_as_override
     assert selected.name == "Smithy"
     assert stats["choose_gain_overrides"]["total"] == 0
     assert stats["choose_gain_overrides"]["by_selection"] == {}
+
+
+def test_priority_rule_firings_are_counted_by_decision_list():
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [PriorityRule("Village")]
+    strategy.treasure_priority = [PriorityRule("Silver")]
+    strategy.trash_priority = [PriorityRule("Estate")]
+    ai = GeneticAI(strategy)
+    battle = StrategyBattle()
+    stats = battle._empty_decision_firings("Trace Strategy")
+    state = SimpleNamespace(current_player=SimpleNamespace())
+
+    battle._instrument_ai_decisions(ai, stats)
+
+    ai.choose_action(state, [_card("Village"), None])
+    ai.choose_treasure(state, [_card("Silver")])
+    ai.choose_card_to_trash(state, [_card("Estate")])
+
+    assert stats["priority_rules"]["action"]["Village [always]"] == 1
+    assert stats["priority_rules"]["treasure"]["Silver [always]"] == 1
+    assert stats["priority_rules"]["trash"]["Estate [always]"] == 1
 
 
 def test_html_decision_firings_section_renders_zero_rows():

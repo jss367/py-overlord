@@ -77,9 +77,27 @@ class PriorityRule:
 
     @staticmethod
     def has_cards(cards: Iterable[str], amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when the player has at least ``amount`` matching cards.
+
+        ``amount=0`` is treated as "has none" rather than the mathematically
+        tautological "has at least zero". Older evolved strategies commonly
+        used ``has_cards(["X"], 0)`` to mean "do not have X yet"; preserving
+        that intent avoids always-true rules that look strategic but fire
+        unconditionally.
+        """
         card_list = list(cards)
-        fn = lambda _s, me, _amount=amount, _cards=card_list: sum(me.count_in_deck(c) for c in _cards) >= _amount
+        if amount <= 0:
+            fn = lambda _s, me, _cards=card_list: sum(me.count_in_deck(c) for c in _cards) == 0
+        else:
+            fn = lambda _s, me, _amount=amount, _cards=card_list: sum(me.count_in_deck(c) for c in _cards) >= _amount
         return PriorityRule._tag_source(fn, f"PriorityRule.has_cards({card_list!r}, {amount!r})")
+
+    @staticmethod
+    def has_no_cards(cards: Iterable[str]) -> Callable[["GameState", "PlayerState"], bool]:
+        """Explicit spelling for "none of these cards are in the deck"."""
+        card_list = list(cards)
+        fn = lambda _s, me, _cards=card_list: sum(me.count_in_deck(c) for c in _cards) == 0
+        return PriorityRule._tag_source(fn, f"PriorityRule.has_no_cards({card_list!r})")
 
     @staticmethod
     def max_in_deck(card_name: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
@@ -292,6 +310,7 @@ class EnhancedStrategy:
         self.trash_priority: list[PriorityRule] = []
         self.treasure_priority: list[PriorityRule] = []
         self.way_policy: list[WayRule] = []
+        self._decision_trace_callback = None
 
     # ------------------------------------------------------------------
     def _choose_from_priority(
@@ -300,6 +319,7 @@ class EnhancedStrategy:
         choices: list[Optional[Card]],
         state: GameState,
         player: PlayerState,
+        list_name: str = "priority",
     ) -> Optional[Card]:
         """Return the first card whose rule condition evaluates to True.
 
@@ -334,6 +354,12 @@ class EnhancedStrategy:
                     # evolution to drop rules that never affect a buy/play
                     # decision across an entire fitness-eval window.
                     rule._fired = True
+                    callback = getattr(self, "_decision_trace_callback", None)
+                    if callback is not None:
+                        try:
+                            callback(list_name, rule, card, state, player)
+                        except Exception:
+                            pass
                     return card
 
         return None
@@ -348,7 +374,7 @@ class EnhancedStrategy:
                 and self._can_butterfly(state)
                 and self._best_butterfly_target(state, player, real[0].cost.coins + 1)):
             return real[0]
-        result = self._choose_from_priority(self.action_priority, choices, state, player)
+        result = self._choose_from_priority(self.action_priority, choices, state, player, "action")
         if result is not None:
             return result
 
@@ -384,7 +410,7 @@ class EnhancedStrategy:
         return max(unexpected, key=_t_score)
 
     def choose_treasure(self, state, player, choices):
-        result = self._choose_from_priority(self.treasure_priority, choices, state, player)
+        result = self._choose_from_priority(self.treasure_priority, choices, state, player, "treasure")
         if result is not None:
             return result
 
@@ -394,7 +420,7 @@ class EnhancedStrategy:
         return unexpected[0] if unexpected else None
 
     def choose_gain(self, state, player, choices):
-        normal = self._choose_from_priority(self.gain_priority, choices, state, player)
+        normal = self._choose_from_priority(self.gain_priority, choices, state, player, "gain")
 
         # Trail → Butterfly trick: buy Trail at $4 to gain a $5 card
         trail = next((c for c in choices if c is not None and c.name == "Trail"), None)
@@ -417,7 +443,7 @@ class EnhancedStrategy:
         return normal
 
     def choose_trash(self, state, player, choices):
-        return self._choose_from_priority(self.trash_priority, choices, state, player)
+        return self._choose_from_priority(self.trash_priority, choices, state, player, "trash")
 
     def choose_way(self, state, player, card, ways):
         """Consult ``way_policy`` first; fall back to hardcoded Trail/Butterfly.
@@ -533,7 +559,7 @@ def create_chapel_witch_strategy() -> EnhancedStrategy:
             "Witch", PriorityRule.and_(PriorityRule.turn_number(">=", 3), PriorityRule.resources("actions", ">=", 1))
         ),
         # Laboratory for draw
-        PriorityRule("Laboratory", PriorityRule.always_true),
+        PriorityRule("Laboratory", PriorityRule.always_true()),
     ]
 
     # Gain priorities

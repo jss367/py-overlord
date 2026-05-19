@@ -11,6 +11,7 @@ from dominion.boards.loader import BoardConfig, load_board
 from dominion.analysis.strategy_library import find_compatible_strategies
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
+from dominion.strategy.lint import lint_strategy, normalize_strategy
 
 logger = logging.getLogger(__name__)
 coloredlogs.install(level="INFO", logger=logger)
@@ -230,6 +231,7 @@ def main():
         mutation_rate=mutation_rate,
         games_per_eval=games_per_eval,
         board_config=board_config,
+        default_baseline_panel=True,
     )
 
     # Load strategies from module:function paths
@@ -321,6 +323,15 @@ def main():
                 ", ".join(strategy.name for strategy in reused_panel),
             )
 
+    if not panel and trainer.default_baseline_panel:
+        panel = trainer.build_default_baseline_panel()
+        if len(panel) > 1:
+            trainer.set_baseline_panel(panel)
+            logger.info("Using default baseline panel: %s", ", ".join(p.name for p in panel))
+        elif panel:
+            trainer.set_baseline_strategy(panel[0])
+            logger.info("Using default baseline: %s", panel[0].name)
+
     logger.info("Training parameters:")
     logger.info("  Population size: %d", population_size)
     logger.info("  Generations: %d", generations)
@@ -336,6 +347,22 @@ def main():
     if best_strategy is None:
         logger.info("No viable strategy was found.")
     else:
+        best_strategy = normalize_strategy(best_strategy)
+        lint_warnings = lint_strategy(best_strategy)
+        if lint_warnings:
+            logger.info("Strategy lint diagnostics:")
+            for warning in lint_warnings[:10]:
+                logger.info(
+                    "  [%s] %s[%d] %s: %s",
+                    warning.severity,
+                    warning.list_name,
+                    warning.index,
+                    warning.card_name,
+                    warning.message,
+                )
+            if len(lint_warnings) > 10:
+                logger.info("  ... %d more diagnostics", len(lint_warnings) - 10)
+
         logger.info("Best strategy card priorities:")
         for rule in best_strategy.gain_priority:
             condition_str = f" (condition: {rule.condition})" if rule.condition else ""

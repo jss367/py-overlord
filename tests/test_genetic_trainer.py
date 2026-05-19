@@ -140,6 +140,18 @@ class TestConditionsEvaluate:
         cond2 = PriorityRule.has_cards(["Silver", "Gold"], 5)
         assert cond2(_make_mock_state(), player) is False
 
+    def test_has_cards_zero_means_has_none(self):
+        cond = PriorityRule.has_cards(["Silver"], 0)
+        assert cond(_make_mock_state(), _make_mock_player()) is False
+
+        empty_player = _make_mock_player()
+        empty_player.count_in_deck = lambda _card_name: 0
+        assert cond(_make_mock_state(), empty_player) is True
+
+    def test_has_no_cards_source(self):
+        cond = PriorityRule.has_no_cards(["Witch"])
+        assert cond._source == "PriorityRule.has_no_cards(['Witch'])"
+
     def test_random_strategy_conditions_evaluate(self):
         """Every callable condition on a random strategy should evaluate without error."""
         trainer = GeneticTrainer(
@@ -568,6 +580,21 @@ class TestPanelEvaluation:
 
         breakdown = trainer.last_eval_breakdown
         assert breakdown == [("AlwaysLose", 100.0), ("AlwaysWin", 0.0)], breakdown
+
+    def test_default_baseline_panel_uses_compatible_builtins(self):
+        trainer = GeneticTrainer(
+            ["Village", "Smithy", "Market", "Festival", "Laboratory", "Mine", "Witch", "Moat", "Workshop", "Chapel"],
+            population_size=1,
+            generations=1,
+            default_baseline_panel=True,
+        )
+
+        panel = trainer.build_default_baseline_panel()
+        names = {strategy.name for strategy in panel}
+
+        assert "BigMoney" in names
+        assert "BigMoneySmithy" in names
+        assert "ChapelWitch" in names
 
 
 def _strategy_with_gain(*card_names: str) -> BaseStrategy:

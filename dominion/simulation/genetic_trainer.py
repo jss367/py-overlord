@@ -49,6 +49,7 @@ class GeneticTrainer:
         rule_pruning: bool = True,
         prune_warmup_generations: int = 3,
         prune_min_rules: int = 3,
+        default_baseline_panel: bool = False,
     ):
         if kingdom_cards is None:
             if board_config is None:
@@ -69,6 +70,7 @@ class GeneticTrainer:
         self.rule_pruning = rule_pruning
         self.prune_warmup_generations = prune_warmup_generations
         self.prune_min_rules = prune_min_rules
+        self.default_baseline_panel = default_baseline_panel
         self.battle_system = StrategyBattle(kingdom_cards, log_folder, board_config=board_config)
         if not self.kingdom_cards:
             raise ValueError("kingdom_cards cannot be empty")
@@ -108,6 +110,42 @@ class GeneticTrainer:
         self._kingdom_ways: list[str] = []
         if board_config is not None and board_config.ways:
             self._kingdom_ways = [canonical_way_name(w) for w in board_config.ways]
+
+    _DEFAULT_BASELINE_NAMES = (
+        "Big Money",
+        "Big Money Smithy",
+        "Chapel Witch",
+        "Village Smithy Lab",
+    )
+
+    def build_default_baseline_panel(self) -> list[BaseStrategy]:
+        """Return built-in baseline opponents compatible with this kingdom."""
+
+        kingdom_set = set(self.kingdom_cards)
+        panel: list[BaseStrategy] = []
+        seen_names: set[str] = set()
+
+        for name in self._DEFAULT_BASELINE_NAMES:
+            strategy = self.battle_system.strategy_loader.get_strategy(name)
+            if strategy is None:
+                continue
+            refs = self.battle_system._split_board_references(
+                self.battle_system._extract_cards_from_strategy(strategy)
+            )
+            if not set(refs.kingdom_cards).issubset(kingdom_set):
+                continue
+            if refs.events or refs.projects or refs.ways or refs.landmarks or refs.allies:
+                continue
+            if strategy.name in seen_names:
+                continue
+            seen_names.add(strategy.name)
+            panel.append(strategy)
+
+        if not panel:
+            big_money = self.battle_system.strategy_loader.get_strategy("Big Money")
+            if big_money is not None:
+                panel.append(big_money)
+        return panel
 
     # Probability that ``_random_condition_with_compound`` wraps a normally
     # sampled inner condition in ``and_(card_in_play(X), inner)``. Tunable.
@@ -334,6 +372,10 @@ class GeneticTrainer:
             return self._baseline_panel
         if self._baseline_strategy is not None:
             return [self._baseline_strategy]
+        if self.default_baseline_panel:
+            panel = self.build_default_baseline_panel()
+            if panel:
+                return panel
         big_money = self.battle_system.strategy_loader.get_strategy("Big Money")
         if not big_money:
             raise ValueError("Big Money strategy not found")
