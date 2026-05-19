@@ -4,6 +4,8 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Lookout(Card):
+    _STARTER_JUNK_NAMES = {"Copper", "Estate", "Hovel", "Overgrown Estate"}
+
     def __init__(self):
         super().__init__(
             name="Lookout",
@@ -42,12 +44,48 @@ class Lookout(Card):
     def _trash_priority(card):
         if card.name == "Curse":
             return (0, card.cost.coins, card.name)
-        if card.is_victory and not card.is_action:
+        if card.is_ruins:
             return (1, card.cost.coins, card.name)
-        if card.name == "Copper":
-            return (2, card.cost.coins, card.name)
-        return (3, card.cost.coins, card.name)
+        if card.name in Lookout._STARTER_JUNK_NAMES:
+            return (2, Lookout._card_strength(card))
+        return (3, Lookout._card_strength(card))
 
     @staticmethod
     def _discard_priority(card):
-        return (card.is_action, card.is_treasure, card.cost.coins, card.name)
+        return Lookout._card_strength(card)
+
+    @staticmethod
+    def _card_strength(card):
+        """Rank cards from weakest to strongest for Lookout's default choices."""
+        if card.name == "Curse":
+            return (0, card.cost.coins, card.name)
+        if card.is_ruins:
+            return (
+                1,
+                card.stats.cards,
+                card.stats.actions,
+                card.stats.coins,
+                card.stats.buys,
+                card.cost.coins,
+                card.name,
+            )
+        if card.name in Lookout._STARTER_JUNK_NAMES:
+            return (
+                2,
+                card.stats.coins,
+                card.stats.vp,
+                card.cost.coins,
+                card.name,
+            )
+        return (
+            3,
+            card.cost.coins,
+            card.cost.potions,
+            card.cost.debt,
+            card.stats.vp,
+            card.stats.coins,
+            card.stats.cards,
+            card.stats.actions,
+            card.stats.buys,
+            card.name,
+        )
