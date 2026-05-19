@@ -35,7 +35,6 @@ class Taxman(Card):
             card = get_card(name)
             if (
                 card.is_treasure
-                and card.name != trashed_name
                 and card.cost.coins <= trash_choice.cost.coins + 3
             ):
                 gain_candidates.append(card)

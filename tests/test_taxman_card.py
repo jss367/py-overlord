@@ -89,6 +89,21 @@ def test_taxman_trashes_copper_and_gains_silver_to_deck():
     assert state.supply["Silver"] == silver_before - 1
 
 
+def test_taxman_can_gain_same_treasure_when_it_is_only_valid_gain():
+    state = make_state(TaxmanAI(trash_name="Copper", gain_name="Copper"))
+    player = state.players[0]
+    copper = get_card("Copper")
+    player.hand = [get_card("Taxman"), copper]
+    state.supply["Silver"] = 0
+    copper_before = state.supply["Copper"]
+
+    play_taxman(state)
+
+    assert state.trash == [copper]
+    assert player.deck[-1].name == "Copper"
+    assert state.supply["Copper"] == copper_before - 1
+
+
 def test_taxman_opponents_discard_matching_copper_without_gaining_silver():
     state = make_state(TaxmanAI(trash_name="Copper", gain_name="Silver"), DummyAI())
     attacker, defender = state.players
