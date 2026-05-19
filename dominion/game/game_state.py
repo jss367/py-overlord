@@ -213,9 +213,20 @@ class GameState:
         player.hand.remove(card)
         self._record_voyage_play_from_hand(player)
         player.in_play.append(card)
+        return_zones = getattr(self, "_blocked_indirect_return_zones", None)
+        if return_zones is None:
+            return_zones = {}
+            self._blocked_indirect_return_zones = return_zones
+        return_zones[id(card)] = player.hand
         return True
 
-    def play_action_indirectly(self, player: PlayerState, card: Card) -> None:
+    def play_action_indirectly(
+        self,
+        player: PlayerState,
+        card: Card,
+        *,
+        blocked_return_zone: list[Card] | None = None,
+    ) -> None:
         """Resolve a single Action play that originates outside the main
         action-phase loop, applying the bookkeeping that loop would.
 
@@ -235,17 +246,23 @@ class GameState:
 
         The caller is still responsible for moving the card into ``in_play``
         beforehand and for any helper-specific bookkeeping (e.g. Procession
-        trashes the multiplied card after both replays).
+        trashes the multiplied card after both replays). If Warlord blocks a
+        freshly moved card, ``blocked_return_zone`` lets the caller preserve
+        that card's source-zone semantics.
         """
         if self._warlord_blocks_action_play(
             player,
             card,
             card_already_in_play=True,
         ):
+            if blocked_return_zone is None:
+                blocked_return_zone = getattr(
+                    self, "_blocked_indirect_return_zones", {}
+                ).pop(id(card), None)
             if card in player.in_play:
                 player.in_play.remove(card)
-                if card not in player.hand:
-                    player.hand.append(card)
+            if blocked_return_zone is not None and card not in blocked_return_zone:
+                blocked_return_zone.append(card)
             self.log_callback(
                 (
                     "action",
@@ -261,6 +278,7 @@ class GameState:
         self.fire_prophecy_action_hooks(player, card)
         self.fire_ally_play_hooks(player, card)
         self._call_tavern_triggers(player, "action_played", card)
+        getattr(self, "_blocked_indirect_return_zones", {}).pop(id(card), None)
         # Renaissance Citadel: if this is the turn's first Action play
         # (the helper checks citadel_used + project ownership), replay
         # the card. Centralised here so every indirect-play caller —
@@ -1338,7 +1356,9 @@ class GameState:
         for card in to_play:
             player.in_play.append(card)
             if card.is_action:
-                self.play_action_indirectly(player, card)
+                self.play_action_indirectly(
+                    player, card, blocked_return_zone=player.discard
+                )
             else:
                 card.on_play(self)
                 self.fire_ally_play_hooks(player, card)

@@ -291,7 +291,9 @@ class Courier(Card):
         if top.is_action:
             # Play it.
             player.in_play.append(top)
-            game_state.play_action_indirectly(player, top)
+            game_state.play_action_indirectly(
+                player, top, blocked_return_zone=player.discard
+            )
         elif top.name in {"Curse", "Estate", "Copper"}:
             game_state.trash_card(player, top)
         else:
@@ -376,7 +378,7 @@ class RoyalGalley(Card):
         card = self._set_aside
         self._set_aside = None
         player.in_play.append(card)
-        game_state.play_action_indirectly(player, card)
+        game_state.play_action_indirectly(player, card, blocked_return_zone=player.discard)
         self.duration_persistent = False
 
 
@@ -448,7 +450,7 @@ class Contract(Card):
         card = self._set_aside
         self._set_aside = None
         player.in_play.append(card)
-        game_state.play_action_indirectly(player, card)
+        game_state.play_action_indirectly(player, card, blocked_return_zone=player.discard)
 
 
 class Emissary(Card):

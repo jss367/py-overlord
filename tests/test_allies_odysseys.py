@@ -50,7 +50,7 @@ def test_voyage_grants_extra_turn_with_three_card_play_limit():
 
     _play_card(state, player, voyage)
 
-    assert player.outpost_pending is True
+    assert player.outpost_pending is False
     assert player.voyage_extra_turn_pending is True
     assert state.extra_turn is True
     assert player.mission_no_buy_turn is False
@@ -61,7 +61,7 @@ def test_voyage_grants_extra_turn_with_three_card_play_limit():
 
     assert state.current_player is player
     assert state.current_player is not opponent
-    assert len(player.hand) == 3
+    assert len(player.hand) == 5
     assert player.outpost_pending is False
     assert player.took_extra_turn_last_turn is True
 

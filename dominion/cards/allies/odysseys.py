@@ -65,7 +65,6 @@ class Voyage(_Odysseys):
             and not getattr(player, "outpost_taken_last_turn", False)
             and not getattr(player, "took_extra_turn_last_turn", False)
         ):
-            player.outpost_pending = True
             player.voyage_extra_turn_pending = True
             game_state.extra_turn = True
 

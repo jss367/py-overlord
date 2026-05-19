@@ -60,7 +60,7 @@ class Vassal(Card):
         # use up an Action, but every Action *play* still bumps the
         # actions-played counters and fires on-play hooks.
         player.in_play.append(top)
-        game_state.play_action_indirectly(player, top)
+        game_state.play_action_indirectly(player, top, blocked_return_zone=player.discard)
         game_state.log_callback(
             (
                 "action",
