@@ -299,6 +299,37 @@ def test_warlord_restriction_ends_on_duration():
     assert third_smithy in opponent.in_play
 
 
+def test_warlord_blocked_indirect_play_returns_card_to_hand():
+    player = PlayerState(DummyAI())
+    state = GameState(players=[player])
+    player.warlord_restriction_count = 1
+    third_smithy = get_card("Smithy")
+    player.in_play = [get_card("Smithy"), get_card("Smithy"), third_smithy]
+
+    state.play_action_indirectly(player, third_smithy)
+
+    assert third_smithy in player.hand
+    assert third_smithy not in player.in_play
+    assert player.actions_this_turn == 0
+
+
+def test_warlord_blocks_inherited_estate_as_third_copy():
+    player = PlayerState(_PlayFirstActionAI())
+    state = GameState(players=[player])
+    player.warlord_restriction_count = 1
+    player.inherited_action_name = "Smithy"
+    third_estate = get_card("Estate")
+    player.actions = 1
+    player.in_play = [get_card("Estate"), get_card("Estate")]
+    player.hand = [third_estate]
+    player.deck = [get_card("Copper") for _ in range(5)]
+
+    state.handle_action_phase()
+
+    assert third_estate in player.hand
+    assert third_estate not in player.in_play
+
+
 def test_sorceress_matching_reveal_curses_each_other_player():
     state, attacker, defender = _setup_sorceress_state("Silver")
     bottom = get_card("Copper")

@@ -157,6 +157,14 @@ class GameState:
     def current_player(self) -> PlayerState:
         return self.players[self.current_player_index]
 
+    def _warlord_action_name(self, player: PlayerState, card: Card) -> str | None:
+        if card.is_action:
+            return card.name
+        inherited = getattr(player, "inherited_action_name", None)
+        if card.name == "Estate" and inherited:
+            return inherited
+        return None
+
     def _cards_in_play_named(self, player: PlayerState, name: str) -> int:
         seen: set[int] = set()
         count = 0
@@ -166,7 +174,10 @@ class GameState:
                 if marker in seen:
                     continue
                 seen.add(marker)
-                if card.name == name:
+                if card.name == name or (
+                    card.name == "Estate"
+                    and getattr(player, "inherited_action_name", None) == name
+                ):
                     count += 1
         return count
 
@@ -177,12 +188,13 @@ class GameState:
         *,
         card_already_in_play: bool = False,
     ) -> bool:
-        if not card.is_action:
+        action_name = self._warlord_action_name(player, card)
+        if action_name is None:
             return False
         if getattr(player, "warlord_restriction_count", 0) <= 0:
             return False
         limit = 3 if card_already_in_play else 2
-        return self._cards_in_play_named(player, card.name) >= limit
+        return self._cards_in_play_named(player, action_name) >= limit
 
     def _voyage_can_play_from_hand(self, player: PlayerState) -> bool:
         remaining = getattr(player, "voyage_cards_from_hand_remaining", None)
@@ -220,6 +232,10 @@ class GameState:
             card,
             card_already_in_play=True,
         ):
+            if card in player.in_play:
+                player.in_play.remove(card)
+                if card not in player.hand:
+                    player.hand.append(card)
             self.log_callback(
                 (
                     "action",
@@ -1850,6 +1866,7 @@ class GameState:
                 c.is_action
                 and c.name not in in_play_names
                 and not self._warlord_blocks_action_play(player, c)
+                and self._voyage_can_play_from_hand(player)
             )
         ]
         if not candidates:
@@ -1858,6 +1875,7 @@ class GameState:
         if choice is None:
             return
         player.hand.remove(choice)
+        self._record_voyage_play_from_hand(player)
         player.in_play.append(choice)
         player.actions_this_turn += 1
         choice.on_play(self)

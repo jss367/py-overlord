@@ -92,6 +92,35 @@ def test_voyage_extra_turn_limits_cards_played_from_hand():
     assert player.voyage_cards_from_hand_remaining == 0
 
 
+def test_voyage_limit_blocks_inspiring_extra_play():
+    state, player, _opponent = _make_state()
+    player.ai = PlayFirstAI()
+    state.pile_traits["Village"] = "Inspiring"
+    smithy = get_card("Smithy")
+    player.hand = [smithy]
+    player.voyage_cards_from_hand_remaining = 0
+
+    state._maybe_inspiring_extra_play(player, get_card("Village"))
+
+    assert player.hand == [smithy]
+    assert player.in_play == []
+
+
+def test_voyage_limit_counts_inspiring_extra_play():
+    state, player, _opponent = _make_state()
+    player.ai = PlayFirstAI()
+    state.pile_traits["Village"] = "Inspiring"
+    smithy = get_card("Smithy")
+    player.hand = [smithy]
+    player.voyage_cards_from_hand_remaining = 1
+
+    state._maybe_inspiring_extra_play(player, get_card("Village"))
+
+    assert player.hand == []
+    assert player.in_play == [smithy]
+    assert player.voyage_cards_from_hand_remaining == 0
+
+
 def test_voyage_does_not_grant_third_consecutive_turn():
     state, player, _opponent = _make_state()
     voyage = get_card("Voyage")

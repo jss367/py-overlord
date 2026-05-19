@@ -235,6 +235,18 @@ def test_mountain_pass_continues_until_full_round_of_passes():
     assert state.players[1].debt == 0
 
 
+def test_mountain_pass_rejects_zero_bid():
+    landmark = MountainPass()
+    state = _make_game([landmark])
+    state.players[0].ai = MountainPassBidAI(0)
+    state.players[1].ai = MountainPassBidAI(None)
+
+    state.gain_card(state.players[0], get_card("Province"))
+
+    assert state.players[0].vp_tokens == 0
+    assert state.players[0].debt == 0
+
+
 def test_museum_two_vp_per_distinct_card():
     landmark = Museum()
     state = _make_game([landmark])

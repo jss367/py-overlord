@@ -305,7 +305,7 @@ class MountainPass(Landmark):
             return
         self._fired = True
 
-        high_bid = -1
+        high_bid = 0
         winner = None
         start = (game_state.players.index(player) + 1) % len(game_state.players)
         passes = 0
