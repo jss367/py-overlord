@@ -13,6 +13,16 @@ from dominion.game.player_state import PlayerState
 from tests.utils import DummyAI
 
 
+def provinces(n):
+    """``n`` *distinct* Province cards.
+
+    ``PlayerState.all_cards()`` dedups by ``id``, so ``[get_card("X")] * n``
+    (one aliased object) under-counts a deck's victory points. Tests must
+    build distinct instances to model a genuinely ahead/behind opponent.
+    """
+    return [get_card("Province") for _ in range(n)]
+
+
 class PriorityBuyAI(DummyAI):
     """Buys the first card (by name priority) present in the offered choices."""
 
@@ -47,7 +57,7 @@ def test_does_not_buy_last_province_when_behind():
     """Buying the last Province ends the game; if it leaves us behind,
     the engine must veto it and let the strategy take its next choice."""
     ai = PriorityBuyAI(["Province", "Gold"])
-    state, me, _opp = make_state(ai, opponent_deck=[get_card("Province")] * 5)
+    state, me, _opp = make_state(ai, opponent_deck=provinces(5))
     state.supply = {"Province": 1, "Gold": 10, "Copper": 30}
     me.coins = 8
     me.buys = 1
@@ -65,7 +75,7 @@ def test_buys_last_province_when_ahead():
     engine must not interfere."""
     ai = PriorityBuyAI(["Province"])
     state, me, _opp = make_state(ai, opponent_deck=[])
-    me.deck = [get_card("Province")] * 5  # 30 VP, miles ahead
+    me.deck = provinces(5)  # 30 VP, miles ahead
     state.supply = {"Province": 1, "Copper": 30}
     me.coins = 8
     me.buys = 1
@@ -80,7 +90,7 @@ def test_does_not_trigger_third_pile_out_when_behind():
     """The third empty pile also ends the game; the guard must cover it,
     not just Province/Colony depletion."""
     ai = PriorityBuyAI(["Market", "Copper"])
-    state, me, _opp = make_state(ai, opponent_deck=[get_card("Province")] * 3)
+    state, me, _opp = make_state(ai, opponent_deck=provinces(3))
     # Two kingdom piles already empty; buying Market would empty a third.
     state.supply = {
         "Village": 0,
@@ -103,7 +113,7 @@ def test_allow_losing_pileout_override_disables_guard():
     """A strategy can opt out of the guard via allow_losing_pileout."""
     ai = PriorityBuyAI(["Province"])
     ai.allow_losing_pileout = True
-    state, me, _opp = make_state(ai, opponent_deck=[get_card("Province")] * 5)
+    state, me, _opp = make_state(ai, opponent_deck=provinces(5))
     state.supply = {"Province": 1, "Copper": 30}
     me.coins = 8
     me.buys = 1
@@ -117,7 +127,7 @@ def test_allow_losing_pileout_override_disables_guard():
 def test_guard_does_not_block_non_game_ending_buy_when_behind():
     """Being behind is irrelevant when the buy does not end the game."""
     ai = PriorityBuyAI(["Province"])
-    state, me, _opp = make_state(ai, opponent_deck=[get_card("Province")] * 5)
+    state, me, _opp = make_state(ai, opponent_deck=provinces(5))
     state.supply = {"Province": 8, "Copper": 30}  # plenty left
     me.coins = 8
     me.buys = 1
@@ -155,7 +165,7 @@ def test_guard_skipped_when_vp_awarding_landmark_in_play():
     from dominion.landmarks.landmarks import Battlefield
 
     ai = PriorityBuyAI(["Province"])
-    state, me, _opp = make_state(ai, opponent_deck=[get_card("Province")] * 4)
+    state, me, _opp = make_state(ai, opponent_deck=provinces(4))
     state.landmarks = [Battlefield()]
     state.supply = {"Province": 1, "Copper": 30}
     me.coins = 8
@@ -189,7 +199,7 @@ def test_guard_skipped_when_collection_would_swing_the_score():
     (base_card.py:278). Buying the Action that empties the third pile
     must not be vetoed when Collection would carry the buyer ahead."""
     ai = PriorityBuyAI(["Market", "Copper"])
-    state, me, _opp = make_state(ai, opponent_deck=[get_card("Province")] * 3)
+    state, me, _opp = make_state(ai, opponent_deck=provinces(3))
     state.supply = {
         "Village": 0,
         "Smithy": 0,
@@ -205,3 +215,59 @@ def test_guard_skipped_when_collection_would_swing_the_score():
 
     assert state.supply["Market"] == 0  # winning pile-out not vetoed
     assert "Market" in me.bought_this_turn
+
+
+def test_guard_skipped_when_exiled_copy_reclaimed():
+    """With a matching card on the Exile mat the real buy reclaims it and
+    restores the supply (game_state.py:3401), so the pile is not actually
+    depleted and the game does not end — the guard must not veto."""
+    ai = PriorityBuyAI(["Province"])
+    # Distinct objects: all_cards() dedups by id, so aliased copies would
+    # under-count the opponent and make the buyer look (wrongly) ahead.
+    state, me, _opp = make_state(
+        ai, opponent_deck=provinces(3)
+    )
+    state.supply = {"Province": 1, "Copper": 30}
+    me.coins = 8
+    me.buys = 1
+    me.exile = [get_card("Province")]  # reclaimed instead of depleting
+
+    state.handle_buy_phase()
+
+    assert state.supply["Province"] == 1  # pile restored, game did not end
+    assert "Province" in me.bought_this_turn
+
+
+def test_guard_skipped_when_trader_can_restore_pile():
+    """A Trader in hand with Silver available can exchange the gain and
+    return the card to its pile; the cheap sim cannot predict that AI
+    choice, so the guard stands down rather than risk a false veto."""
+    ai = PriorityBuyAI(["Province"])
+    state, me, _opp = make_state(
+        ai, opponent_deck=provinces(4)
+    )
+    state.supply = {"Province": 1, "Silver": 10, "Copper": 30}
+    me.coins = 8
+    me.buys = 1
+    me.hand = [get_card("Trader")]
+
+    state.handle_buy_phase()
+
+    assert "Province" in me.bought_this_turn  # guard did not veto
+
+
+def test_guard_skipped_when_changeling_pile_available():
+    """Changeling lets a gain be exchanged back to its pile; with the
+    Changeling pile present the guard stands down rather than risk a
+    false veto on the cheap decrement-only simulation."""
+    ai = PriorityBuyAI(["Province"])
+    state, me, _opp = make_state(
+        ai, opponent_deck=provinces(4)
+    )
+    state.supply = {"Province": 1, "Changeling": 10, "Copper": 30}
+    me.coins = 8
+    me.buys = 1
+
+    state.handle_buy_phase()
+
+    assert "Province" in me.bought_this_turn  # guard did not veto

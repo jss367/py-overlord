@@ -2921,6 +2921,40 @@ class GameState:
                 return True
         return False
 
+    def _buy_pile_restorable(self, player: PlayerState, card: "Card") -> bool:
+        """True when a reaction can return ``card`` to its pile, so the
+        real buy would *not* deplete it and the cheap decrement-only
+        simulation would wrongly predict game-end.
+
+        A full audit of supply-restoring sites on the gain path found
+        exactly three such reactions in this engine:
+
+        * Exile reclamation (deterministic) — a matching copy on the
+          Exile mat is reclaimed and the supply restored
+          (game_state.py:~3401).
+        * Trader (AI-decided) — a Trader in hand may exchange the gain
+          for a Silver, returning the card to its pile
+          (game_state.py:~3843); needs Silver in the supply.
+        * Changeling (AI-decided) — the gain may be swapped for a
+          Changeling, returning the card to its pile
+          (game_state.py:~3602).
+
+        The two AI-decided cases cannot be evaluated side-effect-free
+        here, so their mere availability is treated as enough to stand
+        the guard down. That only forgoes the safety net (reverting to
+        pre-guard behaviour for this buy); it never blocks a buy, which
+        is the harmful failure the reviewer flagged.
+        """
+        if any(exiled.name == card.name for exiled in player.exile):
+            return True
+        if self.supply.get("Silver", 0) > 0 and any(
+            c.name == "Trader" for c in player.hand
+        ):
+            return True
+        if self.supply.get("Changeling", 0) > 0 and card.name != "Changeling":
+            return True
+        return False
+
     def gain_would_lose_game(self, player: PlayerState, card: "Card") -> bool:
         """True if committing ``card`` to ``player`` would end the game
         with ``player`` not strictly ahead.
@@ -2934,17 +2968,23 @@ class GameState:
         ``max(players, key=victory_points)``, i.e. seat order, which a
         strategy must not bank on.
 
-        v1 models only the bought card's own pile decrement; cards that
-        gain extra cards on-buy may still end the game in ways this does
-        not foresee. Being over-cautious (declining a buy) is the safe
-        direction — except where over-caution would block a *winning*
-        buy, which is why the guard stands down entirely on boards with
-        VP-awarding buy/gain hooks (see :meth:`_has_unmodeled_vp_on_gain`).
+        The simulation models only the bought card's own pile decrement.
+        Over-caution (declining a buy) is the safe direction *except*
+        where it would block a winning/legal buy, so the guard stands
+        down when the cheap sim cannot faithfully predict the outcome:
+        VP-awarding buy/gain hooks (see :meth:`_has_unmodeled_vp_on_gain`)
+        and reactions that return the card to its pile (see
+        :meth:`_buy_pile_restorable`). A residual narrow edge remains:
+        card-specific on-gain VP that fires only when the bought card
+        itself is gained (Temple, Castles).
         """
         if self._losing_pileout_allowed(player):
             return False
 
         if self._has_unmodeled_vp_on_gain(player):
+            return False
+
+        if self._buy_pile_restorable(player, card):
             return False
 
         pile = self._supply_pile_name(card)
