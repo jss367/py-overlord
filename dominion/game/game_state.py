@@ -1518,7 +1518,12 @@ class GameState:
                 else:
                     break
 
-            choice = player.ai.choose_action(self, playable + [None])
+            was_choosing_main_action = getattr(self, "_choosing_main_action_phase", False)
+            self._choosing_main_action_phase = True
+            try:
+                choice = player.ai.choose_action(self, playable + [None])
+            finally:
+                self._choosing_main_action_phase = was_choosing_main_action
             if choice is None:
                 break
 
