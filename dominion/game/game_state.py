@@ -2029,7 +2029,7 @@ class GameState:
             if not affordable:
                 break
 
-            choice = player.ai.choose_buy(self, affordable + [None])
+            choice = self._choose_safe_buy(player, affordable)
             if choice is None:
                 break
 
@@ -2838,6 +2838,111 @@ class GameState:
             self.handle_night_phase()
         elif self.phase == "cleanup":
             self.handle_cleanup_phase()
+
+    def _normal_game_end_reached(self) -> bool:
+        """True when the standard game-end condition currently holds.
+
+        Unlike :meth:`is_game_over`, this is a pure inspection of the
+        supply: the Province pile is empty, the Colony pile is empty
+        (when in use), or three supply piles are gone. It deliberately
+        ignores mid-turn / Fleet sequencing so it can be used to predict
+        the effect of a *prospective* gain during a player's buy phase.
+
+        Unlike :meth:`is_game_over`, a pile only counts as depleted if it
+        is actually present in the supply: a board with no Province pile
+        (only seen in minimal test setups) is not "game over" here.
+        """
+        province_depleted = "Province" in self.supply and self.supply["Province"] == 0
+        colony_depleted = "Colony" in self.supply and self.supply["Colony"] == 0
+        return province_depleted or colony_depleted or self.empty_piles >= 3
+
+    def _supply_pile_name(self, card: "Card") -> str:
+        """Return the supply key whose count a buy/gain of ``card`` decrements.
+
+        Knights resolve against the shared ``Knights`` pile rather than a
+        per-Sir pile; everything else uses the card's own name.
+        """
+        if getattr(card, "is_knight", False) and "Knights" in self.pile_order:
+            return "Knights"
+        return card.name
+
+    def _losing_pileout_allowed(self, player: PlayerState) -> bool:
+        """Whether ``player`` has opted out of the game-losing-buy guard.
+
+        A strategy (or a bare AI, for tests) may set
+        ``allow_losing_pileout = True`` to deliberately end the game even
+        when behind — e.g. to deny an opponent a megaturn.
+        """
+        ai = getattr(player, "ai", None)
+        if getattr(ai, "allow_losing_pileout", False):
+            return True
+        strategy = getattr(ai, "strategy", None)
+        return bool(getattr(strategy, "allow_losing_pileout", False))
+
+    def gain_would_lose_game(self, player: PlayerState, card: "Card") -> bool:
+        """True if committing ``card`` to ``player`` would end the game
+        with ``player`` not strictly ahead.
+
+        The check is a reversible simulation: the card's pile is
+        decremented and the card is added to the player's deck, the
+        standard end condition is evaluated, scores are compared, then
+        both mutations are undone. Opponents take no further turn once
+        the game ends, so their *current* score is the right comparison.
+        A tie counts as "would lose": the winner is decided by
+        ``max(players, key=victory_points)``, i.e. seat order, which a
+        strategy must not bank on.
+
+        v1 models only the bought card's own pile decrement; cards that
+        gain extra cards on-buy may still end the game in ways this does
+        not foresee. Being over-cautious (declining a buy) is the safe
+        direction.
+        """
+        if self._losing_pileout_allowed(player):
+            return False
+
+        pile = self._supply_pile_name(card)
+        if self.supply.get(pile, 0) <= 0:
+            return False
+
+        self.supply[pile] -= 1
+        player.discard.append(card)
+        try:
+            if not self._normal_game_end_reached():
+                return False
+            my_vp = player.get_victory_points(self)
+            opponents = [
+                p.get_victory_points(self) for p in self.players if p is not player
+            ]
+            opp_best = max(opponents) if opponents else 0
+            return my_vp <= opp_best
+        finally:
+            player.discard.pop()
+            self.supply[pile] += 1
+
+    def _choose_safe_buy(
+        self, player: PlayerState, affordable: list["Card"]
+    ) -> "Card | None":
+        """Ask the AI for a buy, vetoing choices that would lose the game.
+
+        When a chosen card would end the game while the player is not
+        ahead, it is removed from the offered set and the AI is asked
+        again, so the strategy's *next* preference is honoured. If every
+        affordable card is a game-losing ender, the player buys nothing.
+        """
+        candidates = list(affordable)
+        while candidates:
+            choice = player.ai.choose_buy(self, candidates + [None])
+            if choice is None:
+                return None
+            if choice not in candidates:
+                # Defensive: AI returned something outside the offered
+                # set; trust it rather than risk an infinite loop.
+                return choice
+            if self.gain_would_lose_game(player, choice):
+                candidates = [c for c in candidates if c.name != choice.name]
+                continue
+            return choice
+        return None
 
     def is_game_over(self) -> bool:
         """Check if the game is over.
