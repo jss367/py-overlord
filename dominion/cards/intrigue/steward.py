@@ -14,24 +14,14 @@ class Steward(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        choice = self._choose_option(player)
+        choice = player.ai.choose_steward_mode(game_state, player)
 
         if choice == "cards":
             game_state.draw_cards(player, 2)
-        elif choice == "coins":
-            player.coins += 2
         elif choice == "trash":
             self._trash_up_to_two_cards(game_state, player)
-
-    def _choose_option(self, player) -> str:
-        junk = [card for card in player.hand if self._is_junk(card)]
-        if junk:
-            return "trash"
-
-        if player.coins < 4:
-            return "coins"
-
-        return "cards"
+        else:  # "coins" (and any unrecognised value) → safe default
+            player.coins += 2
 
     def _trash_up_to_two_cards(self, game_state, player):
         if not player.hand:
@@ -56,9 +46,13 @@ class Steward(Card):
 
     @staticmethod
     def _find_trash_candidate(cards):
-        if not cards:
+        # "Trash up to 2" is optional: the fallback may only ever trash
+        # genuine junk, never a good card (Silver/Gold/Province/Action)
+        # just to reach a count of two.
+        junk = [card for card in cards if Steward._is_junk(card)]
+        if not junk:
             return None
-        return min(cards, key=Steward._trash_priority)
+        return min(junk, key=Steward._trash_priority)
 
     @staticmethod
     def _is_junk(card):

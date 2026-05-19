@@ -1050,6 +1050,28 @@ class AI(ABC):
             return "discard"
         return "coins"
 
+    def choose_steward_mode(
+        self, state: GameState, player: PlayerState
+    ) -> str:
+        """Choose Steward's mode: 'trash', 'coins', or 'cards'.
+
+        Default: trash while the hand still holds junk worth removing
+        (Curse / Copper / cheap non-Action Victory); once the deck is
+        thinned and no junk is drawn, take +$2 when short on money,
+        otherwise +2 Cards. Strategies may override this to control the
+        early-trash → later-payload arc.
+        """
+        has_junk = any(
+            c.name in {"Curse", "Copper"}
+            or (c.is_victory and not c.is_action and c.cost.coins <= 2)
+            for c in player.hand
+        )
+        if has_junk:
+            return "trash"
+        if player.coins < 4:
+            return "coins"
+        return "cards"
+
     def choose_card_to_gain_for_replace(
         self, state: GameState, player: PlayerState, max_cost: int
     ) -> Optional[Card]:

@@ -164,6 +164,81 @@ def test_steward_adds_coins_when_no_junk():
     assert player.coins == 2
 
 
+def test_steward_never_trashes_treasure_to_fill_quota():
+    """Steward is "trash up to 2" — it must never trash a good card
+    (Gold/Silver/Province) just to reach a count of two."""
+    ai = ChooseFirstActionAI()
+    state = GameState(players=[])
+    state.initialize_game([ai], [get_card("Steward")])
+
+    player = state.players[0]
+    player.hand = [
+        get_card("Copper"),
+        get_card("Gold"),
+        get_card("Gold"),
+        get_card("Gold"),
+        get_card("Gold"),
+    ]
+    state.trash = []
+
+    get_card("Steward").on_play(state)
+
+    trashed = [c.name for c in state.trash]
+    assert "Gold" not in trashed
+    assert "Silver" not in trashed
+    # The single junk card is still removed.
+    assert trashed == ["Copper"]
+    assert sum(1 for c in player.hand if c.name == "Gold") == 4
+
+
+def test_steward_mode_choice_is_delegated_to_ai():
+    """The controlling AI decides Steward's mode. An AI that asks for
+    +2 Cards must get cards even when junk is in hand (no forced trash)."""
+
+    class CardsModeAI(ChooseFirstActionAI):
+        def choose_steward_mode(self, state, player):
+            return "cards"
+
+    ai = CardsModeAI()
+    state = GameState(players=[])
+    state.initialize_game([ai], [get_card("Steward")])
+
+    player = state.players[0]
+    player.hand = [get_card("Copper"), get_card("Estate")]
+    player.coins = 0
+    state.trash = []
+
+    get_card("Steward").on_play(state)
+
+    assert state.trash == []
+    assert player.coins == 0
+    assert len(player.hand) == 4  # drew 2
+
+
+def test_throne_room_steward_does_not_trash_treasure():
+    """Doubling Steward (Throne Room) must still never trash treasure."""
+    ai = ChooseFirstActionAI()
+    state = GameState(players=[])
+    state.initialize_game([ai], [get_card("Steward")])
+
+    player = state.players[0]
+    player.hand = [
+        get_card("Copper"),
+        get_card("Gold"),
+        get_card("Gold"),
+        get_card("Gold"),
+    ]
+    state.trash = []
+
+    steward = get_card("Steward")
+    steward.on_play(state)
+    steward.on_play(state)  # second play simulates Throne Room
+
+    trashed = [c.name for c in state.trash]
+    assert "Gold" not in trashed
+    assert trashed == ["Copper"]
+
+
 def test_kingdom_configurations_initialize():
     config_path = Path("kingdom_config.yaml")
     contents = config_path.read_text(encoding="utf-8")
