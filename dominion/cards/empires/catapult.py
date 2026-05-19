@@ -37,7 +37,7 @@ class Catapult(TopSplitPileCard):
         player.coins += min(2, trashed_cost)
 
         gives_curse = trashed_cost >= 3
-        discards_to_three = to_trash.is_treasure
+        discards_to_three = game_state.is_treasure(to_trash)
         if not gives_curse and not discards_to_three:
             return
 

@@ -128,3 +128,26 @@ def test_catapult_trashing_non_treasure_cost_three_only_curses():
     assert sum(1 for card in defender.discard if card.name == "Curse") == 1
     assert len(defender.hand) == 5
     assert defender_ai.discard_calls == 0
+
+
+def test_catapult_trashing_curse_with_charlatan_discards_to_three():
+    defender_ai = CatapultAI(discard_names=["Estate", "Duchy"])
+    state = make_state(CatapultAI(trash_name="Curse"), defender_ai)
+    state.setup_supply([get_card("Charlatan")])
+    attacker, defender = state.players
+    attacker.hand = [get_card("Curse")]
+    defender.hand = [
+        get_card("Copper"),
+        get_card("Estate"),
+        get_card("Silver"),
+        get_card("Duchy"),
+        get_card("Gold"),
+    ]
+
+    play_catapult(state)
+
+    assert [card.name for card in state.trash] == ["Curse"]
+    assert not any(card.name == "Curse" for card in defender.discard)
+    assert [card.name for card in defender.discard] == ["Estate", "Duchy"]
+    assert [card.name for card in defender.hand] == ["Copper", "Silver", "Gold"]
+    assert defender_ai.discard_calls == 1
