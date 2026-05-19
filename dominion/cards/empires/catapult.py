@@ -3,7 +3,7 @@ from ..split_pile import TopSplitPileCard
 
 
 class Catapult(TopSplitPileCard):
-    """Simplified Catapult that trashes a card for coins and attacks opponents."""
+    """Catapult: trash a card for coins and conditional attacks."""
 
     partner_card_name = "Rocks"
 
@@ -20,20 +20,56 @@ class Catapult(TopSplitPileCard):
         if not player.hand:
             return
 
+        get_cost = getattr(game_state, "get_card_cost", None)
+
+        def card_cost(card):
+            return get_cost(player, card) if get_cost is not None else card.cost.coins
+
         to_trash = player.ai.choose_card_to_trash(game_state, list(player.hand))
         if to_trash is None:
-            # Default to trashing lowest-cost card to keep the effect flowing
-            to_trash = min(player.hand, key=lambda c: c.cost.coins)
-        if to_trash in player.hand:
-            player.hand.remove(to_trash)
-            game_state.trash_card(player, to_trash)
-            player.coins += min(2, to_trash.cost.coins)
+            to_trash = min(player.hand, key=card_cost)
+        if to_trash not in player.hand:
+            return
+
+        trashed_cost = card_cost(to_trash)
+        player.hand.remove(to_trash)
+        game_state.trash_card(player, to_trash)
+        player.coins += min(2, trashed_cost)
+
+        gives_curse = trashed_cost >= 3
+        discards_to_three = game_state.is_treasure(to_trash)
+        if not gives_curse and not discards_to_three:
+            return
 
         def attack(target):
-            while len(target.hand) > 3:
-                game_state.discard_card(target, target.hand.pop())
+            if gives_curse:
+                game_state.give_curse_to_player(target)
+
+            excess = len(target.hand) - 3
+            if discards_to_three and excess > 0:
+                choices = target.ai.choose_cards_to_discard(
+                    game_state, target, list(target.hand), excess, reason="catapult"
+                )
+                chosen = []
+                for card in choices or []:
+                    if (
+                        card in target.hand
+                        and card not in chosen
+                        and len(chosen) < excess
+                    ):
+                        chosen.append(card)
+                if len(chosen) < excess:
+                    for card in list(target.hand):
+                        if card not in chosen:
+                            chosen.append(card)
+                        if len(chosen) == excess:
+                            break
+                for card in chosen:
+                    if card in target.hand:
+                        target.hand.remove(card)
+                        game_state.discard_card(target, card)
 
         for other in game_state.players:
             if other is player:
                 continue
-            game_state.attack_player(other, attack)
+            game_state.attack_player(other, attack, attacker=player, attack_card=self)
