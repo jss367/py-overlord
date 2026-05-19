@@ -22,11 +22,10 @@ class GeneticAI(AI):
         return self._name
 
     def choose_action(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
-        valid_choices = [c for c in choices if c is not None]
-        if not valid_choices:
+        if not choices:
             return None
 
-        return self.strategy.choose_action(state, state.current_player, valid_choices)
+        return self.strategy.choose_action(state, state.current_player, choices)
 
     def choose_treasure(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         valid_choices = [c for c in choices if c is not None]
@@ -36,11 +35,10 @@ class GeneticAI(AI):
         return self.strategy.choose_treasure(state, state.current_player, valid_choices)
 
     def choose_buy(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
-        valid_choices = [c for c in choices if c is not None]
-        if not valid_choices:
+        if not choices:
             return None
 
-        return self.strategy.choose_gain(state, state.current_player, valid_choices)
+        return self.strategy.choose_gain(state, state.current_player, choices)
 
     def choose_way(self, state: GameState, card: Card, ways: list) -> Optional[object]:
         if hasattr(self.strategy, 'choose_way'):

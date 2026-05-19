@@ -295,7 +295,11 @@ class EnhancedStrategy:
 
     # ------------------------------------------------------------------
     def _choose_from_priority(
-        self, priority: list[PriorityRule], choices: list[Card], state: GameState, player: PlayerState
+        self,
+        priority: list[PriorityRule],
+        choices: list[Optional[Card]],
+        state: GameState,
+        player: PlayerState,
     ) -> Optional[Card]:
         """Return the first card whose rule condition evaluates to True.
 
@@ -347,6 +351,9 @@ class EnhancedStrategy:
         result = self._choose_from_priority(self.action_priority, choices, state, player)
         if result is not None:
             return result
+
+        if any(card is None for card in choices):
+            return None
 
         # Fallback: play unexpected action cards not covered by any priority rule
         # (e.g. cards gained via Swindle or other opponent effects).
