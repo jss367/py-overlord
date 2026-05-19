@@ -33,6 +33,18 @@ def _decision_firings_section(results: dict) -> str:
         strategy_name = escape(str(stats.get("strategy_name", role)))
         rows = []
 
+        for list_name, firings in sorted((stats.get("priority_rules") or {}).items()):
+            top = sorted(firings.items(), key=lambda item: item[1], reverse=True)[:8]
+            for rule_key, count in top:
+                rows.append(
+                    "<tr>"
+                    f"<td>priority:{escape(str(list_name))}</td>"
+                    "<td>Rule fired</td>"
+                    f"<td>{escape(str(rule_key))}</td>"
+                    f"<td>{count}</td>"
+                    "</tr>"
+                )
+
         for card_name, ways in sorted((stats.get("choose_way") or {}).items()):
             for way_name, count in sorted(ways.items()):
                 rows.append(

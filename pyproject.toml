@@ -7,7 +7,7 @@ name = "py-overlord"
 version = "0.1.0"
 description = "Dominion AI Genetic Trainer"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 dependencies = [
     "coloredlogs",
     "matplotlib",

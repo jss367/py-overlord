@@ -247,6 +247,12 @@ class StrategyBattle:
     def _empty_decision_firings(strategy_name: str) -> dict[str, Any]:
         return {
             "strategy_name": strategy_name,
+            "priority_rules": {
+                "gain": {},
+                "action": {},
+                "treasure": {},
+                "trash": {},
+            },
             "choose_way": {},
             "choose_gain_overrides": {
                 "total": 0,
@@ -265,6 +271,13 @@ class StrategyBattle:
 
     @staticmethod
     def _merge_decision_firings(total: dict[str, Any], game: dict[str, Any]) -> None:
+        for list_name, rules in (game.get("priority_rules") or {}).items():
+            total["priority_rules"].setdefault(list_name, {})
+            for rule_key, count in rules.items():
+                total["priority_rules"][list_name][rule_key] = (
+                    total["priority_rules"][list_name].get(rule_key, 0) + count
+                )
+
         for card_name, ways in game["choose_way"].items():
             for way_name, count in ways.items():
                 total["choose_way"].setdefault(card_name, {})
@@ -293,6 +306,16 @@ class StrategyBattle:
     def _instrument_ai_decisions(self, ai: GeneticAI, stats: dict[str, Any]) -> None:
         original_choose_way = ai.choose_way
         original_choose_buy = ai.choose_buy
+        original_callback = getattr(ai.strategy, "_decision_trace_callback", None)
+
+        def trace_priority_rule(list_name, rule, _card, _state, _player):
+            bucket = stats["priority_rules"].setdefault(list_name, {})
+            condition_source = getattr(getattr(rule, "condition", None), "_source", None)
+            condition_label = condition_source or "always"
+            key = f"{rule.card_name} [{condition_label}]"
+            self._increment_count(bucket, key)
+            if original_callback is not None:
+                original_callback(list_name, rule, _card, _state, _player)
 
         def tracked_choose_way(state, card, ways):
             way = original_choose_way(state, card, ways)
@@ -307,7 +330,12 @@ class StrategyBattle:
         def tracked_choose_buy(state, choices):
             valid_choices = [c for c in choices if c is not None]
             player = getattr(state, "current_player", None)
-            top_priority = self._top_gain_priority_choice(ai.strategy, state, player, valid_choices)
+            current_callback = getattr(ai.strategy, "_decision_trace_callback", None)
+            ai.strategy._decision_trace_callback = None
+            try:
+                top_priority = self._top_gain_priority_choice(ai.strategy, state, player, valid_choices)
+            finally:
+                ai.strategy._decision_trace_callback = current_callback
             selected = original_choose_buy(state, choices)
             if (
                 selected is not None
@@ -323,6 +351,7 @@ class StrategyBattle:
                 )
             return selected
 
+        ai.strategy._decision_trace_callback = trace_priority_rule
         ai.choose_way = tracked_choose_way
         ai.choose_buy = tracked_choose_buy
 
@@ -679,6 +708,14 @@ def log_decision_firings(results: dict[str, Any]) -> None:
                 logger.info("      %s -> %s: %d", card_name, way_name, count)
         else:
             logger.info("    choose_way: 0")
+
+        priority_rules = stats.get("priority_rules") or {}
+        for list_name, firings in sorted(priority_rules.items()):
+            if not firings:
+                continue
+            logger.info("    priority:%s top firings:", list_name)
+            for rule_key, count in sorted(firings.items(), key=lambda item: item[1], reverse=True)[:5]:
+                logger.info("      %s: %d", rule_key, count)
 
         gain_stats = stats.get("choose_gain_overrides") or {}
         logger.info("    choose_gain special cases: %d", gain_stats.get("total", 0))
