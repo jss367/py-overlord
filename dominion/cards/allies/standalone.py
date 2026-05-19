@@ -105,7 +105,7 @@ class Sycophant(Card):
                 player.hand.remove(card)
                 game_state.discard_card(player, card)
                 discarded += 1
-        if discarded:
+        if discarded == 3:
             chameleon_plus_coins(player, 3)
 
     def on_gain(self, game_state, player):

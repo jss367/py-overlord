@@ -84,7 +84,7 @@ def test_sycophant_does_not_grant_favor_on_play():
     assert player.favors == favors_before
 
 
-def test_sycophant_discards_and_gets_three_coins():
+def test_sycophant_discards_without_coins_when_fewer_than_three_cards():
     state, player = _state()
     sycophant = get_card("Sycophant")
     player.in_play.append(sycophant)
@@ -96,9 +96,27 @@ def test_sycophant_discards_and_gets_three_coins():
 
     sycophant.on_play(state)
 
-    assert player.coins == coins_before + 3
+    assert player.coins == coins_before
     assert player.hand == []
     assert len(player.discard) == 2
+
+
+def test_sycophant_discards_three_cards_for_three_coins():
+    state, player = _state()
+    sycophant = get_card("Sycophant")
+    player.in_play.append(sycophant)
+    player.hand = [
+        get_card("Estate"),
+        get_card("Estate"),
+        get_card("Copper"),
+    ]
+    coins_before = player.coins
+
+    sycophant.on_play(state)
+
+    assert player.coins == coins_before + 3
+    assert player.hand == []
+    assert len(player.discard) == 3
 
 
 def test_underling_cantrips_with_favor():
