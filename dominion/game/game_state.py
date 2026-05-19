@@ -213,11 +213,6 @@ class GameState:
         player.hand.remove(card)
         self._record_voyage_play_from_hand(player)
         player.in_play.append(card)
-        return_zones = getattr(self, "_blocked_indirect_return_zones", None)
-        if return_zones is None:
-            return_zones = {}
-            self._blocked_indirect_return_zones = return_zones
-        return_zones[id(card)] = player.hand
         return True
 
     def play_action_indirectly(
@@ -255,10 +250,6 @@ class GameState:
             card,
             card_already_in_play=True,
         ):
-            if blocked_return_zone is None:
-                blocked_return_zone = getattr(
-                    self, "_blocked_indirect_return_zones", {}
-                ).pop(id(card), None)
             if card in player.in_play:
                 player.in_play.remove(card)
             if blocked_return_zone is not None and card not in blocked_return_zone:
@@ -278,7 +269,6 @@ class GameState:
         self.fire_prophecy_action_hooks(player, card)
         self.fire_ally_play_hooks(player, card)
         self._call_tavern_triggers(player, "action_played", card)
-        getattr(self, "_blocked_indirect_return_zones", {}).pop(id(card), None)
         # Renaissance Citadel: if this is the turn's first Action play
         # (the helper checks citadel_used + project ownership), replay
         # the card. Centralised here so every indirect-play caller —

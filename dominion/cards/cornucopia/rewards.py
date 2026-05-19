@@ -33,7 +33,9 @@ class Coronet(Card):
                 return
             for _ in range(2):
                 if choice.is_action:
-                    game_state.play_action_indirectly(player, choice)
+                    game_state.play_action_indirectly(
+                        player, choice, blocked_return_zone=player.hand
+                    )
                 else:
                     choice.on_play(game_state)
                     game_state.fire_ally_play_hooks(player, choice)

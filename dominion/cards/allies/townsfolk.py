@@ -243,7 +243,9 @@ class Elder(_Townsfolk):
         previous = getattr(game_state, _ELDER_EXTRA_CHOICE_ATTR, 0)
         setattr(game_state, _ELDER_EXTRA_CHOICE_ATTR, previous + 1)
         try:
-            game_state.play_action_indirectly(player, choice)
+            game_state.play_action_indirectly(
+                player, choice, blocked_return_zone=player.hand
+            )
         finally:
             if previous:
                 setattr(game_state, _ELDER_EXTRA_CHOICE_ATTR, previous)

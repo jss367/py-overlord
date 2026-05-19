@@ -42,4 +42,6 @@ class Shop(Card):
         # Route through the indirect-play helper so all the bookkeeping
         # (actions_this_turn, prophecy hooks, ally on-play hooks, tavern
         # "action_played" triggers, Citadel replay) fires correctly.
-        game_state.play_action_indirectly(player, choice)
+        game_state.play_action_indirectly(
+            player, choice, blocked_return_zone=player.hand
+        )

@@ -360,7 +360,9 @@ class RoyalGalley(Card):
             return
         if not game_state.move_card_from_hand_to_play(player, choice):
             return
-        game_state.play_action_indirectly(player, choice)
+        game_state.play_action_indirectly(
+            player, choice, blocked_return_zone=player.hand
+        )
         if choice not in player.in_play:
             return
         player.in_play.remove(choice)
@@ -599,7 +601,9 @@ class Specialist(Card):
             return
         if not game_state.move_card_from_hand_to_play(player, choice):
             return
-        game_state.play_action_indirectly(player, choice)
+        game_state.play_action_indirectly(
+            player, choice, blocked_return_zone=player.hand
+        )
 
         # Choose: play again, or gain a copy.
         # Heuristic: gain a copy of cheap cantrips ($3-$5); replay otherwise.

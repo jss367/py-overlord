@@ -37,4 +37,6 @@ class Imp(Card):
         game_state.log_callback(
             ("action", player.ai.name, f"Imp plays {choice}", {})
         )
-        game_state.play_action_indirectly(player, choice)
+        game_state.play_action_indirectly(
+            player, choice, blocked_return_zone=player.hand
+        )

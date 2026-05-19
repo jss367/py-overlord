@@ -33,6 +33,8 @@ class Mastermind(Card):
                 self.duration_persistent = False
                 return
             for _ in range(3):
-                game_state.play_action_indirectly(player, choice)
+                game_state.play_action_indirectly(
+                    player, choice, blocked_return_zone=player.hand
+                )
 
         self.duration_persistent = False

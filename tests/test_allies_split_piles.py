@@ -308,7 +308,9 @@ def test_warlord_blocked_indirect_play_returns_card_to_hand():
     player.in_play = [get_card("Smithy"), get_card("Smithy")]
     assert state.move_card_from_hand_to_play(player, third_smithy)
 
-    state.play_action_indirectly(player, third_smithy)
+    state.play_action_indirectly(
+        player, third_smithy, blocked_return_zone=player.hand
+    )
 
     assert third_smithy in player.hand
     assert third_smithy not in player.in_play
@@ -326,6 +328,28 @@ def test_warlord_blocked_indirect_play_without_hand_source_does_not_enter_hand()
 
     assert revealed_smithy not in player.hand
     assert revealed_smithy not in player.in_play
+    assert player.actions_this_turn == 0
+
+
+def test_warlord_blocked_indirect_play_ignores_prior_hand_play_source():
+    player = PlayerState(DummyAI())
+    state = GameState(players=[player])
+    smithy = get_card("Smithy")
+    player.hand = [smithy]
+
+    assert state.move_card_from_hand_to_play(player, smithy)
+    player.in_play.remove(smithy)
+    player.discard.append(smithy)
+
+    player.warlord_restriction_count = 1
+    player.discard.remove(smithy)
+    player.in_play = [get_card("Smithy"), get_card("Smithy"), smithy]
+
+    state.play_action_indirectly(player, smithy)
+
+    assert smithy not in player.hand
+    assert smithy not in player.in_play
+    assert smithy not in player.discard
     assert player.actions_this_turn == 0
 
 

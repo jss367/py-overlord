@@ -456,7 +456,9 @@ class Gondola(Card):
             return
         if not game_state.move_card_from_hand_to_play(player, choice):
             return
-        game_state.play_action_indirectly(player, choice)
+        game_state.play_action_indirectly(
+            player, choice, blocked_return_zone=player.hand
+        )
 
 
 class LandingParty(Card):

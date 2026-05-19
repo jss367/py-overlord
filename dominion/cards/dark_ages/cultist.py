@@ -40,7 +40,9 @@ class Cultist(Card):
         if next_cultist and player.ai.should_play_cultist_chain(game_state, player):
             if not game_state.move_card_from_hand_to_play(player, next_cultist):
                 return
-            game_state.play_action_indirectly(player, next_cultist)
+            game_state.play_action_indirectly(
+                player, next_cultist, blocked_return_zone=player.hand
+            )
 
     def on_trash(self, game_state, player):
         game_state.draw_cards(player, 3)
