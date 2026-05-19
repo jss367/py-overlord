@@ -1055,19 +1055,31 @@ class AI(ABC):
     ) -> str:
         """Choose Steward's mode: 'trash', 'coins', or 'cards'.
 
-        Default: trash while the hand still holds junk worth removing
-        (Curse / Copper / cheap non-Action Victory); once the deck is
-        thinned and no junk is drawn, take +$2 when short on money,
-        otherwise +2 Cards. Strategies may override this to control the
-        early-trash → later-payload arc.
+        Default policy (self-tapering; strategies may override):
+
+        * 2+ junk cards in hand (Curse / Copper / cheap non-Action
+          Victory) → ``trash``. Steward trashes *up to two*, so a full
+          pair is worth removing even mid-engine; once the deck is
+          thinned, hands rarely hold two junk and Steward stops
+          trashing on its own.
+        * otherwise, if an Action is still available to play (the cost
+          of playing Steward is already spent, so >= 1 means there is
+          another action to chain into) → ``cards``: +2 Cards fuels the
+          remaining plays.
+        * otherwise, short on money → ``coins`` (+$2).
+        * otherwise (rich, clean, no actions) → ``cards`` to dig for a
+          bigger buy.
         """
-        has_junk = any(
-            c.name in {"Curse", "Copper"}
-            or (c.is_victory and not c.is_action and c.cost.coins <= 2)
+        junk = sum(
+            1
             for c in player.hand
+            if c.name in {"Curse", "Copper"}
+            or (c.is_victory and not c.is_action and c.cost.coins <= 2)
         )
-        if has_junk:
+        if junk >= 2:
             return "trash"
+        if player.actions >= 1:
+            return "cards"
         if player.coins < 4:
             return "coins"
         return "cards"

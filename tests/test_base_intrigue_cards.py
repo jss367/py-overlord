@@ -158,6 +158,7 @@ def test_steward_adds_coins_when_no_junk():
 
     player.hand = [get_card("Silver")]
     player.coins = 0
+    player.actions = 0  # no action to spend a draw on → +$2 is best
 
     steward.on_play(state)
 
@@ -165,9 +166,16 @@ def test_steward_adds_coins_when_no_junk():
 
 
 def test_steward_never_trashes_treasure_to_fill_quota():
-    """Steward is "trash up to 2" — it must never trash a good card
-    (Gold/Silver/Province) just to reach a count of two."""
-    ai = ChooseFirstActionAI()
+    """Steward is "trash up to 2" — even in trash mode it must never
+    trash a good card (Gold/Silver/Province) just to reach a count of
+    two. Trash mode is forced here to isolate the trash routine from
+    the mode heuristic."""
+
+    class TrashModeAI(ChooseFirstActionAI):
+        def choose_steward_mode(self, state, player):
+            return "trash"
+
+    ai = TrashModeAI()
     state = GameState(players=[])
     state.initialize_game([ai], [get_card("Steward")])
 
@@ -216,8 +224,14 @@ def test_steward_mode_choice_is_delegated_to_ai():
 
 
 def test_throne_room_steward_does_not_trash_treasure():
-    """Doubling Steward (Throne Room) must still never trash treasure."""
-    ai = ChooseFirstActionAI()
+    """Doubling Steward (Throne Room) in trash mode must still never
+    trash treasure."""
+
+    class TrashModeAI(ChooseFirstActionAI):
+        def choose_steward_mode(self, state, player):
+            return "trash"
+
+    ai = TrashModeAI()
     state = GameState(players=[])
     state.initialize_game([ai], [get_card("Steward")])
 
@@ -237,6 +251,43 @@ def test_throne_room_steward_does_not_trash_treasure():
     trashed = [c.name for c in state.trash]
     assert "Gold" not in trashed
     assert trashed == ["Copper"]
+
+
+def _steward_mode(hand, actions, coins):
+    ai = ChooseFirstActionAI()
+    state = GameState(players=[])
+    state.initialize_game([ai], [get_card("Steward")])
+    player = state.players[0]
+    player.hand = [get_card(n) for n in hand]
+    player.actions = actions
+    player.coins = coins
+    return ai.choose_steward_mode(state, player)
+
+
+def test_steward_mode_trashes_only_with_two_or_more_junk():
+    # 2+ junk in hand: trimming a full pair is worth it even mid-engine.
+    assert _steward_mode(["Copper", "Estate", "Gold"], actions=3, coins=0) == "trash"
+
+
+def test_steward_mode_prefers_cards_with_spare_action_over_lone_junk():
+    # Only one junk card: don't waste Steward half-trashing — if there is
+    # an action still to play, draw to fuel it instead.
+    assert _steward_mode(["Copper", "Silver", "Gold"], actions=1, coins=0) == "cards"
+
+
+def test_steward_mode_prefers_cards_over_coins_with_spare_action():
+    # No junk, but an action remains: +2 Cards beats +$2.
+    assert _steward_mode(["Silver", "Gold"], actions=1, coins=0) == "cards"
+
+
+def test_steward_mode_lone_junk_no_action_poor_takes_coins():
+    # One junk, no action to use a draw, and poor: +$2 over a half-trash.
+    assert _steward_mode(["Copper", "Silver"], actions=0, coins=1) == "coins"
+
+
+def test_steward_mode_rich_clean_no_action_draws():
+    # No junk, no action, already rich: dig for a bigger buy.
+    assert _steward_mode(["Gold", "Gold"], actions=0, coins=6) == "cards"
 
 
 def test_kingdom_configurations_initialize():
