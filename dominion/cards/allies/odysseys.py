@@ -43,12 +43,8 @@ class OldMap(_Odysseys):
 
 
 class Voyage(_Odysseys):
-    """+1 Action. If this is your first turn this turn, take an extra turn
-    after this; you can't buy in it.
-
-    Simplified: act as +1 Action without an actual extra-turn allocation
-    (Outpost / Mission cards already exercise the extra-turn path; this
-    skips it for simplicity).
+    """+1 Action. If the previous turn wasn't yours, take an extra turn
+    after this one; during that turn you can only play 3 cards from hand.
     """
 
     upper_partners: ClassVar[tuple[str, ...]] = ("Old Map",)
@@ -63,9 +59,16 @@ class Voyage(_Odysseys):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        # Schedule an extra turn via Outpost-like mechanism if available.
-        if not getattr(player, "outpost_pending", False):
+
+        if (
+            not getattr(player, "outpost_pending", False)
+            and not getattr(player, "outpost_taken_last_turn", False)
+            and not getattr(player, "took_extra_turn_last_turn", False)
+        ):
             player.outpost_pending = True
+            player.voyage_extra_turn_pending = True
+            game_state.extra_turn = True
+
         self.duration_persistent = False
         player.duration.append(self)
 

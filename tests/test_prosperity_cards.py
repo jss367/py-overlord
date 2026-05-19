@@ -66,7 +66,7 @@ class ReverseTopdeckAI(DummyAI):
         return list(reversed(cards))
 
 
-def test_bishop_awards_vp_and_optional_trash():
+def test_bishop_awards_vp_and_other_player_trash_is_optional():
     trash_ai = TrashFirstAI()
     skip_ai = NoTrashAI()
 
@@ -81,7 +81,36 @@ def test_bishop_awards_vp_and_optional_trash():
     play_action(state, player, "Bishop")
 
     assert player.vp_tokens == 2
+    assert any(card.name == "Silver" for card in state.trash)
     assert any(card.name == "Estate" for card in other.hand)
+
+
+def test_bishop_forces_current_player_trash_when_ai_declines():
+    player = PlayerState(DeclineTrashAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Bishop")])
+
+    estate = get_card("Estate")
+    player.hand = [get_card("Bishop"), estate]
+
+    play_action(state, player, "Bishop")
+
+    assert estate in state.trash
+    assert estate not in player.hand
+    assert player.vp_tokens == 2
+
+
+def test_bishop_vp_uses_effective_coin_cost():
+    player = PlayerState(TrashFirstAI())
+    state = GameState([player])
+    state.setup_supply([get_card("Bishop")])
+
+    player.cost_reduction = 1
+    player.hand = [get_card("Bishop"), get_card("Gold")]
+
+    play_action(state, player, "Bishop")
+
+    assert player.vp_tokens == 3
 
 
 def test_hoard_gains_gold_on_victory_buy():

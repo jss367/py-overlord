@@ -35,10 +35,8 @@ class Tent(_Forts):
 
 
 class Garrison(_Forts):
-    """+1 Action +1 Buy. Put 4 +1 Card tokens on this. At start of your
-    next turn, +1 Card from each token until empty.
-
-    Simplified: at end of cleanup it returns 4 cards next turn.
+    """+1 Action +1 Buy. This turn, when you gain a card, add a token here.
+    At the start of your next turn, remove them for +1 Card each.
     """
 
     upper_partners: ClassVar[tuple[str, ...]] = ("Tent",)
@@ -50,20 +48,48 @@ class Garrison(_Forts):
             stats=CardStats(actions=1, buys=1),
             types=[CardType.ACTION, CardType.DURATION],
         )
+        self.tokens = 0
+        self._garrison_gain_triggers = 0
+        self._garrison_turn_marker = None
+        self._garrison_last_gain_marker = None
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        # Place 4 +1 Card tokens.
-        self.tokens = 4
+        turn_marker = (id(player), player.turns_taken)
+        if self._garrison_turn_marker != turn_marker:
+            self.tokens = 0
+            self._garrison_gain_triggers = 0
+            self._garrison_last_gain_marker = None
+            self._garrison_turn_marker = turn_marker
+        self._garrison_gain_triggers += 1
+        self.duration_persistent = False
+
+    def on_owner_gain(self, game_state, player, gained_card: Card) -> None:
+        if self not in player.in_play or self._garrison_gain_triggers <= 0:
+            return
+
+        gain_marker = (
+            id(player),
+            getattr(player, "cards_gained_this_turn", 0),
+            id(gained_card),
+        )
+        if self._garrison_last_gain_marker == gain_marker:
+            return
+
+        self._garrison_last_gain_marker = gain_marker
+        self.tokens += self._garrison_gain_triggers
         self.duration_persistent = True
-        player.duration.append(self)
+        if self not in player.duration:
+            player.duration.append(self)
 
     def on_duration(self, game_state):
         player = game_state.current_player
-        tokens = getattr(self, "tokens", 0)
+        tokens = self.tokens
         if tokens > 0:
             game_state.draw_cards(player, tokens)
-            self.tokens = 0
+        self.tokens = 0
+        self._garrison_gain_triggers = 0
+        self._garrison_last_gain_marker = None
         self.duration_persistent = False
 
 

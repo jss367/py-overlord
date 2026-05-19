@@ -5,10 +5,8 @@ class CoastalHaven(Ally):
     """At end of turn, you may spend 1 Favor per card to keep cards in
     hand for next turn.
 
-    Simplified: keep up to (favors) Action / Treasure cards from hand
-    by setting them aside in ``foresight_set_aside`` (re-used as a
-    generic "keep across turns" zone). They re-enter hand at end of
-    cleanup, mimicking the official effect.
+    Cards are set aside in ``foresight_set_aside`` and re-enter hand at end
+    of cleanup, after the next hand is drawn.
     """
 
     def __init__(self):
@@ -17,25 +15,19 @@ class CoastalHaven(Ally):
     def on_turn_end(self, game_state, player) -> None:
         if player.favors <= 0 or not player.hand:
             return
-        # Decide how many to keep: Action cards first, then Treasures > 1$.
-        kept: list = []
-        capacity = player.favors
-        # Sort hand by usefulness (Actions first, then expensive treasures).
-        priority = sorted(
-            player.hand,
-            key=lambda c: (
-                -1 * c.is_action,
-                -1 * (c.is_treasure and c.cost.coins >= 3),
-                -c.cost.coins,
-            ),
+        choices = list(player.hand)
+        selected = player.ai.choose_cards_for_coastal_haven(
+            game_state, player, choices, player.favors
         )
-        for card in priority:
-            if capacity <= 0:
+        kept: list = []
+        seen: set[int] = set()
+        for card in selected:
+            if len(kept) >= player.favors:
                 break
-            if not (card.is_action or (card.is_treasure and card.cost.coins >= 3)):
+            if card not in player.hand or id(card) in seen:
                 continue
             kept.append(card)
-            capacity -= 1
+            seen.add(id(card))
         if not kept:
             return
         spent = len(kept)

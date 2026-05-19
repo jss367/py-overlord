@@ -99,7 +99,7 @@ def test_catapult_trashing_silver_curses_and_discards_to_three():
 
     play_catapult(state)
 
-    assert attacker.coins == 3
+    assert attacker.coins == 1
     assert [card.name for card in state.trash] == ["Silver"]
     assert sum(1 for card in defender.discard if card.name == "Curse") == 1
     assert [card.name for card in defender.discard[:2]] == ["Curse", "Estate"]
@@ -123,7 +123,7 @@ def test_catapult_trashing_non_treasure_cost_three_only_curses():
 
     play_catapult(state)
 
-    assert attacker.coins == 3
+    assert attacker.coins == 1
     assert [card.name for card in state.trash] == ["Village"]
     assert sum(1 for card in defender.discard if card.name == "Curse") == 1
     assert len(defender.hand) == 5

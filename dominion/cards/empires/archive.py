@@ -2,7 +2,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Archive(Card):
-    """Simplified implementation of Archive as a duration draw card."""
+    """Set aside three cards, taking one now and one on each later turn."""
 
     def __init__(self):
         super().__init__(
@@ -25,6 +25,8 @@ class Archive(Card):
                 break
             self.set_aside.append(player.deck.pop())
 
+        self._put_one_set_aside_card_into_hand(game_state)
+
         self.duration_persistent = bool(self.set_aside)
         if self.set_aside:
             player.duration.append(self)
@@ -32,16 +34,19 @@ class Archive(Card):
             self.duration_persistent = False
 
     def on_duration(self, game_state):
-        player = game_state.current_player
-        if self.set_aside:
-            choice = player.ai.choose_archive_card(
-                game_state, player, list(self.set_aside)
-            )
-            if choice not in self.set_aside:
-                choice = self.set_aside[0]
-
-            self.set_aside.remove(choice)
-            player.hand.append(choice)
+        self._put_one_set_aside_card_into_hand(game_state)
 
         if not self.set_aside:
             self.duration_persistent = False
+
+    def _put_one_set_aside_card_into_hand(self, game_state):
+        player = game_state.current_player
+        if not self.set_aside:
+            return
+
+        choice = player.ai.choose_archive_card(game_state, player, list(self.set_aside))
+        if choice not in self.set_aside:
+            choice = self.set_aside[0]
+
+        self.set_aside.remove(choice)
+        player.hand.append(choice)

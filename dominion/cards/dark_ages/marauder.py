@@ -2,14 +2,14 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Marauder(Card):
-    """Simplified Marauder implementation."""
+    """+$2. Gain a Spoils. Each other player gains a Ruins."""
 
     def __init__(self):
         super().__init__(
             name="Marauder",
             cost=CardCost(coins=4),
             stats=CardStats(coins=2),
-            types=[CardType.ACTION, CardType.ATTACK],
+            types=[CardType.ACTION, CardType.ATTACK, CardType.LOOTER],
         )
 
     def get_additional_piles(self) -> dict[str, int]:
@@ -32,4 +32,9 @@ class Marauder(Card):
         for other in game_state.players:
             if other is player:
                 continue
-            game_state.attack_player(other, attack_target)
+            game_state.attack_player(
+                other,
+                attack_target,
+                attacker=player,
+                attack_card=self,
+            )

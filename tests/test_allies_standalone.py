@@ -23,9 +23,30 @@ def test_bauble_does_not_grant_unconditional_favor():
     favors_before = player.favors
     bauble.on_play(state)
     # Bauble's printed text: "Choose two different options: +1 Buy,
-    # +1 Coffer, +1 Favor, or this turn when you gain a card you may
+    # +$1, +1 Favor, or this turn when you gain a card you may
     # put it onto your deck." Favor is one of four options, not automatic.
     assert player.favors == favors_before
+
+
+def test_bauble_can_choose_favor_and_topdeck_gain():
+    state, player = _state()
+
+    class _AI(DummyAI):
+        def choose_bauble_options(self, state, player, choices, count):
+            return ["favor", "topdeck"]
+
+    player.ai = _AI()
+    bauble = get_card("Bauble")
+    player.in_play.append(bauble)
+    favors_before = player.favors
+    bauble.on_play(state)
+
+    assert player.favors == favors_before + 1
+    assert player.topdeck_gains is True
+
+    gained = state.gain_card(player, get_card("Silver"))
+    assert player.deck[-1] is gained
+    assert gained not in player.discard
 
 
 def test_sycophant_grants_favor_on_gain():
@@ -61,6 +82,23 @@ def test_sycophant_does_not_grant_favor_on_play():
     favors_before = player.favors
     sycophant.on_play(state)
     assert player.favors == favors_before
+
+
+def test_sycophant_discards_and_gets_three_coins():
+    state, player = _state()
+    sycophant = get_card("Sycophant")
+    player.in_play.append(sycophant)
+    player.hand = [
+        get_card("Estate"),
+        get_card("Copper"),
+    ]
+    coins_before = player.coins
+
+    sycophant.on_play(state)
+
+    assert player.coins == coins_before + 3
+    assert player.hand == []
+    assert len(player.discard) == 2
 
 
 def test_underling_cantrips_with_favor():
@@ -221,6 +259,24 @@ def test_emissary_does_not_grant_unconditional_favor():
     favors_before = player.favors
     emissary.on_play(state)
     assert player.favors == favors_before
+
+
+def test_emissary_grants_bonus_when_its_draw_shuffles():
+    state, player = _state()
+    # Emissary's own +3 Cards starts with fewer than 3 cards in deck and
+    # at least one card in discard, so it causes a shuffle.
+    player.deck = [get_card("Gold")]
+    player.discard = [get_card("Silver"), get_card("Estate")]
+    emissary = get_card("Emissary")
+    player.in_play.append(emissary)
+    favors_before = player.favors
+    actions_before = player.actions
+
+    emissary.on_play(state)
+
+    assert len(player.hand) == 3
+    assert player.favors == favors_before + 2
+    assert player.actions == actions_before + 1
 
 
 def test_specialist_gains_copy_or_replays():
@@ -669,7 +725,7 @@ def test_sentinel_no_trash_when_only_good_cards():
     assert len(player.deck) == 5
 
 
-def test_royal_galley_plays_action_twice():
+def test_royal_galley_sets_aside_action_for_next_turn_replay():
     state, player = _state()
     village = get_card("Village")
     player.hand = [village]
@@ -686,5 +742,14 @@ def test_royal_galley_plays_action_twice():
     player.in_play.append(galley)
     actions_before = player.actions
     galley.on_play(state)
-    # Village +2 Actions, played twice → +4 Actions
+    # Village is played once now, then set aside for next turn.
+    assert player.actions == actions_before + 2
+    assert village not in player.in_play
+    assert galley in player.duration
+
+    state.do_duration_phase()
+
     assert player.actions == actions_before + 4
+    assert village in player.in_play
+    assert galley in player.discard
+    assert galley not in player.duration

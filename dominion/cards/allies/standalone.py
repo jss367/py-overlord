@@ -16,11 +16,10 @@ from ..base_card import Card, CardCost, CardStats, CardType
 # ---------------------------------------------------------------------------
 
 class Bauble(Card):
-    """$2 Treasure-Liaison. Choose two different options: +1 Buy; +1 Coffer;
+    """$2 Treasure-Liaison. Choose two different options: +1 Buy; +$1;
     +1 Favor; or this turn when you gain a card, you may put it onto your
-    deck. Simulator heuristic picks +1 Buy plus one of +$1/+1 Card;
-    selecting +1 Coffer, +1 Favor, or the on-gain topdeck option is a
-    follow-up.
+    deck. Simulator default picks +1 Buy and +$1; AIs may implement
+    choose_bauble_options to pick any two printed options.
     """
 
     def __init__(self):
@@ -32,28 +31,42 @@ class Bauble(Card):
         )
 
     def on_play(self, game_state):
-        from dominion.ways.chameleon import (
-            chameleon_plus_cards,
-            chameleon_plus_coins,
-        )
+        from dominion.ways.chameleon import chameleon_plus_coins
 
         player = game_state.current_player
-        # Heuristic: pick +1 Buy as one of the two options, then either
-        # +1 Card or "+$1" (via chameleon helpers). Per the official text,
-        # Favor is one of four options — not granted unconditionally.
-        player.buys += 1
-        if len(player.hand) <= 2:
-            chameleon_plus_cards(game_state, player, 1)
+        options = ("buy", "coin", "favor", "topdeck")
+        chooser = getattr(player.ai, "choose_bauble_options", None)
+        if chooser is None:
+            chosen = ["buy", "coin"]
         else:
-            chameleon_plus_coins(player, 1)
+            chosen = chooser(game_state, player, list(options), 2)
+
+        selected: list[str] = []
+        for option in chosen or []:
+            if option in options and option not in selected:
+                selected.append(option)
+            if len(selected) == 2:
+                break
+        for option in ("buy", "coin"):
+            if len(selected) == 2:
+                break
+            if option not in selected:
+                selected.append(option)
+
+        for option in selected:
+            if option == "buy":
+                player.buys += 1
+            elif option == "coin":
+                chameleon_plus_coins(player, 1)
+            elif option == "favor":
+                player.favors += 1
+            elif option == "topdeck":
+                player.topdeck_gains = True
 
 
 class Sycophant(Card):
     """$2 Action-Liaison. +1 Action. Discard 3 cards. When you gain or
     trash this, +2 Favors.
-
-    NOTE: the printed +$3 payout for actually discarding cards is not yet
-    wired (current code grants +1 Action via stats and discards up to 3).
     """
 
     def __init__(self):
@@ -65,16 +78,35 @@ class Sycophant(Card):
         )
 
     def play_effect(self, game_state):
+        from dominion.ways.chameleon import chameleon_plus_coins
+
         player = game_state.current_player
         if not player.hand:
             return
+        discard_count = min(3, len(player.hand))
         picks = player.ai.choose_cards_to_discard(
-            game_state, player, list(player.hand), 3, reason="sycophant"
+            game_state, player, list(player.hand), discard_count, reason="sycophant"
         )
-        for card in picks:
+        selected: list[Card] = []
+        for card in picks or []:
+            if card in player.hand and card not in selected:
+                selected.append(card)
+            if len(selected) == discard_count:
+                break
+        for card in list(player.hand):
+            if len(selected) == discard_count:
+                break
+            if card not in selected:
+                selected.append(card)
+
+        discarded = 0
+        for card in selected:
             if card in player.hand:
                 player.hand.remove(card)
                 game_state.discard_card(player, card)
+                discarded += 1
+        if discarded:
+            chameleon_plus_coins(player, 3)
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
@@ -298,44 +330,54 @@ class Innkeeper(Card):
 
 
 class RoyalGalley(Card):
-    """$4 Action-Duration. You may play a non-Duration Action from hand
-    twice. If you do, set this and the Action aside. Both come back at
-    start of next turn.
-
-    Simplified: play the Action twice this turn. Skip the set-aside step
-    (the card just goes through normal cleanup).
+    """$4 Action-Duration. +1 Card. You may play a non-Duration Action
+    from hand. Set it aside; if you did, play it at the start of your next
+    turn.
     """
 
     def __init__(self):
         super().__init__(
             name="Royal Galley",
             cost=CardCost(coins=4),
-            stats=CardStats(),
+            stats=CardStats(cards=1),
             types=[CardType.ACTION, CardType.DURATION],
         )
+        self._set_aside: Optional[Card] = None
 
     def play_effect(self, game_state):
         player = game_state.current_player
+        self._set_aside = None
         actions = [
             c for c in player.hand
             if c.is_action and not c.is_duration
         ]
         if not actions:
-            self.duration_persistent = False
-            player.duration.append(self)
             return
         choice = player.ai.choose_action(game_state, actions + [None])
         if choice is None or choice not in player.hand:
-            self.duration_persistent = False
-            player.duration.append(self)
             return
         player.hand.remove(choice)
         player.in_play.append(choice)
-        for _ in range(2):
-            game_state.play_action_indirectly(player, choice)
-        # Stay in play through duration cleanup.
+        game_state.play_action_indirectly(player, choice)
+        if choice not in player.in_play:
+            return
+        player.in_play.remove(choice)
+        self._set_aside = choice
         self.duration_persistent = False
-        player.duration.append(self)
+        if self not in player.duration:
+            player.duration.append(self)
+
+    def on_duration(self, game_state):
+        player = game_state.current_player
+        if self in player.in_play:
+            player.in_play.remove(self)
+        if self._set_aside is None:
+            return
+        card = self._set_aside
+        self._set_aside = None
+        player.in_play.append(card)
+        game_state.play_action_indirectly(player, card)
+        self.duration_persistent = False
 
 
 class Town(Card):
@@ -413,12 +455,6 @@ class Emissary(Card):
     """$5 Action-Liaison. +3 Cards. If drawing those cards caused you to
     shuffle (i.e. you had at least one card in your discard pile when the
     +3 Cards resolved), +1 Action and +2 Favors.
-
-    NOTE: the prior implementation (+1 Card per unique Action revealed,
-    discard down to 4) was unrelated to the printed card text; this is a
-    best-effort fix that wires the actual +3 Cards body but does not yet
-    detect the shuffle correctly for the conditional bonus, so that
-    conditional bonus is skipped (i.e. never fires) until a follow-up.
     """
 
     def __init__(self):
@@ -430,11 +466,15 @@ class Emissary(Card):
         )
 
     def play_effect(self, game_state):
+        from dominion.ways.chameleon import chameleon_plus_cards
+
         player = game_state.current_player
-        game_state.draw_cards(player, 3)
-        # The conditional +1 Action / +2 Favors is intentionally deferred
-        # (see class docstring). The previous unconditional +1 Favor was
-        # not in the card text.
+        will_shuffle = len(player.deck) < 3 and bool(player.discard)
+        chameleon_plus_cards(game_state, player, 3)
+        if will_shuffle and not getattr(self, "_chameleon_active", False):
+            if not player.ignore_action_bonuses:
+                player.actions += 1
+            player.favors += 2
 
 
 class Galleria(Card):

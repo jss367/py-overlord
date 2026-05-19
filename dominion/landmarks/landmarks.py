@@ -285,8 +285,7 @@ class Labyrinth(Landmark):
 
 class MountainPass(Landmark):
     """When the first player gains a Province, all bid; high bidder gains 8 VP
-    and that much debt. Simplified: trigger fires once; the first Province
-    gainer gets +8 VP and +8 debt (deterministic — caster usually wins bids).
+    and that much debt.
     """
 
     def __init__(self):
@@ -305,11 +304,40 @@ class MountainPass(Landmark):
         if card.name != "Province":
             return
         self._fired = True
-        # Deterministic resolution: the gainer wins their own bid for the
-        # maximum 40-debt, but per official rules max bid is 40. Default
-        # behavior: gainer takes 8 VP and 8 debt (a sensible mid bid).
-        player.vp_tokens += 8
-        player.debt += 8
+
+        high_bid = -1
+        winner = None
+        start = (game_state.players.index(player) + 1) % len(game_state.players)
+        passes = 0
+        offset = 0
+        while passes < len(game_state.players):
+            minimum_bid = high_bid + 1
+            if minimum_bid > 40:
+                break
+            bidder = game_state.players[(start + offset) % len(game_state.players)]
+            offset += 1
+            bid = bidder.ai.choose_mountain_pass_bid(
+                game_state, bidder, player, minimum_bid, 40
+            )
+            if bid is None:
+                passes += 1
+                continue
+            try:
+                bid = int(bid)
+            except (TypeError, ValueError):
+                passes += 1
+                continue
+            if bid < minimum_bid:
+                passes += 1
+                continue
+            bid = min(40, bid)
+            high_bid = bid
+            winner = bidder
+            passes = 0
+
+        if winner is not None:
+            winner.vp_tokens += 8
+            winner.debt += high_bid
 
 
 class Museum(Landmark):

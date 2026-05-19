@@ -8,6 +8,20 @@ from dominion.game.player_state import PlayerState
 from tests.utils import ChooseFirstActionAI, DummyAI
 
 
+class CoastalHavenChooseAI(DummyAI):
+    def __init__(self, names):
+        self.names = names
+
+    def choose_cards_for_coastal_haven(self, state, player, choices, max_cards):
+        selected = []
+        for name in self.names:
+            for card in choices:
+                if card.name == name and card not in selected:
+                    selected.append(card)
+                    break
+        return selected[:max_cards]
+
+
 def _state(ally_name: str) -> tuple[GameState, PlayerState]:
     player = PlayerState(DummyAI())
     state = GameState(players=[player])
@@ -316,6 +330,22 @@ def test_coastal_haven_keeps_actions_for_next_turn():
     state.allies[0].on_turn_end(state, player)
     assert player.favors == 1  # One Action kept; one Favor spent
     assert village in player.foresight_set_aside
+
+
+def test_coastal_haven_can_keep_any_chosen_card():
+    state, player = _state("Coastal Haven")
+    player.ai = CoastalHavenChooseAI(["Estate", "Copper"])
+    player.favors = 2
+    estate = get_card("Estate")
+    copper = get_card("Copper")
+    village = get_card("Village")
+    player.hand = [estate, copper, village]
+
+    state.allies[0].on_turn_end(state, player)
+
+    assert player.favors == 0
+    assert player.foresight_set_aside == [estate, copper]
+    assert player.hand == [village]
 
 
 def test_forest_dwellers_reorders_top_3():

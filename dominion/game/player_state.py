@@ -71,6 +71,8 @@ class PlayerState:
     # Empires Enchantress: opponent's first Action play this turn is replaced.
     enchantress_active: bool = False
     enchantress_used_this_turn: bool = False
+    # Allies Warlord: while positive, cannot play a third same-name Action.
+    warlord_restriction_count: int = 0
     # Empires Donate: count of pending Donate events to resolve at end of buy.
     donate_pending: int = 0
     # Rising Sun: Daimyo replays the next non-Command Action card played
@@ -179,6 +181,10 @@ class PlayerState:
     # Adventures Mission: skip the buy phase on the extra turn.
     mission_used_this_turn: bool = False
     mission_no_buy_turn: bool = False
+    # Allies Voyage: on the granted extra turn, only 3 cards may be played
+    # from hand.
+    voyage_extra_turn_pending: bool = False
+    voyage_cards_from_hand_remaining: int | None = None
     # Adventures Pilgrimage.
     pilgrimage_used_this_turn: bool = False
     # Adventures Travelling Fair: while active, may topdeck gains this turn.
@@ -300,6 +306,7 @@ class PlayerState:
         # trigger), but reset here for game start.
         self.enchantress_active = False
         self.enchantress_used_this_turn = False
+        self.warlord_restriction_count = 0
         self.donate_pending = 0
         self.daimyo_pending = 0
         self.continue_used_this_turn = False
@@ -378,6 +385,8 @@ class PlayerState:
         self.hirelings_in_play = 0
         self.mission_used_this_turn = False
         self.mission_no_buy_turn = False
+        self.voyage_extra_turn_pending = False
+        self.voyage_cards_from_hand_remaining = None
         self.pilgrimage_used_this_turn = False
         self.travelling_fair_active = False
         self.save_set_aside = []

@@ -35,6 +35,23 @@ from dominion.landmarks import (
 from tests.utils import DummyAI
 
 
+class MountainPassBidAI(DummyAI):
+    def __init__(self, bid):
+        super().__init__()
+        self.bid = bid
+        self.calls = 0
+
+    def choose_mountain_pass_bid(
+        self, state, player, province_gainer, minimum_bid, maximum_bid
+    ):
+        self.calls += 1
+        if self.bid is None:
+            return None
+        if self.bid < minimum_bid:
+            return None
+        return min(self.bid, maximum_bid)
+
+
 def _make_game(landmarks=None, num_players=2):
     players = [PlayerState(DummyAI()) for _ in range(num_players)]
     state = GameState(players=players)
@@ -184,6 +201,38 @@ def test_mountain_pass_fires_on_first_province_gain():
     other = state.players[1]
     state.gain_card(other, get_card("Province"))
     assert other.vp_tokens == 0
+
+
+def test_mountain_pass_high_bidder_gets_vp_and_debt():
+    landmark = MountainPass()
+    state = _make_game([landmark], num_players=3)
+    gainer = state.players[0]
+    state.players[0].ai = MountainPassBidAI(7)
+    state.players[1].ai = MountainPassBidAI(10)
+    state.players[2].ai = MountainPassBidAI(None)
+
+    state.gain_card(gainer, get_card("Province"))
+
+    assert state.players[0].vp_tokens == 0
+    assert state.players[0].debt == 0
+    assert state.players[1].vp_tokens == 8
+    assert state.players[1].debt == 10
+    assert state.players[2].vp_tokens == 0
+
+
+def test_mountain_pass_continues_until_full_round_of_passes():
+    landmark = MountainPass()
+    state = _make_game([landmark], num_players=3)
+    state.players[0].ai = MountainPassBidAI(12)
+    state.players[1].ai = MountainPassBidAI(10)
+    state.players[2].ai = MountainPassBidAI(None)
+
+    state.gain_card(state.players[0], get_card("Province"))
+
+    assert state.players[0].vp_tokens == 8
+    assert state.players[0].debt == 12
+    assert state.players[1].vp_tokens == 0
+    assert state.players[1].debt == 0
 
 
 def test_museum_two_vp_per_distinct_card():

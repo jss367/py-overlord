@@ -55,6 +55,51 @@ class AI(ABC):
 
         return False
 
+    def choose_mountain_pass_bid(
+        self,
+        state: GameState,
+        player: PlayerState,
+        province_gainer: PlayerState,
+        minimum_bid: int,
+        maximum_bid: int,
+    ) -> Optional[int]:
+        """Choose a Mountain Pass bid, or ``None`` to pass.
+
+        Bids must be strictly higher than the current high bid and at most 40.
+        The default keeps previous simulator behavior: the Province gainer
+        bids 8 when available, while other players pass.
+        """
+
+        if player is province_gainer and minimum_bid <= 8 <= maximum_bid:
+            return 8
+        return None
+
+    def choose_cards_for_coastal_haven(
+        self, state: GameState, player: PlayerState, choices: list[Card], max_cards: int
+    ) -> list[Card]:
+        """Choose cards to keep with Coastal Haven.
+
+        Default: keep Actions first, then valuable Treasures, preserving the
+        simulator's previous heuristic while allowing any card to be selected
+        by custom AIs.
+        """
+
+        priority = sorted(
+            choices,
+            key=lambda c: (
+                -1 * c.is_action,
+                -1 * (c.is_treasure and c.cost.coins >= 3),
+                -c.cost.coins,
+            ),
+        )
+        kept = []
+        for card in priority:
+            if len(kept) >= max_cards:
+                break
+            if card.is_action or (card.is_treasure and card.cost.coins >= 3):
+                kept.append(card)
+        return kept
+
     def should_reveal_moat(self, state: GameState, player: PlayerState) -> bool:
         """Decide whether to reveal Moat in response to an attack."""
 
