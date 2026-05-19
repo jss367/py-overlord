@@ -2884,15 +2884,31 @@ class GameState:
         :meth:`gain_would_lose_game`'s cheap simulation does not model.
 
         The reversible simulation only adds the card to the deck; it does
-        not run the real ``on_buy``/``on_gain`` hooks. Every VP-token
-        source on the buy/gain path is one of exactly two things in this
-        engine: a Landmark overriding ``on_buy``/``on_gain`` (Battlefield,
-        Basilica, Colonnade, Aqueduct, Labyrinth, Mountain Pass, Defiled
-        Shrine), or Goons (``player.goons_played``). When either is
-        active the buyer's true end score can exceed the estimate, so the
-        guard must stand down rather than risk vetoing a winning buy.
+        not run the real ``on_buy``/``on_gain`` hooks. A full-tree audit
+        of every ``vp_tokens`` mutation shows the buy/gain path's
+        broad-category VP-token sources are:
+
+        * a Landmark overriding ``on_buy``/``on_gain`` (Battlefield,
+          Basilica, Colonnade, Aqueduct, Labyrinth, Mountain Pass,
+          Defiled Shrine);
+        * Goons (``player.goons_played``) — +VP per buy;
+        * Groundskeeper (``player.groundskeeper_bonus``) — +VP per
+          Victory card gained;
+        * Collection (``player.collection_played``) — +VP per Action
+          card gained.
+
+        When any is active the buyer's true end score can exceed the
+        estimate, so the guard stands down rather than risk vetoing a
+        winning buy. Card-specific on-gain VP that only fires when the
+        *bought card itself* is gained (Temple, Castles) is not covered
+        here; it remains under the documented v1 caveat in
+        :meth:`gain_would_lose_game` (a narrow, bounded edge).
         """
-        if getattr(player, "goons_played", 0):
+        if (
+            getattr(player, "goons_played", 0)
+            or getattr(player, "groundskeeper_bonus", 0)
+            or getattr(player, "collection_played", 0)
+        ):
             return True
         from dominion.landmarks.base_landmark import Landmark
 

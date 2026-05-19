@@ -165,3 +165,43 @@ def test_guard_skipped_when_vp_awarding_landmark_in_play():
 
     assert state.supply["Province"] == 0  # guard stands down on VP-hook boards
     assert "Province" in me.bought_this_turn
+
+
+def test_guard_skipped_when_groundskeeper_would_swing_the_score():
+    """Groundskeeper grants +VP per Victory card gained while in play
+    (game_state.py:3417). The cheap simulation does not model it, so the
+    guard must not veto the last Province on a card-VP tie/deficit."""
+    ai = PriorityBuyAI(["Province"])
+    state, me, _opp = make_state(ai, opponent_deck=[get_card("Province")])
+    state.supply = {"Province": 1, "Copper": 30}
+    me.coins = 8
+    me.buys = 1
+    me.groundskeeper_bonus = 2  # +2 VP on the Province gain → real win
+
+    state.handle_buy_phase()
+
+    assert state.supply["Province"] == 0  # winning buy not vetoed
+    assert "Province" in me.bought_this_turn
+
+
+def test_guard_skipped_when_collection_would_swing_the_score():
+    """Collection grants +VP per Action card gained while in play
+    (base_card.py:278). Buying the Action that empties the third pile
+    must not be vetoed when Collection would carry the buyer ahead."""
+    ai = PriorityBuyAI(["Market", "Copper"])
+    state, me, _opp = make_state(ai, opponent_deck=[get_card("Province")] * 3)
+    state.supply = {
+        "Village": 0,
+        "Smithy": 0,
+        "Market": 1,
+        "Copper": 30,
+        "Province": 8,
+    }
+    me.coins = 5
+    me.buys = 1
+    me.collection_played = 1  # +VP on the Market (Action) gain
+
+    state.handle_buy_phase()
+
+    assert state.supply["Market"] == 0  # winning pile-out not vetoed
+    assert "Market" in me.bought_this_turn
