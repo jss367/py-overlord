@@ -2879,6 +2879,32 @@ class GameState:
         strategy = getattr(ai, "strategy", None)
         return bool(getattr(strategy, "allow_losing_pileout", False))
 
+    def _has_unmodeled_vp_on_gain(self, player: PlayerState) -> bool:
+        """True when buying/gaining this turn can award the buyer VP that
+        :meth:`gain_would_lose_game`'s cheap simulation does not model.
+
+        The reversible simulation only adds the card to the deck; it does
+        not run the real ``on_buy``/``on_gain`` hooks. Every VP-token
+        source on the buy/gain path is one of exactly two things in this
+        engine: a Landmark overriding ``on_buy``/``on_gain`` (Battlefield,
+        Basilica, Colonnade, Aqueduct, Labyrinth, Mountain Pass, Defiled
+        Shrine), or Goons (``player.goons_played``). When either is
+        active the buyer's true end score can exceed the estimate, so the
+        guard must stand down rather than risk vetoing a winning buy.
+        """
+        if getattr(player, "goons_played", 0):
+            return True
+        from dominion.landmarks.base_landmark import Landmark
+
+        for landmark in self.landmarks or []:
+            cls = type(landmark)
+            if (
+                cls.on_buy is not Landmark.on_buy
+                or cls.on_gain is not Landmark.on_gain
+            ):
+                return True
+        return False
+
     def gain_would_lose_game(self, player: PlayerState, card: "Card") -> bool:
         """True if committing ``card`` to ``player`` would end the game
         with ``player`` not strictly ahead.
@@ -2895,9 +2921,14 @@ class GameState:
         v1 models only the bought card's own pile decrement; cards that
         gain extra cards on-buy may still end the game in ways this does
         not foresee. Being over-cautious (declining a buy) is the safe
-        direction.
+        direction — except where over-caution would block a *winning*
+        buy, which is why the guard stands down entirely on boards with
+        VP-awarding buy/gain hooks (see :meth:`_has_unmodeled_vp_on_gain`).
         """
         if self._losing_pileout_allowed(player):
+            return False
+
+        if self._has_unmodeled_vp_on_gain(player):
             return False
 
         pile = self._supply_pile_name(card)

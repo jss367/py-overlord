@@ -126,3 +126,42 @@ def test_guard_does_not_block_non_game_ending_buy_when_behind():
 
     assert state.supply["Province"] == 7
     assert "Province" in me.bought_this_turn
+
+
+def test_guard_skipped_when_goons_would_swing_the_score():
+    """Goons grants +VP per buy at buy time, which the cheap simulation
+    does not model. With Goons played, the buyer's real end score can be
+    higher than the card-only estimate, so the guard must not veto the
+    last Province on a card-VP tie/deficit."""
+    ai = PriorityBuyAI(["Province"])
+    # Opponent on 6; buyer reaches only 6 by card VP alone (a "losing"
+    # tie under the guard), but two Goons played add +2 → real win.
+    state, me, _opp = make_state(ai, opponent_deck=[get_card("Province")])
+    state.supply = {"Province": 1, "Copper": 30}
+    me.coins = 8
+    me.buys = 1
+    me.goons_played = 2
+
+    state.handle_buy_phase()
+
+    assert state.supply["Province"] == 0  # winning buy not vetoed
+    assert "Province" in me.bought_this_turn
+
+
+def test_guard_skipped_when_vp_awarding_landmark_in_play():
+    """Landmarks like Battlefield award VP via on_gain/on_buy during the
+    real buy path; the cheap simulation ignores them, so the guard must
+    not veto endgame buys on boards carrying such a landmark."""
+    from dominion.landmarks.landmarks import Battlefield
+
+    ai = PriorityBuyAI(["Province"])
+    state, me, _opp = make_state(ai, opponent_deck=[get_card("Province")] * 4)
+    state.landmarks = [Battlefield()]
+    state.supply = {"Province": 1, "Copper": 30}
+    me.coins = 8
+    me.buys = 1
+
+    state.handle_buy_phase()
+
+    assert state.supply["Province"] == 0  # guard stands down on VP-hook boards
+    assert "Province" in me.bought_this_turn
