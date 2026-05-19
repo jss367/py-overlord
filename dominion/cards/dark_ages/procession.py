@@ -26,8 +26,8 @@ class Procession(Card):
             return
 
         # Remove from hand and play it twice
-        player.hand.remove(choice)
-        player.in_play.append(choice)
+        if not game_state.move_card_from_hand_to_play(player, choice):
+            return
 
         game_state.play_action_indirectly(player, choice)
         game_state.play_action_indirectly(player, choice)

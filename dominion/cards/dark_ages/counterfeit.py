@@ -27,8 +27,8 @@ class Counterfeit(Card):
             return
 
         # Move into in-play and play twice
-        player.hand.remove(choice)
-        player.in_play.append(choice)
+        if not game_state.move_card_from_hand_to_play(player, choice):
+            return
         choice.on_play(game_state)
         game_state.fire_ally_play_hooks(player, choice)
         choice.on_play(game_state)

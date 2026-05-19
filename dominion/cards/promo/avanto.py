@@ -21,6 +21,6 @@ class Avanto(BottomSplitPileCard):
         if not player.ai.should_play_sauna_from_avanto(game_state, player):
             return
         target = saunas[0]
-        player.hand.remove(target)
-        player.in_play.append(target)
+        if not game_state.move_card_from_hand_to_play(player, target):
+            return
         target.on_play(game_state)

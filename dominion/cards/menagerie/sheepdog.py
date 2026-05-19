@@ -21,8 +21,8 @@ class Sheepdog(Card):
         if not player.ai.should_play_sheepdog(game_state, player, gained_card):
             return False
 
-        player.hand.remove(self)
-        player.in_play.append(self)
+        if not game_state.move_card_from_hand_to_play(player, self):
+            return False
         # Gains can happen on other players' turns (e.g. via an opponent's
         # Black Cat Curse), so resolve Sheepdog's effects from the perspective
         # of its owner rather than ``game_state.current_player``.

@@ -37,8 +37,8 @@ class Shop(Card):
         if choice is None or choice not in player.hand:
             return
 
-        player.hand.remove(choice)
-        player.in_play.append(choice)
+        if not game_state.move_card_from_hand_to_play(player, choice):
+            return
         # Route through the indirect-play helper so all the bookkeeping
         # (actions_this_turn, prophecy hooks, ally on-play hooks, tavern
         # "action_played" triggers, Citadel replay) fires correctly.

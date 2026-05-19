@@ -134,8 +134,8 @@ class Disciple(Card):
         )
         if chosen is None or chosen not in player.hand:
             return
-        player.hand.remove(chosen)
-        player.in_play.append(chosen)
+        if not game_state.move_card_from_hand_to_play(player, chosen):
+            return
         game_state.play_action_indirectly(player, chosen)
         game_state.play_action_indirectly(player, chosen)
         if game_state.supply.get(chosen.name, 0) > 0:

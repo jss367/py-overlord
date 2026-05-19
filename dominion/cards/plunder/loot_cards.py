@@ -285,8 +285,8 @@ class Staff(Loot):
         if actions:
             card = player.ai.choose_action(game_state, actions + [None])
             if card:
-                player.hand.remove(card)
-                player.in_play.append(card)
+                if not game_state.move_card_from_hand_to_play(player, card):
+                    return
                 card.on_play(game_state)
                 game_state.fire_ally_play_hooks(player, card)
 

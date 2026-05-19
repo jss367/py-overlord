@@ -29,8 +29,9 @@ class Mastermind(Card):
             return
 
         if choice in player.hand:
-            player.hand.remove(choice)
-            player.in_play.append(choice)
+            if not game_state.move_card_from_hand_to_play(player, choice):
+                self.duration_persistent = False
+                return
             for _ in range(3):
                 game_state.play_action_indirectly(player, choice)
 

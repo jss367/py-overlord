@@ -205,6 +205,16 @@ class GameState:
         if remaining is not None:
             player.voyage_cards_from_hand_remaining = max(0, remaining - 1)
 
+    def move_card_from_hand_to_play(self, player: PlayerState, card: Card) -> bool:
+        if card not in player.hand:
+            return False
+        if not self._voyage_can_play_from_hand(player):
+            return False
+        player.hand.remove(card)
+        self._record_voyage_play_from_hand(player)
+        player.in_play.append(card)
+        return True
+
     def play_action_indirectly(self, player: PlayerState, card: Card) -> None:
         """Resolve a single Action play that originates outside the main
         action-phase loop, applying the bookkeeping that loop would.
@@ -1635,11 +1645,10 @@ class GameState:
             player.actions_this_turn += 1
             # Shadow cards are played from the deck; everything else from hand.
             if choice in player.hand:
-                player.hand.remove(choice)
-                self._record_voyage_play_from_hand(player)
+                self.move_card_from_hand_to_play(player, choice)
             elif choice in player.deck:
                 player.deck.remove(choice)
-            player.in_play.append(choice)
+                player.in_play.append(choice)
             # Track coins before play for Harbor Village bonus
             coins_before_action = player.coins
             harbor_pending = getattr(player, "harbor_village_pending", 0)
@@ -1874,9 +1883,8 @@ class GameState:
         choice = player.ai.choose_action(self, candidates + [None])
         if choice is None:
             return
-        player.hand.remove(choice)
-        self._record_voyage_play_from_hand(player)
-        player.in_play.append(choice)
+        if not self.move_card_from_hand_to_play(player, choice):
+            return
         player.actions_this_turn += 1
         choice.on_play(self)
 
@@ -2009,9 +2017,8 @@ class GameState:
                 )
 
             coins_before = player.coins
-            player.hand.remove(choice)
-            self._record_voyage_play_from_hand(player)
-            player.in_play.append(choice)
+            if not self.move_card_from_hand_to_play(player, choice):
+                break
 
             blocked = (
                 getattr(player, "highwayman_attacks", 0) > 0
@@ -2265,9 +2272,8 @@ class GameState:
                 break
 
             self.log_callback(("action", player.ai.name, f"plays Night {choice}", {}))
-            player.hand.remove(choice)
-            self._record_voyage_play_from_hand(player)
-            player.in_play.append(choice)
+            if not self.move_card_from_hand_to_play(player, choice):
+                break
             choice.on_play(self)
 
             # Rising Sun prophecy hooks may also care about Night plays
@@ -3943,8 +3949,8 @@ class GameState:
                 continue
             if not player.ai.should_play_guard_dog(self, player, card):
                 continue
-            player.hand.remove(card)
-            player.in_play.append(card)
+            if not self.move_card_from_hand_to_play(player, card):
+                break
             card.on_play(self)
 
     def _trigger_haggler_bonus(self, player: PlayerState, bought_card: Card) -> None:

@@ -454,8 +454,8 @@ class Gondola(Card):
         choice = player.ai.choose_action(game_state, actions_in_hand + [None])
         if choice is None:
             return
-        player.hand.remove(choice)
-        player.in_play.append(choice)
+        if not game_state.move_card_from_hand_to_play(player, choice):
+            return
         game_state.play_action_indirectly(player, choice)
 
 
@@ -941,8 +941,8 @@ class KingsCache(Card):
             return
         treasures_in_hand.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
         choice = treasures_in_hand[0]
-        player.hand.remove(choice)
-        player.in_play.append(choice)
+        if not game_state.move_card_from_hand_to_play(player, choice):
+            return
         for _ in range(3):
             choice.on_play(game_state)
             game_state.fire_ally_play_hooks(player, choice)

@@ -32,8 +32,8 @@ class Imp(Card):
         choice = player.ai.choose_imp_action(game_state, player, choices)
         if choice is None or choice not in player.hand:
             return
-        player.hand.remove(choice)
-        player.in_play.append(choice)
+        if not game_state.move_card_from_hand_to_play(player, choice):
+            return
         game_state.log_callback(
             ("action", player.ai.name, f"Imp plays {choice}", {})
         )

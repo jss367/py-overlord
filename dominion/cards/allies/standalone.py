@@ -356,8 +356,8 @@ class RoyalGalley(Card):
         choice = player.ai.choose_action(game_state, actions + [None])
         if choice is None or choice not in player.hand:
             return
-        player.hand.remove(choice)
-        player.in_play.append(choice)
+        if not game_state.move_card_from_hand_to_play(player, choice):
+            return
         game_state.play_action_indirectly(player, choice)
         if choice not in player.in_play:
             return
@@ -595,8 +595,8 @@ class Specialist(Card):
         choice = player.ai.choose_action(game_state, actions + [None])
         if choice is None or choice not in player.hand:
             return
-        player.hand.remove(choice)
-        player.in_play.append(choice)
+        if not game_state.move_card_from_hand_to_play(player, choice):
+            return
         game_state.play_action_indirectly(player, choice)
 
         # Choose: play again, or gain a copy.

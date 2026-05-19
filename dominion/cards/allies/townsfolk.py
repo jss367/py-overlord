@@ -238,8 +238,8 @@ class Elder(_Townsfolk):
         choice = player.ai.choose_action(game_state, actions_in_hand + [None])
         if choice is None or choice not in player.hand:
             return
-        player.hand.remove(choice)
-        player.in_play.append(choice)
+        if not game_state.move_card_from_hand_to_play(player, choice):
+            return
         previous = getattr(game_state, _ELDER_EXTRA_CHOICE_ATTR, 0)
         setattr(game_state, _ELDER_EXTRA_CHOICE_ATTR, previous + 1)
         try:

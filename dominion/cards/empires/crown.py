@@ -26,8 +26,8 @@ class Crown(Card):
             if choice is None:
                 choice = targets[0]
 
-            player.hand.remove(choice)
-            player.in_play.append(choice)
+            if not game_state.move_card_from_hand_to_play(player, choice):
+                return
 
             for _ in range(2):
                 game_state.play_action_indirectly(player, choice)
@@ -42,8 +42,8 @@ class Crown(Card):
             if choice is None:
                 choice = treasures[0]
 
-            player.hand.remove(choice)
-            player.in_play.append(choice)
+            if not game_state.move_card_from_hand_to_play(player, choice):
+                return
 
             for _ in range(2):
                 choice.on_play(game_state)

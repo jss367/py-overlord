@@ -52,8 +52,8 @@ class FirstMate(Card):
                 if card_to_play is None:
                     break
 
-            player.hand.remove(card_to_play)
-            player.in_play.append(card_to_play)
+            if not game_state.move_card_from_hand_to_play(player, card_to_play):
+                break
             game_state.play_action_indirectly(player, card_to_play)
 
         self._draw_to_six(game_state, player)

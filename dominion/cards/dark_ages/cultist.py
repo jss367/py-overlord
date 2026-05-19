@@ -38,8 +38,8 @@ class Cultist(Card):
             (c for c in player.hand if c.name == "Cultist"), None
         )
         if next_cultist and player.ai.should_play_cultist_chain(game_state, player):
-            player.hand.remove(next_cultist)
-            player.in_play.append(next_cultist)
+            if not game_state.move_card_from_hand_to_play(player, next_cultist):
+                return
             game_state.play_action_indirectly(player, next_cultist)
 
     def on_trash(self, game_state, player):

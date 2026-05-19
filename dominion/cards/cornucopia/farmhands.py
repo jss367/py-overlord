@@ -63,8 +63,8 @@ class Farmhands(Card):
             if choice is None and treasures:
                 choice = player.ai.choose_treasure(game_state, treasures + [None])
             if choice is not None and choice in player.hand:
-                player.hand.remove(choice)
-                player.in_play.append(choice)
+                if not game_state.move_card_from_hand_to_play(player, choice):
+                    return
                 if choice.is_action:
                     game_state.play_action_indirectly(player, choice)
                 else:

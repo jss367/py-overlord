@@ -21,8 +21,8 @@ class Sauna(TopSplitPileCard):
         if not player.ai.should_play_avanto_from_sauna(game_state, player):
             return
         target = avantos[0]
-        player.hand.remove(target)
-        player.in_play.append(target)
+        if not game_state.move_card_from_hand_to_play(player, target):
+            return
         target.on_play(game_state)
 
     def on_gain(self, game_state, player):

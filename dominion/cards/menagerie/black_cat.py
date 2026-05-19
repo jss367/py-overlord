@@ -55,8 +55,8 @@ class BlackCat(Card):
             return
 
         # Move from hand to in_play and resolve as an out-of-turn play.
-        player.hand.remove(self)
-        player.in_play.append(self)
+        if not game_state.move_card_from_hand_to_play(player, self):
+            return
         # Mark for play_effect to know this is the off-turn case
         self._off_turn_play = True
 

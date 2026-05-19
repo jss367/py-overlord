@@ -121,6 +121,55 @@ def test_voyage_limit_counts_inspiring_extra_play():
     assert player.voyage_cards_from_hand_remaining == 0
 
 
+def test_voyage_limit_blocks_throne_room_play_from_hand():
+    state, player, _opponent = _make_state()
+    player.ai = PlayFirstAI()
+    throne_room = get_card("Throne Room")
+    smithy = get_card("Smithy")
+    player.hand = [smithy]
+    player.in_play = [throne_room]
+    player.voyage_cards_from_hand_remaining = 0
+
+    throne_room.on_play(state)
+
+    assert player.hand == [smithy]
+    assert player.in_play == [throne_room]
+
+
+def test_voyage_limit_counts_throne_room_play_from_hand_once():
+    state, player, _opponent = _make_state()
+    player.ai = PlayFirstAI()
+    throne_room = get_card("Throne Room")
+    smithy = get_card("Smithy")
+    player.hand = [smithy]
+    player.in_play = [throne_room]
+    player.deck = [get_card("Copper") for _ in range(6)]
+    player.voyage_cards_from_hand_remaining = 1
+
+    throne_room.on_play(state)
+
+    assert smithy not in player.hand
+    assert smithy in player.in_play
+    assert player.voyage_cards_from_hand_remaining == 0
+    assert len(player.hand) == 6
+
+
+def test_voyage_limit_blocks_crown_treasure_play_from_hand():
+    state, player, _opponent = _make_state()
+    player.ai = PlayFirstAI()
+    crown = get_card("Crown")
+    silver = get_card("Silver")
+    state.phase = "treasure"
+    player.hand = [silver]
+    player.in_play = [crown]
+    player.voyage_cards_from_hand_remaining = 0
+
+    crown.on_play(state)
+
+    assert player.hand == [silver]
+    assert player.in_play == [crown]
+
+
 def test_voyage_does_not_grant_third_consecutive_turn():
     state, player, _opponent = _make_state()
     voyage = get_card("Voyage")
