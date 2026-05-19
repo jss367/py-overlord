@@ -11,8 +11,10 @@ class CatapultAI(DummyAI):
         self.trash_name = trash_name
         self.discard_names = discard_names or []
         self.discard_calls = 0
+        self.trash_choices = None
 
     def choose_card_to_trash(self, state, choices):
+        self.trash_choices = choices
         if self.trash_name is None:
             return None
         return next((card for card in choices if card.name == self.trash_name), None)
@@ -51,13 +53,18 @@ def play_catapult(state):
 
 
 def test_catapult_ai_can_skip_trashing_and_attack():
-    state = make_state(CatapultAI(trash_name=None))
+    attacker_ai = CatapultAI(trash_name=None)
+    state = make_state(attacker_ai)
     attacker, defender = state.players
     attacker.hand = [get_card("Copper")]
     defender.hand = [get_card("Copper") for _ in range(5)]
 
     play_catapult(state)
 
+    assert [card.name if card is not None else None for card in attacker_ai.trash_choices] == [
+        "Copper",
+        None,
+    ]
     assert [card.name for card in attacker.hand] == ["Copper"]
     assert attacker.coins == 1
     assert state.trash == []

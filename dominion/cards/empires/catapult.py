@@ -20,7 +20,9 @@ class Catapult(TopSplitPileCard):
         if not player.hand:
             return
 
-        to_trash = player.ai.choose_card_to_trash(game_state, list(player.hand))
+        to_trash = player.ai.choose_card_to_trash(
+            game_state, list(player.hand) + [None]
+        )
         if to_trash is None:
             return
         if to_trash not in player.hand:
