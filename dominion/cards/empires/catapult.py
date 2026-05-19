@@ -20,13 +20,9 @@ class Catapult(TopSplitPileCard):
         if not player.hand:
             return
 
-        to_trash = player.ai.choose_card_to_trash(
-            game_state, list(player.hand) + [None]
-        )
-        if to_trash is None:
-            return
-        if to_trash not in player.hand:
-            return
+        to_trash = player.ai.choose_card_to_trash(game_state, list(player.hand))
+        if to_trash is None or to_trash not in player.hand:
+            to_trash = min(player.hand, key=lambda card: (card.cost.coins, card.name))
 
         get_cost = getattr(game_state, "get_card_cost", None)
         trashed_cost = (

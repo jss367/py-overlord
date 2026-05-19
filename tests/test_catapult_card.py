@@ -52,7 +52,7 @@ def play_catapult(state):
     Catapult().on_play(state)
 
 
-def test_catapult_ai_can_skip_trashing_and_attack():
+def test_catapult_trash_is_mandatory_when_ai_returns_none():
     attacker_ai = CatapultAI(trash_name=None)
     state = make_state(attacker_ai)
     attacker, defender = state.players
@@ -61,14 +61,12 @@ def test_catapult_ai_can_skip_trashing_and_attack():
 
     play_catapult(state)
 
-    assert [card.name if card is not None else None for card in attacker_ai.trash_choices] == [
-        "Copper",
-        None,
-    ]
-    assert [card.name for card in attacker.hand] == ["Copper"]
+    assert [card.name for card in attacker_ai.trash_choices] == ["Copper"]
+    assert attacker.hand == []
     assert attacker.coins == 1
-    assert state.trash == []
-    assert len(defender.hand) == 5
+    assert [card.name for card in state.trash] == ["Copper"]
+    assert len(defender.hand) == 3
+    assert len(defender.discard) == 2
     assert not any(card.name == "Curse" for card in defender.discard)
 
 
