@@ -22,10 +22,16 @@ class GeneticAI(AI):
         return self._name
 
     def choose_action(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
-        if not choices:
+        valid_choices = [c for c in choices if c is not None]
+        if not valid_choices:
             return None
 
-        return self.strategy.choose_action(state, state.current_player, choices)
+        strategy_choices = (
+            valid_choices
+            if getattr(state, "_choosing_main_action_phase", False)
+            else choices
+        )
+        return self.strategy.choose_action(state, state.current_player, strategy_choices)
 
     def choose_treasure(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         valid_choices = [c for c in choices if c is not None]

@@ -33,6 +33,18 @@ def test_choose_action_can_decline_when_none_offered_and_no_action_priority_matc
     assert choice is None
 
 
+def test_choose_action_keeps_unexpected_fallback_in_main_action_phase():
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [PriorityRule("Smithy")]
+    state, ai = _state_with_strategy(strategy)
+    state._choosing_main_action_phase = True
+
+    choice = ai.choose_action(state, [get_card("Village"), None])
+
+    assert choice is not None
+    assert choice.name == "Village"
+
+
 def test_priority_matches_still_win_when_none_is_present():
     strategy = EnhancedStrategy()
     strategy.action_priority = [PriorityRule("Village")]
