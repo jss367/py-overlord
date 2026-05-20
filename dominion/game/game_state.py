@@ -240,6 +240,25 @@ class GameState:
         player.in_play.append(card)
         return True
 
+    def play_action_from_hand_indirectly(
+        self, player: PlayerState, card: Card
+    ) -> bool:
+        if not self.move_card_from_hand_to_play(player, card):
+            return False
+        original_index = self.current_player_index
+        try:
+            self.current_player_index = self.players.index(player)
+        except ValueError:
+            return self.play_action_indirectly(
+                player, card, blocked_return_zone=player.hand
+            )
+        try:
+            return self.play_action_indirectly(
+                player, card, blocked_return_zone=player.hand
+            )
+        finally:
+            self.current_player_index = original_index
+
     def play_action_indirectly(
         self,
         player: PlayerState,
@@ -3401,8 +3420,9 @@ class GameState:
                 player.discard.remove(card)
                 player.in_play.append(card)
             elif card in player.hand:
-                if not self.move_card_from_hand_to_play(player, card):
+                if not self.play_action_from_hand_indirectly(player, card):
                     return
+                return
             else:
                 return
             card.on_play(self)
@@ -4220,9 +4240,8 @@ class GameState:
                 continue
             if not player.ai.should_play_guard_dog(self, player, card):
                 continue
-            if not self.move_card_from_hand_to_play(player, card):
+            if not self.play_action_from_hand_indirectly(player, card):
                 break
-            card.on_play(self)
 
     def _trigger_haggler_bonus(self, player: PlayerState, bought_card: Card) -> None:
         """Resolve Haggler gains after ``bought_card`` is purchased."""

@@ -54,18 +54,9 @@ class BlackCat(Card):
         if not player.ai.should_react_with_black_cat(game_state, player, gainer, gained_card):
             return
 
-        # Move from hand to in_play and resolve as an out-of-turn play.
-        if not game_state.move_card_from_hand_to_play(player, self):
-            return
         # Mark for play_effect to know this is the off-turn case
         self._off_turn_play = True
-
-        # Temporarily switch current player so attack_player resolves vs. others
-        original_index = game_state.current_player_index
         try:
-            game_state.current_player_index = game_state.players.index(player)
-            # Owner draws +2 from base on_play
-            self.on_play(game_state)
-            game_state.fire_ally_play_hooks(player, self)
+            game_state.play_action_from_hand_indirectly(player, self)
         finally:
-            game_state.current_player_index = original_index
+            self._off_turn_play = False

@@ -338,6 +338,27 @@ def test_caravan_guard_reaction_plays_self():
     assert cg in p2.duration
 
 
+def test_caravan_guard_reaction_respects_warlord_hand_limit():
+    state = _state_with_card("Caravan Guard", n_players=2)
+    p1, p2 = state.players
+    cg = get_card("Caravan Guard")
+    p2.warlord_restriction_count = 1
+    p2.in_play = [get_card("Caravan Guard"), get_card("Caravan Guard")]
+    p2.hand = [cg]
+    p2.deck = [get_card("Copper")]
+    p2.hit = False
+
+    def mark_attack(target):
+        target.hit = True
+
+    state.attack_player(p2, mark_attack, attacker=p1, attack_card=get_card("Witch"))
+
+    assert p2.hit is True
+    assert cg in p2.hand
+    assert cg not in p2.in_play
+    assert cg not in p2.duration
+
+
 def test_dungeon_draws_and_discards_2():
     state = _state_with_card("Dungeon")
     player = state.players[0]
@@ -610,4 +631,3 @@ def test_raze_self_trashes_and_keeps_card():
     raze.play_effect(state)
     # Raze trashed itself; cost 2, so revealed top 2.
     assert raze in state.trash
-
