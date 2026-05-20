@@ -50,9 +50,11 @@ class Infirmary(Card):
         # player no longer owns a freshly-gained Infirmary to play.
         if target.name != self.name:
             return
+        return_zone = None
         for zone in (player.discard, player.deck, player.hand):
             if target in zone:
                 zone.remove(target)
+                return_zone = zone
                 break
         else:
             # Card was redirected to trash/exile/elsewhere. Don't try to
@@ -62,4 +64,6 @@ class Infirmary(Card):
             return
         player.in_play.append(target)
         for _ in range(amount):
-            game_state.play_action_indirectly(player, target)
+            game_state.play_action_indirectly(
+                player, target, blocked_return_zone=return_zone
+            )

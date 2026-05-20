@@ -57,6 +57,29 @@ def test_guard_dog_reaction_plays_when_allowed():
     assert guard_dog in defender.in_play
 
 
+def test_guard_dog_reaction_respects_warlord_hand_limit():
+    attacker = PlayerState(DummyAI())
+    defender = PlayerState(DummyAI())
+    state = GameState(players=[attacker, defender])
+
+    guard_dog = get_card("Guard Dog")
+    defender.warlord_restriction_count = 1
+    defender.in_play = [get_card("Guard Dog"), get_card("Guard Dog")]
+    defender.hand = [guard_dog]
+    defender.deck = [get_card("Copper"), get_card("Estate")]
+    defender.hit = False
+
+    def mark_attack(target):
+        target.hit = True
+
+    state.attack_player(defender, mark_attack)
+
+    assert defender.hit is True
+    assert guard_dog in defender.hand
+    assert guard_dog not in defender.in_play
+    assert len(defender.hand) == 1
+
+
 def test_weaver_discard_reaction_respects_ai_choice():
     player = PlayerState(DeclineWeaverAI())
     state = GameState(players=[player])
@@ -86,3 +109,55 @@ def test_weaver_discard_reaction_plays_when_allowed():
     assert weaver in player.in_play
     silver_count = sum(1 for card in player.discard if card.name == "Silver")
     assert silver_count == 2
+
+
+def test_weaver_hand_reaction_respects_voyage_limit():
+    player = PlayerState(DummyAI())
+    state = GameState(players=[player])
+    state.supply["Silver"] = 10
+
+    weaver = get_card("Weaver")
+    player.hand = [weaver]
+    player.voyage_cards_from_hand_remaining = 0
+
+    state._handle_discard_reactions(player, weaver)
+
+    assert weaver in player.hand
+    assert weaver not in player.in_play
+    assert player.voyage_cards_from_hand_remaining == 0
+    assert not player.discard
+
+
+def test_weaver_hand_reaction_counts_voyage_play_from_hand():
+    player = PlayerState(DummyAI())
+    state = GameState(players=[player])
+    state.supply["Silver"] = 10
+
+    weaver = get_card("Weaver")
+    player.hand = [weaver]
+    player.voyage_cards_from_hand_remaining = 1
+
+    state._handle_discard_reactions(player, weaver)
+
+    assert weaver not in player.hand
+    assert weaver in player.in_play
+    assert player.voyage_cards_from_hand_remaining == 0
+    silver_count = sum(1 for card in player.discard if card.name == "Silver")
+    assert silver_count == 2
+
+
+def test_weaver_hand_reaction_respects_warlord_limit():
+    player = PlayerState(DummyAI())
+    state = GameState(players=[player])
+    state.supply["Silver"] = 10
+
+    weaver = get_card("Weaver")
+    player.warlord_restriction_count = 1
+    player.in_play = [get_card("Weaver"), get_card("Weaver")]
+    player.hand = [weaver]
+
+    state._handle_discard_reactions(player, weaver)
+
+    assert weaver in player.hand
+    assert weaver not in player.in_play
+    assert not player.discard

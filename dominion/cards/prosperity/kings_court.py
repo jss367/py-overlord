@@ -29,8 +29,11 @@ class KingsCourt(Card):
 
         # Move the chosen action from hand to play before resolving so the
         # card is "in play" while its effects fire (mirrors Throne Room).
-        player.hand.remove(choice)
-        player.in_play.append(choice)
+        if not game_state.move_card_from_hand_to_play(player, choice):
+            return
 
         for _ in range(3):
-            game_state.play_action_indirectly(player, choice)
+            if not game_state.play_action_indirectly(
+                player, choice, blocked_return_zone=player.hand
+            ):
+                break

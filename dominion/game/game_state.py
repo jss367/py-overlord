@@ -198,7 +198,102 @@ class GameState:
     def current_player(self) -> PlayerState:
         return self.players[self.current_player_index]
 
-    def play_action_indirectly(self, player: PlayerState, card: Card) -> None:
+    def _warlord_action_name(self, player: PlayerState, card: Card) -> str | None:
+        if card.is_action:
+            return card.name
+        if (
+            card.is_treasure
+            and self.prophecy is not None
+            and self.prophecy.is_active
+            and self.prophecy.name == "Enlightenment"
+        ):
+            return card.name
+        inherited = getattr(player, "inherited_action_name", None)
+        if card.name == "Estate" and inherited:
+            return inherited
+        return None
+
+    def _cards_in_play_named(self, player: PlayerState, name: str) -> int:
+        seen: set[int] = set()
+        count = 0
+        for zone in (player.in_play, player.duration, player.multiplied_durations):
+            for card in zone:
+                marker = id(card)
+                if marker in seen:
+                    continue
+                seen.add(marker)
+                if card.name == name or (
+                    card.name == "Estate"
+                    and getattr(player, "inherited_action_name", None) == name
+                ):
+                    count += 1
+        return count
+
+    def _warlord_blocks_action_play(
+        self,
+        player: PlayerState,
+        card: Card,
+        *,
+        card_already_in_play: bool = False,
+    ) -> bool:
+        action_name = self._warlord_action_name(player, card)
+        if action_name is None:
+            return False
+        if getattr(player, "warlord_restriction_count", 0) <= 0:
+            return False
+        limit = 3 if card_already_in_play else 2
+        return self._cards_in_play_named(player, action_name) >= limit
+
+    def _voyage_can_play_from_hand(self, player: PlayerState) -> bool:
+        remaining = getattr(player, "voyage_cards_from_hand_remaining", None)
+        return remaining is None or remaining > 0
+
+    def _record_voyage_play_from_hand(self, player: PlayerState) -> None:
+        remaining = getattr(player, "voyage_cards_from_hand_remaining", None)
+        if remaining is not None:
+            player.voyage_cards_from_hand_remaining = max(0, remaining - 1)
+
+    def _refund_voyage_play_from_hand(self, player: PlayerState) -> None:
+        remaining = getattr(player, "voyage_cards_from_hand_remaining", None)
+        if remaining is not None:
+            player.voyage_cards_from_hand_remaining = min(3, remaining + 1)
+
+    def move_card_from_hand_to_play(self, player: PlayerState, card: Card) -> bool:
+        if card not in player.hand:
+            return False
+        if not self._voyage_can_play_from_hand(player):
+            return False
+        player.hand.remove(card)
+        self._record_voyage_play_from_hand(player)
+        player.in_play.append(card)
+        return True
+
+    def play_action_from_hand_indirectly(
+        self, player: PlayerState, card: Card
+    ) -> bool:
+        if not self.move_card_from_hand_to_play(player, card):
+            return False
+        original_index = self.current_player_index
+        try:
+            self.current_player_index = self.players.index(player)
+        except ValueError:
+            return self.play_action_indirectly(
+                player, card, blocked_return_zone=player.hand
+            )
+        try:
+            return self.play_action_indirectly(
+                player, card, blocked_return_zone=player.hand
+            )
+        finally:
+            self.current_player_index = original_index
+
+    def play_action_indirectly(
+        self,
+        player: PlayerState,
+        card: Card,
+        *,
+        blocked_return_zone: list[Card] | None = None,
+    ) -> bool:
         """Resolve a single Action play that originates outside the main
         action-phase loop, applying the bookkeeping that loop would.
 
@@ -218,8 +313,32 @@ class GameState:
 
         The caller is still responsible for moving the card into ``in_play``
         beforehand and for any helper-specific bookkeeping (e.g. Procession
-        trashes the multiplied card after both replays).
+        trashes the multiplied card after both replays). If Warlord blocks a
+        freshly moved card, ``blocked_return_zone`` lets the caller preserve
+        that card's source-zone semantics.
         """
+        card_was_in_play = card in player.in_play
+        check_warlord = blocked_return_zone is player.hand
+        if check_warlord and self._warlord_blocks_action_play(
+            player,
+            card,
+            card_already_in_play=card_was_in_play,
+        ):
+            if blocked_return_zone is not None and card in player.in_play:
+                player.in_play.remove(card)
+            if blocked_return_zone is not None and card not in blocked_return_zone:
+                blocked_return_zone.append(card)
+            if blocked_return_zone is player.hand:
+                self._refund_voyage_play_from_hand(player)
+            self.log_callback(
+                (
+                    "action",
+                    player.ai.name,
+                    f"cannot play {card} due to Warlord",
+                    {"card": card.name},
+                )
+            )
+            return False
         player.actions_this_turn += 1
         player.actions_played += 1
         card.on_play(self)
@@ -232,6 +351,7 @@ class GameState:
         # Captain, Ghost, Riverboat, Royal Carriage, Throne Room et al
         # — funnels through the same Citadel trigger.
         self._maybe_citadel_replay(player, card)
+        return True
 
     def fire_prophecy_action_hooks(self, player: PlayerState, card: Card) -> None:
         """Fire the active Prophecy's after-Action-play hooks for ``card``.
@@ -1191,7 +1311,18 @@ class GameState:
         # Mission.on_buy) ensures the player can finish buying on the turn
         # they bought Mission. The flag is cleared at the end of this extra
         # turn during cleanup (see ``handle_cleanup_phase``).
-        if getattr(self.current_player, "mission_extra_turn_pending", False):
+        mission_pending = getattr(
+            self.current_player, "mission_extra_turn_pending", False
+        )
+        voyage_pending = getattr(self.current_player, "voyage_extra_turn_pending", False)
+        if getattr(self.current_player, "outpost_taken_last_turn", False):
+            self.current_player.mission_extra_turn_pending = False
+            self.current_player.voyage_extra_turn_pending = False
+        elif voyage_pending:
+            self.current_player.voyage_cards_from_hand_remaining = 3
+            self.current_player.voyage_extra_turn_pending = False
+            self.current_player.mission_extra_turn_pending = False
+        elif mission_pending:
             self.current_player.mission_no_buy_turn = True
             self.current_player.mission_extra_turn_pending = False
         self.current_player.mission_used_this_turn = False
@@ -1300,7 +1431,9 @@ class GameState:
         for card in to_play:
             player.in_play.append(card)
             if card.is_action:
-                self.play_action_indirectly(player, card)
+                self.play_action_indirectly(
+                    player, card, blocked_return_zone=player.discard
+                )
             else:
                 card.on_play(self)
                 self.fire_ally_play_hooks(player, card)
@@ -1529,26 +1662,36 @@ class GameState:
                     f"turn={self.turn_number}, hand_size={len(player.hand)}, "
                     f"actions_left={player.actions})"
                 )
-            action_cards = [card for card in player.hand if card.is_action]
+            action_cards = [
+                card for card in player.hand
+                if card.is_action and self._voyage_can_play_from_hand(player)
+            ]
             # Adventures Inheritance: each Estate in hand can be played as the
             # inherited Action card.
             inherited = getattr(player, "inherited_action_name", None)
             if inherited:
                 action_cards += [
                     card for card in player.hand
-                    if card.name == "Estate"
+                    if card.name == "Estate" and self._voyage_can_play_from_hand(player)
                 ]
             # Rising Sun: Enlightenment turns Treasures into Actions for all
             # purposes — they can be played from your hand in the Action phase.
             if enlightened:
                 action_cards += [
                     card for card in player.hand
-                    if card.is_treasure and not card.is_action
+                    if (
+                        card.is_treasure
+                        and not card.is_action
+                        and self._voyage_can_play_from_hand(player)
+                    )
                 ]
             # Rising Sun: Shadow cards may be played from the deck whenever
             # you could normally play an Action.
             shadow_in_deck = [card for card in player.deck if card.is_shadow]
-            playable = action_cards + shadow_in_deck
+            playable = [
+                card for card in action_cards
+                if not self._warlord_blocks_action_play(player, card)
+            ] + shadow_in_deck
 
             if not playable:
                 break
@@ -1605,10 +1748,10 @@ class GameState:
             player.actions_this_turn += 1
             # Shadow cards are played from the deck; everything else from hand.
             if choice in player.hand:
-                player.hand.remove(choice)
+                self.move_card_from_hand_to_play(player, choice)
             elif choice in player.deck:
                 player.deck.remove(choice)
-            player.in_play.append(choice)
+                player.in_play.append(choice)
             # Track coins before play for Harbor Village bonus
             coins_before_action = player.coins
             harbor_pending = getattr(player, "harbor_village_pending", 0)
@@ -1831,15 +1974,20 @@ class GameState:
         in_play_names = {c.name for c in player.in_play}
         candidates = [
             c for c in player.hand
-            if c.is_action and c.name not in in_play_names
+            if (
+                c.is_action
+                and c.name not in in_play_names
+                and not self._warlord_blocks_action_play(player, c)
+                and self._voyage_can_play_from_hand(player)
+            )
         ]
         if not candidates:
             return
         choice = player.ai.choose_action(self, candidates + [None])
         if choice is None:
             return
-        player.hand.remove(choice)
-        player.in_play.append(choice)
+        if not self.move_card_from_hand_to_play(player, choice):
+            return
         player.actions_this_turn += 1
         choice.on_play(self)
 
@@ -1952,7 +2100,10 @@ class GameState:
                 )
             # ``is_treasure`` respects game-level type modifiers — notably
             # Charlatan, which makes Curses Treasures for the whole game.
-            treasures = [card for card in player.hand if self.is_treasure(card)]
+            if self._voyage_can_play_from_hand(player):
+                treasures = [card for card in player.hand if self.is_treasure(card)]
+            else:
+                treasures = []
             if capitalism:
                 treasures += [
                     card
@@ -1960,6 +2111,7 @@ class GameState:
                     if card.is_action
                     and not self.is_treasure(card)
                     and card.stats.coins > 0
+                    and self._voyage_can_play_from_hand(player)
                 ]
             if not treasures:
                 break
@@ -1975,8 +2127,8 @@ class GameState:
                 )
 
             coins_before = player.coins
-            player.hand.remove(choice)
-            player.in_play.append(choice)
+            if not self.move_card_from_hand_to_play(player, choice):
+                break
 
             blocked = (
                 getattr(player, "highwayman_attacks", 0) > 0
@@ -2219,7 +2371,10 @@ class GameState:
                     f"night phase exceeded {PHASE_STEP_LIMIT} plays in a single turn "
                     f"(player={getattr(player.ai, 'name', '?')}, turn={self.turn_number})"
                 )
-            night_cards = [card for card in player.hand if card.is_night]
+            if self._voyage_can_play_from_hand(player):
+                night_cards = [card for card in player.hand if card.is_night]
+            else:
+                night_cards = []
             if not night_cards:
                 break
 
@@ -2228,8 +2383,8 @@ class GameState:
                 break
 
             self.log_callback(("action", player.ai.name, f"plays Night {choice}", {}))
-            player.hand.remove(choice)
-            player.in_play.append(choice)
+            if not self.move_card_from_hand_to_play(player, choice):
+                break
             choice.on_play(self)
 
             # Rising Sun prophecy hooks may also care about Night plays
@@ -2811,6 +2966,8 @@ class GameState:
         player.potions = 0
         # Adventures: clear Mission no-buy flag at end of the bonus turn.
         player.mission_no_buy_turn = False
+        # Allies Voyage: clear the extra-turn card-play limit.
+        player.voyage_cards_from_hand_remaining = None
         # Adventures Haunted Woods / Swamp Hag: the attack lingers "until
         # your next turn" — i.e. through the victim's whole next turn. We
         # clear at end-of-turn cleanup so it expires AFTER the victim
@@ -3228,11 +3385,13 @@ class GameState:
                 return
             if card in player.discard:
                 player.discard.remove(card)
+                player.in_play.append(card)
             elif card in player.hand:
-                player.hand.remove(card)
+                if not self.play_action_from_hand_indirectly(player, card):
+                    return
+                return
             else:
                 return
-            player.in_play.append(card)
             card.on_play(self)
         elif hasattr(card, "react_to_discard"):
             card.react_to_discard(self, player)
@@ -4048,9 +4207,8 @@ class GameState:
                 continue
             if not player.ai.should_play_guard_dog(self, player, card):
                 continue
-            player.hand.remove(card)
-            player.in_play.append(card)
-            card.on_play(self)
+            if not self.play_action_from_hand_indirectly(player, card):
+                break
 
     def _trigger_haggler_bonus(self, player: PlayerState, bought_card: Card) -> None:
         """Resolve Haggler gains after ``bought_card`` is purchased."""

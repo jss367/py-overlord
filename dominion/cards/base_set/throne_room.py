@@ -23,8 +23,11 @@ class ThroneRoom(Card):
         if choice is None or choice not in actions_in_hand:
             choice = actions_in_hand[0]
 
-        player.hand.remove(choice)
-        player.in_play.append(choice)
+        if not game_state.move_card_from_hand_to_play(player, choice):
+            return
 
         for _ in range(2):
-            game_state.play_action_indirectly(player, choice)
+            if not game_state.play_action_indirectly(
+                player, choice, blocked_return_zone=player.hand
+            ):
+                break

@@ -23,8 +23,8 @@ class Storyteller(Card):
         for card in picks[:3]:
             if card not in player.hand:
                 continue
-            player.hand.remove(card)
-            player.in_play.append(card)
+            if not game_state.move_card_from_hand_to_play(player, card):
+                break
             card.on_play(game_state)
         # Pay all your $.
         coins_to_spend = player.coins

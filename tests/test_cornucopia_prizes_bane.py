@@ -82,6 +82,23 @@ class NoRevealBaneAI(DummyAI):
         return False
 
 
+class HamletDiscardAI(DummyAI):
+    def __init__(self, picks_by_reason):
+        super().__init__()
+        self.picks_by_reason = picks_by_reason
+        self.seen_choices_by_reason = {}
+
+    def choose_cards_to_discard(self, state, player, choices, count, *, reason=None):
+        self.seen_choices_by_reason[reason] = [card.name for card in choices]
+        picked_name = self.picks_by_reason.get(reason)
+        if picked_name is None:
+            return []
+        for card in choices:
+            if card.name == picked_name:
+                return [card]
+        return []
+
+
 def _setup(ai, kingdom_cards):
     state = GameState(players=[])
     state.initialize_game([ai], kingdom_cards)
@@ -108,6 +125,49 @@ def _setup_two(ai_a, ai_b, kingdom_cards):
         p.buys = 1
         p.coins = 0
     return state, state.players[0], state.players[1]
+
+
+# ---------------------------------------------------------------------------
+# Hamlet
+# ---------------------------------------------------------------------------
+
+
+def test_hamlet_discards_separate_cards_for_action_and_buy():
+    ai = HamletDiscardAI({"hamlet_action": "Copper", "hamlet_buy": "Estate"})
+    state, player = _setup(ai, [get_card("Hamlet")])
+    hamlet = get_card("Hamlet")
+    player.hand = [hamlet, get_card("Copper"), get_card("Estate")]
+    player.deck = [get_card("Silver")]
+    player.actions = 0
+    player.buys = 1
+
+    player.hand.remove(hamlet)
+    player.in_play.append(hamlet)
+    hamlet.on_play(state)
+
+    assert player.actions == 2
+    assert player.buys == 2
+    assert sorted(card.name for card in player.discard) == ["Copper", "Estate"]
+    assert [card.name for card in player.hand] == ["Silver"]
+    assert "Copper" not in ai.seen_choices_by_reason["hamlet_buy"]
+
+
+def test_hamlet_optional_discards_are_independent():
+    ai = HamletDiscardAI({"hamlet_action": None, "hamlet_buy": "Estate"})
+    state, player = _setup(ai, [get_card("Hamlet")])
+    hamlet = get_card("Hamlet")
+    player.hand = [hamlet, get_card("Estate")]
+    player.actions = 0
+    player.buys = 1
+
+    player.hand.remove(hamlet)
+    player.in_play.append(hamlet)
+    hamlet.on_play(state)
+
+    assert player.actions == 1
+    assert player.buys == 2
+    assert [card.name for card in player.discard] == ["Estate"]
+    assert player.hand == []
 
 
 # ---------------------------------------------------------------------------

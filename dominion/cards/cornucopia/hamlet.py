@@ -2,7 +2,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Hamlet(Card):
-    """Simplified implementation of the Hamlet card."""
+    """Hamlet: +1 Card, +1 Action, with optional discard bonuses."""
 
     def __init__(self):
         super().__init__(

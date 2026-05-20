@@ -86,11 +86,11 @@ def test_marauder_attack_gives_ruin_to_opponent():
     attacker, victim = state.players
     marauder = get_card("Marauder")
     attacker.in_play.append(marauder)
-    marauder.play_effect(state)
+    marauder.on_play(state)
 
-    # Spoils to attacker
+    assert marauder.is_looter
+    assert attacker.coins == 2
     assert any(c.name == "Spoils" for c in attacker.discard)
-    # Ruins (any variant) to victim
     assert any(c.is_ruins for c in victim.discard)
 
 

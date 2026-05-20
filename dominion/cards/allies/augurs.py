@@ -106,10 +106,7 @@ class Acolyte(_Augurs):
 
 class Sorceress(_Augurs):
     """+1 Action. Name a card. Reveal top of deck.
-    If matches, +2 Cards. Otherwise, gain a Curse.
-
-    Simplified: skip the name-and-reveal subgame and treat Sorceress as
-    a self-curser (+1 Action, gain a Curse) to model the average outcome.
+    Put it into your hand; if it matches, each other player gains a Curse.
     """
 
     upper_partners: ClassVar[tuple[str, ...]] = ("Herb Gatherer", "Acolyte")
@@ -119,25 +116,35 @@ class Sorceress(_Augurs):
             name="Sorceress",
             cost=CardCost(coins=5),
             stats=CardStats(actions=1),
-            types=[CardType.ACTION],
+            types=[CardType.ACTION, CardType.ATTACK],
         )
 
     def play_effect(self, game_state):
-        from ..registry import get_card
-
         player = game_state.current_player
-        # Heuristic: if hand contains an obvious match (Copper) treat as
-        # match (+2 cards). Otherwise gain a Curse — reflects the average
-        # case where the named card doesn't match the random top of deck.
-        common_in_hand = {c.name for c in player.hand}
-        if "Copper" in common_in_hand and player.deck:
-            top = player.deck[-1]
-            if top.name == "Copper":
-                game_state.draw_cards(player, 2)
-                return
-        if game_state.supply.get("Curse", 0) > 0:
-            game_state.supply["Curse"] -= 1
-            game_state.gain_card(player, get_card("Curse"))
+        named = player.ai.name_card_for_wishing_well(game_state, player)
+
+        if not player.deck and player.discard:
+            player.shuffle_discard_into_deck()
+        if not player.deck:
+            return
+
+        revealed = player.deck.pop()
+        player.hand.append(revealed)
+        if not named or revealed.name != named:
+            return
+
+        def curse_target(target):
+            game_state.give_curse_to_player(target)
+
+        for opponent in game_state.players:
+            if opponent is player:
+                continue
+            game_state.attack_player(
+                opponent,
+                curse_target,
+                attacker=player,
+                attack_card=self,
+            )
 
 
 class Sibyl(_Augurs):

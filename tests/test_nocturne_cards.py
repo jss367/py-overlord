@@ -138,6 +138,25 @@ def test_conclave_plays_action_not_already_in_play():
     assert player.actions >= 1
 
 
+def test_conclave_skips_plus_action_when_warlord_blocks_extra_play():
+    state, player = _setup()
+    player.warlord_restriction_count = 1
+    conclave = get_card("Conclave")
+    blocked_village = get_card("Village")
+    player.in_play = [conclave]
+    player.duration = [get_card("Village"), get_card("Village")]
+    player.hand = [blocked_village]
+    player.actions = 0
+    player.deck = [get_card("Copper")]
+
+    conclave.play_effect(state)
+
+    assert blocked_village in player.hand
+    assert blocked_village not in player.in_play
+    assert player.actions == 0
+    assert len(player.deck) == 1
+
+
 def test_cursed_village_draws_to_six_and_hexes():
     state, player = _setup()
     cv = get_card("Cursed Village")

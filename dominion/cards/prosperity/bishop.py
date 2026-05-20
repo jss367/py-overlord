@@ -2,7 +2,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Bishop(Card):
-    """Simplified Bishop card."""
+    """Bishop card."""
 
     def __init__(self):
         super().__init__(
@@ -19,13 +19,16 @@ class Bishop(Card):
         player.vp_tokens += 1
 
         if player.hand:
-            trash_choice = player.ai.choose_card_to_trash(
-                game_state, list(player.hand) + [None]
-            )
-            if trash_choice:
-                player.hand.remove(trash_choice)
-                game_state.trash_card(player, trash_choice)
-                player.vp_tokens += trash_choice.cost.coins // 2
+            trash_choice = player.ai.choose_card_to_trash(game_state, list(player.hand))
+            if trash_choice not in player.hand:
+                trash_choice = min(
+                    player.hand,
+                    key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
+                )
+            trashed_cost = game_state.get_card_cost(player, trash_choice)
+            player.hand.remove(trash_choice)
+            game_state.trash_card(player, trash_choice)
+            player.vp_tokens += trashed_cost // 2
 
         # Each other player may optionally trash a card from their hand
         for other in game_state.players:

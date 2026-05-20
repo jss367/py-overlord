@@ -3,7 +3,7 @@ from ..split_pile import TopSplitPileCard
 
 
 class Catapult(TopSplitPileCard):
-    """Catapult: trash a card for coins and conditional attacks."""
+    """Trash a card; opponents gain Curses or discard based on what it was."""
 
     partner_card_name = "Rocks"
 
@@ -34,7 +34,6 @@ class Catapult(TopSplitPileCard):
         trashed_cost = card_cost(to_trash)
         player.hand.remove(to_trash)
         game_state.trash_card(player, to_trash)
-        player.coins += min(2, trashed_cost)
 
         gives_curse = trashed_cost >= 3
         discards_to_three = game_state.is_treasure(to_trash)
@@ -45,31 +44,38 @@ class Catapult(TopSplitPileCard):
             if gives_curse:
                 game_state.give_curse_to_player(target)
 
-            excess = len(target.hand) - 3
-            if discards_to_three and excess > 0:
-                choices = target.ai.choose_cards_to_discard(
-                    game_state, target, list(target.hand), excess, reason="catapult"
-                )
-                chosen = []
-                for card in choices or []:
-                    if (
-                        card in target.hand
-                        and card not in chosen
-                        and len(chosen) < excess
-                    ):
-                        chosen.append(card)
-                if len(chosen) < excess:
-                    for card in list(target.hand):
-                        if card not in chosen:
-                            chosen.append(card)
-                        if len(chosen) == excess:
-                            break
-                for card in chosen:
-                    if card in target.hand:
-                        target.hand.remove(card)
-                        game_state.discard_card(target, card)
+            if not discards_to_three or len(target.hand) <= 3:
+                return
+
+            discard_needed = len(target.hand) - 3
+            selected = target.ai.choose_cards_to_discard(
+                game_state,
+                target,
+                list(target.hand),
+                discard_needed,
+                reason="catapult",
+            )
+            for card in selected[:discard_needed]:
+                if card in target.hand:
+                    target.hand.remove(card)
+                    game_state.discard_card(target, card)
+
+            while len(target.hand) > 3:
+                card = min(target.hand, key=self._discard_priority)
+                target.hand.remove(card)
+                game_state.discard_card(target, card)
 
         for other in game_state.players:
             if other is player:
                 continue
             game_state.attack_player(other, attack, attacker=player, attack_card=self)
+
+    @staticmethod
+    def _discard_priority(card):
+        if card.name == "Curse":
+            return (0, card.cost.coins, card.name)
+        if card.is_victory and not card.is_action:
+            return (1, card.cost.coins, card.name)
+        if card.name == "Copper":
+            return (2, card.cost.coins, card.name)
+        return (3, card.cost.coins, card.name)

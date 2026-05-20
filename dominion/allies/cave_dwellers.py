@@ -4,9 +4,9 @@ from .base_ally import Ally
 class CaveDwellers(Ally):
     """Cave Dwellers (Allies).
 
-    Simplified rules used here: at the start of your turn, while you have
-    Favors, you may spend them one at a time to discard a card from your
-    hand and then draw a card. Repeat as the AI desires.
+    At the start of your turn, while you have Favors, you may spend them
+    one at a time to discard a card from your hand and then draw a card.
+    Repeat as the AI desires.
     """
 
     def __init__(self):

@@ -386,6 +386,23 @@ def test_card_type_includes_shadow_and_omen():
     assert rustic.is_omen
 
 
+def test_warlord_does_not_block_shadow_card_played_from_deck():
+    state, player = _setup()
+    player.warlord_restriction_count = 1
+    shadow_fish = get_card("Fishmonger")
+    player.in_play = [get_card("Fishmonger"), get_card("Fishmonger")]
+    player.deck = [shadow_fish]
+    player.hand = []
+    player.actions = 1
+
+    state.handle_action_phase()
+
+    assert shadow_fish in player.in_play
+    assert shadow_fish not in player.deck
+    assert player.coins == 1
+    assert player.buys == 2
+
+
 # ---------------------------------------------------------------------------
 # Events
 # ---------------------------------------------------------------------------

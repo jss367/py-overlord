@@ -52,4 +52,6 @@ class Golem(Card):
 
         for action_card in order:
             player.in_play.append(action_card)
-            game_state.play_action_indirectly(player, action_card)
+            game_state.play_action_indirectly(
+                player, action_card, blocked_return_zone=player.discard
+            )

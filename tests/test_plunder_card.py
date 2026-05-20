@@ -185,3 +185,21 @@ def test_first_mate_can_stop_after_first_copy():
     assert sum(1 for c in player.in_play if c.name == "Village") == 1
     assert any(c.name == "Village" for c in player.hand)
     assert len(player.hand) == 6
+
+
+def test_first_mate_stops_when_warlord_blocks_replayed_card():
+    state, player = _make_state_with_player()
+    player.ai = ChooseFirstActionAI()
+    player.warlord_restriction_count = 1
+    first_mate = get_card("First Mate")
+    blocked_village = get_card("Village")
+    player.in_play = [first_mate, get_card("Village"), get_card("Village")]
+    player.hand = [blocked_village]
+    player.deck = [get_card("Copper") for _ in range(10)]
+
+    first_mate.play_effect(state)
+
+    assert blocked_village in player.hand
+    assert blocked_village not in player.in_play
+    assert sum(1 for c in player.in_play if c.name == "Village") == 2
+    assert len(player.hand) == 6

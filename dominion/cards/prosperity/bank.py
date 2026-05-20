@@ -2,7 +2,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Bank(Card):
-    """Simplified implementation of the Bank card."""
+    """Bank card."""
 
     def __init__(self):
         super().__init__(

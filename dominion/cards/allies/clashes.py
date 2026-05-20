@@ -86,11 +86,6 @@ class Archer(_Clashes):
 class Warlord(_Clashes):
     """+1 Favor +1 Action +2 Cards. Until your next turn, no opponent
     may play any Action cards more than 2 of which are in their play area.
-
-    Simplified: act as a draw card with the +Favor; the cap is hard to
-    represent without per-card play tracking, so leave the restriction
-    text out (consistent with how other multi-turn Action restrictions
-    are simplified in this codebase).
     """
 
     upper_partners: ClassVar[tuple[str, ...]] = ("Battle Plan", "Archer")
@@ -100,17 +95,48 @@ class Warlord(_Clashes):
             name="Warlord",
             cost=CardCost(coins=5),
             stats=CardStats(actions=1, cards=2),
-            types=[CardType.ACTION, CardType.DURATION, CardType.LIAISON],
+            types=[
+                CardType.ACTION,
+                CardType.ATTACK,
+                CardType.DURATION,
+                CardType.LIAISON,
+            ],
         )
+        self._warlord_targets = []
 
     def play_effect(self, game_state):
         player = game_state.current_player
         grant_favor(player)
+
+        def attack(target):
+            target.warlord_restriction_count = (
+                getattr(target, "warlord_restriction_count", 0) + 1
+            )
+            self._warlord_targets.append(target)
+
+        for opponent in game_state.players:
+            if opponent is player:
+                continue
+            game_state.attack_player(
+                opponent,
+                attack,
+                attacker=player,
+                attack_card=self,
+            )
+
         # Stay in play through next turn (Duration). No on_duration effect.
         self.duration_persistent = False
-        player.duration.append(self)
+        if self not in player.duration:
+            player.duration.append(self)
 
     def on_duration(self, game_state):
+        for target in self._warlord_targets:
+            count = getattr(target, "warlord_restriction_count", 0)
+            if count <= 1:
+                target.warlord_restriction_count = 0
+            else:
+                target.warlord_restriction_count = count - 1
+        self._warlord_targets = []
         # Lingering presence ends; Duration cards naturally move to
         # discard via cleanup.
         self.duration_persistent = False

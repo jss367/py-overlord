@@ -9,7 +9,7 @@ from dominion.game.game_state import GameState
 
 
 class _RandomStrategy:
-    """Stub strategy for compatibility with GameState logging."""
+    """Strategy metadata used by GameState logging."""
     name = "Random"
 
 

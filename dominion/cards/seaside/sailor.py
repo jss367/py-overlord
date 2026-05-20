@@ -54,10 +54,13 @@ class Sailor(Card):
         owner.sailor_play_uses -= 1
 
         # Move the gained card from discard/deck into in_play, then play it.
+        return_zone = None
         if gained_card in owner.discard:
             owner.discard.remove(gained_card)
+            return_zone = owner.discard
         elif gained_card in owner.deck:
             owner.deck.remove(gained_card)
+            return_zone = owner.deck
         else:
             return False
 
@@ -67,7 +70,9 @@ class Sailor(Card):
         # as an Action play (bumping actions_this_turn / firing
         # action-played hooks) when the gained card actually is an Action.
         if gained_card.is_action:
-            game_state.play_action_indirectly(owner, gained_card)
+            game_state.play_action_indirectly(
+                owner, gained_card, blocked_return_zone=return_zone
+            )
         else:
             gained_card.on_play(game_state)
             game_state.fire_ally_play_hooks(owner, gained_card)

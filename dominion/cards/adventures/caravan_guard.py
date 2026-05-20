@@ -28,20 +28,6 @@ class CaravanGuard(Card):
         # remove from hand, run play_effect, but DO NOT consume an Action.
         if self not in player.hand:
             return False
-        player.hand.remove(self)
-        player.in_play.append(self)
-        # Skip cardstats (already supposed to take +1 Card +1 Action).
-        # Mirror Card.on_play but bypass remove_sun_token (this isn't an Omen)
-        # and don't apply ignore_action_bonuses since reactions are exempt.
-        player.actions += self.stats.actions
-        player.coins += self.stats.coins
-        player.buys += self.stats.buys
-        if self.stats.cards > 0:
-            game_state.draw_cards(player, self.stats.cards)
-        # Move to duration so on_duration triggers next turn.
-        if self in player.in_play:
-            player.in_play.remove(self)
-        player.duration.append(self)
-        self.duration_persistent = True
+        game_state.play_action_from_hand_indirectly(player, self)
         # Caravan Guard does NOT block the attack itself.
         return False

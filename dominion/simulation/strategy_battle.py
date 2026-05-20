@@ -523,7 +523,7 @@ class StrategyBattle:
         landmarks: Optional[list[str]] = None,
         allies: Optional[list[str]] = None,
     ) -> tuple[GeneticAI, dict[str, int], Optional[str], int]:
-        """Run a single game between two AIs. TODO: This shouldn't be within this class."""
+        """Run a single game between two AIs."""
         if decision_stats_by_ai:
             for ai, stats in decision_stats_by_ai.items():
                 self._instrument_ai_decisions(ai, stats)

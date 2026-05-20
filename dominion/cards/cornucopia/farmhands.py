@@ -63,12 +63,13 @@ class Farmhands(Card):
             if choice is None and treasures:
                 choice = player.ai.choose_treasure(game_state, treasures + [None])
             if choice is not None and choice in player.hand:
-                player.hand.remove(choice)
-                player.in_play.append(choice)
-                if choice.is_action:
-                    game_state.play_action_indirectly(player, choice)
-                else:
-                    choice.on_play(game_state)
-                    game_state.fire_ally_play_hooks(player, choice)
+                if game_state.move_card_from_hand_to_play(player, choice):
+                    if choice.is_action:
+                        game_state.play_action_indirectly(
+                            player, choice, blocked_return_zone=player.hand
+                        )
+                    else:
+                        choice.on_play(game_state)
+                        game_state.fire_ally_play_hooks(player, choice)
 
         self.duration_persistent = False

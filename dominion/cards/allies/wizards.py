@@ -5,6 +5,7 @@ Student → Conjurer → Sorcerer → Lich; only the topmost still-stocked card 
 buyable.
 """
 
+from collections import Counter
 from typing import Optional
 
 from ..base_card import Card, CardCost, CardStats, CardType
@@ -126,11 +127,10 @@ class Conjurer(WizardsSplitCard):
 
 
 class Sorcerer(WizardsSplitCard):
-    """+1 Card, +1 Action. Each other player gains a Curse on top of deck.
+    """+1 Card, +1 Action. Each other player may gain a Curse on top of deck.
 
-    (Simplified: skip the "name a card / reveal top of deck" subgame and treat
-    this as a guaranteed top-decked Curser. In practice the named card almost
-    never matches the top of an unknown deck.)
+    Each other player names a card, reveals the top card of their deck, and
+    gains a Curse onto their deck if the revealed card is not the named card.
     """
 
     upper_partners = ("Student", "Conjurer")
@@ -154,6 +154,10 @@ class Sorcerer(WizardsSplitCard):
                 continue
 
             def attack(target):
+                named = self._name_card(game_state, target)
+                revealed = self._peek_top_after_shuffle(target)
+                if revealed is None or revealed.name == named:
+                    return
                 if game_state.supply.get("Curse", 0) <= 0:
                     return
                 game_state.supply["Curse"] -= 1
@@ -161,6 +165,35 @@ class Sorcerer(WizardsSplitCard):
                 game_state.gain_card(target, curse, to_deck=True)
 
             game_state.attack_player(opponent, attack)
+
+    @staticmethod
+    def _peek_top_after_shuffle(player) -> Optional[Card]:
+        if not player.deck and player.discard:
+            player.shuffle_discard_into_deck()
+        if not player.deck:
+            return None
+        return player.deck[-1]
+
+    @staticmethod
+    def _name_card(game_state, player) -> Optional[str]:
+        # Sorcerer's choice has the same strategic shape as Wishing Well:
+        # name a card before revealing the top of your own deck. Prefer that
+        # hook when available, while allowing dedicated AIs to specialize.
+        for hook_name in (
+            "name_card_for_sorcerer",
+            "name_card_for_wishing_well",
+            "name_card_for_mystic",
+        ):
+            hook = getattr(player.ai, hook_name, None)
+            if hook is not None:
+                return hook(game_state, player)
+
+        counts = Counter(card.name for card in player.deck)
+        if not counts and player.discard:
+            counts = Counter(card.name for card in player.discard)
+        if not counts:
+            return None
+        return max(counts.items(), key=lambda kv: (kv[1], kv[0]))[0]
 
 
 class Lich(WizardsSplitCard):

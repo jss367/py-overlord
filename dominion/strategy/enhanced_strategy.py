@@ -446,12 +446,19 @@ class EnhancedStrategy:
         return self._choose_from_priority(self.trash_priority, choices, state, player, "trash")
 
     def choose_way(self, state, player, card, ways):
-        """Consult ``way_policy`` first; fall back to hardcoded Trail/Butterfly.
+        """Choose a Way from ``way_policy`` or legacy Trail/Butterfly behavior.
 
         Each :class:`WayRule` matches when (a) its ``card_name`` equals the
         played card, (b) its ``condition`` (if any) passes, and (c) the named
         Way is present in ``ways``. The first matching rule wins.
         """
+        policy_choice = self._choose_way_from_policy(state, player, card, ways)
+        if policy_choice is not None:
+            return policy_choice
+
+        return self._choose_legacy_trail_butterfly_way(state, player, card, ways)
+
+    def _choose_way_from_policy(self, state, player, card, ways):
         for rule in self.way_policy:
             if rule.card_name != card.name:
                 continue
@@ -466,7 +473,10 @@ class EnhancedStrategy:
                 if w is not None and getattr(w, "name", None) == rule.way_name:
                     return w
 
-        # Fallback: butterfly Trail into the highest-priority +$1 target.
+        return None
+
+    def _choose_legacy_trail_butterfly_way(self, state, player, card, ways):
+        """Preserve old strategies that relied on Trail using Butterfly automatically."""
         if card.name != "Trail":
             return None
         target = self._best_butterfly_target(state, player, card.cost.coins + 1)

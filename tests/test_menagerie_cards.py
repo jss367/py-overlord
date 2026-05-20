@@ -242,6 +242,24 @@ def test_black_cat_curses_opponents_when_reacted_off_turn():
     assert state.supply["Curse"] == curses_before - 1
 
 
+def test_black_cat_reaction_respects_warlord_hand_limit():
+    state, p1, p2 = _two_player_state()
+    black_cat = get_card("Black Cat")
+    p2.warlord_restriction_count = 1
+    p2.in_play = [get_card("Black Cat"), get_card("Black Cat")]
+    p2.hand = [black_cat]
+    p2.deck = [get_card("Copper"), get_card("Estate")]
+    state.supply["Estate"] -= 1
+    curses_before = state.supply["Curse"]
+
+    state.gain_card(p1, get_card("Estate"))
+
+    assert black_cat in p2.hand
+    assert black_cat not in p2.in_play
+    assert state.supply["Curse"] == curses_before
+    assert len(p2.hand) == 1
+
+
 def test_falconer_reaction_gains_cheaper_card():
     state, p1, p2 = _two_player_state()
     # p2 has a Falconer in hand, p1 gains a Gold ($6).
@@ -285,6 +303,22 @@ def test_multiple_sheepdogs_all_react_to_single_gain():
     state.gain_card(p1, get_card("Silver"))
     # Both Sheepdogs played from hand into in_play.
     assert sum(1 for c in p1.in_play if c.name == "Sheepdog") == 2
+
+
+def test_sheepdog_reaction_respects_warlord_hand_limit():
+    state, p1, _ = _two_player_state()
+    sheepdog = get_card("Sheepdog")
+    p1.warlord_restriction_count = 1
+    p1.in_play = [get_card("Sheepdog"), get_card("Sheepdog")]
+    p1.hand = [sheepdog]
+    p1.deck = [get_card("Copper"), get_card("Estate")]
+    state.supply["Silver"] -= 1
+
+    state.gain_card(p1, get_card("Silver"))
+
+    assert sheepdog in p1.hand
+    assert sheepdog not in p1.in_play
+    assert len(p1.hand) == 1
 
 
 def test_sheepdog_off_turn_reacts_for_owner():

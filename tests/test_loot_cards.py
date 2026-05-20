@@ -38,8 +38,24 @@ def test_shield_blocks_witch_attack():
     assert not any(c.name == "Curse" for c in p2.discard)
 
 
+def test_staff_respects_warlord_block_when_playing_action_from_hand():
+    player = PlayerState(ChooseFirstActionAI())
+    state = GameState(players=[player])
+    player.warlord_restriction_count = 1
+    staff = get_card("Staff")
+    blocked_village = get_card("Village")
+    player.in_play = [staff, get_card("Village"), get_card("Village")]
+    player.hand = [blocked_village]
+    player.deck = [get_card("Copper")]
 
-    
+    staff.play_effect(state)
+
+    assert blocked_village in player.hand
+    assert blocked_village not in player.in_play
+    assert len(player.deck) == 1
+    assert player.actions_this_turn == 0
+
+
 def test_puzzle_box_sets_aside_non_action_and_returns_next_turn():
     class DelayCopperAI(ChooseFirstActionAI):
         def __init__(self):
@@ -251,5 +267,3 @@ def test_sword_attack_discards_low_value_cards_first():
     assert any(card.name == "Estate" for card in defender_state.discard)
     assert all(card.name != "Gold" for card in defender_state.discard)
     assert any(card.name == "Gold" for card in defender_state.hand)
-
-

@@ -30,11 +30,13 @@ class Conclave(Card):
         )
         if choice is None or choice not in player.hand:
             return
-        player.hand.remove(choice)
-        player.in_play.append(choice)
+        if not game_state.move_card_from_hand_to_play(player, choice):
+            return
         game_state.log_callback(
             ("action", player.ai.name, f"Conclave plays {choice}", {})
         )
-        game_state.play_action_indirectly(player, choice)
-        if not player.ignore_action_bonuses:
+        played = game_state.play_action_indirectly(
+            player, choice, blocked_return_zone=player.hand
+        )
+        if played and not player.ignore_action_bonuses:
             player.actions += 1

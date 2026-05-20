@@ -145,6 +145,28 @@ def test_procession_bumps_actions_this_turn_for_both_plays():
     assert p1.actions_this_turn == 3
 
 
+def test_procession_trashes_and_gains_when_warlord_blocks_first_play():
+    state, p1, _ = _two_player_state(
+        [get_card("Procession"), get_card("Village"), get_card("Smithy")]
+    )
+    procession = get_card("Procession")
+    blocked_village = get_card("Village")
+    p1.warlord_restriction_count = 1
+    p1.in_play = [procession, get_card("Village"), get_card("Village")]
+    p1.hand = [blocked_village]
+    p1.deck = [get_card("Copper") for _ in range(5)]
+    state.supply["Procession"] = 0
+    state.supply["Smithy"] = 5
+
+    procession.play_effect(state)
+
+    assert blocked_village not in p1.hand
+    assert blocked_village not in p1.in_play
+    assert blocked_village in state.trash
+    assert any(card.name == "Smithy" for card in p1.discard)
+    assert state.supply["Smithy"] == 4
+
+
 def test_sailor_does_not_bump_action_counter_for_treasure_duration():
     """Sailor can play any gained Duration, including Treasure-Durations
     like Astrolabe. Playing a non-Action Duration must NOT bump

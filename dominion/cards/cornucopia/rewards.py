@@ -29,11 +29,14 @@ class Coronet(Card):
         if not choice and treasures:
             choice = player.ai.choose_treasure(game_state, treasures + [None])
         if choice and choice in player.hand:
-            player.hand.remove(choice)
-            player.in_play.append(choice)
+            if not game_state.move_card_from_hand_to_play(player, choice):
+                return
             for _ in range(2):
                 if choice.is_action:
-                    game_state.play_action_indirectly(player, choice)
+                    if not game_state.play_action_indirectly(
+                        player, choice, blocked_return_zone=player.hand
+                    ):
+                        break
                 else:
                     choice.on_play(game_state)
                     game_state.fire_ally_play_hooks(player, choice)
