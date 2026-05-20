@@ -367,6 +367,27 @@ def test_warlord_blocked_indirect_play_returns_card_to_hand():
     assert player.actions_this_turn == 0
 
 
+def test_warlord_blocked_hand_play_refunds_voyage_quota():
+    player = PlayerState(DummyAI())
+    state = GameState(players=[player])
+    player.warlord_restriction_count = 1
+    player.voyage_cards_from_hand_remaining = 1
+    third_smithy = get_card("Smithy")
+    player.hand = [third_smithy]
+    player.in_play = [get_card("Smithy"), get_card("Smithy")]
+
+    assert state.move_card_from_hand_to_play(player, third_smithy)
+    assert player.voyage_cards_from_hand_remaining == 0
+
+    played = state.play_action_indirectly(
+        player, third_smithy, blocked_return_zone=player.hand
+    )
+
+    assert played is False
+    assert third_smithy in player.hand
+    assert player.voyage_cards_from_hand_remaining == 1
+
+
 def test_warlord_blocked_indirect_play_without_hand_source_does_not_enter_hand():
     player = PlayerState(DummyAI())
     state = GameState(players=[player])

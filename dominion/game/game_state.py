@@ -225,6 +225,11 @@ class GameState:
         if remaining is not None:
             player.voyage_cards_from_hand_remaining = max(0, remaining - 1)
 
+    def _refund_voyage_play_from_hand(self, player: PlayerState) -> None:
+        remaining = getattr(player, "voyage_cards_from_hand_remaining", None)
+        if remaining is not None:
+            player.voyage_cards_from_hand_remaining = min(3, remaining + 1)
+
     def move_card_from_hand_to_play(self, player: PlayerState, card: Card) -> bool:
         if card not in player.hand:
             return False
@@ -275,6 +280,8 @@ class GameState:
                 player.in_play.remove(card)
             if blocked_return_zone is not None and card not in blocked_return_zone:
                 blocked_return_zone.append(card)
+            if blocked_return_zone is player.hand:
+                self._refund_voyage_play_from_hand(player)
             self.log_callback(
                 (
                     "action",
