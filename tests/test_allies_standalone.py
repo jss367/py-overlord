@@ -318,6 +318,33 @@ def test_specialist_gains_copy_or_replays():
     assert any(c.name == "Village" for c in player.discard) or village in player.in_play
 
 
+def test_specialist_skips_follow_up_when_warlord_blocks_first_play():
+    state, player = _state()
+    state.supply = {"Smithy": 5}
+    player.warlord_restriction_count = 1
+    player.in_play = [get_card("Specialist"), get_card("Smithy"), get_card("Smithy")]
+    smithy = get_card("Smithy")
+    player.hand = [smithy]
+    player.deck = [get_card("Copper") for _ in range(5)]
+
+    class _AI(DummyAI):
+        def choose_action(self, state, choices):
+            for c in choices:
+                if c is not None:
+                    return c
+            return None
+
+    player.ai = _AI()
+    specialist = player.in_play[0]
+    specialist.on_play(state)
+
+    assert smithy in player.hand
+    assert smithy not in player.in_play
+    assert state.supply["Smithy"] == 5
+    assert len(player.discard) == 0
+    assert len(player.deck) == 5
+
+
 def test_swap_returns_action_for_better():
     state, player = _state()
     state.supply = {"Village": 5, "Smithy": 5}  # Village $3, Smithy $4

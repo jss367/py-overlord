@@ -603,9 +603,10 @@ class Specialist(Card):
             return
         if not game_state.move_card_from_hand_to_play(player, choice):
             return
-        game_state.play_action_indirectly(
+        if not game_state.play_action_indirectly(
             player, choice, blocked_return_zone=player.hand
-        )
+        ):
+            return
 
         # Choose: play again, or gain a copy.
         # Heuristic: gain a copy of cheap cantrips ($3-$5); replay otherwise.
