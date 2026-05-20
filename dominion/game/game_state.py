@@ -1263,12 +1263,20 @@ class GameState:
         # Mission.on_buy) ensures the player can finish buying on the turn
         # they bought Mission. The flag is cleared at the end of this extra
         # turn during cleanup (see ``handle_cleanup_phase``).
-        if getattr(self.current_player, "mission_extra_turn_pending", False):
-            self.current_player.mission_no_buy_turn = True
+        mission_pending = getattr(
+            self.current_player, "mission_extra_turn_pending", False
+        )
+        voyage_pending = getattr(self.current_player, "voyage_extra_turn_pending", False)
+        if getattr(self.current_player, "outpost_taken_last_turn", False):
             self.current_player.mission_extra_turn_pending = False
-        if getattr(self.current_player, "voyage_extra_turn_pending", False):
+            self.current_player.voyage_extra_turn_pending = False
+        elif voyage_pending:
             self.current_player.voyage_cards_from_hand_remaining = 3
             self.current_player.voyage_extra_turn_pending = False
+            self.current_player.mission_extra_turn_pending = False
+        elif mission_pending:
+            self.current_player.mission_no_buy_turn = True
+            self.current_player.mission_extra_turn_pending = False
         self.current_player.mission_used_this_turn = False
         # NOTE: Haunted Woods / Swamp Hag attack counters are NOT cleared
         # here. The card text says "Until your next turn ..." — the

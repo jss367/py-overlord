@@ -92,6 +92,19 @@ def test_voyage_extra_turn_limits_cards_played_from_hand():
     assert player.voyage_cards_from_hand_remaining == 0
 
 
+def test_voyage_extra_turn_restriction_does_not_stack_with_mission():
+    state, player, _opponent = _make_state()
+    player.voyage_extra_turn_pending = True
+    player.mission_extra_turn_pending = True
+
+    state.handle_start_phase()
+
+    assert player.voyage_cards_from_hand_remaining == 3
+    assert player.mission_no_buy_turn is False
+    assert player.voyage_extra_turn_pending is False
+    assert player.mission_extra_turn_pending is False
+
+
 def test_voyage_limit_blocks_inspiring_extra_play():
     state, player, _opponent = _make_state()
     player.ai = PlayFirstAI()
