@@ -327,7 +327,7 @@ def test_warlord_blocked_indirect_play_without_hand_source_does_not_enter_hand()
     state.play_action_indirectly(player, revealed_smithy)
 
     assert revealed_smithy not in player.hand
-    assert revealed_smithy not in player.in_play
+    assert revealed_smithy in player.in_play
     assert player.actions_this_turn == 0
 
 
@@ -368,7 +368,7 @@ def test_warlord_blocked_indirect_play_ignores_prior_hand_play_source():
     state.play_action_indirectly(player, smithy)
 
     assert smithy not in player.hand
-    assert smithy not in player.in_play
+    assert smithy in player.in_play
     assert smithy not in player.discard
     assert player.actions_this_turn == 0
 
@@ -388,6 +388,23 @@ def test_warlord_blocked_multiplier_stops_replay_loop():
     assert blocked_smithy in player.hand
     assert blocked_smithy not in player.in_play
     assert len(player.hand) == 1
+    assert len(player.deck) == 5
+    assert player.actions_this_turn == 0
+
+
+def test_warlord_blocked_replay_preserves_card_in_play():
+    player = PlayerState(DummyAI())
+    state = GameState(players=[player])
+    player.warlord_restriction_count = 1
+    replayed_smithy = get_card("Smithy")
+    player.in_play = [get_card("Smithy"), get_card("Smithy"), replayed_smithy]
+    player.deck = [get_card("Copper") for _ in range(5)]
+
+    played = state.play_action_indirectly(player, replayed_smithy)
+
+    assert played is False
+    assert replayed_smithy in player.in_play
+    assert replayed_smithy not in player.hand
     assert len(player.deck) == 5
     assert player.actions_this_turn == 0
 

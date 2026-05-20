@@ -271,7 +271,7 @@ class GameState:
             card,
             card_already_in_play=card_was_in_play,
         ):
-            if card in player.in_play:
+            if blocked_return_zone is not None and card in player.in_play:
                 player.in_play.remove(card)
             if blocked_return_zone is not None and card not in blocked_return_zone:
                 blocked_return_zone.append(card)
@@ -3384,11 +3384,12 @@ class GameState:
                 return
             if card in player.discard:
                 player.discard.remove(card)
+                player.in_play.append(card)
             elif card in player.hand:
-                player.hand.remove(card)
+                if not self.move_card_from_hand_to_play(player, card):
+                    return
             else:
                 return
-            player.in_play.append(card)
             card.on_play(self)
         elif hasattr(card, "react_to_discard"):
             card.react_to_discard(self, player)
