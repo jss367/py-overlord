@@ -159,21 +159,20 @@ def test_guard_skipped_when_goons_would_swing_the_score():
 
 
 def test_guard_skipped_when_vp_awarding_landmark_in_play():
-    """Landmarks like Battlefield award VP via on_gain/on_buy during the
-    real buy path; the cheap simulation ignores them, so the guard must
-    not veto endgame buys on boards carrying such a landmark."""
+    """Battlefield's real +VP gain can make the endgame buy safe."""
     from dominion.landmarks.landmarks import Battlefield
 
     ai = PriorityBuyAI(["Province"])
-    state, me, _opp = make_state(ai, opponent_deck=provinces(4))
+    state, me, _opp = make_state(ai, opponent_deck=[get_card("Province")])
     state.landmarks = [Battlefield()]
+    state.landmarks[0].setup(state)
     state.supply = {"Province": 1, "Copper": 30}
     me.coins = 8
     me.buys = 1
 
     state.handle_buy_phase()
 
-    assert state.supply["Province"] == 0  # guard stands down on VP-hook boards
+    assert state.supply["Province"] == 0
     assert "Province" in me.bought_this_turn
 
 
@@ -199,7 +198,7 @@ def test_guard_skipped_when_collection_would_swing_the_score():
     (base_card.py:278). Buying the Action that empties the third pile
     must not be vetoed when Collection would carry the buyer ahead."""
     ai = PriorityBuyAI(["Market", "Copper"])
-    state, me, _opp = make_state(ai, opponent_deck=provinces(3))
+    state, me, _opp = make_state(ai, opponent_deck=[])
     state.supply = {
         "Village": 0,
         "Smithy": 0,
@@ -238,11 +237,14 @@ def test_guard_skipped_when_exiled_copy_reclaimed():
     assert "Province" in me.bought_this_turn
 
 
+class _RevealsTraderAI(PriorityBuyAI):
+    def should_reveal_trader(self, state, player, gained_card, *, to_deck):
+        return True
+
+
 def test_guard_skipped_when_trader_can_restore_pile():
-    """A Trader in hand with Silver available can exchange the gain and
-    return the card to its pile; the cheap sim cannot predict that AI
-    choice, so the guard stands down rather than risk a false veto."""
-    ai = PriorityBuyAI(["Province"])
+    """Trader can exchange the real gain, so the Province pile is restored."""
+    ai = _RevealsTraderAI(["Province"])
     state, me, _opp = make_state(
         ai, opponent_deck=provinces(4)
     )
@@ -253,14 +255,19 @@ def test_guard_skipped_when_trader_can_restore_pile():
 
     state.handle_buy_phase()
 
-    assert "Province" in me.bought_this_turn  # guard did not veto
+    assert "Province" in me.bought_this_turn
+    assert state.supply["Province"] == 1
+    assert state.supply["Silver"] == 9
+
+
+class _ExchangesChangelingAI(PriorityBuyAI):
+    def should_exchange_changeling(self, state, player, gained_card):
+        return True
 
 
 def test_guard_skipped_when_changeling_pile_available():
-    """Changeling lets a gain be exchanged back to its pile; with the
-    Changeling pile present the guard stands down rather than risk a
-    false veto on the cheap decrement-only simulation."""
-    ai = PriorityBuyAI(["Province"])
+    """Changeling can exchange the real gain, so the Province pile is restored."""
+    ai = _ExchangesChangelingAI(["Province"])
     state, me, _opp = make_state(
         ai, opponent_deck=provinces(4)
     )
@@ -270,4 +277,76 @@ def test_guard_skipped_when_changeling_pile_available():
 
     state.handle_buy_phase()
 
-    assert "Province" in me.bought_this_turn  # guard did not veto
+    assert "Province" in me.bought_this_turn
+    assert state.supply["Province"] == 1
+    assert state.supply["Changeling"] == 9
+
+
+def test_false_negative_blocked_when_hoard_empties_third_pile():
+    """Hoard can empty Gold during a Victory buy, ending the game by pile-out."""
+    ai = PriorityBuyAI(["Province", "Copper"])
+    state, me, _opp = make_state(ai, opponent_deck=provinces(4))
+    state.supply = {
+        "Province": 8,
+        "Gold": 1,
+        "Village": 0,
+        "Smithy": 0,
+        "Copper": 30,
+    }
+    me.coins = 8
+    me.buys = 1
+    me.in_play = [get_card("Hoard")]
+
+    state.handle_buy_phase()
+
+    assert "Province" not in me.bought_this_turn
+    assert "Copper" in me.bought_this_turn
+
+
+def test_guard_disabled_when_any_ai_marks_decision_hooks_impure():
+    ai = PriorityBuyAI(["Province"])
+    ai.decision_hooks_are_pure = False
+    state, me, _opp = make_state(ai, opponent_deck=provinces(5))
+    state.supply = {"Province": 1, "Copper": 30}
+    me.coins = 8
+    me.buys = 1
+
+    state.handle_buy_phase()
+
+    assert "Province" in me.bought_this_turn
+
+
+def test_gain_would_lose_game_preserves_rng_state():
+    import random
+
+    ai = PriorityBuyAI(["Province"])
+    state, me, _opp = make_state(ai, opponent_deck=provinces(5))
+    state.supply = {"Province": 1, "Copper": 30}
+    me.coins = 8
+    me.buys = 1
+
+    random.seed(12345)
+    before = random.getstate()
+    state.gain_would_lose_game(me, get_card("Province"))
+    after = random.getstate()
+
+    assert before == after
+
+
+def test_temple_endgame_correctly_handled():
+    ai = PriorityBuyAI(["Temple"])
+    state, me, _opp = make_state(ai, opponent_deck=[get_card("Province")])
+    state.supply = {
+        "Temple": 1,
+        "Province": 8,
+        "Village": 0,
+        "Smithy": 0,
+        "Copper": 30,
+    }
+    state.temple_pile_tokens = 3
+    me.coins = 5
+    me.buys = 1
+
+    state.handle_buy_phase()
+
+    assert "Temple" not in me.bought_this_turn
