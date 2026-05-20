@@ -499,6 +499,35 @@ def test_warlord_blocks_inherited_estate_as_third_copy():
     assert third_estate not in player.in_play
 
 
+def test_warlord_blocks_enlightenment_treasure_action_as_third_copy():
+    from dominion.prophecies.enlightenment import Enlightenment
+
+    class _PlayFirstTreasureAI(DummyAI):
+        def choose_action(self, state, choices):
+            for card in choices:
+                if card is not None and card.is_treasure and not card.is_action:
+                    return card
+            return None
+
+    player = PlayerState(_PlayFirstTreasureAI())
+    state = GameState(players=[player])
+    prophecy = Enlightenment()
+    prophecy.is_active = True
+    state.prophecy = prophecy
+
+    player.warlord_restriction_count = 1
+    third_silver = get_card("Silver")
+    player.actions = 1
+    player.in_play = [get_card("Silver"), get_card("Silver")]
+    player.hand = [third_silver]
+
+    state.handle_action_phase()
+
+    assert third_silver in player.hand
+    assert third_silver not in player.in_play
+    assert player.actions == 1
+
+
 def test_sorceress_matching_reveal_curses_each_other_player():
     state, attacker, defender = _setup_sorceress_state("Silver")
     bottom = get_card("Copper")

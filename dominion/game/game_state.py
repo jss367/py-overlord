@@ -180,6 +180,13 @@ class GameState:
     def _warlord_action_name(self, player: PlayerState, card: Card) -> str | None:
         if card.is_action:
             return card.name
+        if (
+            card.is_treasure
+            and self.prophecy is not None
+            and self.prophecy.is_active
+            and self.prophecy.name == "Enlightenment"
+        ):
+            return card.name
         inherited = getattr(player, "inherited_action_name", None)
         if card.name == "Estate" and inherited:
             return inherited
