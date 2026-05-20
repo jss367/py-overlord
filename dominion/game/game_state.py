@@ -1,3 +1,4 @@
+import copy
 import random
 from dataclasses import dataclass, field
 from typing import Optional
@@ -116,6 +117,26 @@ class GameState:
                     _player.game_state = self
                 except AttributeError:
                     pass
+
+    def __deepcopy__(self, memo):
+        """Deep-copy the game state with exclusions for simulated buys."""
+        cls = type(self)
+        new = cls.__new__(cls)
+        memo[id(self)] = new
+
+        for player in self.players:
+            ai = getattr(player, "ai", None)
+            if ai is not None:
+                memo[id(ai)] = ai
+
+        for key, value in self.__dict__.items():
+            if key == "logger":
+                new.logger = None
+            elif key == "log_callback":
+                new.log_callback = lambda *_: None
+            else:
+                new.__dict__[key] = copy.deepcopy(value, memo)
+        return new
 
     def set_logger(self, logger):
         """Set the game logger instance."""
@@ -2038,118 +2059,104 @@ class GameState:
             if choice is None:
                 break
 
-            # Update metrics for cards bought or purchased items
-            if self.logger:
-                self.logger.current_metrics.cards_bought[choice.name] = (
-                    self.logger.current_metrics.cards_bought.get(choice.name, 0) + 1
-                )
-
-            cost = self.get_card_cost(player, choice)
-            coins_spent = min(player.coins, cost)
-            tokens_spent = max(0, cost - coins_spent)
-            remaining_coins = player.coins - coins_spent
-            remaining_tokens = player.coin_tokens - tokens_spent
-            context = {
-                "cost": cost,
-                "remaining_coins": remaining_coins,
-                "remaining_coin_tokens": remaining_tokens,
-                "remaining_buys": player.buys - 1,
-            }
-            self.log_callback(("action", player.ai.name, f"buys {choice}", context))
-
-            player.bought_this_turn.append(choice.name)
-            player.buys -= 1
-            player.coins_spent_this_turn += cost
-
-            player.potions -= choice.cost.potions
-
-            player.coins -= coins_spent
-            player.coin_tokens -= tokens_spent
-
-            # Guilds Overpay: ask the AI whether to pay extra on top of the
-            # printed cost. Only Cards that opt in via ``may_overpay``
-            # (e.g. Doctor, Herald, Masterpiece, Stonemason) trigger this.
-            overpay_amount = self._prompt_overpay(player, choice)
-
-            if getattr(choice, "is_event", False):
-                choice.on_buy(self, player)
-            elif getattr(choice, "is_project", False):
-                # Add a copy of the project to the player's owned projects
-                player.projects.append(choice)
-                choice.on_buy(self, player)
-            else:
-                # Dark Ages: buying a Knight removes the top of the Knights
-                # pile, not a "Sir Bailey" pile.
-                pile_name = choice.name
-                if choice.is_knight and "Knights" in self.pile_order:
-                    pile_name = "Knights"
-                    if self.pile_order["Knights"]:
-                        self.pile_order["Knights"].pop()
-                self.supply[pile_name] = max(0, self.supply.get(pile_name, 0) - 1)
-                self.log_callback(("supply_change", pile_name, -1, self.supply[pile_name]))
-                choice.on_buy(self)
-                gained_card = self.gain_card(player, choice)
-
-                if overpay_amount > 0:
-                    choice.on_overpay(
-                        self, player, overpay_amount, gained_card=gained_card
-                    )
-
-                self._handle_on_buy_in_play_effects(player, choice, gained_card)
-                # Embargo / Tax tokens key off the supply pile, which for
-                # Knights is the shared "Knights" pile rather than the
-                # specific Knight (e.g. "Dame Sylvia") that was bought.
-                self._apply_embargo_tokens(player, pile_name)
-                # Dark Ages: Hovel reacts to buying a Victory card.
-                if choice.is_victory:
-                    self._handle_hovel_reaction(player)
-                self._apply_tax_tokens(player, pile_name)
-
-                # Empires Landmarks: react to buys (Basilica, Colonnade, Defiled Shrine).
-                for landmark in self.landmarks:
-                    landmark.on_buy(self, player, choice)
-
-                # Plunder Nearby trait: +1 Buy when buying from Nearby pile.
-                if self.pile_traits.get(choice.name) == "Nearby":
-                    player.buys += 1
-                # Adventures: opponents under Haunted Woods / Swamp Hag suffer
-                # on each buy.
-                self._apply_adventures_attack_on_buy(player, choice)
-                # Adventures Plan: when buying from a piled-with-trash-token
-                # pile, may trash a card from hand.
-                if choice.name in getattr(player, "plan_trash_piles", set()) and player.hand:
-                    trashable = list(player.hand)
-                    selected = player.ai.choose_card_to_trash(self, trashable + [None])
-                    if selected and selected in player.hand:
-                        player.hand.remove(selected)
-                        self.trash_card(player, selected)
-                # Adventures: Tavern dispatch on buy.
-                self._call_tavern_triggers(player, "buy", choice)
-
-                if player.goons_played:
-                    player.vp_tokens += player.goons_played
-
-                if getattr(player, "merchant_guilds_played", 0) and not getattr(choice, "is_event", False):
-                    player.coin_tokens += player.merchant_guilds_played
-
-                self._trigger_haggler_bonus(player, choice)
-
-
-            if choice.cost.debt:
-                player.debt += choice.cost.debt
-
-            if getattr(player, "charm_next_buy_copies", 0):
-                copies_to_gain = min(
-                    player.charm_next_buy_copies, self.supply.get(choice.name, 0)
-                )
-                for _ in range(copies_to_gain):
-                    self.supply[choice.name] -= 1
-                    self.gain_card(player, get_card(choice.name))
-                player.charm_next_buy_copies = 0
-
+            self._commit_buy(player, choice)
 
         self._handle_buy_phase_end(player)
         self.phase = "night"
+
+    def _commit_buy(self, player: PlayerState, card: "Card") -> None:
+        """Execute exactly one buy for ``player``.
+
+        This is the shared source of truth for real buy-phase commits and
+        the endgame guard's simulated buy on a cloned state.
+        """
+        if self.logger:
+            self.logger.current_metrics.cards_bought[card.name] = (
+                self.logger.current_metrics.cards_bought.get(card.name, 0) + 1
+            )
+
+        cost = self.get_card_cost(player, card)
+        coins_spent = min(player.coins, cost)
+        tokens_spent = max(0, cost - coins_spent)
+        remaining_coins = player.coins - coins_spent
+        remaining_tokens = player.coin_tokens - tokens_spent
+        context = {
+            "cost": cost,
+            "remaining_coins": remaining_coins,
+            "remaining_coin_tokens": remaining_tokens,
+            "remaining_buys": player.buys - 1,
+        }
+        self.log_callback(("action", player.ai.name, f"buys {card}", context))
+
+        player.bought_this_turn.append(card.name)
+        player.buys -= 1
+        player.coins_spent_this_turn += cost
+
+        player.potions -= card.cost.potions
+
+        player.coins -= coins_spent
+        player.coin_tokens -= tokens_spent
+
+        overpay_amount = self._prompt_overpay(player, card)
+
+        if getattr(card, "is_event", False):
+            card.on_buy(self, player)
+        elif getattr(card, "is_project", False):
+            player.projects.append(card)
+            card.on_buy(self, player)
+        else:
+            pile_name = card.name
+            if card.is_knight and "Knights" in self.pile_order:
+                pile_name = "Knights"
+                if self.pile_order["Knights"]:
+                    self.pile_order["Knights"].pop()
+            self.supply[pile_name] = max(0, self.supply.get(pile_name, 0) - 1)
+            self.log_callback(("supply_change", pile_name, -1, self.supply[pile_name]))
+            card.on_buy(self)
+            gained_card = self.gain_card(player, card)
+
+            if overpay_amount > 0:
+                card.on_overpay(self, player, overpay_amount, gained_card=gained_card)
+
+            self._handle_on_buy_in_play_effects(player, card, gained_card)
+            self._apply_embargo_tokens(player, pile_name)
+            if card.is_victory:
+                self._handle_hovel_reaction(player)
+            self._apply_tax_tokens(player, pile_name)
+
+            for landmark in self.landmarks:
+                landmark.on_buy(self, player, card)
+
+            if self.pile_traits.get(card.name) == "Nearby":
+                player.buys += 1
+            self._apply_adventures_attack_on_buy(player, card)
+            if card.name in getattr(player, "plan_trash_piles", set()) and player.hand:
+                trashable = list(player.hand)
+                selected = player.ai.choose_card_to_trash(self, trashable + [None])
+                if selected and selected in player.hand:
+                    player.hand.remove(selected)
+                    self.trash_card(player, selected)
+            self._call_tavern_triggers(player, "buy", card)
+
+            if player.goons_played:
+                player.vp_tokens += player.goons_played
+
+            if getattr(player, "merchant_guilds_played", 0):
+                player.coin_tokens += player.merchant_guilds_played
+
+            self._trigger_haggler_bonus(player, card)
+
+        if card.cost.debt:
+            player.debt += card.cost.debt
+
+        if getattr(player, "charm_next_buy_copies", 0):
+            copies_to_gain = min(
+                player.charm_next_buy_copies, self.supply.get(card.name, 0)
+            )
+            for _ in range(copies_to_gain):
+                self.supply[card.name] -= 1
+                self.gain_card(player, get_card(card.name))
+            player.charm_next_buy_copies = 0
 
     def handle_night_phase(self):
         """Play Night cards from hand after Buy, before Cleanup.
@@ -2861,6 +2868,23 @@ class GameState:
         colony_depleted = "Colony" in self.supply and self.supply["Colony"] == 0
         return province_depleted or colony_depleted or self.empty_piles >= 3
 
+    def _buy_could_end_game(self, player: PlayerState, card: "Card") -> bool:
+        """Loose, cheap pre-check for whether a buy could end the game."""
+        if "Province" in self.supply and self.supply["Province"] <= 2:
+            return True
+        if "Colony" in self.supply and self.supply["Colony"] <= 2:
+            return True
+        if self.empty_piles >= 2:
+            return True
+        return False
+
+    def _all_decision_hooks_pure(self) -> bool:
+        """True iff every player's AI can be safely queried on a clone."""
+        return all(
+            getattr(player.ai, "decision_hooks_are_pure", True)
+            for player in self.players
+        )
+
     def _supply_pile_name(self, card: "Card") -> str:
         """Return the supply key whose count a buy/gain of ``card`` decrements.
 
@@ -2884,132 +2908,49 @@ class GameState:
         strategy = getattr(ai, "strategy", None)
         return bool(getattr(strategy, "allow_losing_pileout", False))
 
-    def _has_unmodeled_vp_on_gain(self, player: PlayerState) -> bool:
-        """True when buying/gaining this turn can award the buyer VP that
-        :meth:`gain_would_lose_game`'s cheap simulation does not model.
-
-        The reversible simulation only adds the card to the deck; it does
-        not run the real ``on_buy``/``on_gain`` hooks. A full-tree audit
-        of every ``vp_tokens`` mutation shows the buy/gain path's
-        broad-category VP-token sources are:
-
-        * a Landmark overriding ``on_buy``/``on_gain`` (Battlefield,
-          Basilica, Colonnade, Aqueduct, Labyrinth, Mountain Pass,
-          Defiled Shrine);
-        * Goons (``player.goons_played``) — +VP per buy;
-        * Groundskeeper (``player.groundskeeper_bonus``) — +VP per
-          Victory card gained;
-        * Collection (``player.collection_played``) — +VP per Action
-          card gained.
-
-        When any is active the buyer's true end score can exceed the
-        estimate, so the guard stands down rather than risk vetoing a
-        winning buy. Card-specific on-gain VP that only fires when the
-        *bought card itself* is gained (Temple, Castles) is not covered
-        here; it remains under the documented v1 caveat in
-        :meth:`gain_would_lose_game` (a narrow, bounded edge).
-        """
-        if (
-            getattr(player, "goons_played", 0)
-            or getattr(player, "groundskeeper_bonus", 0)
-            or getattr(player, "collection_played", 0)
-        ):
-            return True
-        from dominion.landmarks.base_landmark import Landmark
-
-        for landmark in self.landmarks or []:
-            cls = type(landmark)
-            if (
-                cls.on_buy is not Landmark.on_buy
-                or cls.on_gain is not Landmark.on_gain
-            ):
-                return True
-        return False
-
-    def _buy_pile_restorable(self, player: PlayerState, card: "Card") -> bool:
-        """True when a reaction can return ``card`` to its pile, so the
-        real buy would *not* deplete it and the cheap decrement-only
-        simulation would wrongly predict game-end.
-
-        A full audit of supply-restoring sites on the gain path found
-        exactly three such reactions in this engine:
-
-        * Exile reclamation (deterministic) — a matching copy on the
-          Exile mat is reclaimed and the supply restored
-          (game_state.py:~3401).
-        * Trader (AI-decided) — a Trader in hand may exchange the gain
-          for a Silver, returning the card to its pile
-          (game_state.py:~3843); needs Silver in the supply.
-        * Changeling (AI-decided) — the gain may be swapped for a
-          Changeling, returning the card to its pile
-          (game_state.py:~3602).
-
-        The two AI-decided cases cannot be evaluated side-effect-free
-        here, so their mere availability is treated as enough to stand
-        the guard down. That only forgoes the safety net (reverting to
-        pre-guard behaviour for this buy); it never blocks a buy, which
-        is the harmful failure the reviewer flagged.
-        """
-        if any(exiled.name == card.name for exiled in player.exile):
-            return True
-        if self.supply.get("Silver", 0) > 0 and any(
-            c.name == "Trader" for c in player.hand
-        ):
-            return True
-        if self.supply.get("Changeling", 0) > 0 and card.name != "Changeling":
-            return True
-        return False
-
     def gain_would_lose_game(self, player: PlayerState, card: "Card") -> bool:
-        """True if committing ``card`` to ``player`` would end the game
-        with ``player`` not strictly ahead.
-
-        The check is a reversible simulation: the card's pile is
-        decremented and the card is added to the player's deck, the
-        standard end condition is evaluated, scores are compared, then
-        both mutations are undone. Opponents take no further turn once
-        the game ends, so their *current* score is the right comparison.
-        A tie counts as "would lose": the winner is decided by
-        ``max(players, key=victory_points)``, i.e. seat order, which a
-        strategy must not bank on.
-
-        The simulation models only the bought card's own pile decrement.
-        Over-caution (declining a buy) is the safe direction *except*
-        where it would block a winning/legal buy, so the guard stands
-        down when the cheap sim cannot faithfully predict the outcome:
-        VP-awarding buy/gain hooks (see :meth:`_has_unmodeled_vp_on_gain`)
-        and reactions that return the card to its pile (see
-        :meth:`_buy_pile_restorable`). A residual narrow edge remains:
-        card-specific on-gain VP that fires only when the bought card
-        itself is gained (Temple, Castles).
-        """
+        """True if a real buy of ``card`` would end the game while not ahead."""
         if self._losing_pileout_allowed(player):
             return False
 
-        if self._has_unmodeled_vp_on_gain(player):
+        if not self._all_decision_hooks_pure():
             return False
 
-        if self._buy_pile_restorable(player, card):
+        if not self._buy_could_end_game(player, card):
             return False
 
         pile = self._supply_pile_name(card)
         if self.supply.get(pile, 0) <= 0:
             return False
 
-        self.supply[pile] -= 1
-        player.discard.append(card)
+        rng_state = random.getstate()
         try:
-            if not self._normal_game_end_reached():
+            clone = copy.deepcopy(self)
+            player_index = next(
+                i for i, candidate in enumerate(self.players) if candidate is player
+            )
+            clone_player = clone.players[player_index]
+            clone_card = (
+                card
+                if getattr(card, "is_event", False) or getattr(card, "is_project", False)
+                else get_card(card.name)
+            )
+            clone._commit_buy(clone_player, clone_card)
+
+            if not clone._normal_game_end_reached():
                 return False
-            my_vp = player.get_victory_points(self)
-            opponents = [
-                p.get_victory_points(self) for p in self.players if p is not player
-            ]
-            opp_best = max(opponents) if opponents else 0
+            my_vp = clone_player.get_victory_points(clone)
+            opp_best = max(
+                (
+                    p.get_victory_points(clone)
+                    for p in clone.players
+                    if p is not clone_player
+                ),
+                default=0,
+            )
             return my_vp <= opp_best
         finally:
-            player.discard.pop()
-            self.supply[pile] += 1
+            random.setstate(rng_state)
 
     def _choose_safe_buy(
         self, player: PlayerState, affordable: list["Card"]

@@ -22,6 +22,8 @@ class RLAI(AI):
     while the env controls the RL agent's decisions.
     """
 
+    decision_hooks_are_pure = False
+
     def __init__(self, name: str = "RLAI"):
         self._name = name
         self.strategy = _RLStrategy()
