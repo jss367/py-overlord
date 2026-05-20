@@ -8,6 +8,26 @@ from dominion.cards.split_pile import SplitPileMixin
 from dominion.game.player_state import PlayerState
 
 
+# Mid-turn safety cap. Real Dominion turns rarely exceed a few hundred plays
+# even with aggressive engines; this bound is far above legitimate play and
+# fires only on runaway loops (self-replenishing actions, evolved genomes
+# that exploit unbounded composition, future card-impl bugs). When hit, the
+# phase aborts with PhaseStepLimitExceeded, which the trainer's existing
+# exception handler scores as -inf — so the GA naturally selects against
+# pathological genomes instead of hanging the worker process.
+PHASE_STEP_LIMIT = 10000
+
+
+class PhaseStepLimitExceeded(RuntimeError):
+    """Raised when a phase's main loop exceeds PHASE_STEP_LIMIT iterations.
+
+    Indicates a runaway mid-turn loop — e.g. a card whose play replenishes
+    the hand and Actions without bound, or an evolved strategy that
+    composes such effects. Catchable so simulation harnesses can mark the
+    offending genome as a loss rather than crashing.
+    """
+
+
 @dataclass
 class GameState:
     players: list[PlayerState]
@@ -1478,7 +1498,16 @@ class GameState:
             and self.prophecy.name == "Enlightenment"
         )
 
+        steps = 0
         while True:
+            steps += 1
+            if steps > PHASE_STEP_LIMIT:
+                raise PhaseStepLimitExceeded(
+                    f"action phase exceeded {PHASE_STEP_LIMIT} plays in a single turn "
+                    f"(player={getattr(player.ai, 'name', '?')}, "
+                    f"turn={self.turn_number}, hand_size={len(player.hand)}, "
+                    f"actions_left={player.actions})"
+                )
             action_cards = [card for card in player.hand if card.is_action]
             # Adventures Inheritance: each Estate in hand can be played as the
             # inherited Action card.
@@ -1892,7 +1921,14 @@ class GameState:
             getattr(p, "name", "") == "Capitalism" for p in player.projects
         )
 
+        steps = 0
         while True:
+            steps += 1
+            if steps > PHASE_STEP_LIMIT:
+                raise PhaseStepLimitExceeded(
+                    f"treasure phase exceeded {PHASE_STEP_LIMIT} plays in a single turn "
+                    f"(player={getattr(player.ai, 'name', '?')}, turn={self.turn_number})"
+                )
             # ``is_treasure`` respects game-level type modifiers — notably
             # Charlatan, which makes Curses Treasures for the whole game.
             treasures = [card for card in player.hand if self.is_treasure(card)]
@@ -2008,7 +2044,15 @@ class GameState:
         """Handle the buy phase of a turn."""
         player = self.current_player
 
+        steps = 0
         while True:
+            steps += 1
+            if steps > PHASE_STEP_LIMIT:
+                raise PhaseStepLimitExceeded(
+                    f"buy phase exceeded {PHASE_STEP_LIMIT} iterations in a single turn "
+                    f"(player={getattr(player.ai, 'name', '?')}, turn={self.turn_number}, "
+                    f"buys_left={player.buys}, coins={player.coins})"
+                )
             if player.debt > 0:
                 if player.coins > 0:
                     paid = min(player.debt, player.coins)
@@ -2160,7 +2204,14 @@ class GameState:
         """
 
         player = self.current_player
+        steps = 0
         while True:
+            steps += 1
+            if steps > PHASE_STEP_LIMIT:
+                raise PhaseStepLimitExceeded(
+                    f"night phase exceeded {PHASE_STEP_LIMIT} plays in a single turn "
+                    f"(player={getattr(player.ai, 'name', '?')}, turn={self.turn_number})"
+                )
             night_cards = [card for card in player.hand if card.is_night]
             if not night_cards:
                 break
