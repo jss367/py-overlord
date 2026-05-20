@@ -142,6 +142,40 @@ def test_elder_gives_townsfolk_choice_card_one_extra_mode():
     assert not hasattr(state, "_elder_extra_townsfolk_choices")
 
 
+def test_elder_extra_mode_does_not_apply_to_nested_action_play():
+    class ChooseSpecialistThenTownCrierAI(DummyAI):
+        def __init__(self):
+            super().__init__()
+            self.calls = 0
+
+        def choose_action(self, state, choices):
+            self.calls += 1
+            wanted = "Specialist" if self.calls == 1 else "Town Crier"
+            for choice in choices:
+                if choice is not None and choice.name == wanted:
+                    return choice
+            return None
+
+    player = PlayerState(ChooseSpecialistThenTownCrierAI())
+    state = GameState(players=[player])
+    state.supply = {"Town Crier": 0, "Silver": 0}
+    player.actions = 1
+    player.hand = [get_card("Specialist"), get_card("Town Crier")]
+    player.deck = [get_card("Estate")]
+    player.discard = [get_card("Copper") for _ in range(5)]
+
+    elder = get_card("Elder")
+    player.in_play.append(elder)
+    elder.on_play(state)
+
+    assert player.favors == 3
+    assert player.coins == 4
+    assert player.actions == 2
+    assert len(player.hand) == 0
+    assert not hasattr(state, "_elder_extra_townsfolk_choices")
+    assert not hasattr(state, "_elder_extra_townsfolk_target")
+
+
 def test_clashes_grant_favor():
     for name in CLASHES_PILE_ORDER:
         state, player = _setup_state("Battle Plan")

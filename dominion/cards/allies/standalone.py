@@ -344,11 +344,10 @@ class RoyalGalley(Card):
             stats=CardStats(cards=1),
             types=[CardType.ACTION, CardType.DURATION],
         )
-        self._set_aside: Optional[Card] = None
+        self._set_aside: list[Card] = []
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        self._set_aside = None
         actions = [
             c for c in player.hand
             if c.is_action and not c.is_duration
@@ -366,7 +365,7 @@ class RoyalGalley(Card):
         if choice not in player.in_play:
             return
         player.in_play.remove(choice)
-        self._set_aside = choice
+        self._set_aside.append(choice)
         self.duration_persistent = False
         if self not in player.duration:
             player.duration.append(self)
@@ -375,12 +374,15 @@ class RoyalGalley(Card):
         player = game_state.current_player
         if self in player.in_play:
             player.in_play.remove(self)
-        if self._set_aside is None:
+        if not self._set_aside:
             return
-        card = self._set_aside
-        self._set_aside = None
-        player.in_play.append(card)
-        game_state.play_action_indirectly(player, card, blocked_return_zone=player.discard)
+        cards = list(self._set_aside)
+        self._set_aside = []
+        for card in cards:
+            player.in_play.append(card)
+            game_state.play_action_indirectly(
+                player, card, blocked_return_zone=player.discard
+            )
         self.duration_persistent = False
 
 

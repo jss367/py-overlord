@@ -10,6 +10,7 @@ from ._split_base import AlliesSplitCard, grant_favor
 
 TOWNSFOLK_PILE_ORDER = ("Town Crier", "Blacksmith", "Miller", "Elder")
 _ELDER_EXTRA_CHOICE_ATTR = "_elder_extra_townsfolk_choices"
+_ELDER_TARGET_ATTR = "_elder_extra_townsfolk_target"
 
 
 def _elder_extra_choice_count(game_state) -> int:
@@ -17,10 +18,13 @@ def _elder_extra_choice_count(game_state) -> int:
 
 
 def _append_elder_extra_modes(
+    card: Card,
     modes: list[str],
     ranked_modes: list[str],
     game_state,
 ) -> list[str]:
+    if getattr(game_state, _ELDER_TARGET_ATTR, None) is not card:
+        return modes
     remaining = _elder_extra_choice_count(game_state)
     for mode in ranked_modes:
         if remaining <= 0:
@@ -57,6 +61,7 @@ class TownCrier(_Townsfolk):
 
         modes = [self._choose_mode(game_state, player)]
         modes = _append_elder_extra_modes(
+            self,
             modes,
             self._ranked_extra_modes(game_state, player),
             game_state,
@@ -119,6 +124,7 @@ class Blacksmith(_Townsfolk):
 
         modes = [self._choose_mode(player)]
         modes = _append_elder_extra_modes(
+            self,
             modes,
             self._ranked_extra_modes(player),
             game_state,
@@ -241,7 +247,9 @@ class Elder(_Townsfolk):
         if not game_state.move_card_from_hand_to_play(player, choice):
             return
         previous = getattr(game_state, _ELDER_EXTRA_CHOICE_ATTR, 0)
+        previous_target = getattr(game_state, _ELDER_TARGET_ATTR, None)
         setattr(game_state, _ELDER_EXTRA_CHOICE_ATTR, previous + 1)
+        setattr(game_state, _ELDER_TARGET_ATTR, choice)
         try:
             game_state.play_action_indirectly(
                 player, choice, blocked_return_zone=player.hand
@@ -252,5 +260,12 @@ class Elder(_Townsfolk):
             else:
                 try:
                     delattr(game_state, _ELDER_EXTRA_CHOICE_ATTR)
+                except AttributeError:
+                    pass
+            if previous_target is not None:
+                setattr(game_state, _ELDER_TARGET_ATTR, previous_target)
+            else:
+                try:
+                    delattr(game_state, _ELDER_TARGET_ATTR)
                 except AttributeError:
                     pass

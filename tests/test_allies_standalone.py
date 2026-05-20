@@ -771,3 +771,37 @@ def test_royal_galley_sets_aside_action_for_next_turn_replay():
     assert village in player.in_play
     assert galley in player.discard
     assert galley not in player.duration
+
+
+def test_royal_galley_keeps_multiple_set_aside_actions():
+    state, player = _state()
+    village = get_card("Village")
+    smithy = get_card("Smithy")
+    player.hand = [village, smithy]
+    player.deck = [get_card("Copper") for _ in range(3)]
+
+    class _AI(DummyAI):
+        def choose_action(self, state, choices):
+            for c in choices:
+                if c is not None:
+                    return c
+            return None
+
+    player.ai = _AI()
+    galley = get_card("Royal Galley")
+    player.in_play.append(galley)
+
+    galley.play_effect(state)
+    galley.play_effect(state)
+
+    assert village not in player.hand
+    assert smithy not in player.hand
+    assert village not in player.in_play
+    assert smithy not in player.in_play
+    assert len(galley._set_aside) == 2
+
+    state.do_duration_phase()
+
+    assert village in player.in_play
+    assert smithy in player.in_play
+    assert galley._set_aside == []
