@@ -271,7 +271,8 @@ class GameState:
         that card's source-zone semantics.
         """
         card_was_in_play = card in player.in_play
-        if self._warlord_blocks_action_play(
+        check_warlord = blocked_return_zone is player.hand
+        if check_warlord and self._warlord_blocks_action_play(
             player,
             card,
             card_already_in_play=card_was_in_play,
@@ -1640,11 +1641,10 @@ class GameState:
             # Rising Sun: Shadow cards may be played from the deck whenever
             # you could normally play an Action.
             shadow_in_deck = [card for card in player.deck if card.is_shadow]
-            playable = action_cards + shadow_in_deck
             playable = [
-                card for card in playable
+                card for card in action_cards
                 if not self._warlord_blocks_action_play(player, card)
-            ]
+            ] + shadow_in_deck
 
             if not playable:
                 break
