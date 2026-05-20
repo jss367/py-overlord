@@ -29,12 +29,14 @@ class Procession(Card):
         if not game_state.move_card_from_hand_to_play(player, choice):
             return
 
-        game_state.play_action_indirectly(
+        if not game_state.play_action_indirectly(
             player, choice, blocked_return_zone=player.hand
-        )
-        game_state.play_action_indirectly(
+        ):
+            return
+        if not game_state.play_action_indirectly(
             player, choice, blocked_return_zone=player.hand
-        )
+        ):
+            return
 
         # Trash the played card
         target_cost = choice.cost.coins + 1

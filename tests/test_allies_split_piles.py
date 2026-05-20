@@ -331,6 +331,26 @@ def test_warlord_blocked_indirect_play_without_hand_source_does_not_enter_hand()
     assert player.actions_this_turn == 0
 
 
+def test_warlord_blocks_indirect_play_from_non_play_zone_as_third_copy():
+    player = PlayerState(DummyAI())
+    state = GameState(players=[player])
+    player.warlord_restriction_count = 1
+    trashed_smithy = get_card("Smithy")
+    player.in_play = [get_card("Smithy"), get_card("Smithy")]
+    player.deck = [get_card("Copper") for _ in range(5)]
+    state.trash = [trashed_smithy]
+
+    played = state.play_action_indirectly(
+        player, trashed_smithy, blocked_return_zone=state.trash
+    )
+
+    assert played is False
+    assert trashed_smithy in state.trash
+    assert trashed_smithy not in player.in_play
+    assert len(player.hand) == 0
+    assert player.actions_this_turn == 0
+
+
 def test_warlord_blocked_indirect_play_ignores_prior_hand_play_source():
     player = PlayerState(DummyAI())
     state = GameState(players=[player])
@@ -350,6 +370,25 @@ def test_warlord_blocked_indirect_play_ignores_prior_hand_play_source():
     assert smithy not in player.hand
     assert smithy not in player.in_play
     assert smithy not in player.discard
+    assert player.actions_this_turn == 0
+
+
+def test_warlord_blocked_multiplier_stops_replay_loop():
+    player = PlayerState(_PlayFirstActionAI())
+    state = GameState(players=[player])
+    player.warlord_restriction_count = 1
+    kings_court = get_card("King's Court")
+    blocked_smithy = get_card("Smithy")
+    player.in_play = [kings_court, get_card("Smithy"), get_card("Smithy")]
+    player.hand = [blocked_smithy]
+    player.deck = [get_card("Copper") for _ in range(5)]
+
+    kings_court.play_effect(state)
+
+    assert blocked_smithy in player.hand
+    assert blocked_smithy not in player.in_play
+    assert len(player.hand) == 1
+    assert len(player.deck) == 5
     assert player.actions_this_turn == 0
 
 

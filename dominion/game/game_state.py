@@ -8,6 +8,26 @@ from dominion.cards.split_pile import SplitPileMixin
 from dominion.game.player_state import PlayerState
 
 
+# Mid-turn safety cap. Real Dominion turns rarely exceed a few hundred plays
+# even with aggressive engines; this bound is far above legitimate play and
+# fires only on runaway loops (self-replenishing actions, evolved genomes
+# that exploit unbounded composition, future card-impl bugs). When hit, the
+# phase aborts with PhaseStepLimitExceeded, which the trainer's existing
+# exception handler scores as -inf — so the GA naturally selects against
+# pathological genomes instead of hanging the worker process.
+PHASE_STEP_LIMIT = 10000
+
+
+class PhaseStepLimitExceeded(RuntimeError):
+    """Raised when a phase's main loop exceeds PHASE_STEP_LIMIT iterations.
+
+    Indicates a runaway mid-turn loop — e.g. a card whose play replenishes
+    the hand and Actions without bound, or an evolved strategy that
+    composes such effects. Catchable so simulation harnesses can mark the
+    offending genome as a loss rather than crashing.
+    """
+
+
 @dataclass
 class GameState:
     players: list[PlayerState]
@@ -221,7 +241,7 @@ class GameState:
         card: Card,
         *,
         blocked_return_zone: list[Card] | None = None,
-    ) -> None:
+    ) -> bool:
         """Resolve a single Action play that originates outside the main
         action-phase loop, applying the bookkeeping that loop would.
 
@@ -245,10 +265,11 @@ class GameState:
         freshly moved card, ``blocked_return_zone`` lets the caller preserve
         that card's source-zone semantics.
         """
+        card_was_in_play = card in player.in_play
         if self._warlord_blocks_action_play(
             player,
             card,
-            card_already_in_play=True,
+            card_already_in_play=card_was_in_play,
         ):
             if card in player.in_play:
                 player.in_play.remove(card)
@@ -262,7 +283,7 @@ class GameState:
                     {"card": card.name},
                 )
             )
-            return
+            return False
         player.actions_this_turn += 1
         player.actions_played += 1
         card.on_play(self)
@@ -275,6 +296,7 @@ class GameState:
         # Captain, Ghost, Riverboat, Royal Carriage, Throne Room et al
         # — funnels through the same Citadel trigger.
         self._maybe_citadel_replay(player, card)
+        return True
 
     def fire_prophecy_action_hooks(self, player: PlayerState, card: Card) -> None:
         """Fire the active Prophecy's after-Action-play hooks for ``card``.
@@ -1567,7 +1589,16 @@ class GameState:
             and self.prophecy.name == "Enlightenment"
         )
 
+        steps = 0
         while True:
+            steps += 1
+            if steps > PHASE_STEP_LIMIT:
+                raise PhaseStepLimitExceeded(
+                    f"action phase exceeded {PHASE_STEP_LIMIT} plays in a single turn "
+                    f"(player={getattr(player.ai, 'name', '?')}, "
+                    f"turn={self.turn_number}, hand_size={len(player.hand)}, "
+                    f"actions_left={player.actions})"
+                )
             action_cards = [
                 card for card in player.hand
                 if card.is_action and self._voyage_can_play_from_hand(player)
@@ -1997,7 +2028,14 @@ class GameState:
             getattr(p, "name", "") == "Capitalism" for p in player.projects
         )
 
+        steps = 0
         while True:
+            steps += 1
+            if steps > PHASE_STEP_LIMIT:
+                raise PhaseStepLimitExceeded(
+                    f"treasure phase exceeded {PHASE_STEP_LIMIT} plays in a single turn "
+                    f"(player={getattr(player.ai, 'name', '?')}, turn={self.turn_number})"
+                )
             # ``is_treasure`` respects game-level type modifiers — notably
             # Charlatan, which makes Curses Treasures for the whole game.
             if self._voyage_can_play_from_hand(player):
@@ -2117,7 +2155,15 @@ class GameState:
         """Handle the buy phase of a turn."""
         player = self.current_player
 
+        steps = 0
         while True:
+            steps += 1
+            if steps > PHASE_STEP_LIMIT:
+                raise PhaseStepLimitExceeded(
+                    f"buy phase exceeded {PHASE_STEP_LIMIT} iterations in a single turn "
+                    f"(player={getattr(player.ai, 'name', '?')}, turn={self.turn_number}, "
+                    f"buys_left={player.buys}, coins={player.coins})"
+                )
             if player.debt > 0:
                 if player.coins > 0:
                     paid = min(player.debt, player.coins)
@@ -2143,7 +2189,7 @@ class GameState:
             if not affordable:
                 break
 
-            choice = player.ai.choose_buy(self, affordable + [None])
+            choice = self._choose_safe_buy(player, affordable)
             if choice is None:
                 break
 
@@ -2269,7 +2315,14 @@ class GameState:
         """
 
         player = self.current_player
+        steps = 0
         while True:
+            steps += 1
+            if steps > PHASE_STEP_LIMIT:
+                raise PhaseStepLimitExceeded(
+                    f"night phase exceeded {PHASE_STEP_LIMIT} plays in a single turn "
+                    f"(player={getattr(player.ai, 'name', '?')}, turn={self.turn_number})"
+                )
             if self._voyage_can_play_from_hand(player):
                 night_cards = [card for card in player.hand if card.is_night]
             else:
@@ -2957,6 +3010,198 @@ class GameState:
             self.handle_night_phase()
         elif self.phase == "cleanup":
             self.handle_cleanup_phase()
+
+    def _normal_game_end_reached(self) -> bool:
+        """True when the standard game-end condition currently holds.
+
+        Unlike :meth:`is_game_over`, this is a pure inspection of the
+        supply: the Province pile is empty, the Colony pile is empty
+        (when in use), or three supply piles are gone. It deliberately
+        ignores mid-turn / Fleet sequencing so it can be used to predict
+        the effect of a *prospective* gain during a player's buy phase.
+
+        Unlike :meth:`is_game_over`, a pile only counts as depleted if it
+        is actually present in the supply: a board with no Province pile
+        (only seen in minimal test setups) is not "game over" here.
+        """
+        province_depleted = "Province" in self.supply and self.supply["Province"] == 0
+        colony_depleted = "Colony" in self.supply and self.supply["Colony"] == 0
+        return province_depleted or colony_depleted or self.empty_piles >= 3
+
+    def _supply_pile_name(self, card: "Card") -> str:
+        """Return the supply key whose count a buy/gain of ``card`` decrements.
+
+        Knights resolve against the shared ``Knights`` pile rather than a
+        per-Sir pile; everything else uses the card's own name.
+        """
+        if getattr(card, "is_knight", False) and "Knights" in self.pile_order:
+            return "Knights"
+        return card.name
+
+    def _losing_pileout_allowed(self, player: PlayerState) -> bool:
+        """Whether ``player`` has opted out of the game-losing-buy guard.
+
+        A strategy (or a bare AI, for tests) may set
+        ``allow_losing_pileout = True`` to deliberately end the game even
+        when behind — e.g. to deny an opponent a megaturn.
+        """
+        ai = getattr(player, "ai", None)
+        if getattr(ai, "allow_losing_pileout", False):
+            return True
+        strategy = getattr(ai, "strategy", None)
+        return bool(getattr(strategy, "allow_losing_pileout", False))
+
+    def _has_unmodeled_vp_on_gain(self, player: PlayerState) -> bool:
+        """True when buying/gaining this turn can award the buyer VP that
+        :meth:`gain_would_lose_game`'s cheap simulation does not model.
+
+        The reversible simulation only adds the card to the deck; it does
+        not run the real ``on_buy``/``on_gain`` hooks. A full-tree audit
+        of every ``vp_tokens`` mutation shows the buy/gain path's
+        broad-category VP-token sources are:
+
+        * a Landmark overriding ``on_buy``/``on_gain`` (Battlefield,
+          Basilica, Colonnade, Aqueduct, Labyrinth, Mountain Pass,
+          Defiled Shrine);
+        * Goons (``player.goons_played``) — +VP per buy;
+        * Groundskeeper (``player.groundskeeper_bonus``) — +VP per
+          Victory card gained;
+        * Collection (``player.collection_played``) — +VP per Action
+          card gained.
+
+        When any is active the buyer's true end score can exceed the
+        estimate, so the guard stands down rather than risk vetoing a
+        winning buy. Card-specific on-gain VP that only fires when the
+        *bought card itself* is gained (Temple, Castles) is not covered
+        here; it remains under the documented v1 caveat in
+        :meth:`gain_would_lose_game` (a narrow, bounded edge).
+        """
+        if (
+            getattr(player, "goons_played", 0)
+            or getattr(player, "groundskeeper_bonus", 0)
+            or getattr(player, "collection_played", 0)
+        ):
+            return True
+        from dominion.landmarks.base_landmark import Landmark
+
+        for landmark in self.landmarks or []:
+            cls = type(landmark)
+            if (
+                cls.on_buy is not Landmark.on_buy
+                or cls.on_gain is not Landmark.on_gain
+            ):
+                return True
+        return False
+
+    def _buy_pile_restorable(self, player: PlayerState, card: "Card") -> bool:
+        """True when a reaction can return ``card`` to its pile, so the
+        real buy would *not* deplete it and the cheap decrement-only
+        simulation would wrongly predict game-end.
+
+        A full audit of supply-restoring sites on the gain path found
+        exactly three such reactions in this engine:
+
+        * Exile reclamation (deterministic) — a matching copy on the
+          Exile mat is reclaimed and the supply restored
+          (game_state.py:~3401).
+        * Trader (AI-decided) — a Trader in hand may exchange the gain
+          for a Silver, returning the card to its pile
+          (game_state.py:~3843); needs Silver in the supply.
+        * Changeling (AI-decided) — the gain may be swapped for a
+          Changeling, returning the card to its pile
+          (game_state.py:~3602).
+
+        The two AI-decided cases cannot be evaluated side-effect-free
+        here, so their mere availability is treated as enough to stand
+        the guard down. That only forgoes the safety net (reverting to
+        pre-guard behaviour for this buy); it never blocks a buy, which
+        is the harmful failure the reviewer flagged.
+        """
+        if any(exiled.name == card.name for exiled in player.exile):
+            return True
+        if self.supply.get("Silver", 0) > 0 and any(
+            c.name == "Trader" for c in player.hand
+        ):
+            return True
+        if self.supply.get("Changeling", 0) > 0 and card.name != "Changeling":
+            return True
+        return False
+
+    def gain_would_lose_game(self, player: PlayerState, card: "Card") -> bool:
+        """True if committing ``card`` to ``player`` would end the game
+        with ``player`` not strictly ahead.
+
+        The check is a reversible simulation: the card's pile is
+        decremented and the card is added to the player's deck, the
+        standard end condition is evaluated, scores are compared, then
+        both mutations are undone. Opponents take no further turn once
+        the game ends, so their *current* score is the right comparison.
+        A tie counts as "would lose": the winner is decided by
+        ``max(players, key=victory_points)``, i.e. seat order, which a
+        strategy must not bank on.
+
+        The simulation models only the bought card's own pile decrement.
+        Over-caution (declining a buy) is the safe direction *except*
+        where it would block a winning/legal buy, so the guard stands
+        down when the cheap sim cannot faithfully predict the outcome:
+        VP-awarding buy/gain hooks (see :meth:`_has_unmodeled_vp_on_gain`)
+        and reactions that return the card to its pile (see
+        :meth:`_buy_pile_restorable`). A residual narrow edge remains:
+        card-specific on-gain VP that fires only when the bought card
+        itself is gained (Temple, Castles).
+        """
+        if self._losing_pileout_allowed(player):
+            return False
+
+        if self._has_unmodeled_vp_on_gain(player):
+            return False
+
+        if self._buy_pile_restorable(player, card):
+            return False
+
+        pile = self._supply_pile_name(card)
+        if self.supply.get(pile, 0) <= 0:
+            return False
+
+        self.supply[pile] -= 1
+        player.discard.append(card)
+        try:
+            if not self._normal_game_end_reached():
+                return False
+            my_vp = player.get_victory_points(self)
+            opponents = [
+                p.get_victory_points(self) for p in self.players if p is not player
+            ]
+            opp_best = max(opponents) if opponents else 0
+            return my_vp <= opp_best
+        finally:
+            player.discard.pop()
+            self.supply[pile] += 1
+
+    def _choose_safe_buy(
+        self, player: PlayerState, affordable: list["Card"]
+    ) -> "Card | None":
+        """Ask the AI for a buy, vetoing choices that would lose the game.
+
+        When a chosen card would end the game while the player is not
+        ahead, it is removed from the offered set and the AI is asked
+        again, so the strategy's *next* preference is honoured. If every
+        affordable card is a game-losing ender, the player buys nothing.
+        """
+        candidates = list(affordable)
+        while candidates:
+            choice = player.ai.choose_buy(self, candidates + [None])
+            if choice is None:
+                return None
+            if choice not in candidates:
+                # Defensive: AI returned something outside the offered
+                # set; trust it rather than risk an infinite loop.
+                return choice
+            if self.gain_would_lose_game(player, choice):
+                candidates = [c for c in candidates if c.name != choice.name]
+                continue
+            return choice
+        return None
 
     def is_game_over(self) -> bool:
         """Check if the game is over.

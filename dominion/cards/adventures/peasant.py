@@ -136,12 +136,14 @@ class Disciple(Card):
             return
         if not game_state.move_card_from_hand_to_play(player, chosen):
             return
-        game_state.play_action_indirectly(
+        if not game_state.play_action_indirectly(
             player, chosen, blocked_return_zone=player.hand
-        )
-        game_state.play_action_indirectly(
+        ):
+            return
+        if not game_state.play_action_indirectly(
             player, chosen, blocked_return_zone=player.hand
-        )
+        ):
+            return
         if game_state.supply.get(chosen.name, 0) > 0:
             game_state.supply[chosen.name] -= 1
             game_state.gain_card(player, get_card(chosen.name))
