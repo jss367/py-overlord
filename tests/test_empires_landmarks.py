@@ -52,6 +52,24 @@ class MountainPassBidAI(DummyAI):
         return min(self.bid, maximum_bid)
 
 
+class MountainPassSequenceAI(DummyAI):
+    def __init__(self, bids):
+        super().__init__()
+        self.bids = list(bids)
+        self.calls = 0
+
+    def choose_mountain_pass_bid(
+        self, state, player, province_gainer, minimum_bid, maximum_bid
+    ):
+        self.calls += 1
+        if not self.bids:
+            raise AssertionError("Mountain Pass asked the same player to bid again")
+        bid = self.bids.pop(0)
+        if bid is None or bid < minimum_bid:
+            return None
+        return min(bid, maximum_bid)
+
+
 def _make_game(landmarks=None, num_players=2):
     players = [PlayerState(DummyAI()) for _ in range(num_players)]
     state = GameState(players=players)
@@ -220,7 +238,7 @@ def test_mountain_pass_high_bidder_gets_vp_and_debt():
     assert state.players[2].vp_tokens == 0
 
 
-def test_mountain_pass_continues_until_full_round_of_passes():
+def test_mountain_pass_gainer_bids_last():
     landmark = MountainPass()
     state = _make_game([landmark], num_players=3)
     state.players[0].ai = MountainPassBidAI(12)
@@ -233,6 +251,22 @@ def test_mountain_pass_continues_until_full_round_of_passes():
     assert state.players[0].debt == 12
     assert state.players[1].vp_tokens == 0
     assert state.players[1].debt == 0
+
+
+def test_mountain_pass_asks_each_player_to_bid_once():
+    landmark = MountainPass()
+    state = _make_game([landmark], num_players=3)
+    gainer = state.players[0]
+    state.players[0].ai = MountainPassSequenceAI([None])
+    state.players[1].ai = MountainPassSequenceAI([10, 20])
+    state.players[2].ai = MountainPassSequenceAI([None])
+
+    state.gain_card(gainer, get_card("Province"))
+
+    assert state.players[1].ai.calls == 1
+    assert state.players[1].vp_tokens == 8
+    assert state.players[1].debt == 10
+    assert state.players[0].vp_tokens == 0
 
 
 def test_mountain_pass_rejects_zero_bid():
