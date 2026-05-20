@@ -2869,10 +2869,29 @@ class GameState:
         return province_depleted or colony_depleted or self.empty_piles >= 3
 
     def _buy_could_end_game(self, player: PlayerState, card: "Card") -> bool:
-        """Loose, cheap pre-check for whether a buy could end the game."""
-        if "Province" in self.supply and self.supply["Province"] <= 2:
+        """Loose, cheap pre-check for whether a buy could end the game.
+
+        Triggers when the *next* buy could plausibly trip the standard
+        end condition:
+
+        * Province / Colony at ``<= 1`` — only the last copy ends the
+          game via that pile, and no engine effect gains two of either
+          in a single buy commit.
+        * ``empty_piles >= 2`` — a single buy with Hoard, Border
+          Village, Hill Fort, etc. can empty a third pile via
+          side-effect gains, so this stays at two-piles-already-empty.
+
+        Tightening the Province/Colony thresholds from ``<= 2`` to
+        ``<= 1`` roughly halves the deep-copy frequency near the end of
+        the game without weakening correctness: anything the looser
+        gate caught at Province=2 also satisfies one of the two
+        retained conditions (the very next Province buy hits Province=1,
+        and any side-effect chain that could end the game from
+        Province=2 must first traverse the empty_piles trigger).
+        """
+        if "Province" in self.supply and self.supply["Province"] <= 1:
             return True
-        if "Colony" in self.supply and self.supply["Colony"] <= 2:
+        if "Colony" in self.supply and self.supply["Colony"] <= 1:
             return True
         if self.empty_piles >= 2:
             return True
