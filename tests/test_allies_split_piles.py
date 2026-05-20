@@ -262,6 +262,22 @@ def test_garrison_played_twice_adds_two_tokens_per_gain():
     assert garrison.tokens == 0
 
 
+def test_garrison_ignores_gains_after_its_played_turn():
+    state, player = _setup_state("Tent")
+    garrison = get_card("Garrison")
+    player.in_play.append(garrison)
+    garrison.on_play(state)
+
+    state.gain_card(player, get_card("Silver"))
+    assert garrison.tokens == 1
+
+    player.turns_taken += 1
+    player.cards_gained_this_turn = 0
+    state.gain_card(player, get_card("Estate"))
+
+    assert garrison.tokens == 1
+
+
 def test_warlord_blocks_opponent_third_same_named_action():
     attacker = PlayerState(DummyAI())
     opponent = PlayerState(_PlayFirstActionAI())

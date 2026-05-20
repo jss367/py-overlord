@@ -67,6 +67,8 @@ class Garrison(_Forts):
     def on_owner_gain(self, game_state, player, gained_card: Card) -> None:
         if self not in player.in_play or self._garrison_gain_triggers <= 0:
             return
+        if self._garrison_turn_marker != (id(player), player.turns_taken):
+            return
 
         gain_marker = (
             id(player),

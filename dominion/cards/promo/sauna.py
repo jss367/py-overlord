@@ -23,7 +23,9 @@ class Sauna(TopSplitPileCard):
         target = avantos[0]
         if not game_state.move_card_from_hand_to_play(player, target):
             return
-        target.on_play(game_state)
+        game_state.play_action_indirectly(
+            player, target, blocked_return_zone=player.hand
+        )
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)

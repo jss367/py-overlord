@@ -23,4 +23,6 @@ class Avanto(BottomSplitPileCard):
         target = saunas[0]
         if not game_state.move_card_from_hand_to_play(player, target):
             return
-        target.on_play(game_state)
+        game_state.play_action_indirectly(
+            player, target, blocked_return_zone=player.hand
+        )
