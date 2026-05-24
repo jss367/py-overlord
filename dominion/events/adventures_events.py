@@ -415,7 +415,12 @@ class Inheritance(Event):
 
     @staticmethod
     def _eligible_candidates(game_state) -> list:
-        """Return the list of Action cards a player could currently inherit."""
+        """Return the list of Action cards a player could currently inherit.
+
+        Reserve and Duration cards are eligible; the engine persists the
+        inherited overlay (including ``on_call_from_tavern`` and
+        ``on_duration``) for the Estate's lifetime in those zones.
+        """
         candidates = []
         for name, count in game_state.supply.items():
             if count <= 0:
@@ -427,30 +432,6 @@ class Inheritance(Event):
             if not card.is_action:
                 continue
             if card.is_victory:
-                continue
-            # Engine limitation: this implementation plays the inherited
-            # card by binding its name/types/stats/play_effect/on_duration
-            # onto the Estate during the play, then restoring the Estate's
-            # identity at end of iteration. That correctly handles regular
-            # Actions, but it cannot soundly handle Reserve / Duration
-            # inheritance:
-            #   * Reserve play_effect calls ``set_aside_on_tavern(player, self)``
-            #     which puts the Estate on the Tavern mat. Because the
-            #     Estate has no inherited ``on_call_from_tavern`` after
-            #     teardown, it gets stuck on the mat for the rest of the
-            #     game and never delivers the call effect.
-            #   * Duration play_effect appends ``self`` to ``player.duration``;
-            #     the inherited ``on_duration`` is also unbound at iteration
-            #     end, so the next-turn duration effect never fires and the
-            #     Estate is stranded in the duration zone.
-            # Per strict Dominion rules these would be legal targets, but
-            # supporting them properly requires persisting the overlay
-            # across the Tavern / duration lifetime — significantly more
-            # engine work than the bug fix this PR addresses. We exclude
-            # them here as a pragmatic guard against silent state
-            # corruption; this is documented as a known limitation rather
-            # than being silently swallowed.
-            if card.is_reserve or card.is_duration:
                 continue
             if card.cost.coins > 4 or card.cost.potions != 0 or card.cost.debt != 0:
                 continue

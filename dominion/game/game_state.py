@@ -4829,12 +4829,20 @@ class GameState:
             return None
         inherited_card = get_card(inherited_name)
         inherited_cls = inherited_card.__class__
+        # For ``on_duration`` and ``on_call_from_tavern`` we look at the
+        # instance ``__dict__`` rather than using ``getattr``: the base
+        # ``Card`` class defines both as no-op fallbacks, so ``getattr``
+        # would always return a method (the base) and the overlay would
+        # be immediately overwritten on teardown. Using ``__dict__``
+        # gives ``None`` when nothing has been bound on the instance,
+        # which is the signal to leave the inherited binding in place.
         saved = {
             "name": estate.name,
             "stats": estate.stats,
             "types": estate.types,
             "play_effect": estate.play_effect,
-            "on_duration": getattr(estate, "on_duration", None),
+            "on_duration": estate.__dict__.get("on_duration"),
+            "on_call_from_tavern": estate.__dict__.get("on_call_from_tavern"),
         }
         # Name: pile-token lookups, training-token, and several other hooks
         # key off ``card.name``; without overlaying name they'd treat the
@@ -4850,8 +4858,20 @@ class GameState:
         estate.play_effect = inherited_cls.play_effect.__get__(
             estate, type(estate)
         )
+        # Bind Reserve / Duration callbacks too. They are looked up by
+        # ``_call_tavern_triggers`` and ``do_duration_phase`` from the
+        # card sitting on the Tavern mat / in the duration zone — long
+        # after this method returns — so they must survive overlay
+        # teardown (see ``_end_inherited_estate_overlay``: when the
+        # original Estate didn't define one of these, we leave the
+        # binding in place so the inherited behavior persists across
+        # the Tavern / duration lifetime).
         if hasattr(inherited_cls, "on_duration"):
             estate.on_duration = inherited_cls.on_duration.__get__(
+                estate, type(estate)
+            )
+        if hasattr(inherited_cls, "on_call_from_tavern"):
+            estate.on_call_from_tavern = inherited_cls.on_call_from_tavern.__get__(
                 estate, type(estate)
             )
         return saved
@@ -4865,8 +4885,15 @@ class GameState:
         estate.stats = saved["stats"]
         estate.types = saved["types"]
         estate.play_effect = saved["play_effect"]
+        # Only restore on_duration / on_call_from_tavern if the Estate
+        # originally had them. When it didn't (the common case for an
+        # Estate inheriting a Reserve or Duration card), we leave the
+        # inherited binding in place so the Tavern mat / duration zone
+        # can fire it long after the play loop has finished.
         if saved["on_duration"] is not None:
             estate.on_duration = saved["on_duration"]
+        if saved["on_call_from_tavern"] is not None:
+            estate.on_call_from_tavern = saved["on_call_from_tavern"]
 
     def _play_inherited_estate(self, player: PlayerState, estate: Card) -> None:
         """Backward-compatible wrapper: overlay → on_play → restore. Use the
