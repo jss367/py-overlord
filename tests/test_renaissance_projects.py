@@ -71,18 +71,78 @@ def test_pageant_pays_one_for_coffer():
     assert p.coin_tokens == 1
 
 
-def test_star_chart_promotes_action_from_discard():
+def test_star_chart_promotes_action_on_shuffle():
     state = make_state(StarChart())
     p = state.players[0]
     p.projects.append(state.projects[0])
     state.current_player_index = 0
-    p.deck = [get_card("Copper")]
-    p.discard = [get_card("Village"), get_card("Estate")]
+    p.deck = []
+    p.discard = [
+        get_card("Copper"),
+        get_card("Village"),
+        get_card("Estate"),
+        get_card("Silver"),
+        get_card("Copper"),
+    ]
+    p.hand = []
+    p.shuffle_discard_into_deck()
+    # Star Chart promotes the best action/treasure to the top of the deck.
+    # Top of deck is the last element (drawn via deck.pop()).
+    assert p.deck[-1].name == "Village"
+    assert p.discard == []
+
+
+def test_star_chart_fires_on_midturn_shuffle_via_draw():
+    """Star Chart should fire whenever the deck is reshuffled mid-turn,
+    not only at start-of-turn."""
+    state = make_state(StarChart())
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    p.deck = []
+    p.discard = [get_card("Copper"), get_card("Village"), get_card("Estate")]
+    p.hand = []
+    # draw_cards triggers the shuffle internally.
+    p.draw_cards(1)
+    assert any(c.name == "Village" for c in p.hand)
+
+
+def test_star_chart_does_nothing_without_shuffle():
+    """If no shuffle happens, Star Chart should not promote anything."""
+    state = make_state(StarChart())
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    p.deck = [get_card("Copper"), get_card("Copper")]
+    p.discard = [get_card("Village")]
     p.hand = []
     state.phase = "start"
     state.handle_start_phase()
-    # The Village should have been moved out of discard.
-    assert not any(c.name == "Village" for c in p.discard)
+    # No shuffle occurred, so Village stays in discard.
+    assert any(c.name == "Village" for c in p.discard)
+
+
+def test_star_chart_ignores_avoid_set_aside_cards():
+    state = make_state(StarChart())
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    p.deck = []
+    p.discard = [
+        get_card("Copper"),
+        get_card("Smithy"),
+        get_card("Silver"),
+        get_card("Village"),
+        get_card("Gold"),
+    ]
+    p.avoid_pending = 1
+
+    p.shuffle_discard_into_deck()
+
+    assert p.deck[-1].name == "Smithy"
+    assert [c.name for c in p.deck[-4:-1]] == ["Silver", "Village", "Gold"]
+    assert p.avoid_pending == 0
+    assert p.discard == []
 
 
 def test_exploration_grants_bonus_when_no_action_treasure_gain():

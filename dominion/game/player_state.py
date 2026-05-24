@@ -434,7 +434,8 @@ class PlayerState:
         """Shuffle discard pile to create new deck.
 
         Respects Stash (top), Rising Sun Shadow cards (bottom), Plunder
-        Avoid event (top up to 3), and Plunder Fated trait (top of deck).
+        Avoid event (top up to 3), Plunder Fated trait (top of deck), and
+        per-shuffle project hooks (e.g. Star Chart).
         Cards at index 0 are the bottom of the deck (drawn last); cards at
         the end are the top (drawn first via ``deck.pop()``).
         """
@@ -465,6 +466,22 @@ class PlayerState:
             if card.name != "Stash" and not getattr(card, "is_shadow", False)
         ]
         random.shuffle(others)
+        self.discard = shadows + others + stash_cards
+
+        # Per-shuffle project hooks (Star Chart). Hooks run after the
+        # shuffle and may remove cards from the shuffled pile to topdeck.
+        project_top: list = []
+        game_state = getattr(self, "game_state", None)
+        if game_state is not None:
+            for project in list(self.projects):
+                chosen = project.on_shuffle(game_state, self)
+                if chosen is None:
+                    continue
+                if isinstance(chosen, list):
+                    project_top.extend(chosen)
+                else:
+                    project_top.append(chosen)
+
         # Plunder Bury: cards on the Bury mat are placed on top of the
         # newly-shuffled deck and the mat is emptied.
         bury_top: list = []
@@ -472,7 +489,11 @@ class PlayerState:
             bury_top = list(self.bury_mat)
             self.bury_mat = []
         self.deck = (
-            shadows + others + stash_cards + fated_top + avoid_set_aside + bury_top
+            self.discard
+            + fated_top
+            + avoid_set_aside
+            + bury_top
+            + project_top
         )
         self.discard = []
 
