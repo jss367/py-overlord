@@ -192,14 +192,35 @@ def test_pilgrimage_gains_action_copies():
     assert "Smithy" in names
 
 
-def test_ball_costs_one_and_gains_two():
+def test_ball_does_not_deduct_coin_this_turn():
+    """Ball's -$1 token applies at the START of the player's next turn,
+    not immediately. Buying Ball must not change the current turn's coins."""
     state = _new_state()
     player = state.players[0]
     player.coins = 5
     Ball = get_event("Ball")
     Ball.on_buy(state, player)
-    assert player.coins == 4  # -$1 token
+    assert player.coins == 5, "Ball must not deduct $1 from the current turn"
+    assert player.minus_coin_tokens == 1
     assert len(player.discard) == 2
+
+
+def test_ball_minus_coin_token_applies_at_next_turn_start():
+    """After Ball is bought, the player's next handle_start_phase must
+    apply the -$1 and clear the pending token."""
+    state = _new_state()
+    player = state.players[0]
+    player.coins = 5
+    Ball = get_event("Ball")
+    Ball.on_buy(state, player)
+    # End this turn, start the next.
+    state.handle_cleanup_phase()
+    state.current_player_index = 0
+    state.handle_start_phase()
+    # Coins are reset to 0 at cleanup, then Ball's token subtracts 1 at
+    # the next start-of-turn.
+    assert player.coins == -1
+    assert player.minus_coin_tokens == 0
 
 
 def test_raid_minus_card_tokens_and_silvers():
