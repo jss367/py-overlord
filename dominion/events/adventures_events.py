@@ -411,12 +411,35 @@ class Inheritance(Event):
     """$7 — Once per game, set aside a non-Victory Action ($0-$4) from the
     Supply. Each starting Estate is treated as that card during your turn."""
 
+    _SUPPORTED_RESERVE_DURATION_CANDIDATES = {
+        "Caravan",
+        "Caravan Guard",
+        "Duplicate",
+        "Gear",
+        "Guide",
+        "Ratcatcher",
+        "Transmogrify",
+    }
+
     def __init__(self):
         super().__init__("Inheritance", CardCost(coins=7))
 
     @staticmethod
+    def _supports_reserve_duration_overlay(card) -> bool:
+        """Return whether the current Estate overlay can safely run this card."""
+        if not (card.is_reserve or card.is_duration):
+            return True
+        return card.name in Inheritance._SUPPORTED_RESERVE_DURATION_CANDIDATES
+
+    @staticmethod
     def _eligible_candidates(game_state) -> list:
-        """Return the list of Action cards a player could currently inherit."""
+        """Return the list of Action cards a player could currently inherit.
+
+        Supported Reserve and Duration cards are eligible when their
+        Tavern / duration callbacks remain safe after the Estate identity
+        is restored. Cards that need additional helper methods, per-card
+        state, or replay semantics stay guarded out.
+        """
         candidates = []
         for name, count in game_state.supply.items():
             if count <= 0:
@@ -429,29 +452,7 @@ class Inheritance(Event):
                 continue
             if card.is_victory:
                 continue
-            # Engine limitation: this implementation plays the inherited
-            # card by binding its name/types/stats/play_effect/on_duration
-            # onto the Estate during the play, then restoring the Estate's
-            # identity at end of iteration. That correctly handles regular
-            # Actions, but it cannot soundly handle Reserve / Duration
-            # inheritance:
-            #   * Reserve play_effect calls ``set_aside_on_tavern(player, self)``
-            #     which puts the Estate on the Tavern mat. Because the
-            #     Estate has no inherited ``on_call_from_tavern`` after
-            #     teardown, it gets stuck on the mat for the rest of the
-            #     game and never delivers the call effect.
-            #   * Duration play_effect appends ``self`` to ``player.duration``;
-            #     the inherited ``on_duration`` is also unbound at iteration
-            #     end, so the next-turn duration effect never fires and the
-            #     Estate is stranded in the duration zone.
-            # Per strict Dominion rules these would be legal targets, but
-            # supporting them properly requires persisting the overlay
-            # across the Tavern / duration lifetime — significantly more
-            # engine work than the bug fix this PR addresses. We exclude
-            # them here as a pragmatic guard against silent state
-            # corruption; this is documented as a known limitation rather
-            # than being silently swallowed.
-            if card.is_reserve or card.is_duration:
+            if not Inheritance._supports_reserve_duration_overlay(card):
                 continue
             if card.cost.coins > 4 or card.cost.potions != 0 or card.cost.debt != 0:
                 continue
@@ -463,9 +464,9 @@ class Inheritance(Event):
             return False
         # Don't offer Inheritance to the AI when no Action would be eligible
         # (e.g. all $0-$4 non-Victory Action piles are empty, or only
-        # Reserve / Duration cards qualify). Avoids wasting $7 on a dead
-        # event and prevents the once-per-game lock from being silently
-        # bypassed if ``on_buy`` ever ran with no candidates.
+        # unsupported Reserve / Duration cards qualify). Avoids wasting $7
+        # on a dead event and prevents the once-per-game lock from being
+        # silently bypassed if ``on_buy`` ever ran with no candidates.
         return bool(self._eligible_candidates(game_state))
 
     def on_buy(self, game_state, player) -> None:

@@ -65,25 +65,27 @@ def test_teacher_cannot_place_two_tokens_across_turns():
 
 
 # ----------------------------------------------------------------------
-# P1: Inheritance must skip Reserve / Duration candidates
+# Inheritance accepts Reserve / Duration candidates (engine persists the
+# inherited overlay across Tavern / duration zones — see
+# tests/test_inheritance_reserve_duration.py for the lifecycle tests).
 # ----------------------------------------------------------------------
 
-def test_inheritance_skips_reserve_candidates():
+def test_inheritance_accepts_reserve_candidate():
     state = _new_state(["Guide", "Ratcatcher"])
     p = state.players[0]
     inh = get_event("Inheritance")
     inh.on_buy(state, p)
-    # Both candidates are Reserve → none eligible → nothing inherited.
-    assert p.inherited_action_name is None
+    # Both are Reserve, both are in the $0-$4 band → eligible.
+    assert p.inherited_action_name in {"Guide", "Ratcatcher"}
 
 
-def test_inheritance_skips_duration_candidates():
+def test_inheritance_accepts_duration_candidate():
     state = _new_state(["Gear", "Hireling"])
     p = state.players[0]
     inh = get_event("Inheritance")
     inh.on_buy(state, p)
-    # Gear is Duration ($3); Hireling is Duration ($6 — also out of range).
-    assert p.inherited_action_name is None
+    # Gear is Duration ($3 — eligible); Hireling is Duration ($6 — out of range).
+    assert p.inherited_action_name == "Gear"
 
 
 def test_inheritance_picks_eligible_action_when_both_present():
@@ -91,18 +93,21 @@ def test_inheritance_picks_eligible_action_when_both_present():
     p = state.players[0]
     inh = get_event("Inheritance")
     inh.on_buy(state, p)
-    # Smithy is the only non-Reserve/non-Duration eligible Action.
-    assert p.inherited_action_name == "Smithy"
+    # Both Smithy ($4 Action) and Guide ($3 Reserve) are eligible. The first
+    # iteration order is supply-dict order; the test just pins that a real
+    # candidate is chosen.
+    assert p.inherited_action_name in {"Guide", "Smithy"}
 
 
 def test_inheritance_locks_after_buy_even_with_empty_candidates():
     """Once-per-game restriction must apply even when no cards are eligible
     to inherit, so the player can't repeatedly buy a dead Inheritance event."""
-    state = _new_state(["Guide", "Ratcatcher"])  # all-Reserve kingdom
+    # All-$5 Action kingdom → none meet the $0-$4 Inheritance limit.
+    state = _new_state(["Witch", "Festival", "Laboratory"])
     p = state.players[0]
     inh = get_event("Inheritance")
 
-    # Pre-condition: with the Reserve/Duration filter, no candidates exist.
+    # Pre-condition: no candidates exist in the $0-$4 band.
     assert inh._eligible_candidates(state) == []
 
     # may_be_bought should report False so the AI never wastes $7.
