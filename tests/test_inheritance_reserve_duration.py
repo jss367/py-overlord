@@ -8,9 +8,8 @@ overlay across the Tavern mat / Duration zone:
   * Duration: the Estate sat in the duration zone with no
     ``on_duration`` bound, so the next-turn effect never fired.
 
-These tests pin down the corrected behaviour where the overlay is
-persisted while the Estate occupies tavern / duration zones, torn down
-when it exits, and VP counting stays accurate while the overlay is live.
+These tests pin down the corrected behaviour for supported callbacks and
+the guard that keeps unsupported callbacks out of the candidate list.
 """
 
 from dominion.cards.registry import get_card
@@ -28,17 +27,40 @@ def _new_state(kingdom_card_names):
 
 
 def test_inheritance_allows_reserve_card():
-    """Reserve cards in the $0-$4 band must be eligible Inheritance targets."""
+    """Supported Reserve cards in the $0-$4 band are eligible targets."""
     state = _new_state(["Guide"])
     candidates = get_event("Inheritance")._eligible_candidates(state)
     assert any(c.name == "Guide" for c in candidates)
 
 
 def test_inheritance_allows_duration_card():
-    """Duration cards in the $0-$4 band must be eligible Inheritance targets."""
+    """Supported Duration cards in the $0-$4 band are eligible targets."""
     state = _new_state(["Caravan"])
     candidates = get_event("Inheritance")._eligible_candidates(state)
     assert any(c.name == "Caravan" for c in candidates)
+
+
+def test_inheritance_filters_unsupported_reserve_duration_cards():
+    """Cards whose callbacks need unsupported Estate overlay state stay hidden."""
+    state = _new_state([
+        "Amulet",
+        "Clerk",
+        "Dungeon",
+        "Garrison",
+        "Grotto",
+        "Guide",
+        "Caravan",
+    ])
+
+    candidates = get_event("Inheritance")._eligible_candidates(state)
+    candidate_names = {c.name for c in candidates}
+
+    assert {"Guide", "Caravan"} <= candidate_names
+    assert "Amulet" not in candidate_names
+    assert "Clerk" not in candidate_names
+    assert "Dungeon" not in candidate_names
+    assert "Garrison" not in candidate_names
+    assert "Grotto" not in candidate_names
 
 
 def test_inherited_caravan_fires_duration_effect_next_turn():

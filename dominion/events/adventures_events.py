@@ -411,16 +411,34 @@ class Inheritance(Event):
     """$7 — Once per game, set aside a non-Victory Action ($0-$4) from the
     Supply. Each starting Estate is treated as that card during your turn."""
 
+    _SUPPORTED_RESERVE_DURATION_CANDIDATES = {
+        "Caravan",
+        "Caravan Guard",
+        "Duplicate",
+        "Gear",
+        "Guide",
+        "Ratcatcher",
+        "Transmogrify",
+    }
+
     def __init__(self):
         super().__init__("Inheritance", CardCost(coins=7))
+
+    @staticmethod
+    def _supports_reserve_duration_overlay(card) -> bool:
+        """Return whether the current Estate overlay can safely run this card."""
+        if not (card.is_reserve or card.is_duration):
+            return True
+        return card.name in Inheritance._SUPPORTED_RESERVE_DURATION_CANDIDATES
 
     @staticmethod
     def _eligible_candidates(game_state) -> list:
         """Return the list of Action cards a player could currently inherit.
 
-        Reserve and Duration cards are eligible; the engine persists the
-        inherited overlay (including ``on_call_from_tavern`` and
-        ``on_duration``) for the Estate's lifetime in those zones.
+        Supported Reserve and Duration cards are eligible when their
+        Tavern / duration callbacks remain safe after the Estate identity
+        is restored. Cards that need additional helper methods, per-card
+        state, or replay semantics stay guarded out.
         """
         candidates = []
         for name, count in game_state.supply.items():
@@ -434,6 +452,8 @@ class Inheritance(Event):
                 continue
             if card.is_victory:
                 continue
+            if not Inheritance._supports_reserve_duration_overlay(card):
+                continue
             if card.cost.coins > 4 or card.cost.potions != 0 or card.cost.debt != 0:
                 continue
             candidates.append(card)
@@ -444,9 +464,9 @@ class Inheritance(Event):
             return False
         # Don't offer Inheritance to the AI when no Action would be eligible
         # (e.g. all $0-$4 non-Victory Action piles are empty, or only
-        # Reserve / Duration cards qualify). Avoids wasting $7 on a dead
-        # event and prevents the once-per-game lock from being silently
-        # bypassed if ``on_buy`` ever ran with no candidates.
+        # unsupported Reserve / Duration cards qualify). Avoids wasting $7
+        # on a dead event and prevents the once-per-game lock from being
+        # silently bypassed if ``on_buy`` ever ran with no candidates.
         return bool(self._eligible_candidates(game_state))
 
     def on_buy(self, game_state, player) -> None:
