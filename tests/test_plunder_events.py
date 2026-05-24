@@ -90,16 +90,55 @@ def test_all_15_plunder_events_registered():
         assert evt.name == name
 
 
-def test_bury_takes_card_from_discard_to_top():
+def test_bury_moves_card_from_discard_to_bury_mat():
     state = _make_state()
     player = state.current_player
     player.discard = [get_card("Copper"), get_card("Gold")]
+    player.deck = []
     bury = get_event("Bury")
     pre_buys = player.buys
     bury.on_buy(state, player)
     assert player.buys == pre_buys + 1
-    # Gold (more expensive) should be top of deck.
+    # The chosen card belongs on the Bury mat, NOT on top of the deck.
+    # It only joins the deck on the next shuffle.
+    assert player.deck == []
+    assert any(c.name == "Gold" for c in player.bury_mat)
+    assert all(c.name != "Gold" for c in player.discard)
+
+
+def test_bury_mat_top_decks_on_next_shuffle():
+    state = _make_state()
+    player = state.current_player
+    player.discard = [get_card("Copper"), get_card("Gold")]
+    player.deck = []
+    bury = get_event("Bury")
+    bury.on_buy(state, player)
+    # Refill the discard with junk before the shuffle so the buried card
+    # can't just happen to land on top by luck of the shuffle.
+    for _ in range(5):
+        player.discard.append(get_card("Copper"))
+    player.shuffle_discard_into_deck()
+    # After the shuffle, the Bury mat is consumed and its cards are on top
+    # of the new deck (deck.pop() draws from the end).
+    assert player.bury_mat == []
     assert player.deck[-1].name == "Gold"
+
+
+def test_bury_then_draw_returns_buried_card_first():
+    """End-to-end: buy Bury, draw cards (which triggers shuffle), the
+    buried card is the first one drawn."""
+    state = _make_state()
+    player = state.current_player
+    player.discard = [get_card("Copper"), get_card("Gold")]
+    player.deck = []
+    player.hand = []
+    bury = get_event("Bury")
+    bury.on_buy(state, player)
+    # Pad discard so shuffle is non-trivial.
+    for _ in range(3):
+        player.discard.append(get_card("Copper"))
+    player.draw_cards(1)
+    assert any(c.name == "Gold" for c in player.hand)
 
 
 def test_avoid_sets_avoid_pending():

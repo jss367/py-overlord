@@ -461,7 +461,15 @@ class PlayerState:
             if card.name != "Stash" and not getattr(card, "is_shadow", False)
         ]
         random.shuffle(others)
-        self.deck = shadows + others + stash_cards + fated_top + avoid_set_aside
+        # Plunder Bury: cards on the Bury mat are placed on top of the
+        # newly-shuffled deck and the mat is emptied.
+        bury_top: list = []
+        if self.bury_mat:
+            bury_top = list(self.bury_mat)
+            self.bury_mat = []
+        self.deck = (
+            shadows + others + stash_cards + fated_top + avoid_set_aside + bury_top
+        )
         self.discard = []
 
     def count_in_deck(self, card_name: str) -> int:
