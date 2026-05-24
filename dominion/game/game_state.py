@@ -1168,6 +1168,15 @@ class GameState:
         # Renaissance Priest's rest-of-turn trigger resets each turn.
         player.priest_played_this_turn = 0
 
+        # Adventures Ball: -$1 tokens queued by Ball buys on previous turns
+        # apply at the start of this turn, then clear. Coins were already
+        # reset to 0 by the prior turn's cleanup, so this drives them
+        # negative; treasures / actions played this turn bring them back up.
+        minus_coin_tokens = getattr(player, "minus_coin_tokens", 0)
+        if minus_coin_tokens:
+            player.coins -= minus_coin_tokens
+            player.minus_coin_tokens = 0
+
         # Nocturne — reset per-turn counter
         player.cards_gained_this_turn_count = 0
 
@@ -3609,11 +3618,13 @@ class GameState:
         ):
             destination_is_deck = True
 
-        if reclaimed and from_supply and card.name in self.supply:
+        if reclaimed and from_supply:
             # Caller already decremented the supply; restore it since the
             # Exiled card is being used instead. Only valid for from-supply
-            # gains — trash-origin gains never decremented in the first place.
-            self.supply[card.name] = self.supply.get(card.name, 0) + 1
+            # gains — trash-origin gains never decremented in the first
+            # place. Uses pile-aware restoration so ordered piles (Knights,
+            # Ruins) get their placeholder key + pile_order put back.
+            self._restore_to_supply_pile(card)
 
         if destination_is_deck:
             # PlayerState.draw_cards() draws with deck.pop(), so the end of
@@ -3847,6 +3858,24 @@ class GameState:
                 return pile_key
         return None
 
+    def _restore_to_supply_pile(self, card: Card) -> bool:
+        """Restore one copy of ``card`` to its Supply pile.
+
+        Handles ordered piles (Knights, Ruins) where the supply key is the
+        pile placeholder, not the specific card name — bumps the placeholder
+        count AND pushes the card name back onto the top of ``pile_order``
+        so the next gain hands out the same card. Returns True if a pile
+        was actually restored, False otherwise.
+        """
+
+        pile_name = self._resolve_changeling_pile_name(card)
+        if pile_name is None:
+            return False
+        self.supply[pile_name] = self.supply.get(pile_name, 0) + 1
+        if pile_name in self.pile_order:
+            self.pile_order[pile_name].append(card.name)
+        return True
+
     def _handle_sailor_gain(self, player: PlayerState, gained_card: Card) -> None:
         """Trigger Sailor's "may play this gain" effect for the gainer's own gains."""
         if getattr(player, "sailor_play_uses", 0) <= 0:
@@ -4054,8 +4083,12 @@ class GameState:
         if not player.ai.should_reveal_trader(self, player, original_card, to_deck=to_deck):
             return actual_card
 
-        if from_supply and original_card.name in self.supply:
-            self.supply[original_card.name] = self.supply.get(original_card.name, 0) + 1
+        if from_supply:
+            # Pile-aware restoration: ordered piles (Knights, Ruins) need
+            # both the placeholder count and pile_order put back, not just
+            # ``supply[original_card.name]`` (which silently no-ops since
+            # the supply key is the placeholder name).
+            self._restore_to_supply_pile(original_card)
 
         self.supply["Silver"] -= 1
         replacement = get_card("Silver")

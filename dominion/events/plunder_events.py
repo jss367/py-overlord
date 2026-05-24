@@ -24,8 +24,8 @@ def _gain_random_loot(game_state, player):
 
 
 class Bury(Event):
-    """$1: +1 Buy. Take a card from your discard onto your Bury mat
-    (top-decked next shuffle)."""
+    """$1: +1 Buy. Take a card from your discard onto your Bury mat. When
+    you next shuffle your deck, put your Bury mat on top of it."""
 
     def __init__(self):
         super().__init__("Bury", CardCost(coins=1))
@@ -41,8 +41,7 @@ class Bury(Event):
         )
         pick = candidates[0]
         player.discard.remove(pick)
-        # Approximation: top-deck immediately so it is drawn next.
-        player.deck.append(pick)
+        player.bury_mat.append(pick)
 
 
 class Avoid(Event):

@@ -54,7 +54,7 @@ class Silver(Card):
             )
         # Mark that a Silver has been played this turn even if no Merchant
         # bonus was active. Otherwise a Silver played before any Merchant
-        # would let a later Silver (after Merchant) incorrectly claim the
+        # would let a later Silver (after Merchant) claim the
         # "first Silver this turn" bonus.
         player.merchant_silver_bonus_used = True
 
