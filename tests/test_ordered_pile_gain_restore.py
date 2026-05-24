@@ -8,17 +8,16 @@ top card's name (e.g. ``"Sir Bailey"``). This let supply leak and
 ``pile_order`` desynchronise from ``supply``.
 """
 
-from typing import Optional, Set
-
 from dominion.cards.dark_ages.knights import KNIGHT_NAMES
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
+from dominion.game.player_state import PlayerState
 
 from tests.utils import DummyAI
 
 
 class _RevealTraderAI(DummyAI):
-    def __init__(self, reveal_for: Set[str]) -> None:
+    def __init__(self, reveal_for: set[str]) -> None:
         super().__init__()
         self.reveal_for = reveal_for
 
@@ -26,7 +25,7 @@ class _RevealTraderAI(DummyAI):
         return gained_card.name in self.reveal_for
 
 
-def _prepare_state_with_knights(ai) -> tuple[GameState, "PlayerState", str]:
+def _prepare_state_with_knights(ai) -> tuple[GameState, PlayerState, str]:
     """Initialise a game with the Knights pile present and return the state,
     the (only) player, and the name of the current top-of-pile Knight."""
 
