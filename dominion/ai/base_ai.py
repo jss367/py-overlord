@@ -1814,17 +1814,17 @@ class AI(ABC):
         return True
 
     def choose_investment_mode(
-        self, state: GameState, player: PlayerState, can_trash_treasure: bool
+        self, state: GameState, player: PlayerState, can_trash_this: bool
     ) -> str:
-        """Investment: 'coin' (+$1) or 'trash' (trash a Treasure for +1 VP per
-        differently-named Treasure revealed).
+        """Investment: 'coin' (+$1) or 'trash' (trash Investment for +1 VP
+        per differently named Treasure revealed).
 
         Default: trash if doing so reveals at least 2 distinct Treasure
         names, otherwise take the coin.
         """
-        if not can_trash_treasure:
+        if not can_trash_this:
             return "coin"
-        treasures = [c for c in player.hand if c.is_treasure]
+        treasures = [c for c in player.hand if state.is_treasure(c)]
         distinct = {c.name for c in treasures}
         if len(distinct) >= 2:
             return "trash"
@@ -1833,7 +1833,11 @@ class AI(ABC):
     def choose_treasure_to_trash_for_investment(
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> "Card | None":
-        """Investment: pick which Treasure in hand to trash."""
+        """Legacy hook for the old Investment implementation.
+
+        Official Investment no longer trashes a Treasure from hand; card code
+        uses ``choose_card_to_trash`` for the mandatory hand trash instead.
+        """
         if not choices:
             return None
         # Prefer trashing the cheapest Treasure that still has duplicates.
