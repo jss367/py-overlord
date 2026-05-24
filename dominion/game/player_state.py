@@ -174,6 +174,9 @@ class PlayerState:
     distant_lands_played: int = 0
     # Adventures: -1 Card tokens on deck reduce next end-of-turn redraw.
     minus_card_tokens: int = 0
+    # Adventures Ball: each Ball buy queues a -$1 token applied at the
+    # start of the player's next turn (then cleared).
+    minus_coin_tokens: int = 0
     # Adventures Champion: persistent Action-immunity giver.
     champions_in_play: int = 0
     # Adventures Hireling: stays in play, +1 Card per turn.
@@ -381,6 +384,7 @@ class PlayerState:
         self.tavern_mat = []
         self.distant_lands_played = 0
         self.minus_card_tokens = 0
+        self.minus_coin_tokens = 0
         self.champions_in_play = 0
         self.hirelings_in_play = 0
         self.mission_used_this_turn = False

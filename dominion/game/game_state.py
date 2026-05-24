@@ -1168,6 +1168,15 @@ class GameState:
         # Renaissance Priest's rest-of-turn trigger resets each turn.
         player.priest_played_this_turn = 0
 
+        # Adventures Ball: -$1 tokens queued by Ball buys on previous turns
+        # apply at the start of this turn, then clear. Coins were already
+        # reset to 0 by the prior turn's cleanup, so this drives them
+        # negative; treasures / actions played this turn bring them back up.
+        minus_coin_tokens = getattr(player, "minus_coin_tokens", 0)
+        if minus_coin_tokens:
+            player.coins -= minus_coin_tokens
+            player.minus_coin_tokens = 0
+
         # Nocturne — reset per-turn counter
         player.cards_gained_this_turn_count = 0
 
