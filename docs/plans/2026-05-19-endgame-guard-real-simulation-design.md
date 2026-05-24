@@ -1,7 +1,7 @@
 # Endgame Guard via Real-Buy Simulation — Design
 
 **Date:** 2026-05-19
-**Status:** Validated; ready for implementation
+**Status:** Implemented
 **Successor to:** PR #275 — merged as `cd76f7e Veto buys that would end the game while losing` (enumeration-based interim guard)
 **Branch:** `start-philadelphia-claude` (workspace `minnetonka-v2`)
 
@@ -9,7 +9,8 @@
 
 ## Problem
 
-`GameState.gain_would_lose_game` (introduced in PR #275) *models* what a buy
+This design replaced the PR #275 version of `GameState.gain_would_lose_game`,
+which *modeled* what a buy
 does (`supply -= 1; player.discard.append(card)`) instead of performing it.
 The real buy path applies VP-token hooks (Goons, Groundskeeper, Collection,
 all VP-awarding Landmarks) and supply-restoring reactions (Exile reclamation,
@@ -24,10 +25,10 @@ a divergence between the model and reality:
   ends the game in a loss. No reviewer is guaranteed to catch these; the
   enumeration approach can't detect the failure direction at all.
 
-The current mitigation — enumerate divergences, stand the guard down when
-detected — is fragile by construction: it requires exhaustive understanding of
-a 4 k-line engine, has been incomplete three times, and only catches one of
-the two failure directions.
+The interim mitigation enumerated divergences and stood the guard down when
+they were detected. That approach required exhaustive understanding of a
+4 k-line engine and only covered one of the two failure directions, so it was
+replaced by the real-buy simulation below.
 
 ## Principle
 
