@@ -384,8 +384,7 @@ def test_league_of_shopkeepers_uses_favors_not_liaisons_in_play():
     coins_before = player.coins
     buys_before = player.buys
     state.allies[0].on_play_card(state, player, underling)
-    # 1 Liaison in play → old (incorrect) impl would skip both bonuses.
-    # New (correct) impl: favors becomes 5 → +$1 (>=3) and +1 Buy (>=5).
+    # 1 Liaison in play: favors becomes 5, granting +$1 (>=3) and +1 Buy (>=5).
     assert player.coins == coins_before + 1
     assert player.buys == buys_before + 1
 

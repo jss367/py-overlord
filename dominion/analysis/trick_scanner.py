@@ -48,7 +48,7 @@ RETURN_TO_PILE_WAYS = frozenset({"Way of the Butterfly"})
 # Native Village is intentionally NOT here: its play_effect sets aside the
 # *top of the deck* onto the Native Village mat, while Native Village itself
 # stays in play and goes to discard at clean-up. Adding it would emit a
-# mechanically wrong hypothesis.
+# hypothesis for a state that cannot occur.
 SELF_EXILE_OR_SET_ASIDE_CARDS = frozenset({"Stockpile", "Island"})
 
 # Events that key on the player having an empty deck *and* empty discard.
