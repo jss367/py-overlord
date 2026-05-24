@@ -695,19 +695,22 @@ def test_crystal_ball_can_play_treasure_on_top():
 
 
 class InvestmentTrashAI(DummyAI):
-    def choose_investment_mode(self, state, player, can_trash_treasure):
-        return "trash" if can_trash_treasure else "coin"
-
-    def choose_treasure_to_trash_for_investment(self, state, player, choices):
+    def choose_card_to_trash(self, state, choices):
         return choices[0] if choices else None
+
+    def choose_investment_mode(self, state, player, can_trash_this):
+        return "trash" if can_trash_this else "coin"
 
 
 class InvestmentCoinAI(DummyAI):
-    def choose_investment_mode(self, state, player, can_trash_treasure):
+    def choose_card_to_trash(self, state, choices):
+        return choices[0] if choices else None
+
+    def choose_investment_mode(self, state, player, can_trash_this):
         return "coin"
 
 
-def test_investment_self_trashes_on_play():
+def test_investment_coin_mode_trashes_card_from_hand_without_trashing_self():
     ai = InvestmentCoinAI()
     player = PlayerState(ai)
     state = GameState([player])
@@ -715,14 +718,15 @@ def test_investment_self_trashes_on_play():
 
     inv = get_card("Investment")
     player.in_play = [inv]
+    player.hand = [get_card("Estate")]
     inv.on_play(state)
 
-    assert inv in state.trash
-    assert inv not in player.in_play
+    assert [c.name for c in state.trash] == ["Estate"]
+    assert inv in player.in_play
     assert player.coins == 1
 
 
-def test_investment_trash_treasure_grants_vp_for_distinct_treasures():
+def test_investment_trash_this_grants_vp_for_distinct_treasures_in_hand():
     ai = InvestmentTrashAI()
     player = PlayerState(ai)
     state = GameState([player])
@@ -730,14 +734,20 @@ def test_investment_trash_treasure_grants_vp_for_distinct_treasures():
 
     inv = get_card("Investment")
     player.in_play = [inv]
-    player.hand = [get_card("Copper"), get_card("Silver"), get_card("Gold")]
+    player.hand = [
+        get_card("Estate"),
+        get_card("Copper"),
+        get_card("Silver"),
+        get_card("Copper"),
+    ]
 
     inv.on_play(state)
 
-    # Trashed Copper. Hand now: Silver, Gold ⇒ 2 distinct ⇒ +2 VP
+    # Trashed Estate. Hand now has Copper, Silver, Copper => 2 distinct Treasures.
     assert player.vp_tokens == 2
-    assert any(c.name == "Copper" for c in state.trash)
+    assert [c.name for c in state.trash] == ["Estate", "Investment"]
     assert inv in state.trash
+    assert inv not in player.in_play
 
 
 # ---------------------------------------------------------------------------
@@ -1504,14 +1514,14 @@ def test_loan_recognizes_curse_as_treasure():
 
 
 class InvestmentTrashCurseAI(DummyAI):
-    def choose_investment_mode(self, state, player, can_trash):
-        return "trash" if can_trash else "coin"
-
-    def choose_treasure_to_trash_for_investment(self, state, player, choices):
+    def choose_card_to_trash(self, state, choices):
         for c in choices:
-            if c.name == "Curse":
+            if c.name == "Estate":
                 return c
         return choices[0] if choices else None
+
+    def choose_investment_mode(self, state, player, can_trash):
+        return "trash" if can_trash else "coin"
 
 
 def test_charlatan_latch_resets_between_games_on_same_state():
@@ -1665,8 +1675,8 @@ def test_charlatan_latches_at_setup_survives_pile_removal():
     assert player.coins == 1
 
 
-def test_investment_can_trash_curse_as_treasure():
-    """Investment's "trash a Treasure" must accept a Curse when Charlatan is
+def test_investment_counts_curse_as_treasure_for_vp_with_charlatan():
+    """Investment's reveal must count Curse as a Treasure when Charlatan is
     in the game."""
     player = PlayerState(InvestmentTrashCurseAI())
     state = GameState([player])
@@ -1674,11 +1684,12 @@ def test_investment_can_trash_curse_as_treasure():
 
     investment = get_card("Investment")
     player.in_play = [investment]
-    player.hand = [get_card("Curse"), get_card("Copper")]
+    player.hand = [get_card("Estate"), get_card("Curse"), get_card("Copper")]
 
     investment.play_effect(state)
 
-    # Investment self-trashes + Curse trashed
     trashed_names = [c.name for c in state.trash]
     assert "Investment" in trashed_names
-    assert "Curse" in trashed_names
+    assert "Estate" in trashed_names
+    assert "Curse" not in trashed_names
+    assert player.vp_tokens == 2
