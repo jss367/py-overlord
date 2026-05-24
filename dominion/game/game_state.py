@@ -990,11 +990,10 @@ class GameState:
             self.pile_order["Knights"] = order
             self.supply["Knights"] = len(order)
 
-        if any(card.name == "Hermit" for card in kingdom_cards):
-            self.supply["Madman"] = 10
-
-        if any(card.name == "Urchin" for card in kingdom_cards):
-            self.supply["Mercenary"] = 10
+        # Madman (Hermit) and Mercenary (Urchin) piles are registered via
+        # ``get_additional_non_supply_piles`` on those cards, so they land
+        # in ``non_supply_pile_names`` and never count toward the
+        # three-empty-piles game end.
 
         # Latch the Charlatan game-level rule at setup time. If Charlatan is
         # part of this game (Supply or Black Market deck), the "Curses are

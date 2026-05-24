@@ -14,7 +14,7 @@ class BanditCamp(Card):
             types=[CardType.ACTION],
         )
 
-    def get_additional_piles(self) -> dict[str, int]:
+    def get_additional_non_supply_piles(self) -> dict[str, int]:
         return {"Spoils": 15}
 
     def play_effect(self, game_state):
