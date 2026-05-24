@@ -13,7 +13,10 @@ class Marauder(Card):
         )
 
     def get_additional_piles(self) -> dict[str, int]:
-        return {"Ruins": 10, "Spoils": 15}
+        return {"Ruins": 10}
+
+    def get_additional_non_supply_piles(self) -> dict[str, int]:
+        return {"Spoils": 15}
 
     def play_effect(self, game_state):
         from ..registry import get_card

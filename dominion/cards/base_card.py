@@ -321,13 +321,13 @@ class Card:
     def get_additional_non_supply_piles(self) -> dict[str, int]:
         """Return additional non-Supply piles required by this card.
 
-        These piles live alongside the Supply (so cards can be looked up and
-        gained from them via ``state.supply``) but they must NOT count toward
-        the three-empty-piles game-end condition. Examples: Tournament Prize
-        piles, Madman, Mercenary, Spirits, Wishes, Bats, Zombies, Horses,
-        Spoils. Currently used by Tournament; older callers still register
-        their non-Supply piles directly in ``state.supply`` without flagging
-        them, which is a known limitation tracked separately.
+        These piles live alongside the Supply (so cards can be looked up
+        and gained from them via ``state.supply``) but they must NOT
+        count toward the three-empty-piles game-end condition. Used by
+        Tournament (Prizes), Supplies (Horse), Hermit (Madman), Urchin
+        (Mercenary), Marauder / Bandit Camp / Pillage (Spoils), plus
+        Nocturne extras registered through the parallel ``nocturne_piles``
+        attribute (Bat, Wish, Imp, Ghost, Will-o'-Wisp).
         """
         return {}
 

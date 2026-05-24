@@ -18,6 +18,9 @@ class Urchin(Card):
             types=[CardType.ACTION, CardType.ATTACK],
         )
 
+    def get_additional_non_supply_piles(self) -> dict[str, int]:
+        return {"Mercenary": 10}
+
     def play_effect(self, game_state):
         attacker = game_state.current_player
 

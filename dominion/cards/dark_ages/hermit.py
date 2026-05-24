@@ -19,6 +19,9 @@ class Hermit(Card):
             types=[CardType.ACTION],
         )
 
+    def get_additional_non_supply_piles(self) -> dict[str, int]:
+        return {"Madman": 10}
+
     def play_effect(self, game_state):
         from ..registry import get_card
 
