@@ -18,6 +18,15 @@ class Project:
     def on_trash(self, game_state, player, card) -> None:
         pass
 
+    def on_shuffle(self, game_state, player):
+        """Fires after a player shuffles their discard into the deck.
+
+        May optionally return a card (or list of cards) removed from the
+        discard during the hook; those cards are placed on top of the
+        newly-shuffled deck. Return ``None`` for no-op.
+        """
+        return None
+
     @property
     def is_project(self) -> bool:
         return True

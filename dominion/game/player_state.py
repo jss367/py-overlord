@@ -430,10 +430,25 @@ class PlayerState:
         """Shuffle discard pile to create new deck.
 
         Respects Stash (top), Rising Sun Shadow cards (bottom), Plunder
-        Avoid event (top up to 3), and Plunder Fated trait (top of deck).
+        Avoid event (top up to 3), Plunder Fated trait (top of deck), and
+        per-shuffle project hooks (e.g. Star Chart).
         Cards at index 0 are the bottom of the deck (drawn last); cards at
         the end are the top (drawn first via ``deck.pop()``).
         """
+        # Per-shuffle project hooks (Star Chart). Each hook may pull a
+        # card from ``self.discard`` and return it to be placed on top of
+        # the new deck.
+        project_top: list = []
+        game_state = getattr(self, "game_state", None)
+        if game_state is not None:
+            for project in list(self.projects):
+                chosen = project.on_shuffle(game_state, self)
+                if chosen is None:
+                    continue
+                if isinstance(chosen, list):
+                    project_top.extend(chosen)
+                else:
+                    project_top.append(chosen)
         avoid_set_aside: list = []
         if self.avoid_pending > 0 and self.discard:
             n = min(3, len(self.discard))
@@ -461,7 +476,14 @@ class PlayerState:
             if card.name != "Stash" and not getattr(card, "is_shadow", False)
         ]
         random.shuffle(others)
-        self.deck = shadows + others + stash_cards + fated_top + avoid_set_aside
+        self.deck = (
+            shadows
+            + others
+            + stash_cards
+            + fated_top
+            + avoid_set_aside
+            + project_top
+        )
         self.discard = []
 
     def count_in_deck(self, card_name: str) -> int:
