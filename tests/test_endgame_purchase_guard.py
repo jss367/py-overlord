@@ -222,7 +222,7 @@ def test_guard_skipped_when_exiled_copy_reclaimed():
     depleted and the game does not end — the guard must not veto."""
     ai = PriorityBuyAI(["Province"])
     # Distinct objects: all_cards() dedups by id, so aliased copies would
-    # under-count the opponent and make the buyer look (wrongly) ahead.
+    # under-count the opponent and make the buyer look ahead.
     state, me, _opp = make_state(
         ai, opponent_deck=provinces(3)
     )

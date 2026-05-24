@@ -4,6 +4,8 @@
 
 **Goal:** Replace `GameState.gain_would_lose_game`'s hand-rolled simulation (PR #275, merged `cd76f7e`) with a real-buy simulation: deep-copy the game state, run the actual buy on the copy via a shared `_commit_buy` method, evaluate the standard end-condition and scores on the post-buy clone. Eliminates the enumeration-and-stand-down whack-a-mole and the false-negative direction the prior approach could not catch.
 
+**Status:** Implemented in `dominion/game/game_state.py`.
+
 **Architecture:** A loose pre-check gate (game-is-near-ending) keeps `copy.deepcopy` off the hot path. `GameState.__deepcopy__` shares AIs by reference, detaches logger, fixes the player back-reference. `_commit_buy` is extracted from `handle_buy_phase` so the real game and the simulation execute the *same code*. RNG (module-global `random`) is saved/restored around the simulated buy. RL agents opt out via a `decision_hooks_are_pure = False` flag.
 
 **Tech Stack:** Python (the existing `dominion` package), `copy.deepcopy` with `__deepcopy__` + `memo` preseed, `random.getstate/setstate`, pytest.
@@ -548,12 +550,12 @@ def test_temple_endgame_correctly_handled():
 
 Run: `pytest tests/test_endgame_purchase_guard.py -v -k "false_negative or impure or rng_state or temple_endgame"`
 
-Expected:
+Historical RED expectations before Task 6:
 
 - `test_false_negative_blocked_when_hoard_empties_third_pile` — **FAIL** (current enumeration model misses Hoard's pile-emptying side effect; Province gets bought).
 - `test_guard_disabled_when_any_ai_marks_decision_hooks_impure` — likely PASS today only by coincidence; document expected; will be reasserted by Task 6 rewrite.
 - `test_gain_would_lose_game_preserves_rng_state` — likely PASS today (sim doesn't consume RNG); the test pins the *invariant* and protects against future regressions.
-- `test_temple_endgame_correctly_handled` — **FAIL** (current code stands down on landmarks but Temple is a card, not a landmark; the prior `_buy_pile_restorable` doesn't apply; the cheap sim adds Temple to discard with no VP bonus, so 1 vs 6 — vetoes correctly; assertion may actually PASS for the wrong reason). If it passes today, that's OK; it will pass for the right reason after Task 6.
+- `test_temple_endgame_correctly_handled` — **FAIL** under the old enumeration model (Temple is a card, not a landmark; the old `_buy_pile_restorable` path didn't apply; the cheap sim added Temple to discard with no VP bonus, so the assertion could pass without exercising the intended real-buy path). After Task 6, this passes through the shared `_commit_buy` simulation.
 
 ### Step 3 — commit the new tests (RED for the real ones)
 

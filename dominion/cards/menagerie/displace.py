@@ -104,36 +104,9 @@ class Displace(Card):
         if game_state.supply.get(pile_name, 0) <= 0:
             return
         game_state.supply[pile_name] -= 1
-        is_ordered_pile = pile_name in game_state.pile_order
-        if is_ordered_pile and game_state.pile_order[pile_name]:
+        if pile_name in game_state.pile_order and game_state.pile_order[pile_name]:
             game_state.pile_order[pile_name].pop()
-        # Snapshot the pile state immediately after decrement+pop so we can
-        # tell, post-gain, whether something else restored the pile already.
-        post_decrement_supply = game_state.supply[pile_name]
-        post_decrement_order_len = (
-            len(game_state.pile_order[pile_name]) if is_ordered_pile else 0
-        )
-        gained = game_state.gain_card(player, gain_choice)
-        # gain_card's Trader-replacement and Exile-reclamation paths both
-        # try to restore the Supply via gain_choice.name, which for
-        # ordered piles (Knights, Ruins) is the specific top card (e.g.
-        # "Dame Josephine") rather than the pile placeholder, so the
-        # restore silently no-ops there. Changeling's exchange, in
-        # contrast, restores the pile placeholder directly. We treat any
-        # case where gain_card returned a different object as
-        # potentially needing a manual restore, then use the post-
-        # decrement snapshot to skip the Changeling case (where the
-        # pile state was already restored for us).
-        if (
-            is_ordered_pile
-            and gained is not None
-            and gained is not gain_choice
-            and game_state.supply.get(pile_name, 0) == post_decrement_supply
-            and len(game_state.pile_order.get(pile_name, []))
-            == post_decrement_order_len
-        ):
-            game_state.supply[pile_name] = game_state.supply.get(pile_name, 0) + 1
-            game_state.pile_order.setdefault(pile_name, []).append(gain_choice.name)
+        game_state.gain_card(player, gain_choice)
 
     @staticmethod
     def _exile_priority(card):

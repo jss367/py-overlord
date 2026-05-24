@@ -122,6 +122,29 @@ def test_star_chart_does_nothing_without_shuffle():
     assert any(c.name == "Village" for c in p.discard)
 
 
+def test_star_chart_ignores_avoid_set_aside_cards():
+    state = make_state(StarChart())
+    p = state.players[0]
+    p.projects.append(state.projects[0])
+    state.current_player_index = 0
+    p.deck = []
+    p.discard = [
+        get_card("Copper"),
+        get_card("Smithy"),
+        get_card("Silver"),
+        get_card("Village"),
+        get_card("Gold"),
+    ]
+    p.avoid_pending = 1
+
+    p.shuffle_discard_into_deck()
+
+    assert p.deck[-1].name == "Smithy"
+    assert [c.name for c in p.deck[-4:-1]] == ["Silver", "Village", "Gold"]
+    assert p.avoid_pending == 0
+    assert p.discard == []
+
+
 def test_exploration_grants_bonus_when_no_action_treasure_gain():
     state = make_state(Exploration())
     p = state.players[0]

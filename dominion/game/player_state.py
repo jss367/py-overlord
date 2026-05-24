@@ -174,6 +174,9 @@ class PlayerState:
     distant_lands_played: int = 0
     # Adventures: -1 Card tokens on deck reduce next end-of-turn redraw.
     minus_card_tokens: int = 0
+    # Adventures Ball: each Ball buy queues a -$1 token applied at the
+    # start of the player's next turn (then cleared).
+    minus_coin_tokens: int = 0
     # Adventures Champion: persistent Action-immunity giver.
     champions_in_play: int = 0
     # Adventures Hireling: stays in play, +1 Card per turn.
@@ -381,6 +384,7 @@ class PlayerState:
         self.tavern_mat = []
         self.distant_lands_played = 0
         self.minus_card_tokens = 0
+        self.minus_coin_tokens = 0
         self.champions_in_play = 0
         self.hirelings_in_play = 0
         self.mission_used_this_turn = False
@@ -435,20 +439,6 @@ class PlayerState:
         Cards at index 0 are the bottom of the deck (drawn last); cards at
         the end are the top (drawn first via ``deck.pop()``).
         """
-        # Per-shuffle project hooks (Star Chart). Each hook may pull a
-        # card from ``self.discard`` and return it to be placed on top of
-        # the new deck.
-        project_top: list = []
-        game_state = getattr(self, "game_state", None)
-        if game_state is not None:
-            for project in list(self.projects):
-                chosen = project.on_shuffle(game_state, self)
-                if chosen is None:
-                    continue
-                if isinstance(chosen, list):
-                    project_top.extend(chosen)
-                else:
-                    project_top.append(chosen)
         avoid_set_aside: list = []
         if self.avoid_pending > 0 and self.discard:
             n = min(3, len(self.discard))
@@ -476,12 +466,33 @@ class PlayerState:
             if card.name != "Stash" and not getattr(card, "is_shadow", False)
         ]
         random.shuffle(others)
+        self.discard = shadows + others + stash_cards
+
+        # Per-shuffle project hooks (Star Chart). Hooks run after the
+        # shuffle and may remove cards from the shuffled pile to topdeck.
+        project_top: list = []
+        game_state = getattr(self, "game_state", None)
+        if game_state is not None:
+            for project in list(self.projects):
+                chosen = project.on_shuffle(game_state, self)
+                if chosen is None:
+                    continue
+                if isinstance(chosen, list):
+                    project_top.extend(chosen)
+                else:
+                    project_top.append(chosen)
+
+        # Plunder Bury: cards on the Bury mat are placed on top of the
+        # newly-shuffled deck and the mat is emptied.
+        bury_top: list = []
+        if self.bury_mat:
+            bury_top = list(self.bury_mat)
+            self.bury_mat = []
         self.deck = (
-            shadows
-            + others
-            + stash_cards
+            self.discard
             + fated_top
             + avoid_set_aside
+            + bury_top
             + project_top
         )
         self.discard = []
