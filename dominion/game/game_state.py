@@ -1279,6 +1279,8 @@ class GameState:
             self.current_player.hand.extend(self.current_player.save_set_aside)
             self.current_player.save_set_aside = []
 
+        self._handle_clerk_start_of_turn(self.current_player)
+
         # Promo Summon: play any cards set aside by Summon last turn.
         # Increment ``actions_this_turn`` before ``on_play`` so cards keyed
         # off that counter (e.g. Conspirator) see the Summoned play, matching
@@ -1429,6 +1431,28 @@ class GameState:
         self._handle_quartermaster_start_of_turn(self.current_player)
 
         self.phase = "action"
+
+    def _handle_clerk_start_of_turn(self, player: PlayerState) -> None:
+        """Play any Clerks the player wants to reveal at start of turn."""
+
+        while True:
+            clerk = next((card for card in player.hand if card.name == "Clerk"), None)
+            if clerk is None:
+                return
+
+            if not player.ai.should_play_clerk_reaction(self, player, clerk):
+                return
+
+            self.log_callback(
+                (
+                    "action",
+                    player.ai.name,
+                    "plays Clerk from hand at start of turn",
+                    {},
+                )
+            )
+            if not self.play_action_from_hand_indirectly(player, clerk):
+                return
 
     def _resolve_farmhands_set_aside(self, player: PlayerState) -> None:
         """Play any cards queued by Farmhands' on-gain trigger."""

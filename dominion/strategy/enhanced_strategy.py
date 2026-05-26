@@ -421,6 +421,7 @@ class EnhancedStrategy:
 
     def choose_gain(self, state, player, choices):
         normal = self._choose_from_priority(self.gain_priority, choices, state, player, "gain")
+        normal = self._collection_action_gain_choice(state, player, choices, normal)
 
         # Trail → Butterfly trick: buy Trail at $4 to gain a $5 card
         trail = next((c for c in choices if c is not None and c.name == "Trail"), None)
@@ -441,6 +442,47 @@ class EnhancedStrategy:
             return trail
 
         return normal
+
+    def _collection_action_gain_choice(self, state, player, choices, normal):
+        """Prefer useful Action gains over low-value money while Collection is active."""
+
+        if getattr(player, "collection_played", 0) <= 0:
+            return normal
+
+        if normal is not None and normal.is_action:
+            return normal
+
+        if normal is not None and normal.name not in {"Copper", "Silver"}:
+            return normal
+
+        actions = [
+            card
+            for card in choices
+            if card is not None
+            and card.is_action
+            and getattr(state, "supply", {}).get(card.name, 1) > 0
+        ]
+        if not actions:
+            return normal
+
+        priority_names = [rule.card_name for rule in self.gain_priority]
+
+        def action_score(card: Card) -> tuple:
+            try:
+                priority = priority_names.index(card.name)
+            except ValueError:
+                priority = len(priority_names)
+            return (
+                -priority,
+                card.cost.coins,
+                card.stats.cards,
+                card.stats.actions,
+                card.stats.coins,
+                card.stats.buys,
+                card.name,
+            )
+
+        return max(actions, key=action_score)
 
     def choose_trash(self, state, player, choices):
         return self._choose_from_priority(self.trash_priority, choices, state, player, "trash")
@@ -518,6 +560,85 @@ class EnhancedStrategy:
             if cond is None or (callable(cond) and cond(state, player)):
                 return i
         return float("inf")
+
+    # -- Card-specific tactical defaults -----------------------------------
+    def choose_watchtower_reaction(self, state, player, gained_card: Card) -> Optional[str]:
+        """Default Watchtower reaction policy.
+
+        Strategies should not have to rediscover that Watchtower trashes junk
+        and topdecks newly gained engine cards. Victory cards stay in discard
+        by default so they do not clog the next hand.
+        """
+
+        if gained_card.name in {"Curse", "Copper", "Ruins"}:
+            return "trash"
+        if gained_card.is_victory and not gained_card.is_action:
+            return None
+        if gained_card.is_action or gained_card.is_treasure:
+            if gained_card.cost.coins >= 4:
+                return "topdeck"
+        return None
+
+    def choose_card_to_topdeck_for_clerk(
+        self, state, player, choices: list[Card]
+    ) -> Optional[Card]:
+        """Clerk attack response: put the least useful card on deck."""
+
+        if not choices:
+            return None
+
+        def burden(card: Card) -> tuple:
+            return (
+                card.name not in {"Curse", "Copper", "Estate", "Hovel", "Overgrown Estate"},
+                not (card.is_victory and not card.is_action and card.cost.coins <= 2),
+                card.is_action,
+                card.is_treasure,
+                card.cost.coins,
+                card.name,
+            )
+
+        return min(choices, key=burden)
+
+    def should_replay_clerk(self, state, player) -> bool:
+        """Backward-compatible alias for old Clerk duration strategies."""
+
+        return True
+
+    def should_play_clerk_reaction(self, state, player, clerk: Card | None = None) -> bool:
+        """Play Clerk from hand at start of turn by default."""
+
+        return self.should_replay_clerk(state, player)
+
+    def choose_investment_mode(self, state, player, can_trash_treasure: bool) -> str:
+        """Default Investment choice.
+
+        Trash for VP when enough Treasure variety remains after trashing the
+        weakest Treasure; otherwise take the +$1.
+        """
+
+        if not can_trash_treasure:
+            return "coin"
+
+        choices = [card for card in player.hand if getattr(card, "is_treasure", False)]
+        trash = self.choose_treasure_to_trash_for_investment(state, player, choices)
+        remaining_names = {
+            card.name
+            for card in choices
+            if card is not trash and getattr(card, "is_treasure", False)
+        }
+        return "trash" if len(remaining_names) >= 2 else "coin"
+
+    def choose_treasure_to_trash_for_investment(
+        self, state, player, choices: list[Card]
+    ) -> Optional[Card]:
+        """Investment: trash the weakest Treasure from hand."""
+
+        if not choices:
+            return None
+        coppers = [card for card in choices if card.name == "Copper"]
+        if coppers:
+            return coppers[0]
+        return min(choices, key=lambda card: (card.cost.coins, card.name))
 
 
 def create_big_money_strategy() -> EnhancedStrategy:

@@ -61,3 +61,52 @@ class GeneticAI(AI):
             return None
 
         return self.strategy.choose_trash(state, state.current_player, choices)
+
+    def choose_watchtower_reaction(
+        self, state: GameState, player, gained_card: Card
+    ) -> Optional[str]:
+        hook = getattr(self.strategy, "choose_watchtower_reaction", None)
+        if hook is not None:
+            return hook(state, player, gained_card)
+        return super().choose_watchtower_reaction(state, player, gained_card)
+
+    def choose_card_to_topdeck_for_clerk(
+        self, state: GameState, player, choices: list[Card]
+    ) -> Optional[Card]:
+        hook = getattr(self.strategy, "choose_card_to_topdeck_for_clerk", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_card_to_topdeck_for_clerk(state, player, choices)
+
+    def should_play_clerk_reaction(
+        self, state: GameState, player, clerk: Card | None = None
+    ) -> bool:
+        hook = getattr(self.strategy, "should_play_clerk_reaction", None)
+        if hook is not None:
+            return bool(hook(state, player, clerk))
+        legacy_hook = getattr(self.strategy, "should_replay_clerk", None)
+        if legacy_hook is not None:
+            return bool(legacy_hook(state, player))
+        return super().should_play_clerk_reaction(state, player, clerk)
+
+    def should_replay_clerk(self, state: GameState, player) -> bool:
+        legacy_hook = getattr(self.strategy, "should_replay_clerk", None)
+        if legacy_hook is not None:
+            return bool(legacy_hook(state, player))
+        return super().should_replay_clerk(state, player)
+
+    def choose_investment_mode(
+        self, state: GameState, player, can_trash_treasure: bool
+    ) -> str:
+        hook = getattr(self.strategy, "choose_investment_mode", None)
+        if hook is not None:
+            return hook(state, player, can_trash_treasure)
+        return super().choose_investment_mode(state, player, can_trash_treasure)
+
+    def choose_treasure_to_trash_for_investment(
+        self, state: GameState, player, choices: list[Card]
+    ) -> Optional[Card]:
+        hook = getattr(self.strategy, "choose_treasure_to_trash_for_investment", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_treasure_to_trash_for_investment(state, player, choices)
