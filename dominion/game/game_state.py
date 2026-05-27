@@ -1279,8 +1279,6 @@ class GameState:
             self.current_player.hand.extend(self.current_player.save_set_aside)
             self.current_player.save_set_aside = []
 
-        self._handle_clerk_start_of_turn(self.current_player)
-
         # Promo Summon: play any cards set aside by Summon last turn.
         # Increment ``actions_this_turn`` before ``on_play`` so cards keyed
         # off that counter (e.g. Conspirator) see the Summoned play, matching
@@ -1429,6 +1427,10 @@ class GameState:
 
         # Plunder Quartermaster: gain a card or take all from mat.
         self._handle_quartermaster_start_of_turn(self.current_player)
+
+        # Prosperity 2E Clerk: resolve after start-of-turn setup and draws so
+        # extra-turn caps are active and newly drawn Clerks are eligible.
+        self._handle_clerk_start_of_turn(self.current_player)
 
         self.phase = "action"
 

@@ -1006,6 +1006,45 @@ def test_clerk_reaction_plays_from_hand_at_start_of_turn():
     assert len(defender.deck) == 1
 
 
+def test_clerk_reaction_counts_against_voyage_extra_turn_limit():
+    attacker = PlayerState(ClerkReactionAI())
+    defender = PlayerState(DummyAI())
+    state = GameState([attacker, defender])
+    state.setup_supply([get_card("Clerk")])
+
+    defender.hand = [get_card("Copper") for _ in range(5)]
+    clerk = get_card("Clerk")
+    attacker.hand = [clerk]
+    attacker.voyage_extra_turn_pending = True
+
+    state.current_player_index = 0
+    state.handle_start_phase()
+
+    assert clerk in attacker.in_play
+    assert attacker.voyage_cards_from_hand_remaining == 2
+
+
+def test_clerk_reaction_can_play_clerk_drawn_at_start_of_turn():
+    attacker = PlayerState(ClerkReactionAI())
+    defender = PlayerState(DummyAI())
+    state = GameState([attacker, defender])
+    state.setup_supply([get_card("Clerk"), get_card("Hireling")])
+
+    defender.hand = [get_card("Copper") for _ in range(5)]
+    hireling = get_card("Hireling")
+    clerk = get_card("Clerk")
+    attacker.duration = [hireling]
+    attacker.deck = [clerk]
+    attacker.hand = []
+
+    state.current_player_index = 0
+    state.handle_start_phase()
+
+    assert clerk in attacker.in_play
+    assert clerk not in attacker.hand
+    assert attacker.coins == 2
+
+
 # ---------------------------------------------------------------------------
 # Watchtower reaction (regression)
 # ---------------------------------------------------------------------------
