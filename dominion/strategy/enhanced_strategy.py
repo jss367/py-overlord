@@ -481,7 +481,8 @@ class EnhancedStrategy:
         return self._choose_from_priority(self.trash_priority, choices, state, player, "trash")
 
     def choose_way(self, state, player, card, ways):
-        """Choose a Way from ``way_policy``.
+        """Choose a Way from ``way_policy``, or apply the default
+        Trail→Butterfly heuristic when no policy rule matches.
 
         Each :class:`WayRule` matches when (a) its ``card_name`` equals the
         played card, (b) its ``condition`` (if any) passes, and (c) the named
@@ -501,6 +502,25 @@ class EnhancedStrategy:
                 if w is not None and getattr(w, "name", None) == rule.way_name:
                     return w
 
+        return self._default_trail_butterfly_way(state, player, card, ways)
+
+    def _default_trail_butterfly_way(self, state, player, card, ways):
+        """Default heuristic: play Trail as Way of the Butterfly to gain a
+        priority card costing $5.
+
+        ``choose_gain`` and ``choose_action`` already bias toward gaining /
+        playing Trail when ``_best_butterfly_target`` finds a target, so the
+        Way picker must agree or the trick falls apart. Strategies can
+        override this by setting an explicit ``WayRule`` for Trail.
+        """
+        if card.name != "Trail":
+            return None
+        target = self._best_butterfly_target(state, player, card.cost.coins + 1)
+        if not target:
+            return None
+        for w in ways:
+            if w and getattr(w, "name", None) == "Way of the Butterfly":
+                return w
         return None
 
     # -- Butterfly helpers -------------------------------------------------
