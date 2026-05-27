@@ -274,15 +274,22 @@ class GameState:
         if not self.move_card_from_hand_to_play(player, card):
             return False
         original_index = self.current_player_index
+        is_players_turn = self.players[original_index] is player
         try:
             self.current_player_index = self.players.index(player)
         except ValueError:
             return self.play_action_indirectly(
-                player, card, blocked_return_zone=player.hand
+                player,
+                card,
+                blocked_return_zone=player.hand,
+                apply_enchantress=is_players_turn,
             )
         try:
             return self.play_action_indirectly(
-                player, card, blocked_return_zone=player.hand
+                player,
+                card,
+                blocked_return_zone=player.hand,
+                apply_enchantress=is_players_turn,
             )
         finally:
             self.current_player_index = original_index
@@ -293,6 +300,7 @@ class GameState:
         card: Card,
         *,
         blocked_return_zone: list[Card] | None = None,
+        apply_enchantress: bool | None = None,
     ) -> bool:
         """Resolve a single Action play that originates outside the main
         action-phase loop, applying the bookkeeping that loop would.
@@ -315,8 +323,12 @@ class GameState:
         beforehand and for any helper-specific bookkeeping (e.g. Procession
         trashes the multiplied card after both replays). If Warlord blocks a
         freshly moved card, ``blocked_return_zone`` lets the caller preserve
-        that card's source-zone semantics.
+        that card's source-zone semantics. ``apply_enchantress`` defaults to
+        whether this is the player's own turn; off-turn Reaction plays are not
+        covered by Enchantress.
         """
+        if apply_enchantress is None:
+            apply_enchantress = self.current_player is player
         card_was_in_play = card in player.in_play
         check_warlord = blocked_return_zone is player.hand
         if check_warlord and self._warlord_blocks_action_play(
@@ -342,7 +354,8 @@ class GameState:
         player.actions_this_turn += 1
         player.actions_played += 1
         if (
-            card.is_action
+            apply_enchantress
+            and card.is_action
             and getattr(player, "enchantress_active", False)
             and not getattr(player, "enchantress_used_this_turn", False)
         ):
@@ -360,6 +373,10 @@ class GameState:
             self._fire_urchin_reaction(player, card)
         else:
             card.on_play(self)
+        training_pile = getattr(player, "training_pile", None)
+        if training_pile and card.name == training_pile:
+            player.coins += 1
+        self._maybe_kiln_gain(player, card)
         self.fire_prophecy_action_hooks(player, card)
         self.fire_ally_play_hooks(player, card)
         self._call_tavern_triggers(player, "action_played", card)

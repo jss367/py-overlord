@@ -207,3 +207,28 @@ def test_vassal_bumps_actions_this_turn_for_revealed_action():
     state.handle_action_phase()
     # Vassal (1) + revealed Smithy (2) = 2.
     assert p1.actions_this_turn == 2
+
+
+def test_indirect_action_play_gets_training_bonus():
+    state, p1, _ = _two_player_state()
+    p1.training_pile = "Village"
+    village = get_card("Village")
+    p1.in_play.append(village)
+    p1.deck = [get_card("Copper") for _ in range(5)]
+
+    state.play_action_indirectly(p1, village)
+
+    assert p1.coins == 1
+
+
+def test_indirect_action_play_triggers_kiln_gain():
+    state, p1, _ = _two_player_state()
+    state.supply["Village"] = 10
+    p1.kiln_pending = 1
+    village = get_card("Village")
+    p1.in_play.append(village)
+
+    state.play_action_indirectly(p1, village)
+
+    assert p1.kiln_pending == 0
+    assert any(card.name == "Village" for card in p1.discard)
