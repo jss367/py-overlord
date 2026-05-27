@@ -185,7 +185,7 @@ class GameState:
                 # (turn_summary, player_name, actions_played, cards_bought, coins_available)
                 self.logger.log_turn_summary(message[1], message[2], message[3], message[4])
         else:
-            # Legacy string message support
+            # Plain string log line (game-over notices, kingdom listings, etc.)
             if self.logger:
                 # Only write to file logger if enabled; avoid stdout spam
                 if self.logger.should_log_to_file:
@@ -4531,13 +4531,7 @@ class GameState:
         for card in list(player.hand):
             if not card.is_reaction:
                 continue
-            try:
-                blocked = card.react_to_attack(self, player, attacker, attack_card)
-            except TypeError:
-                # Backwards-compatibility: a reaction card without the new
-                # signature shouldn't crash the attack pipeline.
-                blocked = False
-            if blocked:
+            if card.react_to_attack(self, player, attacker, attack_card):
                 return True
 
         # Cornucopia: Young Witch may be blocked by revealing the Bane card.
@@ -4895,11 +4889,7 @@ class GameState:
         for card in list(player.tavern_mat):
             if card not in player.tavern_mat:
                 continue
-            try:
-                card.on_call_from_tavern(self, player, trigger, *args, **kwargs)
-            except TypeError:
-                # Backwards-compat for cards without the *args signature.
-                card.on_call_from_tavern(self, player, trigger)
+            card.on_call_from_tavern(self, player, trigger, *args, **kwargs)
 
     def _begin_inherited_estate_overlay(
         self, player: PlayerState, estate: Card
@@ -4987,16 +4977,6 @@ class GameState:
             estate.on_duration = saved["on_duration"]
         if saved["on_call_from_tavern"] is not None:
             estate.on_call_from_tavern = saved["on_call_from_tavern"]
-
-    def _play_inherited_estate(self, player: PlayerState, estate: Card) -> None:
-        """Backward-compatible wrapper: overlay → on_play → restore. Use the
-        ``_begin_*`` / ``_end_*`` pair when the overlay needs to persist
-        across post-play hooks."""
-        saved = self._begin_inherited_estate_overlay(player, estate)
-        try:
-            estate.on_play(self)
-        finally:
-            self._end_inherited_estate_overlay(estate, saved)
 
     # ------------------------------------------------------------------
     # Adventures: Pile tokens (Lost Arts / Training / Pathfinding / Seaway /

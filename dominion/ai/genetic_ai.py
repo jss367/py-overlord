@@ -84,16 +84,7 @@ class GeneticAI(AI):
         hook = getattr(self.strategy, "should_play_clerk_reaction", None)
         if hook is not None:
             return bool(hook(state, player, clerk))
-        legacy_hook = getattr(self.strategy, "should_replay_clerk", None)
-        if legacy_hook is not None:
-            return bool(legacy_hook(state, player))
         return super().should_play_clerk_reaction(state, player, clerk)
-
-    def should_replay_clerk(self, state: GameState, player) -> bool:
-        legacy_hook = getattr(self.strategy, "should_replay_clerk", None)
-        if legacy_hook is not None:
-            return bool(legacy_hook(state, player))
-        return super().should_replay_clerk(state, player)
 
     def choose_investment_mode(
         self, state: GameState, player, can_trash_treasure: bool

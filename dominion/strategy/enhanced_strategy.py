@@ -10,7 +10,7 @@ file build on these classes.
 from dataclasses import dataclass
 from typing import Callable, Iterable, Optional, ClassVar
 
-from dominion.game.card import Card
+from dominion.cards.base_card import Card
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
 
@@ -323,10 +323,8 @@ class EnhancedStrategy:
     ) -> Optional[Card]:
         """Return the first card whose rule condition evaluates to True.
 
-        The rule condition may be one of the following:
-        1. ``None`` – always true
-        2. A ``Callable[[GameState, PlayerState], bool]`` – evaluated directly
-        3. A legacy ``str`` expression – evaluated via the internal DSL parser
+        The rule condition is either ``None`` (always true) or a
+        ``Callable[[GameState, PlayerState], bool]`` evaluated directly.
         """
 
         for rule in priority:
@@ -335,18 +333,13 @@ class EnhancedStrategy:
                     continue
 
                 cond = rule.condition
-                passes: bool
-
                 if cond is None:
                     passes = True
-                elif callable(cond):
+                else:
                     try:
                         passes = bool(cond(state, player))
                     except Exception:
                         passes = False
-                else:
-                    # Legacy string conditions are no longer supported
-                    passes = False
 
                 if passes:
                     # Mark the rule as having fired at least once. The
@@ -488,19 +481,12 @@ class EnhancedStrategy:
         return self._choose_from_priority(self.trash_priority, choices, state, player, "trash")
 
     def choose_way(self, state, player, card, ways):
-        """Choose a Way from ``way_policy`` or legacy Trail/Butterfly behavior.
+        """Choose a Way from ``way_policy``.
 
         Each :class:`WayRule` matches when (a) its ``card_name`` equals the
         played card, (b) its ``condition`` (if any) passes, and (c) the named
         Way is present in ``ways``. The first matching rule wins.
         """
-        policy_choice = self._choose_way_from_policy(state, player, card, ways)
-        if policy_choice is not None:
-            return policy_choice
-
-        return self._choose_legacy_trail_butterfly_way(state, player, card, ways)
-
-    def _choose_way_from_policy(self, state, player, card, ways):
         for rule in self.way_policy:
             if rule.card_name != card.name:
                 continue
@@ -515,18 +501,6 @@ class EnhancedStrategy:
                 if w is not None and getattr(w, "name", None) == rule.way_name:
                     return w
 
-        return None
-
-    def _choose_legacy_trail_butterfly_way(self, state, player, card, ways):
-        """Preserve old strategies that relied on Trail using Butterfly automatically."""
-        if card.name != "Trail":
-            return None
-        target = self._best_butterfly_target(state, player, card.cost.coins + 1)
-        if not target:
-            return None
-        for w in ways:
-            if w and getattr(w, "name", None) == "Way of the Butterfly":
-                return w
         return None
 
     # -- Butterfly helpers -------------------------------------------------
@@ -599,15 +573,10 @@ class EnhancedStrategy:
 
         return min(choices, key=burden)
 
-    def should_replay_clerk(self, state, player) -> bool:
-        """Backward-compatible alias for old Clerk duration strategies."""
-
-        return True
-
     def should_play_clerk_reaction(self, state, player, clerk: Card | None = None) -> bool:
         """Play Clerk from hand at start of turn by default."""
 
-        return self.should_replay_clerk(state, player)
+        return True
 
     def choose_investment_mode(self, state, player, can_trash_treasure: bool) -> str:
         """Default Investment choice.
