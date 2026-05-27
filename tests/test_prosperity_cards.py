@@ -937,12 +937,12 @@ def test_war_chest_excludes_previously_named_card():
 
 
 # ---------------------------------------------------------------------------
-# Clerk ($4 Action-Attack-Duration)
+# Clerk ($4 Action-Attack-Reaction)
 # ---------------------------------------------------------------------------
 
 
-class ClerkReplayAI(DummyAI):
-    def should_replay_clerk(self, state, player):
+class ClerkReactionAI(DummyAI):
+    def should_play_clerk_reaction(self, state, player, clerk=None):
         return True
 
 
@@ -980,7 +980,7 @@ def test_clerk_skips_opponent_with_fewer_than_5_cards():
     assert len(defender.hand) == 4  # Untouched
 
 
-def test_clerk_stays_in_duration_for_replay_next_turn():
+def test_clerk_play_does_not_create_duration_replay():
     attacker = PlayerState(DummyAI())
     defender = PlayerState(DummyAI())
     state = GameState([attacker, defender])
@@ -992,33 +992,67 @@ def test_clerk_stays_in_duration_for_replay_next_turn():
     attacker.hand = [clerk]
     play_action(state, attacker, "Clerk")
 
-    # Clerk should now sit in duration awaiting next-turn replay
-    assert clerk in attacker.duration
+    assert clerk in attacker.in_play
+    assert clerk not in attacker.duration
 
 
-def test_clerk_replays_at_start_of_next_turn():
-    attacker = PlayerState(ClerkReplayAI())
+def test_clerk_reaction_plays_from_hand_at_start_of_turn():
+    attacker = PlayerState(ClerkReactionAI())
     defender = PlayerState(DummyAI())
     state = GameState([attacker, defender])
     state.setup_supply([get_card("Clerk")])
 
     defender.hand = [get_card("Copper") for _ in range(5)]
-    initial_def_hand = len(defender.hand)
 
     clerk = get_card("Clerk")
     attacker.hand = [clerk]
-    play_action(state, attacker, "Clerk")
-    coins_after_first = attacker.coins
-    # First play attacked once
+
+    state.current_player_index = 0
+    state.handle_start_phase()
+
+    assert clerk not in attacker.hand
+    assert clerk in attacker.in_play
+    assert attacker.coins == 2
     assert len(defender.deck) == 1
 
-    # Simulate next-turn duration replay
-    defender.hand = [get_card("Copper") for _ in range(5)]  # restock for second attack
-    state.do_duration_phase()
 
-    # Replay should have given another +$2 and another attack
-    assert attacker.coins == coins_after_first + 2
-    assert len(defender.deck) >= 2  # Second attack added another card
+def test_clerk_reaction_counts_against_voyage_extra_turn_limit():
+    attacker = PlayerState(ClerkReactionAI())
+    defender = PlayerState(DummyAI())
+    state = GameState([attacker, defender])
+    state.setup_supply([get_card("Clerk")])
+
+    defender.hand = [get_card("Copper") for _ in range(5)]
+    clerk = get_card("Clerk")
+    attacker.hand = [clerk]
+    attacker.voyage_extra_turn_pending = True
+
+    state.current_player_index = 0
+    state.handle_start_phase()
+
+    assert clerk in attacker.in_play
+    assert attacker.voyage_cards_from_hand_remaining == 2
+
+
+def test_clerk_reaction_can_play_clerk_drawn_at_start_of_turn():
+    attacker = PlayerState(ClerkReactionAI())
+    defender = PlayerState(DummyAI())
+    state = GameState([attacker, defender])
+    state.setup_supply([get_card("Clerk"), get_card("Hireling")])
+
+    defender.hand = [get_card("Copper") for _ in range(5)]
+    hireling = get_card("Hireling")
+    clerk = get_card("Clerk")
+    attacker.duration = [hireling]
+    attacker.deck = [clerk]
+    attacker.hand = []
+
+    state.current_player_index = 0
+    state.handle_start_phase()
+
+    assert clerk in attacker.in_play
+    assert clerk not in attacker.hand
+    assert attacker.coins == 2
 
 
 # ---------------------------------------------------------------------------

@@ -1807,11 +1807,22 @@ class AI(ABC):
     def should_replay_clerk(
         self, state: GameState, player: PlayerState
     ) -> bool:
-        """At start of turn, may play a Clerk that was set aside.
+        """Backward-compatible Clerk hook.
 
-        Default: yes — the +$2 is essentially free.
+        Older simulator code modeled Clerk as a Duration replay and called this
+        hook from the duration phase. The current model uses
+        ``should_play_clerk_reaction`` for the printed start-of-turn hand
+        reaction; keep this method as an alias for existing test AIs and
+        strategies that override it.
         """
         return True
+
+    def should_play_clerk_reaction(
+        self, state: GameState, player: PlayerState, clerk: Card | None = None
+    ) -> bool:
+        """Clerk reaction: at start of turn, may play this from hand."""
+
+        return self.should_replay_clerk(state, player)
 
     def choose_investment_mode(
         self, state: GameState, player: PlayerState, can_trash_this: bool

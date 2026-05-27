@@ -56,8 +56,8 @@ def test_inheritance_filters_unsupported_reserve_duration_cards():
     candidate_names = {c.name for c in candidates}
 
     assert {"Guide", "Caravan"} <= candidate_names
+    assert "Clerk" in candidate_names
     assert "Amulet" not in candidate_names
-    assert "Clerk" not in candidate_names
     assert "Dungeon" not in candidate_names
     assert "Garrison" not in candidate_names
     assert "Grotto" not in candidate_names
