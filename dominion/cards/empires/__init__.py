@@ -2,7 +2,6 @@ from .archive import Archive
 from .bustling_village import BustlingVillage
 from .capital import Capital
 from .castles import (
-    Castle,
     HumbleCastle,
     CrumblingCastle,
     SmallCastle,
@@ -43,7 +42,6 @@ __all__ = [
     'Archive',
     'BustlingVillage',
     'Capital',
-    'Castle',
     'HumbleCastle',
     'CrumblingCastle',
     'SmallCastle',

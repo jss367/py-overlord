@@ -265,16 +265,7 @@ class KingsCastle(_CastleBase):
         return 2 * sum(1 for c in player.all_cards() if c.is_castle)
 
 
-# Backwards compat alias: anywhere that imported "Castle" still gets the bottom
-# Humble Castle (first in pile order). Old kingdoms / tests that reference
-# "Castle" still work because we register a "Castles" alias in the registry.
-
-
-Castle = HumbleCastle
-
-
 __all__ = [
-    "Castle",
     "HumbleCastle",
     "CrumblingCastle",
     "SmallCastle",

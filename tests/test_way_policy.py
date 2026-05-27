@@ -96,12 +96,13 @@ class TestChooseWayHonorsPolicy:
         chosen = strategy.choose_way(allowed_state, None, card, ways)
         assert chosen is not None and chosen.name == "Way of the Butterfly"
 
-    def test_falls_back_to_trail_butterfly_when_policy_empty(self):
-        """The pre-existing Trail/Butterfly trick must keep working when
-        ``way_policy`` is empty — old strategies depend on it."""
+    def test_default_trail_butterfly_when_policy_empty(self):
+        """With no way_policy, Trail must still default to Way of the
+        Butterfly when a viable $5 gain-priority target exists. The
+        Trail-bias logic in choose_action/choose_gain depends on the Way
+        picker agreeing."""
         strategy = EnhancedStrategy()
-        # A gain_priority entry costing $5 lets _best_butterfly_target succeed.
-        # We simulate by stubbing _best_butterfly_target directly.
+        # Stub the target lookup so we don't need a full gain_priority/supply.
         strategy._best_butterfly_target = lambda *_: "Smithy"
 
         ways = [WayOfTheButterfly(), None]

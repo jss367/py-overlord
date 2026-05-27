@@ -66,7 +66,6 @@ from dominion.cards.expansions import (
     Graverobber,
     Hamlet,
     Capital,
-    Castle,
     HumbleCastle,
     CrumblingCastle,
     SmallCastle,
@@ -1298,9 +1297,8 @@ CARD_ALIASES: dict[str, str] = {
     "Wandering minstrels": "Wandering Minstrel",
     "Hunting grounds": "Hunting Grounds",
     "Market square": "Market Square",
-    # Empires Castles: any name resolves to the Humble Castle (top of pile)
-    # which triggers the Castles supply expansion in setup_supply.
-    "Castle": "Humble Castle",
+    # Empires Castles: the "Castles" supply-pile name resolves to Humble Castle
+    # (top of pile), which triggers the Castles supply expansion in setup_supply.
     "Castles": "Humble Castle",
 }
 

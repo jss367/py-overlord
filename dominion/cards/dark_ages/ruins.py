@@ -93,13 +93,13 @@ class Survivors(_BaseRuin):
 
 
 class Ruins(_BaseRuin):
-    """Generic Ruins placeholder kept for backward compatibility.
+    """Generic Ruins placeholder representing the supply pile.
 
-    The "Ruins" name is the supply-pile name. Individual gained Ruins are one
-    of the five variant classes; this class only exists so that
-    ``get_card("Ruins")`` continues to return a Card object (used by some
-    callers / tests). Its on-play does nothing, matching the placeholder
-    semantics that pre-existed in the codebase.
+    "Ruins" is the supply-pile name; individual gained Ruins are one of the
+    five variant classes. This class is what ``get_card("Ruins")`` returns
+    and what's used by code that references the pile rather than a specific
+    variant (e.g. ``gain_card(target, get_card("Ruins"))`` in the gain path).
+    Its on-play does nothing — actual play behavior lives on the variants.
     """
 
     def __init__(self):

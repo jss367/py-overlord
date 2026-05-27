@@ -471,8 +471,8 @@ class GeneticTrainer:
                         )
                     if winner == ai1:
                         wins += 1
-                    # ``scores`` is keyed by ai.name; if the mock omits scores
-                    # (some legacy tests do), treat margin as 0 for this game.
+                    # ``scores`` is keyed by ai.name; an empty dict means no
+                    # scores were reported, so treat margin as 0 for this game.
                     if scores:
                         my_score = scores.get(ai1.name, 0)
                         opp_score = scores.get(ai2.name, 0)
