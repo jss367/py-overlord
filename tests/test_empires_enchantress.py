@@ -16,6 +16,11 @@ class _PlayFirstActionAI(DummyAI):
         return None
 
 
+class _PlayClerkReactionAI(_PlayFirstActionAI):
+    def should_play_clerk_reaction(self, state, player, clerk=None):
+        return True
+
+
 def _make_game(num_players=2):
     players = [PlayerState(_PlayFirstActionAI()) for _ in range(num_players)]
     state = GameState(players=players)
@@ -79,6 +84,29 @@ def test_enchantress_only_first_action_overridden():
     # but action count came from Enchantress override (+1 Action).
     # We expect the player drew at least Smithy's 3 cards on the second play.
     assert other.enchantress_used_this_turn
+
+
+def test_enchantress_overrides_start_of_turn_clerk_reaction():
+    state = GameState(
+        [PlayerState(DummyAI()), PlayerState(_PlayClerkReactionAI())]
+    )
+    state.current_player_index = 1
+    defender = state.players[0]
+    other = state.players[1]
+    other.enchantress_active = True
+    clerk = get_card("Clerk")
+    other.hand = [clerk]
+    other.deck = [get_card("Copper") for _ in range(5)]
+    defender.hand = [get_card("Copper") for _ in range(5)]
+
+    state.handle_start_phase()
+
+    assert clerk in other.in_play
+    assert other.enchantress_used_this_turn
+    assert other.coins == 0
+    assert len(other.hand) == 1
+    assert len(defender.hand) == 5
+    assert len(defender.deck) == 0
 
 
 def test_enchantress_persists_across_opponent_extra_turn():

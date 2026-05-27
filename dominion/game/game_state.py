@@ -305,7 +305,7 @@ class GameState:
         - bump ``player.actions_this_turn`` / ``player.actions_played`` so
           cards keying off "Actions played this turn" (Conspirator, Peddler)
           see the correct count
-        - call ``card.on_play``
+        - call ``card.on_play`` or Enchantress's substitute effect
         - fire Prophecy hooks (Rising Sun: Great Leader, Approaching Army)
         - fire Ally on-play hooks (League of Shopkeepers, etc.)
         - fire Tavern "action_played" triggers (Coin of the Realm,
@@ -341,7 +341,25 @@ class GameState:
             return False
         player.actions_this_turn += 1
         player.actions_played += 1
-        card.on_play(self)
+        if (
+            card.is_action
+            and getattr(player, "enchantress_active", False)
+            and not getattr(player, "enchantress_used_this_turn", False)
+        ):
+            player.enchantress_used_this_turn = True
+            self.draw_cards(player, 1)
+            player.actions += 1
+            self.log_callback(
+                (
+                    "action",
+                    player.ai.name,
+                    f"is enchanted while playing {card} (gets +1 Card +1 Action instead)",
+                    {},
+                )
+            )
+            self._fire_urchin_reaction(player, card)
+        else:
+            card.on_play(self)
         self.fire_prophecy_action_hooks(player, card)
         self.fire_ally_play_hooks(player, card)
         self._call_tavern_triggers(player, "action_played", card)
