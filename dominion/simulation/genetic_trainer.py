@@ -853,6 +853,10 @@ class GeneticTrainer:
             # Track raw mean win rate of the best individual separately from
             # shaped fitness so metrics['win_rate'] stays a real win rate.
             best_win_rate = 0.0
+            # Reset the champion's panel breakdown so a second train() call on
+            # the same trainer that fails to establish a new best can't leak
+            # stale per-opponent data from the previous run.
+            self.best_eval_breakdown = []
 
             # Start training progress tracking
             self.logger.start_training(self.generations)
