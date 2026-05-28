@@ -164,7 +164,10 @@ def main() -> None:
             "output_path": str(output_path),
             "fitness": float(metrics.get("fitness", 0.0)),
             "win_rate_vs_panel": float(metrics.get("win_rate", 0.0)),
-            "panel_breakdown": list(trainer.last_eval_breakdown),
+            # See island_evolve.py: ``best_eval_breakdown`` is the breakdown of
+            # the champion ``best``; ``last_eval_breakdown`` would instead be
+            # the last candidate scored in the final generation.
+            "panel_breakdown": list(trainer.best_eval_breakdown),
             "wall_seconds": elapsed,
         },
     }

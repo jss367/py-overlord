@@ -86,6 +86,13 @@ class GeneticTrainer:
         # (not a dict) so multiple panel members sharing a name (e.g. two
         # BigMoneySmithy variants) each contribute independently.
         self.last_eval_breakdown: list[tuple] = []
+        # Breakdown captured at the moment the best individual was found.
+        # ``last_eval_breakdown`` is overwritten by every evaluation, so by the
+        # time ``train()`` returns it reflects whichever candidate was scored
+        # last in the final generation -- not the saved champion. Callers that
+        # need the champion's per-opponent breakdown (e.g. island manifests)
+        # should read this attribute instead.
+        self.best_eval_breakdown: list[tuple] = []
 
         # Cache card type lookups for filtering
         from dominion.cards.registry import get_card
@@ -871,6 +878,12 @@ class GeneticTrainer:
                     if fitness > best_fitness:
                         best_fitness = fitness
                         best_strategy = deepcopy(strategy)
+                        # Snapshot the breakdown now -- ``last_eval_breakdown``
+                        # will be overwritten by the next candidate, so without
+                        # this copy callers reading it after train() returns
+                        # would see the last-evaluated candidate's breakdown,
+                        # not the champion's.
+                        self.best_eval_breakdown = list(self.last_eval_breakdown)
                         if self.last_eval_breakdown:
                             # Entry[1] is always the per-opponent win rate,
                             # whether the breakdown is 2-tuple or 4-tuple.

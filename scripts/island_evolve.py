@@ -166,7 +166,11 @@ def run_one_island(
         output_path=str(output_path),
         fitness=float(metrics.get("fitness", 0.0)),
         win_rate_vs_panel=float(metrics.get("win_rate", 0.0)),
-        panel_breakdown=list(trainer.last_eval_breakdown),
+        # ``best_eval_breakdown`` is the snapshot taken when ``best`` was first
+        # selected as the champion. Using ``last_eval_breakdown`` here would
+        # publish the breakdown of whichever candidate was evaluated last in
+        # the final generation, not the saved champion.
+        panel_breakdown=list(trainer.best_eval_breakdown),
         wall_seconds=elapsed,
     )
 
