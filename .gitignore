@@ -178,3 +178,6 @@ battle_logs/*
 /training_logs
 .worktrees/
 /checkpoints
+/island_logs
+/generated_strategies/island_champions
+/generated_strategies/island_merged
