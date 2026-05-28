@@ -244,6 +244,11 @@ def main() -> None:
     )
 
     results: list[IslandResult] = []
+    # Track failures so a partial run can't silently produce a manifest the
+    # downstream tournament would treat as complete. The whole point of the
+    # island model is that every seed gets the same budget — if one island
+    # crashed mid-evolution, comparing the rest is meaningless.
+    failed_seeds: list[str] = []
 
     if args.parallel and len(seeds) > 1:
         max_workers = args.max_workers or len(seeds)
@@ -261,12 +266,21 @@ def main() -> None:
                     results.append(fut.result())
                 except Exception:
                     logger.exception("Island %s failed", seed)
+                    failed_seeds.append(seed)
     else:
         for seed in seeds:
             try:
                 results.append(run_one_island(seed_name=seed, **kwargs))
             except Exception:
                 logger.exception("Island %s failed", seed)
+                failed_seeds.append(seed)
+
+    if failed_seeds:
+        logger.error(
+            "Run incomplete — %d/%d islands failed: %s. Not writing manifest.",
+            len(failed_seeds), len(seeds), failed_seeds,
+        )
+        sys.exit(1)
 
     # Persist a manifest so the tournament runner can pick it up automatically.
     manifest = {

@@ -190,7 +190,17 @@ def main() -> None:
         help="When using --manifest, also include each panel member as a tournament entrant.",
     )
     parser.add_argument("--board", default="boards/lisbon.txt")
-    parser.add_argument("--games", type=int, default=400)
+
+    def _positive_int(value: str) -> int:
+        ivalue = int(value)
+        if ivalue <= 0:
+            raise argparse.ArgumentTypeError(f"must be a positive integer, got {value}")
+        return ivalue
+
+    # Validated at parse time: ``_run_matchup`` divides by ``games`` to
+    # compute win rates and averages, so 0/negative would crash or produce
+    # nonsense.
+    parser.add_argument("--games", type=_positive_int, default=400)
     parser.add_argument(
         "--parallel",
         action="store_true",
@@ -232,7 +242,16 @@ def main() -> None:
 
     names = [n for n, _ in resolved]
     if len(set(names)) != len(names):
-        logger.warning("Duplicate display names in tournament: %s", names)
+        # The matrix cells are keyed on (a_name, b_name); duplicate names
+        # would silently overwrite cells and corrupt the report. Reject up
+        # front so the user can rename one of the duplicates rather than
+        # discovering it after the fact in a published table.
+        seen: set[str] = set()
+        dupes = sorted({n for n in names if n in seen or seen.add(n)})
+        parser.error(
+            f"Duplicate display names in tournament entrants: {dupes}. "
+            "Rename or deduplicate before running."
+        )
 
     # Build matchup list (one entry per unordered pair).
     matchups: list[tuple[str, str, str, str]] = []  # (a_name, b_name, a_ref, b_ref)
@@ -250,6 +269,11 @@ def main() -> None:
     )
 
     raw_results: list[dict] = []
+    # A failed matchup means the absent cells get rendered as "?" and the
+    # average-win-rate column is computed from fewer opponents than the
+    # rest, silently biasing the ranking. Track failures and refuse to
+    # publish a partial report.
+    failed_matchups: list[tuple[str, str]] = []
     if args.parallel and len(matchups) > 1:
         max_workers = args.max_workers or len(matchups)
         ctx = mp.get_context("spawn")
@@ -269,14 +293,26 @@ def main() -> None:
                     )
                 except Exception:
                     logger.exception("Matchup %s failed", pair)
+                    failed_matchups.append(pair)
     else:
         for a_name, b_name, a_ref, b_ref in matchups:
-            r = _run_matchup(a_ref, b_ref, args.games, args.board)
-            raw_results.append(r)
-            logger.info(
-                "%s vs %s: %.1f%% (margin %+.1f)",
-                r["a_name"], r["b_name"], r["a_win_rate"], r["avg_margin"],
-            )
+            try:
+                r = _run_matchup(a_ref, b_ref, args.games, args.board)
+                raw_results.append(r)
+                logger.info(
+                    "%s vs %s: %.1f%% (margin %+.1f)",
+                    r["a_name"], r["b_name"], r["a_win_rate"], r["avg_margin"],
+                )
+            except Exception:
+                logger.exception("Matchup (%s, %s) failed", a_name, b_name)
+                failed_matchups.append((a_name, b_name))
+
+    if failed_matchups:
+        logger.error(
+            "Tournament incomplete — %d/%d matchups failed: %s. Not publishing report.",
+            len(failed_matchups), len(matchups), failed_matchups,
+        )
+        sys.exit(1)
 
     # Build cell maps. Each result for (a, b) gives us:
     #   - a_win_rate for cell (a, b)

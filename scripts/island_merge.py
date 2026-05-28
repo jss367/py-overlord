@@ -97,6 +97,12 @@ def main() -> None:
         champions.append(champ)
         logger.info("Loaded champion: %s (from %s)", champ.name, path.name)
 
+    if not champions:
+        raise ValueError(
+            "No champions found in manifest; cannot run merged stage. "
+            "Re-run island_evolve.py first."
+        )
+
     board_config = load_board(board_path)
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = Path(args.output_dir) / run_id
