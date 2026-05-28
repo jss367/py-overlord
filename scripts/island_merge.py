@@ -130,6 +130,15 @@ def main() -> None:
             "Re-run with verbose logging to find the underlying training failure."
         )
 
+    # If the hybrid stage doesn't improve on the injected champions, ``best``
+    # is a deepcopy of one of them with its original ``name`` preserved (see
+    # GeneticTrainer._inject_strategies). Saving as-is would emit a file
+    # whose ``self.name`` collides with the matching island champion, and
+    # ``island_tournament.py`` then rejects the entrant list via its
+    # duplicate-name guard. Match island_evolve.py and assign a stable
+    # merged-stage display name before serialization.
+    best.name = "Lisbon Merged Champion"
+
     output_path = output_dir / "merged_champion.py"
     save_strategy_as_python(best, output_path, "LisbonMergedChampion")
     logger.info(
