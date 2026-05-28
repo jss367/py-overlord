@@ -125,8 +125,10 @@ def main() -> None:
     elapsed = time.monotonic() - start
 
     if best is None:
-        logger.error("Merged stage produced no champion")
-        return
+        raise RuntimeError(
+            "Merged stage produced no champion (GeneticTrainer.train() returned None). "
+            "Re-run with verbose logging to find the underlying training failure."
+        )
 
     output_path = output_dir / "merged_champion.py"
     save_strategy_as_python(best, output_path, "LisbonMergedChampion")
