@@ -903,3 +903,29 @@ class TestMutationProducesCallableConditions:
                 assert rule.condition is None or callable(rule.condition), (
                     f"After mutation, condition for {rule.card_name} is {type(rule.condition)}"
                 )
+
+
+class TestTrainResetsBestEvalBreakdown:
+    """A second ``train()`` call on the same trainer must not leak the previous
+    run's champion panel breakdown. If the second run fails to establish a new
+    best (e.g. every candidate scores ``-inf``), ``best_eval_breakdown`` must
+    reflect the failed run (empty), not the prior successful one."""
+
+    def test_second_train_run_does_not_leak_prior_breakdown(self, monkeypatch):
+        trainer = GeneticTrainer(
+            ["Village"], population_size=2, generations=1, games_per_eval=2
+        )
+        # Simulate state left behind by a successful prior run.
+        trainer.best_eval_breakdown = [("PriorOpp", 75.0)]
+
+        # Every candidate this run scores -inf, so no new best is found and the
+        # snapshot at the "new best" branch in train() never fires.
+        monkeypatch.setattr(trainer, "evaluate_strategy", lambda s: float("-inf"))
+
+        best, _ = trainer.train()
+
+        assert best is None, "Sanity: no candidate should beat -inf seed"
+        assert trainer.best_eval_breakdown == [], (
+            "best_eval_breakdown should be reset at the top of train(); "
+            f"got stale value {trainer.best_eval_breakdown!r}"
+        )
