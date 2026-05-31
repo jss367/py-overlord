@@ -796,8 +796,8 @@ class GameState:
         if any(card.name == "Young Witch" for card in kingdom_cards):
             self._setup_young_witch_bane(kingdom_cards)
 
-        # Cornucopia & Guilds 2E: Ferryman picks an unused Action pile costing
-        # exactly $3 and adds it to the Supply.
+        # Cornucopia & Guilds 2E: Ferryman picks an unused Kingdom pile
+        # costing $3 or $4 and sets it aside near the Supply.
         if any(card.name == "Ferryman" for card in kingdom_cards):
             self._setup_ferryman_pile(kingdom_cards)
 
@@ -864,10 +864,10 @@ class GameState:
 
         Split piles (Allies four-card piles, Wizards, Empires
         SplitPileMixin pairs, Empires Castles) are supported only if the
-        chosen card is the TOP of its pile, since gameplay can only buy
-        or gain from the top initially. When a split-pile top is picked,
-        ``_register_kingdom_pile`` adds all partner piles to the supply
-        so the pile evolves correctly during play.
+        chosen card is the TOP of its pile. When a split-pile top is
+        picked, ``_register_kingdom_pile`` adds all partner piles for
+        internal tracking, but those piles are marked non-Supply and are
+        only gainable through Ferryman's gain hook.
         """
         from dominion.cards.allies._split_base import AlliesSplitCard
         from dominion.cards.allies.wizards import (
@@ -1000,6 +1000,25 @@ class GameState:
             self.ferryman_pile_order = [chosen_name]
         for name in self.ferryman_pile_order:
             self.original_kingdom_pile_names.add(name)
+            self.non_supply_pile_names.add(name)
+
+    def _is_ferryman_reserved_pile_name(self, name: str) -> bool:
+        """Whether ``name`` is in the pile set aside by Ferryman.
+
+        The pile lives in ``self.supply`` for count tracking, but by rule it
+        is not part of the Supply and can only be gained by gaining Ferryman.
+        """
+
+        return bool(
+            name
+            and (
+                name in self.ferryman_pile_order
+                or (
+                    not self.ferryman_pile_order
+                    and name == self.ferryman_card_name
+                )
+            )
+        )
 
     def _setup_dark_ages_piles(self, kingdom_cards: list[Card]) -> None:
         """Build the shuffled Ruins / Knights piles and Madman / Mercenary piles."""
@@ -3623,7 +3642,7 @@ class GameState:
         card: Card,
         to_deck: bool = False,
         from_supply: bool = True,
-    ) -> Card:
+    ) -> "Card | None":
         """Add a card to a player's discard or deck, honoring topdeck effects.
 
         ``from_supply`` controls supply-restoration semantics. The default
@@ -3636,6 +3655,17 @@ class GameState:
         If the player has a matching card on their Exile mat, that card is
         reclaimed instead of the newly gained copy.
         """
+
+        if (
+            from_supply
+            and self._is_ferryman_reserved_pile_name(card.name)
+            and not getattr(self, "_allow_ferryman_pile_gain", False)
+        ):
+            # Ferryman's set-aside pile is tracked in self.supply but is not
+            # a normal Supply pile. Callers using from_supply=True have
+            # already decremented; put the copy back and refuse the gain.
+            self._restore_to_supply_pile(card)
+            return None
 
         reclaimed = None
         for idx, exiled in enumerate(player.exile):

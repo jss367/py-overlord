@@ -166,6 +166,10 @@ class Card:
 
     def may_be_bought(self, game_state) -> bool:
         """Check if this card can currently be bought."""
+        if getattr(game_state, "_is_ferryman_reserved_pile_name", lambda _name: False)(
+            self.name
+        ):
+            return False
         return True
 
     def may_be_gained(self, game_state) -> bool:

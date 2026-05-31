@@ -1099,8 +1099,65 @@ def test_ferryman_setup_designates_a_three_or_four_cost_pile():
     assert state.ferryman_card_name, "Ferryman setup should pick a $3/$4 card"
     chosen = get_card(state.ferryman_card_name)
     assert chosen.cost.coins in (3, 4)
-    # The chosen pile must exist in the supply.
+    # The chosen pile is tracked internally, but is not a Supply pile by rule.
     assert state.ferryman_card_name in state.supply
+    assert state.ferryman_card_name in state.non_supply_pile_names
+
+
+def test_ferryman_set_aside_pile_is_not_buyable():
+    state = GameState(players=[])
+    state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
+    player = state.players[0]
+    player.coins = 10
+
+    affordable_names = {card.name for card in state._get_affordable_cards(player)}
+    assert state.ferryman_card_name not in affordable_names
+
+
+class NamedBuyAI(FirstChoiceAI):
+    def __init__(self, target_name):
+        super().__init__()
+        self.target_name = target_name
+
+    def choose_buy(self, state, choices):
+        for choice in choices:
+            if choice is not None and choice.name == self.target_name:
+                return choice
+        return super().choose_buy(state, choices)
+
+
+def test_ferryman_set_aside_pile_cannot_be_gained_by_other_effects():
+    state = GameState(players=[])
+    state.initialize_game(
+        [NamedBuyAI("Smithy")], [get_card("Ferryman"), get_card("Workshop")]
+    )
+    player = state.players[0]
+    player.hand = []
+    player.deck = []
+    player.discard = []
+    state.current_player_index = 0
+
+    state.supply.setdefault("Smithy", get_card("Smithy").starting_supply(state))
+    state.ferryman_card_name = "Smithy"
+    state.ferryman_pile_order = ["Smithy"]
+    state.non_supply_pile_names.add("Smithy")
+    initial_smithies = state.supply["Smithy"]
+
+    get_card("Workshop").play_effect(state)
+
+    assert state.supply["Smithy"] == initial_smithies
+    assert not any(card.name == "Smithy" for card in player.discard)
+
+
+def test_ferryman_set_aside_pile_does_not_count_as_empty_supply_pile():
+    state = GameState(players=[])
+    state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
+    state.supply["Smithy"] = 0
+    state.ferryman_card_name = "Smithy"
+    state.ferryman_pile_order = ["Smithy"]
+    state.non_supply_pile_names.add("Smithy")
+
+    assert state.empty_piles == 0
 
 
 def test_ferryman_setup_can_pick_either_three_or_four_cost():
