@@ -28,6 +28,8 @@ class DivineWind(Prophecy):
         kingdom_pile_names = list(getattr(game_state, "original_kingdom_pile_names", set()))
         removed = []
         for name in kingdom_pile_names:
+            if name in getattr(game_state, "non_supply_pile_names", set()):
+                continue
             if name in game_state.supply:
                 del game_state.supply[name]
                 removed.append(name)
