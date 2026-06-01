@@ -1171,6 +1171,54 @@ def test_ferryman_set_aside_pile_is_removed_from_black_market_deck():
         assert name not in state.black_market_deck
 
 
+def test_ferryman_set_aside_pile_is_not_an_ironworks_gain_option():
+    state = GameState(players=[])
+    state.initialize_game(
+        [FirstChoiceAI()],
+        [get_card("Ferryman"), get_card("Ironworks")],
+    )
+    player = state.players[0]
+    player.hand = []
+    player.deck = []
+    player.discard = []
+    state.current_player_index = 0
+
+    state.supply.setdefault("Smithy", get_card("Smithy").starting_supply(state))
+    state.ferryman_card_name = "Smithy"
+    state.ferryman_pile_order = ["Smithy"]
+    state.non_supply_pile_names.add("Smithy")
+    initial_smithies = state.supply["Smithy"]
+
+    get_card("Ironworks").play_effect(state)
+
+    assert state.supply["Smithy"] == initial_smithies
+    assert not any(card.name == "Smithy" for card in player.discard)
+
+
+def test_ferryman_set_aside_pile_is_not_a_groom_gain_option():
+    state = GameState(players=[])
+    state.initialize_game(
+        [NamedBuyAI("Smithy")],
+        [get_card("Ferryman"), get_card("Groom")],
+    )
+    player = state.players[0]
+    player.hand = []
+    player.deck = []
+    player.discard = []
+    state.current_player_index = 0
+
+    state.supply.setdefault("Smithy", get_card("Smithy").starting_supply(state))
+    state.ferryman_card_name = "Smithy"
+    state.ferryman_pile_order = ["Smithy"]
+    state.non_supply_pile_names.add("Smithy")
+    initial_smithies = state.supply["Smithy"]
+
+    get_card("Groom").play_effect(state)
+
+    assert state.supply["Smithy"] == initial_smithies
+    assert not any(card.name == "Smithy" for card in player.discard)
+
+
 def test_ferryman_setup_can_pick_either_three_or_four_cost():
     """Across many setups, Ferryman should sample from both $3 and $4
     Kingdom piles (not just $3)."""

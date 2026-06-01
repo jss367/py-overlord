@@ -24,11 +24,17 @@ class Groom(Card):
         for name, count in game_state.supply.items():
             if count <= 0:
                 continue
+            if name in game_state.non_supply_pile_names:
+                continue
             try:
                 card = get_card(name)
             except ValueError:
                 continue
-            if card.cost.coins <= 4 and card.cost.potions == 0:
+            if (
+                card.may_be_gained(game_state)
+                and card.cost.coins <= 4
+                and card.cost.potions == 0
+            ):
                 candidates.append(card)
         if not candidates:
             return
