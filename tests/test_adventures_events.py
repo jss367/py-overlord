@@ -246,6 +246,39 @@ def test_seaway_places_buy_token():
     assert state.player_token_pile(player, "+1 Buy") == "Village"
 
 
+class _ChooseNamedSeawayAI(ChooseFirstActionAI):
+    def __init__(self, target_name):
+        super().__init__()
+        self.target_name = target_name
+
+    def choose_gain_for_seaway(self, state, player, choices):
+        for choice in choices:
+            if choice.name == self.target_name:
+                return choice
+        return super().choose_gain_for_seaway(state, player, choices)
+
+
+def test_seaway_does_not_gain_or_token_ferryman_set_aside_pile():
+    state = GameState(players=[])
+    state.initialize_game(
+        [_ChooseNamedSeawayAI("Smithy")],
+        [get_card("Ferryman"), get_card("Village")],
+    )
+    player = state.players[0]
+    state.supply.setdefault("Smithy", get_card("Smithy").starting_supply(state))
+    state.ferryman_card_name = "Smithy"
+    state.ferryman_pile_order = ["Smithy"]
+    state.non_supply_pile_names.add("Smithy")
+    initial_smithies = state.supply["Smithy"]
+
+    Seaway = get_event("Seaway")
+    Seaway.on_buy(state, player)
+
+    assert state.supply["Smithy"] == initial_smithies
+    assert not any(card.name == "Smithy" for card in player.discard)
+    assert state.player_token_pile(player, "+1 Buy") != "Smithy"
+
+
 def test_trade_trashes_for_silvers():
     ai = TrashFirstAI()
     state = GameState(players=[])
