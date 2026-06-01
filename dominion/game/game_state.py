@@ -1087,6 +1087,27 @@ class GameState:
             return None
         return get_card(order[-1])
 
+    def _iter_gainable_supply_cards(self):
+        """Yield normal Supply piles that card effects may gain from."""
+
+        for name, count in self.supply.items():
+            if count <= 0:
+                continue
+            if name in self.non_supply_pile_names:
+                continue
+            if (
+                self._is_ferryman_reserved_pile_name(name)
+                and not getattr(self, "_allow_ferryman_pile_gain", False)
+            ):
+                continue
+            try:
+                card = get_card(name)
+            except ValueError:
+                continue
+            if not card.may_be_gained(self):
+                continue
+            yield name, card, count
+
     def _prepare_black_market_deck(self, kingdom_cards: list[Card]) -> None:
         """Build and shuffle the Black Market deck for this game."""
 
@@ -1633,8 +1654,6 @@ class GameState:
                 player.discard.append(card)
 
     def _handle_quartermaster_start_of_turn(self, player: PlayerState) -> None:
-        from ..cards.registry import get_card
-
         quartermasters = [c for c in player.duration if c.name == "Quartermaster"]
         if not quartermasters:
             return
@@ -1650,13 +1669,7 @@ class GameState:
                 self.quartermaster_mats[id(player)] = []
             else:
                 candidates = []
-                for name, count in self.supply.items():
-                    if count <= 0:
-                        continue
-                    try:
-                        card = get_card(name)
-                    except ValueError:
-                        continue
+                for _name, card, _count in self._iter_gainable_supply_cards():
                     if (
                         card.cost.coins <= 4
                         and card.cost.potions == 0
@@ -4110,16 +4123,9 @@ class GameState:
         if getattr(player, "mining_road_triggered", False):
             return
         player.mining_road_triggered = True
-        from ..cards.registry import get_card
 
         candidates = []
-        for name, count in self.supply.items():
-            if count <= 0:
-                continue
-            try:
-                card = get_card(name)
-            except ValueError:
-                continue
+        for _name, card, _count in self._iter_gainable_supply_cards():
             if card.is_treasure:
                 candidates.append(card)
         if not candidates:
@@ -4348,14 +4354,9 @@ class GameState:
         if haggler_count == 0:
             return
 
-        from ..cards.registry import get_card
-
         for _ in range(haggler_count):
             options: list[Card] = []
-            for name, count in self.supply.items():
-                if count <= 0:
-                    continue
-                card = get_card(name)
+            for _name, card, _count in self._iter_gainable_supply_cards():
                 if card.cost.coins < bought_card.cost.coins and not card.is_victory:
                     options.append(card)
 

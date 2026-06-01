@@ -1237,6 +1237,20 @@ def test_ferryman_setup_state_resets_when_game_state_is_reused():
     }
 
 
+def test_ferryman_set_aside_pile_is_not_gainable_supply():
+    state = GameState(players=[])
+    state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
+    state.supply.setdefault("Smithy", get_card("Smithy").starting_supply(state))
+    state.ferryman_card_name = "Smithy"
+    state.ferryman_pile_order = ["Smithy"]
+    state.non_supply_pile_names.add("Smithy")
+
+    gainable_names = {
+        name for name, _card, _count in state._iter_gainable_supply_cards()
+    }
+    assert "Smithy" not in gainable_names
+
+
 def test_ferryman_setup_can_pick_either_three_or_four_cost():
     """Across many setups, Ferryman should sample from both $3 and $4
     Kingdom piles (not just $3)."""
