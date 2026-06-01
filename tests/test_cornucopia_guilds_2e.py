@@ -1160,6 +1160,17 @@ def test_ferryman_set_aside_pile_does_not_count_as_empty_supply_pile():
     assert state.empty_piles == 0
 
 
+def test_ferryman_set_aside_pile_is_removed_from_black_market_deck():
+    state = GameState(players=[])
+    state.initialize_game(
+        [FirstChoiceAI()],
+        [get_card("Black Market"), get_card("Ferryman")],
+    )
+
+    for name in state.ferryman_pile_order:
+        assert name not in state.black_market_deck
+
+
 def test_ferryman_setup_can_pick_either_three_or_four_cost():
     """Across many setups, Ferryman should sample from both $3 and $4
     Kingdom piles (not just $3)."""

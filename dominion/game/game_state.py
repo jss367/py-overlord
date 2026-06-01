@@ -1001,6 +1001,11 @@ class GameState:
         for name in self.ferryman_pile_order:
             self.original_kingdom_pile_names.add(name)
             self.non_supply_pile_names.add(name)
+        if self.black_market_deck:
+            reserved = set(self.ferryman_pile_order)
+            self.black_market_deck = [
+                name for name in self.black_market_deck if name not in reserved
+            ]
 
     def _is_ferryman_reserved_pile_name(self, name: str) -> bool:
         """Whether ``name`` is in the pile set aside by Ferryman.
