@@ -18,6 +18,20 @@ class WayPickerAI(ChooseFirstActionAI):
         return None
 
 
+class NamedWayGainAI(WayPickerAI):
+    def __init__(self, way_name: str, gain_names: list[str]):
+        super().__init__(way_name)
+        self._gain_names = list(gain_names)
+
+    def choose_buy(self, state, choices):
+        while self._gain_names:
+            target = self._gain_names.pop(0)
+            for choice in choices:
+                if choice is not None and choice.name == target:
+                    return choice
+        return super().choose_buy(state, choices)
+
+
 def _state(way_name: str | None = None, kingdom=None):
     kingdom = kingdom or [get_card("Village"), get_card("Smithy")]
     if way_name is not None:
@@ -199,6 +213,33 @@ def test_way_of_the_rat_discards_treasure_gains_action():
     assert any(c.name == "Copper" for c in p1.discard)
     gained = [c for c in p1.discard if c.is_action]
     assert gained
+
+
+def test_way_of_the_rat_skips_ferryman_set_aside_pile():
+    state = GameState(players=[])
+    state.initialize_game(
+        [
+            NamedWayGainAI("Way of the Rat", ["Smithy", "Village"]),
+            ChooseFirstActionAI(),
+        ],
+        [get_card("Village")],
+        ways=[get_way("Way of the Rat")],
+    )
+    state.supply["Smithy"] = 5
+    state.ferryman_card_name = "Smithy"
+    state.ferryman_pile_order = ["Smithy"]
+    state.non_supply_pile_names.add("Smithy")
+    p1 = state.players[0]
+    p1.actions = 1
+    p1.hand = [get_card("Village"), get_card("Copper")]
+    state.phase = "action"
+
+    state.handle_action_phase()
+
+    assert state.supply["Smithy"] == 5
+    assert any(card.name == "Copper" for card in p1.discard)
+    assert any(card.name == "Village" for card in p1.discard)
+    assert not any(card.name == "Smithy" for card in p1.discard)
 
 
 def test_way_of_the_turtle_plays_next_turn():

@@ -8,8 +8,6 @@ class WayOfTheRat(Way):
         super().__init__("Way of the Rat")
 
     def apply(self, game_state, card) -> None:
-        from dominion.cards.registry import get_card
-
         player = game_state.current_player
         treasures = [c for c in player.hand if c.is_treasure]
         if not treasures:
@@ -21,13 +19,7 @@ class WayOfTheRat(Way):
         game_state.discard_card(player, choice)
 
         candidates = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            try:
-                cand = get_card(name)
-            except ValueError:
-                continue
+        for _name, cand, _count in game_state._iter_gainable_supply_cards():
             if cand.is_action and cand.cost.coins <= 5 and cand.cost.potions == 0:
                 candidates.append(cand)
         if not candidates:
