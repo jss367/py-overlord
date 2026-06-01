@@ -89,3 +89,22 @@ def test_engineer_defaults_to_best_available_gain_when_ai_abstains():
 
     assert [card.name for card in player.discard] == ["Silver"]
     assert state.supply["Silver"] == 4
+
+
+def test_engineer_skips_ferryman_set_aside_pile():
+    ai = EngineerTestAI(["Smithy", "Silver"], trash_engineer=False)
+    state, player = _make_state(ai)
+
+    state.supply.update({"Smithy": 5, "Silver": 5, "Estate": 8})
+    state.ferryman_card_name = "Smithy"
+    state.ferryman_pile_order = ["Smithy"]
+    state.non_supply_pile_names.add("Smithy")
+
+    engineer = get_card("Engineer")
+    player.in_play = [engineer]
+
+    engineer.play_effect(state)
+
+    assert state.supply["Smithy"] == 5
+    assert [card.name for card in player.discard] == ["Silver"]
+    assert state.supply["Silver"] == 4

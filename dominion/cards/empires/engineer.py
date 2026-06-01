@@ -12,14 +12,10 @@ class Engineer(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        from ..registry import get_card
 
         def affordable_cards() -> list[Card]:
             cards: list[Card] = []
-            for name, count in game_state.supply.items():
-                if count <= 0:
-                    continue
-                candidate = get_card(name)
+            for _name, candidate, _count in game_state._iter_gainable_supply_cards():
                 if candidate.cost.coins <= 4:
                     cards.append(candidate)
             cards.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
