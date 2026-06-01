@@ -33,13 +33,8 @@ class Remodel(Card):
         max_coins = trashed.cost.coins + 2
         max_potions = trashed.cost.potions
 
-        from ..registry import get_card
-
         options = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            candidate = get_card(name)
+        for _name, candidate, _count in game_state._iter_gainable_supply_cards():
             if candidate.cost.potions > max_potions:
                 continue
             if candidate.cost.coins > max_coins:

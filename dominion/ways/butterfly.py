@@ -1,4 +1,3 @@
-from dominion.cards.registry import get_card
 from dominion.cards.base_card import Card
 from .base_way import Way
 
@@ -21,10 +20,7 @@ class WayOfTheButterfly(Way):
 
         # Collect all gainable cards at the target cost
         candidates = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            candidate = get_card(name)
+        for _name, candidate, _count in game_state._iter_gainable_supply_cards():
             if (
                 candidate.cost.coins == target_cost
                 and candidate.cost.potions == card.cost.potions

@@ -20,7 +20,11 @@ class Ironworks(Card):
         for name, count in game_state.supply.items():
             if count <= 0:
                 continue
+            if name in game_state.non_supply_pile_names:
+                continue
             card = get_card(name)
+            if not card.may_be_gained(game_state):
+                continue
             if card.cost.coins <= 4:
                 gain_options.append(card)
 

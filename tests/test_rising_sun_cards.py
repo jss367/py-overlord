@@ -722,6 +722,31 @@ def test_divine_wind_preserves_non_kingdom_support_piles():
         assert basic in state.supply, f"{basic} should still be in supply"
 
 
+def test_divine_wind_preserves_ferryman_set_aside_pile():
+    """Ferryman's designated pile is near the Supply, not a Supply pile.
+
+    Divine Wind removes Kingdom Supply piles, so it must leave Ferryman's
+    set-aside pile available for existing gained Ferrymen.
+    """
+    state = GameState(players=[])
+    state.initialize_game(
+        [_GainFirstAI()],
+        [get_card("Ferryman"), get_card("Village")],
+    )
+    ferryman_pile = state.ferryman_card_name
+    assert ferryman_pile in state.supply
+    assert ferryman_pile in state.non_supply_pile_names
+    initial_count = state.supply[ferryman_pile]
+
+    dw = get_prophecy("Divine Wind")
+    dw.activate(state)
+
+    assert "Ferryman" not in state.supply
+    assert "Village" not in state.supply
+    assert ferryman_pile in state.supply
+    assert state.supply[ferryman_pile] == initial_count
+
+
 def test_approaching_army_adds_attack_companion_piles():
     """If Approaching Army adds Marauder, the Ruins and Spoils piles it
     needs must also be created (otherwise gained Marauders/Loots break).

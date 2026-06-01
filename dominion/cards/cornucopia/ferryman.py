@@ -57,5 +57,10 @@ class Ferryman(Card):
             if game_state.supply.get(name, 0) <= 0:
                 continue
             game_state.supply[name] -= 1
-            game_state.gain_card(player, get_card(name))
+            previous = getattr(game_state, "_allow_ferryman_pile_gain", False)
+            game_state._allow_ferryman_pile_gain = True
+            try:
+                game_state.gain_card(player, get_card(name))
+            finally:
+                game_state._allow_ferryman_pile_gain = previous
             return

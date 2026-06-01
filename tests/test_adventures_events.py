@@ -223,6 +223,71 @@ def test_ball_minus_coin_token_applies_at_next_turn_start():
     assert player.minus_coin_tokens == 0
 
 
+class _ChooseNamedEventGainAI(ChooseFirstActionAI):
+    def __init__(self, target_name):
+        super().__init__()
+        self.target_name = target_name
+
+    def _choose_named(self, choices):
+        for choice in choices:
+            if choice.name == self.target_name:
+                return choice
+        return None
+
+    def choose_gain_for_alms(self, state, player, choices):
+        return self._choose_named(choices) or super().choose_gain_for_alms(
+            state, player, choices
+        )
+
+    def choose_gain_for_ball(self, state, player, choices):
+        return self._choose_named(choices) or super().choose_gain_for_ball(
+            state, player, choices
+        )
+
+    def choose_gain_for_seaway(self, state, player, choices):
+        return self._choose_named(choices) or super().choose_gain_for_seaway(
+            state, player, choices
+        )
+
+
+def _mark_ferryman_reserved_pile(state, name):
+    state.supply.setdefault(name, get_card(name).starting_supply(state))
+    state.ferryman_card_name = name
+    state.ferryman_pile_order = [name]
+    state.non_supply_pile_names.add(name)
+
+
+def test_alms_does_not_gain_ferryman_set_aside_pile():
+    state = GameState(players=[])
+    state.initialize_game([_ChooseNamedEventGainAI("Smithy")], [get_card("Village")])
+    player = state.players[0]
+    player.in_play = []
+    _mark_ferryman_reserved_pile(state, "Smithy")
+    initial_smithies = state.supply["Smithy"]
+
+    Alms = get_event("Alms")
+    Alms.on_buy(state, player)
+
+    assert state.supply["Smithy"] == initial_smithies
+    assert not any(card.name == "Smithy" for card in player.discard)
+    assert player.discard
+
+
+def test_ball_does_not_gain_ferryman_set_aside_pile():
+    state = GameState(players=[])
+    state.initialize_game([_ChooseNamedEventGainAI("Smithy")], [get_card("Village")])
+    player = state.players[0]
+    _mark_ferryman_reserved_pile(state, "Smithy")
+    initial_smithies = state.supply["Smithy"]
+
+    Ball = get_event("Ball")
+    Ball.on_buy(state, player)
+
+    assert state.supply["Smithy"] == initial_smithies
+    assert not any(card.name == "Smithy" for card in player.discard)
+    assert len(player.discard) == 2
+
+
 def test_raid_minus_card_tokens_and_silvers():
     state = _new_state()
     state2 = GameState(players=[])
@@ -244,6 +309,24 @@ def test_seaway_places_buy_token():
     Seaway = get_event("Seaway")
     Seaway.on_buy(state, player)
     assert state.player_token_pile(player, "+1 Buy") == "Village"
+
+
+def test_seaway_does_not_gain_or_token_ferryman_set_aside_pile():
+    state = GameState(players=[])
+    state.initialize_game(
+        [_ChooseNamedEventGainAI("Smithy")],
+        [get_card("Ferryman"), get_card("Village")],
+    )
+    player = state.players[0]
+    _mark_ferryman_reserved_pile(state, "Smithy")
+    initial_smithies = state.supply["Smithy"]
+
+    Seaway = get_event("Seaway")
+    Seaway.on_buy(state, player)
+
+    assert state.supply["Smithy"] == initial_smithies
+    assert not any(card.name == "Smithy" for card in player.discard)
+    assert state.player_token_pile(player, "+1 Buy") != "Smithy"
 
 
 def test_trade_trashes_for_silvers():

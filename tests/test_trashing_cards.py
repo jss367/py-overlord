@@ -108,3 +108,25 @@ def test_rats_gains_respect_supply():
 
     assert empty_state.supply["Rats"] == 0
     assert other_player.count("Rats") == 1  # only the original copy remains
+
+
+def test_rats_self_gain_can_use_ferryman_set_aside_pile():
+    ai = TrashFirstAI()
+    player = PlayerState(ai)
+    state = GameState([player])
+    state.setup_supply([get_card("Rats")])
+    state.ferryman_card_name = "Rats"
+    state.ferryman_pile_order = ["Rats"]
+    state.non_supply_pile_names.add("Rats")
+
+    player.deck = []
+    player.discard = []
+    player.in_play = []
+    player.hand = [get_card("Rats")]
+
+    rats_supply_before = state.supply["Rats"]
+    play_action(state, player, player.hand[0])
+
+    assert state.supply["Rats"] == rats_supply_before - 1
+    assert any(card.name == "Rats" for card in player.discard)
+    assert player.count("Rats") == 2

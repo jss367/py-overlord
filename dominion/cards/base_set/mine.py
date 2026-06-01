@@ -13,7 +13,6 @@ class Mine(Card):
     def play_effect(self, game_state):
         """Trash a treasure from hand and gain a treasure costing up to 3 coins more."""
         player = game_state.current_player
-        from ..registry import get_card
 
         # Find treasures in hand
         treasure_cards = [card for card in player.hand if card.is_treasure]
@@ -31,10 +30,7 @@ class Mine(Card):
 
             # Find treasures that can be gained
             possible_gains = []
-            for name, count in game_state.supply.items():
-                if count <= 0:
-                    continue
-                candidate = get_card(name)
+            for _name, candidate, _count in game_state._iter_gainable_supply_cards():
                 if not candidate.is_treasure:
                     continue
                 if candidate.cost.coins > treasure_to_trash.cost.coins + 3:
