@@ -17,7 +17,13 @@ class Rats(Card):
             game_state.supply["Rats"] -= 1
             from ..registry import get_card
 
-            game_state.gain_card(player, get_card("Rats"))
+            previous = getattr(game_state, "_allow_ferryman_pile_gain", False)
+            if game_state._is_ferryman_reserved_pile_name("Rats"):
+                game_state._allow_ferryman_pile_gain = True
+            try:
+                game_state.gain_card(player, get_card("Rats"))
+            finally:
+                game_state._allow_ferryman_pile_gain = previous
         # Trash a non-Rats card from hand if possible
         choices = [c for c in player.hand if c.name != "Rats"]
         if choices:
