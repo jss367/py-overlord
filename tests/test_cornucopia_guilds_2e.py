@@ -1219,6 +1219,24 @@ def test_ferryman_set_aside_pile_is_not_a_groom_gain_option():
     assert not any(card.name == "Smithy" for card in player.discard)
 
 
+def test_ferryman_setup_state_resets_when_game_state_is_reused():
+    state = GameState(players=[])
+    state.initialize_game([FirstChoiceAI()], [get_card("Ferryman")])
+    former_ferryman_pile = state.ferryman_card_name
+    assert former_ferryman_pile in state.non_supply_pile_names
+
+    state.initialize_game([FirstChoiceAI()], [get_card(former_ferryman_pile)])
+    player = state.players[0]
+    player.coins = 10
+
+    assert state.ferryman_card_name == ""
+    assert state.ferryman_pile_order == []
+    assert former_ferryman_pile not in state.non_supply_pile_names
+    assert former_ferryman_pile in {
+        card.name for card in state._get_affordable_cards(player)
+    }
+
+
 def test_ferryman_setup_can_pick_either_three_or_four_cost():
     """Across many setups, Ferryman should sample from both $3 and $4
     Kingdom piles (not just $3)."""

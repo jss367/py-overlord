@@ -709,6 +709,9 @@ class GameState:
         # ``setup_supply`` directly — e.g. tests rebuilding a kingdom on the
         # same ``GameState`` — don't leak the prior setup's Charlatan flag.
         self._charlatan_seen = False
+        self.non_supply_pile_names = set()
+        self.ferryman_card_name = ""
+        self.ferryman_pile_order = []
         # Add basic cards with proper counts
         copper_card = get_card("Copper")
         silver_card = get_card("Silver")
