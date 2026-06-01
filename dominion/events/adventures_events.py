@@ -22,13 +22,7 @@ class Alms(Event):
     def on_buy(self, game_state, player) -> None:
         player.alms_used_this_turn = True
         candidates = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            try:
-                card = get_card(name)
-            except ValueError:
-                continue
+        for _name, card, _count in game_state._iter_gainable_supply_cards():
             if card.cost.coins <= 4 and card.cost.potions == 0 and card.cost.debt == 0:
                 candidates.append(card)
         if not candidates:
@@ -293,13 +287,7 @@ class Ball(Event):
         # Gain 2 cards costing up to $4 each.
         for _ in range(2):
             candidates = []
-            for name, count in game_state.supply.items():
-                if count <= 0:
-                    continue
-                try:
-                    card = get_card(name)
-                except ValueError:
-                    continue
+            for _name, card, _count in game_state._iter_gainable_supply_cards():
                 if card.cost.coins <= 4 and card.cost.potions == 0 and card.cost.debt == 0:
                     candidates.append(card)
             if not candidates:
