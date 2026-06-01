@@ -14,20 +14,16 @@ class Workshop(Card):
         """Gain a card costing up to 4 coins."""
         player = game_state.current_player
 
-        from ..registry import get_card  # Avoid circular import
-
         # Find cards that can be gained
         possible_gains = [
-            name
-            for name, count in game_state.supply.items()
-            if count > 0 and get_card(name).cost.coins <= 4
+            card
+            for _name, card, _count in game_state._iter_gainable_supply_cards()
+            if card.cost.coins <= 4
         ]
 
         # Let AI choose what to gain
         if possible_gains:
-            chosen_card = player.ai.choose_buy(
-                game_state, [get_card(name) for name in possible_gains]
-            )
+            chosen_card = player.ai.choose_buy(game_state, possible_gains)
 
             if chosen_card:
                 # Gain the chosen card

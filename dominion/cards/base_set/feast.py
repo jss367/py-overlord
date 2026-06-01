@@ -15,8 +15,6 @@ class Feast(Card):
         )
 
     def play_effect(self, game_state):
-        from ..registry import get_card
-
         player = game_state.current_player
 
         # Trash this card. (It's currently in_play because on_play moved it.)
@@ -26,10 +24,7 @@ class Feast(Card):
 
         # Gain a card costing up to $5.
         options = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            candidate = get_card(name)
+        for _name, candidate, _count in game_state._iter_gainable_supply_cards():
             if candidate.cost.coins > 5:
                 continue
             if candidate.cost.potions > 0 or candidate.cost.debt > 0:

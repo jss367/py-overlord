@@ -1147,6 +1147,7 @@ def test_ferryman_set_aside_pile_cannot_be_gained_by_other_effects():
 
     assert state.supply["Smithy"] == initial_smithies
     assert not any(card.name == "Smithy" for card in player.discard)
+    assert player.discard
 
 
 def test_ferryman_set_aside_pile_does_not_count_as_empty_supply_pile():
