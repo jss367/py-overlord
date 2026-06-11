@@ -15,6 +15,17 @@ log = logging.getLogger(__name__)
 coloredlogs.install(level="INFO", logger=log)
 
 
+# Seed-context phase tags. Each evaluation phase draws its game seeds from a
+# distinct block so screening, refinement, and confirmation never reuse the
+# same shuffles (which would let a candidate overfit one set of deck orders),
+# while every candidate evaluated *within* a phase shares the same seeds
+# (common random numbers — deck luck cancels out of comparisons).
+_SEED_PHASE_SCREEN = 0
+_SEED_PHASE_REFINE = 1
+_SEED_PHASE_CONFIRM = 2
+_SEED_PHASE_REBASE = 3
+
+
 def _distribute_games(total_budget: int, n_opponents: int) -> list[int]:
     """Distribute ``total_budget`` games across ``n_opponents``, preserving the
     budget exactly when feasible. Each opponent gets ``base`` games and the
@@ -50,6 +61,15 @@ class GeneticTrainer:
         prune_warmup_generations: int = 3,
         prune_min_rules: int = 3,
         default_baseline_panel: bool = False,
+        racing: bool = True,
+        refine_games: Optional[int] = None,
+        confirm_games: Optional[int] = None,
+        race_top_fraction: float = 0.2,
+        confirm_slack: float = 5.0,
+        common_random_numbers: bool = True,
+        eval_seed: Optional[int] = None,
+        hall_of_fame_size: int = 3,
+        hall_of_fame_interval: int = 10,
     ):
         if kingdom_cards is None:
             if board_config is None:
@@ -71,6 +91,36 @@ class GeneticTrainer:
         self.prune_warmup_generations = prune_warmup_generations
         self.prune_min_rules = prune_min_rules
         self.default_baseline_panel = default_baseline_panel
+
+        # --- Evaluation-integrity knobs (racing + variance reduction) ---
+        # ``games_per_eval`` is the cheap *screening* budget every individual
+        # gets. With ``racing`` on, the top ``race_top_fraction`` of each
+        # generation is re-evaluated with ``refine_games`` extra games, and a
+        # would-be champion only replaces the incumbent after both are scored
+        # on the same ``confirm_games`` seeded games. This prevents the
+        # winner's-curse failure mode where the returned champion is whichever
+        # mediocre candidate got the luckiest single evaluation.
+        self.racing = racing
+        self.refine_games = refine_games if refine_games is not None else 2 * games_per_eval
+        self.confirm_games = confirm_games if confirm_games is not None else 4 * games_per_eval
+        self.race_top_fraction = race_top_fraction
+        self.confirm_slack = confirm_slack
+        # Common random numbers: every candidate in the same evaluation phase
+        # plays the same seeded shuffles, so candidate-vs-candidate comparisons
+        # cancel deck luck instead of compounding it.
+        self.common_random_numbers = common_random_numbers
+        self._eval_seed_base = eval_seed if eval_seed is not None else random.randrange(2**31)
+        # When not None, evaluate_strategy seeds each game from this
+        # (phase, generation) context. None = legacy unseeded behavior.
+        self._eval_seed_context: Optional[tuple] = None
+
+        # Hall of fame: past champions appended to the opponent panel so the
+        # fitness gradient doesn't saturate once the population beats the
+        # static baselines. Size 0 disables.
+        self.hall_of_fame_size = hall_of_fame_size
+        self.hall_of_fame_interval = hall_of_fame_interval
+        self.hall_of_fame: list[BaseStrategy] = []
+
         self.battle_system = StrategyBattle(kingdom_cards, log_folder, board_config=board_config)
         if not self.kingdom_cards:
             raise ValueError("kingdom_cards cannot be empty")
@@ -86,6 +136,12 @@ class GeneticTrainer:
         # (not a dict) so multiple panel members sharing a name (e.g. two
         # BigMoneySmithy variants) each contribute independently.
         self.last_eval_breakdown: list[tuple] = []
+        # Champion bookkeeping. ``_best_confirmed`` is the champion's fitness
+        # from its most recent confirmation eval (racing mode) or its single
+        # screening eval (legacy mode).
+        self._best_strategy: Optional[BaseStrategy] = None
+        self._best_confirmed: float = float("-inf")
+        self._best_win_rate: float = 0.0
         # Breakdown captured at the moment the best individual was found.
         # ``last_eval_breakdown`` is overwritten by every evaluation, so by the
         # time ``train()`` returns it reflects whichever candidate was scored
@@ -427,9 +483,18 @@ class GeneticTrainer:
         mean per-opponent win rate (0-100). With ``shape_rewards=True``
         (the default), returns ``0.8 * win_rate + 0.2 * margin_score`` per
         opponent and averages those — see :meth:`_shape_fitness`.
+
+        When ``_eval_seed_context`` is set (train() sets it per evaluation
+        phase), each seat-swapped pair of games is seeded from the context so
+        all candidates evaluated in that phase play identical shuffles
+        (common random numbers). The global RNG state is restored afterward so
+        seeding can't make the GA's own mutation stream deterministic.
         """
+        seeding = self._eval_seed_context is not None
+        rng_snapshot = random.getstate() if seeding else None
         try:
-            panel = self._resolve_panel()
+            panel = list(self._resolve_panel())
+            panel.extend(self.hall_of_fame)
             from dominion.ai.genetic_ai import GeneticAI
             from dominion.strategy.rule_pruning import reset_fire_flags
 
@@ -460,6 +525,8 @@ class GeneticTrainer:
                 wins = 0
                 margin_total = 0.0
                 for game_num in range(games_per_opp):
+                    if seeding:
+                        random.seed(self._game_seed(i, game_num))
                     ai1 = GeneticAI(strategy)
                     ai2 = GeneticAI(opponent)
                     if game_num % 2 == 0:
@@ -504,6 +571,155 @@ class GeneticTrainer:
             # shaped fitness in best-strategy tracking.
             self.last_eval_breakdown = []
             return float("-inf")
+        finally:
+            if rng_snapshot is not None:
+                random.setstate(rng_snapshot)
+
+    def _game_seed(self, opponent_index: int, game_num: int) -> int:
+        """Derive the RNG seed for one game of a seeded evaluation.
+
+        Consecutive seat-swapped games (game_num 2k and 2k+1) share a seed so
+        each shuffle sequence is played from both seats. The seed depends only
+        on (base, phase context, opponent, pair index) — never on the candidate
+        — which is what makes the random numbers *common* across candidates.
+        The context contains only ints, so the hash (and therefore the seeds)
+        is reproducible across processes for a fixed ``eval_seed``.
+        """
+        pair_index = game_num // 2
+        return hash((self._eval_seed_base, self._eval_seed_context, opponent_index, pair_index)) & 0x7FFFFFFF
+
+    def _eval_with_budget(self, strategy: BaseStrategy, games: int, context: Optional[tuple]) -> float:
+        """Run evaluate_strategy with a temporary games budget and seed context."""
+        saved_games = self.games_per_eval
+        saved_context = self._eval_seed_context
+        self.games_per_eval = games
+        self._eval_seed_context = context if self.common_random_numbers else None
+        try:
+            return self.evaluate_strategy(strategy)
+        finally:
+            self.games_per_eval = saved_games
+            self._eval_seed_context = saved_context
+
+    @staticmethod
+    def _genome_signature(strategy: BaseStrategy) -> tuple:
+        """Structural fingerprint of a genome: every rule's card and condition
+        source, in order. Used to skip re-confirming the elite when it is the
+        generation's best again (it usually is), saving the confirmation
+        budget for genuinely new challengers."""
+
+        def rule_sig(rules) -> tuple:
+            return tuple(
+                (r.card_name, getattr(getattr(r, "condition", None), "_source", None))
+                for r in rules
+            )
+
+        way_sig = tuple(
+            (r.card_name, r.way_name, getattr(getattr(r, "condition", None), "_source", None))
+            for r in getattr(strategy, "way_policy", []) or []
+        )
+        return (
+            rule_sig(strategy.gain_priority),
+            rule_sig(strategy.action_priority),
+            rule_sig(strategy.treasure_priority),
+            rule_sig(strategy.trash_priority),
+            way_sig,
+        )
+
+    def _record_champion_result(self, fitness: float, breakdown: list[tuple]) -> None:
+        """Update the champion's confirmed fitness, breakdown, and win rate."""
+        self._best_confirmed = fitness
+        self.best_eval_breakdown = list(breakdown)
+        if breakdown:
+            self._best_win_rate = sum(entry[1] for entry in breakdown) / len(breakdown)
+
+    def _set_champion(self, strategy: BaseStrategy, fitness: float, breakdown: list[tuple]) -> None:
+        self._best_strategy = deepcopy(strategy)
+        self._record_champion_result(fitness, breakdown)
+
+    def _consider_challenger(self, challenger: BaseStrategy, screen_fitness: float, gen: int) -> None:
+        """Decide whether ``challenger`` (this generation's best) should
+        replace the incumbent champion.
+
+        The incumbent and challenger are both evaluated on the same
+        ``confirm_games`` seeded games, so the comparison is paired: deck luck
+        cancels and the better strategy wins the head-to-head. Re-evaluating
+        the incumbent every time also keeps its confirmed fitness current as
+        the hall-of-fame panel evolves. A champion is never crowned from a
+        single screening eval — that is the winner's-curse path this method
+        exists to close."""
+        if self._best_strategy is not None and self._genome_signature(challenger) == self._genome_signature(
+            self._best_strategy
+        ):
+            return
+
+        context = (_SEED_PHASE_CONFIRM, gen)
+
+        if self._best_strategy is None:
+            confirmed = self._eval_with_budget(challenger, self.confirm_games, context)
+            if confirmed == float("-inf"):
+                return
+            self._set_champion(challenger, confirmed, self.last_eval_breakdown)
+            log.info(
+                "Champion confirmed at %.2f (screen estimate was %.2f)",
+                confirmed,
+                screen_fitness,
+            )
+            return
+
+        # Don't spend the confirmation budget on challengers whose screening
+        # estimate isn't even close to the incumbent.
+        if screen_fitness < self._best_confirmed - self.confirm_slack:
+            return
+
+        incumbent_fitness = self._eval_with_budget(self._best_strategy, self.confirm_games, context)
+        incumbent_breakdown = list(self.last_eval_breakdown)
+        challenger_fitness = self._eval_with_budget(challenger, self.confirm_games, context)
+        challenger_breakdown = list(self.last_eval_breakdown)
+
+        if challenger_fitness > incumbent_fitness:
+            self._set_champion(challenger, challenger_fitness, challenger_breakdown)
+            log.info(
+                "Champion replaced: challenger %.2f beat incumbent %.2f (confirmation, %d games)",
+                challenger_fitness,
+                incumbent_fitness,
+                self.confirm_games,
+            )
+        else:
+            if incumbent_fitness != float("-inf"):
+                self._record_champion_result(incumbent_fitness, incumbent_breakdown)
+            log.info(
+                "Champion retained: incumbent %.2f vs challenger %.2f (confirmation, %d games)",
+                incumbent_fitness,
+                challenger_fitness,
+                self.confirm_games,
+            )
+
+    def _update_hall_of_fame(self, gen: int) -> None:
+        """Add the current champion to the opponent hall of fame (if novel)
+        and rebase the champion's confirmed fitness on the new, harder panel."""
+        champion = self._best_strategy
+        if champion is None:
+            return
+        sig = self._genome_signature(champion)
+        if any(self._genome_signature(member) == sig for member in self.hall_of_fame):
+            return
+
+        member = deepcopy(champion)
+        member.name = f"HallOfFame-g{gen + 1}"
+        self.hall_of_fame.append(member)
+        if len(self.hall_of_fame) > self.hall_of_fame_size:
+            self.hall_of_fame = self.hall_of_fame[-self.hall_of_fame_size :]
+        log.info(
+            "Hall of fame updated (%d member%s) — champion joins the opponent panel",
+            len(self.hall_of_fame),
+            "s" if len(self.hall_of_fame) != 1 else "",
+        )
+
+        # The panel just changed, so the incumbent's confirmed fitness is on
+        # the old scale; re-measure it so future challenger gating is fair.
+        rebased = self._eval_with_budget(champion, self.confirm_games, (_SEED_PHASE_REBASE, gen))
+        if rebased != float("-inf"):
+            self._record_champion_result(rebased, self.last_eval_breakdown)
 
     def _crossover(self, parent1: BaseStrategy, parent2: BaseStrategy) -> BaseStrategy:
         """Create a new strategy by combining two parent strategies"""
@@ -845,18 +1061,15 @@ class GeneticTrainer:
                     population[slot] = strategy
                 self._strategies_to_inject = []
 
-            best_strategy = None
-            # Shaped fitness can be negative, so seed below any possible value
-            # — otherwise a panel where every candidate scores <= 0 would leave
-            # best_strategy = None and train() would return (None, metrics).
-            best_fitness = float("-inf")
-            # Track raw mean win rate of the best individual separately from
-            # shaped fitness so metrics['win_rate'] stays a real win rate.
-            best_win_rate = 0.0
-            # Reset the champion's panel breakdown so a second train() call on
-            # the same trainer that fails to establish a new best can't leak
-            # stale per-opponent data from the previous run.
+            # Reset champion bookkeeping so a second train() call on the same
+            # trainer can't leak state (strategy, fitness, breakdown, hall of
+            # fame) from the previous run. Shaped fitness can be negative, so
+            # seed the confirmed fitness below any possible value.
+            self._best_strategy = None
+            self._best_confirmed = float("-inf")
+            self._best_win_rate = 0.0
             self.best_eval_breakdown = []
+            self.hall_of_fame = []
 
             # Start training progress tracking
             self.logger.start_training(self.generations)
@@ -873,40 +1086,90 @@ class GeneticTrainer:
                     )
                     population = [simplify_strategy(s) for s in population]
 
-                # Evaluate population
+                # --- Screen: every individual gets the cheap budget. With
+                # common random numbers, the whole generation plays the same
+                # seeded shuffles so comparisons cancel deck luck.
+                if self.common_random_numbers:
+                    self._eval_seed_context = (_SEED_PHASE_SCREEN, gen)
                 fitness_scores = []
-                for i, strategy in enumerate(population):
-                    fitness = self.evaluate_strategy(strategy)
-                    fitness_scores.append(fitness)
+                try:
+                    for strategy in population:
+                        fitness = self.evaluate_strategy(strategy)
+                        fitness_scores.append(fitness)
 
-                    if fitness > best_fitness:
-                        best_fitness = fitness
-                        best_strategy = deepcopy(strategy)
-                        # Snapshot the breakdown now -- ``last_eval_breakdown``
-                        # will be overwritten by the next candidate, so without
-                        # this copy callers reading it after train() returns
-                        # would see the last-evaluated candidate's breakdown,
-                        # not the champion's.
-                        self.best_eval_breakdown = list(self.last_eval_breakdown)
-                        if self.last_eval_breakdown:
-                            # Entry[1] is always the per-opponent win rate,
-                            # whether the breakdown is 2-tuple or 4-tuple.
-                            best_win_rate = sum(
-                                entry[1] for entry in self.last_eval_breakdown
-                            ) / len(self.last_eval_breakdown)
-                        log.info("New best fitness: %.2f", best_fitness)
-                        if len(self.last_eval_breakdown) > 1:
-                            parts = ", ".join(
-                                f"{entry[0]}: {entry[1]:.1f}%"
-                                for entry in self.last_eval_breakdown
-                            )
-                            log.info("  panel breakdown — %s", parts)
+                        if not self.racing and fitness > self._best_confirmed:
+                            # Legacy mode: champion = best single eval ever
+                            # seen. Kept behind racing=False for comparison;
+                            # subject to the winner's curse on noisy evals.
+                            self._set_champion(strategy, fitness, self.last_eval_breakdown)
+                            log.info("New best fitness: %.2f", fitness)
+                            if len(self.last_eval_breakdown) > 1:
+                                parts = ", ".join(
+                                    f"{entry[0]}: {entry[1]:.1f}%"
+                                    for entry in self.last_eval_breakdown
+                                )
+                                log.info("  panel breakdown — %s", parts)
+                finally:
+                    self._eval_seed_context = None
+
+                # --- Refine: re-evaluate the top slice with a bigger budget so
+                # elitism and the challenger pick aren't decided by screening
+                # noise. The refined estimate pools screen + refine games.
+                refined_indices: list[int] = []
+                if self.racing and self.refine_games > 0 and len(population) > 1:
+                    top_k = max(1, int(round(len(population) * self.race_top_fraction)))
+                    ranked = sorted(
+                        range(len(population)),
+                        key=lambda idx: fitness_scores[idx],
+                        reverse=True,
+                    )
+                    for idx in ranked[:top_k]:
+                        if fitness_scores[idx] == float("-inf"):
+                            continue
+                        extra = self._eval_with_budget(
+                            population[idx], self.refine_games, (_SEED_PHASE_REFINE, gen)
+                        )
+                        if extra == float("-inf"):
+                            fitness_scores[idx] = extra
+                            continue
+                        total_games = self.games_per_eval + self.refine_games
+                        fitness_scores[idx] = (
+                            fitness_scores[idx] * self.games_per_eval + extra * self.refine_games
+                        ) / total_games
+                        refined_indices.append(idx)
+
+                # --- Confirm: the generation's best challenges the incumbent
+                # champion on a shared block of confirmation games. When a
+                # refine pass ran, the challenger is picked among the refined
+                # candidates only — a refined (more accurate, lower) estimate
+                # must not be compared against unrefined screens, whose max is
+                # inflated by noise.
+                if self.racing and fitness_scores:
+                    challenger_pool = refined_indices or range(len(population))
+                    gen_best_idx = max(
+                        challenger_pool, key=lambda idx: fitness_scores[idx]
+                    )
+                    if fitness_scores[gen_best_idx] != float("-inf"):
+                        self._consider_challenger(
+                            population[gen_best_idx], fitness_scores[gen_best_idx], gen
+                        )
+
+                # --- Hall of fame: periodically promote the champion into the
+                # opponent panel so the fitness gradient doesn't saturate once
+                # the population beats the static baselines.
+                if (
+                    self.hall_of_fame_size > 0
+                    and self._best_strategy is not None
+                    and (gen + 1) % self.hall_of_fame_interval == 0
+                    and gen + 1 < self.generations
+                ):
+                    self._update_hall_of_fame(gen)
 
                 # Calculate generation statistics
                 avg_fitness = sum(fitness_scores) / len(fitness_scores)
 
                 # Update progress
-                self.logger.update_training(gen, best_fitness, avg_fitness)
+                self.logger.update_training(gen, self._best_confirmed, avg_fitness)
 
                 # Diversity pressure: shared fitness for selection, random immigrants
                 shared_fitness = self._apply_fitness_sharing(
@@ -930,16 +1193,16 @@ class GeneticTrainer:
             # If no candidate was ever evaluated (e.g. empty population),
             # surface the shaped fitness as -inf-equivalent 0.0 so callers
             # don't see a sentinel value.
-            reported_fitness = best_fitness if best_strategy is not None else 0.0
+            reported_fitness = self._best_confirmed if self._best_strategy is not None else 0.0
 
             metrics = {
-                "win_rate": best_win_rate,
+                "win_rate": self._best_win_rate,
                 "fitness": reported_fitness,
                 "generations": self.generations,
                 "final_generation": self.generations,
             }
 
-            return best_strategy, metrics
+            return self._best_strategy, metrics
 
         except Exception as exc:
             log.exception("Error during training")
