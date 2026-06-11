@@ -123,7 +123,10 @@ def main():
     parser.add_argument("--generations", type=int, default=40, help="Number of generations to run (default: 40)")
     parser.add_argument("--mutation-rate", type=float, default=0.1, help="Mutation rate (default: 0.1)")
     parser.add_argument(
-        "--games-per-eval", type=int, default=10, help="Number of games to play per strategy evaluation (default: 10)"
+        "--games-per-eval",
+        type=int,
+        default=None,
+        help="Number of games to play per strategy evaluation (default: config value, else 30)",
     )
     parser.add_argument("--board", help="Board definition file containing kingdom cards and landscapes")
     parser.add_argument(
