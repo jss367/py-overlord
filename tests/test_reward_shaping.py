@@ -244,6 +244,8 @@ class TestTrainHandlesNegativeShapedFitness:
     them all and return None."""
 
     def test_returns_best_strategy_when_all_fitness_negative(self, monkeypatch):
+        # racing=False: this test pins the legacy best-single-eval champion
+        # semantics (the iterators below feed exactly one eval per candidate).
         trainer = GeneticTrainer(
             ["Village"],
             population_size=4,
@@ -251,6 +253,7 @@ class TestTrainHandlesNegativeShapedFitness:
             games_per_eval=2,
             immigrant_fraction=0.0,
             shape_rewards=True,
+            racing=False,
         )
 
         scores = iter([-10.0, -5.0, -20.0, -8.0])
@@ -281,6 +284,8 @@ class TestTrainMetricsDistinguishWinRateFromShapedFitness:
     100%-winning strategy."""
 
     def test_metrics_reports_raw_win_rate_alongside_shaped_fitness(self, monkeypatch):
+        # racing=False: iterators below feed exactly one eval per candidate,
+        # which is the legacy single-eval champion path.
         trainer = GeneticTrainer(
             ["Village"],
             population_size=2,
@@ -288,6 +293,7 @@ class TestTrainMetricsDistinguishWinRateFromShapedFitness:
             games_per_eval=2,
             immigrant_fraction=0.0,
             shape_rewards=True,
+            racing=False,
         )
 
         # First evaluation: shaped fitness 86 backed by a true 100% win rate.

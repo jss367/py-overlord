@@ -510,6 +510,17 @@ class StrategyBattle:
 
         return results
 
+    @staticmethod
+    def _select_winner(players):
+        """Pick the winner per the official Dominion tie-break: highest VP,
+        and on equal VP the player who took fewer turns. A full tie (equal VP
+        and equal turns) falls back to seat order, which callers neutralize by
+        alternating seats across games."""
+        return max(
+            players,
+            key=lambda p: (p.get_victory_points(), -p.turns_taken),
+        )
+
     def run_game(
         self,
         ai1: GeneticAI,
@@ -563,7 +574,7 @@ class StrategyBattle:
         # Get results
         final_turns = game_state.turn_number
         scores = {p.ai.name: p.get_victory_points() for p in game_state.players}
-        winner = max(game_state.players, key=lambda p: p.get_victory_points()).ai
+        winner = self._select_winner(game_state.players).ai
 
         # End game logging and capture log path if any
         log_path = self.logger.end_game(winner.name, scores, game_state.supply, game_state.players)

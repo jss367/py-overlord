@@ -123,7 +123,10 @@ def main():
     parser.add_argument("--generations", type=int, default=40, help="Number of generations to run (default: 40)")
     parser.add_argument("--mutation-rate", type=float, default=0.1, help="Mutation rate (default: 0.1)")
     parser.add_argument(
-        "--games-per-eval", type=int, default=10, help="Number of games to play per strategy evaluation (default: 10)"
+        "--games-per-eval",
+        type=int,
+        default=None,
+        help="Number of games to play per strategy evaluation (default: config value, else 30)",
     )
     parser.add_argument("--board", help="Board definition file containing kingdom cards and landscapes")
     parser.add_argument(
@@ -221,7 +224,9 @@ def main():
     population_size = args.population_size or training_params.get('population_size', 5)
     generations = args.generations or training_params.get('generations', 10)
     mutation_rate = args.mutation_rate or training_params.get('mutation_rate', 0.1)
-    games_per_eval = args.games_per_eval or training_params.get('games_per_eval', 10)
+    # 10-game screens were pure noise (win-rate sd ~15pp); 30 is the floor at
+    # which racing's refine/confirm stages can rescue the comparisons.
+    games_per_eval = args.games_per_eval or training_params.get('games_per_eval', 30)
 
     # Create trainer with parameters
     trainer = GeneticTrainer(
