@@ -300,8 +300,32 @@ class TestNormalizeMenu:
         s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
         normalize_menu(s, info)
         names = [r.card_name for r in s.gain_priority]
-        assert names.index("Province") < names.index("Gold")
-        assert names.index("Colony") < names.index("Gold")
+        # Composition: Colony must lead — an unconditional Province above it
+        # would shadow Colony at $11+ just like the Gold shadowed both.
+        assert names == ["Colony", "Province", "Gold"]
+
+    def test_moves_colony_above_unconditional_province(self):
+        info = _colony_info()
+        s = BaseStrategy()
+        s.gain_priority = [
+            PriorityRule("Province"),
+            PriorityRule("Colony"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+        normalize_menu(s, info)
+        names = [r.card_name for r in s.gain_priority]
+        assert names == ["Colony", "Province"]
+
+    def test_leaves_gated_province_above_colony(self):
+        info = _colony_info()
+        gated_province = PriorityRule("Province", PriorityRule.provinces_left("<=", 4))
+        s = BaseStrategy()
+        s.gain_priority = [gated_province, PriorityRule("Colony")]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+        normalize_menu(s, info)
+        names = [(r.card_name, r.condition is not None) for r in s.gain_priority]
+        # A gated Province above Colony is legitimate strategy space — untouched.
+        assert names == [("Province", True), ("Colony", False)]
 
     def test_leaves_capped_pick_and_gated_gold_above_province(self):
         info = _info()

@@ -337,9 +337,11 @@ def normalize_menu(strategy: BaseStrategy, info: KingdomInfo) -> BaseStrategy:
     - on Colony boards, a Colony gain rule exists;
     - Province/Colony are never shadowed by an *unconditional* basic-treasure
       rule (an uncapped Gold above Province means $8 always buys Gold, so the
-      strategy can never green). Their position relative to gated rules stays
-      free — orderings like "first 3 Torturers before greening" are legitimate
-      strategy space the GA should explore;
+      strategy can never green), and Colony is never shadowed by an
+      unconditional Province rule (Province matches whenever Colony does, so
+      $11+ would always buy Province). Their position relative to gated rules
+      stays free — orderings like "first 3 Torturers before greening" are
+      legitimate strategy space the GA should explore;
     - never an unconditional Copper/Curse gain rule (pure junk buys);
     - Gold/Silver/Copper (and Platinum, when on the board) present in
       treasure_priority so coins get played.
@@ -379,6 +381,19 @@ def normalize_menu(strategy: BaseStrategy, info: KingdomInfo) -> BaseStrategy:
         green_idx = next((i for i, r in enumerate(gain) if r.card_name == green), None)
         if green_idx is not None and green_idx > shadow_idx:
             gain.insert(shadow_idx, gain.pop(green_idx))
+
+    # On Colony boards an *unconditional* Province rule above Colony shadows
+    # it the same way: Province matches whenever Colony is affordable, so
+    # $11+ hands always buy Province. Move the first Colony rule directly
+    # above such a Province rule; a gated Province above Colony stays legal.
+    if info.has_colony:
+        province_idx = next(
+            (i for i, r in enumerate(gain) if r.card_name == "Province" and r.condition is None),
+            None,
+        )
+        colony_idx = next((i for i, r in enumerate(gain) if r.card_name == "Colony"), None)
+        if province_idx is not None and colony_idx is not None and colony_idx > province_idx:
+            gain.insert(province_idx, gain.pop(colony_idx))
 
     treasure_names = {r.card_name for r in strategy.treasure_priority}
     if info.has_platinum and "Platinum" not in treasure_names:
