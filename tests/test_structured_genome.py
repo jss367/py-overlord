@@ -23,10 +23,15 @@ from dominion.strategy.enhanced_strategy import PriorityRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
 
 KINGDOM = ["Village", "Smithy", "Market", "Festival", "Laboratory", "Witch", "Chapel", "Moat"]
+COLONY_KINGDOM = KINGDOM + ["Colony", "Platinum"]
 
 
 def _info() -> KingdomInfo:
     return KingdomInfo.from_kingdom(KINGDOM)
+
+
+def _colony_info() -> KingdomInfo:
+    return KingdomInfo.from_kingdom(COLONY_KINGDOM)
 
 
 def _mock_state(turn_number=5, provinces_left=8):
@@ -72,6 +77,17 @@ class TestKingdomInfo:
     def test_unknown_cards_are_skipped(self):
         info = KingdomInfo.from_kingdom(["Village", "NotACard"])
         assert info.gainable == ["Village"]
+
+    def test_colony_and_platinum_are_basic_not_picks(self):
+        info = KingdomInfo.from_kingdom(["Village", "Colony", "Platinum"])
+        assert info.gainable == ["Village"]
+        assert info.has_colony is True
+        assert info.has_platinum is True
+
+    def test_colony_flags_default_off(self):
+        info = _info()
+        assert info.has_colony is False
+        assert info.has_platinum is False
 
 
 class TestRandomMenuStrategy:
@@ -129,6 +145,26 @@ class TestRandomMenuStrategy:
         s = random_menu_strategy(_info())
         names = [r.card_name for r in s.treasure_priority]
         assert names.index("Gold") < names.index("Silver") < names.index("Copper")
+
+    def test_colony_board_menus(self):
+        random.seed(15)
+        info = _colony_info()
+        for _ in range(30):
+            s = random_menu_strategy(info)
+            names = [r.card_name for r in s.gain_priority]
+            # Colony leads the greening block, unconditionally; Province follows.
+            assert names[0] == "Colony"
+            assert s.gain_priority[0].condition is None
+            assert "Province" in names
+            # Platinum joins the backbone above Gold, never as a capped pick.
+            assert names.index("Platinum") < names.index("Gold")
+            for rule in s.gain_priority:
+                if rule.card_name in ("Colony", "Platinum"):
+                    source = getattr(rule.condition, "_source", "") if rule.condition else ""
+                    assert "max_in_deck" not in source
+            # Platinum is played before Gold.
+            treasures = [r.card_name for r in s.treasure_priority]
+            assert treasures.index("Platinum") < treasures.index("Gold")
 
 
 class TestMutateMenu:
@@ -229,6 +265,56 @@ class TestNormalizeMenu:
         coppers = [r for r in s.gain_priority if r.card_name == "Copper"]
         assert len(coppers) == 1 and coppers[0].condition is not None
 
+    def test_reinserts_colony_on_colony_boards(self):
+        info = _colony_info()
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold"), PriorityRule("Silver")]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+        normalize_menu(s, info)
+        assert s.gain_priority[0].card_name == "Colony"
+        # Platinum is restored to treasure_priority, ahead of Gold.
+        treasures = [r.card_name for r in s.treasure_priority]
+        assert treasures.index("Platinum") < treasures.index("Gold")
+
+    def test_moves_province_above_unconditional_gold(self):
+        info = _info()
+        s = BaseStrategy()
+        s.gain_priority = [
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
+            PriorityRule("Province"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+        normalize_menu(s, info)
+        names = [r.card_name for r in s.gain_priority]
+        assert names.index("Province") < names.index("Gold")
+
+    def test_moves_colony_and_province_above_unconditional_treasures(self):
+        info = _colony_info()
+        s = BaseStrategy()
+        s.gain_priority = [
+            PriorityRule("Gold"),
+            PriorityRule("Province"),
+            PriorityRule("Colony"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+        normalize_menu(s, info)
+        names = [r.card_name for r in s.gain_priority]
+        assert names.index("Province") < names.index("Gold")
+        assert names.index("Colony") < names.index("Gold")
+
+    def test_leaves_capped_pick_and_gated_gold_above_province(self):
+        info = _info()
+        capped_pick = PriorityRule("Smithy", PriorityRule.max_in_deck("Smithy", 3))
+        gated_gold = PriorityRule("Gold", PriorityRule.max_in_deck("Gold", 4))
+        s = BaseStrategy()
+        s.gain_priority = [capped_pick, gated_gold, PriorityRule("Province"), PriorityRule("Silver", PriorityRule.turn_number("<=", 10))]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+        normalize_menu(s, info)
+        names = [r.card_name for r in s.gain_priority]
+        # Gated rules above Province are legitimate strategy space — untouched.
+        assert names == ["Smithy", "Gold", "Province", "Silver"]
+
     def test_ensures_basic_treasures_playable(self):
         info = _info()
         s = BaseStrategy()
@@ -279,6 +365,8 @@ class TestTrainerIntegration:
         trainer = GeneticTrainer(
             KINGDOM, population_size=1, generations=1, structured_genome=False
         )
+        # Legacy mode skips structured-genome setup entirely.
+        assert trainer._kingdom_info is None
         random.seed(12)
         # Legacy init shuffles all cards including Copper into the gain list.
         seen_copper = any(

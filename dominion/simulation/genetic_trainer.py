@@ -128,8 +128,10 @@ class GeneticTrainer:
         # rewrites where almost every edit is noise. structured_genome=False
         # restores the legacy free-form operators for comparison.
         self.structured_genome = structured_genome
-        from dominion.simulation.structured_genome import KingdomInfo
-        self._kingdom_info = KingdomInfo.from_kingdom(kingdom_cards or [])
+        self._kingdom_info = None
+        if self.structured_genome:
+            from dominion.simulation.structured_genome import KingdomInfo
+            self._kingdom_info = KingdomInfo.from_kingdom(kingdom_cards or [])
 
         self.battle_system = StrategyBattle(kingdom_cards, log_folder, board_config=board_config)
         if not self.kingdom_cards:

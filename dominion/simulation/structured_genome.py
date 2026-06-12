@@ -31,7 +31,11 @@ from dominion.strategy.enhanced_strategy import PriorityRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
 
 # Cards handled by the menu skeleton rather than treated as kingdom picks.
-BASIC_CARDS = {"Copper", "Silver", "Gold", "Estate", "Duchy", "Province", "Curse"}
+BASIC_CARDS = {"Copper", "Silver", "Gold", "Platinum", "Estate", "Duchy", "Province", "Colony", "Curse"}
+
+# Unconditional rules for these shadow every cheaper buy below them, so the
+# greening block must always sort above them (see normalize_menu).
+_BASIC_TREASURES = ("Gold", "Silver", "Platinum")
 
 _MAX_IN_DECK_RE = re.compile(r"PriorityRule\.max_in_deck\('([^']+)', (\d+)\)")
 
@@ -49,11 +53,17 @@ class KingdomInfo:
     terminal_draw: list[str] = field(default_factory=list)  # 0 actions, +2 or more cards
     other_terminals: list[str] = field(default_factory=list)
     costs: dict[str, int] = field(default_factory=dict)
+    has_colony: bool = False
+    has_platinum: bool = False
 
     @classmethod
     def from_kingdom(cls, kingdom_cards: list[str]) -> "KingdomInfo":
         info = cls(kingdom_cards=list(kingdom_cards))
         for name in kingdom_cards:
+            if name == "Colony":
+                info.has_colony = True
+            elif name == "Platinum":
+                info.has_platinum = True
             if name in BASIC_CARDS:
                 continue
             try:
@@ -137,10 +147,13 @@ def _gate_for(card: str, info: KingdomInfo, rng):
     """Re-gate vocabulary used by mutation, dispatched on the card's role."""
     if card in ("Province", "Duchy", "Estate"):
         return _greening_gate(card, rng)
+    if card == "Colony":
+        # Colony is the win condition on Colony boards — keep it ungated.
+        return None
     if card == "Silver":
         return _silver_gate(rng)
-    if card == "Gold":
-        return None if rng.random() < 0.8 else PriorityRule.max_in_deck("Gold", rng.randint(2, 6))
+    if card in ("Gold", "Platinum"):
+        return None if rng.random() < 0.8 else PriorityRule.max_in_deck(card, rng.randint(2, 6))
     if card == "Copper":
         # Copper is only ever bought deliberately (e.g. Gardens piles) —
         # always keep it gated so it can't become an unconditional junk buy.
@@ -158,7 +171,10 @@ def random_menu_strategy(info: KingdomInfo, rng=_random_module) -> BaseStrategy:
     economy backbone, and a few capped kingdom picks ordered roughly by cost."""
     strategy = BaseStrategy()
 
-    gain: list[PriorityRule] = [PriorityRule("Province")]
+    gain: list[PriorityRule] = []
+    if info.has_colony:
+        gain.append(PriorityRule("Colony"))
+    gain.append(PriorityRule("Province"))
     if rng.random() < 0.9:
         gain.append(PriorityRule("Duchy", _greening_gate("Duchy", rng)))
     if rng.random() < 0.4:
@@ -176,6 +192,8 @@ def random_menu_strategy(info: KingdomInfo, rng=_random_module) -> BaseStrategy:
         (info.costs.get(card, 0) + rng.uniform(-1.5, 1.5), PriorityRule(card, _pick_gate(card, info, rng)))
         for card in picks
     ]
+    if info.has_platinum:
+        entries.append((9 + rng.uniform(-1.5, 1.5), PriorityRule("Platinum")))
     entries.append((6 + rng.uniform(-1.5, 1.5), PriorityRule("Gold")))
     entries.append((3 + rng.uniform(-1.5, 1.5), PriorityRule("Silver", _silver_gate(rng))))
     entries.sort(key=lambda pair: pair[0], reverse=True)
@@ -191,10 +209,11 @@ def random_menu_strategy(info: KingdomInfo, rng=_random_module) -> BaseStrategy:
         action.extend(PriorityRule(card) for card in group)
     strategy.action_priority = action
 
-    # Treasures: Gold, kingdom treasures (cost order), Silver, Copper.
+    # Treasures: Platinum, Gold, kingdom treasures (cost order), Silver, Copper.
     kingdom_treasures = sorted(info.treasure_cards, key=lambda c: -info.costs.get(c, 0))
     strategy.treasure_priority = (
-        [PriorityRule("Gold")]
+        ([PriorityRule("Platinum")] if info.has_platinum else [])
+        + [PriorityRule("Gold")]
         + [PriorityRule(c) for c in kingdom_treasures]
         + [PriorityRule("Silver"), PriorityRule("Copper")]
     )
@@ -315,8 +334,15 @@ def normalize_menu(strategy: BaseStrategy, info: KingdomInfo) -> BaseStrategy:
 
     - exactly no duplicate (card, gate) rules — crossover splices can clone;
     - a Province gain rule exists (without one the strategy cannot win);
+    - on Colony boards, a Colony gain rule exists;
+    - Province/Colony are never shadowed by an *unconditional* basic-treasure
+      rule (an uncapped Gold above Province means $8 always buys Gold, so the
+      strategy can never green). Their position relative to gated rules stays
+      free — orderings like "first 3 Torturers before greening" are legitimate
+      strategy space the GA should explore;
     - never an unconditional Copper/Curse gain rule (pure junk buys);
-    - Gold/Silver/Copper present in treasure_priority so coins get played.
+    - Gold/Silver/Copper (and Platinum, when on the board) present in
+      treasure_priority so coins get played.
     """
     seen: set[tuple] = set()
     deduped: list[PriorityRule] = []
@@ -334,8 +360,29 @@ def normalize_menu(strategy: BaseStrategy, info: KingdomInfo) -> BaseStrategy:
 
     if not any(r.card_name == "Province" for r in strategy.gain_priority):
         strategy.gain_priority.insert(0, PriorityRule("Province"))
+    if info.has_colony and not any(r.card_name == "Colony" for r in strategy.gain_priority):
+        strategy.gain_priority.insert(0, PriorityRule("Colony"))
+
+    # Non-shadowing: an unconditional Gold/Silver/Platinum rule above the
+    # greening cards would absorb every $6+/$8+ buy forever. Move each
+    # greening card directly above the first such rule; gated rules above
+    # Province/Colony are left alone (deliberately evolvable ordering).
+    gain = strategy.gain_priority
+    greens = ["Province"] + (["Colony"] if info.has_colony else [])
+    for green in greens:
+        shadow_idx = next(
+            (i for i, r in enumerate(gain) if r.card_name in _BASIC_TREASURES and r.condition is None),
+            None,
+        )
+        if shadow_idx is None:
+            break
+        green_idx = next((i for i, r in enumerate(gain) if r.card_name == green), None)
+        if green_idx is not None and green_idx > shadow_idx:
+            gain.insert(shadow_idx, gain.pop(green_idx))
 
     treasure_names = {r.card_name for r in strategy.treasure_priority}
+    if info.has_platinum and "Platinum" not in treasure_names:
+        strategy.treasure_priority.insert(0, PriorityRule("Platinum"))
     for name in ("Gold", "Silver", "Copper"):
         if name not in treasure_names:
             strategy.treasure_priority.append(PriorityRule(name))
