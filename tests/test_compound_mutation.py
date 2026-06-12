@@ -161,9 +161,13 @@ class TestCompoundSerializationRoundTrip:
 class TestMutateCanProduceCompound:
     def test_mutation_eventually_produces_compound_condition(self):
         from copy import deepcopy
+        # structured_genome=False: this test pins the legacy free-form
+        # mutator, whose vocabulary includes card_in_play compounds. The
+        # structured menu mutator uses a curated gate vocabulary instead.
         trainer = GeneticTrainer(
             ["Village", "Smithy", "Market", "Laboratory", "Witch"],
             population_size=1, generations=1, mutation_rate=1.0,
+            structured_genome=False,
         )
         seed = BaseStrategy()
         seed.name = "seed"

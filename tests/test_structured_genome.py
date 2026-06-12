@@ -1,0 +1,312 @@
+"""Tests for the structured "buy menu" genome operators.
+
+The structured genome constrains the GA's search space: random individuals
+are coherent menus (greening block + capped kingdom picks over a treasure
+backbone), mutations are menu edits from a curated gate vocabulary, and
+normalization enforces the invariants every viable strategy needs.
+"""
+
+from __future__ import annotations
+
+import random
+import types
+
+from dominion.simulation.genetic_trainer import GeneticTrainer
+from dominion.simulation.structured_genome import (
+    KingdomInfo,
+    kingdom_similarity,
+    mutate_menu,
+    normalize_menu,
+    random_menu_strategy,
+)
+from dominion.strategy.enhanced_strategy import PriorityRule
+from dominion.strategy.strategies.base_strategy import BaseStrategy
+
+KINGDOM = ["Village", "Smithy", "Market", "Festival", "Laboratory", "Witch", "Chapel", "Moat"]
+
+
+def _info() -> KingdomInfo:
+    return KingdomInfo.from_kingdom(KINGDOM)
+
+
+def _mock_state(turn_number=5, provinces_left=8):
+    state = types.SimpleNamespace()
+    state.turn_number = turn_number
+    state.supply = {"Province": provinces_left}
+    state.empty_piles = 0
+    state.players = []
+    return state
+
+
+def _mock_player():
+    player = types.SimpleNamespace()
+    player.coins = 3
+    player.actions = 1
+    player.buys = 1
+    player.hand = []
+    player.in_play = []
+    player.count_in_deck = lambda _c: 0
+    player.all_cards = lambda: []
+    player.get_victory_points = lambda _g=None: 3
+    player.actions_gained_this_turn = 0
+    player.cards_gained_this_turn = 0
+    return player
+
+
+class TestKingdomInfo:
+    def test_role_classification(self):
+        info = _info()
+        assert "Village" in info.villages          # +2 actions
+        assert "Festival" in info.villages         # +2 actions
+        assert "Market" in info.cantrips           # +1 action
+        assert "Laboratory" in info.cantrips       # +1 action
+        assert "Smithy" in info.terminal_draw      # 0 actions, +3 cards
+        assert "Witch" in info.terminal_draw       # 0 actions, +2 cards
+        assert "Chapel" in info.other_terminals
+        assert set(info.gainable) == set(KINGDOM)
+
+    def test_basic_cards_are_not_picks(self):
+        info = KingdomInfo.from_kingdom(["Village", "Copper", "Province"])
+        assert info.gainable == ["Village"]
+
+    def test_unknown_cards_are_skipped(self):
+        info = KingdomInfo.from_kingdom(["Village", "NotACard"])
+        assert info.gainable == ["Village"]
+
+
+class TestRandomMenuStrategy:
+    def test_menus_are_coherent(self):
+        random.seed(3)
+        info = _info()
+        for _ in range(30):
+            s = random_menu_strategy(info)
+            names = [r.card_name for r in s.gain_priority]
+            # Province exists and leads the menu.
+            assert names[0] == "Province"
+            # The economy backbone is present.
+            assert "Gold" in names and "Silver" in names
+            # No junk buys.
+            assert "Copper" not in names and "Curse" not in names
+            # Picks are kingdom cards.
+            assert all(n in set(KINGDOM) | {"Province", "Duchy", "Estate", "Gold", "Silver"} for n in names)
+
+    def test_kingdom_picks_are_capped(self):
+        random.seed(4)
+        info = _info()
+        s = random_menu_strategy(info)
+        for rule in s.gain_priority:
+            if rule.card_name in KINGDOM:
+                source = getattr(rule.condition, "_source", "")
+                assert "max_in_deck" in source, (
+                    f"{rule.card_name} has no deck cap: {source!r}"
+                )
+
+    def test_action_priority_orders_villages_first(self):
+        random.seed(5)
+        info = _info()
+        s = random_menu_strategy(info)
+        names = [r.card_name for r in s.action_priority]
+        assert set(names) == set(info.action_cards)
+        village_idx = [names.index(c) for c in info.villages]
+        terminal_idx = [names.index(c) for c in info.terminal_draw + info.other_terminals]
+        assert max(village_idx) < min(terminal_idx)
+
+    def test_conditions_are_callable_and_evaluate(self):
+        random.seed(6)
+        info = _info()
+        state, player = _mock_state(), _mock_player()
+        for _ in range(20):
+            s = random_menu_strategy(info)
+            for rule_list in (s.gain_priority, s.action_priority, s.trash_priority):
+                for rule in rule_list:
+                    if rule.condition is not None:
+                        assert callable(rule.condition)
+                        assert isinstance(rule.condition(state, player), bool)
+                        assert hasattr(rule.condition, "_source")
+
+    def test_treasure_priority_plays_gold_before_copper(self):
+        random.seed(7)
+        s = random_menu_strategy(_info())
+        names = [r.card_name for r in s.treasure_priority]
+        assert names.index("Gold") < names.index("Silver") < names.index("Copper")
+
+
+class TestMutateMenu:
+    def test_invariants_survive_heavy_mutation(self):
+        random.seed(8)
+        info = _info()
+        s = random_menu_strategy(info)
+        state, player = _mock_state(), _mock_player()
+        for _ in range(200):
+            s = mutate_menu(s, info, rate=1.0)
+            s = normalize_menu(s, info)
+            names = [r.card_name for r in s.gain_priority]
+            assert "Province" in names
+            assert "Curse" not in names
+            for rule in s.gain_priority:
+                if rule.condition is not None:
+                    assert isinstance(bool(rule.condition(state, player)), bool)
+
+    def test_cap_adjustment_changes_cap_value(self):
+        random.seed(9)
+        info = _info()
+        s = BaseStrategy()
+        s.gain_priority = [
+            PriorityRule("Province"),
+            PriorityRule("Smithy", PriorityRule.max_in_deck("Smithy", 2)),
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
+        ]
+        s.action_priority = [PriorityRule("Smithy")]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+        s.trash_priority = []
+
+        seen_caps = set()
+        for _ in range(120):
+            mutate_menu(s, info, rate=1.0)
+            for rule in s.gain_priority:
+                if rule.card_name == "Smithy" and rule.condition is not None:
+                    src = getattr(rule.condition, "_source", "")
+                    if "max_in_deck" in src:
+                        seen_caps.add(src)
+        assert len(seen_caps) > 1, f"cap never changed: {seen_caps}"
+
+    def test_mutation_can_add_missing_kingdom_pick(self):
+        random.seed(10)
+        info = _info()
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold"), PriorityRule("Silver")]
+        s.action_priority = []
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+        s.trash_priority = []
+
+        for _ in range(100):
+            mutate_menu(s, info, rate=1.0)
+            if any(r.card_name in KINGDOM for r in s.gain_priority):
+                break
+        assert any(r.card_name in KINGDOM for r in s.gain_priority)
+
+
+class TestNormalizeMenu:
+    def test_reinserts_province(self):
+        info = _info()
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Gold"), PriorityRule("Silver")]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+        normalize_menu(s, info)
+        assert s.gain_priority[0].card_name == "Province"
+
+    def test_dedupes_identical_rules(self):
+        info = _info()
+        cond = PriorityRule.max_in_deck("Smithy", 2)
+        s = BaseStrategy()
+        s.gain_priority = [
+            PriorityRule("Province"),
+            PriorityRule("Smithy", cond),
+            PriorityRule("Smithy", cond),
+            PriorityRule("Gold"),
+            PriorityRule("Gold"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+        normalize_menu(s, info)
+        names = [(r.card_name, getattr(r.condition, "_source", None)) for r in s.gain_priority]
+        assert len(names) == len(set(names))
+
+    def test_drops_curse_and_unconditional_copper(self):
+        info = _info()
+        s = BaseStrategy()
+        s.gain_priority = [
+            PriorityRule("Province"),
+            PriorityRule("Curse"),
+            PriorityRule("Copper"),
+            PriorityRule("Copper", PriorityRule.provinces_left("<=", 1)),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+        normalize_menu(s, info)
+        names = [r.card_name for r in s.gain_priority]
+        assert "Curse" not in names
+        # The gated Copper rule survives; the unconditional one is dropped.
+        coppers = [r for r in s.gain_priority if r.card_name == "Copper"]
+        assert len(coppers) == 1 and coppers[0].condition is not None
+
+    def test_ensures_basic_treasures_playable(self):
+        info = _info()
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province")]
+        s.treasure_priority = [PriorityRule("Gold")]
+        normalize_menu(s, info)
+        names = [r.card_name for r in s.treasure_priority]
+        assert "Silver" in names and "Copper" in names
+
+
+class TestKingdomSimilarity:
+    def _menu(self, *kingdom_picks: str) -> BaseStrategy:
+        s = BaseStrategy()
+        s.gain_priority = (
+            [PriorityRule("Province"), PriorityRule("Duchy"), PriorityRule("Gold")]
+            + [PriorityRule(c) for c in kingdom_picks]
+            + [PriorityRule("Silver")]
+        )
+        return s
+
+    def test_shared_skeleton_does_not_count(self):
+        a = self._menu("Witch", "Chapel")
+        b = self._menu("Smithy", "Village")
+        assert kingdom_similarity(a, b) == 0.0
+
+    def test_identical_picks_score_one(self):
+        a = self._menu("Witch", "Chapel")
+        b = self._menu("Witch", "Chapel")
+        assert kingdom_similarity(a, b) == 1.0
+
+    def test_pure_big_money_menus_share_a_niche(self):
+        a = self._menu()
+        b = self._menu()
+        assert kingdom_similarity(a, b) == 1.0
+
+
+class TestTrainerIntegration:
+    def test_structured_is_default_and_produces_menus(self):
+        trainer = GeneticTrainer(KINGDOM, population_size=1, generations=1)
+        assert trainer.structured_genome is True
+        random.seed(11)
+        s = trainer.create_random_strategy()
+        names = [r.card_name for r in s.gain_priority]
+        assert names[0] == "Province"
+        assert "Copper" not in names
+
+    def test_legacy_flag_restores_freeform_init(self):
+        trainer = GeneticTrainer(
+            KINGDOM, population_size=1, generations=1, structured_genome=False
+        )
+        random.seed(12)
+        # Legacy init shuffles all cards including Copper into the gain list.
+        seen_copper = any(
+            any(r.card_name == "Copper" for r in trainer.create_random_strategy().gain_priority)
+            for _ in range(20)
+        )
+        assert seen_copper
+
+    def test_structured_mutation_preserves_invariants(self):
+        trainer = GeneticTrainer(KINGDOM, population_size=1, generations=1, mutation_rate=1.0)
+        random.seed(13)
+        s = trainer.create_random_strategy()
+        for _ in range(50):
+            s = trainer._mutate(s)
+            s = trainer._normalize(s)
+        names = [r.card_name for r in s.gain_priority]
+        assert "Province" in names
+        assert "Curse" not in names
+
+    def test_structured_crossover_children_are_normalized(self):
+        trainer = GeneticTrainer(KINGDOM, population_size=4, generations=1)
+        random.seed(14)
+        pop = [trainer.create_random_strategy() for _ in range(4)]
+        next_pop = trainer.create_next_generation(pop, [50.0, 40.0, 30.0, 20.0])
+        for s in next_pop:
+            keys = [
+                (r.card_name, getattr(r.condition, "_source", None) if r.condition else None)
+                for r in s.gain_priority
+            ]
+            assert len(keys) == len(set(keys)), f"duplicate rules survived: {keys}"
+            assert any(r.card_name == "Province" for r in s.gain_priority)

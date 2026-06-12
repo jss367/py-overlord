@@ -70,6 +70,7 @@ class GeneticTrainer:
         eval_seed: Optional[int] = None,
         hall_of_fame_size: int = 3,
         hall_of_fame_interval: int = 10,
+        structured_genome: bool = True,
     ):
         if kingdom_cards is None:
             if board_config is None:
@@ -120,6 +121,15 @@ class GeneticTrainer:
         self.hall_of_fame_size = hall_of_fame_size
         self.hall_of_fame_interval = hall_of_fame_interval
         self.hall_of_fame: list[BaseStrategy] = []
+
+        # Structured "buy menu" genome: random init builds coherent menus
+        # (greening block + capped kingdom picks) and mutation applies menu
+        # edits from a curated gate vocabulary, instead of free-form condition
+        # rewrites where almost every edit is noise. structured_genome=False
+        # restores the legacy free-form operators for comparison.
+        self.structured_genome = structured_genome
+        from dominion.simulation.structured_genome import KingdomInfo
+        self._kingdom_info = KingdomInfo.from_kingdom(kingdom_cards or [])
 
         self.battle_system = StrategyBattle(kingdom_cards, log_folder, board_config=board_config)
         if not self.kingdom_cards:
@@ -352,7 +362,18 @@ class GeneticTrainer:
         return WayRule(card, way, condition)
 
     def create_random_strategy(self) -> BaseStrategy:
-        """Create a random strategy"""
+        """Create a random strategy.
+
+        With ``structured_genome`` (the default) this builds a coherent buy
+        menu via :mod:`dominion.simulation.structured_genome`; the legacy
+        free-form path shuffles all cards into an arbitrary gain order."""
+        if self.structured_genome:
+            from dominion.simulation.structured_genome import random_menu_strategy
+            strategy = random_menu_strategy(self._kingdom_info)
+            strategy.name = f"gen{self.current_generation}-{id(strategy)}"
+            self._seed_way_policy(strategy)
+            return self._normalize(strategy)
+
         strategy = BaseStrategy()
         strategy.name = f"gen{self.current_generation}-{id(strategy)}"
 
@@ -407,17 +428,21 @@ class GeneticTrainer:
             PriorityRule("Copper", PriorityRule.has_cards(["Silver", "Gold"], 3)),
         ]
 
-        # Seed a small number of way_policy rules when the board has ways.
-        # Without seeding, no individual would ever try a non-default Way and
-        # the mutation-only path would discover them only by chance.
+        self._seed_way_policy(strategy)
+
+        return self._normalize(strategy)
+
+    def _seed_way_policy(self, strategy: BaseStrategy) -> None:
+        """Seed a small number of way_policy rules when the board has ways.
+
+        Without seeding, no individual would ever try a non-default Way and
+        the mutation-only path would discover them only by chance."""
         strategy.way_policy = []
         if self._kingdom_ways:
             for _ in range(random.randint(0, 2)):
                 rule = self._random_way_rule()
                 if rule is not None:
                     strategy.way_policy.append(rule)
-
-        return self._normalize(strategy)
 
     def set_baseline_strategy(self, strategy: BaseStrategy):
         """Set a custom baseline strategy to evaluate against instead of Big Money."""
@@ -755,7 +780,18 @@ class GeneticTrainer:
         return child
 
     def _mutate(self, strategy: BaseStrategy) -> BaseStrategy:
-        """Mutate a strategy"""
+        """Mutate a strategy.
+
+        With ``structured_genome`` (the default), mutations are menu edits —
+        reorder, cap nudges, curated re-gating, pick add/drop — applied by
+        :func:`dominion.simulation.structured_genome.mutate_menu`. The legacy
+        free-form condition rewrites remain behind ``structured_genome=False``."""
+        if self.structured_genome:
+            from dominion.simulation.structured_genome import mutate_menu
+            mutate_menu(strategy, self._kingdom_info, self.mutation_rate)
+            self._mutate_way_policy(strategy)
+            return strategy
+
         # --- Mutate gain priorities ---
         # Condition mutations: drop, replace, or fresh-from-none
         for priority in strategy.gain_priority:
@@ -868,9 +904,15 @@ class GeneticTrainer:
                             min_treasures = random.randint(2, 4)
                             priority.condition = PriorityRule.has_cards(["Silver", "Gold"], min_treasures)
 
-        # --- Mutate way_policy ---
-        # Only meaningful when the board has Ways. Skipped otherwise so the
-        # mutator can't grow way_policy on boards where the rules can never fire.
+        self._mutate_way_policy(strategy)
+
+        return strategy
+
+    def _mutate_way_policy(self, strategy: BaseStrategy) -> None:
+        """Mutate way_policy in place.
+
+        Only meaningful when the board has Ways. Skipped otherwise so the
+        mutator can't grow way_policy on boards where the rules can never fire."""
         if getattr(strategy, "way_policy", None) is None:
             strategy.way_policy = []
 
@@ -911,22 +953,27 @@ class GeneticTrainer:
                 i = random.randint(0, len(strategy.way_policy) - 1)
                 strategy.way_policy.pop(i)
 
-        return strategy
-
     @staticmethod
     def _apply_fitness_sharing(
         population: list[BaseStrategy],
         raw_fitness: list[float],
         threshold: float = 0.8,
+        similarity=None,
     ) -> list[float]:
         """Divide each individual's fitness by its niche count (members within
         ``threshold`` similarity, including itself). Clones lose to unique
-        strategies at the same skill level."""
+        strategies at the same skill level.
+
+        ``similarity`` defaults to the raw top-5 gain overlap; structured-menu
+        runs pass :func:`kingdom_similarity` instead so the shared greening
+        skeleton doesn't put the whole population in one niche."""
+        if similarity is None:
+            similarity = GeneticTrainer._strategy_similarity
         shared: list[float] = []
         for i, individual in enumerate(population):
             niche = sum(
                 1 for other in population
-                if GeneticTrainer._strategy_similarity(individual, other) >= threshold
+                if similarity(individual, other) >= threshold
             )
             shared.append(raw_fitness[i] / max(1, niche))
         return shared
@@ -964,6 +1011,9 @@ class GeneticTrainer:
 
     def _normalize(self, strategy: BaseStrategy) -> BaseStrategy:
         """Normalize all priority lists to remove unreachable rules."""
+        if self.structured_genome:
+            from dominion.simulation.structured_genome import normalize_menu
+            normalize_menu(strategy, self._kingdom_info)
         strategy.gain_priority = self._normalize_priority_list(strategy.gain_priority)
         strategy.action_priority = self._normalize_priority_list(strategy.action_priority)
         strategy.treasure_priority = self._normalize_priority_list(strategy.treasure_priority)
@@ -1172,8 +1222,13 @@ class GeneticTrainer:
                 self.logger.update_training(gen, self._best_confirmed, avg_fitness)
 
                 # Diversity pressure: shared fitness for selection, random immigrants
+                similarity = None
+                if self.structured_genome:
+                    from dominion.simulation.structured_genome import kingdom_similarity
+                    similarity = kingdom_similarity
                 shared_fitness = self._apply_fitness_sharing(
-                    population, fitness_scores, threshold=self.sharing_threshold
+                    population, fitness_scores, threshold=self.sharing_threshold,
+                    similarity=similarity,
                 )
                 if self.population_size < 4 or self.immigrant_fraction <= 0:
                     immigrants = 0
