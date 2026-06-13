@@ -141,9 +141,19 @@ def main():
     )
     parser.add_argument(
         "--reuse-compatible-strategies",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
+        default=True,
         help="Automatically reuse existing strategies whose referenced cards overlap this board. "
-        "Selected strategies are injected as seeds and added to the baseline panel.",
+        "Selected strategies are injected as seeds and added to the baseline panel. "
+        "On by default; disable with --no-reuse-compatible-strategies.",
+    )
+    parser.add_argument(
+        "--trick-seeds",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Seed the population with trick-scanner-derived strategies when --board is given "
+        "(one seed per surfaced mechanical interaction). On by default; disable with "
+        "--no-trick-seeds.",
     )
     parser.add_argument(
         "--reuse-top-k",
@@ -265,8 +275,10 @@ def main():
             else:
                 logger.info("No reusable strategies met the compatibility threshold")
         except Exception as exc:
-            logger.error("Failed to discover reusable strategies: %s", exc)
-            sys.exit(1)
+            # Reuse is a default-on enrichment, not a precondition — a broken
+            # strategy file in the library must not kill the training run.
+            logger.warning("Skipping strategy reuse — discovery failed: %s", exc)
+            reusable_entries = []
 
     # Inject seed strategies if provided or discovered
     seed_specs = []
@@ -288,6 +300,26 @@ def main():
         except Exception as exc:
             logger.error("Failed to load seed strategy %s: %s", spec, exc)
             sys.exit(1)
+
+    # Trick-scanner seeds: one strategy per mechanical interaction surfaced
+    # on this board, so the GA starts with the trick encoded instead of
+    # having to rediscover it by random mutation. Mirrors evolve.py.
+    if args.trick_seeds and board_config is not None:
+        from dominion.analysis.seed_genomes import build_seed_genomes
+
+        try:
+            trick_seeds = build_seed_genomes(board_config)
+        except Exception as exc:
+            logger.warning("Skipping trick seeds — scanner failed: %s", exc)
+            trick_seeds = []
+        if trick_seeds:
+            trainer.inject_strategies([strategy for _, strategy in trick_seeds])
+            logger.info(
+                "Injected trick-scanner seeds: %s",
+                ", ".join(name for name, _ in trick_seeds),
+            )
+        else:
+            logger.info("Trick scanner surfaced no interactions for this board")
 
     # Set baseline panel (preferred) or single baseline
     panel: list = []

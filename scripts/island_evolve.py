@@ -1,28 +1,42 @@
-"""Island-model evolution for the Lisbon board.
+"""Island-model evolution for any board.
 
-Runs one ``GeneticTrainer`` per seed strategy. Each trainer uses identical
-hyperparameters and the same fixed opponent panel, so fitness numbers are
-comparable across islands. The champions are saved as importable Python
-files for the tournament stage.
+Runs one ``GeneticTrainer`` per island seed. Each trainer uses identical
+hyperparameters and the same fixed opponent panel, so runs are comparable
+across islands. The champions are saved as importable Python files for the
+tournament stage.
 
-The whole point of the island model is to escape local optima: each seed
-represents a distinct theory of the kingdom (Investment Rush, WV/Peddler
-Engine, Watchtower Topdeck, Festival BigMoney, Gardens Slog, City Pile
-Engine). After every island has had equal optimization budget against a
-neutral panel, the champions face each other in
-``scripts/island_tournament.py``.
+The whole point of the island model is to escape local optima: each island
+starts from a distinct theory of the kingdom. By default the roster is
+**derived from the board** (see :mod:`dominion.analysis.island_seeds`):
+compatible strategies from the reuse library, one island per trick-scanner
+interaction, a Big Money archetype island, and random structured-menu
+islands to fill the roster. ``--seeds`` overrides the roster with explicit
+registered strategy names (the original hand-curated workflow).
+
+After every island has had equal optimization budget, the champions face
+each other in ``scripts/island_tournament.py`` (and optionally merge in
+``scripts/island_merge.py``).
+
+Note on fitness comparability: each island's trainer maintains its own hall
+of fame, so late-run fitness numbers are scored partly against the island's
+own ancestors. Treat manifest fitness as a within-island signal; the
+tournament is the cross-island ranking.
 
 Usage
 -----
     # Smoke test (sequential, small budget):
-    python scripts/island_evolve.py --smoke
+    python scripts/island_evolve.py --board boards/lisbon.txt --smoke
 
-    # Real run, parallel across islands:
-    python scripts/island_evolve.py \
+    # Real run, parallel across islands, board-derived roster:
+    python scripts/island_evolve.py --board boards/lisbon.txt \
         --population 30 --generations 60 --games-per-eval 30 --parallel
 
+    # Explicit seed roster (original workflow):
+    python scripts/island_evolve.py --board boards/lisbon.txt \
+        --seeds "Lisbon Investment Rush" "Lisbon City Engine"
+
     # Single island for debugging:
-    python scripts/island_evolve.py --only "Lisbon Investment Rush"
+    python scripts/island_evolve.py --board boards/lisbon.txt --only "Big Money Island"
 """
 
 from __future__ import annotations
@@ -37,37 +51,18 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import coloredlogs
 
+from dominion.analysis.island_seeds import (
+    IslandSpec,
+    derive_island_specs,
+    resolve_island_seed,
+)
 from dominion.boards.loader import load_board
 from dominion.runner import save_strategy_as_python
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.strategy.strategy_loader import StrategyLoader
-
-
-# Seeds the islands start from. Each is a distinct theory of the kingdom.
-# Order matters only for log readability — every island gets the same panel
-# and the same budget regardless of position in this list.
-LISBON_SEEDS = [
-    "Lisbon Investment Rush",
-    "Lisbon WV Peddler Engine",
-    "Lisbon Watchtower Topdeck",
-    "Lisbon Festival BigMoney",
-    "Lisbon Gardens Slog",
-    "Lisbon City Engine",
-]
-
-# Fixed panel for every island. Big Money is the non-negotiable speed-test
-# (a deck that builds slowly should win less vs BM than a deck that builds
-# fast — that's the signal previous panels filtered out). ClerkCollection-
-# Colony is the existing engine baseline. Neither is one of the seeds.
-LISBON_PANEL = [
-    "Big Money",
-    "ClerkCollectionColony",
-]
-
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +87,9 @@ def _safe_filename(name: str) -> str:
 
 
 def run_one_island(
-    seed_name: str,
+    spec_kind: str,
+    spec_key: str,
+    island_name: str,
     board_path: str,
     panel_names: list[str],
     population: int,
@@ -103,20 +100,23 @@ def run_one_island(
     run_id: str,
 ) -> IslandResult:
     """Run a single island. Designed to be called in a subprocess: takes only
-    picklable arguments and constructs the trainer + loader inside."""
+    plain-string arguments and rebuilds the seed strategy + panel inside
+    (strategy objects hold lambda conditions and don't survive the spawn
+    boundary)."""
 
     # Configure logging in the subprocess. Each island prefixes its logs with
-    # its seed name so a parallel run is still readable.
+    # its island name so a parallel run is still readable.
     coloredlogs.install(
         level="INFO",
         logger=logging.getLogger(),
-        fmt=f"%(asctime)s [{seed_name}] %(message)s",
+        fmt=f"%(asctime)s [{island_name}] %(message)s",
     )
 
+    board_config = load_board(board_path)
     loader = StrategyLoader()
-    seed = loader.get_strategy(seed_name)
-    if seed is None:
-        raise ValueError(f"Seed strategy not found: {seed_name!r}")
+
+    spec = IslandSpec(spec_kind, spec_key, island_name)
+    seed = resolve_island_seed(spec, board_config, loader)
 
     panel = []
     for name in panel_names:
@@ -125,8 +125,6 @@ def run_one_island(
             raise ValueError(f"Panel strategy not found: {name!r}")
         panel.append(opp)
 
-    board_config = load_board(board_path)
-
     trainer = GeneticTrainer(
         kingdom_cards=board_config.kingdom_cards,
         population_size=population,
@@ -134,9 +132,10 @@ def run_one_island(
         mutation_rate=mutation_rate,
         games_per_eval=games_per_eval,
         board_config=board_config,
-        log_folder=f"island_logs/{run_id}/{_safe_filename(seed_name)}",
+        log_folder=f"island_logs/{run_id}/{_safe_filename(island_name)}",
     )
-    trainer.inject_strategy(seed)
+    if seed is not None:
+        trainer.inject_strategy(seed)
     trainer.set_baseline_panel(panel)
 
     start = time.monotonic()
@@ -144,25 +143,25 @@ def run_one_island(
     elapsed = time.monotonic() - start
 
     if best is None:
-        raise RuntimeError(f"Island {seed_name} produced no champion")
+        raise RuntimeError(f"Island {island_name} produced no champion")
 
     # Replace the GA's auto-generated internal name (e.g. "gen3-4773797616")
     # with something readable so the tournament report identifies champions by
     # their archetype rather than a memory address.
-    best.name = f"{seed_name} Champion"
+    best.name = f"{island_name} Champion"
 
-    output_path = Path(output_dir) / f"{_safe_filename(seed_name)}_champion.py"
-    save_strategy_as_python(best, output_path, _safe_class_name(seed_name))
+    output_path = Path(output_dir) / f"{_safe_filename(island_name)}_champion.py"
+    save_strategy_as_python(best, output_path, _safe_class_name(island_name))
     logger.info(
         "Island done: %s  fitness=%.2f  win_rate=%.1f%%  saved=%s",
-        seed_name,
+        island_name,
         metrics.get("fitness", 0.0),
         metrics.get("win_rate", 0.0),
         output_path,
     )
 
     return IslandResult(
-        seed_name=seed_name,
+        seed_name=island_name,
         output_path=str(output_path),
         fitness=float(metrics.get("fitness", 0.0)),
         win_rate_vs_panel=float(metrics.get("win_rate", 0.0)),
@@ -173,6 +172,35 @@ def run_one_island(
         panel_breakdown=list(trainer.best_eval_breakdown),
         wall_seconds=elapsed,
     )
+
+
+def _resolve_panel_names(board_config, explicit: list[str] | None) -> list[str]:
+    """Resolve the opponent panel names shared by every island.
+
+    With ``--panel``, the user's names are used verbatim (they must resolve
+    via StrategyLoader, both here and later in island_merge). Otherwise the
+    default is the built-in baseline panel compatible with this kingdom —
+    deterministic for a given board, so every island sees the same panel.
+    """
+    if explicit:
+        return list(explicit)
+
+    probe = GeneticTrainer(
+        kingdom_cards=board_config.kingdom_cards,
+        population_size=1,
+        generations=1,
+        board_config=board_config,
+        log_folder="island_logs/_panel_probe",
+    )
+    panel = probe.build_default_baseline_panel()
+    loader = StrategyLoader()
+    names = []
+    for strategy in panel:
+        # Manifest panel names must round-trip through StrategyLoader (the
+        # merge stage re-resolves them), so verify before recording.
+        if loader.get_strategy(strategy.name) is not None:
+            names.append(strategy.name)
+    return names or ["Big Money"]
 
 
 def main() -> None:
@@ -192,12 +220,27 @@ def main() -> None:
     parser.add_argument(
         "--seeds",
         nargs="+",
-        default=LISBON_SEEDS,
-        help="Seed strategy names. Defaults to the six Lisbon island seeds.",
+        default=None,
+        help="Explicit seed strategy names (registered in the StrategyLoader). "
+        "Default: derive the island roster from the board (library reuse + "
+        "trick scanner + Big Money + random islands).",
+    )
+    parser.add_argument(
+        "--max-islands",
+        type=int,
+        default=6,
+        help="Roster size when deriving islands from the board (default: 6).",
+    )
+    parser.add_argument(
+        "--panel",
+        nargs="+",
+        default=None,
+        help="Opponent panel strategy names shared by every island. "
+        "Default: the built-in baseline panel compatible with this kingdom.",
     )
     parser.add_argument(
         "--only",
-        help="Run only this seed (for debugging one island in isolation).",
+        help="Run only the island with this name (for debugging in isolation).",
     )
     parser.add_argument(
         "--parallel",
@@ -208,7 +251,7 @@ def main() -> None:
         "--max-workers",
         type=int,
         default=0,
-        help="Cap parallel workers. 0 = number of seeds (one worker per island).",
+        help="Cap parallel workers. 0 = number of islands (one worker each).",
     )
     parser.add_argument(
         "--smoke",
@@ -222,15 +265,32 @@ def main() -> None:
         args.generations = 5
         args.games_per_eval = 8
 
-    seeds = [args.only] if args.only else list(args.seeds)
+    board_config = load_board(args.board)
+
+    if args.seeds:
+        specs = [IslandSpec("loader", name, name) for name in args.seeds]
+    else:
+        specs = derive_island_specs(board_config, max_islands=args.max_islands)
+        logger.info(
+            "Derived island roster from board: %s",
+            ", ".join(f"{s.name} [{s.kind}]" for s in specs),
+        )
+
+    if args.only:
+        specs = [s for s in specs if s.name == args.only]
+        if not specs:
+            logger.error("No island named %r in the roster", args.only)
+            sys.exit(1)
+
+    panel_names = _resolve_panel_names(board_config, args.panel)
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = Path(args.output_dir) / run_id
     output_dir.mkdir(parents=True, exist_ok=True)
 
     logger.info("Run id: %s", run_id)
-    logger.info("Seeds: %s", seeds)
-    logger.info("Panel: %s", LISBON_PANEL)
+    logger.info("Islands: %s", [s.name for s in specs])
+    logger.info("Panel: %s", panel_names)
     logger.info(
         "Hyperparameters: pop=%d gens=%d games=%d mut=%.2f parallel=%s",
         args.population, args.generations, args.games_per_eval, args.mutation_rate, args.parallel,
@@ -238,7 +298,7 @@ def main() -> None:
 
     kwargs = dict(
         board_path=args.board,
-        panel_names=LISBON_PANEL,
+        panel_names=panel_names,
         population=args.population,
         generations=args.generations,
         games_per_eval=args.games_per_eval,
@@ -252,37 +312,50 @@ def main() -> None:
     # downstream tournament would treat as complete. The whole point of the
     # island model is that every seed gets the same budget — if one island
     # crashed mid-evolution, comparing the rest is meaningless.
-    failed_seeds: list[str] = []
+    failed_islands: list[str] = []
 
-    if args.parallel and len(seeds) > 1:
-        max_workers = args.max_workers or len(seeds)
+    if args.parallel and len(specs) > 1:
+        max_workers = args.max_workers or len(specs)
         # 'spawn' is the safe default — 'fork' on macOS can deadlock with
         # libraries that aren't fork-safe (notably some BLAS / logging stacks).
         ctx = mp.get_context("spawn")
         with ProcessPoolExecutor(max_workers=max_workers, mp_context=ctx) as ex:
             futures = {
-                ex.submit(run_one_island, seed_name=seed, **kwargs): seed
-                for seed in seeds
+                ex.submit(
+                    run_one_island,
+                    spec_kind=spec.kind,
+                    spec_key=spec.key,
+                    island_name=spec.name,
+                    **kwargs,
+                ): spec.name
+                for spec in specs
             }
             for fut in as_completed(futures):
-                seed = futures[fut]
+                name = futures[fut]
                 try:
                     results.append(fut.result())
                 except Exception:
-                    logger.exception("Island %s failed", seed)
-                    failed_seeds.append(seed)
+                    logger.exception("Island %s failed", name)
+                    failed_islands.append(name)
     else:
-        for seed in seeds:
+        for spec in specs:
             try:
-                results.append(run_one_island(seed_name=seed, **kwargs))
+                results.append(
+                    run_one_island(
+                        spec_kind=spec.kind,
+                        spec_key=spec.key,
+                        island_name=spec.name,
+                        **kwargs,
+                    )
+                )
             except Exception:
-                logger.exception("Island %s failed", seed)
-                failed_seeds.append(seed)
+                logger.exception("Island %s failed", spec.name)
+                failed_islands.append(spec.name)
 
-    if failed_seeds:
+    if failed_islands:
         logger.error(
             "Run incomplete — %d/%d islands failed: %s. Not writing manifest.",
-            len(failed_seeds), len(seeds), failed_seeds,
+            len(failed_islands), len(specs), failed_islands,
         )
         sys.exit(1)
 
@@ -290,7 +363,8 @@ def main() -> None:
     manifest = {
         "run_id": run_id,
         "board": args.board,
-        "panel": LISBON_PANEL,
+        "panel": panel_names,
+        "islands_specs": [asdict(s) for s in specs],
         "hyperparameters": {
             "population": args.population,
             "generations": args.generations,
@@ -304,7 +378,7 @@ def main() -> None:
     logger.info("Manifest written: %s", manifest_path)
 
     print("\n=== Island summary ===")
-    print(f"{'Seed':<35} {'fitness':>8} {'win%':>7} {'time(s)':>9}")
+    print(f"{'Island':<35} {'fitness':>8} {'win%':>7} {'time(s)':>9}")
     for r in sorted(results, key=lambda r: -r.fitness):
         print(f"{r.seed_name:<35} {r.fitness:>8.2f} {r.win_rate_vs_panel:>6.1f}% {r.wall_seconds:>9.1f}")
 
