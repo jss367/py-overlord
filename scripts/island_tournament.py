@@ -80,6 +80,37 @@ def _resolve_strategy(ref: str, loader: StrategyLoader) -> tuple[str, EnhancedSt
     return s.name, s
 
 
+def _seed_refs_from_manifest(manifest: dict) -> tuple[list[str], int]:
+    """Collect tournament-resolvable seed refs from a manifest's islands.
+
+    Returns ``(refs, skipped)`` where ``refs`` are resolvable seed references
+    (StrategyLoader names or ``*.py`` paths) and ``skipped`` counts islands with
+    no resolvable seed (trick/random, or library seeds that don't round-trip).
+
+    Board-derived manifests store ``seed_name`` as a DISPLAY name (``Reuse ...``,
+    a trick name, ``Random Island 1``), which ``_resolve_strategy`` cannot
+    resolve. Such manifests carry a separate ``seed_ref`` field (``None`` when
+    there is no resolvable seed). For backward compatibility, manifests written
+    before ``seed_ref`` existed (no island has the key) fall back to the old
+    ``seed_name`` behavior so they don't hard-break.
+    """
+    islands = manifest.get("islands", [])
+    has_seed_ref = any("seed_ref" in island for island in islands)
+    if not has_seed_ref:
+        # Legacy manifest: preserve prior behavior (resolve seed_name directly).
+        return [island["seed_name"] for island in islands], 0
+
+    refs: list[str] = []
+    skipped = 0
+    for island in islands:
+        ref = island.get("seed_ref")
+        if ref:
+            refs.append(ref)
+        else:
+            skipped += 1
+    return refs, skipped
+
+
 def _matchup_unique_key(a: str, b: str) -> tuple[str, str]:
     """Order-independent key for a matchup (so we don't run A-vs-B twice)."""
     return (a, b) if a <= b else (b, a)
@@ -224,8 +255,13 @@ def main() -> None:
         for island in manifest.get("islands", []):
             refs.append(island["output_path"])
         if args.include_seeds:
-            for island in manifest.get("islands", []):
-                refs.append(island["seed_name"])
+            seed_refs, skipped = _seed_refs_from_manifest(manifest)
+            refs.extend(seed_refs)
+            if skipped:
+                logger.info(
+                    "Skipping %d island(s) with no resolvable seed (trick/random)",
+                    skipped,
+                )
         if args.include_panel:
             refs.extend(manifest.get("panel", []))
     elif args.strategies:

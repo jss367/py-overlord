@@ -112,6 +112,26 @@ def save_strategy_as_python(strategy: EnhancedStrategy, path: Path, class_name: 
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
+def merge_baseline_panel(base_panel: list, reused: list) -> list:
+    """Return ``base_panel`` followed by the ``reused`` strategies not already
+    present (dedup by ``strategy.name``).
+
+    Pulled out of ``main()`` so the reuse-augments-default-baselines invariant
+    is unit-testable without standing up an argparse/training run: with reuse on
+    and no explicit baseline, the resolved panel must contain the default
+    baselines (Big Money etc.) ALONGSIDE the reused strategies, never the reused
+    strategies alone.
+    """
+    panel = list(base_panel)
+    existing_names = {strategy.name for strategy in panel}
+    for strategy in reused:
+        if strategy.name in existing_names:
+            continue
+        existing_names.add(strategy.name)
+        panel.append(strategy)
+    return panel
+
+
 def main():
     # Set up argument parser
     parser = argparse.ArgumentParser(description="Train a Dominion strategy using genetic algorithms")
@@ -321,25 +341,29 @@ def main():
         else:
             logger.info("Trick scanner surfaced no interactions for this board")
 
-    # Set baseline panel (preferred) or single baseline
+    # Establish the baseline panel BEFORE folding in reused strategies, so
+    # reuse ADDS TO the panel instead of replacing it. Precedence for the base
+    # panel: explicit --baseline-panel > explicit --baseline-strategy > the
+    # trainer's default baseline panel (Big Money + compatible built-ins).
     panel: list = []
     if args.baseline_panel:
         try:
             panel = [_load_strategy(spec) for spec in args.baseline_panel]
-            trainer.set_baseline_panel(panel)
             logger.info("Evaluating against panel: %s", ", ".join(p.name for p in panel))
         except Exception as exc:
             logger.error("Failed to load baseline panel: %s", exc)
             sys.exit(1)
     elif args.baseline_strategy:
         try:
-            baseline = _load_strategy(args.baseline_strategy)
-            trainer.set_baseline_strategy(baseline)
-            panel = [baseline]
-            logger.info("Evaluating against baseline: %s", baseline.name)
+            panel = [_load_strategy(args.baseline_strategy)]
+            logger.info("Evaluating against baseline: %s", panel[0].name)
         except Exception as exc:
             logger.error("Failed to load baseline strategy: %s", exc)
             sys.exit(1)
+    elif trainer.default_baseline_panel:
+        panel = trainer.build_default_baseline_panel()
+        if panel:
+            logger.info("Using default baseline panel: %s", ", ".join(p.name for p in panel))
 
     if reusable_entries:
         reused_panel_specs = [
@@ -352,22 +376,23 @@ def main():
         except Exception as exc:
             logger.error("Failed to load reusable baseline strategy: %s", exc)
             sys.exit(1)
-        if reused_panel:
-            panel.extend(reused_panel)
-            trainer.set_baseline_panel(panel)
+        # Dedup by name so a strategy that is both a default baseline and a
+        # reuse entry is not doubled into the panel.
+        before_names = {strategy.name for strategy in panel}
+        panel = merge_baseline_panel(panel, reused_panel)
+        added = [strategy for strategy in panel if strategy.name not in before_names]
+        if added:
             logger.info(
                 "Added reusable strategies to baseline panel: %s",
-                ", ".join(strategy.name for strategy in reused_panel),
+                ", ".join(strategy.name for strategy in added),
             )
 
-    if not panel and trainer.default_baseline_panel:
-        panel = trainer.build_default_baseline_panel()
-        if len(panel) > 1:
-            trainer.set_baseline_panel(panel)
-            logger.info("Using default baseline panel: %s", ", ".join(p.name for p in panel))
-        elif panel:
-            trainer.set_baseline_strategy(panel[0])
-            logger.info("Using default baseline: %s", panel[0].name)
+    # Commit the assembled panel to the trainer. Mirror the historical
+    # len(panel) > 1 split: a lone member becomes the single baseline.
+    if len(panel) > 1:
+        trainer.set_baseline_panel(panel)
+    elif panel:
+        trainer.set_baseline_strategy(panel[0])
 
     logger.info("Training parameters:")
     logger.info("  Population size: %d", population_size)

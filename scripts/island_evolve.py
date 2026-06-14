@@ -51,6 +51,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 import coloredlogs
 
@@ -76,6 +77,13 @@ class IslandResult:
     win_rate_vs_panel: float
     panel_breakdown: list[tuple]
     wall_seconds: float
+    # A reference the tournament's ``_resolve_strategy`` can re-resolve (a
+    # StrategyLoader name or a *.py path), so ``--include-seeds`` can compare a
+    # champion against its starting point. ``None`` for islands with no
+    # standalone resolvable seed (trick/random, or library entries whose name
+    # does not round-trip through the loader). ``seed_name`` stays the display
+    # name and must NOT be used as a resolvable ref.
+    seed_ref: Optional[str] = None
 
 
 def _safe_class_name(name: str) -> str:
@@ -85,6 +93,26 @@ def _safe_class_name(name: str) -> str:
 def _safe_filename(name: str) -> str:
     slug = name.lower().replace(" ", "_").replace("'", "")
     return "".join(ch for ch in slug if ch.isalnum() or ch in ("_",))
+
+
+def _resolvable_seed_ref(spec_kind: str, spec_key: str, loader: StrategyLoader) -> Optional[str]:
+    """Compute a tournament-resolvable reference for an island's seed, or None.
+
+    The tournament's ``_resolve_strategy`` only accepts StrategyLoader names or
+    ``*.py`` paths — not the ``module:function`` specs the reuse library uses.
+    So a seed is resolvable only when its name round-trips through the loader:
+
+    - ``loader``  : ``spec_key`` is the registered name → resolvable.
+    - ``library`` : resolvable only if the entry name (``spec_key``) is also a
+                    registered loader name; generated-strategy library entries
+                    are not, so they get ``None`` rather than a ref the
+                    tournament would choke on.
+    - ``trick`` / ``random`` : no standalone resolvable seed → ``None``.
+    """
+    if spec_kind in ("loader", "library"):
+        if loader.get_strategy(spec_key) is not None:
+            return spec_key
+    return None
 
 
 def run_one_island(
@@ -172,6 +200,7 @@ def run_one_island(
         # the final generation, not the saved champion.
         panel_breakdown=list(trainer.best_eval_breakdown),
         wall_seconds=elapsed,
+        seed_ref=_resolvable_seed_ref(spec_kind, spec_key, loader),
     )
 
 
