@@ -56,6 +56,7 @@ import coloredlogs
 
 from dominion.analysis.island_seeds import (
     IslandSpec,
+    augment_panel_with_compatible,
     derive_island_specs,
     resolve_island_seed,
 )
@@ -179,7 +180,9 @@ def _resolve_panel_names(board_config, explicit: list[str] | None) -> list[str]:
 
     With ``--panel``, the user's names are used verbatim (they must resolve
     via StrategyLoader, both here and later in island_merge). Otherwise the
-    default is the built-in baseline panel compatible with this kingdom —
+    default is the built-in baseline panel PLUS the board's compatible library
+    strategies — so every board trains against a panel stronger than
+    Big-Money-alone, derived from the board rather than hardcoded. It is
     deterministic for a given board, so every island sees the same panel.
     """
     if explicit:
@@ -194,12 +197,14 @@ def _resolve_panel_names(board_config, explicit: list[str] | None) -> list[str]:
     )
     panel = probe.build_default_baseline_panel()
     loader = StrategyLoader()
-    names = []
+    baseline_names = []
     for strategy in panel:
         # Manifest panel names must round-trip through StrategyLoader (the
         # merge stage re-resolves them), so verify before recording.
         if loader.get_strategy(strategy.name) is not None:
-            names.append(strategy.name)
+            baseline_names.append(strategy.name)
+
+    names = augment_panel_with_compatible(board_config, baseline_names, loader)
     return names or ["Big Money"]
 
 

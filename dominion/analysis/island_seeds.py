@@ -84,6 +84,43 @@ def derive_island_specs(
     return specs[:max_islands]
 
 
+def augment_panel_with_compatible(
+    board: BoardConfig,
+    baseline_names: list[str],
+    strategy_loader,
+    *,
+    top_k: int = 3,
+    min_overlap: int = 2,
+) -> list[str]:
+    """Build the default opponent panel: baselines + board-compatible strategies.
+
+    The built-in baseline panel can collapse to just Big Money on boards whose
+    kingdom excludes the engine opponents (e.g. Lisbon), making default runs
+    silently weaker. The board-general fix is to fold in the board's compatible
+    library strategies, so every board trains against a panel stronger than
+    Big-Money-alone, derived from the board.
+
+    Panel names are re-resolved by name (via ``StrategyLoader.get_strategy``) in
+    both the island workers and ``scripts/island_merge.py``, so only names that
+    round-trip through the loader are kept. Compatible library entries that are
+    generated strategies the loader cannot resolve by name are skipped silently.
+    Order is preserved (baselines first, then compatible) and names are deduped.
+    """
+
+    names: list[str] = list(baseline_names)
+    seen = set(names)
+    for entry in find_compatible_strategies(
+        board.kingdom_cards, top_k=top_k, min_overlap=min_overlap
+    ):
+        if entry.name in seen:
+            continue
+        if strategy_loader.get_strategy(entry.name) is None:
+            continue
+        names.append(entry.name)
+        seen.add(entry.name)
+    return names
+
+
 def resolve_island_seed(
     spec: IslandSpec,
     board: BoardConfig,
@@ -108,8 +145,15 @@ def resolve_island_seed(
         return strategy
 
     if spec.kind == "library":
+        # The resolution lookup must be able to find any library spec that
+        # ``derive_island_specs`` could have produced. derive selects with
+        # ``top_k=reuse_top_k`` (the ``--reuse-top-k`` CLI flag is unbounded),
+        # so a fixed bound here would silently miss specs ranked beyond it and
+        # crash the island. Use an effectively-unbounded ``top_k`` so resolve's
+        # candidate list is a superset of derive's, and keep ``min_overlap=1``
+        # (always <= derive's ``reuse_min_overlap``, so the superset holds).
         entries = find_compatible_strategies(
-            board.kingdom_cards, top_k=10, min_overlap=1
+            board.kingdom_cards, top_k=10_000, min_overlap=1
         )
         for entry in entries:
             if entry.name == spec.key:
