@@ -1,6 +1,8 @@
 from types import SimpleNamespace
 
 from dominion.cards.registry import get_card
+from dominion.events.looting import Looting
+from dominion.projects.sewers import Sewers
 from dominion.strategy.card_roles import cards_with_role, infer_card_roles
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 from dominion.strategy.lint import lint_strategy, normalize_strategy
@@ -18,6 +20,7 @@ def _state(turn_number=5, provinces_left=8, empty_piles=0):
 def _player(cards=None):
     cards = cards or []
     return SimpleNamespace(
+        collection_played=0,
         all_cards=lambda: list(cards),
         count_in_deck=lambda name: sum(1 for card in cards if card.name == name),
     )
@@ -94,6 +97,22 @@ def test_phase_aware_strategy_uses_phase_priority_then_fallback():
     )
 
     assert fallback.name == "Silver"
+
+
+def test_collection_gain_bias_ignores_landscape_buy_choices():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Silver")]
+    player = _player()
+    player.collection_played = 1
+    state = SimpleNamespace(supply={"Smithy": 10, "Silver": 40})
+
+    choice = strategy.choose_gain(
+        state,
+        player,
+        [Sewers(), Looting(), get_card("Silver"), get_card("Smithy"), None],
+    )
+
+    assert choice.name == "Smithy"
 
 
 def test_phase_classifier_switches_to_endgame():
