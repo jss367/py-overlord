@@ -168,6 +168,27 @@ def augment_panel_with_compatible(
     return names
 
 
+def resolve_library_spec(board: BoardConfig, spec_key: str) -> EnhancedStrategy:
+    """Rebuild the library strategy whose entry ``spec`` equals ``spec_key``.
+
+    ``spec_key`` is a library entry *spec* (its ``module:function`` reference),
+    the canonical strategy identifier the ``"library"`` island kind keys on.
+
+    The candidate list must be a superset of whatever ``derive_island_specs``
+    could have produced: derive selects with the unbounded ``--reuse-top-k``,
+    so a fixed bound here would silently miss specs ranked beyond it. Use an
+    effectively-unbounded ``top_k`` and ``min_overlap=1`` (always <= derive's
+    ``reuse_min_overlap``) so the superset holds. Raises ``ValueError`` if no
+    entry matches, so a misconfigured island fails loudly.
+    """
+
+    entries = find_compatible_strategies(board.kingdom_cards, top_k=10_000, min_overlap=1)
+    for entry in entries:
+        if entry.spec == spec_key:
+            return entry.factory()
+    raise ValueError(f"Island seed not found in strategy library: {spec_key!r}")
+
+
 def resolve_island_seed(
     spec: IslandSpec,
     board: BoardConfig,
@@ -196,21 +217,7 @@ def resolve_island_seed(
         # not the display name: two library strategies can share a display name
         # but their specs are unique, so matching on the spec guarantees each
         # island resolves to its OWN strategy.
-        #
-        # The resolution lookup must be able to find any library spec that
-        # ``derive_island_specs`` could have produced. derive selects with
-        # ``top_k=reuse_top_k`` (the ``--reuse-top-k`` CLI flag is unbounded),
-        # so a fixed bound here would silently miss specs ranked beyond it and
-        # crash the island. Use an effectively-unbounded ``top_k`` so resolve's
-        # candidate list is a superset of derive's, and keep ``min_overlap=1``
-        # (always <= derive's ``reuse_min_overlap``, so the superset holds).
-        entries = find_compatible_strategies(
-            board.kingdom_cards, top_k=10_000, min_overlap=1
-        )
-        for entry in entries:
-            if entry.spec == spec.key:
-                return entry.factory()
-        raise ValueError(f"Island seed not found in strategy library: {spec.key!r}")
+        return resolve_library_spec(board, spec.key)
 
     if spec.kind == "trick":
         seeds = build_seed_genomes(board)

@@ -60,8 +60,9 @@ from dominion.analysis.island_seeds import (
     augment_panel_with_compatible,
     derive_island_specs,
     resolve_island_seed,
+    resolve_library_spec,
 )
-from dominion.boards.loader import load_board
+from dominion.boards.loader import BoardConfig, load_board
 from dominion.runner import save_strategy_as_python
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.strategy.strategy_loader import StrategyLoader
@@ -124,28 +125,56 @@ def _canonical_ref(ref: str, loader: StrategyLoader) -> str:
     return ref
 
 
-def _resolvable_seed_ref(spec_kind: str, spec_key: str, loader: StrategyLoader) -> Optional[str]:
+def _resolvable_seed_ref(
+    spec_kind: str,
+    spec_key: str,
+    loader: StrategyLoader,
+    board_config: Optional[BoardConfig] = None,
+) -> Optional[str]:
     """Compute a tournament-resolvable, canonical reference for an island seed.
 
     The tournament's ``_resolve_strategy`` only accepts StrategyLoader names or
     ``*.py`` paths — not the ``module:function`` specs the reuse library uses.
-    So a seed is resolvable only when its name round-trips through the loader:
+    So a seed is resolvable only when it can be reduced to a loader name:
 
     - ``loader``  : ``spec_key`` is the registered name → resolvable.
-    - ``library`` : resolvable only if the entry name (``spec_key``) is also a
-                    registered loader name; generated-strategy library entries
-                    are not, so they get ``None`` rather than a ref the
-                    tournament would choke on.
+    - ``library`` : ``spec_key`` is the entry *spec* (a ``module:function``
+                    reference), which the loader cannot resolve directly. Rebuild
+                    the strategy from the spec the same way
+                    :func:`~dominion.analysis.island_seeds.resolve_island_seed`
+                    does, then use its ``.name``. Resolvable only if that name
+                    round-trips through the loader (generated-strategy entries
+                    that aren't registered by name get ``None`` rather than a
+                    ref the tournament would choke on). Needs ``board_config``
+                    to do the spec→strategy lookup.
     - ``trick`` / ``random`` : no standalone resolvable seed → ``None``.
 
     When resolvable, the ref is canonicalized via :func:`_canonical_ref`, so it
     is byte-identical to whatever the panel side records for the same strategy
-    (e.g. the loader alias ``"Big Money"`` becomes ``"BigMoney"``). This is the
-    one rule for both seeds and panels — see :func:`_canonical_ref`.
+    (e.g. the loader alias ``"Big Money"`` becomes ``"BigMoney"``, and a library
+    spec collapses to the same ``.name`` the panel records). This is the one
+    rule for both seeds and panels — see :func:`_canonical_ref`.
     """
-    if spec_kind in ("loader", "library"):
+    if spec_kind == "loader":
         if loader.get_strategy(spec_key) is not None:
             return _canonical_ref(spec_key, loader)
+        return None
+
+    if spec_kind == "library":
+        if board_config is None:
+            return None
+        try:
+            strategy = resolve_library_spec(board_config, spec_key)
+        except ValueError:
+            return None
+        # The library spec resolves to a concrete strategy; it's only a usable
+        # tournament ref if that strategy is *also* registered by name in the
+        # loader. Route through _canonical_ref so it's byte-identical to the
+        # panel ref for the same strategy (preserving the dedupe invariant).
+        if loader.get_strategy(strategy.name) is None:
+            return None
+        return _canonical_ref(strategy.name, loader)
+
     return None
 
 
@@ -234,7 +263,7 @@ def run_one_island(
         # the final generation, not the saved champion.
         panel_breakdown=list(trainer.best_eval_breakdown),
         wall_seconds=elapsed,
-        seed_ref=_resolvable_seed_ref(spec_kind, spec_key, loader),
+        seed_ref=_resolvable_seed_ref(spec_kind, spec_key, loader, board_config),
     )
 
 

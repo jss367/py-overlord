@@ -187,11 +187,6 @@ def test_resolvable_seed_ref_canonicalizes_loader_alias():
     assert loader.get_strategy(ref) is not None
 
 
-def test_resolvable_seed_ref_library_canonicalizes_same_way():
-    loader = _AliasLoader()
-    assert _resolvable_seed_ref("library", "Big Money", loader) == "BigMoney"
-
-
 def test_resolvable_seed_ref_trick_and_random_return_none():
     loader = _AliasLoader()
     assert _resolvable_seed_ref("trick", "Big Money", loader) is None
@@ -201,6 +196,107 @@ def test_resolvable_seed_ref_trick_and_random_return_none():
 def test_resolvable_seed_ref_unknown_loader_key_returns_none():
     loader = _AliasLoader()
     assert _resolvable_seed_ref("loader", "Nonexistent", loader) is None
+
+
+# --- library seed_ref: spec -> canonical loadable NAME (PR #296 regression) --
+#
+# Library island specs are keyed by their ``module:function`` entry *spec*, not
+# a loader name. The seed_ref must resolve that spec back to the strategy's
+# canonical loadable name so ``--include-seeds`` enters the library seed again,
+# and so it dedupes byte-identically against the panel ref for that strategy.
+
+
+def _lisbon_board():
+    from dominion.boards.loader import load_board
+
+    return load_board("boards/lisbon.txt")
+
+
+def _a_loadable_library_spec(board, loader):
+    """Return (spec, strategy_name) for a real library entry whose name
+    round-trips through the loader, or None if the library has none."""
+    from dominion.analysis.strategy_library import find_compatible_strategies
+
+    for entry in find_compatible_strategies(board.kingdom_cards, top_k=10_000, min_overlap=1):
+        name = entry.factory().name
+        if loader.get_strategy(name) is not None:
+            return entry.spec, name
+    return None
+
+
+def test_resolvable_library_spec_returns_canonical_loadable_name():
+    from dominion.strategy.strategy_loader import StrategyLoader
+
+    board = _lisbon_board()
+    loader = StrategyLoader()
+    found = _a_loadable_library_spec(board, loader)
+    if found is None:
+        pytest.skip("no loadable library strategy for this board")
+    spec, name = found
+
+    ref = _resolvable_seed_ref("library", spec, loader, board)
+
+    # The NAME, not the module:function spec and not None.
+    assert ref == name
+    assert ref != spec
+    # And it round-trips through the loader so the tournament can re-resolve it.
+    assert loader.get_strategy(ref) is not None
+
+
+def test_resolvable_library_ref_equals_panel_ref_for_same_strategy():
+    # Dedupe invariant: the library island's seed_ref and the panel ref for the
+    # SAME strategy must be byte-identical canonical names.
+    from dominion.strategy.strategy_loader import StrategyLoader
+
+    board = _lisbon_board()
+    loader = StrategyLoader()
+    found = _a_loadable_library_spec(board, loader)
+    if found is None:
+        pytest.skip("no loadable library strategy for this board")
+    spec, name = found
+
+    seed_ref = _resolvable_seed_ref("library", spec, loader, board)
+    panel_ref = _canonical_ref(name, loader)  # how _resolve_panel_names records it
+
+    assert seed_ref == panel_ref
+
+
+def test_resolvable_library_spec_that_does_not_round_trip_returns_none():
+    # A spec that resolves to a strategy whose .name is NOT a registered loader
+    # name -> None (acceptable; the tournament just skips it). No crash.
+    from dominion.boards.loader import load_board
+
+    board = load_board("boards/lisbon.txt")
+
+    class _UnregisteredLoader:
+        def get_strategy(self, ref):
+            return None  # nothing round-trips
+
+    found = None
+    from dominion.analysis.strategy_library import find_compatible_strategies
+
+    for entry in find_compatible_strategies(board.kingdom_cards, top_k=10_000, min_overlap=1):
+        found = entry.spec
+        break
+    if found is None:
+        pytest.skip("no library strategy for this board")
+
+    assert _resolvable_seed_ref("library", found, _UnregisteredLoader(), board) is None
+
+
+def test_resolvable_library_unknown_spec_returns_none():
+    # A spec that matches no library entry -> None, no crash.
+    from dominion.strategy.strategy_loader import StrategyLoader
+
+    board = _lisbon_board()
+    assert (
+        _resolvable_seed_ref("library", "no.such:spec", StrategyLoader(), board) is None
+    )
+
+
+def test_resolvable_library_without_board_returns_none():
+    # Defensive: no board threaded through -> cannot resolve the spec -> None.
+    assert _resolvable_seed_ref("library", "no.such:spec", _AliasLoader()) is None
 
 
 def test_seed_and_panel_refs_dedupe_after_canonicalization():
