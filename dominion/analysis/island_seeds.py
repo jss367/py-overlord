@@ -38,14 +38,44 @@ class IslandSpec:
     """A subprocess-safe description of one island's starting point.
 
     ``kind`` is one of ``"loader"`` (a registered strategy name), ``"library"``
-    (a compatible strategy from the reuse library, keyed by entry name),
+    (a compatible strategy from the reuse library, keyed by the entry *spec* —
+    its ``module:function`` reference, the canonical strategy identifier — so
+    two library strategies that share a display name never collide on the key),
     ``"trick"`` (an index into ``build_seed_genomes(board)``), or ``"random"``
     (no seed — the island starts from random structured menus).
+
+    ``name`` is the island's human-readable identity: it becomes the GA
+    champion name, the output filename, and the log prefix. The roster returned
+    by :func:`derive_island_specs` guarantees every ``name`` is unique, since a
+    collision would corrupt those outputs regardless of island kind.
     """
 
     kind: str
     key: str
     name: str
+
+
+def _dedupe_names(specs: list[IslandSpec]) -> list[IslandSpec]:
+    """Return ``specs`` with every ``IslandSpec.name`` made unique.
+
+    Two islands sharing a display name collide on output filenames and log
+    identification (the name becomes the champion name / saved ``.py`` file /
+    log prefix in ``scripts/island_evolve.py``), so the roster must guarantee
+    uniqueness across all kinds. When a name repeats, later occurrences get a
+    deterministic ``" (2)"``, ``" (3)"`` suffix — stable for a given board and
+    readable in logs. Keys are left untouched (a library spec keyed by its
+    unique ``module:function`` spec already resolves correctly)."""
+
+    seen: dict[str, int] = {}
+    out: list[IslandSpec] = []
+    for spec in specs:
+        count = seen.get(spec.name, 0) + 1
+        seen[spec.name] = count
+        if count == 1:
+            out.append(spec)
+        else:
+            out.append(IslandSpec(spec.kind, spec.key, f"{spec.name} ({count})"))
+    return out
 
 
 def derive_island_specs(
@@ -73,7 +103,7 @@ def derive_island_specs(
     for entry in find_compatible_strategies(
         board.kingdom_cards, top_k=reuse_top_k, min_overlap=reuse_min_overlap
     ):
-        informed.append(IslandSpec("library", entry.name, f"Reuse {entry.name}"))
+        informed.append(IslandSpec("library", entry.spec, f"Reuse {entry.name}"))
 
     for index, (name, _strategy) in enumerate(build_seed_genomes(board)):
         informed.append(IslandSpec("trick", str(index), name))
@@ -94,7 +124,11 @@ def derive_island_specs(
         random_index += 1
         specs.append(IslandSpec("random", str(random_index), f"Random Island {random_index}"))
 
-    return specs
+    # Two library strategies can share a display name (distinct module:function
+    # specs, same ``strategy.name``), and a library name can in principle clash
+    # with a trick/loader name. Names drive output filenames and log identity,
+    # so dedupe across the whole roster before returning.
+    return _dedupe_names(specs)
 
 
 def augment_panel_with_compatible(
@@ -158,6 +192,11 @@ def resolve_island_seed(
         return strategy
 
     if spec.kind == "library":
+        # ``spec.key`` is the entry *spec* (its ``module:function`` reference),
+        # not the display name: two library strategies can share a display name
+        # but their specs are unique, so matching on the spec guarantees each
+        # island resolves to its OWN strategy.
+        #
         # The resolution lookup must be able to find any library spec that
         # ``derive_island_specs`` could have produced. derive selects with
         # ``top_k=reuse_top_k`` (the ``--reuse-top-k`` CLI flag is unbounded),
@@ -169,7 +208,7 @@ def resolve_island_seed(
             board.kingdom_cards, top_k=10_000, min_overlap=1
         )
         for entry in entries:
-            if entry.name == spec.key:
+            if entry.spec == spec.key:
                 return entry.factory()
         raise ValueError(f"Island seed not found in strategy library: {spec.key!r}")
 

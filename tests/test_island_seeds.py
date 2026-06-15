@@ -28,9 +28,14 @@ def _strategy(name: str) -> EnhancedStrategy:
 
 
 class _FakeLibraryEntry:
-    def __init__(self, name: str):
+    def __init__(self, name: str, spec: str | None = None):
         self.name = name
-        self.factory = lambda _n=name: _strategy(_n)
+        # The real entry's ``spec`` is its unique ``module:function`` reference;
+        # default to a unique-per-name value so distinct fakes stay distinct.
+        self.spec = spec if spec is not None else f"fake.module:{name}"
+        # ``factory`` yields a strategy whose ``.name`` mirrors the spec, so a
+        # test can confirm which entry an island resolved to.
+        self.factory = lambda _n=self.spec: _strategy(_n)
 
 
 class _FakeLoader:
@@ -66,10 +71,51 @@ class TestDeriveIslandSpecs:
 
         specs = derive_island_specs(_board(), max_islands=6)
 
-        assert specs[0] == IslandSpec("library", "WitchEngine", "Reuse WitchEngine")
+        # Library specs are keyed by the entry *spec* (module:function), not
+        # the display name; the display name is "Reuse <name>".
+        assert specs[0] == IslandSpec("library", "fake.module:WitchEngine", "Reuse WitchEngine")
         assert specs[1] == IslandSpec("trick", "0", "Trail Butterfly Trick")
         assert specs[2] == IslandSpec("loader", "Big Money", "Big Money Island")
         assert [s.kind for s in specs[3:]] == ["random", "random", "random"]
+
+    def test_library_entries_sharing_a_name_get_distinct_key_and_name(self, monkeypatch):
+        """Two library strategies with the same display name but different
+        specs must yield two specs with DISTINCT keys (the specs) AND distinct
+        names — otherwise both islands resolve to the same seed and collide on
+        output filenames/logs."""
+        monkeypatch.setattr(
+            island_seeds, "find_compatible_strategies",
+            lambda *a, **k: [
+                _FakeLibraryEntry("BigMoneySmithy", spec="m:big_money_smithy"),
+                _FakeLibraryEntry("BigMoneySmithy", spec="m:big_money_smithy2"),
+            ],
+        )
+        monkeypatch.setattr(island_seeds, "build_seed_genomes", lambda board: [])
+
+        specs = derive_island_specs(_board(), max_islands=6)
+        library_specs = [s for s in specs if s.kind == "library"]
+
+        assert len(library_specs) == 2
+        # Distinct keys (the canonical module:function specs).
+        assert {s.key for s in library_specs} == {"m:big_money_smithy", "m:big_money_smithy2"}
+        # Distinct names (the second "Reuse BigMoneySmithy" is disambiguated).
+        assert len({s.name for s in library_specs}) == 2
+        assert "Reuse BigMoneySmithy" in {s.name for s in library_specs}
+
+    def test_roster_names_are_unique_even_when_library_names_collide(self, monkeypatch):
+        """General invariant: no two islands in a derived roster share a name,
+        even when several library entries collide on their display name."""
+        monkeypatch.setattr(
+            island_seeds, "find_compatible_strategies",
+            lambda *a, **k: [
+                _FakeLibraryEntry("Dup", spec=f"m:dup{i}") for i in range(3)
+            ],
+        )
+        monkeypatch.setattr(island_seeds, "build_seed_genomes", lambda board: [])
+
+        specs = derive_island_specs(_board(), max_islands=6)
+
+        assert len({s.name for s in specs}) == len(specs)
 
     def test_roster_is_truncated_at_max_islands(self, monkeypatch):
         monkeypatch.setattr(
@@ -174,22 +220,49 @@ class TestResolveIslandSeed:
         with pytest.raises(ValueError, match="out of range"):
             resolve_island_seed(IslandSpec("trick", "0", "Trick0"), _board(), _FakeLoader({}))
 
-    def test_library_seed_resolves_by_entry_name(self, monkeypatch):
+    def test_library_seed_resolves_by_entry_spec(self, monkeypatch):
         monkeypatch.setattr(
             island_seeds, "find_compatible_strategies",
             lambda *a, **k: [_FakeLibraryEntry("WitchEngine")],
         )
+        # The library branch matches on the entry spec (module:function), so
+        # the spec key is the entry's ``.spec``, not its display name.
         seed = resolve_island_seed(
-            IslandSpec("library", "WitchEngine", "Reuse WitchEngine"), _board(), _FakeLoader({})
+            IslandSpec("library", "fake.module:WitchEngine", "Reuse WitchEngine"),
+            _board(),
+            _FakeLoader({}),
         )
-        assert seed is not None and seed.name == "WitchEngine"
+        assert seed is not None and seed.name == "fake.module:WitchEngine"
 
     def test_library_seed_missing_raises(self, monkeypatch):
         monkeypatch.setattr(island_seeds, "find_compatible_strategies", lambda *a, **k: [])
         with pytest.raises(ValueError, match="not found in strategy library"):
             resolve_island_seed(
-                IslandSpec("library", "Gone", "Reuse Gone"), _board(), _FakeLoader({})
+                IslandSpec("library", "fake.module:Gone", "Reuse Gone"), _board(), _FakeLoader({})
             )
+
+    def test_library_seeds_sharing_a_name_resolve_to_own_strategy(self, monkeypatch):
+        """Regression: two library strategies can share a display name but have
+        distinct specs (e.g. big_money_smithy and big_money_smithy2 both name
+        themselves "BigMoneySmithy"). Keying by spec means each island resolves
+        to its OWN strategy rather than both collapsing onto the first match."""
+        entry_a = _FakeLibraryEntry("BigMoneySmithy", spec="dominion.strategy.strategies.big_money_smithy:build")
+        entry_b = _FakeLibraryEntry("BigMoneySmithy", spec="dominion.strategy.strategies.big_money_smithy2:build")
+        monkeypatch.setattr(
+            island_seeds, "find_compatible_strategies",
+            lambda *a, **k: [entry_a, entry_b],
+        )
+
+        spec_a = IslandSpec("library", entry_a.spec, "Reuse BigMoneySmithy")
+        spec_b = IslandSpec("library", entry_b.spec, "Reuse BigMoneySmithy")
+
+        seed_a = resolve_island_seed(spec_a, _board(), _FakeLoader({}))
+        seed_b = resolve_island_seed(spec_b, _board(), _FakeLoader({}))
+
+        # Each island resolves to its own strategy (the factory mirrors the spec).
+        assert seed_a is not None and seed_a.name == entry_a.spec
+        assert seed_b is not None and seed_b.name == entry_b.spec
+        assert seed_a.name != seed_b.name
 
     def test_unknown_kind_raises(self):
         with pytest.raises(ValueError, match="Unknown island spec kind"):
@@ -218,9 +291,9 @@ class TestResolveIslandSeed:
             assert seed is not None and seed.name == spec.key
 
         # Explicitly confirm an entry beyond the old top_k=10 bound resolves.
-        beyond = next(s for s in library_specs if s.key == "Lib11")
+        beyond = next(s for s in library_specs if s.key == "fake.module:Lib11")
         seed = resolve_island_seed(beyond, _board(), _FakeLoader({}))
-        assert seed is not None and seed.name == "Lib11"
+        assert seed is not None and seed.name == "fake.module:Lib11"
 
 
 class TestAugmentPanelWithCompatible:
