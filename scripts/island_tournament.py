@@ -352,6 +352,10 @@ def main() -> None:
     except ValueError as exc:
         parser.error(str(exc))
 
+    # Ordered list of entrant display names — drives the matrix rows/columns
+    # and the average-win-rate ranking below.
+    names = [name for name, _ in resolved]
+
     # Build matchup list (one entry per unordered pair).
     matchups: list[tuple[str, str, str, str]] = []  # (a_name, b_name, a_ref, b_ref)
     for i, (a_name, a_ref) in enumerate(resolved):
