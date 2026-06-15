@@ -442,7 +442,7 @@ class EnhancedStrategy:
         if getattr(player, "collection_played", 0) <= 0:
             return normal
 
-        if normal is not None and normal.is_action:
+        if normal is not None and getattr(normal, "is_action", False):
             return normal
 
         if normal is not None and normal.name not in {"Copper", "Silver"}:
@@ -452,7 +452,7 @@ class EnhancedStrategy:
             card
             for card in choices
             if card is not None
-            and card.is_action
+            and getattr(card, "is_action", False)
             and getattr(state, "supply", {}).get(card.name, 1) > 0
         ]
         if not actions:
