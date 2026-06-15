@@ -95,8 +95,37 @@ def _safe_filename(name: str) -> str:
     return "".join(ch for ch in slug if ch.isalnum() or ch in ("_",))
 
 
+def _canonical_ref(ref: str, loader: StrategyLoader) -> str:
+    """Map any strategy reference to ONE canonical string for the manifest.
+
+    This is the single chokepoint every ref written into the manifest (island
+    ``seed_ref`` AND ``panel`` entries) must pass through, so two refs that
+    denote the same underlying strategy are *byte-identical* strings. Without
+    that invariant, the tournament's ``assemble_entrants`` sees distinct ref
+    strings that resolve to the same display name and rejects the whole run.
+
+    Rule:
+
+    - If ``loader.get_strategy(ref)`` resolves, return that strategy's
+      ``.name`` — the canonical form the tournament/loader use (e.g. the alias
+      ``"Big Money"`` collapses to ``"BigMoney"``). Round-trip-guarded: only
+      canonicalize when the canonical name *itself* re-resolves via the loader,
+      so the tournament can still resolve the ref it reads back. Otherwise fall
+      back to ``ref`` (which we know resolves), keeping both sides in sync.
+    - If ``ref`` does not resolve (``*.py`` file paths, ``module:function``
+      library specs, unknown names), return ``ref`` unchanged.
+    """
+    strategy = loader.get_strategy(ref)
+    if strategy is None:
+        return ref
+    canonical = strategy.name
+    if canonical and loader.get_strategy(canonical) is not None:
+        return canonical
+    return ref
+
+
 def _resolvable_seed_ref(spec_kind: str, spec_key: str, loader: StrategyLoader) -> Optional[str]:
-    """Compute a tournament-resolvable reference for an island's seed, or None.
+    """Compute a tournament-resolvable, canonical reference for an island seed.
 
     The tournament's ``_resolve_strategy`` only accepts StrategyLoader names or
     ``*.py`` paths — not the ``module:function`` specs the reuse library uses.
@@ -109,26 +138,14 @@ def _resolvable_seed_ref(spec_kind: str, spec_key: str, loader: StrategyLoader) 
                     tournament would choke on.
     - ``trick`` / ``random`` : no standalone resolvable seed → ``None``.
 
-    The ref is canonicalized to the resolved strategy's display name
-    (``strategy.name``), NOT the input ``spec_key`` alias. ``spec_key`` may be a
-    loader *alias* (e.g. ``"Big Money"``) while the panel side
-    (:func:`_resolve_panel_names`) records ``strategy.name`` (e.g. ``"BigMoney"``).
-    If the two disagreed, ``assemble_entrants`` would see distinct ref strings
-    that resolve to the same display name and reject the whole tournament. By
-    emitting the same canonical key both sides record, the intended seed/panel
-    overlap dedupes instead of clashing. We only return the canonical name when
-    it itself round-trips through the loader (so the tournament can re-resolve
-    it); otherwise we fall back to ``spec_key`` if that round-trips.
+    When resolvable, the ref is canonicalized via :func:`_canonical_ref`, so it
+    is byte-identical to whatever the panel side records for the same strategy
+    (e.g. the loader alias ``"Big Money"`` becomes ``"BigMoney"``). This is the
+    one rule for both seeds and panels — see :func:`_canonical_ref`.
     """
     if spec_kind in ("loader", "library"):
-        strategy = loader.get_strategy(spec_key)
-        if strategy is not None:
-            canonical = strategy.name
-            if canonical and loader.get_strategy(canonical) is not None:
-                return canonical
-            # Canonical name doesn't round-trip; fall back to the alias the
-            # caller passed (which we know resolves), keeping seed/panel in sync.
-            return spec_key
+        if loader.get_strategy(spec_key) is not None:
+            return _canonical_ref(spec_key, loader)
     return None
 
 
@@ -224,15 +241,25 @@ def run_one_island(
 def _resolve_panel_names(board_config, explicit: list[str] | None) -> list[str]:
     """Resolve the opponent panel names shared by every island.
 
-    With ``--panel``, the user's names are used verbatim (they must resolve
-    via StrategyLoader, both here and later in island_merge). Otherwise the
-    default is the built-in baseline panel PLUS the board's compatible library
-    strategies — so every board trains against a panel stronger than
+    Every recorded name is run through :func:`_canonical_ref`, so a panel entry
+    is byte-identical to any island ``seed_ref`` that denotes the same strategy
+    (the alias ``"Big Money"`` collapses to ``"BigMoney"`` on both sides). This
+    is what lets seed/panel overlap dedupe rather than clash in the tournament.
+
+    With ``--panel``, the user's names are used (canonicalized; they must
+    resolve via StrategyLoader, both here and later in island_merge). Otherwise
+    the default is the built-in baseline panel PLUS the board's compatible
+    library strategies — so every board trains against a panel stronger than
     Big-Money-alone, derived from the board rather than hardcoded. It is
     deterministic for a given board, so every island sees the same panel.
     """
+    loader = StrategyLoader()
+
     if explicit:
-        return list(explicit)
+        # Canonicalize each user-supplied alias before it enters the manifest,
+        # so an explicit ``--panel "Big Money"`` records the same ``"BigMoney"``
+        # a Big Money island's seed_ref does.
+        return [_canonical_ref(name, loader) for name in explicit]
 
     probe = GeneticTrainer(
         kingdom_cards=board_config.kingdom_cards,
@@ -242,16 +269,17 @@ def _resolve_panel_names(board_config, explicit: list[str] | None) -> list[str]:
         log_folder="island_logs/_panel_probe",
     )
     panel = probe.build_default_baseline_panel()
-    loader = StrategyLoader()
     baseline_names = []
     for strategy in panel:
         # Manifest panel names must round-trip through StrategyLoader (the
-        # merge stage re-resolves them), so verify before recording.
+        # merge stage re-resolves them), so verify before recording, and
+        # canonicalize so they match the seed side.
         if loader.get_strategy(strategy.name) is not None:
-            baseline_names.append(strategy.name)
+            baseline_names.append(_canonical_ref(strategy.name, loader))
 
     names = augment_panel_with_compatible(board_config, baseline_names, loader)
-    return names or ["Big Money"]
+    canonical = [_canonical_ref(name, loader) for name in names]
+    return canonical or [_canonical_ref("Big Money", loader)]
 
 
 def main() -> None:

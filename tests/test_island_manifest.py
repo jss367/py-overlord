@@ -20,7 +20,7 @@ from island_tournament import (  # noqa: E402
     assemble_entrants,
     resolve_tournament_board,
 )
-from island_evolve import _resolvable_seed_ref  # noqa: E402
+from island_evolve import _canonical_ref, _resolvable_seed_ref  # noqa: E402
 
 
 def _manifest(islands):
@@ -212,6 +212,66 @@ def test_seed_and_panel_refs_dedupe_after_canonicalization():
     panel_name = _panel_recorded_name(loader, "Big Money")
 
     resolved = assemble_entrants([seed_ref, panel_name], _FakeLoader())
+
+    assert len(resolved) == 1
+    assert resolved[0][0] == "BigMoney"
+
+
+# --- _canonical_ref chokepoint: the single rule every manifest ref obeys ----
+
+
+def test_canonical_ref_collapses_alias_to_name():
+    loader = _AliasLoader()
+    assert _canonical_ref("Big Money", loader) == "BigMoney"
+
+
+def test_canonical_ref_is_idempotent_on_canonical_name():
+    loader = _AliasLoader()
+    assert _canonical_ref("BigMoney", loader) == "BigMoney"
+    # Idempotent: canonicalizing the canonical form is a fixed point.
+    assert _canonical_ref(_canonical_ref("Big Money", loader), loader) == "BigMoney"
+
+
+def test_canonical_ref_passes_through_py_path_unchanged():
+    loader = _AliasLoader()
+    path = "generated_strategies/island_champions/foo_champion.py"
+    assert _canonical_ref(path, loader) == path
+
+
+def test_canonical_ref_passes_through_unknown_ref_unchanged():
+    loader = _AliasLoader()
+    assert _canonical_ref("Totally Unknown", loader) == "Totally Unknown"
+
+
+def test_canonical_ref_falls_back_when_name_does_not_round_trip():
+    # alias resolves, but the resolved .name does NOT itself re-resolve ->
+    # keep the alias (which we know resolves) rather than emit a dead ref.
+    class _OneWayLoader:
+        def get_strategy(self, ref):
+            if ref == "alias":
+                return _FakeStrategy("Pretty Name")  # "Pretty Name" is unknown
+            return None
+
+    assert _canonical_ref("alias", _OneWayLoader()) == "alias"
+
+
+def test_explicit_panel_alias_is_canonicalized():
+    # The reported residual: an explicit --panel ["Big Money"] must record
+    # "BigMoney" so it can't collide with a canonicalized Big Money seed_ref.
+    loader = _AliasLoader()
+    recorded = [_canonical_ref(name, loader) for name in ["Big Money"]]
+    assert recorded == ["BigMoney"]
+
+
+def test_explicit_panel_and_seed_dedupe_end_to_end():
+    # Full class: a Big Money island seed_ref and an explicit --panel
+    # "Big Money" entry both reduce to "BigMoney"; assemble_entrants yields
+    # ONE entrant rather than raising on a name clash.
+    loader = _AliasLoader()
+    seed_ref = _resolvable_seed_ref("loader", "Big Money", loader)
+    explicit_panel = [_canonical_ref(name, loader) for name in ["Big Money"]]
+
+    resolved = assemble_entrants([seed_ref, *explicit_panel], _FakeLoader())
 
     assert len(resolved) == 1
     assert resolved[0][0] == "BigMoney"
