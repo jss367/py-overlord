@@ -12,9 +12,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
+import pytest  # noqa: E402
+
 from island_tournament import (  # noqa: E402
     DEFAULT_BOARD,
     _seed_refs_from_manifest,
+    assemble_entrants,
     resolve_tournament_board,
 )
 
@@ -87,6 +90,53 @@ def test_all_unresolvable():
 
     assert refs == []
     assert skipped == 2
+
+
+class _FakeStrategy:
+    def __init__(self, name: str):
+        self.name = name
+
+
+class _FakeLoader:
+    """Resolves a ref name to a strategy whose display name equals the ref,
+    unless an explicit ref->name mapping is given (to force a name collision)."""
+
+    def __init__(self, names: dict[str, str] | None = None):
+        self._names = names or {}
+
+    def get_strategy(self, ref: str):
+        return _FakeStrategy(self._names.get(ref, ref))
+
+
+def test_assemble_entrants_collapses_seed_panel_overlap():
+    # Champions (file-like names here resolve to themselves), then seeds, then
+    # panel — seeds and panel overlap exactly as on a default Lisbon roster.
+    champions = ["champ_a", "champ_b"]
+    seeds = ["Big Money", "Lisbon City Engine", "ClerkCollectionColony"]
+    panel = ["Big Money", "Lisbon City Engine", "ClerkCollectionColony", "Lisbon City Crusher"]
+    refs = champions + seeds + panel
+
+    resolved = assemble_entrants(refs, _FakeLoader())
+
+    names = [n for n, _ in resolved]
+    # Overlap collapsed: every entrant unique, first occurrence/order preserved.
+    assert names == [
+        "champ_a",
+        "champ_b",
+        "Big Money",
+        "Lisbon City Engine",
+        "ClerkCollectionColony",
+        "Lisbon City Crusher",
+    ]
+    assert len(set(names)) == len(names)
+
+
+def test_assemble_entrants_rejects_distinct_refs_with_same_name():
+    # Two DISTINCT refs resolve to the same display name -> genuine clash.
+    loader = _FakeLoader({"alpha": "Clash", "beta": "Clash"})
+
+    with pytest.raises(ValueError, match="Duplicate display name"):
+        assemble_entrants(["alpha", "beta"], loader)
 
 
 def test_legacy_manifest_without_seed_ref_falls_back_to_seed_name():

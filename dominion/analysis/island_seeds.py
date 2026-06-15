@@ -58,30 +58,43 @@ def derive_island_specs(
 
     Library and trick islands come first (they carry the most board-specific
     information), then the Big Money archetype, then random islands pad the
-    roster to ``max_islands``. If the informed islands alone exceed
-    ``max_islands``, the roster is truncated — library entries are ranked by
-    overlap score and trick seeds follow scanner order, so the cut keeps the
-    strongest candidates.
+    roster to ``max_islands``. The Big Money archetype is *always* present in
+    the returned roster (assuming ``max_islands >= 1``): it is the speed-test
+    baseline every board should be measured against. When the informed islands
+    (library + trick) alone would fill or overflow the roster, Big Money's slot
+    is reserved — the informed specs are truncated to ``max_islands - 1`` and
+    Big Money takes the final slot. Library entries are ranked by overlap score
+    and trick seeds follow scanner order, so the cut keeps the strongest
+    candidates while preserving their ranked order.
     """
 
-    specs: list[IslandSpec] = []
+    informed: list[IslandSpec] = []
 
     for entry in find_compatible_strategies(
         board.kingdom_cards, top_k=reuse_top_k, min_overlap=reuse_min_overlap
     ):
-        specs.append(IslandSpec("library", entry.name, f"Reuse {entry.name}"))
+        informed.append(IslandSpec("library", entry.name, f"Reuse {entry.name}"))
 
     for index, (name, _strategy) in enumerate(build_seed_genomes(board)):
-        specs.append(IslandSpec("trick", str(index), name))
+        informed.append(IslandSpec("trick", str(index), name))
 
-    specs.append(IslandSpec("loader", "Big Money", "Big Money Island"))
+    if max_islands <= 0:
+        return []
+
+    big_money = IslandSpec("loader", "Big Money", "Big Money Island")
+
+    # Always reserve the final slot for the Big Money baseline. When the
+    # informed specs would fill or overflow the roster, keep the strongest
+    # ``max_islands - 1`` of them (ranked order preserved) and append Big Money.
+    informed = informed[: max_islands - 1]
+    specs: list[IslandSpec] = informed + [big_money]
 
     random_index = 0
     while len(specs) < max_islands:
         random_index += 1
         specs.append(IslandSpec("random", str(random_index), f"Random Island {random_index}"))
 
-    return specs[:max_islands]
+    return specs
 
 
 def augment_panel_with_compatible(

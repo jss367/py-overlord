@@ -111,6 +111,44 @@ def _seed_refs_from_manifest(manifest: dict) -> tuple[list[str], int]:
     return refs, skipped
 
 
+def assemble_entrants(
+    refs: list[str], loader: StrategyLoader
+) -> list[tuple[str, str]]:
+    """Resolve tournament entrant ``refs`` to ``(display_name, ref)`` pairs.
+
+    Champions, ``--include-seeds`` seed refs, and ``--include-panel`` panel
+    names are concatenated by the caller, and these lists legitimately overlap:
+    on a board-derived manifest the seed refs and the panel both contain, e.g.,
+    ``Big Money`` and the board's compatible library strategies. Appending them
+    unconditionally would feed the same entrant in twice.
+
+    Dedup is by *ref identity*: when the exact same ref string appears more than
+    once (the intended overlap between champions/seeds/panel), only the first
+    occurrence is kept, preserving order. A genuine collision — two *distinct*
+    refs that resolve to the same display name (which would silently overwrite
+    matrix cells keyed on the name) — is still rejected with ``ValueError``, so
+    the guard against accidental name clashes is preserved.
+    """
+    resolved: list[tuple[str, str]] = []
+    seen_refs: set[str] = set()
+    name_to_ref: dict[str, str] = {}
+    for ref in refs:
+        if ref in seen_refs:
+            continue
+        name, _ = _resolve_strategy(ref, loader)
+        prior_ref = name_to_ref.get(name)
+        if prior_ref is not None:
+            # Distinct refs resolving to the same display name: a real clash.
+            raise ValueError(
+                f"Duplicate display name {name!r} from distinct entrants "
+                f"{prior_ref!r} and {ref!r}. Rename or deduplicate before running."
+            )
+        seen_refs.add(ref)
+        name_to_ref[name] = ref
+        resolved.append((name, ref))
+    return resolved
+
+
 DEFAULT_BOARD = "boards/lisbon.txt"
 
 
@@ -303,25 +341,16 @@ def main() -> None:
     board_path, board_source = resolve_tournament_board(args.board, manifest)
     logger.info("Tournament board: %s (from %s)", board_path, board_source)
 
-    # Resolve once up-front so misspelled names fail immediately.
+    # Resolve once up-front so misspelled names fail immediately. The helper
+    # dedupes the intended overlap between champions/seeds/panel (same ref
+    # appearing twice) and still rejects distinct refs that collide by display
+    # name — duplicate names would silently overwrite the matrix cells keyed on
+    # (a_name, b_name) and corrupt the report.
     loader = StrategyLoader()
-    resolved: list[tuple[str, str]] = []  # (display_name, ref-for-subprocess)
-    for ref in refs:
-        name, _ = _resolve_strategy(ref, loader)
-        resolved.append((name, ref))
-
-    names = [n for n, _ in resolved]
-    if len(set(names)) != len(names):
-        # The matrix cells are keyed on (a_name, b_name); duplicate names
-        # would silently overwrite cells and corrupt the report. Reject up
-        # front so the user can rename one of the duplicates rather than
-        # discovering it after the fact in a published table.
-        seen: set[str] = set()
-        dupes = sorted({n for n in names if n in seen or seen.add(n)})
-        parser.error(
-            f"Duplicate display names in tournament entrants: {dupes}. "
-            "Rename or deduplicate before running."
-        )
+    try:
+        resolved = assemble_entrants(refs, loader)  # (display_name, ref-for-subprocess)
+    except ValueError as exc:
+        parser.error(str(exc))
 
     # Build matchup list (one entry per unordered pair).
     matchups: list[tuple[str, str, str, str]] = []  # (a_name, b_name, a_ref, b_ref)

@@ -84,8 +84,49 @@ class TestDeriveIslandSpecs:
         specs = derive_island_specs(_board(), max_islands=5)
 
         assert len(specs) == 5
-        # Library entries (ranked by overlap) survive the cut first.
-        assert [s.kind for s in specs] == ["library"] * 4 + ["trick"]
+        # Big Money's slot is reserved in the last position; the strongest
+        # informed specs (library entries, ranked by overlap) fill the rest.
+        assert [s.kind for s in specs] == ["library"] * 4 + ["loader"]
+        assert specs[-1] == IslandSpec("loader", "Big Money", "Big Money Island")
+
+    def test_big_money_kept_when_informed_specs_fill_roster(self, monkeypatch):
+        """Regression: when library+trick alone meet/exceed max_islands, the
+        Big Money baseline must still be in the returned roster (it used to be
+        dropped by the final slice)."""
+        monkeypatch.setattr(
+            island_seeds, "find_compatible_strategies",
+            lambda *a, **k: [_FakeLibraryEntry(f"Lib{i}") for i in range(3)],
+        )
+        monkeypatch.setattr(
+            island_seeds, "build_seed_genomes",
+            lambda board: [(f"Trick{i}", _strategy(f"t{i}")) for i in range(3)],
+        )
+
+        # 3 library + 3 trick = 6 informed == max_islands (the bazaar_council case).
+        specs = derive_island_specs(_board(), max_islands=6)
+
+        assert len(specs) == 6
+        # Big Money is present and in the final reserved slot.
+        assert IslandSpec("loader", "Big Money", "Big Money Island") in specs
+        assert specs[-1] == IslandSpec("loader", "Big Money", "Big Money Island")
+        # Informed specs still lead, in ranked order, truncated to max-1.
+        assert [s.kind for s in specs[:-1]] == ["library"] * 3 + ["trick"] * 2
+        # No duplicate names.
+        assert len({s.name for s in specs}) == len(specs)
+
+    def test_max_islands_one_yields_only_big_money(self, monkeypatch):
+        monkeypatch.setattr(
+            island_seeds, "find_compatible_strategies",
+            lambda *a, **k: [_FakeLibraryEntry("Lib0")],
+        )
+        monkeypatch.setattr(
+            island_seeds, "build_seed_genomes",
+            lambda board: [("Trick0", _strategy("t0"))],
+        )
+
+        specs = derive_island_specs(_board(), max_islands=1)
+
+        assert specs == [IslandSpec("loader", "Big Money", "Big Money Island")]
 
     def test_specs_are_plain_string_dataclasses(self, monkeypatch):
         monkeypatch.setattr(island_seeds, "find_compatible_strategies", lambda *a, **k: [])
