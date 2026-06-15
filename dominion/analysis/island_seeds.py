@@ -1,0 +1,231 @@
+"""Board-derived island seeds for the island-model evolution pipeline.
+
+The island model runs one GeneticTrainer per *seed* — each seed a distinct
+theory of the kingdom — so the run escapes shared local optima. The original
+pipeline hardcoded six hand-written Lisbon strategies, which meant a new
+board required writing six seed strategies before islands could run at all.
+
+This module derives the island roster from the board itself:
+
+1. **Library reuse** — existing strategies whose referenced cards overlap
+   this kingdom (:func:`find_compatible_strategies`), each as its own island.
+2. **Trick seeds** — one island per mechanical interaction surfaced by the
+   trick scanner (:func:`build_seed_genomes`).
+3. **Big Money** — the archetype baseline island, always available.
+4. **Random islands** — unseeded lineages (the structured-genome random init
+   produces coherent menus, so these are real hypotheses, not noise) filling
+   the roster up to ``max_islands``.
+
+Island specs are plain dataclasses of strings: the pipeline runs each island
+in a spawned subprocess, and strategy objects (lambda conditions) cannot be
+serialized across that boundary. Workers rebuild the actual seed strategy
+from the spec via :func:`resolve_island_seed`.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Optional
+
+from dominion.analysis.seed_genomes import build_seed_genomes
+from dominion.analysis.strategy_library import find_compatible_strategies
+from dominion.boards.loader import BoardConfig
+from dominion.strategy.enhanced_strategy import EnhancedStrategy
+
+
+@dataclass(frozen=True)
+class IslandSpec:
+    """A subprocess-safe description of one island's starting point.
+
+    ``kind`` is one of ``"loader"`` (a registered strategy name), ``"library"``
+    (a compatible strategy from the reuse library, keyed by the entry *spec* —
+    its ``module:function`` reference, the canonical strategy identifier — so
+    two library strategies that share a display name never collide on the key),
+    ``"trick"`` (an index into ``build_seed_genomes(board)``), or ``"random"``
+    (no seed — the island starts from random structured menus).
+
+    ``name`` is the island's human-readable identity: it becomes the GA
+    champion name, the output filename, and the log prefix. The roster returned
+    by :func:`derive_island_specs` guarantees every ``name`` is unique, since a
+    collision would corrupt those outputs regardless of island kind.
+    """
+
+    kind: str
+    key: str
+    name: str
+
+
+def _dedupe_names(specs: list[IslandSpec]) -> list[IslandSpec]:
+    """Return ``specs`` with every ``IslandSpec.name`` made unique.
+
+    Two islands sharing a display name collide on output filenames and log
+    identification (the name becomes the champion name / saved ``.py`` file /
+    log prefix in ``scripts/island_evolve.py``), so the roster must guarantee
+    uniqueness across all kinds. When a name repeats, later occurrences get a
+    deterministic ``" (2)"``, ``" (3)"`` suffix — stable for a given board and
+    readable in logs. Keys are left untouched (a library spec keyed by its
+    unique ``module:function`` spec already resolves correctly)."""
+
+    seen: dict[str, int] = {}
+    out: list[IslandSpec] = []
+    for spec in specs:
+        count = seen.get(spec.name, 0) + 1
+        seen[spec.name] = count
+        if count == 1:
+            out.append(spec)
+        else:
+            out.append(IslandSpec(spec.kind, spec.key, f"{spec.name} ({count})"))
+    return out
+
+
+def derive_island_specs(
+    board: BoardConfig,
+    max_islands: int = 6,
+    reuse_top_k: int = 3,
+    reuse_min_overlap: int = 2,
+) -> list[IslandSpec]:
+    """Derive an island roster for ``board``.
+
+    Library and trick islands come first (they carry the most board-specific
+    information), then the Big Money archetype, then random islands pad the
+    roster to ``max_islands``. The Big Money archetype is *always* present in
+    the returned roster (assuming ``max_islands >= 1``): it is the speed-test
+    baseline every board should be measured against. When the informed islands
+    (library + trick) alone would fill or overflow the roster, Big Money's slot
+    is reserved — the informed specs are truncated to ``max_islands - 1`` and
+    Big Money takes the final slot. Library entries are ranked by overlap score
+    and trick seeds follow scanner order, so the cut keeps the strongest
+    candidates while preserving their ranked order.
+    """
+
+    informed: list[IslandSpec] = []
+
+    for entry in find_compatible_strategies(
+        board.kingdom_cards, top_k=reuse_top_k, min_overlap=reuse_min_overlap
+    ):
+        informed.append(IslandSpec("library", entry.spec, f"Reuse {entry.name}"))
+
+    for index, (name, _strategy) in enumerate(build_seed_genomes(board)):
+        informed.append(IslandSpec("trick", str(index), name))
+
+    if max_islands <= 0:
+        return []
+
+    big_money = IslandSpec("loader", "Big Money", "Big Money Island")
+
+    # Always reserve the final slot for the Big Money baseline. When the
+    # informed specs would fill or overflow the roster, keep the strongest
+    # ``max_islands - 1`` of them (ranked order preserved) and append Big Money.
+    informed = informed[: max_islands - 1]
+    specs: list[IslandSpec] = informed + [big_money]
+
+    random_index = 0
+    while len(specs) < max_islands:
+        random_index += 1
+        specs.append(IslandSpec("random", str(random_index), f"Random Island {random_index}"))
+
+    # Two library strategies can share a display name (distinct module:function
+    # specs, same ``strategy.name``), and a library name can in principle clash
+    # with a trick/loader name. Names drive output filenames and log identity,
+    # so dedupe across the whole roster before returning.
+    return _dedupe_names(specs)
+
+
+def augment_panel_with_compatible(
+    board: BoardConfig,
+    baseline_names: list[str],
+    strategy_loader,
+    *,
+    top_k: int = 3,
+    min_overlap: int = 2,
+) -> list[str]:
+    """Build the default opponent panel: baselines + board-compatible strategies.
+
+    The built-in baseline panel can collapse to just Big Money on boards whose
+    kingdom excludes the engine opponents (e.g. Lisbon), making default runs
+    silently weaker. The board-general fix is to fold in the board's compatible
+    library strategies, so every board trains against a panel stronger than
+    Big-Money-alone, derived from the board.
+
+    Panel names are re-resolved by name (via ``StrategyLoader.get_strategy``) in
+    both the island workers and ``scripts/island_merge.py``, so only names that
+    round-trip through the loader are kept. Compatible library entries that are
+    generated strategies the loader cannot resolve by name are skipped silently.
+    Order is preserved (baselines first, then compatible) and names are deduped.
+    """
+
+    names: list[str] = list(baseline_names)
+    seen = set(names)
+    for entry in find_compatible_strategies(
+        board.kingdom_cards, top_k=top_k, min_overlap=min_overlap
+    ):
+        if entry.name in seen:
+            continue
+        if strategy_loader.get_strategy(entry.name) is None:
+            continue
+        names.append(entry.name)
+        seen.add(entry.name)
+    return names
+
+
+def resolve_library_spec(board: BoardConfig, spec_key: str) -> EnhancedStrategy:
+    """Rebuild the library strategy whose entry ``spec`` equals ``spec_key``.
+
+    ``spec_key`` is a library entry *spec* (its ``module:function`` reference),
+    the canonical strategy identifier the ``"library"`` island kind keys on.
+
+    The candidate list must be a superset of whatever ``derive_island_specs``
+    could have produced: derive selects with the unbounded ``--reuse-top-k``,
+    so a fixed bound here would silently miss specs ranked beyond it. Use an
+    effectively-unbounded ``top_k`` and ``min_overlap=1`` (always <= derive's
+    ``reuse_min_overlap``) so the superset holds. Raises ``ValueError`` if no
+    entry matches, so a misconfigured island fails loudly.
+    """
+
+    entries = find_compatible_strategies(board.kingdom_cards, top_k=10_000, min_overlap=1)
+    for entry in entries:
+        if entry.spec == spec_key:
+            return entry.factory()
+    raise ValueError(f"Island seed not found in strategy library: {spec_key!r}")
+
+
+def resolve_island_seed(
+    spec: IslandSpec,
+    board: BoardConfig,
+    strategy_loader,
+) -> Optional[EnhancedStrategy]:
+    """Rebuild the seed strategy for ``spec`` (inside the island subprocess).
+
+    Returns ``None`` for ``"random"`` islands — the caller simply skips seed
+    injection and lets the trainer start from random structured menus.
+    Raises ``ValueError`` if a named seed can no longer be found, so a
+    misconfigured island fails loudly instead of silently devolving into a
+    random island with a misleading name.
+    """
+
+    if spec.kind == "random":
+        return None
+
+    if spec.kind == "loader":
+        strategy = strategy_loader.get_strategy(spec.key)
+        if strategy is None:
+            raise ValueError(f"Island seed not found in strategy loader: {spec.key!r}")
+        return strategy
+
+    if spec.kind == "library":
+        # ``spec.key`` is the entry *spec* (its ``module:function`` reference),
+        # not the display name: two library strategies can share a display name
+        # but their specs are unique, so matching on the spec guarantees each
+        # island resolves to its OWN strategy.
+        return resolve_library_spec(board, spec.key)
+
+    if spec.kind == "trick":
+        seeds = build_seed_genomes(board)
+        index = int(spec.key)
+        if index >= len(seeds):
+            raise ValueError(
+                f"Trick seed index {index} out of range ({len(seeds)} seeds on this board)"
+            )
+        return seeds[index][1]
+
+    raise ValueError(f"Unknown island spec kind: {spec.kind!r}")

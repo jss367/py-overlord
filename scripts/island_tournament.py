@@ -80,6 +80,97 @@ def _resolve_strategy(ref: str, loader: StrategyLoader) -> tuple[str, EnhancedSt
     return s.name, s
 
 
+def _seed_refs_from_manifest(manifest: dict) -> tuple[list[str], int]:
+    """Collect tournament-resolvable seed refs from a manifest's islands.
+
+    Returns ``(refs, skipped)`` where ``refs`` are resolvable seed references
+    (StrategyLoader names or ``*.py`` paths) and ``skipped`` counts islands with
+    no resolvable seed (trick/random, or library seeds that don't round-trip).
+
+    Board-derived manifests store ``seed_name`` as a DISPLAY name (``Reuse ...``,
+    a trick name, ``Random Island 1``), which ``_resolve_strategy`` cannot
+    resolve. Such manifests carry a separate ``seed_ref`` field (``None`` when
+    there is no resolvable seed). For backward compatibility, manifests written
+    before ``seed_ref`` existed (no island has the key) fall back to the old
+    ``seed_name`` behavior so they don't hard-break.
+    """
+    islands = manifest.get("islands", [])
+    has_seed_ref = any("seed_ref" in island for island in islands)
+    if not has_seed_ref:
+        # Legacy manifest: preserve prior behavior (resolve seed_name directly).
+        return [island["seed_name"] for island in islands], 0
+
+    refs: list[str] = []
+    skipped = 0
+    for island in islands:
+        ref = island.get("seed_ref")
+        if ref:
+            refs.append(ref)
+        else:
+            skipped += 1
+    return refs, skipped
+
+
+def assemble_entrants(
+    refs: list[str], loader: StrategyLoader
+) -> list[tuple[str, str]]:
+    """Resolve tournament entrant ``refs`` to ``(display_name, ref)`` pairs.
+
+    Champions, ``--include-seeds`` seed refs, and ``--include-panel`` panel
+    names are concatenated by the caller, and these lists legitimately overlap:
+    on a board-derived manifest the seed refs and the panel both contain, e.g.,
+    ``Big Money`` and the board's compatible library strategies. Appending them
+    unconditionally would feed the same entrant in twice.
+
+    Dedup is by *ref identity*: when the exact same ref string appears more than
+    once (the intended overlap between champions/seeds/panel), only the first
+    occurrence is kept, preserving order. A genuine collision — two *distinct*
+    refs that resolve to the same display name (which would silently overwrite
+    matrix cells keyed on the name) — is still rejected with ``ValueError``, so
+    the guard against accidental name clashes is preserved.
+    """
+    resolved: list[tuple[str, str]] = []
+    seen_refs: set[str] = set()
+    name_to_ref: dict[str, str] = {}
+    for ref in refs:
+        if ref in seen_refs:
+            continue
+        name, _ = _resolve_strategy(ref, loader)
+        prior_ref = name_to_ref.get(name)
+        if prior_ref is not None:
+            # Distinct refs resolving to the same display name: a real clash.
+            raise ValueError(
+                f"Duplicate display name {name!r} from distinct entrants "
+                f"{prior_ref!r} and {ref!r}. Rename or deduplicate before running."
+            )
+        seen_refs.add(ref)
+        name_to_ref[name] = ref
+        resolved.append((name, ref))
+    return resolved
+
+
+DEFAULT_BOARD = "boards/lisbon.txt"
+
+
+def resolve_tournament_board(
+    cli_board: Optional[str], manifest: Optional[dict]
+) -> tuple[str, str]:
+    """Resolve which board the tournament should run on.
+
+    Precedence: explicit ``--board`` > the manifest's training board (only when
+    a manifest is supplied) > the ``boards/lisbon.txt`` fallback. Returns
+    ``(board_path, source)`` where ``source`` is one of ``"CLI"``,
+    ``"manifest"``, or ``"default"`` (used purely for an informative log line).
+    """
+    if cli_board:
+        return cli_board, "CLI"
+    if manifest:
+        board = manifest.get("board")
+        if board:
+            return board, "manifest"
+    return DEFAULT_BOARD, "default"
+
+
 def _matchup_unique_key(a: str, b: str) -> tuple[str, str]:
     """Order-independent key for a matchup (so we don't run A-vs-B twice)."""
     return (a, b) if a <= b else (b, a)
@@ -189,7 +280,15 @@ def main() -> None:
         action="store_true",
         help="When using --manifest, also include each panel member as a tournament entrant.",
     )
-    parser.add_argument("--board", default="boards/lisbon.txt")
+    parser.add_argument(
+        "--board",
+        default=None,
+        help=(
+            "Board to evaluate on. Defaults to the manifest's training board "
+            "(when --manifest is used) and otherwise to boards/lisbon.txt. An "
+            "explicit value always wins."
+        ),
+    )
 
     def _positive_int(value: str) -> int:
         ivalue = int(value)
@@ -216,6 +315,7 @@ def main() -> None:
     args = parser.parse_args()
 
     refs: list[str] = []
+    manifest: Optional[dict] = None
     if args.manifest:
         manifest_path = Path(args.manifest)
         manifest = json.loads(manifest_path.read_text())
@@ -224,8 +324,13 @@ def main() -> None:
         for island in manifest.get("islands", []):
             refs.append(island["output_path"])
         if args.include_seeds:
-            for island in manifest.get("islands", []):
-                refs.append(island["seed_name"])
+            seed_refs, skipped = _seed_refs_from_manifest(manifest)
+            refs.extend(seed_refs)
+            if skipped:
+                logger.info(
+                    "Skipping %d island(s) with no resolvable seed (trick/random)",
+                    skipped,
+                )
         if args.include_panel:
             refs.extend(manifest.get("panel", []))
     elif args.strategies:
@@ -233,25 +338,23 @@ def main() -> None:
     else:
         parser.error("Provide either --manifest or --strategies")
 
-    # Resolve once up-front so misspelled names fail immediately.
-    loader = StrategyLoader()
-    resolved: list[tuple[str, str]] = []  # (display_name, ref-for-subprocess)
-    for ref in refs:
-        name, _ = _resolve_strategy(ref, loader)
-        resolved.append((name, ref))
+    board_path, board_source = resolve_tournament_board(args.board, manifest)
+    logger.info("Tournament board: %s (from %s)", board_path, board_source)
 
-    names = [n for n, _ in resolved]
-    if len(set(names)) != len(names):
-        # The matrix cells are keyed on (a_name, b_name); duplicate names
-        # would silently overwrite cells and corrupt the report. Reject up
-        # front so the user can rename one of the duplicates rather than
-        # discovering it after the fact in a published table.
-        seen: set[str] = set()
-        dupes = sorted({n for n in names if n in seen or seen.add(n)})
-        parser.error(
-            f"Duplicate display names in tournament entrants: {dupes}. "
-            "Rename or deduplicate before running."
-        )
+    # Resolve once up-front so misspelled names fail immediately. The helper
+    # dedupes the intended overlap between champions/seeds/panel (same ref
+    # appearing twice) and still rejects distinct refs that collide by display
+    # name — duplicate names would silently overwrite the matrix cells keyed on
+    # (a_name, b_name) and corrupt the report.
+    loader = StrategyLoader()
+    try:
+        resolved = assemble_entrants(refs, loader)  # (display_name, ref-for-subprocess)
+    except ValueError as exc:
+        parser.error(str(exc))
+
+    # Ordered list of entrant display names — drives the matrix rows/columns
+    # and the average-win-rate ranking below.
+    names = [name for name, _ in resolved]
 
     # Build matchup list (one entry per unordered pair).
     matchups: list[tuple[str, str, str, str]] = []  # (a_name, b_name, a_ref, b_ref)
@@ -279,7 +382,7 @@ def main() -> None:
         ctx = mp.get_context("spawn")
         with ProcessPoolExecutor(max_workers=max_workers, mp_context=ctx) as ex:
             futures = {
-                ex.submit(_run_matchup, a_ref, b_ref, args.games, args.board): (a_name, b_name)
+                ex.submit(_run_matchup, a_ref, b_ref, args.games, board_path): (a_name, b_name)
                 for a_name, b_name, a_ref, b_ref in matchups
             }
             for fut in as_completed(futures):
@@ -297,7 +400,7 @@ def main() -> None:
     else:
         for a_name, b_name, a_ref, b_ref in matchups:
             try:
-                r = _run_matchup(a_ref, b_ref, args.games, args.board)
+                r = _run_matchup(a_ref, b_ref, args.games, board_path)
                 raw_results.append(r)
                 logger.info(
                     "%s vs %s: %.1f%% (margin %+.1f)",
@@ -340,8 +443,9 @@ def main() -> None:
         avg_win[name] = sum(rates) / max(1, len(rates))
 
     lines = []
-    lines.append(f"# Lisbon Island Tournament — {args.games} games / matchup\n")
-    lines.append(f"Board: `{args.board}`\n")
+    board_label = Path(board_path).stem.replace("_", " ").title()
+    lines.append(f"# {board_label} Island Tournament — {args.games} games / matchup\n")
+    lines.append(f"Board: `{board_path}`\n")
     lines.append("## Win-rate matrix (row vs column)\n")
     lines.append(_format_matrix(names, win_cell))
     lines.append("\n## Average VP margin matrix (row minus column)\n")
