@@ -12,11 +12,37 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
-from island_tournament import _seed_refs_from_manifest  # noqa: E402
+from island_tournament import (  # noqa: E402
+    DEFAULT_BOARD,
+    _seed_refs_from_manifest,
+    resolve_tournament_board,
+)
 
 
 def _manifest(islands):
     return {"run_id": "x", "board": "boards/lisbon.txt", "islands": islands}
+
+
+def test_resolve_board_cli_wins_over_manifest():
+    manifest = {"board": "boards/rio.txt"}
+    assert resolve_tournament_board("boards/oslo.txt", manifest) == (
+        "boards/oslo.txt",
+        "CLI",
+    )
+
+
+def test_resolve_board_uses_manifest_when_cli_absent():
+    manifest = {"board": "boards/rio.txt"}
+    assert resolve_tournament_board(None, manifest) == ("boards/rio.txt", "manifest")
+
+
+def test_resolve_board_falls_back_to_default_without_manifest():
+    # --strategies path: no manifest, no --board.
+    assert resolve_tournament_board(None, None) == (DEFAULT_BOARD, "default")
+
+
+def test_resolve_board_falls_back_when_manifest_lacks_board():
+    assert resolve_tournament_board(None, {"islands": []}) == (DEFAULT_BOARD, "default")
 
 
 def test_keeps_loader_and_library_refs_skips_trick_and_random():

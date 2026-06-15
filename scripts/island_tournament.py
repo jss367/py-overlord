@@ -111,6 +111,28 @@ def _seed_refs_from_manifest(manifest: dict) -> tuple[list[str], int]:
     return refs, skipped
 
 
+DEFAULT_BOARD = "boards/lisbon.txt"
+
+
+def resolve_tournament_board(
+    cli_board: Optional[str], manifest: Optional[dict]
+) -> tuple[str, str]:
+    """Resolve which board the tournament should run on.
+
+    Precedence: explicit ``--board`` > the manifest's training board (only when
+    a manifest is supplied) > the ``boards/lisbon.txt`` fallback. Returns
+    ``(board_path, source)`` where ``source`` is one of ``"CLI"``,
+    ``"manifest"``, or ``"default"`` (used purely for an informative log line).
+    """
+    if cli_board:
+        return cli_board, "CLI"
+    if manifest:
+        board = manifest.get("board")
+        if board:
+            return board, "manifest"
+    return DEFAULT_BOARD, "default"
+
+
 def _matchup_unique_key(a: str, b: str) -> tuple[str, str]:
     """Order-independent key for a matchup (so we don't run A-vs-B twice)."""
     return (a, b) if a <= b else (b, a)
@@ -220,7 +242,15 @@ def main() -> None:
         action="store_true",
         help="When using --manifest, also include each panel member as a tournament entrant.",
     )
-    parser.add_argument("--board", default="boards/lisbon.txt")
+    parser.add_argument(
+        "--board",
+        default=None,
+        help=(
+            "Board to evaluate on. Defaults to the manifest's training board "
+            "(when --manifest is used) and otherwise to boards/lisbon.txt. An "
+            "explicit value always wins."
+        ),
+    )
 
     def _positive_int(value: str) -> int:
         ivalue = int(value)
@@ -247,6 +277,7 @@ def main() -> None:
     args = parser.parse_args()
 
     refs: list[str] = []
+    manifest: Optional[dict] = None
     if args.manifest:
         manifest_path = Path(args.manifest)
         manifest = json.loads(manifest_path.read_text())
@@ -268,6 +299,9 @@ def main() -> None:
         refs = list(args.strategies)
     else:
         parser.error("Provide either --manifest or --strategies")
+
+    board_path, board_source = resolve_tournament_board(args.board, manifest)
+    logger.info("Tournament board: %s (from %s)", board_path, board_source)
 
     # Resolve once up-front so misspelled names fail immediately.
     loader = StrategyLoader()
@@ -315,7 +349,7 @@ def main() -> None:
         ctx = mp.get_context("spawn")
         with ProcessPoolExecutor(max_workers=max_workers, mp_context=ctx) as ex:
             futures = {
-                ex.submit(_run_matchup, a_ref, b_ref, args.games, args.board): (a_name, b_name)
+                ex.submit(_run_matchup, a_ref, b_ref, args.games, board_path): (a_name, b_name)
                 for a_name, b_name, a_ref, b_ref in matchups
             }
             for fut in as_completed(futures):
@@ -333,7 +367,7 @@ def main() -> None:
     else:
         for a_name, b_name, a_ref, b_ref in matchups:
             try:
-                r = _run_matchup(a_ref, b_ref, args.games, args.board)
+                r = _run_matchup(a_ref, b_ref, args.games, board_path)
                 raw_results.append(r)
                 logger.info(
                     "%s vs %s: %.1f%% (margin %+.1f)",
@@ -376,8 +410,9 @@ def main() -> None:
         avg_win[name] = sum(rates) / max(1, len(rates))
 
     lines = []
-    lines.append(f"# Lisbon Island Tournament — {args.games} games / matchup\n")
-    lines.append(f"Board: `{args.board}`\n")
+    board_label = Path(board_path).stem.replace("_", " ").title()
+    lines.append(f"# {board_label} Island Tournament — {args.games} games / matchup\n")
+    lines.append(f"Board: `{board_path}`\n")
     lines.append("## Win-rate matrix (row vs column)\n")
     lines.append(_format_matrix(names, win_cell))
     lines.append("\n## Average VP margin matrix (row minus column)\n")
