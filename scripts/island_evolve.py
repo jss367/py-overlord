@@ -108,9 +108,26 @@ def _resolvable_seed_ref(spec_kind: str, spec_key: str, loader: StrategyLoader) 
                     are not, so they get ``None`` rather than a ref the
                     tournament would choke on.
     - ``trick`` / ``random`` : no standalone resolvable seed → ``None``.
+
+    The ref is canonicalized to the resolved strategy's display name
+    (``strategy.name``), NOT the input ``spec_key`` alias. ``spec_key`` may be a
+    loader *alias* (e.g. ``"Big Money"``) while the panel side
+    (:func:`_resolve_panel_names`) records ``strategy.name`` (e.g. ``"BigMoney"``).
+    If the two disagreed, ``assemble_entrants`` would see distinct ref strings
+    that resolve to the same display name and reject the whole tournament. By
+    emitting the same canonical key both sides record, the intended seed/panel
+    overlap dedupes instead of clashing. We only return the canonical name when
+    it itself round-trips through the loader (so the tournament can re-resolve
+    it); otherwise we fall back to ``spec_key`` if that round-trips.
     """
     if spec_kind in ("loader", "library"):
-        if loader.get_strategy(spec_key) is not None:
+        strategy = loader.get_strategy(spec_key)
+        if strategy is not None:
+            canonical = strategy.name
+            if canonical and loader.get_strategy(canonical) is not None:
+                return canonical
+            # Canonical name doesn't round-trip; fall back to the alias the
+            # caller passed (which we know resolves), keeping seed/panel in sync.
             return spec_key
     return None
 

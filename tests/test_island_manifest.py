@@ -20,6 +20,7 @@ from island_tournament import (  # noqa: E402
     assemble_entrants,
     resolve_tournament_board,
 )
+from island_evolve import _resolvable_seed_ref  # noqa: E402
 
 
 def _manifest(islands):
@@ -153,3 +154,64 @@ def test_legacy_manifest_without_seed_ref_falls_back_to_seed_name():
 
     assert refs == ["Big Money", "Lisbon City Engine"]
     assert skipped == 0
+
+
+class _AliasLoader:
+    """Loader whose alias key differs from the strategy's canonical ``.name``.
+
+    Models the real Big Money case: ``get_strategy("Big Money").name ==
+    "BigMoney"`` and the canonical ``"BigMoney"`` itself round-trips. Any other
+    key is unknown (returns None)."""
+
+    _MAP = {"Big Money": "BigMoney", "BigMoney": "BigMoney"}
+
+    def get_strategy(self, ref: str):
+        name = self._MAP.get(ref)
+        return _FakeStrategy(name) if name is not None else None
+
+
+def _panel_recorded_name(loader, alias: str) -> str:
+    # Mirror what _resolve_panel_names records for a strategy: strategy.name.
+    return loader.get_strategy(alias).name
+
+
+def test_resolvable_seed_ref_canonicalizes_loader_alias():
+    loader = _AliasLoader()
+
+    # The seed side, fed the loader alias, must emit the canonical name...
+    ref = _resolvable_seed_ref("loader", "Big Money", loader)
+    assert ref == "BigMoney"
+    # ...which is exactly what the panel side records for the same strategy.
+    assert ref == _panel_recorded_name(loader, "Big Money")
+    # And it round-trips so the tournament can still re-resolve it.
+    assert loader.get_strategy(ref) is not None
+
+
+def test_resolvable_seed_ref_library_canonicalizes_same_way():
+    loader = _AliasLoader()
+    assert _resolvable_seed_ref("library", "Big Money", loader) == "BigMoney"
+
+
+def test_resolvable_seed_ref_trick_and_random_return_none():
+    loader = _AliasLoader()
+    assert _resolvable_seed_ref("trick", "Big Money", loader) is None
+    assert _resolvable_seed_ref("random", "0", loader) is None
+
+
+def test_resolvable_seed_ref_unknown_loader_key_returns_none():
+    loader = _AliasLoader()
+    assert _resolvable_seed_ref("loader", "Nonexistent", loader) is None
+
+
+def test_seed_and_panel_refs_dedupe_after_canonicalization():
+    # End-to-end of the bug: seed side and panel side must produce the SAME
+    # ref string for the same strategy so assemble_entrants dedupes (one
+    # entrant) instead of raising on a "distinct refs, same name" clash.
+    loader = _AliasLoader()
+    seed_ref = _resolvable_seed_ref("loader", "Big Money", loader)
+    panel_name = _panel_recorded_name(loader, "Big Money")
+
+    resolved = assemble_entrants([seed_ref, panel_name], _FakeLoader())
+
+    assert len(resolved) == 1
+    assert resolved[0][0] == "BigMoney"
