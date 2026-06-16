@@ -54,6 +54,7 @@ class OpenBoardCycleEvolved(EnhancedStrategy):
                     PriorityRule.has_cards(["Torturer"], 2),
                 ),
             ),
+            PriorityRule("Platinum"),
             PriorityRule("Province"),
             PriorityRule("Duchy", PriorityRule.provinces_left("<=", 4)),
             PriorityRule("Gold", PriorityRule.max_in_deck("Gold", 4)),
