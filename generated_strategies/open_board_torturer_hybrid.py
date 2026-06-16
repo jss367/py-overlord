@@ -1,10 +1,7 @@
 """Open-board Torturer hybrid.
 
-This strategy keeps the V27 Torturer/Inn/Taskmaster/Patrol priority lists and
-adds the V25 Torturer response discipline. On the full open-card + landscape
-board used during June 2026 exploration, the in-memory prototype went 947-53
-(94.7%) over 1,000 games against the registered strategy field at 20 games per
-opponent.
+This strategy starts from the V27 Torturer/Inn/Taskmaster/Patrol priority lists
+and adds Colony-board payload plus the V25 Torturer response discipline.
 """
 
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
@@ -23,6 +20,7 @@ class OpenBoardTorturerHybrid(EnhancedStrategy):
         self.version = "1.0"
 
         self.gain_priority = [
+            PriorityRule("Colony"),
             PriorityRule(
                 "Torturer",
                 PriorityRule.and_(
@@ -78,6 +76,7 @@ class OpenBoardTorturerHybrid(EnhancedStrategy):
         ]
 
         self.treasure_priority = [
+            PriorityRule("Platinum"),
             PriorityRule("Gold"),
             PriorityRule("Silver"),
             PriorityRule("Copper"),
