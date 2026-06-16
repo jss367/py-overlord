@@ -58,6 +58,12 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.provinces_left({op!r}, {amount!r})")
 
     @staticmethod
+    def colonies_left(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        cmp = PriorityRule._OP_MAP[op]
+        fn = lambda s, _me, _amount=amount, _cmp=cmp: _cmp(s.supply.get("Colony", 0), _amount)
+        return PriorityRule._tag_source(fn, f"PriorityRule.colonies_left({op!r}, {amount!r})")
+
+    @staticmethod
     def turn_number(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
         cmp = PriorityRule._OP_MAP[op]
         fn = lambda s, _me, _amount=amount, _cmp=cmp: _cmp(s.turn_number, _amount)

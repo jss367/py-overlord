@@ -12,11 +12,6 @@ strictly dominant replacement.
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 
-def _colonies_left(op: str, amount: int):
-    cmp = {"<=": int.__le__, "<": int.__lt__, ">=": int.__ge__, ">": int.__gt__, "==": int.__eq__}[op]
-    return lambda state, _player: cmp(state.supply.get("Colony", 0), amount)
-
-
 class OpenBoardCycleEvolved(EnhancedStrategy):
     """Open-board Torturer/Colony hybrid evolved against the cycle panel."""
 
@@ -71,7 +66,7 @@ class OpenBoardCycleEvolved(EnhancedStrategy):
                 ),
             ),
             PriorityRule("Duchy"),
-            PriorityRule("Estate", _colonies_left("<=", 3)),
+            PriorityRule("Estate", PriorityRule.colonies_left("<=", 3)),
             PriorityRule("Patrician", PriorityRule.max_in_deck("Patrician", 3)),
         ]
 
