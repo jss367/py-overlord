@@ -52,11 +52,11 @@ def test_evaluate_strategy_counts_second_seat_wins(monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-def _make_mock_state(turn_number=5, provinces_left=8, empty_piles=0, players=None):
+def _make_mock_state(turn_number=5, provinces_left=8, colonies_left=8, empty_piles=0, players=None):
     """Create a lightweight mock GameState."""
     state = types.SimpleNamespace()
     state.turn_number = turn_number
-    state.supply = {"Province": provinces_left}
+    state.supply = {"Province": provinces_left, "Colony": colonies_left}
     state.empty_piles = empty_piles
     state.players = players if players is not None else []
     return state
@@ -121,6 +121,21 @@ class TestConditionsEvaluate:
 
         state2 = _make_mock_state(provinces_left=6)
         assert cond(state2, player) is False
+
+    def test_colonies_left(self):
+        cond = PriorityRule.colonies_left("<=", 3)
+        state = _make_mock_state(colonies_left=2)
+        player = _make_mock_player()
+        assert cond(state, player) is True
+
+        state2 = _make_mock_state(colonies_left=5)
+        assert cond(state2, player) is False
+
+    def test_colonies_left_false_without_colony_pile(self):
+        cond = PriorityRule.colonies_left("<=", 3)
+        state = _make_mock_state()
+        state.supply.pop("Colony")
+        assert cond(state, _make_mock_player()) is False
 
     def test_turn_number(self):
         cond = PriorityRule.turn_number(">=", 5)
@@ -327,6 +342,11 @@ class TestSourceAttribute:
         assert hasattr(cond, "_source")
         assert cond._source == "PriorityRule.provinces_left('<=', 4)"
 
+    def test_colonies_left_source(self):
+        cond = PriorityRule.colonies_left("<=", 3)
+        assert hasattr(cond, "_source")
+        assert cond._source == "PriorityRule.colonies_left('<=', 3)"
+
     def test_turn_number_source(self):
         cond = PriorityRule.turn_number(">=", 10)
         assert cond._source == "PriorityRule.turn_number('>=', 10)"
@@ -366,6 +386,7 @@ class TestSerialization:
             PriorityRule("Province", PriorityRule.resources("coins", ">=", 8)),
             PriorityRule("Gold"),
             PriorityRule("Duchy", PriorityRule.provinces_left("<=", 4)),
+            PriorityRule("Estate", PriorityRule.colonies_left("<=", 3)),
             PriorityRule("Silver", PriorityRule.turn_number("<", 10)),
         ]
         strategy.treasure_priority = [
@@ -390,6 +411,7 @@ class TestSerialization:
         # The file should contain PriorityRule.resources etc.
         assert "PriorityRule.resources" in source
         assert "PriorityRule.provinces_left" in source
+        assert "PriorityRule.colonies_left" in source
 
         # Import the generated module and verify it works
         import sys
@@ -398,7 +420,7 @@ class TestSerialization:
             mod = importlib.import_module("test_strategy")
             generated = mod.TestStrategy()
             assert generated.name == "TestRoundTrip"
-            assert len(generated.gain_priority) == 4
+            assert len(generated.gain_priority) == 5
 
             # Verify the conditions are callable and evaluate
             state = _make_mock_state()
@@ -407,6 +429,11 @@ class TestSerialization:
             assert province_rule.condition is not None
             assert callable(province_rule.condition)
             assert province_rule.condition(state, player) is True
+
+            estate_rule = generated.gain_priority[3]
+            assert estate_rule.condition is not None
+            assert callable(estate_rule.condition)
+            assert estate_rule.condition(_make_mock_state(colonies_left=2), player) is True
         finally:
             sys.path.pop(0)
             sys.modules.pop("test_strategy", None)
