@@ -131,6 +131,12 @@ class TestConditionsEvaluate:
         state2 = _make_mock_state(colonies_left=5)
         assert cond(state2, player) is False
 
+    def test_colonies_left_false_without_colony_pile(self):
+        cond = PriorityRule.colonies_left("<=", 3)
+        state = _make_mock_state()
+        state.supply.pop("Colony")
+        assert cond(state, _make_mock_player()) is False
+
     def test_turn_number(self):
         cond = PriorityRule.turn_number(">=", 5)
         assert cond(_make_mock_state(turn_number=5), _make_mock_player()) is True
