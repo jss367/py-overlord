@@ -165,6 +165,19 @@ def test_cleanup_for_publication_keeps_actions_on_ally_boards():
     assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
 
 
+def test_cleanup_for_publication_keeps_actions_on_trait_boards():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Silver")]
+    strategy.action_priority = [PriorityRule("Smithy")]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Smithy"], traits={"Smithy": "Inherited"}),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
+
+
 def test_cleanup_for_publication_keeps_actions_with_quartermaster():
     strategy = EnhancedStrategy()
     strategy.gain_priority = [

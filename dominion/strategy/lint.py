@@ -242,7 +242,12 @@ def normalize_strategy(strategy: EnhancedStrategy) -> EnhancedStrategy:
 def _board_has_non_card_off_menu_gain_paths(board_config: BoardConfig | None) -> bool:
     if board_config is None:
         return True
-    return bool(board_config.events or board_config.ways or board_config.allies)
+    return bool(
+        board_config.events
+        or board_config.ways
+        or board_config.allies
+        or board_config.traits
+    )
 
 
 def _card_can_gain_off_menu_actions(card_name: str) -> bool:
@@ -264,7 +269,7 @@ def cleanup_for_publication(
     intact, applies behavior-preserving syntactic simplification, and removes
     action rules for cards the strategy never tries to gain only when the board
     context rules out off-menu Action gain paths. Collection, gainers, Events,
-    Ways, and Allies can cause a strategy to gain Actions that are not
+    Ways, Allies, and Traits can cause a strategy to gain Actions that are not
     explicitly named in gain_priority, so action priorities remain meaningful
     in those cases.
     """
