@@ -24,7 +24,7 @@ Severity = Literal["info", "warning", "error"]
 _HAS_CARDS_ZERO_RE = re.compile(r"^PriorityRule\.has_cards\(.+,\s*0\)$")
 _BUILTIN_OFF_MENU_ACTION_GAINS = frozenset({"Trail"})
 _EXPLICIT_OFF_MENU_ACTION_GAINERS = frozenset(
-    {"Forge", "Page", "Peasant", "Quartermaster"}
+    {"Death Cart", "Forge", "Overlord", "Page", "Peasant", "Quartermaster"}
 )
 
 
@@ -279,6 +279,7 @@ def _card_can_gain_off_menu_actions(card_name: str) -> bool:
     return (
         card_name == "Collection"
         or card_name in _EXPLICIT_OFF_MENU_ACTION_GAINERS
+        or infer_card_roles(card_name).has("command")
         or infer_card_roles(card_name).has("gainer")
     )
 

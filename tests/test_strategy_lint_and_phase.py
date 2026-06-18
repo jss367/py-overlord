@@ -272,6 +272,50 @@ def test_cleanup_for_publication_keeps_traveller_chain_action_rules():
     ]
 
 
+def test_cleanup_for_publication_keeps_command_proxy_action_rules():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Overlord"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Smithy"),
+        PriorityRule("Overlord"),
+    ]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Overlord", "Smithy"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "Smithy",
+        "Overlord",
+    ]
+
+
+def test_cleanup_for_publication_keeps_death_cart_ruins_action_rules():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Death Cart"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Ruined Village"),
+        PriorityRule("Death Cart"),
+    ]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Death Cart", "Smithy"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "Ruined Village",
+        "Death Cart",
+    ]
+
+
 def test_cleanup_for_publication_keeps_trail_action_rule():
     strategy = EnhancedStrategy()
     strategy.gain_priority = [
