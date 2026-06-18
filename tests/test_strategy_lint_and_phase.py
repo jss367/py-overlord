@@ -5,7 +5,7 @@ from dominion.events.looting import Looting
 from dominion.projects.sewers import Sewers
 from dominion.strategy.card_roles import cards_with_role, infer_card_roles
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
-from dominion.strategy.lint import lint_strategy, normalize_strategy
+from dominion.strategy.lint import cleanup_for_publication, lint_strategy, normalize_strategy
 from dominion.strategy.phase_strategy import PhaseAwareStrategy, StrategyPhase
 
 
@@ -57,6 +57,53 @@ def test_normalize_strategy_drops_behavior_preserving_dead_rules():
     normalized = normalize_strategy(strategy)
 
     assert [rule.card_name for rule in normalized.gain_priority] == ["Gold"]
+
+
+def test_lint_flags_cantrip_after_ungated_terminal():
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [
+        PriorityRule("Watchtower"),
+        PriorityRule("Peddler"),
+    ]
+
+    warnings = lint_strategy(strategy)
+
+    assert "CANTRIP_AFTER_TERMINAL" in {warning.code for warning in warnings}
+
+
+def test_cleanup_for_publication_drops_actions_not_in_gain_plan():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("City"),
+        PriorityRule("Peddler"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("City"),
+        PriorityRule("Watchtower"),
+        PriorityRule("Peddler"),
+    ]
+
+    cleaned = cleanup_for_publication(strategy)
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "City",
+        "Peddler",
+    ]
+    assert [rule.card_name for rule in strategy.action_priority] == [
+        "City",
+        "Watchtower",
+        "Peddler",
+    ]
+
+
+def test_cleanup_for_publication_keeps_actions_without_explicit_gain_plan():
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [PriorityRule("Smithy")]
+
+    cleaned = cleanup_for_publication(strategy)
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
 
 
 def test_card_role_inference_identifies_village_and_terminal_draw():

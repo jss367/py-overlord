@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from typing import Iterable, Literal, Optional
 
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
+from dominion.strategy.card_roles import infer_card_roles
 from dominion.strategy.genome_simplification import simplify_strategy
 
 Severity = Literal["info", "warning", "error"]
@@ -132,6 +133,44 @@ def _lint_priority_list(
         if rule.condition is None:
             first_unconditional.setdefault(card_name, idx)
 
+    if list_name == "action":
+        warnings.extend(_lint_action_order(list(rules)))
+
+    return warnings
+
+
+def _lint_action_order(rules: list[PriorityRule]) -> list[StrategyLintWarning]:
+    """Flag action-order patterns that are usually tactical mistakes."""
+
+    warnings: list[StrategyLintWarning] = []
+    earlier_terminal: tuple[int, PriorityRule] | None = None
+    for idx, rule in enumerate(rules):
+        roles = infer_card_roles(rule.card_name)
+        if roles.has("cantrip") and earlier_terminal is not None:
+            earlier_idx, earlier_rule = earlier_terminal
+            warnings.append(
+                StrategyLintWarning(
+                    code="CANTRIP_AFTER_TERMINAL",
+                    message=(
+                        f"Cantrip {rule.card_name} appears after terminal "
+                        f"{earlier_rule.card_name} at index {earlier_idx}; "
+                        "cantrips usually preserve actions and should be "
+                        "played first unless the terminal is explicitly gated."
+                    ),
+                    list_name="action",
+                    index=idx,
+                    card_name=rule.card_name,
+                )
+            )
+            continue
+
+        if (
+            roles.has("terminal")
+            and not roles.has("nonterminal")
+            and rule.condition is None
+        ):
+            earlier_terminal = (idx, rule)
+
     return warnings
 
 
@@ -195,3 +234,25 @@ def normalize_strategy(strategy: EnhancedStrategy) -> EnhancedStrategy:
     """Return a behavior-preserving simplified copy of ``strategy``."""
 
     return simplify_strategy(strategy)
+
+
+def cleanup_for_publication(strategy: EnhancedStrategy) -> EnhancedStrategy:
+    """Return a generated-strategy copy suitable for publication.
+
+    This pass is intentionally conservative. It keeps the evaluated gain policy
+    intact, applies behavior-preserving syntactic simplification, and removes
+    action rules for cards the strategy never tries to gain. Such rules are
+    noise in generated files: they cannot affect normal play unless an opponent
+    or card effect hands the strategy an off-plan action, and the executor
+    already has a fallback for unexpected actions.
+    """
+
+    cleaned = normalize_strategy(strategy)
+    gained_cards = {rule.card_name for rule in getattr(cleaned, "gain_priority", []) or []}
+    if gained_cards:
+        cleaned.action_priority = [
+            rule
+            for rule in getattr(cleaned, "action_priority", []) or []
+            if rule.card_name in gained_cards
+        ]
+    return cleaned

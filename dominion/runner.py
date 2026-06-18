@@ -11,7 +11,7 @@ from dominion.boards.loader import BoardConfig, load_board
 from dominion.analysis.strategy_library import find_compatible_strategies
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
-from dominion.strategy.lint import lint_strategy, normalize_strategy
+from dominion.strategy.lint import cleanup_for_publication, lint_strategy
 
 logger = logging.getLogger(__name__)
 coloredlogs.install(level="INFO", logger=logger)
@@ -35,8 +35,16 @@ def load_kingdom_cards_from_yaml(yaml_path: str) -> tuple[list[str], dict]:
         raise ValueError(f"Error parsing YAML file: {e}")
 
 
-def save_strategy_as_python(strategy: EnhancedStrategy, path: Path, class_name: str = "GeneratedStrategy") -> None:
+def save_strategy_as_python(
+    strategy: EnhancedStrategy,
+    path: Path,
+    class_name: str = "GeneratedStrategy",
+    *,
+    clean_for_publication: bool = True,
+) -> None:
     """Serialize an EnhancedStrategy as a Python module."""
+    if clean_for_publication:
+        strategy = cleanup_for_publication(strategy)
 
     def format_list(name: str, rules: list[PriorityRule]) -> list[str]:
         lines = [f"        self.{name} = ["]
@@ -409,7 +417,7 @@ def main():
     if best_strategy is None:
         logger.info("No viable strategy was found.")
     else:
-        best_strategy = normalize_strategy(best_strategy)
+        best_strategy = cleanup_for_publication(best_strategy)
         lint_warnings = lint_strategy(best_strategy)
         if lint_warnings:
             logger.info("Strategy lint diagnostics:")

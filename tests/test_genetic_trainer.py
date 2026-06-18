@@ -438,6 +438,41 @@ class TestSerialization:
             sys.path.pop(0)
             sys.modules.pop("test_strategy", None)
 
+    def test_save_strategy_cleans_dead_action_rules_by_default(self, tmp_path):
+        from runner import save_strategy_as_python
+
+        strategy = BaseStrategy()
+        strategy.name = "PublishedCleanup"
+        strategy.gain_priority = [
+            PriorityRule("City"),
+            PriorityRule("Peddler"),
+            PriorityRule("Silver"),
+        ]
+        strategy.action_priority = [
+            PriorityRule("City"),
+            PriorityRule("Watchtower"),
+            PriorityRule("Peddler"),
+        ]
+
+        out_file = tmp_path / "published_cleanup.py"
+        save_strategy_as_python(strategy, out_file, "PublishedCleanup")
+
+        source = out_file.read_text()
+        assert "PriorityRule('Watchtower')" not in source
+
+        import sys
+        sys.path.insert(0, str(tmp_path))
+        try:
+            mod = importlib.import_module("published_cleanup")
+            generated = mod.PublishedCleanup()
+            assert [rule.card_name for rule in generated.action_priority] == [
+                "City",
+                "Peddler",
+            ]
+        finally:
+            sys.path.pop(0)
+            sys.modules.pop("published_cleanup", None)
+
     def test_none_conditions_serialize_cleanly(self, tmp_path):
         """Rules without conditions should not emit broken repr."""
         from runner import save_strategy_as_python
