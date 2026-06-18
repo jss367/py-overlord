@@ -20,6 +20,7 @@ from dominion.strategy.genome_simplification import simplify_strategy
 Severity = Literal["info", "warning", "error"]
 
 _HAS_CARDS_ZERO_RE = re.compile(r"^PriorityRule\.has_cards\(.+,\s*0\)$")
+_BUILTIN_OFF_MENU_ACTION_GAINS = frozenset({"Trail"})
 
 
 @dataclass(frozen=True)
@@ -257,6 +258,9 @@ def cleanup_for_publication(strategy: EnhancedStrategy) -> EnhancedStrategy:
         cleaned.action_priority = [
             rule
             for rule in getattr(cleaned, "action_priority", []) or []
-            if rule.card_name in gained_cards
+            if (
+                rule.card_name in gained_cards
+                or rule.card_name in _BUILTIN_OFF_MENU_ACTION_GAINS
+            )
         ]
     return cleaned

@@ -125,6 +125,21 @@ def test_cleanup_for_publication_keeps_off_menu_actions_with_collection():
     ]
 
 
+def test_cleanup_for_publication_keeps_trail_action_rule():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Trail"),
+        PriorityRule("Smithy"),
+    ]
+
+    cleaned = cleanup_for_publication(strategy)
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Trail"]
+
+
 def test_card_role_inference_identifies_village_and_terminal_draw():
     village = infer_card_roles("Village")
     smithy = infer_card_roles("Smithy")
