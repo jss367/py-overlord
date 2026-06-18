@@ -41,10 +41,11 @@ def save_strategy_as_python(
     class_name: str = "GeneratedStrategy",
     *,
     clean_for_publication: bool = True,
+    board_config: BoardConfig | None = None,
 ) -> None:
     """Serialize an EnhancedStrategy as a Python module."""
     if clean_for_publication:
-        strategy = cleanup_for_publication(strategy)
+        strategy = cleanup_for_publication(strategy, board_config=board_config)
 
     def format_list(name: str, rules: list[PriorityRule]) -> list[str]:
         lines = [f"        self.{name} = ["]
@@ -417,7 +418,7 @@ def main():
     if best_strategy is None:
         logger.info("No viable strategy was found.")
     else:
-        best_strategy = cleanup_for_publication(best_strategy)
+        best_strategy = cleanup_for_publication(best_strategy, board_config=board_config)
         lint_warnings = lint_strategy(best_strategy)
         if lint_warnings:
             logger.info("Strategy lint diagnostics:")
@@ -487,7 +488,12 @@ def main():
 
         # Save the strategy
         try:
-            save_strategy_as_python(best_strategy, strategy_path, class_name)
+            save_strategy_as_python(
+                best_strategy,
+                strategy_path,
+                class_name,
+                board_config=board_config,
+            )
             logger.info("✅ Strategy automatically saved to: %s", strategy_path)
             logger.info("Class name: %s", class_name)
             logger.info("Win rate vs BigMoney: %.1f%%", metrics.get('win_rate', 0.0))

@@ -70,7 +70,7 @@ def main() -> None:
     args.output_dir.mkdir(exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     out_file = args.output_dir / f"{board_name}_evolved_{timestamp}.py"
-    save_strategy_as_python(best, out_file, "WizardsLichEvolved")
+    save_strategy_as_python(best, out_file, "WizardsLichEvolved", board_config=cfg)
     logger.info("Saved evolved strategy to %s", out_file)
 
     # Validation: head-to-head vs hand-written and BM

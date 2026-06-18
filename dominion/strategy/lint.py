@@ -13,6 +13,7 @@ import re
 from dataclasses import dataclass
 from typing import Iterable, Literal, Optional
 
+from dominion.boards.loader import BoardConfig
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
 from dominion.strategy.card_roles import infer_card_roles
 from dominion.strategy.genome_simplification import simplify_strategy
@@ -237,20 +238,30 @@ def normalize_strategy(strategy: EnhancedStrategy) -> EnhancedStrategy:
     return simplify_strategy(strategy)
 
 
-def cleanup_for_publication(strategy: EnhancedStrategy) -> EnhancedStrategy:
+def _board_has_non_card_off_menu_gain_paths(board_config: BoardConfig | None) -> bool:
+    if board_config is None:
+        return True
+    return bool(board_config.events or board_config.ways)
+
+
+def cleanup_for_publication(
+    strategy: EnhancedStrategy,
+    *,
+    board_config: BoardConfig | None = None,
+) -> EnhancedStrategy:
     """Return a generated-strategy copy suitable for publication.
 
     This pass is intentionally conservative. It keeps the evaluated gain policy
     intact, applies behavior-preserving syntactic simplification, and removes
-    action rules for cards the strategy never tries to gain only when the
-    strategy has no known off-menu gain path. Collection and gainers can cause
-    a strategy to gain Actions that are not explicitly named in gain_priority,
-    so action priorities remain meaningful in those cases.
+    action rules for cards the strategy never tries to gain only when the board
+    context rules out off-menu Action gain paths. Collection, gainers, Events,
+    and Ways can cause a strategy to gain Actions that are not explicitly named
+    in gain_priority, so action priorities remain meaningful in those cases.
     """
 
     cleaned = normalize_strategy(strategy)
     gained_cards = {rule.card_name for rule in getattr(cleaned, "gain_priority", []) or []}
-    can_gain_off_menu_actions = any(
+    can_gain_off_menu_actions = _board_has_non_card_off_menu_gain_paths(board_config) or any(
         card_name == "Collection" or infer_card_roles(card_name).has("gainer")
         for card_name in gained_cards
     )

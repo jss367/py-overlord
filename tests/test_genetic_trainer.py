@@ -455,7 +455,13 @@ class TestSerialization:
         ]
 
         out_file = tmp_path / "published_cleanup.py"
-        save_strategy_as_python(strategy, out_file, "PublishedCleanup")
+        from dominion.boards.loader import BoardConfig
+        save_strategy_as_python(
+            strategy,
+            out_file,
+            "PublishedCleanup",
+            board_config=BoardConfig(["City", "Watchtower", "Peddler"]),
+        )
 
         source = out_file.read_text()
         assert "PriorityRule('Watchtower')" not in source

@@ -140,7 +140,12 @@ def main() -> None:
     best.name = "Lisbon Merged Champion"
 
     output_path = output_dir / "merged_champion.py"
-    save_strategy_as_python(best, output_path, "LisbonMergedChampion")
+    save_strategy_as_python(
+        best,
+        output_path,
+        "LisbonMergedChampion",
+        board_config=board_config,
+    )
     logger.info(
         "Merged champion fitness=%.2f win_rate=%.1f%% saved=%s (%.1fs)",
         metrics.get("fitness", 0.0),

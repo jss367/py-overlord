@@ -243,7 +243,12 @@ def run_one_island(
     best.name = f"{island_name} Champion"
 
     output_path = Path(output_dir) / f"{_safe_filename(island_name)}_champion.py"
-    save_strategy_as_python(best, output_path, _safe_class_name(island_name))
+    save_strategy_as_python(
+        best,
+        output_path,
+        _safe_class_name(island_name),
+        board_config=board_config,
+    )
     logger.info(
         "Island done: %s  fitness=%.2f  win_rate=%.1f%%  saved=%s",
         island_name,

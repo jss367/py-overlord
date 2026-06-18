@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 
+from dominion.boards.loader import BoardConfig
 from dominion.cards.registry import get_card
 from dominion.events.looting import Looting
 from dominion.projects.sewers import Sewers
@@ -71,7 +72,7 @@ def test_lint_flags_cantrip_after_ungated_terminal():
     assert "CANTRIP_AFTER_TERMINAL" in {warning.code for warning in warnings}
 
 
-def test_cleanup_for_publication_drops_actions_not_in_gain_plan():
+def test_cleanup_for_publication_drops_actions_not_in_gain_plan_on_simple_board():
     strategy = EnhancedStrategy()
     strategy.gain_priority = [
         PriorityRule("City"),
@@ -84,7 +85,10 @@ def test_cleanup_for_publication_drops_actions_not_in_gain_plan():
         PriorityRule("Peddler"),
     ]
 
-    cleaned = cleanup_for_publication(strategy)
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["City", "Watchtower", "Peddler"]),
+    )
 
     assert [rule.card_name for rule in cleaned.action_priority] == [
         "City",
@@ -99,6 +103,16 @@ def test_cleanup_for_publication_drops_actions_not_in_gain_plan():
 
 def test_cleanup_for_publication_keeps_actions_without_explicit_gain_plan():
     strategy = EnhancedStrategy()
+    strategy.action_priority = [PriorityRule("Smithy")]
+
+    cleaned = cleanup_for_publication(strategy)
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
+
+
+def test_cleanup_for_publication_keeps_actions_without_board_context():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Silver")]
     strategy.action_priority = [PriorityRule("Smithy")]
 
     cleaned = cleanup_for_publication(strategy)
@@ -125,6 +139,19 @@ def test_cleanup_for_publication_keeps_off_menu_actions_with_collection():
     ]
 
 
+def test_cleanup_for_publication_keeps_actions_on_event_boards():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Silver")]
+    strategy.action_priority = [PriorityRule("Smithy")]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Smithy"], events=["Seaway"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
+
+
 def test_cleanup_for_publication_keeps_trail_action_rule():
     strategy = EnhancedStrategy()
     strategy.gain_priority = [
@@ -135,7 +162,7 @@ def test_cleanup_for_publication_keeps_trail_action_rule():
         PriorityRule("Smithy"),
     ]
 
-    cleaned = cleanup_for_publication(strategy)
+    cleaned = cleanup_for_publication(strategy, board_config=BoardConfig(["Trail", "Smithy"]))
 
     assert [rule.card_name for rule in cleaned.action_priority] == ["Trail"]
 
