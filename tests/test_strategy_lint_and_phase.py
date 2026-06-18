@@ -200,6 +200,28 @@ def test_cleanup_for_publication_keeps_actions_with_quartermaster():
     ]
 
 
+def test_cleanup_for_publication_keeps_actions_with_forge():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Forge"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Smithy"),
+        PriorityRule("Village"),
+    ]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Forge", "Smithy", "Village"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "Smithy",
+        "Village",
+    ]
+
+
 def test_cleanup_for_publication_keeps_trail_action_rule():
     strategy = EnhancedStrategy()
     strategy.gain_priority = [
