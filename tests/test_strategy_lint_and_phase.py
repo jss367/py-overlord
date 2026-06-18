@@ -106,6 +106,25 @@ def test_cleanup_for_publication_keeps_actions_without_explicit_gain_plan():
     assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
 
 
+def test_cleanup_for_publication_keeps_off_menu_actions_with_collection():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Collection"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Smithy"),
+        PriorityRule("Village"),
+    ]
+
+    cleaned = cleanup_for_publication(strategy)
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "Smithy",
+        "Village",
+    ]
+
+
 def test_card_role_inference_identifies_village_and_terminal_draw():
     village = infer_card_roles("Village")
     smithy = infer_card_roles("Smithy")

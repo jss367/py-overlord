@@ -241,15 +241,19 @@ def cleanup_for_publication(strategy: EnhancedStrategy) -> EnhancedStrategy:
 
     This pass is intentionally conservative. It keeps the evaluated gain policy
     intact, applies behavior-preserving syntactic simplification, and removes
-    action rules for cards the strategy never tries to gain. Such rules are
-    noise in generated files: they cannot affect normal play unless an opponent
-    or card effect hands the strategy an off-plan action, and the executor
-    already has a fallback for unexpected actions.
+    action rules for cards the strategy never tries to gain only when the
+    strategy has no known off-menu gain path. Collection and gainers can cause
+    a strategy to gain Actions that are not explicitly named in gain_priority,
+    so action priorities remain meaningful in those cases.
     """
 
     cleaned = normalize_strategy(strategy)
     gained_cards = {rule.card_name for rule in getattr(cleaned, "gain_priority", []) or []}
-    if gained_cards:
+    can_gain_off_menu_actions = any(
+        card_name == "Collection" or infer_card_roles(card_name).has("gainer")
+        for card_name in gained_cards
+    )
+    if gained_cards and not can_gain_off_menu_actions:
         cleaned.action_priority = [
             rule
             for rule in getattr(cleaned, "action_priority", []) or []
