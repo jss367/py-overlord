@@ -191,6 +191,19 @@ def test_cleanup_for_publication_keeps_actions_on_omen_boards():
     assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
 
 
+def test_cleanup_for_publication_keeps_actions_on_attack_boards():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Silver")]
+    strategy.action_priority = [PriorityRule("Cellar")]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Swindler", "Cellar"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Cellar"]
+
+
 def test_cleanup_for_publication_keeps_actions_with_quartermaster():
     strategy = EnhancedStrategy()
     strategy.gain_priority = [
