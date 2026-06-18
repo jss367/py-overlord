@@ -235,6 +235,30 @@ def test_cleanup_for_publication_keeps_actions_with_forge():
     ]
 
 
+def test_cleanup_for_publication_keeps_traveller_chain_action_rules():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Page"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Treasure Hunter"),
+        PriorityRule("Warrior"),
+        PriorityRule("Page"),
+    ]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Page", "Smithy"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "Treasure Hunter",
+        "Warrior",
+        "Page",
+    ]
+
+
 def test_cleanup_for_publication_keeps_trail_action_rule():
     strategy = EnhancedStrategy()
     strategy.gain_priority = [
