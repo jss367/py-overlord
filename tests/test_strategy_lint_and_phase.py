@@ -152,6 +152,41 @@ def test_cleanup_for_publication_keeps_actions_on_event_boards():
     assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
 
 
+def test_cleanup_for_publication_keeps_actions_on_ally_boards():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Silver")]
+    strategy.action_priority = [PriorityRule("Smithy")]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Smithy"], allies=["Crafters' Guild"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
+
+
+def test_cleanup_for_publication_keeps_actions_with_quartermaster():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Quartermaster"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Smithy"),
+        PriorityRule("Village"),
+    ]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Quartermaster", "Smithy", "Village"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "Smithy",
+        "Village",
+    ]
+
+
 def test_cleanup_for_publication_keeps_trail_action_rule():
     strategy = EnhancedStrategy()
     strategy.gain_priority = [

@@ -22,6 +22,7 @@ Severity = Literal["info", "warning", "error"]
 
 _HAS_CARDS_ZERO_RE = re.compile(r"^PriorityRule\.has_cards\(.+,\s*0\)$")
 _BUILTIN_OFF_MENU_ACTION_GAINS = frozenset({"Trail"})
+_GAMESTATE_OFF_MENU_ACTION_GAINERS = frozenset({"Quartermaster"})
 
 
 @dataclass(frozen=True)
@@ -241,7 +242,15 @@ def normalize_strategy(strategy: EnhancedStrategy) -> EnhancedStrategy:
 def _board_has_non_card_off_menu_gain_paths(board_config: BoardConfig | None) -> bool:
     if board_config is None:
         return True
-    return bool(board_config.events or board_config.ways)
+    return bool(board_config.events or board_config.ways or board_config.allies)
+
+
+def _card_can_gain_off_menu_actions(card_name: str) -> bool:
+    return (
+        card_name == "Collection"
+        or card_name in _GAMESTATE_OFF_MENU_ACTION_GAINERS
+        or infer_card_roles(card_name).has("gainer")
+    )
 
 
 def cleanup_for_publication(
@@ -255,15 +264,15 @@ def cleanup_for_publication(
     intact, applies behavior-preserving syntactic simplification, and removes
     action rules for cards the strategy never tries to gain only when the board
     context rules out off-menu Action gain paths. Collection, gainers, Events,
-    and Ways can cause a strategy to gain Actions that are not explicitly named
-    in gain_priority, so action priorities remain meaningful in those cases.
+    Ways, and Allies can cause a strategy to gain Actions that are not
+    explicitly named in gain_priority, so action priorities remain meaningful
+    in those cases.
     """
 
     cleaned = normalize_strategy(strategy)
     gained_cards = {rule.card_name for rule in getattr(cleaned, "gain_priority", []) or []}
     can_gain_off_menu_actions = _board_has_non_card_off_menu_gain_paths(board_config) or any(
-        card_name == "Collection" or infer_card_roles(card_name).has("gainer")
-        for card_name in gained_cards
+        _card_can_gain_off_menu_actions(card_name) for card_name in gained_cards
     )
     if gained_cards and not can_gain_off_menu_actions:
         cleaned.action_priority = [
