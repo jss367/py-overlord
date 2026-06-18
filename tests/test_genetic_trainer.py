@@ -1,4 +1,5 @@
 import importlib
+import sys
 import types
 from pathlib import Path
 
@@ -17,6 +18,41 @@ def make_stub_strategy() -> BaseStrategy:
         PriorityRule("Copper"),
     ]
     return strategy
+
+
+def test_runner_builds_simple_board_config_for_kingdom_cards(monkeypatch):
+    runner = importlib.import_module("dominion.runner")
+    captured = {}
+
+    class DummyTrainer:
+        default_baseline_panel = False
+
+        def __init__(self, kingdom_cards, **kwargs):
+            captured["kingdom_cards"] = kingdom_cards
+            captured["board_config"] = kwargs["board_config"]
+
+        def train(self):
+            return None, {}
+
+    monkeypatch.setattr(runner, "GeneticTrainer", DummyTrainer)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "runner",
+            "--kingdom-cards",
+            "City",
+            "Watchtower",
+            "Peddler",
+            "--no-reuse-compatible-strategies",
+            "--no-trick-seeds",
+        ],
+    )
+
+    runner.main()
+
+    assert captured["kingdom_cards"] == ["City", "Watchtower", "Peddler"]
+    assert captured["board_config"].kingdom_cards == ["City", "Watchtower", "Peddler"]
 
 
 def test_evaluate_strategy_counts_second_seat_wins(monkeypatch):

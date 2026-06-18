@@ -259,6 +259,9 @@ def main():
         ]
         logger.info("Using default kingdom cards: %s", ", ".join(kingdom_cards))
 
+    if board_config is None:
+        board_config = BoardConfig(list(kingdom_cards))
+
     # Use parameters from command line args, falling back to YAML config, then defaults
     population_size = args.population_size or training_params.get('population_size', 5)
     generations = args.generations or training_params.get('generations', 10)
