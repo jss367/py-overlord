@@ -336,7 +336,7 @@ def main():
     # Trick-scanner seeds: one strategy per mechanical interaction surfaced
     # on this board, so the GA starts with the trick encoded instead of
     # having to rediscover it by random mutation. Mirrors evolve.py.
-    if args.trick_seeds and board_config is not None:
+    if args.trick_seeds and args.board and board_config is not None:
         from dominion.analysis.seed_genomes import build_seed_genomes
 
         try:
