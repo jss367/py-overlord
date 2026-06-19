@@ -252,6 +252,7 @@ def _board_has_non_card_off_menu_gain_paths(board_config: BoardConfig | None) ->
         or board_config.traits
         or _board_has_omen(board_config)
         or _board_has_attack(board_config)
+        or _board_has_fate_or_doom(board_config)
     )
 
 
@@ -275,6 +276,17 @@ def _board_has_omen(board_config: BoardConfig) -> bool:
     return False
 
 
+def _board_has_fate_or_doom(board_config: BoardConfig) -> bool:
+    for card_name in board_config.kingdom_cards:
+        try:
+            card = get_card(card_name)
+        except ValueError:
+            continue
+        if card.is_fate or card.is_doom:
+            return True
+    return False
+
+
 def _card_can_gain_off_menu_actions(card_name: str) -> bool:
     return (
         card_name == "Collection"
@@ -295,9 +307,9 @@ def cleanup_for_publication(
     intact, applies behavior-preserving syntactic simplification, and removes
     action rules for cards the strategy never tries to gain only when the board
     context rules out off-menu Action gain paths. Collection, gainers, Events,
-    Ways, Allies, Traits, Omens, and Attacks can cause a strategy to gain
-    Actions that are not explicitly named in gain_priority, so action
-    priorities remain meaningful in those cases.
+    Ways, Allies, Traits, Omens, Attacks, Fate, and Doom cards can cause a
+    strategy to gain Actions that are not explicitly named in gain_priority, so
+    action priorities remain meaningful in those cases.
     """
 
     cleaned = normalize_strategy(strategy)
