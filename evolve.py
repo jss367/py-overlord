@@ -319,7 +319,12 @@ def main():
         slug = seed_name.lower().replace(" ", "_")
         filename = f"{board_name}_evolved_{slug}_{timestamp}.py"
         class_name = f"Evolved{slug.title().replace('_', '')}"
-        save_strategy_as_python(best_strategy, args.output_dir / filename, class_name)
+        save_strategy_as_python(
+            best_strategy,
+            args.output_dir / filename,
+            class_name,
+            board_config=board_config,
+        )
         logger.info("  Saved: %s", filename)
 
     # --- Phase 3: Final Tournament ---

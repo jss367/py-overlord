@@ -11,7 +11,7 @@ from dominion.boards.loader import BoardConfig, load_board
 from dominion.analysis.strategy_library import find_compatible_strategies
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
-from dominion.strategy.lint import lint_strategy, normalize_strategy
+from dominion.strategy.lint import cleanup_for_publication, lint_strategy
 
 logger = logging.getLogger(__name__)
 coloredlogs.install(level="INFO", logger=logger)
@@ -35,8 +35,17 @@ def load_kingdom_cards_from_yaml(yaml_path: str) -> tuple[list[str], dict]:
         raise ValueError(f"Error parsing YAML file: {e}")
 
 
-def save_strategy_as_python(strategy: EnhancedStrategy, path: Path, class_name: str = "GeneratedStrategy") -> None:
+def save_strategy_as_python(
+    strategy: EnhancedStrategy,
+    path: Path,
+    class_name: str = "GeneratedStrategy",
+    *,
+    clean_for_publication: bool = True,
+    board_config: BoardConfig | None = None,
+) -> None:
     """Serialize an EnhancedStrategy as a Python module."""
+    if clean_for_publication:
+        strategy = cleanup_for_publication(strategy, board_config=board_config)
 
     def format_list(name: str, rules: list[PriorityRule]) -> list[str]:
         lines = [f"        self.{name} = ["]
@@ -250,6 +259,9 @@ def main():
         ]
         logger.info("Using default kingdom cards: %s", ", ".join(kingdom_cards))
 
+    if board_config is None:
+        board_config = BoardConfig(list(kingdom_cards))
+
     # Use parameters from command line args, falling back to YAML config, then defaults
     population_size = args.population_size or training_params.get('population_size', 5)
     generations = args.generations or training_params.get('generations', 10)
@@ -324,7 +336,7 @@ def main():
     # Trick-scanner seeds: one strategy per mechanical interaction surfaced
     # on this board, so the GA starts with the trick encoded instead of
     # having to rediscover it by random mutation. Mirrors evolve.py.
-    if args.trick_seeds and board_config is not None:
+    if args.trick_seeds and args.board and board_config is not None:
         from dominion.analysis.seed_genomes import build_seed_genomes
 
         try:
@@ -409,7 +421,7 @@ def main():
     if best_strategy is None:
         logger.info("No viable strategy was found.")
     else:
-        best_strategy = normalize_strategy(best_strategy)
+        best_strategy = cleanup_for_publication(best_strategy, board_config=board_config)
         lint_warnings = lint_strategy(best_strategy)
         if lint_warnings:
             logger.info("Strategy lint diagnostics:")
@@ -479,7 +491,12 @@ def main():
 
         # Save the strategy
         try:
-            save_strategy_as_python(best_strategy, strategy_path, class_name)
+            save_strategy_as_python(
+                best_strategy,
+                strategy_path,
+                class_name,
+                board_config=board_config,
+            )
             logger.info("✅ Strategy automatically saved to: %s", strategy_path)
             logger.info("Class name: %s", class_name)
             logger.info("Win rate vs BigMoney: %.1f%%", metrics.get('win_rate', 0.0))

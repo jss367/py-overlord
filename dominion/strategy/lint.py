@@ -13,12 +13,31 @@ import re
 from dataclasses import dataclass
 from typing import Iterable, Literal, Optional
 
+from dominion.boards.loader import BoardConfig
+from dominion.cards.registry import get_card
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
+from dominion.strategy.card_roles import infer_card_roles
 from dominion.strategy.genome_simplification import simplify_strategy
 
 Severity = Literal["info", "warning", "error"]
 
 _HAS_CARDS_ZERO_RE = re.compile(r"^PriorityRule\.has_cards\(.+,\s*0\)$")
+_BUILTIN_OFF_MENU_ACTION_GAINS = frozenset({"Trail"})
+_EXPLICIT_OFF_MENU_ACTION_GAINERS = frozenset(
+    {
+        "Abundance",
+        "Death Cart",
+        "Forge",
+        "Jewelled Egg",
+        "Livery",
+        "Overlord",
+        "Page",
+        "Peasant",
+        "Quartermaster",
+        "Sack of Loot",
+        "Search",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -132,6 +151,44 @@ def _lint_priority_list(
         if rule.condition is None:
             first_unconditional.setdefault(card_name, idx)
 
+    if list_name == "action":
+        warnings.extend(_lint_action_order(list(rules)))
+
+    return warnings
+
+
+def _lint_action_order(rules: list[PriorityRule]) -> list[StrategyLintWarning]:
+    """Flag action-order patterns that are usually tactical mistakes."""
+
+    warnings: list[StrategyLintWarning] = []
+    earlier_terminal: tuple[int, PriorityRule] | None = None
+    for idx, rule in enumerate(rules):
+        roles = infer_card_roles(rule.card_name)
+        if roles.has("cantrip") and earlier_terminal is not None:
+            earlier_idx, earlier_rule = earlier_terminal
+            warnings.append(
+                StrategyLintWarning(
+                    code="CANTRIP_AFTER_TERMINAL",
+                    message=(
+                        f"Cantrip {rule.card_name} appears after terminal "
+                        f"{earlier_rule.card_name} at index {earlier_idx}; "
+                        "cantrips usually preserve actions and should be "
+                        "played first unless the terminal is explicitly gated."
+                    ),
+                    list_name="action",
+                    index=idx,
+                    card_name=rule.card_name,
+                )
+            )
+            continue
+
+        if (
+            roles.has("terminal")
+            and not roles.has("nonterminal")
+            and rule.condition is None
+        ):
+            earlier_terminal = (idx, rule)
+
     return warnings
 
 
@@ -195,3 +252,90 @@ def normalize_strategy(strategy: EnhancedStrategy) -> EnhancedStrategy:
     """Return a behavior-preserving simplified copy of ``strategy``."""
 
     return simplify_strategy(strategy)
+
+
+def _board_has_non_card_off_menu_gain_paths(board_config: BoardConfig | None) -> bool:
+    if board_config is None:
+        return True
+    return bool(
+        board_config.events
+        or board_config.ways
+        or board_config.allies
+        or board_config.traits
+        or _board_has_omen(board_config)
+        or _board_has_attack(board_config)
+        or _board_has_fate_or_doom(board_config)
+    )
+
+
+def _board_has_attack(board_config: BoardConfig) -> bool:
+    for card_name in board_config.kingdom_cards:
+        try:
+            if get_card(card_name).is_attack:
+                return True
+        except ValueError:
+            continue
+    return False
+
+
+def _board_has_omen(board_config: BoardConfig) -> bool:
+    for card_name in board_config.kingdom_cards:
+        try:
+            if get_card(card_name).is_omen:
+                return True
+        except ValueError:
+            continue
+    return False
+
+
+def _board_has_fate_or_doom(board_config: BoardConfig) -> bool:
+    for card_name in board_config.kingdom_cards:
+        try:
+            card = get_card(card_name)
+        except ValueError:
+            continue
+        if card.is_fate or card.is_doom:
+            return True
+    return False
+
+
+def _card_can_gain_off_menu_actions(card_name: str) -> bool:
+    return (
+        card_name == "Collection"
+        or card_name in _EXPLICIT_OFF_MENU_ACTION_GAINERS
+        or infer_card_roles(card_name).has("command")
+        or infer_card_roles(card_name).has("gainer")
+    )
+
+
+def cleanup_for_publication(
+    strategy: EnhancedStrategy,
+    *,
+    board_config: BoardConfig | None = None,
+) -> EnhancedStrategy:
+    """Return a generated-strategy copy suitable for publication.
+
+    This pass is intentionally conservative. It keeps the evaluated gain policy
+    intact, applies behavior-preserving syntactic simplification, and removes
+    action rules for cards the strategy never tries to gain only when the board
+    context rules out off-menu Action gain paths. Collection, gainers, Events,
+    Ways, Allies, Traits, Omens, Attacks, Fate, and Doom cards can cause a
+    strategy to gain Actions that are not explicitly named in gain_priority, so
+    action priorities remain meaningful in those cases.
+    """
+
+    cleaned = normalize_strategy(strategy)
+    gained_cards = {rule.card_name for rule in getattr(cleaned, "gain_priority", []) or []}
+    can_gain_off_menu_actions = _board_has_non_card_off_menu_gain_paths(board_config) or any(
+        _card_can_gain_off_menu_actions(card_name) for card_name in gained_cards
+    )
+    if gained_cards and not can_gain_off_menu_actions:
+        cleaned.action_priority = [
+            rule
+            for rule in getattr(cleaned, "action_priority", []) or []
+            if (
+                rule.card_name in gained_cards
+                or rule.card_name in _BUILTIN_OFF_MENU_ACTION_GAINS
+            )
+        ]
+    return cleaned

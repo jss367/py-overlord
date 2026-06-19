@@ -1,11 +1,12 @@
 from types import SimpleNamespace
 
+from dominion.boards.loader import BoardConfig
 from dominion.cards.registry import get_card
 from dominion.events.looting import Looting
 from dominion.projects.sewers import Sewers
 from dominion.strategy.card_roles import cards_with_role, infer_card_roles
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
-from dominion.strategy.lint import lint_strategy, normalize_strategy
+from dominion.strategy.lint import cleanup_for_publication, lint_strategy, normalize_strategy
 from dominion.strategy.phase_strategy import PhaseAwareStrategy, StrategyPhase
 
 
@@ -57,6 +58,336 @@ def test_normalize_strategy_drops_behavior_preserving_dead_rules():
     normalized = normalize_strategy(strategy)
 
     assert [rule.card_name for rule in normalized.gain_priority] == ["Gold"]
+
+
+def test_lint_flags_cantrip_after_ungated_terminal():
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [
+        PriorityRule("Watchtower"),
+        PriorityRule("Peddler"),
+    ]
+
+    warnings = lint_strategy(strategy)
+
+    assert "CANTRIP_AFTER_TERMINAL" in {warning.code for warning in warnings}
+
+
+def test_cleanup_for_publication_drops_actions_not_in_gain_plan_on_simple_board():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("City"),
+        PriorityRule("Peddler"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("City"),
+        PriorityRule("Watchtower"),
+        PriorityRule("Peddler"),
+    ]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["City", "Watchtower", "Peddler"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "City",
+        "Peddler",
+    ]
+    assert [rule.card_name for rule in strategy.action_priority] == [
+        "City",
+        "Watchtower",
+        "Peddler",
+    ]
+
+
+def test_cleanup_for_publication_keeps_actions_without_explicit_gain_plan():
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [PriorityRule("Smithy")]
+
+    cleaned = cleanup_for_publication(strategy)
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
+
+
+def test_cleanup_for_publication_keeps_actions_without_board_context():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Silver")]
+    strategy.action_priority = [PriorityRule("Smithy")]
+
+    cleaned = cleanup_for_publication(strategy)
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
+
+
+def test_cleanup_for_publication_keeps_off_menu_actions_with_collection():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Collection"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Smithy"),
+        PriorityRule("Village"),
+    ]
+
+    cleaned = cleanup_for_publication(strategy)
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "Smithy",
+        "Village",
+    ]
+
+
+def test_cleanup_for_publication_keeps_actions_on_event_boards():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Silver")]
+    strategy.action_priority = [PriorityRule("Smithy")]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Smithy"], events=["Seaway"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
+
+
+def test_cleanup_for_publication_keeps_actions_on_ally_boards():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Silver")]
+    strategy.action_priority = [PriorityRule("Smithy")]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Smithy"], allies=["Crafters' Guild"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
+
+
+def test_cleanup_for_publication_keeps_actions_on_trait_boards():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Silver")]
+    strategy.action_priority = [PriorityRule("Smithy")]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Smithy"], traits={"Smithy": "Inherited"}),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
+
+
+def test_cleanup_for_publication_keeps_actions_on_omen_boards():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Silver")]
+    strategy.action_priority = [PriorityRule("Smithy")]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Rustic Village", "Smithy"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
+
+
+def test_cleanup_for_publication_keeps_actions_on_attack_boards():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Silver")]
+    strategy.action_priority = [PriorityRule("Cellar")]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Swindler", "Cellar"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Cellar"]
+
+
+def test_cleanup_for_publication_keeps_actions_on_fate_or_doom_boards():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Bard"), PriorityRule("Silver")]
+    strategy.action_priority = [PriorityRule("Smithy")]
+
+    fate_cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Bard", "Smithy"]),
+    )
+    doom_cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Cursed Village", "Smithy"]),
+    )
+
+    assert [rule.card_name for rule in fate_cleaned.action_priority] == ["Smithy"]
+    assert [rule.card_name for rule in doom_cleaned.action_priority] == ["Smithy"]
+
+
+def test_cleanup_for_publication_keeps_actions_with_quartermaster():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Quartermaster"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Smithy"),
+        PriorityRule("Village"),
+    ]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Quartermaster", "Smithy", "Village"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "Smithy",
+        "Village",
+    ]
+
+
+def test_cleanup_for_publication_keeps_actions_with_forge():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Forge"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Smithy"),
+        PriorityRule("Village"),
+    ]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Forge", "Smithy", "Village"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "Smithy",
+        "Village",
+    ]
+
+
+def test_cleanup_for_publication_keeps_horse_action_rule_with_livery():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Livery"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Horse"),
+        PriorityRule("Smithy"),
+    ]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Livery", "Smithy"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "Horse",
+        "Smithy",
+    ]
+
+
+def test_cleanup_for_publication_keeps_actions_with_loot_gainers():
+    for loot_gainer in ("Jewelled Egg", "Search", "Abundance", "Sack of Loot"):
+        strategy = EnhancedStrategy()
+        strategy.gain_priority = [
+            PriorityRule(loot_gainer),
+            PriorityRule("Silver"),
+        ]
+        strategy.action_priority = [
+            PriorityRule("Smithy"),
+        ]
+
+        cleaned = cleanup_for_publication(
+            strategy,
+            board_config=BoardConfig([loot_gainer, "Smithy"]),
+        )
+
+        assert [rule.card_name for rule in cleaned.action_priority] == ["Smithy"]
+
+
+def test_cleanup_for_publication_keeps_traveller_chain_action_rules():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Page"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Treasure Hunter"),
+        PriorityRule("Warrior"),
+        PriorityRule("Page"),
+    ]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Page", "Smithy"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "Treasure Hunter",
+        "Warrior",
+        "Page",
+    ]
+
+
+def test_cleanup_for_publication_keeps_command_proxy_action_rules():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Overlord"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Smithy"),
+        PriorityRule("Overlord"),
+    ]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Overlord", "Smithy"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "Smithy",
+        "Overlord",
+    ]
+
+
+def test_cleanup_for_publication_keeps_death_cart_ruins_action_rules():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Death Cart"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Ruined Village"),
+        PriorityRule("Death Cart"),
+    ]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Death Cart", "Smithy"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "Ruined Village",
+        "Death Cart",
+    ]
+
+
+def test_cleanup_for_publication_keeps_trail_action_rule():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Trail"),
+        PriorityRule("Smithy"),
+    ]
+
+    cleaned = cleanup_for_publication(strategy, board_config=BoardConfig(["Trail", "Smithy"]))
+
+    assert [rule.card_name for rule in cleaned.action_priority] == ["Trail"]
 
 
 def test_card_role_inference_identifies_village_and_terminal_draw():

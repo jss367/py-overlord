@@ -1,4 +1,5 @@
 import importlib
+import sys
 import types
 from pathlib import Path
 
@@ -17,6 +18,75 @@ def make_stub_strategy() -> BaseStrategy:
         PriorityRule("Copper"),
     ]
     return strategy
+
+
+def test_runner_builds_simple_board_config_for_kingdom_cards(monkeypatch):
+    runner = importlib.import_module("dominion.runner")
+    captured = {}
+
+    class DummyTrainer:
+        default_baseline_panel = False
+
+        def __init__(self, kingdom_cards, **kwargs):
+            captured["kingdom_cards"] = kingdom_cards
+            captured["board_config"] = kwargs["board_config"]
+
+        def train(self):
+            return None, {}
+
+    monkeypatch.setattr(runner, "GeneticTrainer", DummyTrainer)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "runner",
+            "--kingdom-cards",
+            "City",
+            "Watchtower",
+            "Peddler",
+            "--no-reuse-compatible-strategies",
+            "--no-trick-seeds",
+        ],
+    )
+
+    runner.main()
+
+    assert captured["kingdom_cards"] == ["City", "Watchtower", "Peddler"]
+    assert captured["board_config"].kingdom_cards == ["City", "Watchtower", "Peddler"]
+
+
+def test_runner_limits_trick_seeds_to_explicit_board(monkeypatch):
+    runner = importlib.import_module("dominion.runner")
+
+    class DummyTrainer:
+        default_baseline_panel = False
+
+        def __init__(self, kingdom_cards, **kwargs):
+            pass
+
+        def train(self):
+            return None, {}
+
+    def fail_build_seed_genomes(_board_config):
+        raise AssertionError("trick seeds should require --board")
+
+    seed_genomes = importlib.import_module("dominion.analysis.seed_genomes")
+    monkeypatch.setattr(runner, "GeneticTrainer", DummyTrainer)
+    monkeypatch.setattr(seed_genomes, "build_seed_genomes", fail_build_seed_genomes)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "runner",
+            "--kingdom-cards",
+            "City",
+            "Watchtower",
+            "Peddler",
+            "--no-reuse-compatible-strategies",
+        ],
+    )
+
+    runner.main()
 
 
 def test_evaluate_strategy_counts_second_seat_wins(monkeypatch):
@@ -437,6 +507,47 @@ class TestSerialization:
         finally:
             sys.path.pop(0)
             sys.modules.pop("test_strategy", None)
+
+    def test_save_strategy_cleans_dead_action_rules_by_default(self, tmp_path):
+        from runner import save_strategy_as_python
+
+        strategy = BaseStrategy()
+        strategy.name = "PublishedCleanup"
+        strategy.gain_priority = [
+            PriorityRule("City"),
+            PriorityRule("Peddler"),
+            PriorityRule("Silver"),
+        ]
+        strategy.action_priority = [
+            PriorityRule("City"),
+            PriorityRule("Watchtower"),
+            PriorityRule("Peddler"),
+        ]
+
+        out_file = tmp_path / "published_cleanup.py"
+        from dominion.boards.loader import BoardConfig
+        save_strategy_as_python(
+            strategy,
+            out_file,
+            "PublishedCleanup",
+            board_config=BoardConfig(["City", "Watchtower", "Peddler"]),
+        )
+
+        source = out_file.read_text()
+        assert "PriorityRule('Watchtower')" not in source
+
+        import sys
+        sys.path.insert(0, str(tmp_path))
+        try:
+            mod = importlib.import_module("published_cleanup")
+            generated = mod.PublishedCleanup()
+            assert [rule.card_name for rule in generated.action_priority] == [
+                "City",
+                "Peddler",
+            ]
+        finally:
+            sys.path.pop(0)
+            sys.modules.pop("published_cleanup", None)
 
     def test_none_conditions_serialize_cleanly(self, tmp_path):
         """Rules without conditions should not emit broken repr."""
