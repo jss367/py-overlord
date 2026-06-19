@@ -348,6 +348,38 @@ class TestNormalizeMenu:
         names = [r.card_name for r in s.treasure_priority]
         assert "Silver" in names and "Copper" in names
 
+    def test_repairs_unconditional_action_order_by_role(self):
+        info = KingdomInfo.from_kingdom(["Watchtower", "Peddler", "Workers' Village"])
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Watchtower"),
+            PriorityRule("Peddler"),
+            PriorityRule("Workers' Village"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        assert [r.card_name for r in s.action_priority] == [
+            "Workers' Village",
+            "Peddler",
+            "Watchtower",
+        ]
+
+    def test_leaves_gated_action_rules_in_place(self):
+        info = KingdomInfo.from_kingdom(["Watchtower", "Peddler"])
+        gated_watchtower = PriorityRule("Watchtower", PriorityRule.actions_in_hand(">=", 2))
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [gated_watchtower, PriorityRule("Peddler")]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        assert s.action_priority[0] is gated_watchtower
+        assert [r.card_name for r in s.action_priority] == ["Watchtower", "Peddler"]
+
 
 class TestKingdomSimilarity:
     def _menu(self, *kingdom_picks: str) -> BaseStrategy:

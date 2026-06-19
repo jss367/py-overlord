@@ -329,6 +329,52 @@ def mutate_menu(strategy: BaseStrategy, info: KingdomInfo, rate: float, rng=_ran
 # ---------------------------------------------------------------------------
 
 
+def _action_role_rank(card: str, info: KingdomInfo) -> int:
+    """Return the structured action-order rank for ``card``.
+
+    Lower ranks play earlier. This intentionally mirrors random initialization:
+    action providers first, then cantrips, then terminal draw, then other
+    terminals. Unknown cards go last so they cannot disrupt known safe order.
+    """
+    if card in info.villages:
+        return 0
+    if card in info.cantrips:
+        return 1
+    if card in info.terminal_draw:
+        return 2
+    if card in info.other_terminals:
+        return 3
+    return 4
+
+
+def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> None:
+    """Repair ungated action rules into safe role order.
+
+    Mutation needs to explore action order, but arbitrary swaps make many
+    children obviously dominated, e.g. an unconditional terminal draw above an
+    unconditional cantrip. Conditional action rules are left fixed: those are
+    the escape hatch for deliberate tactics like "play this terminal first only
+    when a specific board state holds."
+    """
+    action = getattr(strategy, "action_priority", []) or []
+    indexed = list(enumerate(action))
+    sorted_unconditional = iter(
+        rule
+        for _, rule in sorted(
+            (
+                (idx, rule)
+                for idx, rule in indexed
+                if getattr(rule, "condition", None) is None
+            ),
+            key=lambda pair: (_action_role_rank(pair[1].card_name, info), pair[0]),
+        )
+    )
+    strategy.action_priority = [
+        next(sorted_unconditional) if getattr(rule, "condition", None) is None else rule
+        for rule in action
+    ]
+
+
 def normalize_menu(strategy: BaseStrategy, info: KingdomInfo) -> BaseStrategy:
     """Enforce the invariants every viable menu needs.
 
@@ -401,6 +447,8 @@ def normalize_menu(strategy: BaseStrategy, info: KingdomInfo) -> BaseStrategy:
     for name in ("Gold", "Silver", "Copper"):
         if name not in treasure_names:
             strategy.treasure_priority.append(PriorityRule(name))
+
+    _normalize_action_priority(strategy, info)
 
     return strategy
 
