@@ -55,6 +55,40 @@ def test_runner_builds_simple_board_config_for_kingdom_cards(monkeypatch):
     assert captured["board_config"].kingdom_cards == ["City", "Watchtower", "Peddler"]
 
 
+def test_runner_limits_trick_seeds_to_explicit_board(monkeypatch):
+    runner = importlib.import_module("dominion.runner")
+
+    class DummyTrainer:
+        default_baseline_panel = False
+
+        def __init__(self, kingdom_cards, **kwargs):
+            pass
+
+        def train(self):
+            return None, {}
+
+    def fail_build_seed_genomes(_board_config):
+        raise AssertionError("trick seeds should require --board")
+
+    seed_genomes = importlib.import_module("dominion.analysis.seed_genomes")
+    monkeypatch.setattr(runner, "GeneticTrainer", DummyTrainer)
+    monkeypatch.setattr(seed_genomes, "build_seed_genomes", fail_build_seed_genomes)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "runner",
+            "--kingdom-cards",
+            "City",
+            "Watchtower",
+            "Peddler",
+            "--no-reuse-compatible-strategies",
+        ],
+    )
+
+    runner.main()
+
+
 def test_evaluate_strategy_counts_second_seat_wins(monkeypatch):
     # shape_rewards=False to keep this asserting raw win-rate behavior.
     trainer = GeneticTrainer(

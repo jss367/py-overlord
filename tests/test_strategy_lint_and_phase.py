@@ -248,6 +248,28 @@ def test_cleanup_for_publication_keeps_actions_with_forge():
     ]
 
 
+def test_cleanup_for_publication_keeps_horse_action_rule_with_livery():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Livery"),
+        PriorityRule("Silver"),
+    ]
+    strategy.action_priority = [
+        PriorityRule("Horse"),
+        PriorityRule("Smithy"),
+    ]
+
+    cleaned = cleanup_for_publication(
+        strategy,
+        board_config=BoardConfig(["Livery", "Smithy"]),
+    )
+
+    assert [rule.card_name for rule in cleaned.action_priority] == [
+        "Horse",
+        "Smithy",
+    ]
+
+
 def test_cleanup_for_publication_keeps_traveller_chain_action_rules():
     strategy = EnhancedStrategy()
     strategy.gain_priority = [
