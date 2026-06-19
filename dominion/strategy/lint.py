@@ -24,7 +24,19 @@ Severity = Literal["info", "warning", "error"]
 _HAS_CARDS_ZERO_RE = re.compile(r"^PriorityRule\.has_cards\(.+,\s*0\)$")
 _BUILTIN_OFF_MENU_ACTION_GAINS = frozenset({"Trail"})
 _EXPLICIT_OFF_MENU_ACTION_GAINERS = frozenset(
-    {"Death Cart", "Forge", "Livery", "Overlord", "Page", "Peasant", "Quartermaster"}
+    {
+        "Abundance",
+        "Death Cart",
+        "Forge",
+        "Jewelled Egg",
+        "Livery",
+        "Overlord",
+        "Page",
+        "Peasant",
+        "Quartermaster",
+        "Sack of Loot",
+        "Search",
+    }
 )
 
 
