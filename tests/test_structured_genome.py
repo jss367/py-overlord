@@ -367,6 +367,20 @@ class TestNormalizeMenu:
             "Watchtower",
         ]
 
+    def test_off_board_cantrip_keeps_priority_over_kingdom_terminal(self):
+        # Horse is a +1 Action cantrip gained off the board (Livery, etc.) and
+        # is not in the kingdom; it must still rank ahead of a kingdom terminal
+        # draw rather than being sunk to last as an unknown card.
+        info = KingdomInfo.from_kingdom(["Smithy", "Livery"])
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [PriorityRule("Horse"), PriorityRule("Smithy")]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        assert [r.card_name for r in s.action_priority] == ["Horse", "Smithy"]
+
     def test_leaves_gated_action_rules_in_place(self):
         info = KingdomInfo.from_kingdom(["Watchtower", "Peddler"])
         gated_watchtower = PriorityRule("Watchtower", PriorityRule.actions_in_hand(">=", 2))

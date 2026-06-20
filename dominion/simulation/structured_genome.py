@@ -334,7 +334,14 @@ def _action_role_rank(card: str, info: KingdomInfo) -> int:
 
     Lower ranks play earlier. This intentionally mirrors random initialization:
     action providers first, then cantrips, then terminal draw, then other
-    terminals. Unknown cards go last so they cannot disrupt known safe order.
+    terminals.
+
+    Cards in the kingdom are classified from ``info``. A rule may also reference
+    a registry-known action that is not in the kingdom (e.g. Horse gained off
+    the board); those are classified by their own card stats with the same
+    thresholds ``KingdomInfo.from_kingdom`` uses, so a non-kingdom cantrip is
+    not forced behind every kingdom terminal. Truly unknown cards go last so
+    they cannot disrupt known safe order.
     """
     if card in info.villages:
         return 0
@@ -344,7 +351,27 @@ def _action_role_rank(card: str, info: KingdomInfo) -> int:
         return 2
     if card in info.other_terminals:
         return 3
-    return 4
+    return _stats_role_rank(card)
+
+
+def _stats_role_rank(card: str) -> int:
+    """Rank a registry-known action by its stats, mirroring ``from_kingdom``.
+
+    Returns 4 (last) for non-actions and cards the registry does not know.
+    """
+    try:
+        info = get_card(card)
+    except (ValueError, KeyError):
+        return 4
+    if not info.is_action:
+        return 4
+    if info.stats.actions >= 2:
+        return 0
+    if info.stats.actions == 1:
+        return 1
+    if info.stats.cards >= 2:
+        return 2
+    return 3
 
 
 def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> None:
