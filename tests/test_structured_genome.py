@@ -513,6 +513,83 @@ class TestNormalizeMenu:
         assert s.action_priority[0] is gated_daimyo
         assert names.index("Smithy") < names.index("Peddler")
 
+    def test_pending_command_pins_payload_past_gated_command(self):
+        # Finding A: a *gated* intervening Command must also be skipped when
+        # locating a pending-replay Command's payload. A Command is ``is_command``
+        # regardless of its gate, so Band of Misfits(gate) never satisfies
+        # Daimyo's pending-replay slot; whenever the gate is false the slot fires
+        # on the next non-Command Action. Smithy is that payload and must stay
+        # pinned ahead of the unrelated Peddler cantrip. Band of Misfits stays in
+        # place as its own (gated) anchor.
+        info = KingdomInfo.from_kingdom(
+            ["Daimyo", "Band of Misfits", "Smithy", "Peddler"]
+        )
+        gate = PriorityRule.provinces_left(">", 2)
+        gated_bom = PriorityRule("Band of Misfits", gate)
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Daimyo"),
+            gated_bom,
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Daimyo"
+        assert s.action_priority[1] is gated_bom
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_throne_room_pins_following_payload(self):
+        # Finding B: Throne Room is a play-an-Action multiplier — on play it asks
+        # the AI to choose an Action *from hand* and plays it twice
+        # (cards/base_set/throne_room.py). If the role sort floats the cantrip
+        # ahead of Throne Room, the payload (Smithy) leaves hand before Throne
+        # Room can call choose_action on it, so the multiplier fizzles. Smithy
+        # must stay pinned immediately after Throne Room, ahead of Peddler.
+        info = KingdomInfo.from_kingdom(
+            ["Throne Room", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Throne Room"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Throne Room"
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_kings_court_pins_following_payload(self):
+        # King's Court is the same play-an-Action multiplier family (plays a
+        # chosen hand Action three times, cards/prosperity/kings_court.py); its
+        # payload must stay pinned immediately after it.
+        info = KingdomInfo.from_kingdom(
+            ["King's Court", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("King's Court"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "King's Court"
+        assert names.index("Smithy") < names.index("Peddler")
+
     def test_leaves_gated_action_rules_in_place(self):
         info = KingdomInfo.from_kingdom(["Watchtower", "Peddler"])
         gated_watchtower = PriorityRule("Watchtower", PriorityRule.actions_in_hand(">=", 2))

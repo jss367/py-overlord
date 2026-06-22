@@ -380,14 +380,41 @@ def _stats_role_rank(card: str) -> int:
 # Command must stay pinned behind it: the slot has nothing to fire on unless a
 # non-Command Action is played after the Command this turn.
 #
-# Other Commands (Band of Misfits, Captain) pick their target from the *supply*
-# and resolve immediately on play — they never consume the next hand Action, so
-# pinning the following rule behind them would wrongly defeat the role-order
-# repair. See ``play_effect`` in ``cards/dark_ages/band_of_misfits.py`` and
-# ``cards/promo/captain.py`` (both call into the supply) versus
+# Other Commands (Band of Misfits, Captain, Overlord) pick their target from the
+# *supply* and resolve immediately on play — they never consume the next hand
+# Action, so pinning the following rule behind them would wrongly defeat the
+# role-order repair. See ``play_effect`` in ``cards/dark_ages/band_of_misfits.py``
+# and ``cards/promo/captain.py`` (both call into the supply) versus
 # ``cards/rising_sun/daimyo.py`` and ``cards/plunder/flagship.py`` (both set a
 # pending counter consumed in ``game_state`` on the next non-Command Action).
 _PENDING_REPLAY_COMMANDS = frozenset({"Daimyo", "Flagship"})
+
+# "Play an Action from hand" multipliers: on play they ask the AI to choose an
+# Action *from hand* and replay/multiply it immediately (Throne Room, King's
+# Court, Crown in the action phase, Procession), or on their next turn (the
+# Mastermind duration). Like pending-replay Commands, the intended payload must
+# be played after the multiplier — if the role sort floats a draw/cantrip ahead
+# of the multiplier, the payload leaves hand (or is never queued) before the
+# multiplier gets to call ``choose_action`` on it, so the multiplier fizzles.
+# These select from HAND (unlike supply-targeting Commands), so their following
+# non-Command Action payload must stay pinned. See ``play_effect`` /
+# ``on_duration`` in ``cards/base_set/throne_room.py``,
+# ``cards/prosperity/kings_court.py``, ``cards/empires/crown.py``,
+# ``cards/dark_ages/procession.py``, ``cards/plunder/first_mate.py`` and
+# ``cards/menagerie/mastermind.py`` (all call ``ai.choose_action`` over the
+# hand). The engine exposes no shared structural flag for "replays a chosen
+# hand Action", so this mirrors the ``_PENDING_REPLAY_COMMANDS`` named-set
+# pattern.
+_PLAYS_HAND_ACTION_MULTIPLIERS = frozenset(
+    {
+        "Throne Room",
+        "King's Court",
+        "Procession",
+        "Crown",
+        "Mastermind",
+        "First Mate",
+    }
+)
 
 
 def _is_command_card(card: str) -> bool:
@@ -400,15 +427,23 @@ def _is_command_card(card: str) -> bool:
 
 
 def _consumes_next_action(card: str) -> bool:
-    """Return True if ``card`` is a Command whose target selection waits for the
-    *next* non-Command Action played from hand (Daimyo, Flagship).
+    """Return True if ``card`` consumes/replays the *next in-hand Action* played
+    after it, so its following payload rule must stay pinned behind it.
 
-    These are the only Commands whose following payload rule must stay pinned in
-    order: the pending-replay slot fires on whatever non-Command Action is played
-    next, so the payload has to play after the Command. Supply-targeting Commands
-    (Band of Misfits, Captain) resolve immediately and are excluded.
+    Two families qualify and share this rule:
+
+    * Pending-replay Commands (Daimyo, Flagship): register a slot that fires on
+      whatever non-Command Action is played next from hand.
+    * Play-an-Action multipliers (Throne Room, King's Court, Procession, Crown,
+      Mastermind, First Mate): on play (or, for Mastermind, on its next turn)
+      they choose an Action *from hand* to replay, so the payload has to still
+      be playable after the multiplier rather than floated ahead of it.
+
+    Supply-targeting Commands (Band of Misfits, Captain, Overlord) resolve
+    immediately from the supply and are excluded: the rule after them is not a
+    payload and must stay free to reflow into role order.
     """
-    return card in _PENDING_REPLAY_COMMANDS
+    return card in _PENDING_REPLAY_COMMANDS or card in _PLAYS_HAND_ACTION_MULTIPLIERS
 
 
 def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> None:
@@ -421,54 +456,61 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
     when a specific board state holds."
 
     Command rules are also left fixed (the role sort treats a Command as a
-    terminal and could otherwise sink it). For *pending-replay* Commands
-    (Daimyo, Flagship) the first unconditional non-Command Action rule after
-    them is pinned too: such a Command registers a slot that fires on the next
-    non-Command Action played from hand, so seeds deliberately emit the Command
-    before its payload (see ``dominion/analysis/seed_genomes.py``); reordering
-    them to play the payload first would strand the slot and the trick would
-    never fire. Any Command rules sitting between the pending-replay Command and
-    its payload are skipped when choosing the pin target — they resolve on their
-    own and never consume the slot — so the true payload stays pinned.
+    terminal and could otherwise sink it). One shared rule covers every card
+    that consumes the *next in-hand Action* played after it (see
+    ``_consumes_next_action``): pending-replay Commands (Daimyo, Flagship) and
+    play-an-Action multipliers (Throne Room, King's Court, Procession, Crown,
+    Mastermind, First Mate). For each such rule the first unconditional
+    non-Command Action rule after it is pinned too as its payload: the card
+    fires on / replays whatever non-Command Action follows it, so seeds
+    deliberately emit it before its payload (see
+    ``dominion/analysis/seed_genomes.py``); reordering to play the payload first
+    would strand the slot (or leave the multiplier nothing to replay) and the
+    trick would never fire. Any Command rules sitting between the consuming rule
+    and its payload — gated or not — are skipped when choosing the pin target:
+    a Command is ``is_command`` regardless of its gate, so it never satisfies a
+    pending-replay slot and is not the multiplier's intended hand payload, while
+    still being pinned in place on its own iteration.
 
-    Supply-targeting Commands (Band of Misfits, Captain) resolve immediately
-    from the supply and do *not* consume the next hand Action, so the rule
-    after them is not their payload and must stay free to reflow — otherwise a
-    board like ``[Band of Misfits, Watchtower, Peddler]`` would wrongly keep a
-    terminal pinned ahead of the cantrip.
+    Supply-targeting Commands (Band of Misfits, Captain, Overlord) resolve
+    immediately from the supply and do *not* consume the next hand Action, so
+    the rule after them is not their payload and must stay free to reflow —
+    otherwise a board like ``[Band of Misfits, Watchtower, Peddler]`` would
+    wrongly keep a terminal pinned ahead of the cantrip.
     """
     action = getattr(strategy, "action_priority", []) or []
 
     # Pin anchors: gated rules, Command rules, and the unconditional rule
-    # directly following a *pending-replay* Command (its payload). Pinned rules
-    # keep their original slot; only the remaining unconditional rules are
-    # role-sorted and reflowed into the gaps between anchors.
+    # directly following a rule that consumes the next in-hand Action (its
+    # payload). Pinned rules keep their original slot; only the remaining
+    # unconditional rules are role-sorted and reflowed into the gaps between
+    # anchors.
     pinned = [False] * len(action)
 
-    def _pin_pending_replay_payload(idx: int) -> None:
-        """Pin the payload of the pending-replay Command at ``action[idx]``.
+    def _pin_next_action_payload(idx: int) -> None:
+        """Pin the payload of the next-in-hand-Action consumer at ``action[idx]``.
 
-        The pending-replay slot fires on the next *non-Command* Action played
-        from hand (see ``handle_action_phase``: the slot is only consumed when
-        ``choice.is_command`` is false). Intervening Command rules resolve on
-        their own and never satisfy the slot, so scan past any unconditional
-        Command rules and pin the first subsequent unconditional non-Command
-        Action as the payload. This keeps the true payload (e.g. Smithy) ahead
-        of an unrelated cantrip in boards like ``[Daimyo, Band of Misfits,
-        Smithy, Peddler]``. Each intervening Command is already pinned in its
-        own iteration (and, if itself pending-replay, pins its own payload), so
-        nested cases like ``[Daimyo, Flagship, Smithy]`` keep every rule in
-        place. The scan runs for *gated* pending-replay Commands too: the gate
-        only decides whether the Command plays, and when it does the slot still
-        fires on the next non-Command Action, so a board like ``[Daimyo(gate),
-        Smithy, Peddler]`` must keep Smithy pinned ahead of Peddler.
+        Both consumer families act on the next *non-Command* Action played from
+        hand: a pending-replay Command's slot is only consumed when
+        ``choice.is_command`` is false (see ``handle_action_phase``), and a
+        play-an-Action multiplier (Throne Room, King's Court, ...) likewise
+        replays the Action it picks from hand. Intervening Command rules — gated
+        or not — never satisfy the slot and are never the multiplier's intended
+        hand payload (a Command is ``is_command`` regardless of its gate), so
+        scan past *every* intervening Command rule and pin the first subsequent
+        unconditional non-Command Action as the payload. This keeps the true
+        payload (e.g. Smithy) ahead of an unrelated cantrip in boards like
+        ``[Daimyo, Band of Misfits(gate), Smithy, Peddler]`` and
+        ``[Throne Room, Smithy, Peddler]``. Each intervening Command is already
+        pinned in its own iteration (and, if itself a consumer, pins its own
+        payload), so nested cases like ``[Daimyo, Flagship, Smithy]`` keep every
+        rule in place. The scan runs for *gated* consumers too: the gate only
+        decides whether the card plays, and when it does it still acts on the
+        next non-Command Action, so ``[Daimyo(gate), Smithy, Peddler]`` keeps
+        Smithy pinned ahead of Peddler.
         """
         nxt = idx + 1
-        while (
-            nxt < len(action)
-            and getattr(action[nxt], "condition", None) is None
-            and _is_command_card(action[nxt].card_name)
-        ):
+        while nxt < len(action) and _is_command_card(action[nxt].card_name):
             nxt += 1
         if nxt < len(action) and getattr(action[nxt], "condition", None) is None:
             pinned[nxt] = True
@@ -476,10 +518,14 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
     for idx, rule in enumerate(action):
         gated = getattr(rule, "condition", None) is not None
         is_command = _is_command_card(rule.card_name)
-        if gated or is_command:
+        consumes_next = _consumes_next_action(rule.card_name)
+        # Pin the rule in its slot if it is gated, a Command, or a play-an-Action
+        # multiplier (which is neither gated nor a Command but must stay ahead of
+        # its payload — e.g. Throne Room before Smithy).
+        if gated or is_command or consumes_next:
             pinned[idx] = True
-        if _consumes_next_action(rule.card_name):
-            _pin_pending_replay_payload(idx)
+        if consumes_next:
+            _pin_next_action_payload(idx)
 
     sorted_movable = iter(
         rule
