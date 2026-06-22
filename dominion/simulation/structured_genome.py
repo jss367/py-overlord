@@ -374,18 +374,41 @@ def _stats_role_rank(card: str) -> int:
     return 3
 
 
+# Commands that register a pending-replay slot when played and fire it on the
+# *next* non-Command Action played from hand (Daimyo's ``daimyo_pending``,
+# Flagship's ``flagship_pending``). For these, the payload rule that follows the
+# Command must stay pinned behind it: the slot has nothing to fire on unless a
+# non-Command Action is played after the Command this turn.
+#
+# Other Commands (Band of Misfits, Captain) pick their target from the *supply*
+# and resolve immediately on play — they never consume the next hand Action, so
+# pinning the following rule behind them would wrongly defeat the role-order
+# repair. See ``play_effect`` in ``cards/dark_ages/band_of_misfits.py`` and
+# ``cards/promo/captain.py`` (both call into the supply) versus
+# ``cards/rising_sun/daimyo.py`` and ``cards/plunder/flagship.py`` (both set a
+# pending counter consumed in ``game_state`` on the next non-Command Action).
+_PENDING_REPLAY_COMMANDS = frozenset({"Daimyo", "Flagship"})
+
+
 def _is_command_card(card: str) -> bool:
     """Return True if ``card`` is a registry-known Command (Band of Misfits,
-    Captain, Daimyo, Flagship, ...).
-
-    Command cards register a pending-replay slot when played and then fire it
-    on the *next* non-Command Action. Their payload must therefore be played
-    after the Command, so the role sort must not be allowed to reorder them.
-    """
+    Captain, Daimyo, Flagship, ...)."""
     try:
         return get_card(card).is_command
     except (ValueError, KeyError):
         return False
+
+
+def _consumes_next_action(card: str) -> bool:
+    """Return True if ``card`` is a Command whose target selection waits for the
+    *next* non-Command Action played from hand (Daimyo, Flagship).
+
+    These are the only Commands whose following payload rule must stay pinned in
+    order: the pending-replay slot fires on whatever non-Command Action is played
+    next, so the payload has to play after the Command. Supply-targeting Commands
+    (Band of Misfits, Captain) resolve immediately and are excluded.
+    """
+    return card in _PENDING_REPLAY_COMMANDS
 
 
 def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> None:
@@ -397,29 +420,37 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
     the escape hatch for deliberate tactics like "play this terminal first only
     when a specific board state holds."
 
-    Command rules (and the unconditional payload rule immediately after them)
-    are also left fixed. A Command registers a pending-replay slot that fires
-    on the next non-Command Action, so seeds deliberately emit the Command
-    before its payload (see ``dominion/analysis/seed_genomes.py``). The role
-    sort treats a Command as a terminal and would otherwise sink it below its
-    cantrip/draw payload, stranding the slot — so the payload plays first and
-    the trick never fires.
+    Command rules are also left fixed (the role sort treats a Command as a
+    terminal and could otherwise sink it). For *pending-replay* Commands
+    (Daimyo, Flagship) the unconditional payload rule immediately after them is
+    pinned too: such a Command registers a slot that fires on the next
+    non-Command Action played from hand, so seeds deliberately emit the Command
+    before its payload (see ``dominion/analysis/seed_genomes.py``); reordering
+    them to play the payload first would strand the slot and the trick would
+    never fire.
+
+    Supply-targeting Commands (Band of Misfits, Captain) resolve immediately
+    from the supply and do *not* consume the next hand Action, so the rule
+    after them is not their payload and must stay free to reflow — otherwise a
+    board like ``[Band of Misfits, Watchtower, Peddler]`` would wrongly keep a
+    terminal pinned ahead of the cantrip.
     """
     action = getattr(strategy, "action_priority", []) or []
 
     # Pin anchors: gated rules, Command rules, and the unconditional rule
-    # directly following a Command (its payload). Pinned rules keep their
-    # original slot; only the remaining unconditional rules are role-sorted
-    # and reflowed into the gaps between anchors.
+    # directly following a *pending-replay* Command (its payload). Pinned rules
+    # keep their original slot; only the remaining unconditional rules are
+    # role-sorted and reflowed into the gaps between anchors.
     pinned = [False] * len(action)
     for idx, rule in enumerate(action):
         if getattr(rule, "condition", None) is not None:
             pinned[idx] = True
         elif _is_command_card(rule.card_name):
             pinned[idx] = True
-            nxt = idx + 1
-            if nxt < len(action) and getattr(action[nxt], "condition", None) is None:
-                pinned[nxt] = True
+            if _consumes_next_action(rule.card_name):
+                nxt = idx + 1
+                if nxt < len(action) and getattr(action[nxt], "condition", None) is None:
+                    pinned[nxt] = True
 
     sorted_movable = iter(
         rule

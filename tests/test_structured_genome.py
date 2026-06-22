@@ -382,18 +382,18 @@ class TestNormalizeMenu:
         assert [r.card_name for r in s.action_priority] == ["Horse", "Smithy"]
 
     def test_command_rule_stays_before_its_payload(self):
-        # Band of Misfits is a Command: it registers a pending-replay slot that
-        # fires on the next non-Command Action played, so the seed deliberately
+        # Daimyo is a pending-replay Command: it registers a slot that fires on
+        # the next non-Command Action played from hand, so the seed deliberately
         # plays the Command before its payload (Smithy). The role sort treats
         # the Command as a terminal and must not sink it below the terminal
         # draw it is meant to replay, or a one-action hand strands the Command.
         info = KingdomInfo.from_kingdom(
-            ["Band of Misfits", "Witch", "Village", "Smithy"]
+            ["Daimyo", "Witch", "Village", "Smithy"]
         )
         s = BaseStrategy()
         s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
         s.action_priority = [
-            PriorityRule("Band of Misfits"),
+            PriorityRule("Daimyo"),
             PriorityRule("Smithy"),
         ]
         s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
@@ -401,9 +401,36 @@ class TestNormalizeMenu:
         normalize_menu(s, info)
 
         assert [r.card_name for r in s.action_priority] == [
-            "Band of Misfits",
+            "Daimyo",
             "Smithy",
         ]
+
+    def test_supply_command_does_not_pin_following_cantrip(self):
+        # Band of Misfits is a *supply-targeting* Command: it plays a cheaper
+        # non-Command Action from the supply immediately on play, so it never
+        # consumes the next Action played from hand. The rule after it is not a
+        # payload that must wait, so the role-order repair must still float the
+        # cantrip ahead of the Command-as-terminal. The Command itself stays
+        # pinned (it is still treated as a terminal anchor) and Peddler reflows
+        # into the freed slot ahead of it.
+        info = KingdomInfo.from_kingdom(
+            ["Band of Misfits", "Watchtower", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Band of Misfits"),
+            PriorityRule("Watchtower"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        # Peddler (a cantrip) must not be stranded behind Watchtower just because
+        # a supply-targeting Command sits at the front.
+        assert names.index("Peddler") < names.index("Watchtower")
 
     def test_leaves_gated_action_rules_in_place(self):
         info = KingdomInfo.from_kingdom(["Watchtower", "Peddler"])
