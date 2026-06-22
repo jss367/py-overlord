@@ -422,12 +422,14 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
 
     Command rules are also left fixed (the role sort treats a Command as a
     terminal and could otherwise sink it). For *pending-replay* Commands
-    (Daimyo, Flagship) the unconditional payload rule immediately after them is
-    pinned too: such a Command registers a slot that fires on the next
+    (Daimyo, Flagship) the first unconditional non-Command Action rule after
+    them is pinned too: such a Command registers a slot that fires on the next
     non-Command Action played from hand, so seeds deliberately emit the Command
     before its payload (see ``dominion/analysis/seed_genomes.py``); reordering
     them to play the payload first would strand the slot and the trick would
-    never fire.
+    never fire. Any Command rules sitting between the pending-replay Command and
+    its payload are skipped when choosing the pin target — they resolve on their
+    own and never consume the slot — so the true payload stays pinned.
 
     Supply-targeting Commands (Band of Misfits, Captain) resolve immediately
     from the supply and do *not* consume the next hand Action, so the rule
@@ -448,7 +450,25 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
         elif _is_command_card(rule.card_name):
             pinned[idx] = True
             if _consumes_next_action(rule.card_name):
+                # The pending-replay slot fires on the next *non-Command* Action
+                # played from hand (see ``handle_action_phase``: the slot is only
+                # consumed when ``choice.is_command`` is false). Intervening
+                # Command rules resolve on their own and never satisfy the slot,
+                # so scan past any unconditional Command rules and pin the first
+                # subsequent unconditional non-Command Action as the payload.
+                # This keeps the true payload (e.g. Smithy) ahead of an unrelated
+                # cantrip in boards like ``[Daimyo, Band of Misfits, Smithy,
+                # Peddler]``. Each intervening Command is already pinned in its
+                # own iteration (and, if itself pending-replay, pins its own
+                # payload), so nested cases like ``[Daimyo, Flagship, Smithy]``
+                # keep every rule in place.
                 nxt = idx + 1
+                while (
+                    nxt < len(action)
+                    and getattr(action[nxt], "condition", None) is None
+                    and _is_command_card(action[nxt].card_name)
+                ):
+                    nxt += 1
                 if nxt < len(action) and getattr(action[nxt], "condition", None) is None:
                     pinned[nxt] = True
 

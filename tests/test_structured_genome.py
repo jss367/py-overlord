@@ -432,6 +432,57 @@ class TestNormalizeMenu:
         # a supply-targeting Command sits at the front.
         assert names.index("Peddler") < names.index("Watchtower")
 
+    def test_pending_command_pins_payload_past_intervening_command(self):
+        # A pending-replay Command's slot fires on the next *non-Command* Action
+        # played from hand, so an intervening Command (Band of Misfits) does not
+        # satisfy it. The real payload (Smithy) must stay pinned ahead of the
+        # unrelated Peddler cantrip; pinning only the immediate next rule (the
+        # supply Command) would let the role sort sink Smithy behind Peddler.
+        info = KingdomInfo.from_kingdom(
+            ["Daimyo", "Band of Misfits", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Daimyo"),
+            PriorityRule("Band of Misfits"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        # Daimyo and Band of Misfits stay pinned as terminal anchors at the front;
+        # Smithy stays pinned as Daimyo's payload ahead of the Peddler cantrip.
+        assert names[0] == "Daimyo"
+        assert names[1] == "Band of Misfits"
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_nested_pending_commands_keep_payload_order(self):
+        # Two pending-replay Commands in a row (Daimyo, Flagship) each pin their
+        # payload. Flagship is a Command so it is skipped as Daimyo's payload
+        # target; Smithy (the first non-Command Action) is pinned. Every rule
+        # stays in place.
+        info = KingdomInfo.from_kingdom(
+            ["Daimyo", "Flagship", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Daimyo"),
+            PriorityRule("Flagship"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names == ["Daimyo", "Flagship", "Smithy", "Peddler"]
+
     def test_leaves_gated_action_rules_in_place(self):
         info = KingdomInfo.from_kingdom(["Watchtower", "Peddler"])
         gated_watchtower = PriorityRule("Watchtower", PriorityRule.actions_in_hand(">=", 2))
