@@ -374,6 +374,20 @@ def _stats_role_rank(card: str) -> int:
     return 3
 
 
+def _is_command_card(card: str) -> bool:
+    """Return True if ``card`` is a registry-known Command (Band of Misfits,
+    Captain, Daimyo, Flagship, ...).
+
+    Command cards register a pending-replay slot when played and then fire it
+    on the *next* non-Command Action. Their payload must therefore be played
+    after the Command, so the role sort must not be allowed to reorder them.
+    """
+    try:
+        return get_card(card).is_command
+    except (ValueError, KeyError):
+        return False
+
+
 def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> None:
     """Repair ungated action rules into safe role order.
 
@@ -382,23 +396,45 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
     unconditional cantrip. Conditional action rules are left fixed: those are
     the escape hatch for deliberate tactics like "play this terminal first only
     when a specific board state holds."
+
+    Command rules (and the unconditional payload rule immediately after them)
+    are also left fixed. A Command registers a pending-replay slot that fires
+    on the next non-Command Action, so seeds deliberately emit the Command
+    before its payload (see ``dominion/analysis/seed_genomes.py``). The role
+    sort treats a Command as a terminal and would otherwise sink it below its
+    cantrip/draw payload, stranding the slot — so the payload plays first and
+    the trick never fires.
     """
     action = getattr(strategy, "action_priority", []) or []
-    indexed = list(enumerate(action))
-    sorted_unconditional = iter(
+
+    # Pin anchors: gated rules, Command rules, and the unconditional rule
+    # directly following a Command (its payload). Pinned rules keep their
+    # original slot; only the remaining unconditional rules are role-sorted
+    # and reflowed into the gaps between anchors.
+    pinned = [False] * len(action)
+    for idx, rule in enumerate(action):
+        if getattr(rule, "condition", None) is not None:
+            pinned[idx] = True
+        elif _is_command_card(rule.card_name):
+            pinned[idx] = True
+            nxt = idx + 1
+            if nxt < len(action) and getattr(action[nxt], "condition", None) is None:
+                pinned[nxt] = True
+
+    sorted_movable = iter(
         rule
         for _, rule in sorted(
             (
                 (idx, rule)
-                for idx, rule in indexed
-                if getattr(rule, "condition", None) is None
+                for idx, rule in enumerate(action)
+                if not pinned[idx]
             ),
             key=lambda pair: (_action_role_rank(pair[1].card_name, info), pair[0]),
         )
     )
     strategy.action_priority = [
-        next(sorted_unconditional) if getattr(rule, "condition", None) is None else rule
-        for rule in action
+        rule if pinned[idx] else next(sorted_movable)
+        for idx, rule in enumerate(action)
     ]
 
 

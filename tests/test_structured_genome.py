@@ -381,6 +381,30 @@ class TestNormalizeMenu:
 
         assert [r.card_name for r in s.action_priority] == ["Horse", "Smithy"]
 
+    def test_command_rule_stays_before_its_payload(self):
+        # Band of Misfits is a Command: it registers a pending-replay slot that
+        # fires on the next non-Command Action played, so the seed deliberately
+        # plays the Command before its payload (Smithy). The role sort treats
+        # the Command as a terminal and must not sink it below the terminal
+        # draw it is meant to replay, or a one-action hand strands the Command.
+        info = KingdomInfo.from_kingdom(
+            ["Band of Misfits", "Witch", "Village", "Smithy"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Band of Misfits"),
+            PriorityRule("Smithy"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        assert [r.card_name for r in s.action_priority] == [
+            "Band of Misfits",
+            "Smithy",
+        ]
+
     def test_leaves_gated_action_rules_in_place(self):
         info = KingdomInfo.from_kingdom(["Watchtower", "Peddler"])
         gated_watchtower = PriorityRule("Watchtower", PriorityRule.actions_in_hand(">=", 2))
