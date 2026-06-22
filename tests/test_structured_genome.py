@@ -666,6 +666,107 @@ class TestNormalizeMenu:
         assert names[0] == "Death Cart"
         assert names.index("Fortress") < names.index("Peddler")
 
+    def test_elder_pins_following_payload(self):
+        # Finding A: Elder chooses an Action from hand via choose_action and
+        # plays it indirectly (cards/allies/townsfolk.py:237-256), so it is a
+        # hand-action consumer. On [Elder, Smithy, Peddler] the role sort would
+        # otherwise float the Peddler cantrip ahead of the terminal Smithy, so
+        # Elder's choose_action would pick Peddler instead of the intended
+        # Smithy. Smithy must stay pinned immediately after Elder.
+        info = KingdomInfo.from_kingdom(["Elder", "Smithy", "Peddler"])
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Elder"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Elder"
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_procession_skips_ineligible_duration_payload(self):
+        # Finding B: Procession plays a *non-Duration* Action from hand twice
+        # then trashes it (cards/dark_ages/procession.py:20), so its chooser
+        # filters out Durations. On [Procession, Wharf, Smithy, Peddler] the pin
+        # scan must skip the ineligible Duration Wharf and pin the first eligible
+        # non-Duration Action (Smithy) as Procession's payload — otherwise Smithy
+        # stays movable and the role sort floats Peddler ahead, so Procession's
+        # choose_action takes Peddler instead of the intended Smithy. The skipped
+        # Wharf is pinned in its slot so the cantrip cannot reflow ahead of the
+        # payload.
+        info = KingdomInfo.from_kingdom(
+            ["Procession", "Wharf", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Procession"),
+            PriorityRule("Wharf"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Procession"
+        # Smithy is the pinned non-Duration payload and stays ahead of Peddler.
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_royal_galley_skips_ineligible_duration_payload(self):
+        # Royal Galley sets aside a *non-Duration* Action to replay
+        # (cards/allies/standalone.py:353), so like Procession it must skip the
+        # ineligible Duration Wharf and pin Smithy as its payload.
+        info = KingdomInfo.from_kingdom(
+            ["Royal Galley", "Wharf", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Royal Galley"),
+            PriorityRule("Wharf"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Royal Galley"
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_duration_allowing_consumer_pins_following_duration(self):
+        # Guard against over-restriction: Throne Room's chooser does NOT exclude
+        # Durations (cards/base_set/throne_room.py), so on
+        # [Throne Room, Wharf, Peddler] the immediately-following Duration Wharf
+        # IS Throne Room's intended payload and must stay pinned right after it,
+        # ahead of the Peddler cantrip. Only _NON_DURATION_CONSUMERS skip
+        # Durations.
+        info = KingdomInfo.from_kingdom(
+            ["Throne Room", "Wharf", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Throne Room"),
+            PriorityRule("Wharf"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Throne Room"
+        assert names.index("Wharf") < names.index("Peddler")
+
     def test_leaves_gated_action_rules_in_place(self):
         info = KingdomInfo.from_kingdom(["Watchtower", "Peddler"])
         gated_watchtower = PriorityRule("Watchtower", PriorityRule.actions_in_hand(">=", 2))

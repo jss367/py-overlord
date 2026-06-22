@@ -413,10 +413,16 @@ _PENDING_REPLAY_COMMANDS = frozenset({"Daimyo", "Flagship"})
 #     Royal Galley (``cards/allies/standalone.py``), Conclave
 #     (``cards/nocturne/conclave.py``).
 #   * Hand-Action replayers/upgraders — Specialist (replay-or-gain-a-copy,
-#     ``cards/allies/standalone.py``) and Disciple (replay twice,
-#     ``cards/adventures/peasant.py``).
+#     ``cards/allies/standalone.py``), Disciple (replay twice,
+#     ``cards/adventures/peasant.py``), Elder (play a chosen hand Action
+#     indirectly via ``choose_action``, ``cards/allies/townsfolk.py:237-256``),
+#     and Prince (set a hand Action aside to replay every turn,
+#     ``cards/promo/prince.py``; picks the target via ``choose_prince_target``
+#     but still consumes a chosen hand Action as its payload).
 #   * Hand-Action trashers whose payload is the Action they trash — Death Cart
-#     (trash an Action for +$5, ``cards/dark_ages/death_cart.py``).
+#     (trash an Action for +$5, ``cards/dark_ages/death_cart.py``) and
+#     Graverobber (upgrade mode trashes a chosen hand Action to gain a costlier
+#     one, ``cards/dark_ages/graverobber.py:43-50``).
 #
 # Deliberately EXCLUDED (verified against ``play_effect``):
 #   * Supply/trash-targeting cards — Band of Misfits, Captain, Overlord, Lurker
@@ -445,12 +451,36 @@ _HAND_ACTION_CONSUMERS = frozenset(
         "First Mate",
         "Disciple",
         "Specialist",
+        "Elder",
+        "Prince",
         # Play one Action from hand.
         "Shop",
         "Royal Galley",
         "Conclave",
         # Trash an Action from hand as the intended payload.
         "Death Cart",
+        "Graverobber",
+    }
+)
+
+# Consumers whose hand-Action chooser filters out Duration cards: their effect
+# cannot legally target a Duration, so a Duration Action sitting between the
+# consumer and its real payload must be *skipped* (and stay movable/role-sorted)
+# rather than pinned as the payload. Detected per card against ``play_effect``:
+#   * Procession trashes the Action it plays, so it filters to
+#     ``c.is_action and not c.is_duration`` (``cards/dark_ages/procession.py:20``)
+#     — it cannot trash a card that stays in play.
+#   * Royal Galley sets aside a non-Duration Action to replay
+#     (``cards/allies/standalone.py:353``).
+# The other consumers verified to ALLOW Durations and so are excluded here:
+# Throne Room, King's Court, Crown, Mastermind, First Mate, Disciple,
+# Specialist, Shop, Conclave, Death Cart, Elder, Graverobber, Prince — their
+# choosers filter on ``is_action`` (and sometimes cost or already-in-play), not
+# on ``is_duration``.
+_NON_DURATION_CONSUMERS = frozenset(
+    {
+        "Procession",
+        "Royal Galley",
     }
 )
 
@@ -460,6 +490,16 @@ def _is_command_card(card: str) -> bool:
     Captain, Daimyo, Flagship, ...)."""
     try:
         return get_card(card).is_command
+    except (ValueError, KeyError):
+        return False
+
+
+def _is_duration_card(card: str) -> bool:
+    """Return True if ``card`` is a registry-known Duration (Wharf, Caravan,
+    ...). Detected structurally via the card's ``is_duration`` type flag so no
+    per-class attribute is needed."""
+    try:
+        return get_card(card).is_duration
     except (ValueError, KeyError):
         return False
 
@@ -549,9 +589,34 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
         decides whether the card plays, and when it does it still acts on the
         next non-Command Action, so ``[Daimyo(gate), Smithy, Peddler]`` keeps
         Smithy pinned ahead of Peddler.
+
+        For consumers whose chooser excludes Duration Actions
+        (``_NON_DURATION_CONSUMERS`` — Procession trashes what it plays, Royal
+        Galley sets aside a non-Duration Action), an intervening Duration Action
+        rule is *also* skipped while locating the payload, since the consumer
+        can never legally pick it. Each skipped Duration is pinned in place too
+        (like an intervening Command) so the role sort cannot float an unrelated
+        cantrip into that gap *ahead of* the real payload — that would defeat
+        the point, since the consumer's ``choose_action`` walks action_priority
+        and would then pick the cantrip over the intended payload. Example:
+        ``[Procession, Wharf, Smithy, Peddler]`` skips the ineligible Duration
+        Wharf (pinned in its slot) and pins Smithy (the first eligible
+        non-Duration Action) as Procession's payload, keeping Smithy ahead of
+        the Peddler cantrip. Duration-allowing consumers (Throne Room, King's
+        Court, ...) are unaffected, so ``[Throne Room, Wharf, Smithy]`` still
+        pins the immediately-following Wharf as Throne Room's payload.
         """
+        skip_durations = action[idx].card_name in _NON_DURATION_CONSUMERS
         nxt = idx + 1
-        while nxt < len(action) and _is_command_card(action[nxt].card_name):
+        while nxt < len(action) and (
+            _is_command_card(action[nxt].card_name)
+            or (skip_durations and _is_duration_card(action[nxt].card_name))
+        ):
+            # Pin a skipped Duration in place so a movable cantrip cannot
+            # reflow ahead of the payload (Commands are already pinned in their
+            # own iteration; an ineligible Duration would not otherwise be).
+            if skip_durations and _is_duration_card(action[nxt].card_name):
+                pinned[nxt] = True
             nxt += 1
         if nxt < len(action) and getattr(action[nxt], "condition", None) is None:
             pinned[nxt] = True
