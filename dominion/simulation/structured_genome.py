@@ -444,33 +444,42 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
     # keep their original slot; only the remaining unconditional rules are
     # role-sorted and reflowed into the gaps between anchors.
     pinned = [False] * len(action)
+
+    def _pin_pending_replay_payload(idx: int) -> None:
+        """Pin the payload of the pending-replay Command at ``action[idx]``.
+
+        The pending-replay slot fires on the next *non-Command* Action played
+        from hand (see ``handle_action_phase``: the slot is only consumed when
+        ``choice.is_command`` is false). Intervening Command rules resolve on
+        their own and never satisfy the slot, so scan past any unconditional
+        Command rules and pin the first subsequent unconditional non-Command
+        Action as the payload. This keeps the true payload (e.g. Smithy) ahead
+        of an unrelated cantrip in boards like ``[Daimyo, Band of Misfits,
+        Smithy, Peddler]``. Each intervening Command is already pinned in its
+        own iteration (and, if itself pending-replay, pins its own payload), so
+        nested cases like ``[Daimyo, Flagship, Smithy]`` keep every rule in
+        place. The scan runs for *gated* pending-replay Commands too: the gate
+        only decides whether the Command plays, and when it does the slot still
+        fires on the next non-Command Action, so a board like ``[Daimyo(gate),
+        Smithy, Peddler]`` must keep Smithy pinned ahead of Peddler.
+        """
+        nxt = idx + 1
+        while (
+            nxt < len(action)
+            and getattr(action[nxt], "condition", None) is None
+            and _is_command_card(action[nxt].card_name)
+        ):
+            nxt += 1
+        if nxt < len(action) and getattr(action[nxt], "condition", None) is None:
+            pinned[nxt] = True
+
     for idx, rule in enumerate(action):
-        if getattr(rule, "condition", None) is not None:
+        gated = getattr(rule, "condition", None) is not None
+        is_command = _is_command_card(rule.card_name)
+        if gated or is_command:
             pinned[idx] = True
-        elif _is_command_card(rule.card_name):
-            pinned[idx] = True
-            if _consumes_next_action(rule.card_name):
-                # The pending-replay slot fires on the next *non-Command* Action
-                # played from hand (see ``handle_action_phase``: the slot is only
-                # consumed when ``choice.is_command`` is false). Intervening
-                # Command rules resolve on their own and never satisfy the slot,
-                # so scan past any unconditional Command rules and pin the first
-                # subsequent unconditional non-Command Action as the payload.
-                # This keeps the true payload (e.g. Smithy) ahead of an unrelated
-                # cantrip in boards like ``[Daimyo, Band of Misfits, Smithy,
-                # Peddler]``. Each intervening Command is already pinned in its
-                # own iteration (and, if itself pending-replay, pins its own
-                # payload), so nested cases like ``[Daimyo, Flagship, Smithy]``
-                # keep every rule in place.
-                nxt = idx + 1
-                while (
-                    nxt < len(action)
-                    and getattr(action[nxt], "condition", None) is None
-                    and _is_command_card(action[nxt].card_name)
-                ):
-                    nxt += 1
-                if nxt < len(action) and getattr(action[nxt], "condition", None) is None:
-                    pinned[nxt] = True
+        if _consumes_next_action(rule.card_name):
+            _pin_pending_replay_payload(idx)
 
     sorted_movable = iter(
         rule

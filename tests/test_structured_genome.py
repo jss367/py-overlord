@@ -483,6 +483,36 @@ class TestNormalizeMenu:
         names = [r.card_name for r in s.action_priority]
         assert names == ["Daimyo", "Flagship", "Smithy", "Peddler"]
 
+    def test_gated_pending_command_pins_payload(self):
+        # A *gated* pending-replay Command (play Daimyo only under a condition)
+        # still registers the pending-replay slot whenever the gate passes, so
+        # its payload (Smithy) must stay pinned ahead of an unrelated cantrip.
+        # The gate only decides whether the Command plays; it does not change
+        # which Action the slot fires on. Without pinning the payload here, the
+        # role sort floats Peddler ahead of Smithy and the replay lands on the
+        # wrong card.
+        info = KingdomInfo.from_kingdom(
+            ["Daimyo", "Witch", "Smithy", "Peddler"]
+        )
+        gate = PriorityRule.provinces_left(">", 2)
+        gated_daimyo = PriorityRule("Daimyo", gate)
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            gated_daimyo,
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        # The gated Daimyo stays pinned at its slot, and Smithy stays pinned as
+        # its payload ahead of the Peddler cantrip.
+        assert s.action_priority[0] is gated_daimyo
+        assert names.index("Smithy") < names.index("Peddler")
+
     def test_leaves_gated_action_rules_in_place(self):
         info = KingdomInfo.from_kingdom(["Watchtower", "Peddler"])
         gated_watchtower = PriorityRule("Watchtower", PriorityRule.actions_in_hand(">=", 2))
