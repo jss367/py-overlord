@@ -590,6 +590,82 @@ class TestNormalizeMenu:
         assert names[0] == "King's Court"
         assert names.index("Smithy") < names.index("Peddler")
 
+    def test_shop_pins_following_payload(self):
+        # Finding A: Shop is a one-shot "play an Action from hand" card — on play
+        # it asks the AI to choose an Action from hand and plays it
+        # (cards/cornucopia/shop.py). Detection now covers the whole hand-action
+        # consumer category, not just the multipliers, so [Shop, Smithy] must
+        # keep Smithy pinned immediately after Shop rather than letting the role
+        # sort float the cantrip ahead and strand Shop's payload.
+        info = KingdomInfo.from_kingdom(
+            ["Shop", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Shop"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Shop"
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_royal_galley_and_specialist_pin_following_payload(self):
+        # Royal Galley plays an Action from hand (cards/allies/standalone.py) and
+        # Specialist replays-or-gains a chosen hand Action (same file). Both are
+        # hand-action consumers, so each keeps its Smithy payload pinned ahead of
+        # the Peddler cantrip.
+        for consumer in ("Royal Galley", "Specialist"):
+            info = KingdomInfo.from_kingdom([consumer, "Smithy", "Peddler"])
+            s = BaseStrategy()
+            s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+            s.action_priority = [
+                PriorityRule(consumer),
+                PriorityRule("Smithy"),
+                PriorityRule("Peddler"),
+            ]
+            s.treasure_priority = [
+                PriorityRule("Gold"),
+                PriorityRule("Silver"),
+                PriorityRule("Copper"),
+            ]
+
+            normalize_menu(s, info)
+
+            names = [r.card_name for r in s.action_priority]
+            assert names[0] == consumer
+            assert names.index("Smithy") < names.index("Peddler")
+
+    def test_death_cart_pins_trash_fodder(self):
+        # Finding B: Death Cart trashes an Action from hand for +$5
+        # (cards/dark_ages/death_cart.py). [Death Cart, Fortress] must keep
+        # Fortress pinned after Death Cart — otherwise the role sort floats
+        # Fortress ahead and it leaves hand before Death Cart asks for an Action
+        # to trash, so Death Cart has no fodder. Death Cart's trash payload is
+        # just the next in-hand Action rule, so the shared scan covers it.
+        info = KingdomInfo.from_kingdom(
+            ["Death Cart", "Fortress", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Death Cart"),
+            PriorityRule("Fortress"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Death Cart"
+        assert names.index("Fortress") < names.index("Peddler")
+
     def test_leaves_gated_action_rules_in_place(self):
         info = KingdomInfo.from_kingdom(["Watchtower", "Peddler"])
         gated_watchtower = PriorityRule("Watchtower", PriorityRule.actions_in_hand(">=", 2))

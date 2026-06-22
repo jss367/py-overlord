@@ -389,30 +389,68 @@ def _stats_role_rank(card: str) -> int:
 # pending counter consumed in ``game_state`` on the next non-Command Action).
 _PENDING_REPLAY_COMMANDS = frozenset({"Daimyo", "Flagship"})
 
-# "Play an Action from hand" multipliers: on play they ask the AI to choose an
-# Action *from hand* and replay/multiply it immediately (Throne Room, King's
-# Court, Crown in the action phase, Procession), or on their next turn (the
-# Mastermind duration). Like pending-replay Commands, the intended payload must
-# be played after the multiplier — if the role sort floats a draw/cantrip ahead
-# of the multiplier, the payload leaves hand (or is never queued) before the
-# multiplier gets to call ``choose_action`` on it, so the multiplier fizzles.
-# These select from HAND (unlike supply-targeting Commands), so their following
-# non-Command Action payload must stay pinned. See ``play_effect`` /
-# ``on_duration`` in ``cards/base_set/throne_room.py``,
-# ``cards/prosperity/kings_court.py``, ``cards/empires/crown.py``,
-# ``cards/dark_ages/procession.py``, ``cards/plunder/first_mate.py`` and
-# ``cards/menagerie/mastermind.py`` (all call ``ai.choose_action`` over the
-# hand). The engine exposes no shared structural flag for "replays a chosen
-# hand Action", so this mirrors the ``_PENDING_REPLAY_COMMANDS`` named-set
-# pattern.
-_PLAYS_HAND_ACTION_MULTIPLIERS = frozenset(
+# Non-Command "hand-action consumers": cards whose play/effect selects an Action
+# *from hand* to play, replay, multiply, or trash, so the strategy's next
+# intended Action rule must stay pinned after them. If the role sort floats a
+# draw/cantrip ahead of one of these, the intended payload leaves hand (or is
+# never queued) before the card gets to call ``choose_action`` on it, and the
+# trick fizzles — exactly like the pending-replay Commands above.
+#
+# This is the comprehensive set found by scanning every card's effect for a
+# selection over Actions *in hand* (``[c for c in player.hand if c.is_action]``
+# fed to ``ai.choose_action`` / a card-specific chooser, or a trash-an-Action
+# chooser). Membership criterion: the card plays/replays/multiplies/trashes an
+# Action chosen *from hand* as its payload. Families covered:
+#
+#   * Multipliers that replay a chosen hand Action immediately on play —
+#     Throne Room, King's Court, Procession, Crown (action phase), First Mate —
+#     or on their next turn — Mastermind (``on_duration``). See ``play_effect`` /
+#     ``on_duration`` in ``cards/base_set/throne_room.py``,
+#     ``cards/prosperity/kings_court.py``, ``cards/dark_ages/procession.py``,
+#     ``cards/empires/crown.py``, ``cards/plunder/first_mate.py``,
+#     ``cards/menagerie/mastermind.py``.
+#   * "Play one Action from hand" cards — Shop (``cards/cornucopia/shop.py``),
+#     Royal Galley (``cards/allies/standalone.py``), Conclave
+#     (``cards/nocturne/conclave.py``).
+#   * Hand-Action replayers/upgraders — Specialist (replay-or-gain-a-copy,
+#     ``cards/allies/standalone.py``) and Disciple (replay twice,
+#     ``cards/adventures/peasant.py``).
+#   * Hand-Action trashers whose payload is the Action they trash — Death Cart
+#     (trash an Action for +$5, ``cards/dark_ages/death_cart.py``).
+#
+# Deliberately EXCLUDED (verified against ``play_effect``):
+#   * Supply/trash-targeting cards — Band of Misfits, Captain, Overlord, Lurker
+#     (pick from the supply/trash, not hand) and Necromancer (plays from the
+#     trash). Pinning a payload after these would wrongly defeat the role sort.
+#   * Royal Carriage — replays the *previously* played Action via a tavern
+#     reaction (``on_call_from_tavern``); it does not choose the *next* hand
+#     Action on its own play, so it has no following payload to pin.
+#   * Cards that merely inspect hand Actions without playing one as a payload —
+#     Town/Capital City (mode choice), Sacrifice (trashes any card, not the
+#     next Action specifically), Champion (passive duration). Contract picks an
+#     Action from hand but is a Treasure, so it never appears in action_priority.
+#
+# The engine exposes no shared structural flag for "consumes a chosen hand
+# Action", so this mirrors the ``_PENDING_REPLAY_COMMANDS`` named-set pattern.
+# Daimyo and Flagship qualify too but are Commands, so they live in
+# ``_PENDING_REPLAY_COMMANDS`` and are unioned in below.
+_HAND_ACTION_CONSUMERS = frozenset(
     {
+        # Replay/multiply a chosen hand Action.
         "Throne Room",
         "King's Court",
         "Procession",
         "Crown",
         "Mastermind",
         "First Mate",
+        "Disciple",
+        "Specialist",
+        # Play one Action from hand.
+        "Shop",
+        "Royal Galley",
+        "Conclave",
+        # Trash an Action from hand as the intended payload.
+        "Death Cart",
     }
 )
 
@@ -434,16 +472,17 @@ def _consumes_next_action(card: str) -> bool:
 
     * Pending-replay Commands (Daimyo, Flagship): register a slot that fires on
       whatever non-Command Action is played next from hand.
-    * Play-an-Action multipliers (Throne Room, King's Court, Procession, Crown,
-      Mastermind, First Mate): on play (or, for Mastermind, on its next turn)
-      they choose an Action *from hand* to replay, so the payload has to still
-      be playable after the multiplier rather than floated ahead of it.
+    * Non-Command hand-action consumers (Throne Room, King's Court, Procession,
+      Crown, First Mate, Mastermind, Disciple, Specialist, Shop, Royal Galley,
+      Conclave, Death Cart — see ``_HAND_ACTION_CONSUMERS``): their effect
+      chooses an Action *from hand* to play/replay/multiply/trash, so the
+      payload has to still be playable after them rather than floated ahead.
 
-    Supply-targeting Commands (Band of Misfits, Captain, Overlord) resolve
-    immediately from the supply and are excluded: the rule after them is not a
-    payload and must stay free to reflow into role order.
+    Supply/trash-targeting cards (Band of Misfits, Captain, Overlord, Lurker,
+    Necromancer) and Royal Carriage are excluded: the rule after them is not a
+    hand payload and must stay free to reflow into role order.
     """
-    return card in _PENDING_REPLAY_COMMANDS or card in _PLAYS_HAND_ACTION_MULTIPLIERS
+    return card in _PENDING_REPLAY_COMMANDS or card in _HAND_ACTION_CONSUMERS
 
 
 def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> None:
@@ -459,8 +498,10 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
     terminal and could otherwise sink it). One shared rule covers every card
     that consumes the *next in-hand Action* played after it (see
     ``_consumes_next_action``): pending-replay Commands (Daimyo, Flagship) and
-    play-an-Action multipliers (Throne Room, King's Court, Procession, Crown,
-    Mastermind, First Mate). For each such rule the first unconditional
+    non-Command hand-action consumers (Throne Room, King's Court, Procession,
+    Crown, First Mate, Mastermind, Disciple, Specialist, Shop, Royal Galley,
+    Conclave, Death Cart — see ``_HAND_ACTION_CONSUMERS``). For each such rule
+    the first unconditional
     non-Command Action rule after it is pinned too as its payload: the card
     fires on / replays whatever non-Command Action follows it, so seeds
     deliberately emit it before its payload (see
@@ -519,9 +560,10 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
         gated = getattr(rule, "condition", None) is not None
         is_command = _is_command_card(rule.card_name)
         consumes_next = _consumes_next_action(rule.card_name)
-        # Pin the rule in its slot if it is gated, a Command, or a play-an-Action
-        # multiplier (which is neither gated nor a Command but must stay ahead of
-        # its payload — e.g. Throne Room before Smithy).
+        # Pin the rule in its slot if it is gated, a Command, or a non-Command
+        # hand-action consumer (which is neither gated nor a Command but must
+        # stay ahead of its payload — e.g. Throne Room before Smithy, or
+        # Death Cart before the Action it trashes).
         if gated or is_command or consumes_next:
             pinned[idx] = True
         if consumes_next:
