@@ -541,17 +541,17 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
     non-Command hand-action consumers (Throne Room, King's Court, Procession,
     Crown, First Mate, Mastermind, Disciple, Specialist, Shop, Royal Galley,
     Conclave, Death Cart — see ``_HAND_ACTION_CONSUMERS``). For each such rule
-    the first unconditional
-    non-Command Action rule after it is pinned too as its payload: the card
-    fires on / replays whatever non-Command Action follows it, so seeds
-    deliberately emit it before its payload (see
+    the first unconditional Action rule after it that the consumer can actually
+    target is pinned too as its payload: the card fires on / replays whatever
+    Action follows it, so seeds deliberately emit it before its payload (see
     ``dominion/analysis/seed_genomes.py``); reordering to play the payload first
     would strand the slot (or leave the multiplier nothing to replay) and the
-    trick would never fire. Any Command rules sitting between the consuming rule
-    and its payload — gated or not — are skipped when choosing the pin target:
-    a Command is ``is_command`` regardless of its gate, so it never satisfies a
-    pending-replay slot and is not the multiplier's intended hand payload, while
-    still being pinned in place on its own iteration.
+    trick would never fire. Which intervening rules are skipped while choosing
+    the pin target is consumer-dependent (see ``_pin_next_action_payload``):
+    pending-replay Commands fire only on the next *non-Command* Action, so they
+    skip intervening Command rules, whereas immediate hand-action consumers
+    (Throne Room, King's Court, ...) accept any eligible ``is_action`` payload —
+    including a Command — and so do not skip Commands.
 
     Supply-targeting Commands (Band of Misfits, Captain, Overlord) resolve
     immediately from the supply and do *not* consume the next hand Action, so
@@ -571,53 +571,71 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
     def _pin_next_action_payload(idx: int) -> None:
         """Pin the payload of the next-in-hand-Action consumer at ``action[idx]``.
 
-        Both consumer families act on the next *non-Command* Action played from
-        hand: a pending-replay Command's slot is only consumed when
-        ``choice.is_command`` is false (see ``handle_action_phase``), and a
-        play-an-Action multiplier (Throne Room, King's Court, ...) likewise
-        replays the Action it picks from hand. Intervening Command rules — gated
-        or not — never satisfy the slot and are never the multiplier's intended
-        hand payload (a Command is ``is_command`` regardless of its gate), so
-        scan past *every* intervening Command rule and pin the first subsequent
-        unconditional non-Command Action as the payload. This keeps the true
-        payload (e.g. Smithy) ahead of an unrelated cantrip in boards like
-        ``[Daimyo, Band of Misfits(gate), Smithy, Peddler]`` and
-        ``[Throne Room, Smithy, Peddler]``. Each intervening Command is already
-        pinned in its own iteration (and, if itself a consumer, pins its own
-        payload), so nested cases like ``[Daimyo, Flagship, Smithy]`` keep every
-        rule in place. The scan runs for *gated* consumers too: the gate only
-        decides whether the card plays, and when it does it still acts on the
-        next non-Command Action, so ``[Daimyo(gate), Smithy, Peddler]`` keeps
-        Smithy pinned ahead of Peddler.
+        Which intervening rules to skip depends on what *this* consumer can
+        actually target, because the two consumer families have different
+        choosers:
 
-        For consumers whose chooser excludes Duration Actions
-        (``_NON_DURATION_CONSUMERS`` — Procession trashes what it plays, Royal
-        Galley sets aside a non-Duration Action), an intervening Duration Action
-        rule is *also* skipped while locating the payload, since the consumer
-        can never legally pick it. Each skipped Duration is pinned in place too
-        (like an intervening Command) so the role sort cannot float an unrelated
-        cantrip into that gap *ahead of* the real payload — that would defeat
-        the point, since the consumer's ``choose_action`` walks action_priority
-        and would then pick the cantrip over the intended payload. Example:
-        ``[Procession, Wharf, Smithy, Peddler]`` skips the ineligible Duration
-        Wharf (pinned in its slot) and pins Smithy (the first eligible
-        non-Duration Action) as Procession's payload, keeping Smithy ahead of
-        the Peddler cantrip. Duration-allowing consumers (Throne Room, King's
-        Court, ...) are unaffected, so ``[Throne Room, Wharf, Smithy]`` still
-        pins the immediately-following Wharf as Throne Room's payload.
+        * **Pending-replay Commands** (``_PENDING_REPLAY_COMMANDS`` — Daimyo,
+          Flagship) register a slot that only fires on the next *non-Command*
+          Action (``choice.is_command`` must be false; see
+          ``handle_action_phase``). An intervening Command rule — gated or not —
+          can never satisfy that slot, so it is *skipped* while locating the
+          payload, keeping the true non-Command payload (e.g. Smithy) ahead of
+          an unrelated cantrip in boards like
+          ``[Daimyo, Band of Misfits(gate), Smithy, Peddler]``.
+        * **Immediate hand-action consumers** (everything else in
+          ``_HAND_ACTION_CONSUMERS`` — Throne Room, King's Court, Crown,
+          Mastermind, First Mate, Disciple, Specialist, Shop, Conclave, Death
+          Cart, Elder, Graverobber, Prince, and the Duration-filtering pair
+          Procession / Royal Galley) choose their target from hand *immediately*
+          on play, accepting any eligible ``card.is_action`` — **including a
+          Command**. Throne Room's chooser, for instance, can Throne a Daimyo
+          (``cards/base_set/throne_room.py`` accepts every ``card.is_action``),
+          and ``EnhancedStrategy.choose_action`` then follows ``action_priority``.
+          So for these consumers a Command is a *valid* immediate payload and is
+          NOT skipped. On ``[Throne Room, Daimyo, Watchtower, Peddler]`` the
+          payload is the immediately-following Daimyo; pinning it keeps it right
+          after Throne Room instead of skipping to Watchtower.
+
+        For the Duration-filtering consumers (``_NON_DURATION_CONSUMERS`` —
+        Procession trashes what it plays, Royal Galley sets aside a non-Duration
+        Action), an intervening Duration Action rule is skipped while locating
+        the payload, since the consumer can never legally pick it. Each skipped
+        rule (Command for pending-replay Commands; Duration for the
+        Duration-filtering consumers) is pinned in place too so the role sort
+        cannot float an unrelated cantrip into that gap *ahead of* the real
+        payload — that would defeat the point, since ``choose_action`` walks
+        ``action_priority`` and would then pick the cantrip over the intended
+        payload. (Intervening Commands are already pinned in their own
+        iteration regardless; ineligible Durations would not otherwise be.)
+        Examples: ``[Procession, Wharf, Smithy, Peddler]`` skips the ineligible
+        Duration Wharf and pins Smithy; ``[Throne Room, Wharf, Smithy]`` pins
+        the immediately-following Wharf as Throne Room's payload.
+
+        The scan runs for *gated* consumers too: the gate only decides whether
+        the card plays, and when it does it still acts on its target the same
+        way, so ``[Daimyo(gate), Smithy, Peddler]`` keeps Smithy pinned ahead of
+        Peddler.
         """
-        skip_durations = action[idx].card_name in _NON_DURATION_CONSUMERS
+        consumer = action[idx].card_name
+        # Only pending-replay Commands skip intervening Commands; immediate
+        # hand-action consumers accept a Command as a valid payload target.
+        skip_commands = consumer in _PENDING_REPLAY_COMMANDS
+        # Only Duration-filtering consumers skip intervening Durations.
+        skip_durations = consumer in _NON_DURATION_CONSUMERS
         nxt = idx + 1
-        while nxt < len(action) and (
-            _is_command_card(action[nxt].card_name)
-            or (skip_durations and _is_duration_card(action[nxt].card_name))
-        ):
-            # Pin a skipped Duration in place so a movable cantrip cannot
-            # reflow ahead of the payload (Commands are already pinned in their
-            # own iteration; an ineligible Duration would not otherwise be).
-            if skip_durations and _is_duration_card(action[nxt].card_name):
+        while nxt < len(action):
+            name = action[nxt].card_name
+            if skip_commands and _is_command_card(name):
+                nxt += 1
+                continue
+            if skip_durations and _is_duration_card(name):
+                # Pin a skipped Duration in place so a movable cantrip cannot
+                # reflow ahead of the payload.
                 pinned[nxt] = True
-            nxt += 1
+                nxt += 1
+                continue
+            break
         if nxt < len(action) and getattr(action[nxt], "condition", None) is None:
             pinned[nxt] = True
 

@@ -767,6 +767,75 @@ class TestNormalizeMenu:
         assert names[0] == "Throne Room"
         assert names.index("Wharf") < names.index("Peddler")
 
+    def test_throne_room_pins_immediate_command_payload(self):
+        # Round 9: an immediate hand-action consumer (Throne Room) chooses its
+        # target from hand on play, accepting ANY eligible card.is_action —
+        # including a Command (cards/base_set/throne_room.py accepts every
+        # card.is_action; choose_action then follows action_priority). So on
+        # [Throne Room, Band of Misfits, Watchtower, Peddler] the payload is the
+        # immediately-following Command Band of Misfits, which must NOT be
+        # skipped: it stays pinned right after Throne Room. The Command skip is
+        # reserved for pending-replay Commands.
+        #
+        # Band of Misfits is a *supply* Command (not a pending-replay/consumer),
+        # so it pins no payload of its own. This discriminates old vs new: under
+        # the old skip-every-Command logic Throne Room would skip Band of Misfits
+        # and pin Watchtower as its payload, keeping the terminal Watchtower
+        # pinned ahead of the Peddler cantrip. Under the fix Throne Room pins
+        # Band of Misfits (its real immediate payload), leaving Watchtower and
+        # Peddler free to role-sort — so the cantrip Peddler correctly sorts
+        # ahead of the terminal Watchtower.
+        info = KingdomInfo.from_kingdom(
+            ["Throne Room", "Band of Misfits", "Watchtower", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Throne Room"),
+            PriorityRule("Band of Misfits"),
+            PriorityRule("Watchtower"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        # Band of Misfits is Throne Room's immediate eligible payload — pinned
+        # right after it, NOT skipped to Watchtower.
+        assert names[0] == "Throne Room"
+        assert names[1] == "Band of Misfits"
+        # Watchtower was NOT pinned as Throne Room's payload, so the role sort is
+        # free to float the Peddler cantrip ahead of the Watchtower terminal.
+        assert names.index("Peddler") < names.index("Watchtower")
+
+    def test_pending_command_skips_command_immediate_consumer_does_not(self):
+        # Round 9 contrast: a pending-replay Command (Daimyo) fires only on the
+        # next *non-Command* Action, so it DOES skip an intervening Command
+        # (Band of Misfits) to reach its non-Command payload (Smithy) — the
+        # round-4 behavior. This is the opposite of an immediate consumer like
+        # Throne Room, which would have pinned the Command itself.
+        info = KingdomInfo.from_kingdom(
+            ["Daimyo", "Band of Misfits", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Daimyo"),
+            PriorityRule("Band of Misfits"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Daimyo"
+        assert names[1] == "Band of Misfits"
+        # The intervening Command is skipped; Smithy is the pinned payload.
+        assert names.index("Smithy") < names.index("Peddler")
+
     def test_leaves_gated_action_rules_in_place(self):
         info = KingdomInfo.from_kingdom(["Watchtower", "Peddler"])
         gated_watchtower = PriorityRule("Watchtower", PriorityRule.actions_in_hand(">=", 2))
