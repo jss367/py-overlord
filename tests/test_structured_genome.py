@@ -432,6 +432,31 @@ class TestNormalizeMenu:
         # a supply-targeting Command sits at the front.
         assert names.index("Peddler") < names.index("Watchtower")
 
+    def test_conclave_does_not_pin_following_terminal(self):
+        # Conclave plays an Action from hand, but it picks that target by card
+        # stats (BaseAI.choose_action_to_play_with_conclave), not by
+        # action_priority order, and it is only an option when Conclave is
+        # actually drawn. Pinning the rule after Conclave would strand cantrips
+        # whenever Conclave is absent, so Conclave must stay a plain terminal
+        # anchor with no pinned payload and the role sort must still float the
+        # cantrip ahead of the following kingdom terminal.
+        info = KingdomInfo.from_kingdom(["Conclave", "Watchtower", "Peddler"])
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Conclave"),
+            PriorityRule("Watchtower"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        # Peddler (a cantrip) must not be stranded behind Watchtower just because
+        # Conclave (a terminal hand-action player) sits at the front.
+        assert names.index("Peddler") < names.index("Watchtower")
+
     def test_pending_command_pins_payload_past_intervening_command(self):
         # A pending-replay Command's slot fires on the next *non-Command* Action
         # played from hand, so an intervening Command (Band of Misfits) does not

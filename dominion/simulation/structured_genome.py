@@ -456,7 +456,6 @@ _HAND_ACTION_CONSUMERS = frozenset(
         # Play one Action from hand.
         "Shop",
         "Royal Galley",
-        "Conclave",
         # Trash an Action from hand as the intended payload.
         "Death Cart",
         "Graverobber",
