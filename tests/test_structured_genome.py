@@ -348,6 +348,532 @@ class TestNormalizeMenu:
         names = [r.card_name for r in s.treasure_priority]
         assert "Silver" in names and "Copper" in names
 
+    def test_repairs_unconditional_action_order_by_role(self):
+        info = KingdomInfo.from_kingdom(["Watchtower", "Peddler", "Workers' Village"])
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Watchtower"),
+            PriorityRule("Peddler"),
+            PriorityRule("Workers' Village"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        assert [r.card_name for r in s.action_priority] == [
+            "Workers' Village",
+            "Peddler",
+            "Watchtower",
+        ]
+
+    def test_off_board_cantrip_keeps_priority_over_kingdom_terminal(self):
+        # Horse is a +1 Action cantrip gained off the board (Livery, etc.) and
+        # is not in the kingdom; it must still rank ahead of a kingdom terminal
+        # draw rather than being sunk to last as an unknown card.
+        info = KingdomInfo.from_kingdom(["Smithy", "Livery"])
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [PriorityRule("Horse"), PriorityRule("Smithy")]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        assert [r.card_name for r in s.action_priority] == ["Horse", "Smithy"]
+
+    def test_command_rule_stays_before_its_payload(self):
+        # Daimyo is a pending-replay Command: it registers a slot that fires on
+        # the next non-Command Action played from hand, so the seed deliberately
+        # plays the Command before its payload (Smithy). The role sort treats
+        # the Command as a terminal and must not sink it below the terminal
+        # draw it is meant to replay, or a one-action hand strands the Command.
+        info = KingdomInfo.from_kingdom(
+            ["Daimyo", "Witch", "Village", "Smithy"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Daimyo"),
+            PriorityRule("Smithy"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        assert [r.card_name for r in s.action_priority] == [
+            "Daimyo",
+            "Smithy",
+        ]
+
+    def test_supply_command_does_not_pin_following_cantrip(self):
+        # Band of Misfits is a *supply-targeting* Command: it plays a cheaper
+        # non-Command Action from the supply immediately on play, so it never
+        # consumes the next Action played from hand. The rule after it is not a
+        # payload that must wait, so the role-order repair must still float the
+        # cantrip ahead of the Command-as-terminal. The Command itself stays
+        # pinned (it is still treated as a terminal anchor) and Peddler reflows
+        # into the freed slot ahead of it.
+        info = KingdomInfo.from_kingdom(
+            ["Band of Misfits", "Watchtower", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Band of Misfits"),
+            PriorityRule("Watchtower"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        # Peddler (a cantrip) must not be stranded behind Watchtower just because
+        # a supply-targeting Command sits at the front.
+        assert names.index("Peddler") < names.index("Watchtower")
+
+    def test_conclave_does_not_pin_following_terminal(self):
+        # Conclave plays an Action from hand, but it picks that target by card
+        # stats (BaseAI.choose_action_to_play_with_conclave), not by
+        # action_priority order, and it is only an option when Conclave is
+        # actually drawn. Pinning the rule after Conclave would strand cantrips
+        # whenever Conclave is absent, so Conclave must stay a plain terminal
+        # anchor with no pinned payload and the role sort must still float the
+        # cantrip ahead of the following kingdom terminal.
+        info = KingdomInfo.from_kingdom(["Conclave", "Watchtower", "Peddler"])
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Conclave"),
+            PriorityRule("Watchtower"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        # Peddler (a cantrip) must not be stranded behind Watchtower just because
+        # Conclave (a terminal hand-action player) sits at the front.
+        assert names.index("Peddler") < names.index("Watchtower")
+
+    def test_pending_command_pins_payload_past_intervening_command(self):
+        # A pending-replay Command's slot fires on the next *non-Command* Action
+        # played from hand, so an intervening Command (Band of Misfits) does not
+        # satisfy it. The real payload (Smithy) must stay pinned ahead of the
+        # unrelated Peddler cantrip; pinning only the immediate next rule (the
+        # supply Command) would let the role sort sink Smithy behind Peddler.
+        info = KingdomInfo.from_kingdom(
+            ["Daimyo", "Band of Misfits", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Daimyo"),
+            PriorityRule("Band of Misfits"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        # Daimyo and Band of Misfits stay pinned as terminal anchors at the front;
+        # Smithy stays pinned as Daimyo's payload ahead of the Peddler cantrip.
+        assert names[0] == "Daimyo"
+        assert names[1] == "Band of Misfits"
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_nested_pending_commands_keep_payload_order(self):
+        # Two pending-replay Commands in a row (Daimyo, Flagship) each pin their
+        # payload. Flagship is a Command so it is skipped as Daimyo's payload
+        # target; Smithy (the first non-Command Action) is pinned. Every rule
+        # stays in place.
+        info = KingdomInfo.from_kingdom(
+            ["Daimyo", "Flagship", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Daimyo"),
+            PriorityRule("Flagship"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names == ["Daimyo", "Flagship", "Smithy", "Peddler"]
+
+    def test_gated_pending_command_pins_payload(self):
+        # A *gated* pending-replay Command (play Daimyo only under a condition)
+        # still registers the pending-replay slot whenever the gate passes, so
+        # its payload (Smithy) must stay pinned ahead of an unrelated cantrip.
+        # The gate only decides whether the Command plays; it does not change
+        # which Action the slot fires on. Without pinning the payload here, the
+        # role sort floats Peddler ahead of Smithy and the replay lands on the
+        # wrong card.
+        info = KingdomInfo.from_kingdom(
+            ["Daimyo", "Witch", "Smithy", "Peddler"]
+        )
+        gate = PriorityRule.provinces_left(">", 2)
+        gated_daimyo = PriorityRule("Daimyo", gate)
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            gated_daimyo,
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        # The gated Daimyo stays pinned at its slot, and Smithy stays pinned as
+        # its payload ahead of the Peddler cantrip.
+        assert s.action_priority[0] is gated_daimyo
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_pending_command_pins_payload_past_gated_command(self):
+        # Finding A: a *gated* intervening Command must also be skipped when
+        # locating a pending-replay Command's payload. A Command is ``is_command``
+        # regardless of its gate, so Band of Misfits(gate) never satisfies
+        # Daimyo's pending-replay slot; whenever the gate is false the slot fires
+        # on the next non-Command Action. Smithy is that payload and must stay
+        # pinned ahead of the unrelated Peddler cantrip. Band of Misfits stays in
+        # place as its own (gated) anchor.
+        info = KingdomInfo.from_kingdom(
+            ["Daimyo", "Band of Misfits", "Smithy", "Peddler"]
+        )
+        gate = PriorityRule.provinces_left(">", 2)
+        gated_bom = PriorityRule("Band of Misfits", gate)
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Daimyo"),
+            gated_bom,
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Daimyo"
+        assert s.action_priority[1] is gated_bom
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_throne_room_pins_following_payload(self):
+        # Finding B: Throne Room is a play-an-Action multiplier — on play it asks
+        # the AI to choose an Action *from hand* and plays it twice
+        # (cards/base_set/throne_room.py). If the role sort floats the cantrip
+        # ahead of Throne Room, the payload (Smithy) leaves hand before Throne
+        # Room can call choose_action on it, so the multiplier fizzles. Smithy
+        # must stay pinned immediately after Throne Room, ahead of Peddler.
+        info = KingdomInfo.from_kingdom(
+            ["Throne Room", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Throne Room"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Throne Room"
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_kings_court_pins_following_payload(self):
+        # King's Court is the same play-an-Action multiplier family (plays a
+        # chosen hand Action three times, cards/prosperity/kings_court.py); its
+        # payload must stay pinned immediately after it.
+        info = KingdomInfo.from_kingdom(
+            ["King's Court", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("King's Court"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "King's Court"
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_shop_pins_following_payload(self):
+        # Finding A: Shop is a one-shot "play an Action from hand" card — on play
+        # it asks the AI to choose an Action from hand and plays it
+        # (cards/cornucopia/shop.py). Detection now covers the whole hand-action
+        # consumer category, not just the multipliers, so [Shop, Smithy] must
+        # keep Smithy pinned immediately after Shop rather than letting the role
+        # sort float the cantrip ahead and strand Shop's payload.
+        info = KingdomInfo.from_kingdom(
+            ["Shop", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Shop"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Shop"
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_royal_galley_and_specialist_pin_following_payload(self):
+        # Royal Galley plays an Action from hand (cards/allies/standalone.py) and
+        # Specialist replays-or-gains a chosen hand Action (same file). Both are
+        # hand-action consumers, so each keeps its Smithy payload pinned ahead of
+        # the Peddler cantrip.
+        for consumer in ("Royal Galley", "Specialist"):
+            info = KingdomInfo.from_kingdom([consumer, "Smithy", "Peddler"])
+            s = BaseStrategy()
+            s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+            s.action_priority = [
+                PriorityRule(consumer),
+                PriorityRule("Smithy"),
+                PriorityRule("Peddler"),
+            ]
+            s.treasure_priority = [
+                PriorityRule("Gold"),
+                PriorityRule("Silver"),
+                PriorityRule("Copper"),
+            ]
+
+            normalize_menu(s, info)
+
+            names = [r.card_name for r in s.action_priority]
+            assert names[0] == consumer
+            assert names.index("Smithy") < names.index("Peddler")
+
+    def test_death_cart_pins_trash_fodder(self):
+        # Finding B: Death Cart trashes an Action from hand for +$5
+        # (cards/dark_ages/death_cart.py). [Death Cart, Fortress] must keep
+        # Fortress pinned after Death Cart — otherwise the role sort floats
+        # Fortress ahead and it leaves hand before Death Cart asks for an Action
+        # to trash, so Death Cart has no fodder. Death Cart's trash payload is
+        # just the next in-hand Action rule, so the shared scan covers it.
+        info = KingdomInfo.from_kingdom(
+            ["Death Cart", "Fortress", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Death Cart"),
+            PriorityRule("Fortress"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Death Cart"
+        assert names.index("Fortress") < names.index("Peddler")
+
+    def test_elder_pins_following_payload(self):
+        # Finding A: Elder chooses an Action from hand via choose_action and
+        # plays it indirectly (cards/allies/townsfolk.py:237-256), so it is a
+        # hand-action consumer. On [Elder, Smithy, Peddler] the role sort would
+        # otherwise float the Peddler cantrip ahead of the terminal Smithy, so
+        # Elder's choose_action would pick Peddler instead of the intended
+        # Smithy. Smithy must stay pinned immediately after Elder.
+        info = KingdomInfo.from_kingdom(["Elder", "Smithy", "Peddler"])
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Elder"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Elder"
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_procession_skips_ineligible_duration_payload(self):
+        # Finding B: Procession plays a *non-Duration* Action from hand twice
+        # then trashes it (cards/dark_ages/procession.py:20), so its chooser
+        # filters out Durations. On [Procession, Wharf, Smithy, Peddler] the pin
+        # scan must skip the ineligible Duration Wharf and pin the first eligible
+        # non-Duration Action (Smithy) as Procession's payload — otherwise Smithy
+        # stays movable and the role sort floats Peddler ahead, so Procession's
+        # choose_action takes Peddler instead of the intended Smithy. The skipped
+        # Wharf is pinned in its slot so the cantrip cannot reflow ahead of the
+        # payload.
+        info = KingdomInfo.from_kingdom(
+            ["Procession", "Wharf", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Procession"),
+            PriorityRule("Wharf"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Procession"
+        # Smithy is the pinned non-Duration payload and stays ahead of Peddler.
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_royal_galley_skips_ineligible_duration_payload(self):
+        # Royal Galley sets aside a *non-Duration* Action to replay
+        # (cards/allies/standalone.py:353), so like Procession it must skip the
+        # ineligible Duration Wharf and pin Smithy as its payload.
+        info = KingdomInfo.from_kingdom(
+            ["Royal Galley", "Wharf", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Royal Galley"),
+            PriorityRule("Wharf"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Royal Galley"
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_duration_allowing_consumer_pins_following_duration(self):
+        # Guard against over-restriction: Throne Room's chooser does NOT exclude
+        # Durations (cards/base_set/throne_room.py), so on
+        # [Throne Room, Wharf, Peddler] the immediately-following Duration Wharf
+        # IS Throne Room's intended payload and must stay pinned right after it,
+        # ahead of the Peddler cantrip. Only _NON_DURATION_CONSUMERS skip
+        # Durations.
+        info = KingdomInfo.from_kingdom(
+            ["Throne Room", "Wharf", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Throne Room"),
+            PriorityRule("Wharf"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Throne Room"
+        assert names.index("Wharf") < names.index("Peddler")
+
+    def test_throne_room_pins_immediate_command_payload(self):
+        # Round 9: an immediate hand-action consumer (Throne Room) chooses its
+        # target from hand on play, accepting ANY eligible card.is_action —
+        # including a Command (cards/base_set/throne_room.py accepts every
+        # card.is_action; choose_action then follows action_priority). So on
+        # [Throne Room, Band of Misfits, Watchtower, Peddler] the payload is the
+        # immediately-following Command Band of Misfits, which must NOT be
+        # skipped: it stays pinned right after Throne Room. The Command skip is
+        # reserved for pending-replay Commands.
+        #
+        # Band of Misfits is a *supply* Command (not a pending-replay/consumer),
+        # so it pins no payload of its own. This discriminates old vs new: under
+        # the old skip-every-Command logic Throne Room would skip Band of Misfits
+        # and pin Watchtower as its payload, keeping the terminal Watchtower
+        # pinned ahead of the Peddler cantrip. Under the fix Throne Room pins
+        # Band of Misfits (its real immediate payload), leaving Watchtower and
+        # Peddler free to role-sort — so the cantrip Peddler correctly sorts
+        # ahead of the terminal Watchtower.
+        info = KingdomInfo.from_kingdom(
+            ["Throne Room", "Band of Misfits", "Watchtower", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Throne Room"),
+            PriorityRule("Band of Misfits"),
+            PriorityRule("Watchtower"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        # Band of Misfits is Throne Room's immediate eligible payload — pinned
+        # right after it, NOT skipped to Watchtower.
+        assert names[0] == "Throne Room"
+        assert names[1] == "Band of Misfits"
+        # Watchtower was NOT pinned as Throne Room's payload, so the role sort is
+        # free to float the Peddler cantrip ahead of the Watchtower terminal.
+        assert names.index("Peddler") < names.index("Watchtower")
+
+    def test_pending_command_skips_command_immediate_consumer_does_not(self):
+        # Round 9 contrast: a pending-replay Command (Daimyo) fires only on the
+        # next *non-Command* Action, so it DOES skip an intervening Command
+        # (Band of Misfits) to reach its non-Command payload (Smithy) — the
+        # round-4 behavior. This is the opposite of an immediate consumer like
+        # Throne Room, which would have pinned the Command itself.
+        info = KingdomInfo.from_kingdom(
+            ["Daimyo", "Band of Misfits", "Smithy", "Peddler"]
+        )
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Daimyo"),
+            PriorityRule("Band of Misfits"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Daimyo"
+        assert names[1] == "Band of Misfits"
+        # The intervening Command is skipped; Smithy is the pinned payload.
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_leaves_gated_action_rules_in_place(self):
+        info = KingdomInfo.from_kingdom(["Watchtower", "Peddler"])
+        gated_watchtower = PriorityRule("Watchtower", PriorityRule.actions_in_hand(">=", 2))
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [gated_watchtower, PriorityRule("Peddler")]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        assert s.action_priority[0] is gated_watchtower
+        assert [r.card_name for r in s.action_priority] == ["Watchtower", "Peddler"]
+
 
 class TestKingdomSimilarity:
     def _menu(self, *kingdom_picks: str) -> BaseStrategy:
