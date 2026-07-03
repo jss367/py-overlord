@@ -242,8 +242,95 @@ class HyderabadOtterBrokerEngine(EnhancedStrategy):
         ]
 
 
+class HyderabadStockpileScholar(EnhancedStrategy):
+    """Hybrid: Stockpile/Ducat buy economy with Scholar refills.
+
+    Stockpile hands shrink as plays Exile the treasure; Scholar refills to
+    seven regardless, and Progress topdecks each re-bought Stockpile for
+    immediate redeployment. Ducat Coffers smooth the price points.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = "Hyderabad Stockpile Scholar"
+        self.description = "Stockpile economy + Scholar draw hybrid."
+        self.version = "1.0"
+
+        self.gain_priority = [
+            PriorityRule("Province", PriorityRule.resources("coins", ">=", 8)),
+            PriorityRule("Scholar", PriorityRule.max_in_deck("Scholar", 2)),
+            PriorityRule("Duchy", PriorityRule.provinces_left("<=", 5)),
+            PriorityRule("Gold"),
+            PriorityRule("Stockpile"),
+            PriorityRule("Ducat"),
+            PriorityRule("Estate", PriorityRule.provinces_left("<=", 3)),
+        ]
+
+        self.action_priority = [
+            PriorityRule("Scholar", PriorityRule.treasures_in_hand("<=", 3)),
+        ]
+
+        self.treasure_priority = [
+            PriorityRule("Stockpile"),
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
+            PriorityRule("Ducat"),
+            PriorityRule("Copper"),
+        ]
+
+
+class HyderabadPriestStockpile(EnhancedStrategy):
+    """Hybrid: Priest thinning into a Stockpile/Ducat buy engine.
+
+    Priest strips the starting junk (each extra trash pays $2 on the way),
+    then recurring Stockpiles plus Coffers buy green on multiple buys a
+    turn while the Stockpile pile drains toward three piles.
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = "Hyderabad Priest Stockpile"
+        self.description = "Priest thinning + Stockpile/Ducat buy economy."
+        self.version = "1.0"
+
+        self.gain_priority = [
+            PriorityRule("Province", PriorityRule.resources("coins", ">=", 8)),
+            PriorityRule("Duchy", PriorityRule.provinces_left("<=", 5)),
+            PriorityRule("Priest", PriorityRule.max_in_deck("Priest", 1)),
+            PriorityRule("Gold"),
+            PriorityRule("Stockpile"),
+            PriorityRule("Ducat"),
+            PriorityRule("Estate", PriorityRule.provinces_left("<=", 3)),
+        ]
+
+        self.action_priority = [
+            PriorityRule("Priest"),
+        ]
+
+        self.treasure_priority = [
+            PriorityRule("Stockpile"),
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
+            PriorityRule("Ducat"),
+            PriorityRule("Copper"),
+        ]
+
+        self.trash_priority = [
+            PriorityRule("Estate", PriorityRule.provinces_left(">", 2)),
+            PriorityRule("Copper", PriorityRule.has_cards(["Stockpile", "Silver", "Gold"], 3)),
+        ]
+
+
 def create_hyderabad_scholar_money() -> EnhancedStrategy:
     return HyderabadScholarMoney()
+
+
+def create_hyderabad_stockpile_scholar() -> EnhancedStrategy:
+    return HyderabadStockpileScholar()
+
+
+def create_hyderabad_priest_stockpile() -> EnhancedStrategy:
+    return HyderabadPriestStockpile()
 
 
 def create_hyderabad_green_scholar_engine() -> EnhancedStrategy:
