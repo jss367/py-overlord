@@ -380,12 +380,11 @@ def test_infirmary_overpay_moves_card_into_play_before_replaying():
     assert not any(c.name == "Infirmary" for c in player.discard)
 
 
-def test_infirmary_overpay_replays_when_reclaimed_from_exile():
-    """If the player has an Infirmary on the Exile mat, gain_card reclaims
-    that instance instead of placing the freshly-bought one. on_overpay is
-    called on the freshly-bought ``self`` (not the reclaimed instance), so
-    the handler must search for any Infirmary by name rather than ``self``
-    identity. The replays must still happen."""
+def test_infirmary_overpay_replays_with_copy_on_exile_mat():
+    """If the player has an Infirmary on the Exile mat, the gain still
+    happens (Menagerie Exile rule: the exiled copies are discarded in
+    addition to the gain, never instead of it). on_overpay is called on the
+    freshly-bought ``self``, and the replays must still happen."""
 
     ai = InfirmaryBuyer(overpay=2, trash_target=None)
     player = PlayerState(ai)
@@ -411,12 +410,14 @@ def test_infirmary_overpay_replays_when_reclaimed_from_exile():
     # 2 replays of Infirmary = 2 Coppers drawn (each play: +1 Card).
     coppers_in_hand = sum(1 for c in player.hand if c.name == "Copper")
     assert coppers_in_hand == 2, (
-        f"Reclaim-from-Exile case should still replay Infirmary; got "
+        f"Copy-on-Exile-mat case should still replay Infirmary; got "
         f"{coppers_in_hand} Coppers"
     )
-    # The Infirmary in play is the reclaimed (formerly exiled) instance.
-    assert exiled_infirmary in player.in_play
+    # The bought Infirmary is in play; the exiled copy was discarded from
+    # the Exile mat as part of the gain.
+    assert any(c.name == "Infirmary" for c in player.in_play)
     assert exiled_infirmary not in player.exile
+    assert exiled_infirmary in player.discard
 
 
 def test_infirmary_overpay_skips_replays_if_trader_swapped_for_silver():

@@ -216,10 +216,12 @@ def test_guard_skipped_when_collection_would_swing_the_score():
     assert "Market" in me.bought_this_turn
 
 
-def test_guard_skipped_when_exiled_copy_reclaimed():
-    """With a matching card on the Exile mat the real buy reclaims it and
-    restores the supply (game_state.py:3401), so the pile is not actually
-    depleted and the game does not end — the guard must not veto."""
+def test_guard_vetoes_losing_pileout_despite_exiled_copy():
+    """An exiled copy no longer substitutes for the gain (Menagerie rule:
+    the gain happens, then exiled copies may be discarded in addition), so
+    buying the last Province genuinely empties the pile and ends the game.
+    Two Provinces (bought + exiled) still lose to the opponent's three, so
+    the guard must veto the buy."""
     ai = PriorityBuyAI(["Province"])
     # Distinct objects: all_cards() dedups by id, so aliased copies would
     # under-count the opponent and make the buyer look ahead.
@@ -229,12 +231,12 @@ def test_guard_skipped_when_exiled_copy_reclaimed():
     state.supply = {"Province": 1, "Copper": 30}
     me.coins = 8
     me.buys = 1
-    me.exile = [get_card("Province")]  # reclaimed instead of depleting
+    me.exile = [get_card("Province")]
 
     state.handle_buy_phase()
 
-    assert state.supply["Province"] == 1  # pile restored, game did not end
-    assert "Province" in me.bought_this_turn
+    assert state.supply["Province"] == 1  # buy vetoed, pile untouched
+    assert "Province" not in me.bought_this_turn
 
 
 class _RevealsTraderAI(PriorityBuyAI):

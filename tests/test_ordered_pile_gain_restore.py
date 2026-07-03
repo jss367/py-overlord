@@ -69,13 +69,12 @@ def test_trader_restores_ordered_knights_pile():
     assert state.pile_order["Knights"][-1] == top_name
 
 
-def test_exile_reclaim_restores_ordered_knights_pile():
-    """When a gain is reclaimed from the Exile mat, the Supply pile that
-    was decremented for the gain must be restored. For ordered piles this
-    means the placeholder key and pile_order, not the card-specific name."""
+def test_gain_with_exiled_knight_consumes_pile_and_discards_exiled_copy():
+    """An exiled copy no longer replaces the gain (Menagerie rule: the
+    gain happens, then exiled copies are discarded in addition), so the
+    caller's pile decrement stands and the exiled copy joins the discard."""
 
     state, player, top_name = _prepare_state_with_knights(DummyAI())
-    # Put a matching Knight on the Exile mat so the next gain is reclaimed.
     exiled = get_card(top_name)
     player.exile.append(exiled)
 
@@ -86,7 +85,9 @@ def test_exile_reclaim_restores_ordered_knights_pile():
     state.pile_order["Knights"].pop()
     gained = state.gain_card(player, get_card(top_name))
 
-    assert gained is exiled, "Exile mat copy should be reclaimed"
-    assert state.supply["Knights"] == knights_before
-    assert len(state.pile_order["Knights"]) == order_len_before
-    assert state.pile_order["Knights"][-1] == top_name
+    assert gained is not exiled, "The freshly gained copy is kept, not the exiled one"
+    assert gained.name == top_name
+    assert state.supply["Knights"] == knights_before - 1
+    assert len(state.pile_order["Knights"]) == order_len_before - 1
+    assert exiled in player.discard
+    assert player.exile == []

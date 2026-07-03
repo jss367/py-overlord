@@ -18,6 +18,9 @@ class BoardConfig:
     landmarks: list[str] = field(default_factory=list)
     allies: list[str] = field(default_factory=list)
     traits: dict[str, str] = field(default_factory=dict)  # {card_name: trait_name}
+    # Rising Sun: pins the dealt Prophecy. Without this, any Omen board gets a
+    # random Prophecy per game, which makes board evaluation non-stationary.
+    prophecy: str | None = None
 
 
 def _normalise_entry(entry: str) -> str:
@@ -85,6 +88,8 @@ def _parse_special_line(line: str, config: BoardConfig) -> bool:
         config.landmarks.append(_parse_landmark_value(value))
     elif key == "ally":
         config.allies.append(value)
+    elif key == "prophecy":
+        config.prophecy = value
     elif key == "trait":
         # Formats: "Trait: TraitName - CardName" or "Trait: TraitName (CardName)".
         trait_name, card_name = _parse_trait_value(value)

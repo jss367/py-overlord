@@ -1,0 +1,20 @@
+# Hyderabad board.
+#
+# Renaissance / Menagerie / Rising Sun mix. River Shrine is an Omen, so a
+# Prophecy is dealt; this board pins Progress (all card gains topdeck once
+# the Sun tokens run out). Silos and Way of the Otter round out the
+# landscapes. No Colony/Platinum.
+Ducat
+Scrap
+Stockpile
+Patron
+Priest
+River Shrine
+Village Green
+Rice Broker
+Scepter
+Scholar
+
+Project: Silos
+Way: Way of the Otter
+Prophecy: Progress

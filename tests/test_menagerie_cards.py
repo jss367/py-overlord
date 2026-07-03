@@ -97,6 +97,34 @@ def test_stockpile_exiles_itself_when_played():
     assert p1.buys == 2  # base 1 + 1 from card
 
 
+def test_gaining_stockpile_discards_all_exiled_copies_in_addition():
+    """Menagerie Exile rule: gaining a card lets you discard ALL exiled
+    copies of it — in addition to the gain, never instead of it."""
+    state, p1, _ = _two_player_state()
+    p1.exile = [get_card("Stockpile"), get_card("Stockpile")]
+    state.supply["Stockpile"] = 8
+
+    state.supply["Stockpile"] -= 1
+    gained = state.gain_card(p1, get_card("Stockpile"))
+
+    assert gained.name == "Stockpile"
+    assert state.supply["Stockpile"] == 7  # pile stays consumed
+    assert p1.exile == []
+    assert sum(1 for c in p1.discard if c.name == "Stockpile") == 3
+
+
+def test_gaining_copper_leaves_bounty_hunter_fodder_in_exile():
+    """The discard-from-Exile is optional; the default AI keeps junk
+    (Bounty Hunter / Sanctuary fodder) on the mat."""
+    state, p1, _ = _two_player_state()
+    p1.exile = [get_card("Copper")]
+
+    state.gain_card(p1, get_card("Copper"))
+
+    assert sum(1 for c in p1.exile if c.name == "Copper") == 1
+    assert sum(1 for c in p1.discard if c.name == "Copper") == 1
+
+
 def test_bounty_hunter_no_coin_when_already_exiled():
     state, p1, _ = _two_player_state()
     p1.exile = [get_card("Estate")]
@@ -526,28 +554,28 @@ def test_displace_skips_split_pile_bottom_when_covered():
     assert state.supply["Catapult"] == pre_cat - 1
 
 
-def test_displace_restores_ordered_pile_on_exile_reclamation():
-    """If the player has the top Knight already on their Exile mat,
-    gain_card reclaims that exile copy and tries to restore the supply
-    via the specific knight's name — which doesn't exist as a supply
-    key for ordered piles — silently no-opping. The Knights pile must
-    be restored manually so it isn't permanently decremented."""
+def test_displace_gain_with_exiled_top_knight_consumes_pile():
+    """A copy on the Exile mat no longer replaces the gain (Menagerie rule:
+    the gain happens, then exiled copies are discarded in addition), so
+    Displace gaining the top Knight consumes the pile normally and the
+    previously-exiled copy lands in the discard alongside the gain."""
     state, p1, _ = _two_player_state()
     p1.actions = 1
     p1.hand = [get_card("Displace"), get_card("Silver")]
     state.supply = {"Knights": 10}
     state.pile_order = dict(getattr(state, "pile_order", {}))
     state.pile_order["Knights"] = ["Dame Anna", "Dame Josephine"]
-    # Top knight already exiled — Displace's gain will reclaim it.
     p1.exile.append(get_card("Dame Josephine"))
     pre_supply = state.supply["Knights"]
     pre_order = list(state.pile_order["Knights"])
     state.phase = "action"
     state.handle_action_phase()
     assert any(c.name == "Silver" for c in p1.exile)
-    assert state.supply["Knights"] == pre_supply
-    assert state.pile_order["Knights"] == pre_order
-    assert any(c.name == "Dame Josephine" for c in p1.discard)
+    assert state.supply["Knights"] == pre_supply - 1
+    assert state.pile_order["Knights"] == pre_order[:-1]
+    # Gained copy + the copy discarded from Exile.
+    assert sum(1 for c in p1.discard if c.name == "Dame Josephine") == 2
+    assert not any(c.name == "Dame Josephine" for c in p1.exile)
 
 
 def test_displace_does_not_double_restore_pile_on_changeling_exchange():
