@@ -666,6 +666,34 @@ class TestNormalizeMenu:
             assert names[0] == consumer
             assert names.index("Smithy") < names.index("Peddler")
 
+    def test_disciple_and_prince_do_not_pin_following_terminal(self):
+        # Disciple and Prince use card-specific choosers that do not consult
+        # action_priority, so the rule after them is not a priority payload. The
+        # role sort must remain free to float safer actions ahead of terminals.
+        cases = [
+            ("Disciple", "Smithy", "Peddler"),
+            ("Prince", "Smithy", "Village"),
+        ]
+        for consumer, terminal, safer_action in cases:
+            info = KingdomInfo.from_kingdom([consumer, terminal, safer_action])
+            s = BaseStrategy()
+            s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+            s.action_priority = [
+                PriorityRule(consumer),
+                PriorityRule(terminal),
+                PriorityRule(safer_action),
+            ]
+            s.treasure_priority = [
+                PriorityRule("Gold"),
+                PriorityRule("Silver"),
+                PriorityRule("Copper"),
+            ]
+
+            normalize_menu(s, info)
+
+            names = [r.card_name for r in s.action_priority]
+            assert names.index(safer_action) < names.index(terminal)
+
     def test_death_cart_pins_trash_fodder(self):
         # Finding B: Death Cart trashes an Action from hand for +$5
         # (cards/dark_ages/death_cart.py). [Death Cart, Fortress] must keep
@@ -712,6 +740,27 @@ class TestNormalizeMenu:
 
         names = [r.card_name for r in s.action_priority]
         assert names[0] == "Elder"
+        assert names.index("Smithy") < names.index("Peddler")
+
+    def test_farmhands_pins_non_duration_payload(self):
+        # Farmhands' next-turn play filters to non-Duration Actions and uses
+        # choose_action, so it skips an intervening Duration while pinning the
+        # first eligible unconditional fallback payload.
+        info = KingdomInfo.from_kingdom(["Farmhands", "Wharf", "Smithy", "Peddler"])
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Farmhands"),
+            PriorityRule("Wharf"),
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Farmhands"
         assert names.index("Smithy") < names.index("Peddler")
 
     def test_procession_skips_ineligible_duration_payload(self):
@@ -833,6 +882,30 @@ class TestNormalizeMenu:
         # Watchtower was NOT pinned as Throne Room's payload, so the role sort is
         # free to float the Peddler cantrip ahead of the Watchtower terminal.
         assert names.index("Peddler") < names.index("Watchtower")
+
+    def test_consumer_pins_unconditional_fallback_after_gated_candidate(self):
+        # If the first eligible candidate after a consumer is gated, choose_action
+        # can fall through to the next eligible rule when the gate is false. The
+        # scan must keep the gated rule anchored and also pin the unconditional
+        # fallback payload ahead of unrelated cantrips.
+        info = KingdomInfo.from_kingdom(["Throne Room", "Watchtower", "Smithy", "Peddler"])
+        gated_watchtower = PriorityRule("Watchtower", PriorityRule.actions_in_hand(">=", 2))
+        s = BaseStrategy()
+        s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        s.action_priority = [
+            PriorityRule("Throne Room"),
+            gated_watchtower,
+            PriorityRule("Smithy"),
+            PriorityRule("Peddler"),
+        ]
+        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+
+        normalize_menu(s, info)
+
+        names = [r.card_name for r in s.action_priority]
+        assert names[0] == "Throne Room"
+        assert s.action_priority[1] is gated_watchtower
+        assert names.index("Smithy") < names.index("Peddler")
 
     def test_pending_command_skips_command_immediate_consumer_does_not(self):
         # Round 9 contrast: a pending-replay Command (Daimyo) fires only on the

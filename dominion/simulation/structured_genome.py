@@ -409,16 +409,13 @@ _PENDING_REPLAY_COMMANDS = frozenset({"Daimyo", "Flagship"})
 #     ``cards/prosperity/kings_court.py``, ``cards/dark_ages/procession.py``,
 #     ``cards/empires/crown.py``, ``cards/plunder/first_mate.py``,
 #     ``cards/menagerie/mastermind.py``.
-#   * "Play one Action from hand" cards — Shop (``cards/cornucopia/shop.py``),
-#     Royal Galley (``cards/allies/standalone.py``), Conclave
-#     (``cards/nocturne/conclave.py``).
-#   * Hand-Action replayers/upgraders — Specialist (replay-or-gain-a-copy,
-#     ``cards/allies/standalone.py``), Disciple (replay twice,
-#     ``cards/adventures/peasant.py``), Elder (play a chosen hand Action
-#     indirectly via ``choose_action``, ``cards/allies/townsfolk.py:237-256``),
-#     and Prince (set a hand Action aside to replay every turn,
-#     ``cards/promo/prince.py``; picks the target via ``choose_prince_target``
-#     but still consumes a chosen hand Action as its payload).
+#   * "Play one Action from hand" cards that route through ``choose_action`` —
+#     Shop (``cards/cornucopia/shop.py``), Royal Galley
+#     (``cards/allies/standalone.py``), Farmhands
+#     (``cards/cornucopia/farmhands.py``), and Elder (plays a chosen hand Action
+#     indirectly via ``choose_action``, ``cards/allies/townsfolk.py:237-256``).
+#   * Hand-Action replayers/upgraders that route through ``choose_action`` —
+#     Specialist (replay-or-gain-a-copy, ``cards/allies/standalone.py``).
 #   * Hand-Action trashers whose payload is the Action they trash — Death Cart
 #     (trash an Action for +$5, ``cards/dark_ages/death_cart.py``) and
 #     Graverobber (upgrade mode trashes a chosen hand Action to gain a costlier
@@ -431,6 +428,12 @@ _PENDING_REPLAY_COMMANDS = frozenset({"Daimyo", "Flagship"})
 #   * Royal Carriage — replays the *previously* played Action via a tavern
 #     reaction (``on_call_from_tavern``); it does not choose the *next* hand
 #     Action on its own play, so it has no following payload to pin.
+#   * Card-specific non-priority choosers — Conclave
+#     (``choose_action_to_play_with_conclave``), Disciple
+#     (``choose_disciple_action_to_replay``), and Prince
+#     (``choose_prince_target``). Their target choice ignores
+#     ``action_priority``, so pinning the following rule would wrongly strand
+#     safer actions when the card-specific chooser is absent.
 #   * Cards that merely inspect hand Actions without playing one as a payload —
 #     Town/Capital City (mode choice), Sacrifice (trashes any card, not the
 #     next Action specifically), Champion (passive duration). Contract picks an
@@ -449,10 +452,9 @@ _HAND_ACTION_CONSUMERS = frozenset(
         "Crown",
         "Mastermind",
         "First Mate",
-        "Disciple",
         "Specialist",
         "Elder",
-        "Prince",
+        "Farmhands",
         # Play one Action from hand.
         "Shop",
         "Royal Galley",
@@ -471,13 +473,16 @@ _HAND_ACTION_CONSUMERS = frozenset(
 #     — it cannot trash a card that stays in play.
 #   * Royal Galley sets aside a non-Duration Action to replay
 #     (``cards/allies/standalone.py:353``).
+#   * Farmhands filters its next-turn hand Action play to non-Duration cards
+#     (``cards/cornucopia/farmhands.py:57``).
 # The other consumers verified to ALLOW Durations and so are excluded here:
-# Throne Room, King's Court, Crown, Mastermind, First Mate, Disciple,
-# Specialist, Shop, Conclave, Death Cart, Elder, Graverobber, Prince — their
+# Throne Room, King's Court, Crown, Mastermind, First Mate, Specialist, Shop,
+# Death Cart, Elder, Graverobber — their
 # choosers filter on ``is_action`` (and sometimes cost or already-in-play), not
 # on ``is_duration``.
 _NON_DURATION_CONSUMERS = frozenset(
     {
+        "Farmhands",
         "Procession",
         "Royal Galley",
     }
@@ -512,8 +517,8 @@ def _consumes_next_action(card: str) -> bool:
     * Pending-replay Commands (Daimyo, Flagship): register a slot that fires on
       whatever non-Command Action is played next from hand.
     * Non-Command hand-action consumers (Throne Room, King's Court, Procession,
-      Crown, First Mate, Mastermind, Disciple, Specialist, Shop, Royal Galley,
-      Conclave, Death Cart — see ``_HAND_ACTION_CONSUMERS``): their effect
+      Crown, First Mate, Mastermind, Specialist, Shop, Royal Galley, Farmhands,
+      Death Cart — see ``_HAND_ACTION_CONSUMERS``): their effect
       chooses an Action *from hand* to play/replay/multiply/trash, so the
       payload has to still be playable after them rather than floated ahead.
 
@@ -538,8 +543,8 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
     that consumes the *next in-hand Action* played after it (see
     ``_consumes_next_action``): pending-replay Commands (Daimyo, Flagship) and
     non-Command hand-action consumers (Throne Room, King's Court, Procession,
-    Crown, First Mate, Mastermind, Disciple, Specialist, Shop, Royal Galley,
-    Conclave, Death Cart — see ``_HAND_ACTION_CONSUMERS``). For each such rule
+    Crown, First Mate, Mastermind, Specialist, Shop, Royal Galley, Farmhands,
+    Death Cart — see ``_HAND_ACTION_CONSUMERS``). For each such rule
     the first unconditional Action rule after it that the consumer can actually
     target is pinned too as its payload: the card fires on / replays whatever
     Action follows it, so seeds deliberately emit it before its payload (see
@@ -584,32 +589,34 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
           ``[Daimyo, Band of Misfits(gate), Smithy, Peddler]``.
         * **Immediate hand-action consumers** (everything else in
           ``_HAND_ACTION_CONSUMERS`` — Throne Room, King's Court, Crown,
-          Mastermind, First Mate, Disciple, Specialist, Shop, Conclave, Death
-          Cart, Elder, Graverobber, Prince, and the Duration-filtering pair
-          Procession / Royal Galley) choose their target from hand *immediately*
-          on play, accepting any eligible ``card.is_action`` — **including a
-          Command**. Throne Room's chooser, for instance, can Throne a Daimyo
-          (``cards/base_set/throne_room.py`` accepts every ``card.is_action``),
-          and ``EnhancedStrategy.choose_action`` then follows ``action_priority``.
-          So for these consumers a Command is a *valid* immediate payload and is
-          NOT skipped. On ``[Throne Room, Daimyo, Watchtower, Peddler]`` the
-          payload is the immediately-following Daimyo; pinning it keeps it right
-          after Throne Room instead of skipping to Watchtower.
+          Mastermind, First Mate, Specialist, Shop, Death Cart, Elder,
+          Graverobber, and the Duration-filtering consumers Procession /
+          Royal Galley / Farmhands) choose their target from hand, accepting any
+          eligible ``card.is_action`` — **including a Command** unless the card's
+          own target filter says otherwise. Throne Room's chooser, for instance,
+          can Throne a Daimyo (``cards/base_set/throne_room.py`` accepts every
+          ``card.is_action``), and ``EnhancedStrategy.choose_action`` then
+          follows ``action_priority``. So for these consumers a Command is a
+          *valid* immediate payload and is NOT skipped. On
+          ``[Throne Room, Daimyo, Watchtower, Peddler]`` the payload is the
+          immediately-following Daimyo; pinning it keeps it right after
+          Throne Room instead of skipping to Watchtower.
 
         For the Duration-filtering consumers (``_NON_DURATION_CONSUMERS`` —
-        Procession trashes what it plays, Royal Galley sets aside a non-Duration
-        Action), an intervening Duration Action rule is skipped while locating
-        the payload, since the consumer can never legally pick it. Each skipped
-        rule (Command for pending-replay Commands; Duration for the
-        Duration-filtering consumers) is pinned in place too so the role sort
-        cannot float an unrelated cantrip into that gap *ahead of* the real
-        payload — that would defeat the point, since ``choose_action`` walks
-        ``action_priority`` and would then pick the cantrip over the intended
-        payload. (Intervening Commands are already pinned in their own
-        iteration regardless; ineligible Durations would not otherwise be.)
-        Examples: ``[Procession, Wharf, Smithy, Peddler]`` skips the ineligible
-        Duration Wharf and pins Smithy; ``[Throne Room, Wharf, Smithy]`` pins
-        the immediately-following Wharf as Throne Room's payload.
+        Procession trashes what it plays, Royal Galley sets aside a
+        non-Duration Action, Farmhands plays a non-Duration Action), an
+        intervening Duration Action rule is skipped while locating the payload,
+        since the consumer can never legally pick it. Each skipped rule
+        (Command for pending-replay Commands; Duration for the Duration-filtering
+        consumers) is pinned in place too so the role sort cannot float an
+        unrelated cantrip into that gap *ahead of* the real payload — that would
+        defeat the point, since ``choose_action`` walks ``action_priority`` and
+        would then pick the cantrip over the intended payload. (Intervening
+        Commands are already pinned in their own iteration regardless;
+        ineligible Durations would not otherwise be.) Examples:
+        ``[Procession, Wharf, Smithy, Peddler]`` skips the ineligible Duration
+        Wharf and pins Smithy; ``[Throne Room, Wharf, Smithy]`` pins the
+        immediately-following Wharf as Throne Room's payload.
 
         The scan runs for *gated* consumers too: the gate only decides whether
         the card plays, and when it does it still acts on its target the same
@@ -631,6 +638,14 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
             if skip_durations and _is_duration_card(name):
                 # Pin a skipped Duration in place so a movable cantrip cannot
                 # reflow ahead of the payload.
+                pinned[nxt] = True
+                nxt += 1
+                continue
+            if getattr(action[nxt], "condition", None) is not None:
+                # A gated candidate remains anchored, but when its condition is
+                # false choose_action falls through to the next eligible rule.
+                # Keep scanning so that unconditional fallback payload is
+                # protected too.
                 pinned[nxt] = True
                 nxt += 1
                 continue
