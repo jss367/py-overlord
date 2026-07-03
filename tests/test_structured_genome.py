@@ -11,6 +11,7 @@ from __future__ import annotations
 import random
 import types
 
+from dominion.cards.registry import get_card
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.simulation.structured_genome import (
     KingdomInfo,
@@ -694,30 +695,60 @@ class TestNormalizeMenu:
             names = [r.card_name for r in s.action_priority]
             assert names.index(safer_action) < names.index(terminal)
 
-    def test_death_cart_pins_trash_fodder(self):
-        # Finding B: Death Cart trashes an Action from hand for +$5
-        # (cards/dark_ages/death_cart.py). [Death Cart, Fortress] must keep
-        # Fortress pinned after Death Cart — otherwise the role sort floats
-        # Fortress ahead and it leaves hand before Death Cart asks for an Action
-        # to trash, so Death Cart has no fodder. Death Cart's trash payload is
-        # just the next in-hand Action rule, so the shared scan covers it.
-        info = KingdomInfo.from_kingdom(
-            ["Death Cart", "Fortress", "Peddler"]
-        )
+    def test_non_priority_trashers_do_not_pin_following_terminal(self):
+        # Death Cart and Graverobber choose trash targets through card-specific
+        # trash hooks, not action_priority. The rule after them is therefore
+        # not a priority payload; safer actions must remain free to role-sort
+        # ahead of following terminals when the trasher is absent or takes a
+        # different mode.
+        cases = [
+            ("Death Cart", "Smithy", "Peddler"),
+            ("Graverobber", "Smithy", "Peddler"),
+        ]
+        for trasher, terminal, safer_action in cases:
+            info = KingdomInfo.from_kingdom([trasher, terminal, safer_action])
+            s = BaseStrategy()
+            s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+            s.action_priority = [
+                PriorityRule(trasher),
+                PriorityRule(terminal),
+                PriorityRule(safer_action),
+            ]
+            s.treasure_priority = [
+                PriorityRule("Gold"),
+                PriorityRule("Silver"),
+                PriorityRule("Copper"),
+            ]
+
+            normalize_menu(s, info)
+
+            names = [r.card_name for r in s.action_priority]
+            assert names.index(safer_action) < names.index(terminal)
+
+    def test_overlord_is_command_anchor_without_payload_pin(self):
+        # Overlord plays a target from the supply like Band of Misfits/Captain,
+        # so it must be anchored as a Command but must not pin the following
+        # action-priority rule as a hand payload.
+        info = KingdomInfo.from_kingdom(["Overlord", "Smithy", "Peddler"])
         s = BaseStrategy()
         s.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
         s.action_priority = [
-            PriorityRule("Death Cart"),
-            PriorityRule("Fortress"),
+            PriorityRule("Overlord"),
+            PriorityRule("Smithy"),
             PriorityRule("Peddler"),
         ]
-        s.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
+        s.treasure_priority = [
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
+            PriorityRule("Copper"),
+        ]
 
         normalize_menu(s, info)
 
         names = [r.card_name for r in s.action_priority]
-        assert names[0] == "Death Cart"
-        assert names.index("Fortress") < names.index("Peddler")
+        assert get_card("Overlord").is_command
+        assert names[0] == "Overlord"
+        assert names.index("Peddler") < names.index("Smithy")
 
     def test_elder_pins_following_payload(self):
         # Finding A: Elder chooses an Action from hand via choose_action and

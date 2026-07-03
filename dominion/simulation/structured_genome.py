@@ -390,7 +390,7 @@ def _stats_role_rank(card: str) -> int:
 _PENDING_REPLAY_COMMANDS = frozenset({"Daimyo", "Flagship"})
 
 # Non-Command "hand-action consumers": cards whose play/effect selects an Action
-# *from hand* to play, replay, multiply, or trash, so the strategy's next
+# *from hand* to play, replay, or multiply, so the strategy's next
 # intended Action rule must stay pinned after them. If the role sort floats a
 # draw/cantrip ahead of one of these, the intended payload leaves hand (or is
 # never queued) before the card gets to call ``choose_action`` on it, and the
@@ -398,9 +398,9 @@ _PENDING_REPLAY_COMMANDS = frozenset({"Daimyo", "Flagship"})
 #
 # This is the comprehensive set found by scanning every card's effect for a
 # selection over Actions *in hand* (``[c for c in player.hand if c.is_action]``
-# fed to ``ai.choose_action`` / a card-specific chooser, or a trash-an-Action
-# chooser). Membership criterion: the card plays/replays/multiplies/trashes an
-# Action chosen *from hand* as its payload. Families covered:
+# fed to ``ai.choose_action`` / a priority-routed card-specific chooser).
+# Membership criterion: the card plays/replays/multiplies an Action chosen
+# *from hand* as its action-priority payload. Families covered:
 #
 #   * Multipliers that replay a chosen hand Action immediately on play —
 #     Throne Room, King's Court, Procession, Crown (action phase), First Mate —
@@ -416,15 +416,14 @@ _PENDING_REPLAY_COMMANDS = frozenset({"Daimyo", "Flagship"})
 #     indirectly via ``choose_action``, ``cards/allies/townsfolk.py:237-256``).
 #   * Hand-Action replayers/upgraders that route through ``choose_action`` —
 #     Specialist (replay-or-gain-a-copy, ``cards/allies/standalone.py``).
-#   * Hand-Action trashers whose payload is the Action they trash — Death Cart
-#     (trash an Action for +$5, ``cards/dark_ages/death_cart.py``) and
-#     Graverobber (upgrade mode trashes a chosen hand Action to gain a costlier
-#     one, ``cards/dark_ages/graverobber.py:43-50``).
-#
 # Deliberately EXCLUDED (verified against ``play_effect``):
 #   * Supply/trash-targeting cards — Band of Misfits, Captain, Overlord, Lurker
 #     (pick from the supply/trash, not hand) and Necromancer (plays from the
 #     trash). Pinning a payload after these would wrongly defeat the role sort.
+#   * Hand-Action trashers — Death Cart uses
+#     ``should_trash_action_for_death_cart`` and Graverobber's upgrade mode uses
+#     ``choose_card_to_trash`` / trash priority. Their choices do not consult
+#     ``action_priority``, so the following rule is not their priority payload.
 #   * Royal Carriage — replays the *previously* played Action via a tavern
 #     reaction (``on_call_from_tavern``); it does not choose the *next* hand
 #     Action on its own play, so it has no following payload to pin.
@@ -458,9 +457,6 @@ _HAND_ACTION_CONSUMERS = frozenset(
         # Play one Action from hand.
         "Shop",
         "Royal Galley",
-        # Trash an Action from hand as the intended payload.
-        "Death Cart",
-        "Graverobber",
     }
 )
 
@@ -477,9 +473,8 @@ _HAND_ACTION_CONSUMERS = frozenset(
 #     (``cards/cornucopia/farmhands.py:57``).
 # The other consumers verified to ALLOW Durations and so are excluded here:
 # Throne Room, King's Court, Crown, Mastermind, First Mate, Specialist, Shop,
-# Death Cart, Elder, Graverobber — their
-# choosers filter on ``is_action`` (and sometimes cost or already-in-play), not
-# on ``is_duration``.
+# Elder — their choosers filter on ``is_action`` (and sometimes cost or
+# already-in-play), not on ``is_duration``.
 _NON_DURATION_CONSUMERS = frozenset(
     {
         "Farmhands",
@@ -517,14 +512,15 @@ def _consumes_next_action(card: str) -> bool:
     * Pending-replay Commands (Daimyo, Flagship): register a slot that fires on
       whatever non-Command Action is played next from hand.
     * Non-Command hand-action consumers (Throne Room, King's Court, Procession,
-      Crown, First Mate, Mastermind, Specialist, Shop, Royal Galley, Farmhands,
-      Death Cart — see ``_HAND_ACTION_CONSUMERS``): their effect
-      chooses an Action *from hand* to play/replay/multiply/trash, so the
+      Crown, First Mate, Mastermind, Specialist, Shop, Royal Galley, Farmhands
+      — see ``_HAND_ACTION_CONSUMERS``): their effect
+      chooses an Action *from hand* to play/replay/multiply, so the
       payload has to still be playable after them rather than floated ahead.
 
     Supply/trash-targeting cards (Band of Misfits, Captain, Overlord, Lurker,
-    Necromancer) and Royal Carriage are excluded: the rule after them is not a
-    hand payload and must stay free to reflow into role order.
+    Necromancer, Death Cart, Graverobber) and Royal Carriage are excluded: the
+    rule after them is not an action-priority payload and must stay free to
+    reflow into role order.
     """
     return card in _PENDING_REPLAY_COMMANDS or card in _HAND_ACTION_CONSUMERS
 
@@ -543,8 +539,8 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
     that consumes the *next in-hand Action* played after it (see
     ``_consumes_next_action``): pending-replay Commands (Daimyo, Flagship) and
     non-Command hand-action consumers (Throne Room, King's Court, Procession,
-    Crown, First Mate, Mastermind, Specialist, Shop, Royal Galley, Farmhands,
-    Death Cart — see ``_HAND_ACTION_CONSUMERS``). For each such rule
+    Crown, First Mate, Mastermind, Specialist, Shop, Royal Galley, Farmhands —
+    see ``_HAND_ACTION_CONSUMERS``). For each such rule
     the first unconditional Action rule after it that the consumer can actually
     target is pinned too as its payload: the card fires on / replays whatever
     Action follows it, so seeds deliberately emit it before its payload (see
@@ -589,10 +585,10 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
           ``[Daimyo, Band of Misfits(gate), Smithy, Peddler]``.
         * **Immediate hand-action consumers** (everything else in
           ``_HAND_ACTION_CONSUMERS`` — Throne Room, King's Court, Crown,
-          Mastermind, First Mate, Specialist, Shop, Death Cart, Elder,
-          Graverobber, and the Duration-filtering consumers Procession /
-          Royal Galley / Farmhands) choose their target from hand, accepting any
-          eligible ``card.is_action`` — **including a Command** unless the card's
+          Mastermind, First Mate, Specialist, Shop, Elder, and the
+          Duration-filtering consumers Procession / Royal Galley / Farmhands)
+          choose their target from hand, accepting any eligible
+          ``card.is_action`` — **including a Command** unless the card's
           own target filter says otherwise. Throne Room's chooser, for instance,
           can Throne a Daimyo (``cards/base_set/throne_room.py`` accepts every
           ``card.is_action``), and ``EnhancedStrategy.choose_action`` then
@@ -659,8 +655,7 @@ def _normalize_action_priority(strategy: BaseStrategy, info: KingdomInfo) -> Non
         consumes_next = _consumes_next_action(rule.card_name)
         # Pin the rule in its slot if it is gated, a Command, or a non-Command
         # hand-action consumer (which is neither gated nor a Command but must
-        # stay ahead of its payload — e.g. Throne Room before Smithy, or
-        # Death Cart before the Action it trashes).
+        # stay ahead of its priority payload — e.g. Throne Room before Smithy).
         if gated or is_command or consumes_next:
             pinned[idx] = True
         if consumes_next:

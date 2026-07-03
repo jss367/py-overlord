@@ -9,7 +9,7 @@ class Overlord(Card):
             name="Overlord",
             cost=CardCost(debt=8),
             stats=CardStats(),
-            types=[CardType.ACTION],
+            types=[CardType.ACTION, CardType.COMMAND],
         )
 
     def play_effect(self, game_state):
