@@ -1,0 +1,11 @@
+# Calibration: Smithy is the only useful terminal; known best = Double Smithy (BM + 2 Smithy).
+Smithy
+Cellar
+Moat
+Chancellor
+Woodcutter
+Bureaucrat
+Feast
+Mine
+Adventurer
+Thief

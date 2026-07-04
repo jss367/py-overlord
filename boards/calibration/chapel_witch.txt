@@ -1,0 +1,11 @@
+# Calibration: Chapel + Witch; known best = thin with Chapel, curse with Witch, then money.
+Chapel
+Witch
+Cellar
+Moat
+Chancellor
+Woodcutter
+Bureaucrat
+Feast
+Mine
+Adventurer

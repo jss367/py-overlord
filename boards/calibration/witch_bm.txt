@@ -1,0 +1,11 @@
+# Calibration: Witch with no engine support; known best = Double Witch money.
+Witch
+Cellar
+Moat
+Chancellor
+Woodcutter
+Bureaucrat
+Feast
+Mine
+Adventurer
+Thief

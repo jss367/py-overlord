@@ -1,0 +1,11 @@
+# Calibration: Courtyard money; known best = two Courtyards bought on 2-4 coin hands.
+Courtyard
+Cellar
+Moat
+Chancellor
+Woodcutter
+Bureaucrat
+Feast
+Mine
+Adventurer
+Thief

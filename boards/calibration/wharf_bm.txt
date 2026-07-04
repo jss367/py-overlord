@@ -1,0 +1,11 @@
+# Calibration: Wharf with no engine support; known best = Big Money Wharf (2 Wharves).
+Wharf
+Cellar
+Moat
+Chancellor
+Woodcutter
+Bureaucrat
+Feast
+Mine
+Adventurer
+Thief
