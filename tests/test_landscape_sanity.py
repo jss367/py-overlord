@@ -43,6 +43,7 @@ def test_without_landscape_piece_removes_only_requested_piece():
         ways=["Way of the Butterfly"],
         allies=["League of Shopkeepers"],
         traits={"Flag Bearer": "Tireless"},
+        prophecy="Progress",
     )
 
     stripped = without_landscape_piece(board, LandscapePiece("Event", "Windfall"))
@@ -53,6 +54,9 @@ def test_without_landscape_piece_removes_only_requested_piece():
     assert stripped.kingdom_cards == ["Flag Bearer"]
     assert stripped.allies == ["League of Shopkeepers"]
     assert stripped.traits == {"Flag Bearer": "Tireless"}
+    # Pinned Prophecy must survive the copy: unpinning it would confound
+    # every "without <piece>" ablation on Omen boards.
+    assert stripped.prophecy == "Progress"
 
 
 def test_analyze_landscapes_flags_near_zero_win_rate_delta(monkeypatch):

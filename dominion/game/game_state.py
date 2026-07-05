@@ -3668,13 +3668,14 @@ class GameState:
 
         ``from_supply`` controls supply-restoration semantics. The default
         (``True``) matches the historical contract: the caller has already
-        decremented the supply for ``card.name``, so Trader's reaction and
-        the Exile-reclamation path may add 1 back when they replace the
-        gain. For trash-origin gains (Lurker, Lich), pass ``False`` so the
-        supply pile isn't inflated by the restoration logic.
+        decremented the supply for ``card.name``, so Trader's reaction may
+        add 1 back when it replaces the gain. For trash-origin gains
+        (Lurker, Lich), pass ``False`` so the supply pile isn't inflated by
+        the restoration logic.
 
-        If the player has a matching card on their Exile mat, that card is
-        reclaimed instead of the newly gained copy.
+        If the player has matching cards on their Exile mat, the gain still
+        happens, and the player may then discard all Exiled copies (the
+        Menagerie Exile rule), decided by ``should_discard_exiled_copies``.
         """
 
         if (
@@ -3688,21 +3689,20 @@ class GameState:
             self._restore_to_supply_pile(card)
             return None
 
-        reclaimed = None
-        for idx, exiled in enumerate(player.exile):
-            if exiled.name == card.name:
-                reclaimed = player.exile.pop(idx)
-                if exiled in player.invested_exile:
-                    player.invested_exile.remove(exiled)
-                break
-
-        actual_card = reclaimed or card
+        actual_card = card
         destination_is_deck = to_deck
 
-        if not reclaimed:
-            actual_card = self._handle_trader_exchange(
-                player, card, actual_card, destination_is_deck, from_supply=from_supply
-            )
+        actual_card = self._handle_trader_exchange(
+            player, card, actual_card, destination_is_deck, from_supply=from_supply
+        )
+
+        # Menagerie Exile rule: gaining a card lets the player discard ALL
+        # copies of it from Exile — in addition to the gain, never instead
+        # of it. Capture whether a copy was exiled before resolving, for
+        # Gatekeeper's "already has an Exiled copy" check. Computed after
+        # the Trader reaction so it tracks the card actually gained (a
+        # Silver, if Trader swapped the gain), not the original card.
+        had_exiled_copy = any(c.name == actual_card.name for c in player.exile)
 
         if not destination_is_deck and getattr(player, "topdeck_gains", False):
             destination_is_deck = True
@@ -3729,14 +3729,6 @@ class GameState:
         ):
             destination_is_deck = True
 
-        if reclaimed and from_supply:
-            # Caller already decremented the supply; restore it since the
-            # Exiled card is being used instead. Only valid for from-supply
-            # gains — trash-origin gains never decremented in the first
-            # place. Uses pile-aware restoration so ordered piles (Knights,
-            # Ruins) get their placeholder key + pile_order put back.
-            self._restore_to_supply_pile(card)
-
         if destination_is_deck:
             # PlayerState.draw_cards() draws with deck.pop(), so the end of
             # the list is the top of the deck.
@@ -3744,7 +3736,27 @@ class GameState:
         else:
             player.discard.append(actual_card)
 
-        self._handle_gatekeeper_exile(player, actual_card, destination_is_deck, reclaimed)
+        self._handle_gatekeeper_exile(player, actual_card, destination_is_deck, had_exiled_copy)
+
+        # "When you gain a card, you may discard all copies of it from
+        # Exile." Resolved after Gatekeeper so a just-exiled gain is never
+        # pulled straight back off the mat (the player had no prior copy in
+        # that case, so this is a no-op there anyway).
+        if had_exiled_copy and player.ai.should_discard_exiled_copies(self, player, actual_card):
+            # Take the copies off the mat before discarding: discard reactions
+            # can trigger further gains (Tunnel gains a Gold), and a nested
+            # gain must see an up-to-date Exile mat.
+            matching = [c for c in player.exile if c.name == actual_card.name]
+            player.exile = [c for c in player.exile if c.name != actual_card.name]
+            for exiled in matching:
+                if exiled in player.invested_exile:
+                    player.invested_exile.remove(exiled)
+                self.log_callback(
+                    ("action", player.ai.name, f"discards {exiled.name} from Exile", {})
+                )
+                # Route through discard_card so non-cleanup discard reactions
+                # fire (Village Green, Trail, Weaver, Tunnel, Faithful Hound).
+                self.discard_card(player, exiled)
 
         actual_card.on_gain(self, player)
 
@@ -4142,15 +4154,15 @@ class GameState:
             player.hand.append(gained)
 
     def _handle_gatekeeper_exile(
-        self, player: PlayerState, card: Card, on_deck: bool, reclaimed: "Card | None"
+        self, player: PlayerState, card: Card, on_deck: bool, had_exiled_copy: bool
     ) -> None:
         """Exile a gained Action/Treasure if the player is under Gatekeeper attack."""
         if getattr(player, "gatekeeper_attacks", 0) <= 0:
             return
         if not (card.is_action or card.is_treasure):
             return
-        # Skip if player already had a copy in exile (reclaimed counts)
-        if reclaimed or any(c.name == card.name for c in player.exile):
+        # Skip if player already had a copy in exile at gain time
+        if had_exiled_copy or any(c.name == card.name for c in player.exile):
             return
 
         # Move card from its current location to exile

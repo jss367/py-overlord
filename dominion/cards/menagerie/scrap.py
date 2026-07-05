@@ -4,8 +4,10 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Scrap(Card):
-    """+1 Action. Trash a card from your hand. Choose one or more (different)
-    per its cost: +1 Card; +1 Action; +1 Buy; +$1; gain a Silver; gain a Horse.
+    """Trash a card from your hand. Choose a different thing per $1 it
+    costs: +1 Card; +1 Action; +1 Buy; +$1; gain a Silver; gain a Horse.
+
+    Terminal — the only +Action Scrap can give is the chosen option.
     """
 
     OPTIONS = [
@@ -21,7 +23,7 @@ class Scrap(Card):
         super().__init__(
             name="Scrap",
             cost=CardCost(coins=3),
-            stats=CardStats(actions=1),
+            stats=CardStats(),
             types=[CardType.ACTION],
         )
 
@@ -32,8 +34,18 @@ class Scrap(Card):
         if not player.hand:
             return
 
-        choice = player.ai.choose_card_to_trash(game_state, player.hand + [None])
-        if choice is None or choice not in player.hand:
+        choice = player.ai.choose_card_to_trash(game_state, list(player.hand))
+        if choice is None:
+            # The trash is mandatory — pick junk, mirroring Priest.
+            choice = min(
+                player.hand,
+                key=lambda c: (
+                    0 if c.name == "Curse" else (1 if c.name == "Copper" else 2),
+                    c.cost.coins,
+                    c.name,
+                ),
+            )
+        if choice not in player.hand:
             return
 
         cost = choice.cost.coins

@@ -15,6 +15,7 @@ from dominion.events.registry import EVENT_TYPES, get_event
 from dominion.game.game_state import GameState
 from dominion.landmarks.registry import LANDMARK_TYPES, get_landmark
 from dominion.projects.registry import PROJECT_TYPES, get_project
+from dominion.prophecies.registry import get_prophecy
 from dominion.reporting.html_report import generate_html_report
 from dominion.simulation.game_logger import GameLogger
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
@@ -555,6 +556,12 @@ class StrategyBattle:
             landmarks,
             allies,
         )
+        # Pin the board's Prophecy when one is declared; a fresh instance per
+        # game because Prophecy objects hold per-game activation state.
+        prophecy_obj = None
+        if self.board_config and self.board_config.prophecy:
+            prophecy_obj = get_prophecy(self.board_config.prophecy)
+
         game_state.initialize_game(
             [ai1, ai2],
             kingdom_cards,
@@ -564,6 +571,7 @@ class StrategyBattle:
             ways=way_objs,
             landmarks=landmark_objs,
             allies=ally_objs,
+            prophecy=prophecy_obj,
             traits=self.board_config.traits if self.board_config else None,
         )
 

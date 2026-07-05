@@ -269,10 +269,11 @@ def test_summon_resolves_knights_pile_correctly():
     assert len(state.pile_order["Knights"]) == starting_order_len - 1
 
 
-def test_summon_exile_reclaim_on_knight_keeps_pile_intact():
-    """If the Summoned Knight is reclaimed from Exile (a same-named copy
-    is on the Exile mat), the Knights pile must NOT be consumed: pile_order
-    keeps its top card and the supply count is restored.
+def test_summon_gain_with_exiled_knight_consumes_pile():
+    """A same-named copy on the Exile mat no longer replaces the gain
+    (Menagerie rule: the gain happens, then exiled copies are discarded in
+    addition), so the Summoned Knight consumes the pile normally and the
+    previously-exiled copy is discarded.
     """
     state = _new_state(["Knights"])
     player = state.players[0]
@@ -287,14 +288,14 @@ def test_summon_exile_reclaim_on_knight_keeps_pile_intact():
     summon = get_event("Summon")
     summon.on_buy(state, player)
 
-    # Pile untouched.
-    assert state.supply["Knights"] == starting_supply
-    assert len(state.pile_order["Knights"]) == starting_order_len
-    assert state.pile_order["Knights"][-1] == top_knight_name
-    # Exile reclaimed — the previously-exiled instance is now in set-aside.
+    # Pile consumed by the gain.
+    assert state.supply["Knights"] == starting_supply - 1
+    assert len(state.pile_order["Knights"]) == starting_order_len - 1
+    # One copy set aside for Summon; the exiled copy went to discard.
     assert player.exile == []
     assert len(player.summon_set_aside) == 1
     assert player.summon_set_aside[0].name == top_knight_name
+    assert any(c.name == top_knight_name for c in player.discard)
 
 
 def test_summon_changeling_exchange_on_knight_no_double_restore():

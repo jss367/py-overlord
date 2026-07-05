@@ -237,6 +237,62 @@ def test_way_of_the_prefix_with_target(tmp_path):
     assert board.ways == ["Way of the Mouse (Native Village)"]
 
 
+def test_load_board_parses_prophecy(tmp_path):
+    path = write_board(
+        tmp_path,
+        """
+        River Shrine
+        Village
+        Prophecy: Progress
+        """,
+    )
+
+    board = load_board(path)
+
+    assert board.kingdom_cards == ["River Shrine", "Village"]
+    assert board.prophecy == "Progress"
+
+
+def test_strategy_battle_pins_board_prophecy(monkeypatch):
+    board = BoardConfig(["River Shrine", "Village"], prophecy="Progress")
+    battle = StrategyBattle(board_config=board, log_frequency=0)
+    captured_prophecies = []
+
+    original_initialize = GameState.initialize_game
+
+    def capture_initialize(self, *args, **kwargs):
+        captured_prophecies.append(kwargs.get("prophecy"))
+        return original_initialize(self, *args, **kwargs)
+
+    monkeypatch.setattr(GameState, "initialize_game", capture_initialize)
+    monkeypatch.setattr(GameState, "is_game_over", lambda self: True)
+
+    battle.run_game(DummyAI(), DummyAI(), board.kingdom_cards)
+
+    assert len(captured_prophecies) == 1
+    assert captured_prophecies[0] is not None
+    assert captured_prophecies[0].name == "Progress"
+
+
+def test_strategy_battle_leaves_prophecy_random_when_unpinned(monkeypatch):
+    board = BoardConfig(["River Shrine", "Village"])
+    battle = StrategyBattle(board_config=board, log_frequency=0)
+    captured_prophecies = []
+
+    original_initialize = GameState.initialize_game
+
+    def capture_initialize(self, *args, **kwargs):
+        captured_prophecies.append(kwargs.get("prophecy"))
+        return original_initialize(self, *args, **kwargs)
+
+    monkeypatch.setattr(GameState, "initialize_game", capture_initialize)
+    monkeypatch.setattr(GameState, "is_game_over", lambda self: True)
+
+    battle.run_game(DummyAI(), DummyAI(), board.kingdom_cards)
+
+    assert captured_prophecies == [None]
+
+
 def test_load_board_requires_cards(tmp_path):
     path = write_board(tmp_path, "# Only comments")
 

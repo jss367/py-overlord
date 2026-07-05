@@ -682,6 +682,19 @@ class AI(ABC):
 
         return False
 
+    def should_discard_exiled_copies(
+        self, state: GameState, player: PlayerState, gained_card: Card
+    ) -> bool:
+        """Decide whether to discard all Exiled copies of a just-gained card.
+
+        Default: yes for anything worth having back (Stockpile, Horse-less
+        engine pieces, treasures), no for junk that was deliberately Exiled
+        to get it out of the deck (Bounty Hunter / Sanctuary fodder).
+        """
+
+        junk = {"Copper", "Curse", "Estate", "Hovel", "Necropolis", "Overgrown Estate"}
+        return gained_card.name not in junk
+
     def should_play_weaver_on_discard(
         self, state: GameState, player: PlayerState, card: Card
     ) -> bool:
