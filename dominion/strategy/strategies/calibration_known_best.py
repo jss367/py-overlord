@@ -88,13 +88,15 @@ class ChapelWitchClassic(EnhancedStrategy):
             PriorityRule("Silver"),
         ]
         self.action_priority = [
-            PriorityRule("Witch"),
+            # Chapel first while the deck still has junk: thinning compounds,
+            # so it outranks a single Witch play during the opening shuffles.
             PriorityRule(
                 "Chapel",
                 lambda _s, me: me.count_in_deck("Curse") > 0
                 or me.count_in_deck("Estate") > 0
                 or me.count_in_deck("Copper") > 4,
             ),
+            PriorityRule("Witch"),
         ]
         self.trash_priority = [
             PriorityRule("Curse"),

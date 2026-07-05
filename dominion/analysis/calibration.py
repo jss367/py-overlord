@@ -21,7 +21,10 @@ import math
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Optional, Sequence
+from typing import TYPE_CHECKING, Iterable, Optional, Sequence
+
+if TYPE_CHECKING:
+    from dominion.strategy.enhanced_strategy import EnhancedStrategy
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BOARDS_DIR = REPO_ROOT / "boards" / "calibration"
@@ -241,7 +244,7 @@ def evolve_and_evaluate(
     confirm_games: int = 400,
     log_folder: str = "battle_logs/calibration",
     **trainer_kwargs,
-) -> tuple[MatchOutcome, dict, "EnhancedStrategy"]:
+) -> tuple[MatchOutcome, dict, EnhancedStrategy]:
     """Evolve a champion for the entry's board and battle it vs known-best.
 
     ``trainer_kwargs`` are forwarded to :class:`GeneticTrainer` (population
