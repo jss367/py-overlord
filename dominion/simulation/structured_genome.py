@@ -109,8 +109,18 @@ class KingdomInfo:
 
 def _greening_gate(card: str, rng):
     if card == "Duchy":
+        # Usually endgame-gated, sometimes ungated: rush archetypes
+        # (Rebuild/Duchy, Gardens slogs) buy Duchy over Gold from turn 1,
+        # and the calibration suite showed that plan was unsearchable while
+        # the pile gate was mandatory (rebuild_duchy gap: 17pp).
+        if rng.random() < 0.25:
+            return None
         return PriorityRule.provinces_left("<=", rng.randint(3, 6))
     if card == "Estate":
+        # Endgame count gate, or pile pressure: start grabbing Estates once
+        # piles empty to force or win the three-pile ending.
+        if rng.random() < 0.25:
+            return PriorityRule.empty_piles(">=", rng.randint(1, 2))
         return PriorityRule.provinces_left("<=", rng.randint(1, 3))
     # Province: usually unconditional; occasionally an endgame-only gate.
     if rng.random() < 0.85:
@@ -129,6 +139,14 @@ def _silver_gate(rng):
 
 def _pick_gate(card: str, info: KingdomInfo, rng):
     """Cap + optional extra gate for a kingdom menu pick."""
+    if rng.random() < 0.15:
+        # Opener shape: exactly one copy, bought in the opening turns.
+        # Chapel-style enablers need cap 1 + early turn jointly — the pieces
+        # existed separately in the vocabulary but the combination did not.
+        return PriorityRule.and_(
+            PriorityRule.max_in_deck(card, 1),
+            PriorityRule.turn_number("<=", rng.randint(2, 4)),
+        )
     cap = PriorityRule.max_in_deck(card, info.default_cap(card, rng))
     if rng.random() >= 0.3:
         return cap
