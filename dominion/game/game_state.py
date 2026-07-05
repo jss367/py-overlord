@@ -3689,18 +3689,20 @@ class GameState:
             self._restore_to_supply_pile(card)
             return None
 
-        # Menagerie Exile rule: gaining a card lets the player discard ALL
-        # copies of it from Exile — in addition to the gain, never instead
-        # of it. Capture whether a copy was exiled before resolving, for
-        # Gatekeeper's "already has an Exiled copy" check.
-        had_exiled_copy = any(c.name == card.name for c in player.exile)
-
         actual_card = card
         destination_is_deck = to_deck
 
         actual_card = self._handle_trader_exchange(
             player, card, actual_card, destination_is_deck, from_supply=from_supply
         )
+
+        # Menagerie Exile rule: gaining a card lets the player discard ALL
+        # copies of it from Exile — in addition to the gain, never instead
+        # of it. Capture whether a copy was exiled before resolving, for
+        # Gatekeeper's "already has an Exiled copy" check. Computed after
+        # the Trader reaction so it tracks the card actually gained (a
+        # Silver, if Trader swapped the gain), not the original card.
+        had_exiled_copy = any(c.name == actual_card.name for c in player.exile)
 
         if not destination_is_deck and getattr(player, "topdeck_gains", False):
             destination_is_deck = True
