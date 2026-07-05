@@ -82,6 +82,36 @@ When comparing pipeline changes, run evolve mode before and after with the
 same settings and compare mean gaps; the JSON output is meant for exactly
 that kind of regression tracking.
 
+## First results (2026-07-04)
+
+Baseline run: population 30, generations 30, games-per-eval 15, 400
+confirmation games, out-of-the-box trainer settings (Big Money panel).
+**Mean gap: 4.7pp; champions behind on 4 of 10 boards.** Full tables in
+`reports/calibration/evolve.md` and `sanity.md`. The failures split into
+exactly the categories the suite was designed to separate:
+
+- **Representability failure — `rebuild_duchy` (32.8%).** The Rebuild rush
+  needs "buy Duchy over Gold, unconditionally"; the structured genome's
+  greening block always gates Duchy behind `provinces_left <= 3..6` (both at
+  init and in the re-gate vocabulary in `structured_genome.py`), so the
+  known-best plan is outside the search space entirely. Fix: widen the
+  greening-gate vocabulary. `chapel_witch` (44.0%) is likely related — the
+  vocabulary has no "buy exactly one Chapel on turns 1-2" shape (turn-gated
+  picks exist but the trainer must find cap-1 + early-turn + Chapel jointly).
+- **Objective failure — `witch_bm` (40.5%), `smithy_bm` (41.8%).** Both
+  archetypes are fully representable (a capped kingdom pick over a money
+  backbone), yet champions trained against the Big Money panel converge to
+  something that beats Big Money without matching the tuned BM+X mirror.
+  Fixed weak panels give no gradient toward mirror-optimal play; this is the
+  motivation for a coevolution / champion-pool outer loop.
+- **Legitimate wins — `gardens_workshop` (93.2%), `courtyard_bm` (57.8%).**
+  On the Gardens board the GA found a genuinely better plan than the
+  community archetype: play money, contest the Gardens pile from the money
+  deck, and win the long game on Provinces. Hand-buffed rush variants
+  (uncapped Workshops, earlier Estates) still lose ~90% to the champion's
+  saved genome. The known-best label stays as a reference, but the community
+  answer is not the best strategy on this exact board in this simulator.
+
 ## Caveats
 
 - The known-best strategies are strong reference points, not proofs of

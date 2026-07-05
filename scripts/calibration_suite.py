@@ -24,6 +24,8 @@ from pathlib import Path
 
 import coloredlogs
 
+from dominion.runner import save_strategy_as_python
+
 from dominion.analysis.calibration import (
     CALIBRATION_SUITE,
     entries_for_keys,
@@ -73,7 +75,7 @@ def main() -> None:
         outcomes = []
         for entry in entries:
             logger.info("Evolving champion for board %s ...", entry.key)
-            outcome, _meta = evolve_and_evaluate(
+            outcome, _meta, champion = evolve_and_evaluate(
                 entry,
                 confirm_games=args.games,
                 population_size=args.population,
@@ -88,6 +90,11 @@ def main() -> None:
                 entry.known_best,
             )
             outcomes.append(outcome)
+            champion_path = args.output_dir / f"champion_{entry.key}.py"
+            save_strategy_as_python(
+                champion, champion_path, class_name=f"Champion{entry.key.title().replace('_', '')}"
+            )
+            logger.info("Champion genome saved to %s", champion_path)
         report = render_evolve_report(outcomes)
         report_path = args.output_dir / "evolve.md"
         json_path = args.output_dir / "evolve.json"

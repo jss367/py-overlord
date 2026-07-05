@@ -241,12 +241,13 @@ def evolve_and_evaluate(
     confirm_games: int = 400,
     log_folder: str = "battle_logs/calibration",
     **trainer_kwargs,
-) -> tuple[MatchOutcome, dict]:
+) -> tuple[MatchOutcome, dict, "EnhancedStrategy"]:
     """Evolve a champion for the entry's board and battle it vs known-best.
 
     ``trainer_kwargs`` are forwarded to :class:`GeneticTrainer` (population
     size, generations, games_per_eval, ...). Returns the champion-vs-known-best
-    outcome and the trainer metadata.
+    outcome, the trainer metadata, and the champion strategy itself (so
+    callers can persist the genome for diagnosis).
     """
 
     from dominion.boards.loader import load_board
@@ -272,7 +273,7 @@ def evolve_and_evaluate(
         log_folder=log_folder,
         champion_factory=lambda: deepcopy(champion),
     )
-    return outcome, metadata
+    return outcome, metadata, champion
 
 
 def _markdown_table(header: list[str], rows: list[list[str]]) -> str:
