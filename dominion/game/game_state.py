@@ -3743,18 +3743,20 @@ class GameState:
         # pulled straight back off the mat (the player had no prior copy in
         # that case, so this is a no-op there anyway).
         if had_exiled_copy and player.ai.should_discard_exiled_copies(self, player, actual_card):
-            kept = []
-            for exiled in player.exile:
-                if exiled.name == actual_card.name:
-                    if exiled in player.invested_exile:
-                        player.invested_exile.remove(exiled)
-                    player.discard.append(exiled)
-                    self.log_callback(
-                        ("action", player.ai.name, f"discards {exiled.name} from Exile", {})
-                    )
-                else:
-                    kept.append(exiled)
-            player.exile = kept
+            # Take the copies off the mat before discarding: discard reactions
+            # can trigger further gains (Tunnel gains a Gold), and a nested
+            # gain must see an up-to-date Exile mat.
+            matching = [c for c in player.exile if c.name == actual_card.name]
+            player.exile = [c for c in player.exile if c.name != actual_card.name]
+            for exiled in matching:
+                if exiled in player.invested_exile:
+                    player.invested_exile.remove(exiled)
+                self.log_callback(
+                    ("action", player.ai.name, f"discards {exiled.name} from Exile", {})
+                )
+                # Route through discard_card so non-cleanup discard reactions
+                # fire (Village Green, Trail, Weaver, Tunnel, Faithful Hound).
+                self.discard_card(player, exiled)
 
         actual_card.on_gain(self, player)
 

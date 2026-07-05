@@ -113,6 +113,27 @@ def test_gaining_stockpile_discards_all_exiled_copies_in_addition():
     assert sum(1 for c in p1.discard if c.name == "Stockpile") == 3
 
 
+def test_discarding_exiled_village_green_triggers_discard_reaction():
+    """Discarding a copy from Exile on gain goes through discard_card, so
+    non-cleanup discard reactions fire (Village Green: +1 Card +2 Actions)."""
+    state, p1, _ = _two_player_state()
+    p1.exile = [get_card("Village Green")]
+    p1.hand = []
+    p1.deck = [get_card("Copper")]
+    p1.actions = 0
+    state.supply["Village Green"] = 8
+
+    state.supply["Village Green"] -= 1
+    state.gain_card(p1, get_card("Village Green"))
+
+    # Reaction resolved now (default AI): +1 Card +2 Actions.
+    assert len(p1.hand) == 1
+    assert p1.actions == 2
+    assert p1.exile == []
+    # Gained copy + exiled copy both end up in the discard pile.
+    assert sum(1 for c in p1.discard if c.name == "Village Green") == 2
+
+
 def test_gaining_copper_leaves_bounty_hunter_fodder_in_exile():
     """The discard-from-Exile is optional; the default AI keeps junk
     (Bounty Hunter / Sanctuary fodder) on the mat."""
