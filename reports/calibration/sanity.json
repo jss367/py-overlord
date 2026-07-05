@@ -1,0 +1,122 @@
+[
+  {
+    "board": "smithy_bm",
+    "strategy_a": "Double Smithy",
+    "strategy_b": "Big Money",
+    "wins_a": 371,
+    "games": 400,
+    "winrate_a": 92.75,
+    "ci_a": [
+      89.78,
+      94.9
+    ]
+  },
+  {
+    "board": "witch_bm",
+    "strategy_a": "Double Witch",
+    "strategy_b": "Big Money",
+    "wins_a": 397,
+    "games": 400,
+    "winrate_a": 99.25,
+    "ci_a": [
+      97.82,
+      99.74
+    ]
+  },
+  {
+    "board": "chapel_witch",
+    "strategy_a": "Chapel Witch Classic",
+    "strategy_b": "Big Money",
+    "wins_a": 383,
+    "games": 400,
+    "winrate_a": 95.75,
+    "ci_a": [
+      93.3,
+      97.33
+    ]
+  },
+  {
+    "board": "gardens_workshop",
+    "strategy_a": "Gardens Workshop Rush",
+    "strategy_b": "Big Money",
+    "wins_a": 374,
+    "games": 400,
+    "winrate_a": 93.5,
+    "ci_a": [
+      90.65,
+      95.53
+    ]
+  },
+  {
+    "board": "wharf_bm",
+    "strategy_a": "Big Money Wharf",
+    "strategy_b": "Big Money",
+    "wins_a": 388,
+    "games": 400,
+    "winrate_a": 97.0,
+    "ci_a": [
+      94.83,
+      98.28
+    ]
+  },
+  {
+    "board": "rebuild_duchy",
+    "strategy_a": "Rebuild Rush",
+    "strategy_b": "Big Money",
+    "wins_a": 388,
+    "games": 400,
+    "winrate_a": 97.0,
+    "ci_a": [
+      94.83,
+      98.28
+    ]
+  },
+  {
+    "board": "jack_bm",
+    "strategy_a": "Double Jack",
+    "strategy_b": "Big Money",
+    "wins_a": 385,
+    "games": 400,
+    "winrate_a": 96.25,
+    "ci_a": [
+      93.91,
+      97.71
+    ]
+  },
+  {
+    "board": "mountebank_bm",
+    "strategy_a": "Mountebank Money",
+    "strategy_b": "Big Money",
+    "wins_a": 390,
+    "games": 400,
+    "winrate_a": 97.5,
+    "ci_a": [
+      95.46,
+      98.64
+    ]
+  },
+  {
+    "board": "courtyard_bm",
+    "strategy_a": "Courtyard Money",
+    "strategy_b": "Big Money",
+    "wins_a": 345,
+    "games": 400,
+    "winrate_a": 86.25,
+    "ci_a": [
+      82.53,
+      89.28
+    ]
+  },
+  {
+    "board": "first_game",
+    "strategy_a": "First Game Smithy Militia",
+    "strategy_b": "Big Money",
+    "wins_a": 363,
+    "games": 400,
+    "winrate_a": 90.75,
+    "ci_a": [
+      87.51,
+      93.21
+    ]
+  }
+]

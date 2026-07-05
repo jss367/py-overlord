@@ -31,3 +31,18 @@ python -m dominion.simulation.strategy_battle "Chapel Witch" "Big Money" --games
 If `--output` is omitted, reports are written to the `reports` directory with
 an auto-generated filename.
 
+## Calibration suite
+
+`boards/calibration/` pairs boards with community-known best strategies so
+the evolution pipeline can be scored against external ground truth instead of
+only against itself. Run the fast sanity check (known-best vs Big Money) or
+the full benchmark (evolved champion vs known-best):
+
+```
+PYTHONPATH=. python scripts/calibration_suite.py --mode sanity --games 400
+PYTHONPATH=. python scripts/calibration_suite.py --mode evolve --games 400
+```
+
+See `docs/calibration.md` for the board list, sources, and how to read the
+gap score.
+

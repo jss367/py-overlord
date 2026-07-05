@@ -1,0 +1,11 @@
+# Calibration: Gardens + Workshop with weak money support; known best = Workshop/Gardens rush.
+Gardens
+Workshop
+Woodcutter
+Cellar
+Moat
+Chancellor
+Bureaucrat
+Feast
+Mine
+Thief

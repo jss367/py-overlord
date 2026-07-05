@@ -1,0 +1,11 @@
+# Calibration: Rebuild with no support; known best = Rebuild rush (Duchies over Gold).
+Rebuild
+Cellar
+Moat
+Chancellor
+Woodcutter
+Bureaucrat
+Feast
+Mine
+Adventurer
+Thief
