@@ -110,6 +110,7 @@ CALIBRATION_SUITE: tuple[CalibrationEntry, ...] = (
 def entries_for_keys(keys: Optional[Iterable[str]]) -> list[CalibrationEntry]:
     """Return suite entries for ``keys`` (all entries when ``keys`` is falsy)."""
 
+    keys = list(keys) if keys is not None else None
     if not keys:
         return list(CALIBRATION_SUITE)
     by_key = {entry.key: entry for entry in CALIBRATION_SUITE}
@@ -202,6 +203,9 @@ def run_match(
     ``champion_factory`` registers an unregistered strategy (e.g. a freshly
     evolved champion) under ``strategy_a`` before the battle runs.
     """
+
+    if games <= 0:
+        raise ValueError(f"games must be positive, got {games}")
 
     from dominion.boards.loader import load_board
     from dominion.simulation.strategy_battle import StrategyBattle

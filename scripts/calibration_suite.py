@@ -40,12 +40,22 @@ logger = logging.getLogger(__name__)
 coloredlogs.install(level="INFO", logger=logger)
 
 
+def positive_int(value: str) -> int:
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(f"invalid int value: {value!r}") from exc
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError(f"must be a positive integer, got {value!r}")
+    return parsed
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", choices=["sanity", "evolve"], default="sanity")
     parser.add_argument(
         "--games",
-        type=int,
+        type=positive_int,
         default=400,
         help="Games per matchup (sanity battles and evolve-mode confirmation)",
     )
@@ -55,15 +65,16 @@ def main() -> None:
         default=None,
         help=f"Comma-separated board keys (default: all). Known: {', '.join(e.key for e in CALIBRATION_SUITE)}",
     )
-    parser.add_argument("--population", type=int, default=40)
-    parser.add_argument("--generations", type=int, default=40)
-    parser.add_argument("--games-per-eval", type=int, default=20)
+    parser.add_argument("--population", type=positive_int, default=40)
+    parser.add_argument("--generations", type=positive_int, default=40)
+    parser.add_argument("--games-per-eval", type=positive_int, default=20)
     parser.add_argument(
         "--output-dir", type=Path, default=Path("reports/calibration")
     )
     args = parser.parse_args()
 
-    entries = entries_for_keys(args.boards.split(",") if args.boards else None)
+    boards = [key.strip() for key in args.boards.split(",") if key.strip()] if args.boards else None
+    entries = entries_for_keys(boards)
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     if args.mode == "sanity":
