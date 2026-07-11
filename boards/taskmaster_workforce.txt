@@ -1,0 +1,18 @@
+# Taskmaster Workforce.
+#
+# Built to make buying many Taskmasters the central plan. Supplies registers
+# the Horse pile, cheap gainers can stockpile Taskmasters early, and
+# Wharf/Market/Festival supply enough buys to keep adding them. The six $5
+# Actions give the deck reliable ways to turn Taskmasters back on every turn,
+# so a stack of Taskmasters becomes sustained actions and money instead of
+# dead duration clutter.
+Taskmaster
+Supplies
+Groom
+Ironworks
+Sculptor
+Wharf
+Market
+Festival
+Laboratory
+Lost City
