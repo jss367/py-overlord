@@ -1,6 +1,6 @@
 from dominion.reporting.strategy_links import strategy_page_href, strategy_slug
 from dominion.reporting.strategy_pages import render_strategy_pages
-from dominion.reporting.html_report import _strategy_report_href
+from dominion.reporting.html_report import _strategy_report_href, generate_leaderboard_html
 
 
 def test_strategy_slug_is_stable_for_display_names():
@@ -11,6 +11,35 @@ def test_strategy_slug_is_stable_for_display_names():
 def test_strategy_report_href_resolves_aliases_to_rendered_pages():
     assert _strategy_report_href("BigMoney", prefix="strategies") == "strategies/big-money.html"
     assert _strategy_report_href("ChapelWitch", prefix="strategies") == "strategies/chapel-witch.html"
+    assert _strategy_report_href("strategy_20260212_094841", prefix="strategies") is None
+
+
+def test_leaderboard_html_does_not_link_unresolved_strategy_names(tmp_path):
+    output = tmp_path / "leaderboard.html"
+    generate_leaderboard_html(
+        {
+            "Big Money": {
+                "wins": 1,
+                "losses": 0,
+                "win_rate": 100.0,
+                "description": "",
+                "cards": [],
+            },
+            "strategy_20260212_094841": {
+                "wins": 0,
+                "losses": 1,
+                "win_rate": 0.0,
+                "description": "",
+                "cards": [],
+            },
+        },
+        output,
+    )
+
+    html = output.read_text(encoding="utf-8")
+    assert "big-money.html" in html
+    assert "strategy_20260212_094841.html" not in html
+    assert "<td>strategy_20260212_094841</td>" in html
 
 
 def test_render_strategy_pages_writes_index_and_strategy_page(tmp_path):
