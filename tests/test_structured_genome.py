@@ -20,6 +20,16 @@ from dominion.simulation.structured_genome import (
     normalize_menu,
     random_menu_strategy,
 )
+from dominion.simulation.strategic_genome import (
+    BuildTarget,
+    EconomyPlan,
+    EndgamePlan,
+    GreeningPlan,
+    OpeningTarget,
+    StrategicGenome,
+    crossover_strategic_strategies,
+    mutate_strategic_strategy,
+)
 from dominion.strategy.enhanced_strategy import PriorityRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
 
@@ -98,10 +108,13 @@ class TestRandomMenuStrategy:
         for _ in range(30):
             s = random_menu_strategy(info)
             names = [r.card_name for r in s.gain_priority]
-            # Province exists and leads the menu.
-            assert names[0] == "Province"
-            # The economy backbone is present.
-            assert "Gold" in names and "Silver" in names
+            # Province exists near the front; explicit opening/endgame rules
+            # are allowed to precede it in the phase-aware genome.
+            assert "Province" in names
+            assert names.index("Province") <= 3
+            # Silver remains the fallback economy. Gold may be deliberately
+            # omitted for rushes such as Rebuild/Duchy.
+            assert "Silver" in names
             # No junk buys.
             assert "Copper" not in names and "Curse" not in names
             # Picks are kingdom cards.
@@ -153,12 +166,15 @@ class TestRandomMenuStrategy:
         for _ in range(30):
             s = random_menu_strategy(info)
             names = [r.card_name for r in s.gain_priority]
-            # Colony leads the greening block, unconditionally; Province follows.
-            assert names[0] == "Colony"
-            assert s.gain_priority[0].condition is None
+            # Colony leads the normal greening block. Explicit opening/endgame
+            # rules may precede it, but Colony itself remains unconditional.
+            colony_rule = next(rule for rule in s.gain_priority if rule.card_name == "Colony")
+            assert colony_rule.condition is None
             assert "Province" in names
-            # Platinum joins the backbone above Gold, never as a capped pick.
-            assert names.index("Platinum") < names.index("Gold")
+            # Platinum joins the backbone and is never a capped pick. Gold may
+            # be deliberately omitted by a typed rush plan.
+            if "Gold" in names:
+                assert names.index("Platinum") < names.index("Gold")
             for rule in s.gain_priority:
                 if rule.card_name in ("Colony", "Platinum"):
                     source = getattr(rule.condition, "_source", "") if rule.condition else ""
@@ -166,6 +182,91 @@ class TestRandomMenuStrategy:
             # Platinum is played before Gold.
             treasures = [r.card_name for r in s.treasure_priority]
             assert treasures.index("Platinum") < treasures.index("Gold")
+
+
+class TestStrategicGenomeRepresentability:
+    def test_exact_early_single_card_opening_is_one_semantic_block(self):
+        genome = StrategicGenome(
+            openings=[OpeningTarget("Chapel", copies=1, through_turn=2)],
+            greening=GreeningPlan(duchy_mode="never"),
+            action_order=["Chapel"],
+            treasure_order=["Gold", "Silver", "Copper"],
+        )
+        strategy = genome.compile_into(BaseStrategy(), _info())
+
+        chapel = strategy.gain_priority[0]
+        assert chapel.card_name == "Chapel"
+        source = chapel.condition._source
+        assert "max_in_deck('Chapel', 1)" in source
+        assert "turn_number('<=', 2)" in source
+
+    def test_rebuild_rush_is_representable_without_custom_hooks(self):
+        info = KingdomInfo.from_kingdom(["Rebuild", "Cellar", "Moat"])
+        genome = StrategicGenome(
+            build_targets=[
+                BuildTarget(
+                    "Rebuild", copies=2, priority_band="before_duchy"
+                )
+            ],
+            economy=EconomyPlan(buy_gold=False, buy_silver=True),
+            greening=GreeningPlan(
+                province_mode="always",
+                duchy_mode="always",
+                estate_mode="threshold",
+                estate_threshold=2,
+            ),
+            action_order=["Rebuild"],
+            treasure_order=["Gold", "Silver", "Copper"],
+        )
+        strategy = genome.compile_into(BaseStrategy(), info)
+
+        assert [rule.card_name for rule in strategy.gain_priority] == [
+            "Province", "Rebuild", "Duchy", "Estate", "Silver"
+        ]
+        assert "max_in_deck('Rebuild', 2)" in strategy.gain_priority[1].condition._source
+
+    def test_pileout_policy_can_override_normal_province_buy(self):
+        genome = StrategicGenome(
+            greening=GreeningPlan(duchy_mode="never"),
+            endgame=EndgamePlan(
+                estate_pileout=True,
+                pileout_max_remaining=1,
+                pileout_min_score_diff=0,
+            ),
+            treasure_order=["Gold", "Silver", "Copper"],
+        )
+        strategy = genome.compile_into(BaseStrategy(), _info())
+        estate = strategy.gain_priority[0]
+        assert estate.card_name == "Estate"
+
+        state = _mock_state()
+        state.empty_piles = 2
+        state.supply["Estate"] = 1
+        player = _mock_player()
+        state.players = [player]
+        assert estate.condition(state, player) is True
+
+        state.supply["Estate"] = 2
+        assert estate.condition(state, player) is False
+
+    def test_semantic_mutation_recompiles_from_typed_genome(self):
+        random.seed(41)
+        strategy = random_menu_strategy(_info())
+        assert hasattr(strategy, "_strategic_genome")
+
+        assert mutate_strategic_strategy(strategy, _info(), rate=1.0) is True
+        assert strategy._strategic_genome is not None
+        assert any(rule.card_name == "Province" for rule in strategy.gain_priority)
+
+    def test_crossover_swaps_whole_modules(self):
+        random.seed(42)
+        first = random_menu_strategy(_info())
+        second = random_menu_strategy(_info())
+        child = crossover_strategic_strategies(first, second, _info())
+
+        assert child is not None
+        assert hasattr(child, "_strategic_genome")
+        assert any(rule.card_name == "Province" for rule in child.gain_priority)
 
 
 class TestMutateMenu:
@@ -1012,7 +1113,9 @@ class TestTrainerIntegration:
         random.seed(11)
         s = trainer.create_random_strategy()
         names = [r.card_name for r in s.gain_priority]
-        assert names[0] == "Province"
+        assert "Province" in names
+        assert names.index("Province") <= 3
+        assert hasattr(s, "_strategic_genome")
         assert "Copper" not in names
 
     def test_legacy_flag_restores_freeform_init(self):
@@ -1028,6 +1131,19 @@ class TestTrainerIntegration:
             for _ in range(20)
         )
         assert seen_copper
+
+    def test_mixed_parent_crossover_drops_stale_typed_metadata(self):
+        trainer = GeneticTrainer(KINGDOM, population_size=1, generations=1)
+        typed = trainer.create_random_strategy()
+        legacy = BaseStrategy()
+        legacy.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        legacy.treasure_priority = [
+            PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")
+        ]
+
+        child = trainer._crossover(typed, legacy)
+
+        assert not hasattr(child, "_strategic_genome")
 
     def test_structured_mutation_preserves_invariants(self):
         trainer = GeneticTrainer(KINGDOM, population_size=1, generations=1, mutation_rate=1.0)

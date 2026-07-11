@@ -750,7 +750,24 @@ class GeneticTrainer:
 
     def _crossover(self, parent1: BaseStrategy, parent2: BaseStrategy) -> BaseStrategy:
         """Create a new strategy by combining two parent strategies"""
+        if self.structured_genome:
+            from dominion.simulation.strategic_genome import (
+                crossover_strategic_strategies,
+            )
+
+            semantic_child = crossover_strategic_strategies(
+                parent1, parent2, self._kingdom_info
+            )
+            if semantic_child is not None:
+                return semantic_child
+
         child = deepcopy(parent1)
+        # Positional crossover is the compatibility path for a hand-written
+        # or older parent. Its result no longer corresponds to parent1's typed
+        # modules, so discard stale metadata; subsequent mutation correctly
+        # stays on the legacy structured operators.
+        if hasattr(child, "_strategic_genome"):
+            delattr(child, "_strategic_genome")
 
         # Crossover gain priorities
         for i, priority in enumerate(child.gain_priority):

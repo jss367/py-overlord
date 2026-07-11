@@ -167,65 +167,15 @@ def _gate_for(card: str, info: KingdomInfo, rng):
 
 
 def random_menu_strategy(info: KingdomInfo, rng=_random_module) -> BaseStrategy:
-    """Build a random but *coherent* strategy: greening block on top, an
-    economy backbone, and a few capped kingdom picks ordered roughly by cost."""
-    strategy = BaseStrategy()
+    """Build a coherent strategy from the typed strategic genome.
 
-    gain: list[PriorityRule] = []
-    if info.has_colony:
-        gain.append(PriorityRule("Colony"))
-    gain.append(PriorityRule("Province"))
-    if rng.random() < 0.9:
-        gain.append(PriorityRule("Duchy", _greening_gate("Duchy", rng)))
-    if rng.random() < 0.4:
-        gain.append(PriorityRule("Estate", _greening_gate("Estate", rng)))
+    The public function name is retained for compatibility with callers and
+    tests; new random individuals now carry semantic phase blocks in
+    ``_strategic_genome`` in addition to their compiled priority lists.
+    """
+    from dominion.simulation.strategic_genome import random_strategic_strategy
 
-    picks: list[str] = []
-    if info.gainable:
-        hi = min(6, len(info.gainable))
-        n_picks = rng.randint(min(2, hi), hi)
-        picks = rng.sample(info.gainable, n_picks)
-
-    # Merge picks with the treasure backbone, ordered by cost with jitter so
-    # adjacent-cost cards can swap order between individuals.
-    entries: list[tuple[float, PriorityRule]] = [
-        (info.costs.get(card, 0) + rng.uniform(-1.5, 1.5), PriorityRule(card, _pick_gate(card, info, rng)))
-        for card in picks
-    ]
-    if info.has_platinum:
-        entries.append((9 + rng.uniform(-1.5, 1.5), PriorityRule("Platinum")))
-    entries.append((6 + rng.uniform(-1.5, 1.5), PriorityRule("Gold")))
-    entries.append((3 + rng.uniform(-1.5, 1.5), PriorityRule("Silver", _silver_gate(rng))))
-    entries.sort(key=lambda pair: pair[0], reverse=True)
-    gain.extend(rule for _, rule in entries)
-    strategy.gain_priority = gain
-
-    # Action play order: villages first, then cantrips, then terminal draw,
-    # then remaining terminals. Within each role group the order is shuffled.
-    action: list[PriorityRule] = []
-    for group in (info.villages, info.cantrips, info.terminal_draw, info.other_terminals):
-        group = list(group)
-        rng.shuffle(group)
-        action.extend(PriorityRule(card) for card in group)
-    strategy.action_priority = action
-
-    # Treasures: Platinum, Gold, kingdom treasures (cost order), Silver, Copper.
-    kingdom_treasures = sorted(info.treasure_cards, key=lambda c: -info.costs.get(c, 0))
-    strategy.treasure_priority = (
-        ([PriorityRule("Platinum")] if info.has_platinum else [])
-        + [PriorityRule("Gold")]
-        + [PriorityRule(c) for c in kingdom_treasures]
-        + [PriorityRule("Silver"), PriorityRule("Copper")]
-    )
-
-    strategy.trash_priority = [
-        PriorityRule("Curse"),
-        PriorityRule("Estate", PriorityRule.provinces_left(">", rng.randint(2, 6))),
-        PriorityRule("Copper", PriorityRule.has_cards(["Silver", "Gold"], rng.randint(2, 4))),
-    ]
-
-    strategy.way_policy = []
-    return strategy
+    return random_strategic_strategy(info, rng)
 
 
 # ---------------------------------------------------------------------------
@@ -253,6 +203,11 @@ def _adjust_cap(rule: PriorityRule, rng) -> bool:
 
 def mutate_menu(strategy: BaseStrategy, info: KingdomInfo, rate: float, rng=_random_module) -> BaseStrategy:
     """Apply menu-edit mutations in place and return the strategy."""
+    from dominion.simulation.strategic_genome import mutate_strategic_strategy
+
+    if mutate_strategic_strategy(strategy, info, rate, rng):
+        return strategy
+
     gain = strategy.gain_priority
 
     # Reorder: swap adjacent entries.
