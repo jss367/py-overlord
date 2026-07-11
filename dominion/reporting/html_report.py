@@ -13,6 +13,8 @@ import seaborn as sns
 from matplotlib.ticker import MaxNLocator
 from scipy.stats import binomtest
 
+from dominion.reporting.strategy_links import strategy_page_href
+
 
 def fig_to_base64(fig: plt.Figure) -> str:
     """Convert a matplotlib figure to a base64 encoded PNG."""
@@ -22,7 +24,11 @@ def fig_to_base64(fig: plt.Figure) -> str:
     return base64.b64encode(buf.read()).decode("ascii")
 
 
-def _decision_firings_section(results: dict) -> str:
+def _strategy_link_prefix(output_path: Path) -> str:
+    return os.path.relpath(Path("reports") / "strategies", output_path.parent)
+
+
+def _decision_firings_section(results: dict, *, strategy_link_prefix: str = "strategies") -> str:
     decision_firings = results.get("decision_firings") or {}
     if not decision_firings:
         return ""
@@ -30,7 +36,9 @@ def _decision_firings_section(results: dict) -> str:
     sections = []
     for role in ("strategy1", "strategy2"):
         stats = decision_firings.get(role) or {}
-        strategy_name = escape(str(stats.get("strategy_name", role)))
+        raw_strategy_name = str(stats.get("strategy_name", role))
+        strategy_name = escape(raw_strategy_name)
+        strategy_link = escape(strategy_page_href(raw_strategy_name, prefix=strategy_link_prefix))
         rows = []
 
         for list_name, firings in sorted((stats.get("priority_rules") or {}).items()):
@@ -80,7 +88,7 @@ def _decision_firings_section(results: dict) -> str:
         total_gain_overrides = gain_stats.get("total", 0)
         sections.append(
             f"""
-            <h3>{strategy_name}</h3>
+            <h3><a href="{strategy_link}">{strategy_name}</a></h3>
             <p>choose_gain special cases: {total_gain_overrides}</p>
             <table>
                 <tr><th>Decision</th><th>Card / Baseline</th><th>Selected</th><th>Count</th></tr>
@@ -184,7 +192,15 @@ def generate_html_report(results: dict, output_path: Path, *, verbose: bool = Fa
             log_items += f'<li>Game {game["game_number"]}: No log available</li>'
 
     title = f"{strat1} vs {strat2}"
-    decision_firings_section = _decision_firings_section(results)
+    strategy_link_prefix = _strategy_link_prefix(output_path)
+    strat1_link = escape(strategy_page_href(strat1, prefix=strategy_link_prefix))
+    strat2_link = escape(strategy_page_href(strat2, prefix=strategy_link_prefix))
+    strat1_label = escape(strat1)
+    strat2_label = escape(strat2)
+    decision_firings_section = _decision_firings_section(
+        results,
+        strategy_link_prefix=strategy_link_prefix,
+    )
 
     html = f"""
     <html>
@@ -201,7 +217,7 @@ def generate_html_report(results: dict, output_path: Path, *, verbose: bool = Fa
         </style>
     </head>
     <body>
-    <h1>{title} Comparison</h1>
+    <h1><a href="{strat1_link}">{strat1_label}</a> vs <a href="{strat2_link}">{strat2_label}</a> Comparison</h1>
     <p>Games played: {results['games_played']}</p>
     <p>Confidence the win-rate difference is real: {confidence:.1%} (p={win_p:.4f})</p>
     <h2>Win Counts</h2>
@@ -394,12 +410,15 @@ def generate_leaderboard_html(
     plt.close(fig)
 
     rows = ""
+    strategy_link_prefix = _strategy_link_prefix(output_path)
     for rank, (name, stats) in enumerate(sorted_items, 1):
         cards = stats.get("cards", [])
-        cards_str = ", ".join(cards) if cards else "-"
-        desc = stats.get("description", "")
+        cards_str = escape(", ".join(cards)) if cards else "-"
+        desc = escape(str(stats.get("description", "")))
+        name_label = escape(name)
+        strategy_link = escape(strategy_page_href(name, prefix=strategy_link_prefix))
         rows += (
-            f"<tr><td>{rank}</td><td>{name}</td><td class='desc'>{desc}</td>"
+            f"<tr><td>{rank}</td><td><a href=\"{strategy_link}\">{name_label}</a></td><td class='desc'>{desc}</td>"
             f"<td>{stats['wins']}</td>"
             f"<td>{stats['losses']}</td><td>{stats['win_rate']:.1f}%</td>"
             f"<td class='cards'>{cards_str}</td></tr>\n"
