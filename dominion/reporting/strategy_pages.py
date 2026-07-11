@@ -99,12 +99,13 @@ def collect_rendered_strategies(
         if strategy is None:
             raise ValueError(f"Unknown strategy: {display_name}")
 
+        resolved_name = loader.get_display_name(display_name) or display_name
         refs = battle._split_board_references(battle._extract_cards_from_strategy(strategy))
-        source_path, factory_name = _strategy_source(loader, display_name)
+        source_path, factory_name = _strategy_source(loader, resolved_name)
         rendered.append(
             RenderedStrategy(
-                display_name=display_name,
-                slug=strategy_slug(display_name),
+                display_name=resolved_name,
+                slug=strategy_slug(resolved_name),
                 strategy=strategy,
                 source_path=source_path,
                 factory_name=factory_name,

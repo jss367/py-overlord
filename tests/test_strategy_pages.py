@@ -27,3 +27,14 @@ def test_render_strategy_pages_writes_index_and_strategy_page(tmp_path):
     assert "Gain Priority" in page
     assert "Province" in page
     assert "dominion/strategy/strategies/big_money.py" in page
+
+
+def test_render_strategy_pages_resolves_alias_names(tmp_path):
+    written = render_strategy_pages(tmp_path, names=["BigMoney"])
+
+    paths = {path.name for path in written}
+    assert paths == {"index.html", "big-money.html"}
+
+    page = (tmp_path / "big-money.html").read_text(encoding="utf-8")
+    assert "Big Money" in page
+    assert "dominion/strategy/strategies/big_money.py" in page
