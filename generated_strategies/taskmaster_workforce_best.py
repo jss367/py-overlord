@@ -22,6 +22,14 @@ class TaskmasterWorkforceBest(EnhancedStrategy):
             ),
             PriorityRule("Gold"),
             PriorityRule("Festival", PriorityRule.max_in_deck("Festival", 3)),
+            PriorityRule(
+                "Taskmaster",
+                PriorityRule.and_(
+                    PriorityRule.max_in_deck("Taskmaster", 4),
+                    PriorityRule.turn_number(">=", 5),
+                    PriorityRule.provinces_left(">", 4),
+                ),
+            ),
             PriorityRule("Silver", PriorityRule.turn_number("<=", 11)),
             PriorityRule("Supplies", PriorityRule.max_in_deck("Supplies", 1)),
             PriorityRule("Groom", PriorityRule.max_in_deck("Groom", 2)),
