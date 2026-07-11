@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from functools import lru_cache
 from html import escape
 import io
 import os
@@ -13,6 +14,9 @@ import seaborn as sns
 from matplotlib.ticker import MaxNLocator
 from scipy.stats import binomtest
 
+from dominion.reporting.strategy_links import strategy_page_href
+from dominion.strategy.strategy_loader import StrategyLoader
+
 
 def fig_to_base64(fig: plt.Figure) -> str:
     """Convert a matplotlib figure to a base64 encoded PNG."""
@@ -22,7 +26,31 @@ def fig_to_base64(fig: plt.Figure) -> str:
     return base64.b64encode(buf.read()).decode("ascii")
 
 
-def _decision_firings_section(results: dict) -> str:
+def _strategy_link_prefix(output_path: Path) -> str:
+    return os.path.relpath(Path("reports") / "strategies", output_path.parent)
+
+
+@lru_cache(maxsize=1)
+def _strategy_loader_for_links() -> StrategyLoader:
+    return StrategyLoader()
+
+
+def _strategy_report_href(name: str, *, prefix: str) -> str | None:
+    display_name = _strategy_loader_for_links().get_display_name(name)
+    if display_name is None:
+        return None
+    return strategy_page_href(display_name, prefix=prefix)
+
+
+def _strategy_anchor(name: str, *, prefix: str) -> str:
+    label = escape(name)
+    href = _strategy_report_href(name, prefix=prefix)
+    if href is None:
+        return label
+    return f'<a href="{escape(href)}">{label}</a>'
+
+
+def _decision_firings_section(results: dict, *, strategy_link_prefix: str = "strategies") -> str:
     decision_firings = results.get("decision_firings") or {}
     if not decision_firings:
         return ""
@@ -30,7 +58,8 @@ def _decision_firings_section(results: dict) -> str:
     sections = []
     for role in ("strategy1", "strategy2"):
         stats = decision_firings.get(role) or {}
-        strategy_name = escape(str(stats.get("strategy_name", role)))
+        raw_strategy_name = str(stats.get("strategy_name", role))
+        strategy_name = _strategy_anchor(raw_strategy_name, prefix=strategy_link_prefix)
         rows = []
 
         for list_name, firings in sorted((stats.get("priority_rules") or {}).items()):
@@ -184,7 +213,13 @@ def generate_html_report(results: dict, output_path: Path, *, verbose: bool = Fa
             log_items += f'<li>Game {game["game_number"]}: No log available</li>'
 
     title = f"{strat1} vs {strat2}"
-    decision_firings_section = _decision_firings_section(results)
+    strategy_link_prefix = _strategy_link_prefix(output_path)
+    strat1_label = _strategy_anchor(strat1, prefix=strategy_link_prefix)
+    strat2_label = _strategy_anchor(strat2, prefix=strategy_link_prefix)
+    decision_firings_section = _decision_firings_section(
+        results,
+        strategy_link_prefix=strategy_link_prefix,
+    )
 
     html = f"""
     <html>
@@ -201,7 +236,7 @@ def generate_html_report(results: dict, output_path: Path, *, verbose: bool = Fa
         </style>
     </head>
     <body>
-    <h1>{title} Comparison</h1>
+    <h1>{strat1_label} vs {strat2_label} Comparison</h1>
     <p>Games played: {results['games_played']}</p>
     <p>Confidence the win-rate difference is real: {confidence:.1%} (p={win_p:.4f})</p>
     <h2>Win Counts</h2>
@@ -394,12 +429,14 @@ def generate_leaderboard_html(
     plt.close(fig)
 
     rows = ""
+    strategy_link_prefix = _strategy_link_prefix(output_path)
     for rank, (name, stats) in enumerate(sorted_items, 1):
         cards = stats.get("cards", [])
-        cards_str = ", ".join(cards) if cards else "-"
-        desc = stats.get("description", "")
+        cards_str = escape(", ".join(cards)) if cards else "-"
+        desc = escape(str(stats.get("description", "")))
+        name_label = _strategy_anchor(name, prefix=strategy_link_prefix)
         rows += (
-            f"<tr><td>{rank}</td><td>{name}</td><td class='desc'>{desc}</td>"
+            f"<tr><td>{rank}</td><td>{name_label}</td><td class='desc'>{desc}</td>"
             f"<td>{stats['wins']}</td>"
             f"<td>{stats['losses']}</td><td>{stats['win_rate']:.1f}%</td>"
             f"<td class='cards'>{cards_str}</td></tr>\n"

@@ -15,6 +15,14 @@ def test_strategy_loader_unknown_returns_none():
     assert loader.get_strategy('No Such Strategy') is None
 
 
+def test_strategy_loader_display_name_for_aliases():
+    loader = StrategyLoader()
+    assert loader.get_display_name("BigMoney") == "Big Money"
+    assert loader.get_display_name("bigmoney") == "Big Money"
+    assert loader.get_display_name("ChapelWitch") == "Chapel Witch"
+    assert loader.get_display_name("No Such Strategy") is None
+
+
 def test_inspiring_festival_engine_prioritizes_horse_and_necropolis():
     loader = StrategyLoader()
     strategy = loader.get_strategy("Inspiring Festival Engine")
