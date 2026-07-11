@@ -131,6 +131,21 @@ class StrategyLoader:
             return None
         return strategy_factory()
 
+    def get_display_name(self, name: str) -> Optional[str]:
+        """Return the registered display name for a strategy name or alias."""
+        strategy_factory = self.strategies.get(name)
+        if strategy_factory is None:
+            strategy_factory = self.strategies.get(name.lower())
+        if strategy_factory is None:
+            strategy_factory = self.strategies.get(self._slugify(name))
+        if strategy_factory is None:
+            return None
+
+        for display_name in self.list_strategies():
+            if self.strategies.get(display_name) is strategy_factory:
+                return display_name
+        return None
+
     def list_strategies(self) -> list[str]:
         """Return display names only (deduplicated, sorted)."""
         return sorted(self._display_names)

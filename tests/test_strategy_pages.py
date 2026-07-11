@@ -1,10 +1,16 @@
 from dominion.reporting.strategy_links import strategy_page_href, strategy_slug
 from dominion.reporting.strategy_pages import render_strategy_pages
+from dominion.reporting.html_report import _strategy_report_href
 
 
 def test_strategy_slug_is_stable_for_display_names():
     assert strategy_slug("Big Money Smithy") == "big-money-smithy"
     assert strategy_page_href("Big Money Smithy") == "strategies/big-money-smithy.html"
+
+
+def test_strategy_report_href_resolves_aliases_to_rendered_pages():
+    assert _strategy_report_href("BigMoney", prefix="strategies") == "strategies/big-money.html"
+    assert _strategy_report_href("ChapelWitch", prefix="strategies") == "strategies/chapel-witch.html"
 
 
 def test_render_strategy_pages_writes_index_and_strategy_page(tmp_path):

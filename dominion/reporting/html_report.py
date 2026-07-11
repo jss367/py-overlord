@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from functools import lru_cache
 from html import escape
 import io
 import os
@@ -14,6 +15,7 @@ from matplotlib.ticker import MaxNLocator
 from scipy.stats import binomtest
 
 from dominion.reporting.strategy_links import strategy_page_href
+from dominion.strategy.strategy_loader import StrategyLoader
 
 
 def fig_to_base64(fig: plt.Figure) -> str:
@@ -28,6 +30,16 @@ def _strategy_link_prefix(output_path: Path) -> str:
     return os.path.relpath(Path("reports") / "strategies", output_path.parent)
 
 
+@lru_cache(maxsize=1)
+def _strategy_loader_for_links() -> StrategyLoader:
+    return StrategyLoader()
+
+
+def _strategy_report_href(name: str, *, prefix: str) -> str:
+    display_name = _strategy_loader_for_links().get_display_name(name) or name
+    return strategy_page_href(display_name, prefix=prefix)
+
+
 def _decision_firings_section(results: dict, *, strategy_link_prefix: str = "strategies") -> str:
     decision_firings = results.get("decision_firings") or {}
     if not decision_firings:
@@ -38,7 +50,7 @@ def _decision_firings_section(results: dict, *, strategy_link_prefix: str = "str
         stats = decision_firings.get(role) or {}
         raw_strategy_name = str(stats.get("strategy_name", role))
         strategy_name = escape(raw_strategy_name)
-        strategy_link = escape(strategy_page_href(raw_strategy_name, prefix=strategy_link_prefix))
+        strategy_link = escape(_strategy_report_href(raw_strategy_name, prefix=strategy_link_prefix))
         rows = []
 
         for list_name, firings in sorted((stats.get("priority_rules") or {}).items()):
@@ -193,8 +205,8 @@ def generate_html_report(results: dict, output_path: Path, *, verbose: bool = Fa
 
     title = f"{strat1} vs {strat2}"
     strategy_link_prefix = _strategy_link_prefix(output_path)
-    strat1_link = escape(strategy_page_href(strat1, prefix=strategy_link_prefix))
-    strat2_link = escape(strategy_page_href(strat2, prefix=strategy_link_prefix))
+    strat1_link = escape(_strategy_report_href(strat1, prefix=strategy_link_prefix))
+    strat2_link = escape(_strategy_report_href(strat2, prefix=strategy_link_prefix))
     strat1_label = escape(strat1)
     strat2_label = escape(strat2)
     decision_firings_section = _decision_firings_section(
@@ -416,7 +428,7 @@ def generate_leaderboard_html(
         cards_str = escape(", ".join(cards)) if cards else "-"
         desc = escape(str(stats.get("description", "")))
         name_label = escape(name)
-        strategy_link = escape(strategy_page_href(name, prefix=strategy_link_prefix))
+        strategy_link = escape(_strategy_report_href(name, prefix=strategy_link_prefix))
         rows += (
             f"<tr><td>{rank}</td><td><a href=\"{strategy_link}\">{name_label}</a></td><td class='desc'>{desc}</td>"
             f"<td>{stats['wins']}</td>"
