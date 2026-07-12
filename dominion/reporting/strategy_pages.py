@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from html import escape
 import inspect
 from pathlib import Path
 from typing import Iterable
 
 from dominion.simulation.strategy_battle import StrategyBattle
-from dominion.reporting.strategy_links import strategy_page_href, strategy_slug
+from dominion.reporting.strategy_links import PageLink, strategy_slug
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
 from dominion.strategy.strategy_loader import StrategyLoader
 
@@ -22,6 +22,7 @@ class RenderedStrategy:
     source_path: str
     factory_name: str
     references: dict[str, list[str]]
+    compatible_boards: tuple[PageLink, ...] = field(default_factory=tuple)
 
 
 def _condition_label(condition) -> str:
@@ -65,6 +66,15 @@ def _reference_list(values: list[str]) -> str:
     if not values:
         return "<span class=\"empty\">None</span>"
     return ", ".join(escape(value) for value in values)
+
+
+def _page_link_list(values: Iterable[PageLink]) -> str:
+    links = list(values)
+    if not links:
+        return '<span class="empty">None</span>'
+    return ", ".join(
+        f'<a href="{escape(link.href)}">{escape(link.label)}</a>' for link in links
+    )
 
 
 def _strategy_source(loader: StrategyLoader, display_name: str) -> tuple[str, str]:
@@ -201,6 +211,9 @@ def render_strategy_page(item: RenderedStrategy, *, index_href: str = "index.htm
 <h1>{escape(item.display_name)}</h1>
 <p class="muted">{escape(getattr(strategy, "description", "") or "No description.")}</p>
 
+<h2>Compatible Boards</h2>
+<p>{_page_link_list(item.compatible_boards)}</p>
+
 <dl class="meta">
   <dt>Internal Name</dt><dd>{escape(getattr(strategy, "name", ""))}</dd>
   <dt>Version</dt><dd>{escape(getattr(strategy, "version", ""))}</dd>
@@ -242,7 +255,11 @@ def render_strategy_page(item: RenderedStrategy, *, index_href: str = "index.htm
     return _page_shell(f"{item.display_name} Strategy", body)
 
 
-def render_strategy_index(items: list[RenderedStrategy]) -> str:
+def render_strategy_index(
+    items: list[RenderedStrategy],
+    *,
+    board_index_href: str | None = None,
+) -> str:
     rows = []
     for item in items:
         strategy = item.strategy
@@ -257,7 +274,13 @@ def render_strategy_index(items: list[RenderedStrategy]) -> str:
             "</tr>"
         )
 
+    board_nav = (
+        f'<nav><a href="{escape(board_index_href)}">Board index</a></nav>'
+        if board_index_href
+        else ""
+    )
     body = f"""
+{board_nav}
 <h1>Strategy Index</h1>
 <p class="muted">Generated from registered strategy objects. Regenerate this directory after changing strategy code.</p>
 <input class="search" id="strategy-search" type="search" placeholder="Search strategies">
