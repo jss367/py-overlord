@@ -112,6 +112,29 @@ exactly the categories the suite was designed to separate:
   saved genome. The known-best label stays as a reference, but the community
   answer is not the best strategy on this exact board in this simulator.
 
+## Widened greening-gate vocabulary (2026-07-05)
+
+First measured pipeline change: the structured genome's gate vocabulary
+gained an ungated-Duchy option (25%), a pile-pressure Estate gate
+(`empty_piles >= 1-2`, 25%), and an opener shape for kingdom picks
+(`max_in_deck 1 AND turn <= 2-4`, 15%). Same run settings as the baseline;
+full table in `reports/calibration/evolve_v2_widened_gates.md`.
+
+- **Both representability targets closed**: rebuild_duchy 32.8% → 46.2%
+  (gap 17.2 → 3.8pp) and chapel_witch 44.0% → 64.2% (gap 6.0 → 0; the
+  champion beats the reference with triple-Witch money and clean greening).
+  Attribution is partial — the rebuild champion used the widest Duchy gate
+  plus a Rebuild cap of 6 rather than the fully ungated rule — but the rush
+  shapes are now inside the search space either way.
+- **BM+X money boards wobbled** (smithy_bm 41.8% → 25.0%, wharf_bm 46.5%
+  → 40.8%): partly wider-vocabulary noise, mostly single-run GA variance —
+  a smithy_bm re-run on identical settings scored 39.0%, a 14pp swing
+  between seeds. Per-board single-run numbers are ±8pp; treat mean gap
+  across all 10 boards as the signal, and re-run anomalies before reacting.
+- These wobble boards are all in the objective-failure class (fixed Big
+  Money panel gives no gradient toward mirror-optimal BM+X), which is the
+  next work item — a coevolution/champion-pool outer loop.
+
 ## Caveats
 
 - The known-best strategies are strong reference points, not proofs of

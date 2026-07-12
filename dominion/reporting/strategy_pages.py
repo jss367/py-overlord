@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from html import escape
 import inspect
 from pathlib import Path
 from typing import Iterable
 
 from dominion.simulation.strategy_battle import StrategyBattle
-from dominion.reporting.strategy_links import strategy_slug
+from dominion.reporting.strategy_links import PageLink, strategy_slug
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
 from dominion.strategy.strategy_loader import StrategyLoader
 
@@ -22,6 +22,7 @@ class RenderedStrategy:
     source_path: str
     factory_name: str
     references: dict[str, list[str]]
+    compatible_boards: tuple[PageLink, ...] = field(default_factory=tuple)
 
 
 @dataclass(frozen=True)
@@ -96,6 +97,15 @@ def _reference_list(values: list[str]) -> str:
     if not values:
         return "<span class=\"empty\">None</span>"
     return ", ".join(escape(value) for value in values)
+
+
+def _page_link_list(values: Iterable[PageLink]) -> str:
+    links = list(values)
+    if not links:
+        return '<span class="empty">None</span>'
+    return ", ".join(
+        f'<a href="{escape(link.href)}">{escape(link.label)}</a>' for link in links
+    )
 
 
 def _strategy_source(loader: StrategyLoader, display_name: str) -> tuple[str, str]:
@@ -232,6 +242,9 @@ def render_strategy_page(item: RenderedStrategy, *, index_href: str = "index.htm
 <h1>{escape(item.display_name)}</h1>
 <p class="muted">{escape(getattr(strategy, "description", "") or "No description.")}</p>
 
+<h2>Compatible Boards</h2>
+<p>{_page_link_list(item.compatible_boards)}</p>
+
 <dl class="meta">
   <dt>Internal Name</dt><dd>{escape(getattr(strategy, "name", ""))}</dd>
   <dt>Version</dt><dd>{escape(getattr(strategy, "version", ""))}</dd>
@@ -277,6 +290,7 @@ def render_strategy_index(
     items: list[RenderedStrategy],
     *,
     curated_guides: Iterable[CuratedStrategyGuide] = (),
+    board_index_href: str | None = None,
 ) -> str:
     rows = []
     for guide in curated_guides:
@@ -303,7 +317,13 @@ def render_strategy_index(
             "</tr>"
         )
 
+    board_nav = (
+        f'<nav><a href="{escape(board_index_href)}">Board index</a></nav>'
+        if board_index_href
+        else ""
+    )
     body = f"""
+{board_nav}
 <h1>Strategy Index</h1>
 <p class="muted">Generated from registered strategy objects and curated board guides. Regenerate this directory after changing strategy code.</p>
 <input class="search" id="strategy-search" type="search" placeholder="Search strategies">
@@ -325,6 +345,18 @@ search.addEventListener('input', () => {{
     return _page_shell("Strategy Index", body)
 
 
+def existing_curated_strategy_guides(
+    output_dir: Path,
+) -> list[CuratedStrategyGuide]:
+    """Return curated guides already present in a strategy output directory."""
+
+    return [
+        guide
+        for guide in CURATED_STRATEGY_GUIDES
+        if (output_dir / guide.filename).is_file()
+    ]
+
+
 def render_strategy_pages(
     output_dir: Path,
     *,
@@ -337,11 +369,7 @@ def render_strategy_pages(
     items = collect_rendered_strategies(loader, names=names)
     written = []
 
-    curated_guides = [
-        guide
-        for guide in CURATED_STRATEGY_GUIDES
-        if (output_dir / guide.filename).is_file()
-    ]
+    curated_guides = existing_curated_strategy_guides(output_dir)
 
     index_path = output_dir / "index.html"
     index_path.write_text(

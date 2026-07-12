@@ -31,6 +31,19 @@ python -m dominion.simulation.strategy_battle "Chapel Witch" "Big Money" --games
 If `--output` is omitted, reports are written to the `reports` directory with
 an auto-generated filename.
 
+## Board and strategy catalog
+
+Generate linked HTML pages for every board and registered strategy:
+
+```
+PYTHONPATH=. python scripts/render_catalog.py
+```
+
+The indexes are written to `reports/boards/index.html` and
+`reports/strategies/index.html`. Each strategy links to every board that
+contains all of its referenced cards and landscapes, and each board links
+back to those compatible strategies.
+
 ## Calibration suite
 
 `boards/calibration/` pairs boards with community-known best strategies so
@@ -45,4 +58,3 @@ PYTHONPATH=. python scripts/calibration_suite.py --mode evolve --games 400
 
 See `docs/calibration.md` for the board list, sources, and how to read the
 gap score.
-
