@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Taskmaster Workforce Best Strategy</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --border: #d8dde6;
+      --text: #1f2937;
+      --muted: #667085;
+      --header: #f3f5f8;
+      --row: #fbfcfe;
+      --accent: #255e8f;
+    }
+    body {
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      line-height: 1.4;
+      margin: 32px auto;
+      max-width: 1120px;
+      padding: 0 24px;
+    }
+    a { color: var(--accent); }
+    h1 { margin-bottom: 4px; }
+    h2 { border-bottom: 1px solid var(--border); margin-top: 32px; padding-bottom: 6px; }
+    .muted, .empty { color: var(--muted); }
+    .meta {
+      display: grid;
+      gap: 8px 20px;
+      grid-template-columns: max-content 1fr;
+      margin: 20px 0;
+    }
+    .meta dt { color: var(--muted); font-weight: bold; }
+    .meta dd { margin: 0; }
+    table {
+      border-collapse: collapse;
+      margin: 12px 0 24px;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 7px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--header); }
+    tr:nth-child(even) td { background: var(--row); }
+    td:first-child { width: 54px; }
+    .search {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 16px;
+      margin: 18px 0;
+      padding: 9px 11px;
+      width: min(460px, 100%);
+    }
+  </style>
+</head>
+<body>
+
+<p><a href="index.html">Strategy index</a></p>
+<h1>Taskmaster Workforce Best</h1>
+<p class="muted">Best-found Taskmaster Workforce board policy: Taskmaster payload with Wharf draw, Festival buys, and fast greening.</p>
+
+<dl class="meta">
+  <dt>Internal Name</dt><dd>Taskmaster Workforce Best</dd>
+  <dt>Version</dt><dd>1.0</dd>
+  <dt>Source</dt><dd>generated_strategies/taskmaster_workforce_best.py</dd>
+  <dt>Factory</dt><dd>create_taskmaster_workforce_best</dd>
+  <dt>Kingdom Cards</dt><dd>Festival, Groom, Ironworks, Laboratory, Lost City, Market, Sculptor, Supplies, Taskmaster, Wharf</dd><dt>Events</dt><dd><span class="empty">None</span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
+</dl>
+
+<h2>Gain Priority</h2>
+<table>
+  <tr><th>#</th><th>Card or Event</th><th>Condition</th></tr>
+  <tr><td>1</td><td>Province</td><td>always</td></tr>
+<tr><td>2</td><td>Duchy</td><td>PriorityRule.provinces_left(&#x27;&lt;=&#x27;, 5)</td></tr>
+<tr><td>3</td><td>Estate</td><td>PriorityRule.provinces_left(&#x27;&lt;=&#x27;, 3)</td></tr>
+<tr><td>4</td><td>Wharf</td><td>PriorityRule.max_in_deck(&#x27;Wharf&#x27;, 1)</td></tr>
+<tr><td>5</td><td>Sculptor</td><td>PriorityRule.and_(PriorityRule.max_in_deck(&#x27;Sculptor&#x27;, 1), PriorityRule.provinces_left(&#x27;&gt;&#x27;, 4))</td></tr>
+<tr><td>6</td><td>Gold</td><td>always</td></tr>
+<tr><td>7</td><td>Festival</td><td>PriorityRule.max_in_deck(&#x27;Festival&#x27;, 3)</td></tr>
+<tr><td>8</td><td>Taskmaster</td><td>PriorityRule.and_(PriorityRule.max_in_deck(&#x27;Taskmaster&#x27;, 4), PriorityRule.turn_number(&#x27;&gt;=&#x27;, 5), PriorityRule.provinces_left(&#x27;&gt;&#x27;, 4))</td></tr>
+<tr><td>9</td><td>Silver</td><td>PriorityRule.turn_number(&#x27;&lt;=&#x27;, 11)</td></tr>
+<tr><td>10</td><td>Supplies</td><td>PriorityRule.max_in_deck(&#x27;Supplies&#x27;, 1)</td></tr>
+<tr><td>11</td><td>Groom</td><td>PriorityRule.max_in_deck(&#x27;Groom&#x27;, 2)</td></tr>
+</table>
+
+<h2>Action Priority</h2>
+<table>
+  <tr><th>#</th><th>Card</th><th>Condition</th></tr>
+  <tr><td>1</td><td>Lost City</td><td>always</td></tr>
+<tr><td>2</td><td>Festival</td><td>always</td></tr>
+<tr><td>3</td><td>Market</td><td>always</td></tr>
+<tr><td>4</td><td>Laboratory</td><td>always</td></tr>
+<tr><td>5</td><td>Taskmaster</td><td>always</td></tr>
+<tr><td>6</td><td>Wharf</td><td>always</td></tr>
+<tr><td>7</td><td>Ironworks</td><td>always</td></tr>
+<tr><td>8</td><td>Groom</td><td>always</td></tr>
+<tr><td>9</td><td>Sculptor</td><td>always</td></tr>
+</table>
+
+<h2>Trash Priority</h2>
+<table>
+  <tr><th>#</th><th>Card</th><th>Condition</th></tr>
+  <tr><td>1</td><td>Curse</td><td>always</td></tr>
+<tr><td>2</td><td>Estate</td><td>PriorityRule.provinces_left(&#x27;&gt;&#x27;, 2)</td></tr>
+<tr><td>3</td><td>Copper</td><td>PriorityRule.has_cards([&#x27;Silver&#x27;, &#x27;Gold&#x27;], 2)</td></tr>
+</table>
+
+<h2>Treasure Priority</h2>
+<table>
+  <tr><th>#</th><th>Card</th><th>Condition</th></tr>
+  <tr><td>1</td><td>Gold</td><td>always</td></tr>
+<tr><td>2</td><td>Supplies</td><td>always</td></tr>
+<tr><td>3</td><td>Silver</td><td>always</td></tr>
+<tr><td>4</td><td>Copper</td><td>always</td></tr>
+</table>
+
+<h2>Way Policy</h2>
+<table>
+  <tr><th>#</th><th>Card</th><th>Way</th><th>Condition</th></tr>
+  <tr><td colspan="4" class="empty">None</td></tr>
+</table>
+
+</body>
+</html>

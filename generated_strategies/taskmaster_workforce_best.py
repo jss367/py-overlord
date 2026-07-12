@@ -5,7 +5,10 @@ class TaskmasterWorkforceBest(EnhancedStrategy):
     def __init__(self) -> None:
         super().__init__()
         self.name = "Taskmaster Workforce Best"
-        self.description = "Evolved strategy for boards/taskmaster_workforce.txt"
+        self.description = (
+            "Best-found Taskmaster Workforce board policy: Taskmaster payload "
+            "with Wharf draw, Festival buys, and fast greening."
+        )
         self.version = "1.0"
 
         self.gain_priority = [
