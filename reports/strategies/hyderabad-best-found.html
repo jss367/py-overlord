@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Hyderabad Best Found Strategy</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --border: #d8dde6;
+      --text: #1f2937;
+      --muted: #667085;
+      --header: #f3f5f8;
+      --row: #fbfcfe;
+      --accent: #255e8f;
+    }
+    body {
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      line-height: 1.4;
+      margin: 32px auto;
+      max-width: 1120px;
+      padding: 0 24px;
+    }
+    a { color: var(--accent); }
+    h1 { margin-bottom: 4px; }
+    h2 { border-bottom: 1px solid var(--border); margin-top: 32px; padding-bottom: 6px; }
+    .muted, .empty { color: var(--muted); }
+    .meta {
+      display: grid;
+      gap: 8px 20px;
+      grid-template-columns: max-content 1fr;
+      margin: 20px 0;
+    }
+    .meta dt { color: var(--muted); font-weight: bold; }
+    .meta dd { margin: 0; }
+    table {
+      border-collapse: collapse;
+      margin: 12px 0 24px;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 7px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--header); }
+    tr:nth-child(even) td { background: var(--row); }
+    td:first-child { width: 54px; }
+    .search {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 16px;
+      margin: 18px 0;
+      padding: 9px 11px;
+      width: min(460px, 100%);
+    }
+  </style>
+</head>
+<body>
+
+<p><a href="index.html">Strategy index</a></p>
+<h1>Hyderabad Best Found</h1>
+<p class="muted">Best-found Hyderabad board policy: Stockpile-battery money with one Scholar, late Duchies, and three-pile Estate closing.</p>
+
+<dl class="meta">
+  <dt>Internal Name</dt><dd>Hyderabad Best Found</dd>
+  <dt>Version</dt><dd>1.0</dd>
+  <dt>Source</dt><dd>generated_strategies/hyderabad_best_found.py</dd>
+  <dt>Factory</dt><dd>create_hyderabad_best_found</dd>
+  <dt>Kingdom Cards</dt><dd>Ducat, Scholar, Stockpile</dd><dt>Events</dt><dd><span class="empty">None</span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
+</dl>
+
+<h2>Gain Priority</h2>
+<table>
+  <tr><th>#</th><th>Card or Event</th><th>Condition</th></tr>
+  <tr><td>1</td><td>Province</td><td>always</td></tr>
+<tr><td>2</td><td>Duchy</td><td>PriorityRule.provinces_left(&#x27;&lt;=&#x27;, 3)</td></tr>
+<tr><td>3</td><td>Estate</td><td>PriorityRule.empty_piles(&#x27;&gt;=&#x27;, 2)</td></tr>
+<tr><td>4</td><td>Gold</td><td>always</td></tr>
+<tr><td>5</td><td>Scholar</td><td>PriorityRule.and_(PriorityRule.max_in_deck(&#x27;Scholar&#x27;, 1), PriorityRule.turn_number(&#x27;&lt;=&#x27;, 12))</td></tr>
+<tr><td>6</td><td>Stockpile</td><td>PriorityRule.max_in_deck(&#x27;Stockpile&#x27;, 6)</td></tr>
+<tr><td>7</td><td>Ducat</td><td>PriorityRule.and_(PriorityRule.max_in_deck(&#x27;Ducat&#x27;, 1), PriorityRule.provinces_left(&#x27;&gt;&#x27;, 3))</td></tr>
+<tr><td>8</td><td>Silver</td><td>always</td></tr>
+</table>
+
+<h2>Action Priority</h2>
+<table>
+  <tr><th>#</th><th>Card</th><th>Condition</th></tr>
+  <tr><td>1</td><td>Scholar</td><td>always</td></tr>
+</table>
+
+<h2>Trash Priority</h2>
+<table>
+  <tr><th>#</th><th>Card</th><th>Condition</th></tr>
+  <tr><td colspan="3" class="empty">None</td></tr>
+</table>
+
+<h2>Treasure Priority</h2>
+<table>
+  <tr><th>#</th><th>Card</th><th>Condition</th></tr>
+  <tr><td>1</td><td>Silver</td><td>always</td></tr>
+<tr><td>2</td><td>Gold</td><td>always</td></tr>
+<tr><td>3</td><td>Copper</td><td>always</td></tr>
+<tr><td>4</td><td>Stockpile</td><td>always</td></tr>
+<tr><td>5</td><td>Ducat</td><td>always</td></tr>
+</table>
+
+<h2>Way Policy</h2>
+<table>
+  <tr><th>#</th><th>Card</th><th>Way</th><th>Condition</th></tr>
+  <tr><td colspan="4" class="empty">None</td></tr>
+</table>
+
+</body>
+</html>
