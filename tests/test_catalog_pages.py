@@ -39,6 +39,25 @@ def test_compatibility_requires_referenced_landscapes():
     assert strategy_is_compatible(strategy, board)
 
 
+def test_compatibility_includes_setup_created_piles():
+    strategy = collect_rendered_strategies(names=["Big Money"])[0]
+    strategy = replace(
+        strategy,
+        references={
+            **strategy.references,
+            "Kingdom Cards": ["Bustling Village", "Horse", "Lich"],
+        },
+    )
+    board = RenderedBoard(
+        display_name="Setup Piles",
+        page_path=Path("setup-piles.html"),
+        source_path=Path("boards/setup_piles.txt"),
+        config=BoardConfig(["Settlers", "Student", "Supplies"]),
+    )
+
+    assert strategy_is_compatible(strategy, board)
+
+
 def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path):
     boards_root = tmp_path / "source_boards"
     compatible = _write_board(

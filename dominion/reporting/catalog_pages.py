@@ -7,6 +7,13 @@ import os
 from pathlib import Path
 from typing import Iterable
 
+from dominion.cards.allies._split_base import AlliesSplitCard
+from dominion.cards.allies.wizards import WIZARDS_PILE_ORDER, WizardsSplitCard
+from dominion.cards.dark_ages.knights import KNIGHT_NAMES
+from dominion.cards.dark_ages.ruins import RUIN_VARIANT_NAMES
+from dominion.cards.empires.castles import CASTLE_ORDER
+from dominion.cards.registry import get_card
+from dominion.cards.split_pile import SplitPileMixin
 from dominion.reporting.board_pages import (
     RenderedBoard,
     collect_rendered_boards,
@@ -27,11 +34,47 @@ def _relative_href(target: Path, source: Path) -> str:
     return Path(os.path.relpath(target, source.parent)).as_posix()
 
 
+def _available_board_cards(board: RenderedBoard) -> set[str]:
+    """Expand literal board entries with deterministic setup-created cards."""
+
+    available = set(board.config.kingdom_cards)
+    pending = list(available)
+    while pending:
+        name = pending.pop()
+        card = get_card(name)
+        additions = set(card.get_additional_piles())
+        additions.update(card.get_additional_non_supply_piles())
+        additions.update(getattr(card, "nocturne_piles", {}))
+        additions.update(getattr(card, "nocturne_trash_piles", {}))
+
+        if isinstance(card, SplitPileMixin):
+            additions.add(card.partner_card_name)
+        if isinstance(card, WizardsSplitCard):
+            additions.update(WIZARDS_PILE_ORDER)
+        if isinstance(card, AlliesSplitCard):
+            additions.update(card.pile_order)
+
+        new_names = additions - available
+        available.update(new_names)
+        pending.extend(new_names)
+
+    if available.intersection(CASTLE_ORDER):
+        available.update(CASTLE_ORDER)
+    if "Ruins" in available:
+        available.update(RUIN_VARIANT_NAMES)
+    if "Knights" in available:
+        available.update(KNIGHT_NAMES)
+    if any(get_card(name).cost.potions for name in board.config.kingdom_cards):
+        available.add("Potion")
+
+    return available
+
+
 def strategy_is_compatible(strategy: RenderedStrategy, board: RenderedBoard) -> bool:
     """Return whether all of a strategy's board references exist on a board."""
 
     available = {
-        "Kingdom Cards": set(board.config.kingdom_cards),
+        "Kingdom Cards": _available_board_cards(board),
         "Events": set(board.config.events),
         "Projects": set(board.config.projects),
         "Ways": set(board.config.ways),
