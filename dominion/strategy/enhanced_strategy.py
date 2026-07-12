@@ -220,6 +220,23 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.empty_piles({op!r}, {amount!r})")
 
     @staticmethod
+    def pile_count(card_name: str, op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+        """True when a named Supply pile's remaining count matches ``op``.
+
+        Unlike ``provinces_left`` this is usable for any pile, which makes
+        explicit pile-control policies representable: for example, buy an
+        Estate only when it is the final card in the third pile.
+        """
+        cmp = PriorityRule._OP_MAP[op]
+        fn = lambda s, _me, _card=card_name, _amount=amount, _cmp=cmp: (
+            _card in s.supply and _cmp(s.supply[_card], _amount)
+        )
+        return PriorityRule._tag_source(
+            fn,
+            f"PriorityRule.pile_count({card_name!r}, {op!r}, {amount!r})",
+        )
+
+    @staticmethod
     def deck_size(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
         """True when the player's total deck size (all zones) satisfies the comparison."""
         cmp = PriorityRule._OP_MAP[op]

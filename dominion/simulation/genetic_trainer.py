@@ -750,7 +750,24 @@ class GeneticTrainer:
 
     def _crossover(self, parent1: BaseStrategy, parent2: BaseStrategy) -> BaseStrategy:
         """Create a new strategy by combining two parent strategies"""
+        if self.structured_genome:
+            from dominion.simulation.strategic_genome import (
+                crossover_strategic_strategies,
+            )
+
+            semantic_child = crossover_strategic_strategies(
+                parent1, parent2, self._kingdom_info
+            )
+            if semantic_child is not None:
+                return semantic_child
+
         child = deepcopy(parent1)
+        # Positional crossover is the compatibility path for a hand-written
+        # or older parent. Its result no longer corresponds to parent1's typed
+        # modules, so discard stale metadata; subsequent mutation correctly
+        # stays on the legacy structured operators.
+        if hasattr(child, "_strategic_genome"):
+            delattr(child, "_strategic_genome")
 
         # Crossover gain priorities
         for i, priority in enumerate(child.gain_priority):
@@ -1076,6 +1093,13 @@ class GeneticTrainer:
                 from dominion.strategy.rule_pruning import prune_unfired_rules
                 prune_unfired_rules(parent1, min_rules=self.prune_min_rules)
                 prune_unfired_rules(parent2, min_rules=self.prune_min_rules)
+                if self.structured_genome:
+                    from dominion.simulation.strategic_genome import (
+                        synchronize_strategic_genome,
+                    )
+
+                    synchronize_strategic_genome(parent1, self._kingdom_info)
+                    synchronize_strategic_genome(parent2, self._kingdom_info)
 
             child = self._crossover(parent1, parent2)
             child = self._mutate(child)
@@ -1137,6 +1161,15 @@ class GeneticTrainer:
                         simplify_strategy,
                     )
                     population = [simplify_strategy(s) for s in population]
+                    if self.structured_genome:
+                        from dominion.simulation.strategic_genome import (
+                            synchronize_strategic_genome,
+                        )
+
+                        for strategy in population:
+                            synchronize_strategic_genome(
+                                strategy, self._kingdom_info
+                            )
 
                 # --- Screen: every individual gets the cheap budget. With
                 # common random numbers, the whole generation plays the same

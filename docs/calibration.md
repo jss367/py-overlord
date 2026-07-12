@@ -8,9 +8,11 @@ and they need different fixes:
 1. **Simulator bug** — a card rule is wrong, so the board plays differently
    than real Dominion (see the Hyderabad Exile bug, where one wrong rule
    flipped a seed strategy from 4% to 93% vs Big Money).
-2. **Policy ceiling** — the priority-list DSL or a hardcoded AI hook cannot
+2. **Policy ceiling** — the priority-list strategy language or a hardcoded
+   computer-player hook cannot
    represent the play the board demands.
-3. **Search failure** — the GA never finds a genome the DSL could express.
+3. **Search failure** — genetic search never finds a genome the strategy
+   language could express.
 4. **Evaluation noise** — the fitness signal was too noisy to rank candidates.
 
 Until now the repo had no way to tell these apart, because every result was
@@ -22,20 +24,21 @@ hand-written encodings of those strategies.
 ## The boards
 
 All boards live in `boards/calibration/`. Most pair one strong kingdom card
-with deliberately weak support ("BM+X" boards), because those have the most
+with deliberately weak support (Big Money plus one focal kingdom card),
+because those have the most
 settled community answers.
 
 | Board | Known best | The known answer |
 |---|---|---|
-| `smithy_bm` | Double Smithy | BM + 2 Smithies beats straight BM (classic sim result) |
-| `witch_bm` | Double Witch | Witch money crushes BM on support-free boards |
+| `smithy_bm` | Double Smithy | Big Money plus two Smithies beats straight Big Money (classic simulation result) |
+| `witch_bm` | Double Witch | Witch money crushes Big Money on support-free boards |
 | `chapel_witch` | Chapel Witch Classic | Chapel thinning into Witch beats unthinned Witch money |
 | `gardens_workshop` | Gardens Workshop Rush | Workshop-gains-Gardens rush beats money on weak-money boards |
-| `wharf_bm` | Big Money Wharf | BM-Wharf was the strongest classic BM+X |
+| `wharf_bm` | Big Money Wharf | Big Money with Wharf was the strongest classic focal-card strategy |
 | `rebuild_duchy` | Rebuild Rush | Rebuild/Duchy (no Gold) beats money strategies outright |
 | `jack_bm` | Double Jack | Double Jack was the Isotropic-era benchmark |
-| `mountebank_bm` | Mountebank Money | Mountebank-BM is a standard strong baseline |
-| `courtyard_bm` | Courtyard Money | 2 Courtyards on $2–4 hands beats straight BM |
+| `mountebank_bm` | Mountebank Money | Mountebank money is a standard strong baseline |
+| `courtyard_bm` | Courtyard Money | Two Courtyards on $2–4 hands beats straight Big Money |
 | `first_game` | First Game Smithy Militia | Smithy money (+Militia) wins the base-set First Game kingdom |
 
 The known-best strategies are in
@@ -74,7 +77,7 @@ vs the known-best falls below 50. The suite-level number is the **mean gap**:
 - **small (≤5)** — search is close; tuning (budgets, seeds, vocabulary) may
   close it.
 - **large on specific boards** — read those boards' verdicts. A big gap on
-  `chapel_witch` or `gardens_workshop` but not on the BM+X boards points at
+  `chapel_witch` or `gardens_workshop` but not on the focal-card boards points at
   representation/play-skill limits (trash policy, gainer play) rather than
   general search failure.
 
@@ -101,11 +104,11 @@ exactly the categories the suite was designed to separate:
 - **Objective failure — `witch_bm` (40.5%), `smithy_bm` (41.8%).** Both
   archetypes are fully representable (a capped kingdom pick over a money
   backbone), yet champions trained against the Big Money panel converge to
-  something that beats Big Money without matching the tuned BM+X mirror.
+  something that beats Big Money without matching the tuned focal-card mirror.
   Fixed weak panels give no gradient toward mirror-optimal play; this is the
   motivation for a coevolution / champion-pool outer loop.
 - **Legitimate wins — `gardens_workshop` (93.2%), `courtyard_bm` (57.8%).**
-  On the Gardens board the GA found a genuinely better plan than the
+  On the Gardens board genetic search found a genuinely better plan than the
   community archetype: play money, contest the Gardens pile from the money
   deck, and win the long game on Provinces. Hand-buffed rush variants
   (uncapped Workshops, earlier Estates) still lose ~90% to the champion's
@@ -139,8 +142,21 @@ full table in `reports/calibration/evolve_v2_widened_gates.md`.
 
 - The known-best strategies are strong reference points, not proofs of
   optimality. A champion beating one is a good sign, not a guarantee.
-- Known-best play still flows through the same AI hooks as everyone else
-  (e.g. Jack of All Trades' hardcoded trash/discard choices), so a weak
-  hook drags both sides equally in the champion match, but can depress the
-  sanity-mode margin vs Big Money.
+- Known-best play still flows through the same computer-player hooks as everyone
+  else (e.g. Jack of All Trades' hardcoded trash/discard choices). A weak hook
+  can affect both strategies, but not necessarily equally: the strategy that
+  buys or invokes the card more often may be hurt more. Interpret sanity-mode
+  margins involving such hooks with caution.
 - 400 games resolves ~5pp differences; use 1000+ for finer comparisons.
+
+## Representation update (2026-07-10)
+
+The structured search representation now uses typed opening, build, economy,
+greening, and endgame modules. The Rebuild plan, an exact early single-card
+opening, and score-aware third-pile endings are directly representable and
+covered by tests. See `docs/strategy-search-architecture.md`.
+
+The first-results table above remains the historical baseline. It should not
+be overwritten by a small smoke run; the next comparable run must use the same
+30-individual, 30-generation, 15-game evaluation budget and 400 confirmation
+games.
