@@ -1052,3 +1052,61 @@ class TestTrainerIntegration:
             ]
             assert len(keys) == len(set(keys)), f"duplicate rules survived: {keys}"
             assert any(r.card_name == "Province" for r in s.gain_priority)
+
+
+class TestWidenedGreeningVocabulary:
+    """The greening-gate vocabulary must include the shapes that classic
+    archetypes need: an ungated Duchy (Rebuild-style "Duchy over Gold"),
+    pile-pressure Estates, and a cap-1 early-turn opener gate for picks
+    (Chapel-style openings). See docs/calibration.md — the rebuild_duchy
+    board exposed that these were unrepresentable."""
+
+    def test_duchy_gate_can_be_ungated_but_usually_is_not(self):
+        from dominion.simulation.structured_genome import _greening_gate
+
+        rng = random.Random(0)
+        gates = [_greening_gate("Duchy", rng) for _ in range(400)]
+        ungated = sum(1 for gate in gates if gate is None)
+        assert ungated > 0, "ungated Duchy never offered — Rebuild-style rushes stay unsearchable"
+        assert ungated < 200, "ungated Duchy should stay a minority option"
+        for gate in gates:
+            if gate is not None:
+                assert "provinces_left" in gate._source
+
+    def test_estate_gate_includes_pile_pressure_option(self):
+        from dominion.simulation.structured_genome import _greening_gate
+
+        rng = random.Random(1)
+        sources = [_greening_gate("Estate", rng)._source for _ in range(400)]
+        assert any("empty_piles" in s for s in sources), "no pile-pressure Estate gate offered"
+        assert any("provinces_left" in s for s in sources)
+
+    def test_pick_gate_includes_opening_buy_shape(self):
+        import re as _re
+
+        from dominion.simulation.structured_genome import _pick_gate
+
+        rng = random.Random(2)
+        info = _info()
+        opener = _re.compile(r"max_in_deck\('Chapel', 1\).*turn_number\('<=', ([2-4])\)")
+        sources = [_pick_gate("Chapel", info, rng)._source for _ in range(400)]
+        assert any(opener.search(s) for s in sources), (
+            "no opener-shaped gate (cap 1 + turn <= 2-4) in 400 draws"
+        )
+
+    def test_mutation_can_discover_ungated_duchy(self):
+        random.seed(7)
+        info = _info()
+        strategy = random_menu_strategy(info)
+        found = False
+        for _ in range(300):
+            if not any(r.card_name == "Duchy" for r in strategy.gain_priority):
+                strategy.gain_priority.insert(
+                    1, PriorityRule("Duchy", PriorityRule.provinces_left("<=", 4))
+                )
+            strategy = normalize_menu(mutate_menu(strategy, info, rate=0.9), info)
+            duchy = next((r for r in strategy.gain_priority if r.card_name == "Duchy"), None)
+            if duchy is not None and duchy.condition is None:
+                found = True
+                break
+        assert found, "re-gate mutation never produced an ungated Duchy"

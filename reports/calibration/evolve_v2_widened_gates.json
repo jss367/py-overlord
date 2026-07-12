@@ -1,0 +1,122 @@
+[
+  {
+    "board": "smithy_bm",
+    "strategy_a": "Champion smithy_bm",
+    "strategy_b": "Double Smithy",
+    "wins_a": 100,
+    "games": 400,
+    "winrate_a": 25.0,
+    "ci_a": [
+      21.01,
+      29.47
+    ]
+  },
+  {
+    "board": "witch_bm",
+    "strategy_a": "Champion witch_bm",
+    "strategy_b": "Double Witch",
+    "wins_a": 150,
+    "games": 400,
+    "winrate_a": 37.5,
+    "ci_a": [
+      32.9,
+      42.34
+    ]
+  },
+  {
+    "board": "chapel_witch",
+    "strategy_a": "Champion chapel_witch",
+    "strategy_b": "Chapel Witch Classic",
+    "wins_a": 257,
+    "games": 400,
+    "winrate_a": 64.25,
+    "ci_a": [
+      59.44,
+      68.79
+    ]
+  },
+  {
+    "board": "gardens_workshop",
+    "strategy_a": "Champion gardens_workshop",
+    "strategy_b": "Gardens Workshop Rush",
+    "wins_a": 391,
+    "games": 400,
+    "winrate_a": 97.75,
+    "ci_a": [
+      95.78,
+      98.81
+    ]
+  },
+  {
+    "board": "wharf_bm",
+    "strategy_a": "Champion wharf_bm",
+    "strategy_b": "Big Money Wharf",
+    "wins_a": 163,
+    "games": 400,
+    "winrate_a": 40.75,
+    "ci_a": [
+      36.04,
+      45.63
+    ]
+  },
+  {
+    "board": "rebuild_duchy",
+    "strategy_a": "Champion rebuild_duchy",
+    "strategy_b": "Rebuild Rush",
+    "wins_a": 185,
+    "games": 400,
+    "winrate_a": 46.25,
+    "ci_a": [
+      41.42,
+      51.15
+    ]
+  },
+  {
+    "board": "jack_bm",
+    "strategy_a": "Champion jack_bm",
+    "strategy_b": "Double Jack",
+    "wins_a": 187,
+    "games": 400,
+    "winrate_a": 46.75,
+    "ci_a": [
+      41.91,
+      51.65
+    ]
+  },
+  {
+    "board": "mountebank_bm",
+    "strategy_a": "Champion mountebank_bm",
+    "strategy_b": "Mountebank Money",
+    "wins_a": 193,
+    "games": 400,
+    "winrate_a": 48.25,
+    "ci_a": [
+      43.39,
+      53.14
+    ]
+  },
+  {
+    "board": "courtyard_bm",
+    "strategy_a": "Champion courtyard_bm",
+    "strategy_b": "Courtyard Money",
+    "wins_a": 223,
+    "games": 400,
+    "winrate_a": 55.75,
+    "ci_a": [
+      50.85,
+      60.54
+    ]
+  },
+  {
+    "board": "first_game",
+    "strategy_a": "Champion first_game",
+    "strategy_b": "First Game Smithy Militia",
+    "wins_a": 206,
+    "games": 400,
+    "winrate_a": 51.5,
+    "ci_a": [
+      46.61,
+      56.36
+    ]
+  }
+]
