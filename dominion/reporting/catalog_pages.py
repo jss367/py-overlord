@@ -35,6 +35,15 @@ def _relative_href(target: Path, source: Path) -> str:
     return Path(os.path.relpath(target, source.parent)).as_posix()
 
 
+def _canonical_card_name(name: str) -> str:
+    """Resolve a registered card alias while preserving unknown references."""
+
+    try:
+        return get_card(name).name
+    except ValueError:
+        return name
+
+
 def _available_board_cards(board: RenderedBoard) -> set[str]:
     """Expand literal board entries with deterministic setup-created cards."""
 
@@ -67,7 +76,9 @@ def _available_board_cards(board: RenderedBoard) -> set[str]:
         available.update(RUIN_VARIANT_NAMES)
     if "Knights" in available:
         available.update(KNIGHT_NAMES)
-    if any(get_card(name).cost.potions for name in board.config.kingdom_cards):
+    if "Black Market" in available or any(
+        get_card(name).cost.potions for name in board.config.kingdom_cards
+    ):
         available.add("Potion")
 
     return available
@@ -88,6 +99,9 @@ def strategy_is_compatible(strategy: RenderedStrategy, board: RenderedBoard) -> 
     }
     references = {
         **strategy.references,
+        "Kingdom Cards": [
+            _canonical_card_name(name) for name in strategy.references["Kingdom Cards"]
+        ],
         "Ways": [canonical_way_name(name) for name in strategy.references["Ways"]],
         "Landmarks": [
             canonical_landmark_name(name) for name in strategy.references["Landmarks"]

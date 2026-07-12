@@ -64,7 +64,7 @@ def test_compatibility_canonicalizes_card_aliases_and_parametric_landscapes():
         strategy,
         references={
             **strategy.references,
-            "Kingdom Cards": ["City Quarter", "Small Castle"],
+            "Kingdom Cards": ["City Quarter", "Council room", "Potion", "Small Castle"],
             "Ways": ["Way of the Mouse"],
             "Landmarks": ["Obelisk"],
         },
@@ -74,7 +74,7 @@ def test_compatibility_canonicalizes_card_aliases_and_parametric_landscapes():
         page_path=Path("canonical-names.html"),
         source_path=Path("boards/canonical_names.txt"),
         config=BoardConfig(
-            ["City quarter", "Castles"],
+            ["Black Market", "City quarter", "Castles", "Council Room"],
             ways=["Way of the Mouse (Native Village)"],
             landmarks=["Obelisk (Temple)"],
         ),
