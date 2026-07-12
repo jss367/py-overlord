@@ -47,6 +47,8 @@ def _available_board_cards(board: RenderedBoard) -> set[str]:
         additions.update(card.get_additional_non_supply_piles())
         additions.update(getattr(card, "nocturne_piles", {}))
         additions.update(getattr(card, "nocturne_trash_piles", {}))
+        if getattr(card, "uses_boons", False):
+            additions.add("Will-o'-Wisp")
 
         if isinstance(card, SplitPileMixin):
             additions.add(card.partner_card_name)

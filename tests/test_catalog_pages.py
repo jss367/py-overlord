@@ -45,14 +45,14 @@ def test_compatibility_includes_setup_created_piles():
         strategy,
         references={
             **strategy.references,
-            "Kingdom Cards": ["Bustling Village", "Horse", "Lich"],
+            "Kingdom Cards": ["Bustling Village", "Horse", "Lich", "Will-o'-Wisp"],
         },
     )
     board = RenderedBoard(
         display_name="Setup Piles",
         page_path=Path("setup-piles.html"),
         source_path=Path("boards/setup_piles.txt"),
-        config=BoardConfig(["Settlers", "Student", "Supplies"]),
+        config=BoardConfig(["Settlers", "Student", "Supplies", "Tracker"]),
     )
 
     assert strategy_is_compatible(strategy, board)
