@@ -70,6 +70,22 @@ def _mock_player():
     return player
 
 
+class _DeterministicRng:
+    """Small RNG stub for asserting exact semantic operator outcomes."""
+
+    def random(self):
+        return 0.0
+
+    def choice(self, values):
+        return values[-1]
+
+    def randint(self, _low, high):
+        return high
+
+    def randrange(self, _stop):
+        return 0
+
+
 class TestKingdomInfo:
     def test_role_classification(self):
         info = _info()
@@ -242,32 +258,57 @@ class TestStrategicGenomeRepresentability:
 
         state = _mock_state()
         state.empty_piles = 2
-        state.supply["Estate"] = 1
         player = _mock_player()
         state.players = [player]
+
+        assert estate.condition(state, player) is False
+        state.supply["Estate"] = 1
         assert estate.condition(state, player) is True
 
         state.supply["Estate"] = 2
         assert estate.condition(state, player) is False
 
     def test_semantic_mutation_recompiles_from_typed_genome(self):
-        random.seed(41)
-        strategy = random_menu_strategy(_info())
-        assert hasattr(strategy, "_strategic_genome")
+        strategy = StrategicGenome(
+            build_targets=[BuildTarget("Smithy", 2)],
+            economy=EconomyPlan(buy_gold=True),
+            action_order=["Smithy"],
+            treasure_order=["Gold", "Silver", "Copper"],
+        ).compile_into(BaseStrategy(), _info())
 
-        assert mutate_strategic_strategy(strategy, _info(), rate=1.0) is True
-        assert strategy._strategic_genome is not None
-        assert any(rule.card_name == "Province" for rule in strategy.gain_priority)
+        assert mutate_strategic_strategy(
+            strategy, _info(), rate=1.0, rng=_DeterministicRng()
+        ) is True
+        assert strategy._strategic_genome.economy.buy_gold is False
+        assert strategy._strategic_genome.build_targets[0].copies == 3
+        assert all(rule.card_name != "Gold" for rule in strategy.gain_priority)
+        smithy = next(
+            rule for rule in strategy.gain_priority if rule.card_name == "Smithy"
+        )
+        assert "max_in_deck('Smithy', 3)" in smithy.condition._source
 
     def test_crossover_swaps_whole_modules(self):
-        random.seed(42)
-        first = random_menu_strategy(_info())
-        second = random_menu_strategy(_info())
-        child = crossover_strategic_strategies(first, second, _info())
+        first = StrategicGenome(
+            build_targets=[BuildTarget("Smithy", 2)],
+            action_order=["Smithy"],
+            treasure_order=["Gold", "Silver", "Copper"],
+        ).compile_into(BaseStrategy(), _info())
+        second = StrategicGenome(
+            build_targets=[BuildTarget("Witch", 1)],
+            action_order=["Witch"],
+            treasure_order=["Gold", "Silver", "Copper"],
+        ).compile_into(BaseStrategy(), _info())
+        child = crossover_strategic_strategies(
+            first, second, _info(), rng=_DeterministicRng()
+        )
 
         assert child is not None
-        assert hasattr(child, "_strategic_genome")
-        assert any(rule.card_name == "Province" for rule in child.gain_priority)
+        assert [
+            target.card for target in child._strategic_genome.build_targets
+        ] == ["Witch"]
+        assert child._strategic_genome.action_order == ["Witch"]
+        assert any(rule.card_name == "Witch" for rule in child.gain_priority)
+        assert all(rule.card_name != "Smithy" for rule in child.gain_priority)
 
     def test_pruned_target_is_not_resurrected_by_semantic_crossover(self):
         from dominion.strategy.rule_pruning import prune_unfired_rules
@@ -328,6 +369,38 @@ class TestStrategicGenomeRepresentability:
         assert child is not None
         assert child._strategic_genome.economy.prefer_platinum is False
         assert all(rule.card_name != "Platinum" for rule in child.gain_priority)
+
+    def test_surviving_pileout_does_not_mask_pruned_estate_greening(self):
+        genome = StrategicGenome(
+            greening=GreeningPlan(
+                duchy_mode="never", estate_mode="threshold", estate_threshold=2
+            ),
+            endgame=EndgamePlan(estate_pileout=True),
+            treasure_order=["Gold", "Silver", "Copper"],
+        )
+        parent = genome.compile_into(BaseStrategy(), _info())
+        parent.gain_priority = [
+            rule
+            for rule in parent.gain_priority
+            if not (
+                rule.card_name == "Estate"
+                and "provinces_left" in getattr(rule.condition, "_source", "")
+            )
+        ]
+
+        synchronize_strategic_genome(parent, _info())
+        child = crossover_strategic_strategies(parent, parent, _info())
+
+        assert child is not None
+        assert child._strategic_genome.greening.estate_mode == "never"
+        assert child._strategic_genome.endgame.estate_pileout is True
+        estate_sources = [
+            getattr(rule.condition, "_source", "")
+            for rule in child.gain_priority
+            if rule.card_name == "Estate"
+        ]
+        assert len(estate_sources) == 1
+        assert "empty_piles" in estate_sources[0]
 
 
 class TestMutateMenu:

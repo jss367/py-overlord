@@ -307,22 +307,76 @@ def synchronize_strategic_genome(strategy: BaseStrategy, info) -> bool:
             kept_targets.append(target)
     genome.build_targets = kept_targets
 
-    if not any(card == "Duchy" for card, _condition in gain_signatures):
+    def compiled_rule_survives(probe_genome: StrategicGenome, card: str) -> bool:
+        """Whether this isolated module's exact compiled rule survived."""
+        probe = probe_genome.compile_into(BaseStrategy(), info)
+        return any(
+            _rule_signature(rule) in gain_signatures
+            for rule in probe.gain_priority
+            if rule.card_name == card
+        )
+
+    duchy_probe = StrategicGenome(
+        greening=GreeningPlan(
+            duchy_mode=genome.greening.duchy_mode,
+            duchy_threshold=genome.greening.duchy_threshold,
+            estate_mode="never",
+        ),
+        economy=EconomyPlan(buy_gold=False, buy_silver=False),
+    )
+    if not compiled_rule_survives(duchy_probe, "Duchy"):
         genome.greening.duchy_mode = "never"
-    if not any(
-        card == "Estate" and "empty_piles" not in (condition or "")
-        for card, condition in gain_signatures
-    ):
+
+    estate_probe = StrategicGenome(
+        greening=GreeningPlan(
+            duchy_mode="never",
+            estate_mode=genome.greening.estate_mode,
+            estate_threshold=genome.greening.estate_threshold,
+        ),
+        economy=EconomyPlan(buy_gold=False, buy_silver=False),
+    )
+    if not compiled_rule_survives(estate_probe, "Estate"):
         genome.greening.estate_mode = "never"
-    if not any(
-        card == "Estate" and "empty_piles" in (condition or "")
-        for card, condition in gain_signatures
-    ):
+
+    endgame_probe = StrategicGenome(
+        greening=GreeningPlan(duchy_mode="never", estate_mode="never"),
+        endgame=deepcopy(genome.endgame),
+        economy=EconomyPlan(buy_gold=False, buy_silver=False),
+    )
+    if not compiled_rule_survives(endgame_probe, "Estate"):
         genome.endgame.estate_pileout = False
-    genome.economy.buy_gold = any(card == "Gold" for card, _ in gain_signatures)
-    genome.economy.buy_silver = any(card == "Silver" for card, _ in gain_signatures)
-    genome.economy.prefer_platinum = any(
-        card == "Platinum" for card, _ in gain_signatures
+
+    gold_probe = StrategicGenome(
+        greening=GreeningPlan(duchy_mode="never"),
+        economy=EconomyPlan(
+            buy_gold=genome.economy.buy_gold,
+            buy_silver=False,
+            gold_cap=genome.economy.gold_cap,
+            prefer_platinum=False,
+        ),
+    )
+    genome.economy.buy_gold = compiled_rule_survives(gold_probe, "Gold")
+    silver_probe = StrategicGenome(
+        greening=GreeningPlan(duchy_mode="never"),
+        economy=EconomyPlan(
+            buy_gold=False,
+            buy_silver=genome.economy.buy_silver,
+            silver_cap=genome.economy.silver_cap,
+            silver_through_turn=genome.economy.silver_through_turn,
+            prefer_platinum=False,
+        ),
+    )
+    genome.economy.buy_silver = compiled_rule_survives(silver_probe, "Silver")
+    platinum_probe = StrategicGenome(
+        greening=GreeningPlan(duchy_mode="never"),
+        economy=EconomyPlan(
+            buy_gold=False,
+            buy_silver=False,
+            prefer_platinum=genome.economy.prefer_platinum,
+        ),
+    )
+    genome.economy.prefer_platinum = compiled_rule_survives(
+        platinum_probe, "Platinum"
     )
 
     genome.action_order = [card for card in action_names if card in genome.action_order]

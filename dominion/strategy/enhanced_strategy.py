@@ -228,8 +228,8 @@ class PriorityRule:
         Estate only when it is the final card in the third pile.
         """
         cmp = PriorityRule._OP_MAP[op]
-        fn = lambda s, _me, _card=card_name, _amount=amount, _cmp=cmp: _cmp(
-            s.supply.get(_card, 0), _amount
+        fn = lambda s, _me, _card=card_name, _amount=amount, _cmp=cmp: (
+            _card in s.supply and _cmp(s.supply[_card], _amount)
         )
         return PriorityRule._tag_source(
             fn,

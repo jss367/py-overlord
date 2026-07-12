@@ -119,10 +119,11 @@ exactly the categories the suite was designed to separate:
 
 - The known-best strategies are strong reference points, not proofs of
   optimality. A champion beating one is a good sign, not a guarantee.
-- Known-best play still flows through the same computer-player hooks as everyone else
-  (e.g. Jack of All Trades' hardcoded trash/discard choices), so a weak
-  hook drags both sides equally in the champion match, but can depress the
-  sanity-mode margin vs Big Money.
+- Known-best play still flows through the same computer-player hooks as everyone
+  else (e.g. Jack of All Trades' hardcoded trash/discard choices). A weak hook
+  can affect both strategies, but not necessarily equally: the strategy that
+  buys or invokes the card more often may be hurt more. Interpret sanity-mode
+  margins involving such hooks with caution.
 - 400 games resolves ~5pp differences; use 1000+ for finer comparisons.
 
 ## Representation update (2026-07-10)
