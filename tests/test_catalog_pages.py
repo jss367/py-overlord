@@ -58,6 +58,31 @@ def test_compatibility_includes_setup_created_piles():
     assert strategy_is_compatible(strategy, board)
 
 
+def test_compatibility_canonicalizes_card_aliases_and_parametric_landscapes():
+    strategy = collect_rendered_strategies(names=["Big Money"])[0]
+    strategy = replace(
+        strategy,
+        references={
+            **strategy.references,
+            "Kingdom Cards": ["City Quarter", "Small Castle"],
+            "Ways": ["Way of the Mouse"],
+            "Landmarks": ["Obelisk"],
+        },
+    )
+    board = RenderedBoard(
+        display_name="Canonical Names",
+        page_path=Path("canonical-names.html"),
+        source_path=Path("boards/canonical_names.txt"),
+        config=BoardConfig(
+            ["City quarter", "Castles"],
+            ways=["Way of the Mouse (Native Village)"],
+            landmarks=["Obelisk (Temple)"],
+        ),
+    )
+
+    assert strategy_is_compatible(strategy, board)
+
+
 def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path):
     boards_root = tmp_path / "source_boards"
     compatible = _write_board(

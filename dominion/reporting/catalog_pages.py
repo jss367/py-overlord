@@ -27,6 +27,7 @@ from dominion.reporting.strategy_pages import (
     render_strategy_index,
     render_strategy_page,
 )
+from dominion.simulation.strategy_battle import canonical_landmark_name, canonical_way_name
 from dominion.strategy.strategy_loader import StrategyLoader
 
 
@@ -42,7 +43,7 @@ def _available_board_cards(board: RenderedBoard) -> set[str]:
     while pending:
         name = pending.pop()
         card = get_card(name)
-        additions = set(card.get_additional_piles())
+        additions = {card.name, *card.get_additional_piles()}
         additions.update(card.get_additional_non_supply_piles())
         additions.update(getattr(card, "nocturne_piles", {}))
         additions.update(getattr(card, "nocturne_trash_piles", {}))
@@ -77,11 +78,20 @@ def strategy_is_compatible(strategy: RenderedStrategy, board: RenderedBoard) -> 
         "Kingdom Cards": _available_board_cards(board),
         "Events": set(board.config.events),
         "Projects": set(board.config.projects),
-        "Ways": set(board.config.ways),
-        "Landmarks": set(board.config.landmarks),
+        "Ways": {canonical_way_name(name) for name in board.config.ways},
+        "Landmarks": {
+            canonical_landmark_name(name) for name in board.config.landmarks
+        },
         "Allies": set(board.config.allies),
     }
-    return all(set(strategy.references[label]).issubset(values) for label, values in available.items())
+    references = {
+        **strategy.references,
+        "Ways": [canonical_way_name(name) for name in strategy.references["Ways"]],
+        "Landmarks": [
+            canonical_landmark_name(name) for name in strategy.references["Landmarks"]
+        ],
+    }
+    return all(set(references[label]).issubset(values) for label, values in available.items())
 
 
 def _link_catalog(
