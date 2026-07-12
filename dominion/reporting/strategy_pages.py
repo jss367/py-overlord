@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Iterable
 
 from dominion.simulation.strategy_battle import StrategyBattle
-from dominion.reporting.strategy_links import strategy_page_href, strategy_slug
+from dominion.reporting.strategy_links import strategy_slug
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
 from dominion.strategy.strategy_loader import StrategyLoader
 
@@ -22,6 +22,37 @@ class RenderedStrategy:
     source_path: str
     factory_name: str
     references: dict[str, list[str]]
+
+
+@dataclass(frozen=True)
+class CuratedStrategyGuide:
+    """Metadata for a hand-authored guide that lives beside generated pages."""
+
+    filename: str
+    display_name: str
+    description: str
+    kingdom_cards: tuple[str, ...]
+    source_label: str
+
+
+CURATED_STRATEGY_GUIDES = (
+    CuratedStrategyGuide(
+        filename="cursed-band-biding-time-strategy-guide.html",
+        display_name="Cursed Band and Biding Time Strategy Guide",
+        description=(
+            "Practical board guide: rush Cursed Band for Loot, activate Biding Time, "
+            "manage Baths, and threaten a two-pile ending."
+        ),
+        kingdom_cards=(
+            "Band of Misfits",
+            "Experiment",
+            "King's Cache",
+            "Poet",
+            "Trader",
+        ),
+        source_label="Repository simulation and card rules",
+    ),
+)
 
 
 def _condition_label(condition) -> str:
@@ -242,8 +273,23 @@ def render_strategy_page(item: RenderedStrategy, *, index_href: str = "index.htm
     return _page_shell(f"{item.display_name} Strategy", body)
 
 
-def render_strategy_index(items: list[RenderedStrategy]) -> str:
+def render_strategy_index(
+    items: list[RenderedStrategy],
+    *,
+    curated_guides: Iterable[CuratedStrategyGuide] = (),
+) -> str:
     rows = []
+    for guide in curated_guides:
+        rows.append(
+            "<tr class=\"strategy-row\">"
+            f"<td><a href=\"{escape(guide.filename)}\">{escape(guide.display_name)}</a></td>"
+            "<td>Hand-authored guide</td>"
+            f"<td>{escape(guide.description)}</td>"
+            f"<td>{_reference_list(list(guide.kingdom_cards))}</td>"
+            f"<td>{escape(guide.source_label)}</td>"
+            "</tr>"
+        )
+
     for item in items:
         strategy = item.strategy
         refs = item.references["Kingdom Cards"]
@@ -259,7 +305,7 @@ def render_strategy_index(items: list[RenderedStrategy]) -> str:
 
     body = f"""
 <h1>Strategy Index</h1>
-<p class="muted">Generated from registered strategy objects. Regenerate this directory after changing strategy code.</p>
+<p class="muted">Generated from registered strategy objects and curated board guides. Regenerate this directory after changing strategy code.</p>
 <input class="search" id="strategy-search" type="search" placeholder="Search strategies">
 <table id="strategy-table">
   <tr><th>Strategy</th><th>Internal Name</th><th>Description</th><th>Kingdom Cards Used</th><th>Source</th></tr>
@@ -291,8 +337,17 @@ def render_strategy_pages(
     items = collect_rendered_strategies(loader, names=names)
     written = []
 
+    curated_guides = [
+        guide
+        for guide in CURATED_STRATEGY_GUIDES
+        if (output_dir / guide.filename).is_file()
+    ]
+
     index_path = output_dir / "index.html"
-    index_path.write_text(render_strategy_index(items), encoding="utf-8")
+    index_path.write_text(
+        render_strategy_index(items, curated_guides=curated_guides),
+        encoding="utf-8",
+    )
     written.append(index_path)
 
     for item in items:

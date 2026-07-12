@@ -67,3 +67,16 @@ def test_render_strategy_pages_resolves_alias_names(tmp_path):
     page = (tmp_path / "big-money.html").read_text(encoding="utf-8")
     assert "Big Money" in page
     assert "dominion/strategy/strategies/big_money.py" in page
+
+
+def test_render_strategy_pages_preserves_curated_guide_in_index(tmp_path):
+    guide = tmp_path / "cursed-band-biding-time-strategy-guide.html"
+    guide.write_text("curated guide", encoding="utf-8")
+
+    written = render_strategy_pages(tmp_path, names=["Big Money"])
+
+    assert guide.read_text(encoding="utf-8") == "curated guide"
+    assert guide not in written
+    index = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert 'href="cursed-band-biding-time-strategy-guide.html"' in index
+    assert "Cursed Band and Biding Time Strategy Guide" in index
