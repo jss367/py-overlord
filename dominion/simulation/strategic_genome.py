@@ -321,6 +321,9 @@ def synchronize_strategic_genome(strategy: BaseStrategy, info) -> bool:
         genome.endgame.estate_pileout = False
     genome.economy.buy_gold = any(card == "Gold" for card, _ in gain_signatures)
     genome.economy.buy_silver = any(card == "Silver" for card, _ in gain_signatures)
+    genome.economy.prefer_platinum = any(
+        card == "Platinum" for card, _ in gain_signatures
+    )
 
     genome.action_order = [card for card in action_names if card in genome.action_order]
     genome.treasure_order = [card for card in treasure_names if card in genome.treasure_order]

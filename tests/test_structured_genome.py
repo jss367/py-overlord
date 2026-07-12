@@ -299,6 +299,36 @@ class TestStrategicGenomeRepresentability:
         )
         assert all(rule.card_name != "Smithy" for rule in child.gain_priority)
 
+    def test_pruned_platinum_is_not_resurrected_by_semantic_crossover(self):
+        from dominion.strategy.rule_pruning import prune_unfired_rules
+
+        parent = StrategicGenome(
+            greening=GreeningPlan(duchy_mode="never"),
+            economy=EconomyPlan(prefer_platinum=True),
+            treasure_order=["Platinum", "Gold", "Silver", "Copper"],
+        ).compile_into(BaseStrategy(), _colony_info())
+        for rules in (
+            parent.gain_priority,
+            parent.action_priority,
+            parent.treasure_priority,
+            parent.trash_priority,
+        ):
+            for rule in rules:
+                rule._fired = not (
+                    rule.card_name == "Platinum"
+                    and rules is parent.gain_priority
+                )
+
+        prune_unfired_rules(parent, min_rules=0)
+        synchronize_strategic_genome(parent, _colony_info())
+        child = crossover_strategic_strategies(
+            parent, parent, _colony_info()
+        )
+
+        assert child is not None
+        assert child._strategic_genome.economy.prefer_platinum is False
+        assert all(rule.card_name != "Platinum" for rule in child.gain_priority)
+
 
 class TestMutateMenu:
     def test_invariants_survive_heavy_mutation(self):
