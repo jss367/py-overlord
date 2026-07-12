@@ -246,6 +246,94 @@ class StrategicGenome:
         return strategy
 
 
+def _rule_signature(rule: PriorityRule) -> tuple[str, str | None]:
+    condition = getattr(rule, "condition", None)
+    return (
+        rule.card_name,
+        getattr(condition, "_source", None) if condition is not None else None,
+    )
+
+
+def synchronize_strategic_genome(strategy: BaseStrategy, info) -> bool:
+    """Reconcile typed modules with a simplified or empirically pruned phenotype.
+
+    Simplification and rule pruning operate on compiled priority lists. Without
+    this reconciliation, semantic crossover would compile the pre-pruning
+    modules and resurrect removed rules. The phenotype remains authoritative:
+    modules whose compiled rules disappeared are removed or disabled, while
+    surviving action and Treasure order is copied back verbatim.
+
+    Returns ``False`` for legacy strategies without typed metadata.
+    """
+
+    original = getattr(strategy, "_strategic_genome", None)
+    if original is None:
+        return False
+    genome = deepcopy(original)
+    gain_signatures = {_rule_signature(rule) for rule in strategy.gain_priority}
+    action_names = [rule.card_name for rule in strategy.action_priority]
+    treasure_names = [rule.card_name for rule in strategy.treasure_priority]
+    trash_signatures = {_rule_signature(rule) for rule in strategy.trash_priority}
+
+    # Match typed entries by compiling each one in isolation. This avoids
+    # relying on positions that differ across opening/green priority bands.
+    kept_openings = []
+    for opening in genome.openings:
+        probe = StrategicGenome(
+            openings=[deepcopy(opening)],
+            greening=GreeningPlan(duchy_mode="never"),
+            economy=EconomyPlan(buy_gold=False, buy_silver=False),
+        ).compile_into(BaseStrategy(), info)
+        signature = next(
+            (_rule_signature(rule) for rule in probe.gain_priority if rule.card_name == opening.card),
+            None,
+        )
+        if signature in gain_signatures:
+            kept_openings.append(opening)
+    genome.openings = kept_openings
+
+    kept_targets = []
+    for target in genome.build_targets:
+        probe = StrategicGenome(
+            build_targets=[deepcopy(target)],
+            greening=GreeningPlan(duchy_mode="never"),
+            economy=EconomyPlan(buy_gold=False, buy_silver=False),
+        ).compile_into(BaseStrategy(), info)
+        signature = next(
+            (_rule_signature(rule) for rule in probe.gain_priority if rule.card_name == target.card),
+            None,
+        )
+        if signature in gain_signatures:
+            kept_targets.append(target)
+    genome.build_targets = kept_targets
+
+    if not any(card == "Duchy" for card, _condition in gain_signatures):
+        genome.greening.duchy_mode = "never"
+    if not any(
+        card == "Estate" and "empty_piles" not in (condition or "")
+        for card, condition in gain_signatures
+    ):
+        genome.greening.estate_mode = "never"
+    if not any(
+        card == "Estate" and "empty_piles" in (condition or "")
+        for card, condition in gain_signatures
+    ):
+        genome.endgame.estate_pileout = False
+    genome.economy.buy_gold = any(card == "Gold" for card, _ in gain_signatures)
+    genome.economy.buy_silver = any(card == "Silver" for card, _ in gain_signatures)
+
+    genome.action_order = [card for card in action_names if card in genome.action_order]
+    genome.treasure_order = [card for card in treasure_names if card in genome.treasure_order]
+    genome.trash.trash_curse = any(card == "Curse" for card, _ in trash_signatures)
+    if not any(card == "Estate" for card, _ in trash_signatures):
+        genome.trash.estate_until_provinces = None
+    if not any(card == "Copper" for card, _ in trash_signatures):
+        genome.trash.copper_after_treasures = None
+
+    strategy._strategic_genome = genome
+    return True
+
+
 def _default_action_order(info, rng) -> list[str]:
     ordered: list[str] = []
     for source in (info.villages, info.cantrips, info.terminal_draw, info.other_terminals):

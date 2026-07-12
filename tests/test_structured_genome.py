@@ -29,6 +29,7 @@ from dominion.simulation.strategic_genome import (
     StrategicGenome,
     crossover_strategic_strategies,
     mutate_strategic_strategy,
+    synchronize_strategic_genome,
 )
 from dominion.strategy.enhanced_strategy import PriorityRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
@@ -267,6 +268,36 @@ class TestStrategicGenomeRepresentability:
         assert child is not None
         assert hasattr(child, "_strategic_genome")
         assert any(rule.card_name == "Province" for rule in child.gain_priority)
+
+    def test_pruned_target_is_not_resurrected_by_semantic_crossover(self):
+        from dominion.strategy.rule_pruning import prune_unfired_rules
+
+        genome = StrategicGenome(
+            build_targets=[BuildTarget("Smithy", 2)],
+            greening=GreeningPlan(duchy_mode="never"),
+            action_order=["Smithy"],
+            treasure_order=["Gold", "Silver", "Copper"],
+        )
+        parent = genome.compile_into(BaseStrategy(), _info())
+        for rules in (
+            parent.gain_priority,
+            parent.action_priority,
+            parent.treasure_priority,
+            parent.trash_priority,
+        ):
+            for rule in rules:
+                rule._fired = rule.card_name != "Smithy"
+
+        prune_unfired_rules(parent, min_rules=0)
+        synchronize_strategic_genome(parent, _info())
+        child = crossover_strategic_strategies(parent, parent, _info())
+
+        assert child is not None
+        assert all(
+            target.card != "Smithy"
+            for target in child._strategic_genome.build_targets
+        )
+        assert all(rule.card_name != "Smithy" for rule in child.gain_priority)
 
 
 class TestMutateMenu:
