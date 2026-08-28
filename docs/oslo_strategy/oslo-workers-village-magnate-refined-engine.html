@@ -79,9 +79,9 @@
   <tr><th>#</th><th>Card or Event</th><th>Condition</th></tr>
   <tr><td>1</td><td>Anvil</td><td>PriorityRule.and_(PriorityRule.max_in_deck(&#x27;Anvil&#x27;, 2), PriorityRule.cards_gained_this_turn(&#x27;==&#x27;, 0), PriorityRule.turn_number(&#x27;&lt;=&#x27;, 7))</td></tr>
 <tr><td>2</td><td>Colony</td><td>always</td></tr>
-<tr><td>3</td><td>Province</td><td>custom condition</td></tr>
+<tr><td>3</td><td>Province</td><td>Colony pile has 2 or fewer cards, or turn 18 has begun</td></tr>
 <tr><td>4</td><td>Bank</td><td>PriorityRule.max_in_deck(&#x27;Bank&#x27;, 2)</td></tr>
-<tr><td>5</td><td>King&#x27;s Court</td><td>custom condition</td></tr>
+<tr><td>5</td><td>King&#x27;s Court</td><td>Fewer than 3 King&#x27;s Courts and at least 3 Magnates in deck</td></tr>
 <tr><td>6</td><td>Workers&#x27; Village</td><td>PriorityRule.max_in_deck(&quot;Workers&#x27; Village&quot;, 7)</td></tr>
 <tr><td>7</td><td>Hoard</td><td>PriorityRule.max_in_deck(&#x27;Hoard&#x27;, 1)</td></tr>
 <tr><td>8</td><td>Platinum</td><td>PriorityRule.max_in_deck(&#x27;Platinum&#x27;, 1)</td></tr>
@@ -115,7 +115,7 @@
 <tr><td>3</td><td>Hoard</td><td>always</td></tr>
 <tr><td>4</td><td>Silver</td><td>always</td></tr>
 <tr><td>5</td><td>Anvil</td><td>always</td></tr>
-<tr><td>6</td><td>Copper</td><td>custom condition</td></tr>
+<tr><td>6</td><td>Copper</td><td>Unless an in-play Anvil can gain a needed Workers&#x27; Village or Magnate</td></tr>
 <tr><td>7</td><td>Bank</td><td>always</td></tr>
 </table>
 
