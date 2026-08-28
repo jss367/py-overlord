@@ -85,8 +85,6 @@ class GameState:
     # Rising Sun: Prophecies and Sun tokens
     prophecy: object = None
     sun_tokens: int = 0
-    # Scenario-level discount applied to every card for the whole game.
-    setup_card_cost_reduction: int = 0
     riverboat_set_aside: object = None  # Card set aside at game start for Riverboat
     harsh_winter_debt: dict = field(default_factory=dict)  # pile_name → debt tokens
     # Names of the Kingdom card piles (and their split-pile partners) used at
@@ -123,6 +121,8 @@ class GameState:
     # end. They (and only they) take an extra round of turns.
     fleet_extra_round_active: bool = False
     fleet_extra_players: list = field(default_factory=list)
+    # Scenario-level discount applied to every card for the whole game.
+    setup_card_cost_reduction: int = 0
 
     def __post_init__(self):
         """Initialize with default logger that prints to console."""
@@ -456,10 +456,10 @@ class GameState:
         ways: list = None,
         allies: list = None,
         prophecy: object = None,
-        card_cost_reduction: int = 0,
         riverboat_set_aside: Card = None,
         landmarks: list = None,
         traits: dict[str, str] | None = None,
+        card_cost_reduction: int = 0,
     ):
         """Set up the game with given AIs and kingdom cards."""
         # Reset per-game state on the reused ``GameState`` so artifacts from
@@ -2572,7 +2572,10 @@ class GameState:
         self.draw_cards(player, 5)
 
     def get_card_cost(self, player: PlayerState, card: Card) -> int:
-        """Return the coin cost of a card after modifiers."""
+        """Return a card's modified coin cost, or a landscape's printed cost."""
+        if getattr(card, "is_event", False) or getattr(card, "is_project", False):
+            return card.cost.coins
+
         cost = card.cost.coins - self.setup_card_cost_reduction
 
         if hasattr(card, "cost_modifier"):
@@ -4248,7 +4251,11 @@ class GameState:
                 self.gain_card(player, get_card("Gold"))
 
         talisman_count = sum(1 for card in player.in_play if card.name == "Talisman")
-        if talisman_count and not bought_card.is_victory and bought_card.cost.coins <= 4:
+        if (
+            talisman_count
+            and not bought_card.is_victory
+            and self.get_card_cost(player, bought_card) <= 4
+        ):
             for _ in range(talisman_count):
                 if self.supply.get(bought_card.name, 0) <= 0:
                     break
@@ -4780,7 +4787,7 @@ class GameState:
         """Each Livery in play: gain a Horse when a card costing $4+ is gained."""
         if gained_card.name == "Horse":
             return
-        if gained_card.cost.coins < 4:
+        if self.get_card_cost(player, gained_card) < 4:
             return
         livery_count = sum(1 for c in player.in_play if c.name == "Livery")
         if livery_count <= 0:

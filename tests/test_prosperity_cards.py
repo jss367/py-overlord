@@ -147,6 +147,22 @@ def test_talisman_gains_copy_for_non_victory_purchase():
     assert len(villages) == 2
 
 
+def test_talisman_uses_reduced_cost_for_gain_threshold():
+    ai = BuyNamedCardAI("Magnate")
+    player = PlayerState(ai)
+    state = GameState([player], setup_card_cost_reduction=1)
+    state.setup_supply([get_card("Talisman"), get_card("Magnate")])
+
+    player.in_play = [get_card("Talisman")]
+    player.coins = 4
+    player.buys = 1
+
+    state.handle_buy_phase()
+
+    magnates = [card for card in player.discard if card.name == "Magnate"]
+    assert len(magnates) == 2
+
+
 def test_loan_allows_declining_trash():
     ai = DeclineTrashAI()
     player = PlayerState(ai)

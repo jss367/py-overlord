@@ -72,11 +72,15 @@ def _parse_special_line(line: str, config: BoardConfig) -> bool:
     """
 
     prefix, _, remainder = line.partition(":")
+    key = prefix.strip().lower()
     if not remainder:
+        if key in {"card cost reduction", "cost reduction"}:
+            raise ValueError(
+                "Card cost reduction must be a non-negative integer, got ''"
+            )
         return False
 
     value = _normalise_entry(remainder)
-    key = prefix.strip().lower()
 
     if key == "event":
         config.events.append(value)

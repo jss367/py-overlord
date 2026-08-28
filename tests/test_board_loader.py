@@ -268,7 +268,7 @@ def test_load_board_parses_card_cost_reduction(tmp_path):
     assert board.card_cost_reduction == 1
 
 
-@pytest.mark.parametrize("value", ["-1", "one"])
+@pytest.mark.parametrize("value", ["-1", "one", ""])
 def test_load_board_rejects_invalid_card_cost_reduction(tmp_path, value):
     path = write_board(
         tmp_path,
