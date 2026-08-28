@@ -22,7 +22,7 @@ import re
 from typing import Literal
 
 from dominion.strategy.card_roles import infer_card_roles
-from dominion.strategy.enhanced_strategy import PriorityRule
+from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
 
 
@@ -358,6 +358,35 @@ _TRASH_ESTATE_RE = re.compile(
 _TRASH_COPPER_RE = re.compile(
     r"^PriorityRule\.has_cards\(\['Silver', 'Gold'\], (\d+)\)$"
 )
+_DECISION_HOOK_PREFIXES = ("choose_", "should_", "select_", "decide_")
+
+
+def _has_custom_decision_hooks(strategy: BaseStrategy) -> bool:
+    """Whether a strategy customizes behavior outside typed rule lists."""
+
+    base_methods = {
+        name
+        for name, value in EnhancedStrategy.__dict__.items()
+        if callable(value) or isinstance(value, (classmethod, staticmethod))
+    }
+    for cls in type(strategy).__mro__:
+        if cls is EnhancedStrategy:
+            break
+        for name, value in cls.__dict__.items():
+            if name == "__init__":
+                continue
+            is_method = callable(value) or isinstance(
+                value, (classmethod, staticmethod)
+            )
+            if is_method and (
+                name in base_methods or name.startswith(_DECISION_HOOK_PREFIXES)
+            ):
+                return True
+
+    return any(
+        name in base_methods or name.startswith(_DECISION_HOOK_PREFIXES)
+        for name in strategy.__dict__
+    )
 
 
 def promote_legacy_strategy(strategy: BaseStrategy, info) -> bool:
@@ -378,6 +407,14 @@ def promote_legacy_strategy(strategy: BaseStrategy, info) -> bool:
     treasure = list(getattr(strategy, "treasure_priority", []) or [])
     trash = list(getattr(strategy, "trash_priority", []) or [])
 
+    if _has_custom_decision_hooks(strategy):
+        return False
+    if any(
+        rule.condition is not None
+        and not hasattr(rule.condition, "_source")
+        for rule in gain + trash
+    ):
+        return False
     if any(rule.condition is not None for rule in action + treasure):
         return False
 

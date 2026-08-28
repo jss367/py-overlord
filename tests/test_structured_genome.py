@@ -364,6 +364,53 @@ class TestStrategicGenomeRepresentability:
         assert promote_legacy_strategy(strategy, info) is False
         assert not hasattr(strategy, "_strategic_genome")
 
+    def test_untagged_gain_condition_is_not_promoted_as_unconditional(self):
+        strategy = BaseStrategy()
+        strategy.gain_priority = [
+            PriorityRule("Province", lambda _state, _player: False),
+            PriorityRule("Gold"),
+        ]
+        strategy.treasure_priority = [
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
+            PriorityRule("Copper"),
+        ]
+
+        assert promote_legacy_strategy(strategy, _info()) is False
+        assert not hasattr(strategy, "_strategic_genome")
+
+    def test_strategy_with_custom_decision_hook_is_not_promoted(self):
+        class CustomGainStrategy(BaseStrategy):
+            def choose_gain(self, state, player, choices):
+                return choices[-1]
+
+        strategy = CustomGainStrategy()
+        strategy.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        strategy.treasure_priority = [
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
+            PriorityRule("Copper"),
+        ]
+
+        assert promote_legacy_strategy(strategy, _info()) is False
+        assert not hasattr(strategy, "_strategic_genome")
+
+    def test_strategy_with_card_specific_decision_hook_is_not_promoted(self):
+        class CustomAnvilStrategy(BaseStrategy):
+            def choose_anvil_gain(self, state, player, choices):
+                return choices[-1]
+
+        strategy = CustomAnvilStrategy()
+        strategy.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        strategy.treasure_priority = [
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
+            PriorityRule("Copper"),
+        ]
+
+        assert promote_legacy_strategy(strategy, _info()) is False
+        assert not hasattr(strategy, "_strategic_genome")
+
     def test_pileout_policy_can_override_normal_province_buy(self):
         genome = StrategicGenome(
             greening=GreeningPlan(duchy_mode="never"),
