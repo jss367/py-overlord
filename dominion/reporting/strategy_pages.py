@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import ast
 from dataclasses import dataclass, field
 from html import escape
 import inspect
 from pathlib import Path
 from typing import Iterable
 
+from dominion.cards.base_card import CardType
+from dominion.cards.registry import get_card
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.reporting.strategy_links import PageLink, strategy_slug
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
@@ -27,22 +30,256 @@ class RenderedStrategy:
 
 def _condition_label(condition) -> str:
     if condition is None:
-        return "always"
-    return str(getattr(condition, "_source", "custom condition"))
+        return "Always"
+    source = str(getattr(condition, "_source", ""))
+    if not source:
+        return "Special strategy rule"
+    try:
+        return _humanize_condition_node(ast.parse(source, mode="eval").body)
+    except (SyntaxError, ValueError, TypeError):
+        return "Special strategy rule"
 
 
-def _priority_rows(rules: Iterable[PriorityRule]) -> str:
+_OPERATOR_LABELS = {
+    "<": "less than",
+    "<=": "at most",
+    ">": "more than",
+    ">=": "at least",
+    "==": "exactly",
+    "!=": "not",
+}
+
+
+def _call_name(node: ast.Call) -> str:
+    if isinstance(node.func, ast.Attribute):
+        return node.func.attr
+    if isinstance(node.func, ast.Name):
+        return node.func.id
+    raise ValueError("Unsupported condition call")
+
+
+def _literal_args(node: ast.Call) -> list[object]:
+    return [ast.literal_eval(argument) for argument in node.args]
+
+
+def _count_phrase(label: str, op: str, amount: int) -> str:
+    return f"{label}: {_OPERATOR_LABELS.get(op, op)} {amount}"
+
+
+def _card_list_phrase(cards: Iterable[str]) -> str:
+    values = list(cards)
+    if not values:
+        return "the listed cards"
+    if len(values) == 1:
+        return values[0]
+    return f"{', '.join(values[:-1])} or {values[-1]}"
+
+
+def _humanize_condition_node(node: ast.AST) -> str:
+    if isinstance(node, ast.Name):
+        return node.id.strip("_").replace("_", " ").capitalize()
+    if not isinstance(node, ast.Call):
+        raise ValueError("Condition is not a call")
+
+    name = _call_name(node)
+    if name in {"and_", "or_"}:
+        joiner = " and " if name == "and_" else " or "
+        phrases = [
+            _humanize_condition_node(argument)
+            for argument in node.args
+            if not (isinstance(argument, ast.Constant) and argument.value is None)
+        ]
+        return joiner.join(phrases)
+
+    args = _literal_args(node)
+    if name == "always_true":
+        return "Always"
+    if name == "provinces_left":
+        return _count_phrase("Provinces remaining", str(args[0]), int(args[1]))
+    if name == "colonies_left":
+        return _count_phrase("Colonies remaining", str(args[0]), int(args[1]))
+    if name == "turn_number":
+        return _count_phrase("Turn number", str(args[0]), int(args[1]))
+    if name == "resources":
+        resources = {
+            "actions": "Actions available",
+            "buys": "Buys available",
+            "coins": "Coins available",
+            "potions": "Potions available",
+            "hand_size": "Cards in hand",
+        }
+        label = resources.get(str(args[0]), str(args[0]).replace("_", " ").capitalize())
+        return _count_phrase(label, str(args[1]), int(args[2]))
+    if name == "has_cards":
+        cards, amount = args
+        label = _card_list_phrase(cards)
+        if int(amount) <= 0:
+            return f"You own no {label}"
+        return f"You own at least {amount} total copies of {label}"
+    if name == "has_no_cards":
+        return f"You own no {_card_list_phrase(args[0])}"
+    if name == "max_in_deck":
+        card_name, amount = args
+        if int(amount) == 1:
+            return f"You do not own {card_name}"
+        return f"You own fewer than {amount} copies of {card_name}"
+    if name == "card_in_play":
+        return f"{args[0]} is in play"
+    if name == "card_in_hand":
+        return f"{args[0]} is in hand"
+
+    count_labels = {
+        "actions_in_play": "Actions in play",
+        "actions_gained_this_turn": "Actions gained this turn",
+        "cards_gained_this_turn": "Cards gained this turn",
+        "actions_in_hand": "Actions in hand",
+        "terminals_in_hand": "Terminal Actions in hand",
+        "treasures_in_hand": "Treasures in hand",
+        "excess_actions": "Spare Actions",
+        "empty_piles": "Empty Supply piles",
+        "deck_size": "Deck size",
+        "score_diff": "Victory-point lead",
+    }
+    if name in count_labels:
+        return _count_phrase(count_labels[name], str(args[0]), int(args[1]))
+    if name == "pile_count":
+        return _count_phrase(f"{args[0]} cards remaining", str(args[1]), int(args[2]))
+    if name == "action_density":
+        return f"Action density is {_OPERATOR_LABELS.get(str(args[0]), args[0])} {args[1]}%"
+    if name == "deck_count_diff":
+        return _count_phrase(
+            f"{args[0]} count minus {args[1]} count",
+            str(args[2]),
+            int(args[3]),
+        )
+    raise ValueError(f"Unknown condition helper: {name}")
+
+
+def _condition_markup(condition) -> str:
+    label = escape(_condition_label(condition))
+    if condition is None:
+        return f'<span class="condition condition-always">{label}</span>'
+    source = str(getattr(condition, "_source", "custom condition"))
+    return (
+        '<details class="condition-detail">'
+        f'<summary><span class="condition">{label}</span></summary>'
+        f"<code>{escape(source)}</code>"
+        "</details>"
+    )
+
+
+_PRIMARY_CARD_TYPES = (
+    CardType.CURSE,
+    CardType.VICTORY,
+    CardType.TREASURE,
+    CardType.NIGHT,
+    CardType.ACTION,
+)
+
+
+def _card_chip(name: str) -> str:
+    """Render a card using the types from the canonical card registry."""
+
+    try:
+        card = get_card(name)
+    except (KeyError, ValueError):
+        return f'<span class="card-chip card-unknown">{escape(name)}</span>'
+
+    primary = next(
+        (card_type for card_type in _PRIMARY_CARD_TYPES if card_type in card.types),
+        None,
+    )
+    primary_name = primary.value if primary is not None else "other"
+    type_names = [card_type.value for card_type in card.types]
+    modifier_types = [
+        card_type
+        for card_type in card.types
+        if card_type is not primary
+        and card_type
+        in {
+            CardType.ATTACK,
+            CardType.REACTION,
+            CardType.DURATION,
+            CardType.RESERVE,
+            CardType.TRAVELLER,
+            CardType.LIAISON,
+            CardType.OMEN,
+            CardType.ACTION,
+            CardType.TREASURE,
+            CardType.VICTORY,
+            CardType.CURSE,
+            CardType.NIGHT,
+        }
+    ]
+    markers = "".join(
+        f'<span class="type-marker marker-{card_type.value}" title="{card_type.value.title()}" aria-hidden="true"></span>'
+        for card_type in modifier_types
+    )
+    special = (
+        f" card-{card.name.lower()}"
+        if card.name in {"Copper", "Silver", "Gold"}
+        else ""
+    )
+    type_label = ", ".join(value.title() for value in type_names) or "Card"
+    return (
+        f'<span class="card-chip type-{primary_name}{special}" '
+        f'aria-label="{escape(card.name)}, {escape(type_label)} card">'
+        f"<span>{escape(card.name)}</span>{markers}</span>"
+    )
+
+
+def _landscape_chip(name: str, kind: str) -> str:
+    css_kind = {
+        "Allies": "ally",
+        "Prophecies": "prophecy",
+    }.get(kind, kind.lower().rstrip("s").replace(" ", "-"))
+    return f'<span class="landscape-chip landscape-{css_kind}">{escape(name)}</span>'
+
+
+def _typed_value_list(values: Iterable[str], kind: str) -> str:
+    items = list(values)
+    if not items:
+        return '<span class="empty">None</span>'
+    if kind == "Kingdom Cards":
+        return (
+            '<span class="chip-list">'
+            + "".join(_card_chip(value) for value in items)
+            + "</span>"
+        )
+    return (
+        '<span class="chip-list">'
+        + "".join(_landscape_chip(value, kind) for value in items)
+        + "</span>"
+    )
+
+
+def _priority_target_chip(
+    name: str,
+    landscape_references: dict[str, list[str]] | None = None,
+) -> str:
+    if landscape_references:
+        for kind in ("Events", "Projects", "Ways", "Landmarks", "Allies"):
+            if name in landscape_references.get(kind, []):
+                return _landscape_chip(name, kind)
+    return _card_chip(name)
+
+
+def _priority_rows(
+    rules: Iterable[PriorityRule],
+    *,
+    landscape_references: dict[str, list[str]] | None = None,
+) -> str:
     rows = []
     for index, rule in enumerate(rules, 1):
         rows.append(
             "<tr>"
-            f"<td>{index}</td>"
-            f"<td>{escape(rule.card_name)}</td>"
-            f"<td>{escape(_condition_label(rule.condition))}</td>"
+            f'<td data-label="Priority"><span class="priority-number">{index}</span></td>'
+            f'<td data-label="Card">{_priority_target_chip(rule.card_name, landscape_references)}</td>'
+            f'<td data-label="Condition">{_condition_markup(rule.condition)}</td>'
             "</tr>"
         )
     if not rows:
-        return "<tr><td colspan=\"3\" class=\"empty\">None</td></tr>"
+        return '<tr><td colspan="3" class="empty">None</td></tr>'
     return "\n".join(rows)
 
 
@@ -51,29 +288,32 @@ def _way_rows(rules: Iterable[WayRule]) -> str:
     for index, rule in enumerate(rules, 1):
         rows.append(
             "<tr>"
-            f"<td>{index}</td>"
-            f"<td>{escape(rule.card_name)}</td>"
-            f"<td>{escape(rule.way_name)}</td>"
-            f"<td>{escape(_condition_label(rule.condition))}</td>"
+            f'<td data-label="Priority"><span class="priority-number">{index}</span></td>'
+            f'<td data-label="Card">{_card_chip(rule.card_name)}</td>'
+            f'<td data-label="Way">{_landscape_chip(rule.way_name, "Ways")}</td>'
+            f'<td data-label="Condition">{_condition_markup(rule.condition)}</td>'
             "</tr>"
         )
     if not rows:
-        return "<tr><td colspan=\"4\" class=\"empty\">None</td></tr>"
+        return '<tr><td colspan="4" class="empty">None</td></tr>'
     return "\n".join(rows)
 
 
-def _reference_list(values: list[str]) -> str:
-    if not values:
-        return "<span class=\"empty\">None</span>"
-    return ", ".join(escape(value) for value in values)
+def _reference_list(values: list[str], kind: str = "Kingdom Cards") -> str:
+    return _typed_value_list(values, kind)
 
 
 def _page_link_list(values: Iterable[PageLink]) -> str:
     links = list(values)
     if not links:
         return '<span class="empty">None</span>'
-    return ", ".join(
-        f'<a href="{escape(link.href)}">{escape(link.label)}</a>' for link in links
+    return (
+        '<span class="chip-list">'
+        + "".join(
+            f'<a class="board-chip" href="{escape(link.href)}">{escape(link.label)}</a>'
+            for link in links
+        )
+        + "</span>"
     )
 
 
@@ -90,6 +330,52 @@ def _strategy_source(loader: StrategyLoader, display_name: str) -> tuple[str, st
     except ValueError:
         source = str(Path(source).resolve()) if source else ""
     return source, getattr(factory, "__name__", "")
+
+
+def _strategy_tags(item: RenderedStrategy) -> list[str]:
+    """Return conservative labels supported by the strategy's own metadata."""
+
+    strategy = item.strategy
+    searchable = f"{item.display_name} {getattr(strategy, 'description', '')}".lower()
+    labels = []
+    for needle, label in (
+        ("big money", "Big Money"),
+        ("engine", "Engine"),
+        ("rush", "Rush"),
+        ("slog", "Slog"),
+        ("rebuild", "Rebuild"),
+    ):
+        if needle in searchable:
+            labels.append(label)
+    if getattr(strategy, "way_policy", None):
+        labels.append("Way policy")
+    return labels
+
+
+def _audience_description(strategy: EnhancedStrategy) -> str:
+    """Expand terse strategy-writing conventions in visible summaries."""
+
+    description = getattr(strategy, "description", "") or "No description provided."
+    replacements = (
+        ("alt-VP", "alternate victory points"),
+        (" VP", " victory points"),
+        ("5T/4I", "five Torturers / four Inns"),
+        ("actions>1", "more than one Action remains"),
+    )
+    for shorthand, expanded in replacements:
+        description = description.replace(shorthand, expanded)
+    return description
+
+
+def _tags_markup(labels: Iterable[str]) -> str:
+    values = list(dict.fromkeys(labels))
+    if not values:
+        return ""
+    return (
+        '<span class="tags">'
+        + "".join(f'<span class="tag">{escape(label)}</span>' for label in values)
+        + "</span>"
+    )
 
 
 def collect_rendered_strategies(
@@ -110,7 +396,9 @@ def collect_rendered_strategies(
             raise ValueError(f"Unknown strategy: {display_name}")
 
         resolved_name = loader.get_display_name(display_name) or display_name
-        refs = battle._split_board_references(battle._extract_cards_from_strategy(strategy))
+        refs = battle._split_board_references(
+            battle._extract_cards_from_strategy(strategy)
+        )
         source_path, factory_name = _strategy_source(loader, resolved_name)
         rendered.append(
             RenderedStrategy(
@@ -135,61 +423,277 @@ def collect_rendered_strategies(
 
 def _page_shell(title: str, body: str) -> str:
     return f"""<!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{escape(title)}</title>
   <style>
     :root {{
       color-scheme: light;
-      --border: #d8dde6;
-      --text: #1f2937;
-      --muted: #667085;
-      --header: #f3f5f8;
-      --row: #fbfcfe;
-      --accent: #255e8f;
+      --canvas: #f4f0e6;
+      --surface: #fffdf8;
+      --surface-raised: #ffffff;
+      --border: #d9d0bd;
+      --border-strong: #b7aa91;
+      --text: #28231d;
+      --muted: #72695d;
+      --accent: #245f73;
+      --accent-dark: #174555;
+      --shadow: 0 12px 30px rgb(64 48 28 / 8%);
+      --action: #f3ebdd;
+      --treasure: #e8c65a;
+      --victory: #83b96c;
+      --curse: #9270ac;
+      --reaction: #5b8fc4;
+      --attack: #b85d55;
+      --duration: #de914a;
+      --night: #45434a;
     }}
+    * {{ box-sizing: border-box; }}
+    [hidden] {{ display: none !important; }}
     body {{
+      background:
+        radial-gradient(circle at top left, rgb(232 198 90 / 12%), transparent 28rem),
+        var(--canvas);
       color: var(--text);
-      font-family: Arial, sans-serif;
-      line-height: 1.4;
-      margin: 32px auto;
-      max-width: 1120px;
-      padding: 0 24px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      margin: 0 auto;
+      max-width: 1180px;
+      min-height: 100vh;
+      padding: 28px 28px 64px;
     }}
-    a {{ color: var(--accent); }}
-    h1 {{ margin-bottom: 4px; }}
-    h2 {{ border-bottom: 1px solid var(--border); margin-top: 32px; padding-bottom: 6px; }}
+    a {{ color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }}
+    a:hover {{ color: var(--accent-dark); }}
+    h1, h2 {{ font-family: Georgia, "Times New Roman", serif; }}
+    h1 {{ font-size: clamp(2.15rem, 5vw, 3.45rem); letter-spacing: -.035em; line-height: 1.05; margin: 0; }}
+    h2 {{ font-size: 1.45rem; margin: 0; }}
+    p {{ margin: .6rem 0; }}
+    nav {{ align-items: center; display: flex; gap: 16px; margin-bottom: 18px; }}
+    nav a, .back-link {{ font-size: .9rem; font-weight: 700; text-decoration: none; }}
+    nav a::before, .back-link::before {{ content: "← "; }}
     .muted, .empty {{ color: var(--muted); }}
+    .eyebrow {{ color: var(--accent); font-size: .72rem; font-weight: 800; letter-spacing: .14em; margin-bottom: 8px; text-transform: uppercase; }}
+    .hero {{
+      background: linear-gradient(135deg, rgb(255 255 255 / 92%), rgb(255 253 248 / 86%));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 26px;
+      overflow: hidden;
+      padding: clamp(24px, 5vw, 44px);
+      position: relative;
+    }}
+    .hero::after {{
+      background: linear-gradient(180deg, var(--treasure), #b98a27);
+      content: "";
+      inset: 0 0 0 auto;
+      position: absolute;
+      width: 6px;
+    }}
+    .hero-description {{ color: #51483e; font-size: 1.05rem; margin: 14px 0 0; max-width: 760px; }}
+    .hero-links {{ align-items: center; display: flex; flex-wrap: wrap; gap: 10px 14px; margin-top: 20px; }}
+    .hero-links strong {{ color: var(--muted); font-size: .76rem; letter-spacing: .06em; text-transform: uppercase; }}
+    .section {{ margin-top: 30px; }}
+    .section-heading {{ align-items: center; display: flex; gap: 10px; margin-bottom: 10px; }}
+    .section-icon {{
+      align-items: center;
+      background: var(--section-color, var(--accent));
+      border-radius: 9px;
+      color: #fff;
+      display: inline-flex;
+      font-size: .9rem;
+      font-weight: 900;
+      height: 30px;
+      justify-content: center;
+      width: 30px;
+    }}
+    .section-gain {{ --section-color: #5f9251; }}
+    .section-action {{ --section-color: #9b815a; }}
+    .section-trash {{ --section-color: #a65b54; }}
+    .section-treasure {{ --section-color: #bd8c24; }}
+    .section-way {{ --section-color: #518ea6; }}
     .meta {{
       display: grid;
-      gap: 8px 20px;
-      grid-template-columns: max-content 1fr;
-      margin: 20px 0;
+      gap: 12px 24px;
+      grid-template-columns: minmax(120px, max-content) 1fr;
+      margin: 16px 0 0;
     }}
-    .meta dt {{ color: var(--muted); font-weight: bold; }}
-    .meta dd {{ margin: 0; }}
+    .meta dt {{ color: var(--muted); font-size: .75rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }}
+    .meta dd {{ margin: 0; min-width: 0; overflow-wrap: anywhere; }}
+    .technical-details {{
+      background: rgb(255 255 255 / 55%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-top: 18px;
+      padding: 0 16px;
+    }}
+    .technical-details > summary {{ color: var(--muted); cursor: pointer; font-size: .86rem; font-weight: 750; padding: 12px 0; }}
+    .technical-details[open] > summary {{ border-bottom: 1px solid var(--border); }}
+    .technical-details .meta {{ padding-bottom: 16px; }}
     table {{
-      border-collapse: collapse;
-      margin: 12px 0 24px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-collapse: separate;
+      border-radius: 12px;
+      border-spacing: 0;
+      box-shadow: 0 4px 14px rgb(64 48 28 / 5%);
+      margin: 0;
+      overflow: hidden;
       width: 100%;
     }}
     th, td {{
-      border: 1px solid var(--border);
-      padding: 7px 10px;
+      border-bottom: 1px solid #e8e1d4;
+      padding: 11px 14px;
       text-align: left;
-      vertical-align: top;
+      vertical-align: middle;
     }}
-    th {{ background: var(--header); }}
-    tr:nth-child(even) td {{ background: var(--row); }}
-    td:first-child {{ width: 54px; }}
+    th {{ background: #eee8dc; color: #675d50; font-size: .71rem; letter-spacing: .07em; position: sticky; text-transform: uppercase; top: 0; }}
+    tr:last-child td {{ border-bottom: 0; }}
+    tbody tr:hover td, table tr:not(:first-child):hover td {{ background: #fffcf4; }}
+    td:first-child {{ width: 68px; }}
+    .priority-number {{
+      align-items: center;
+      background: var(--section-color, var(--accent));
+      border-radius: 50%;
+      color: #fff;
+      display: inline-flex;
+      font-size: .78rem;
+      font-weight: 800;
+      height: 27px;
+      justify-content: center;
+      width: 27px;
+    }}
+    .chip-list {{ align-items: center; display: flex; flex-wrap: wrap; gap: 7px; }}
+    .card-chip, .landscape-chip, .board-chip, .strategy-link-chip, .tag {{
+      align-items: center;
+      border: 1px solid rgb(48 41 31 / 22%);
+      border-radius: 999px;
+      color: #28231d;
+      display: inline-flex;
+      font-size: .8rem;
+      font-weight: 750;
+      gap: 5px;
+      line-height: 1.1;
+      min-height: 27px;
+      padding: 5px 10px;
+      text-decoration: none;
+      white-space: nowrap;
+    }}
+    .card-chip.type-action {{ background: var(--action); }}
+    .card-chip.type-treasure {{ background: var(--treasure); }}
+    .card-chip.type-victory {{ background: var(--victory); }}
+    .card-chip.type-curse {{ background: var(--curse); color: #fff; }}
+    .card-chip.type-night {{ background: var(--night); color: #fff; }}
+    .card-chip.type-other, .card-chip.card-unknown {{ background: #e9e4da; }}
+    .card-chip.card-copper {{ background: #c88758; }}
+    .card-chip.card-silver {{ background: #d8dcdf; }}
+    .card-chip.card-gold {{ background: #e7bd42; }}
+    .type-marker {{ border: 1px solid rgb(0 0 0 / 22%); border-radius: 50%; height: 8px; width: 8px; }}
+    .marker-attack {{ background: var(--attack); }}
+    .marker-reaction {{ background: var(--reaction); }}
+    .marker-duration {{ background: var(--duration); }}
+    .marker-action {{ background: var(--action); }}
+    .marker-treasure {{ background: var(--treasure); }}
+    .marker-victory {{ background: var(--victory); }}
+    .marker-curse {{ background: var(--curse); }}
+    .marker-night {{ background: var(--night); }}
+    .marker-reserve, .marker-traveller {{ background: #b89563; }}
+    .marker-liaison {{ background: #8a72a7; }}
+    .marker-omen {{ background: #6a94a2; }}
+    .landscape-chip {{ border-radius: 7px; }}
+    .landscape-event {{ background: #dedbd3; }}
+    .landscape-project {{ background: #e6a99f; }}
+    .landscape-way {{ background: #9dc8d7; }}
+    .landscape-landmark {{ background: #8caf72; }}
+    .landscape-ally {{ background: #ddc99a; }}
+    .landscape-trait {{ background: #c8b08c; }}
+    .landscape-prophecy {{ background: #a8c9cf; }}
+    .board-chip {{ background: #e8f0ef; border-color: #b4cbc7; color: #245f73; }}
+    .board-chip::before {{ content: "▦"; font-size: .72rem; }}
+    .strategy-link-chip {{ background: #f0eadc; border-color: #d6c7a9; color: #6b5327; }}
+    .strategy-link-chip::before {{ content: "♟"; font-size: .72rem; }}
+    .coin-badge {{
+      align-items: center;
+      background: var(--treasure);
+      border: 2px solid #9d7620;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 2px rgb(255 255 255 / 38%);
+      display: inline-flex;
+      font-size: .78rem;
+      font-weight: 900;
+      height: 29px;
+      justify-content: center;
+      width: 29px;
+    }}
+    .condition {{
+      background: #edf1f2;
+      border: 1px solid #d3dfe1;
+      border-radius: 999px;
+      color: #334e57;
+      display: inline-block;
+      font-size: .79rem;
+      font-weight: 650;
+      line-height: 1.25;
+      padding: 5px 9px;
+    }}
+    .condition-always {{ background: #f2efe9; border-color: #ded7ca; color: var(--muted); }}
+    .condition-detail summary {{ cursor: pointer; list-style-position: outside; }}
+    .condition-detail summary::marker {{ color: #8da1a7; font-size: .72rem; }}
+    .condition-detail code {{ background: #282b2d; border-radius: 7px; color: #f3eee4; display: block; font-size: .73rem; margin-top: 7px; max-width: 720px; overflow-wrap: anywhere; padding: 8px 10px; white-space: normal; }}
     .search {{
+      background: var(--surface-raised);
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      box-shadow: 0 3px 10px rgb(64 48 28 / 5%);
+      color: var(--text);
+      font: inherit;
+      margin: 20px 0 22px;
+      padding: 11px 16px;
+      width: min(520px, 100%);
+    }}
+    .search:focus {{ border-color: var(--accent); outline: 3px solid rgb(36 95 115 / 15%); }}
+    .catalog-grid {{ display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); }}
+    .strategy-card, .board-card {{
+      background: var(--surface-raised);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 16px;
-      margin: 18px 0;
-      padding: 9px 11px;
-      width: min(460px, 100%);
+      border-radius: 14px;
+      box-shadow: 0 5px 16px rgb(64 48 28 / 5%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+      padding: 20px;
+      transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+    }}
+    .strategy-card:hover, .board-card:hover {{ border-color: var(--border-strong); box-shadow: var(--shadow); transform: translateY(-2px); }}
+    .strategy-card h2, .board-card h2 {{ font-size: 1.22rem; line-height: 1.2; }}
+    .strategy-card h2 a, .board-card h2 a {{ color: var(--text); text-decoration: none; }}
+    .strategy-card p, .board-card p {{ color: #5d554a; font-size: .88rem; margin: 0; }}
+    .card-footer {{ align-items: center; border-top: 1px solid #ece5d9; color: var(--muted); display: flex; flex-wrap: wrap; font-size: .75rem; gap: 8px 14px; margin-top: auto; padding-top: 12px; }}
+    .tags {{ display: flex; flex-wrap: wrap; gap: 6px; }}
+    .tag {{ background: #f0ede6; border: 0; color: #655c50; font-size: .68rem; letter-spacing: .04em; min-height: 22px; padding: 4px 8px; text-transform: uppercase; }}
+    .empty-state {{ background: rgb(255 255 255 / 55%); border: 1px dashed var(--border-strong); border-radius: 12px; color: var(--muted); padding: 18px; }}
+    @media (max-width: 680px) {{
+      body {{ padding: 18px 14px 44px; }}
+      .hero {{ border-radius: 14px; }}
+      .meta {{ grid-template-columns: 1fr; gap: 3px; }}
+      .meta dd + dt {{ margin-top: 9px; }}
+      .priority-table {{ background: transparent; border: 0; box-shadow: none; overflow: visible; }}
+      .priority-table thead {{ clip: rect(0 0 0 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }}
+      .priority-table tbody, .priority-table tr, .priority-table td {{ display: block; width: 100%; }}
+      .priority-table tr {{ background: var(--surface-raised); border: 1px solid var(--border); border-radius: 11px; box-shadow: 0 3px 10px rgb(64 48 28 / 5%); margin-bottom: 10px; overflow: hidden; padding: 9px 12px; }}
+      .priority-table td {{ border: 0; padding: 6px 0 6px 92px; position: relative; }}
+      .priority-table td::before {{ color: var(--muted); content: attr(data-label); font-size: .68rem; font-weight: 800; left: 0; letter-spacing: .05em; position: absolute; text-transform: uppercase; top: 9px; }}
+      .priority-table td[colspan] {{ padding-left: 0; text-align: center; }}
+      .priority-table td[colspan]::before {{ content: none; }}
+    }}
+    @media print {{
+      body {{ background: #fff; max-width: none; padding: 0; }}
+      .hero, table, .strategy-card, .board-card {{ box-shadow: none; }}
+      .search, script {{ display: none; }}
+      .condition-detail code {{ color: #000; background: #eee; }}
     }}
   </style>
 </head>
@@ -200,57 +704,73 @@ def _page_shell(title: str, body: str) -> str:
 """
 
 
-def render_strategy_page(item: RenderedStrategy, *, index_href: str = "index.html") -> str:
+def render_strategy_page(
+    item: RenderedStrategy, *, index_href: str = "index.html"
+) -> str:
     strategy = item.strategy
     references = "".join(
-        f"<dt>{escape(label)}</dt><dd>{_reference_list(values)}</dd>"
+        f"<dt>{escape(label)}</dt><dd>{_reference_list(values, label)}</dd>"
         for label, values in item.references.items()
     )
     body = f"""
-<p><a href="{escape(index_href)}">Strategy index</a></p>
-<h1>{escape(item.display_name)}</h1>
-<p class="muted">{escape(getattr(strategy, "description", "") or "No description.")}</p>
+<nav><a href="{escape(index_href)}">Strategy index</a></nav>
+<header class="hero">
+  <p class="eyebrow">Dominion strategy</p>
+  <h1>{escape(item.display_name)}</h1>
+  <p class="hero-description">{escape(_audience_description(strategy))}</p>
+{_tags_markup(_strategy_tags(item))}
+  <div class="hero-links"><strong>Compatible boards</strong>{_page_link_list(item.compatible_boards)}</div>
+  <details class="technical-details">
+    <summary>Implementation details and referenced components</summary>
+    <dl class="meta">
+      <dt>Internal name</dt><dd>{escape(getattr(strategy, "name", ""))}</dd>
+      <dt>Version</dt><dd>{escape(getattr(strategy, "version", ""))}</dd>
+      <dt>Source</dt><dd>{escape(item.source_path or "Unknown")}</dd>
+      <dt>Factory</dt><dd>{escape(item.factory_name or "Unknown")}</dd>
+      {references}
+    </dl>
+  </details>
+</header>
 
-<h2>Compatible Boards</h2>
-<p>{_page_link_list(item.compatible_boards)}</p>
+<section class="section section-gain">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
+    <tbody>{_priority_rows(getattr(strategy, "gain_priority", []), landscape_references=item.references)}</tbody>
+  </table>
+</section>
 
-<dl class="meta">
-  <dt>Internal Name</dt><dd>{escape(getattr(strategy, "name", ""))}</dd>
-  <dt>Version</dt><dd>{escape(getattr(strategy, "version", ""))}</dd>
-  <dt>Source</dt><dd>{escape(item.source_path or "Unknown")}</dd>
-  <dt>Factory</dt><dd>{escape(item.factory_name or "Unknown")}</dd>
-  {references}
-</dl>
+<section class="section section-action">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">A</span><h2>Action Priority</h2></div>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
+    <tbody>{_priority_rows(getattr(strategy, "action_priority", []))}</tbody>
+  </table>
+</section>
 
-<h2>Gain Priority</h2>
-<table>
-  <tr><th>#</th><th>Card or Event</th><th>Condition</th></tr>
-  {_priority_rows(getattr(strategy, "gain_priority", []))}
-</table>
+<section class="section section-trash">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">×</span><h2>Trash Priority</h2></div>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
+    <tbody>{_priority_rows(getattr(strategy, "trash_priority", []))}</tbody>
+  </table>
+</section>
 
-<h2>Action Priority</h2>
-<table>
-  <tr><th>#</th><th>Card</th><th>Condition</th></tr>
-  {_priority_rows(getattr(strategy, "action_priority", []))}
-</table>
+<section class="section section-treasure">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">$</span><h2>Treasure Priority</h2></div>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
+    <tbody>{_priority_rows(getattr(strategy, "treasure_priority", []))}</tbody>
+  </table>
+</section>
 
-<h2>Trash Priority</h2>
-<table>
-  <tr><th>#</th><th>Card</th><th>Condition</th></tr>
-  {_priority_rows(getattr(strategy, "trash_priority", []))}
-</table>
-
-<h2>Treasure Priority</h2>
-<table>
-  <tr><th>#</th><th>Card</th><th>Condition</th></tr>
-  {_priority_rows(getattr(strategy, "treasure_priority", []))}
-</table>
-
-<h2>Way Policy</h2>
-<table>
-  <tr><th>#</th><th>Card</th><th>Way</th><th>Condition</th></tr>
-  {_way_rows(getattr(strategy, "way_policy", []) or [])}
-</table>
+<section class="section section-way">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">W</span><h2>Way Policy</h2></div>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card</th><th>Way</th><th>Condition</th></tr></thead>
+    <tbody>{_way_rows(getattr(strategy, "way_policy", []) or [])}</tbody>
+  </table>
+</section>
 """
     return _page_shell(f"{item.display_name} Strategy", body)
 
@@ -265,13 +785,16 @@ def render_strategy_index(
         strategy = item.strategy
         refs = item.references["Kingdom Cards"]
         rows.append(
-            "<tr class=\"strategy-row\">"
-            f"<td><a href=\"{escape(item.slug)}.html\">{escape(item.display_name)}</a></td>"
-            f"<td>{escape(getattr(strategy, 'name', ''))}</td>"
-            f"<td>{escape(getattr(strategy, 'description', '') or '')}</td>"
-            f"<td>{_reference_list(refs)}</td>"
-            f"<td>{escape(item.source_path or 'Unknown')}</td>"
-            "</tr>"
+            '<article class="strategy-card strategy-row">'
+            f'<h2><a href="{escape(item.slug)}.html">{escape(item.display_name)}</a></h2>'
+            f"<p>{escape(_audience_description(strategy))}</p>"
+            f"{_tags_markup(_strategy_tags(item))}"
+            f'<div class="chip-list">{"".join(_card_chip(card) for card in refs)}</div>'
+            '<div class="card-footer">'
+            f"<span>{len(refs)} referenced card{'s' if len(refs) != 1 else ''}</span>"
+            f"<span>{len(item.compatible_boards)} compatible board{'s' if len(item.compatible_boards) != 1 else ''}</span>"
+            "</div>"
+            "</article>"
         )
 
     board_nav = (
@@ -281,21 +804,30 @@ def render_strategy_index(
     )
     body = f"""
 {board_nav}
-<h1>Strategy Index</h1>
-<p class="muted">Generated from registered strategy objects. Regenerate this directory after changing strategy code.</p>
-<input class="search" id="strategy-search" type="search" placeholder="Search strategies">
-<table id="strategy-table">
-  <tr><th>Strategy</th><th>Internal Name</th><th>Description</th><th>Kingdom Cards Used</th><th>Source</th></tr>
-  {''.join(rows)}
-</table>
+<header class="hero">
+  <p class="eyebrow">Dominion simulator</p>
+  <h1>Strategy Index</h1>
+  <p class="hero-description">Browse registered strategies, their defining cards, and the boards they support.</p>
+</header>
+<label for="strategy-search" class="eyebrow">Find a strategy</label><br>
+<input class="search" id="strategy-search" type="search" placeholder="Search by name, description, card, or style">
+<div class="catalog-grid" id="strategy-grid">
+  {"".join(rows)}
+</div>
+<p class="empty-state" id="strategy-empty" hidden>No strategies match that search.</p>
 <script>
 const search = document.getElementById('strategy-search');
 const rows = Array.from(document.querySelectorAll('.strategy-row'));
+const empty = document.getElementById('strategy-empty');
 search.addEventListener('input', () => {{
   const query = search.value.toLowerCase();
+  let visible = 0;
   for (const row of rows) {{
-    row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
+    const match = row.innerText.toLowerCase().includes(query);
+    row.hidden = !match;
+    if (match) visible += 1;
   }}
+  empty.hidden = visible !== 0;
 }});
 </script>
 """
