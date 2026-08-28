@@ -21,6 +21,7 @@ from dominion.simulation.structured_genome import (
     random_menu_strategy,
 )
 from dominion.simulation.strategic_genome import (
+    _normalize_build_dependencies,
     BuildTarget,
     EconomyPlan,
     EndgamePlan,
@@ -29,6 +30,8 @@ from dominion.simulation.strategic_genome import (
     StrategicGenome,
     crossover_strategic_strategies,
     mutate_strategic_strategy,
+    promote_legacy_strategy,
+    random_strategic_genome,
     synchronize_strategic_genome,
 )
 from dominion.strategy.enhanced_strategy import PriorityRule
@@ -202,6 +205,38 @@ class TestRandomMenuStrategy:
 
 
 class TestStrategicGenomeRepresentability:
+    def test_random_dependencies_only_use_reachable_earlier_anchors(self):
+        rng = random.Random(27)
+        saw_dependency = False
+
+        for _ in range(200):
+            genome = random_strategic_genome(_info(), rng)
+            reachable = {opening.card for opening in genome.openings}
+            for target in genome.build_targets:
+                if target.requires_card is not None:
+                    saw_dependency = True
+                    assert target.requires_card in reachable
+                reachable.add(target.card)
+
+        assert saw_dependency
+
+    def test_dependency_normalization_breaks_cycles_and_stranded_anchors(self):
+        info = _info()
+        genome = StrategicGenome(
+            build_targets=[
+                BuildTarget("Smithy", 2, requires_card="Witch"),
+                BuildTarget("Witch", 2, requires_card="Smithy"),
+                BuildTarget("Village", 2, requires_card="Gold"),
+            ],
+            economy=EconomyPlan(buy_gold=False, buy_silver=False),
+        )
+
+        _normalize_build_dependencies(genome, info)
+
+        assert genome.build_targets[0].requires_card is None
+        assert genome.build_targets[1].requires_card == "Smithy"
+        assert genome.build_targets[2].requires_card is None
+
     def test_exact_early_single_card_opening_is_one_semantic_block(self):
         genome = StrategicGenome(
             openings=[OpeningTarget("Chapel", copies=1, through_turn=2)],
@@ -242,6 +277,140 @@ class TestStrategicGenomeRepresentability:
         ]
         assert "max_in_deck('Rebuild', 2)" in strategy.gain_priority[1].condition._source
 
+    def test_delayed_build_target_is_representable(self):
+        genome = StrategicGenome(
+            build_targets=[
+                BuildTarget(
+                    "Taskmaster",
+                    copies=4,
+                    from_turn=5,
+                    while_provinces_above=4,
+                    priority_band="before_silver",
+                )
+            ],
+            treasure_order=["Gold", "Silver", "Copper"],
+        )
+        strategy = genome.compile_into(
+            BaseStrategy(), KingdomInfo.from_kingdom(["Taskmaster"])
+        )
+
+        names = [rule.card_name for rule in strategy.gain_priority]
+        assert names.index("Gold") < names.index("Taskmaster") < names.index("Silver")
+        taskmaster = next(
+            rule for rule in strategy.gain_priority if rule.card_name == "Taskmaster"
+        )
+        assert "turn_number('>=', 5)" in taskmaster.condition._source
+        assert "provinces_left('>', 4)" in taskmaster.condition._source
+
+    def test_build_window_normalizes_independently_mutated_bounds(self):
+        target = BuildTarget("Smithy", copies=2, from_turn=12, through_turn=6)
+        genome = StrategicGenome(
+            build_targets=[target],
+            treasure_order=["Gold", "Silver", "Copper"],
+        )
+
+        strategy = genome.compile_into(BaseStrategy(), _info())
+        source = next(
+            rule.condition._source
+            for rule in strategy.gain_priority
+            if rule.card_name == "Smithy"
+        )
+
+        assert "turn_number('>=', 6)" in source
+        assert "turn_number('<=', 12)" in source
+
+    def test_pile_pressure_and_tactical_close_are_independent(self):
+        genome = StrategicGenome(
+            greening=GreeningPlan(
+                duchy_mode="never",
+                estate_mode="pile_pressure",
+                estate_empty_piles=2,
+            ),
+            endgame=EndgamePlan(estate_pileout=True),
+            treasure_order=["Gold", "Silver", "Copper"],
+        )
+        strategy = genome.compile_into(BaseStrategy(), _info())
+        estate_rules = [
+            rule for rule in strategy.gain_priority if rule.card_name == "Estate"
+        ]
+
+        assert len(estate_rules) == 2
+        assert "pile_count" in estate_rules[0].condition._source
+        assert estate_rules[1].condition._source == (
+            "PriorityRule.empty_piles('>=', 2)"
+        )
+
+    def test_representable_legacy_strategy_is_promoted_without_rule_changes(self):
+        from dominion.strategy.strategies.calibration_known_best import RebuildRush
+
+        strategy = RebuildRush()
+        before = GeneticTrainer._genome_signature(strategy)
+        info = KingdomInfo.from_kingdom(["Rebuild", "Cellar", "Moat"])
+
+        assert promote_legacy_strategy(strategy, info) is True
+        assert GeneticTrainer._genome_signature(strategy) == before
+        assert strategy._strategic_genome.build_targets == [
+            BuildTarget("Rebuild", 2, priority_band="before_duchy")
+        ]
+
+    def test_custom_conditional_action_strategy_is_not_promoted(self):
+        from dominion.strategy.strategies.calibration_known_best import (
+            ChapelWitchClassic,
+        )
+
+        strategy = ChapelWitchClassic()
+        info = KingdomInfo.from_kingdom(["Chapel", "Witch", "Cellar"])
+
+        assert promote_legacy_strategy(strategy, info) is False
+        assert not hasattr(strategy, "_strategic_genome")
+
+    def test_untagged_gain_condition_is_not_promoted_as_unconditional(self):
+        strategy = BaseStrategy()
+        strategy.gain_priority = [
+            PriorityRule("Province", lambda _state, _player: False),
+            PriorityRule("Gold"),
+        ]
+        strategy.treasure_priority = [
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
+            PriorityRule("Copper"),
+        ]
+
+        assert promote_legacy_strategy(strategy, _info()) is False
+        assert not hasattr(strategy, "_strategic_genome")
+
+    def test_strategy_with_custom_decision_hook_is_not_promoted(self):
+        class CustomGainStrategy(BaseStrategy):
+            def choose_gain(self, state, player, choices):
+                return choices[-1]
+
+        strategy = CustomGainStrategy()
+        strategy.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        strategy.treasure_priority = [
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
+            PriorityRule("Copper"),
+        ]
+
+        assert promote_legacy_strategy(strategy, _info()) is False
+        assert not hasattr(strategy, "_strategic_genome")
+
+    def test_strategy_with_card_specific_decision_hook_is_not_promoted(self):
+        class CustomAnvilStrategy(BaseStrategy):
+            def choose_anvil_gain(self, state, player, choices):
+                return choices[-1]
+
+        strategy = CustomAnvilStrategy()
+        strategy.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        strategy.treasure_priority = [
+            PriorityRule("Gold"),
+            PriorityRule("Silver"),
+            PriorityRule("Copper"),
+        ]
+
+        assert promote_legacy_strategy(strategy, _info()) is False
+        assert not hasattr(strategy, "_strategic_genome")
+
     def test_pileout_policy_can_override_normal_province_buy(self):
         genome = StrategicGenome(
             greening=GreeningPlan(duchy_mode="never"),
@@ -280,7 +449,24 @@ class TestStrategicGenomeRepresentability:
             strategy, _info(), rate=1.0, rng=_DeterministicRng()
         ) is True
         assert strategy._strategic_genome.economy.buy_gold is False
-        assert strategy._strategic_genome.build_targets[0].copies == 3
+        target = strategy._strategic_genome.build_targets[0]
+        assert target.copies == 3
+        assert target.from_turn == 11
+        assert target.through_turn == 16
+        assert target.while_provinces_above == 6
+        # The deterministic edit first selects an economy dependency and then
+        # disables both economy cards; final normalization removes that newly
+        # stranded anchor.
+        assert target.requires_card is None
+        assert target.priority_band == "fallback"
+        assert strategy._strategic_genome.economy.buy_silver is False
+        assert strategy._strategic_genome.economy.silver_through_turn == 16
+        assert strategy._strategic_genome.economy.gold_cap == 6
+        assert strategy._strategic_genome.trash.trash_curse is False
+        assert strategy._strategic_genome.trash.copper_after_treasures == 5
+        assert strategy._strategic_genome.treasure_order != [
+            "Gold", "Silver", "Copper"
+        ]
         assert all(rule.card_name != "Gold" for rule in strategy.gain_priority)
         smithy = next(
             rule for rule in strategy.gain_priority if rule.card_name == "Smithy"
@@ -1266,11 +1452,27 @@ class TestTrainerIntegration:
         )
         assert seen_copper
 
-    def test_mixed_parent_crossover_drops_stale_typed_metadata(self):
+    def test_representable_legacy_parent_is_promoted_for_semantic_crossover(self):
         trainer = GeneticTrainer(KINGDOM, population_size=1, generations=1)
         typed = trainer.create_random_strategy()
         legacy = BaseStrategy()
         legacy.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        legacy.treasure_priority = [
+            PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")
+        ]
+
+        child = trainer._crossover(typed, legacy)
+
+        assert hasattr(child, "_strategic_genome")
+
+    def test_unrepresentable_legacy_parent_keeps_compatibility_crossover(self):
+        trainer = GeneticTrainer(KINGDOM, population_size=1, generations=1)
+        typed = trainer.create_random_strategy()
+        legacy = BaseStrategy()
+        legacy.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        legacy.action_priority = [
+            PriorityRule("Smithy", PriorityRule.turn_number("<=", 8))
+        ]
         legacy.treasure_priority = [
             PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")
         ]

@@ -85,7 +85,7 @@ green actively harmful).
    (`dominion/strategy/strategies/hyderabad_seeds.py`): Scholar money,
    Village Green/Scholar engine, Priest payload, Stockpile rush, Otter
    Rice Broker engine, plus two hybrids.
-3. **Island-model GA** — one isolated island per archetype plus Big
+3. **Island-model genetic algorithm** — one isolated island per archetype plus Big
    Money, 40 generations each, identical hyperparameters, fixed
    opponent panel (Big Money + the three strongest seeds).
 4. **Cross-island tournament** (300 games/matchup) to rank champions.
@@ -101,7 +101,7 @@ player. "Otter Pileout" is the published `Hyderabad Best Found` policy;
 "Otter Champion" is the same policy without the pile-out Estate rule
 (the raw island champion). "Combo Rush" and "Seed Stockpile Rush" are
 the strongest hand-built falsifiers from the local search; neither was
-part of the GA's fitness panel opponents for the winning island's final
+part of the genetic algorithm's fitness panel opponents for the winning island's final
 form, which makes them useful out-of-sample checks.
 
 | Strategy | Average win rate |
@@ -127,9 +127,22 @@ The published file was replayed against the raw tournament variant as a
 sanity check (49.0% over 400 games — a statistical mirror) before
 publication.
 
+### Score-aware closing refinement (2026-07-12)
+
+The strategy now separates two Estate decisions that previously shared one
+rule. It retains the broad rule that pressures Estates after two piles empty,
+and adds a higher-priority tactical rule: take the final Estate over Province
+when that purchase ends the game while the player is already ahead.
+
+In a 2,000-game alternating-seat comparison against an otherwise identical
+strategy without the tactical rule, the refined strategy won 1,053–947
+(52.65%) and finished 504 total points ahead. The tactical rule fired 159
+times. This confirms that precise closing adds value without removing the
+broader pile pressure that creates the opportunity.
+
 ## Search notes
 
-- Every island's GA independently abandoned its seed archetype and
+- Every island's genetic algorithm independently abandoned its seed archetype and
   converged on the same Province-first money chassis; the islands only
   differed in whether they kept the Stockpile battery. The two that did
   (Stockpile Rush, Otter Broker) finished first and second.
@@ -137,8 +150,8 @@ publication.
   Green/Scholar) lost 0-for-100 to the seed Stockpile Rush before
   evolution. Progress's topdecked green and the absence of cheap
   trashing appear to bury engines on this board.
-- The one hand-found improvement the GA missed — Estates on two empty
-  piles — is a three-pile-ending rule. The GA's fitness panel could not
+- The one hand-found improvement the genetic algorithm missed — Estates on two empty
+  piles — is a three-pile-ending rule. The genetic algorithm's fitness panel could not
   teach it because none of the panel opponents contested piles.
 - The island merge stage was not run for this search (the initial
   attempt was cancelled); the local search around the tournament leader

@@ -5,9 +5,10 @@ Green, Rice Broker, Scepter, Scholar — with the Silos project, Way of the
 Otter, and the Progress prophecy pinned.
 
 This file publishes the strongest policy found in the Hyderabad search:
-the island-evolved Otter Broker champion plus one hand-found refinement
-(buy Estates once two supply piles are empty, to win the three-pile
-race). The evolved champion carried dead rules for cards this plan never
+the island-evolved Otter Broker champion plus two hand-found refinements:
+pressure the Estate pile once two piles are empty, then take the final Estate
+over Province when doing so ends the game from a winning score. The evolved
+champion carried dead rules for cards this plan never
 buys (Village Green, Priest, Rice Broker way/trash rules); those are
 omitted here, matching the Lisbon Best Found precedent.
 
@@ -32,6 +33,18 @@ class HyderabadBestFound(EnhancedStrategy):
         self.version = "1.0"
 
         self.gain_priority = [
+            # If Estate is the final card in the third pile and we are already
+            # ahead, take the guaranteed ending even when Province is
+            # affordable. Keep the broader Estate rule below: it supplies the
+            # pile pressure that creates this tactical opportunity.
+            PriorityRule(
+                "Estate",
+                PriorityRule.and_(
+                    PriorityRule.empty_piles(">=", 2),
+                    PriorityRule.pile_count("Estate", "<=", 1),
+                    PriorityRule.score_diff(">=", 0),
+                ),
+            ),
             PriorityRule("Province"),
             PriorityRule("Duchy", PriorityRule.provinces_left("<=", 3)),
             PriorityRule("Estate", PriorityRule.empty_piles(">=", 2)),
