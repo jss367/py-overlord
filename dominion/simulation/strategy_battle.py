@@ -311,8 +311,11 @@ class StrategyBattle:
 
         def trace_priority_rule(list_name, rule, _card, _state, _player):
             bucket = stats["priority_rules"].setdefault(list_name, {})
-            condition_source = getattr(getattr(rule, "condition", None), "_source", None)
-            condition_label = condition_source or "always"
+            condition = getattr(rule, "condition", None)
+            condition_source = getattr(condition, "_source", None)
+            condition_label = condition_source or (
+                "custom condition" if condition is not None else "always"
+            )
             key = f"{rule.card_name} [{condition_label}]"
             self._increment_count(bucket, key)
             if original_callback is not None:

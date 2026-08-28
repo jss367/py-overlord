@@ -33,10 +33,7 @@ def _hold_copper_for_anvil(village_limit: int, magnate_limit: int):
         )
         return not (needs_village or needs_magnate)
 
-    return PriorityRule._tag_source(
-        condition,
-        f"_hold_copper_for_anvil({village_limit!r}, {magnate_limit!r})",
-    )
+    return condition
 
 
 def _hold_copper_for_seed_engine():
@@ -55,29 +52,20 @@ def _hold_copper_for_seed_engine():
             return False
         return True
 
-    return PriorityRule._tag_source(condition, "_hold_copper_for_seed_engine()")
+    return condition
 
 
 def _province_after_two_colonies_or_turn_18():
-    def condition(state, _player):
-        return state.supply.get("Colony", 0) <= 2 or state.turn_number >= 18
-
-    return PriorityRule._tag_source(
-        condition,
-        "_province_after_two_colonies_or_turn_18()",
+    return PriorityRule.or_(
+        PriorityRule.colonies_left("<=", 2),
+        PriorityRule.turn_number(">=", 18),
     )
 
 
 def _kings_court_after_three_magnates():
-    def condition(_state, player):
-        return (
-            player.count_in_deck("King's Court") < 3
-            and player.count_in_deck("Magnate") >= 3
-        )
-
-    return PriorityRule._tag_source(
-        condition,
-        "_kings_court_after_three_magnates()",
+    return PriorityRule.and_(
+        PriorityRule.max_in_deck("King's Court", 3),
+        PriorityRule.has_cards(["Magnate"], 3),
     )
 
 

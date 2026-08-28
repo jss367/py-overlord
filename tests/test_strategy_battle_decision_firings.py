@@ -97,6 +97,20 @@ def test_priority_rule_firings_are_counted_by_decision_list():
     assert stats["priority_rules"]["trash"]["Estate [always]"] == 1
 
 
+def test_untagged_priority_rule_condition_is_not_reported_as_always():
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [PriorityRule("Village", lambda _state, _player: True)]
+    ai = GeneticAI(strategy)
+    battle = StrategyBattle()
+    stats = battle._empty_decision_firings("Custom Condition Strategy")
+    state = SimpleNamespace(current_player=SimpleNamespace())
+
+    battle._instrument_ai_decisions(ai, stats)
+    ai.choose_action(state, [_card("Village"), None])
+
+    assert stats["priority_rules"]["action"]["Village [custom condition]"] == 1
+
+
 def test_html_decision_firings_section_renders_zero_rows():
     results = {
         "decision_firings": {
