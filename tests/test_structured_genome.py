@@ -129,9 +129,12 @@ class TestRandomMenuStrategy:
             s = random_menu_strategy(info)
             names = [r.card_name for r in s.gain_priority]
             # Province exists near the front; explicit opening/endgame rules
-            # are allowed to precede it in the phase-aware genome.
+            # are allowed to precede it in the phase-aware genome (opening
+            # picks plus endgame Estate/Duchy rules can stack up to ~5 deep;
+            # the exact count depends on the RNG stream, which shifts when
+            # cap vocabularies change, so keep this bound loose).
             assert "Province" in names
-            assert names.index("Province") <= 3
+            assert names.index("Province") <= 5
             # Silver remains the fallback economy. Gold may be deliberately
             # omitted for rushes such as Rebuild/Duchy.
             assert "Silver" in names

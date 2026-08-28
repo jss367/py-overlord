@@ -61,7 +61,29 @@ League evaluation should report both mixture win rate and the candidate's
 worst supported matchup. Historical champions remain useful regression
 opponents, but they are not a substitute for actively generated counters.
 
-After league training, the next coverage layer is declarative card capability
-metadata and board-derived archetypes. This will replace source-text role
-inference with explicit descriptions of draw, village capacity, gain topology,
-trashing, attacks, alternate scoring, pile pressure, and tactical choices.
+## Card capabilities and board-derived engine archetypes
+
+`dominion/analysis/card_capabilities.py` layers a hand-annotated override
+table over static card stats, so dynamic cards (Magnate's per-Treasure draw,
+Bank's per-Treasure coins, King's Court's triple play) classify into their
+real roles instead of reading as all-zero terminals. `KingdomInfo` role
+classification and the structured-genome deck caps both consume it; village
+and draw caps now reach deep-engine counts (up to 7-8 copies).
+
+`dominion/analysis/engine_archetypes.py` treats engines as a slot-filling
+problem over those capabilities: a village and a draw source form the core,
+with payload, multiplier, gainer, and +buy support attached when the kingdom
+offers them. Each role-complete combination becomes one fully assembled
+island seed with aggressive core counts and delayed greening. Seeding the
+*finished* engine is the point: partial engines lose to money, so ordinary
+selection can never assemble one from mutation (the fitness-valley failure
+that made the Oslo board's winning engine unfindable without a human hint).
+
+The rediscovery standard for this layer lives in
+`tests/test_engine_archetypes.py::TestOsloRediscovery`: with the strategy
+library hidden (`--no-library` in `scripts/island_evolve.py`, or
+`reuse_top_k=0`), the board-derived seeds alone must reproduce the
+Workers' Village/Magnate topology on Oslo and beat Big Money before any
+evolution. Apply the same standard to future boards whose best strategy
+the search initially missed: encode the board, hide the library, and
+require the enumerator to produce a competitive seed of the right shape.

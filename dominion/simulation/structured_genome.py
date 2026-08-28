@@ -58,6 +58,8 @@ class KingdomInfo:
 
     @classmethod
     def from_kingdom(cls, kingdom_cards: list[str]) -> "KingdomInfo":
+        from dominion.analysis.card_capabilities import capabilities_for
+
         info = cls(kingdom_cards=list(kingdom_cards))
         for name in kingdom_cards:
             if name == "Colony":
@@ -66,34 +68,40 @@ class KingdomInfo:
                 info.has_platinum = True
             if name in BASIC_CARDS:
                 continue
-            try:
-                card = get_card(name)
-            except ValueError:
+            caps = capabilities_for(name)
+            if caps is None:
                 continue
-            info.costs[name] = card.cost.coins
+            info.costs[name] = caps.cost
             info.gainable.append(name)
-            if card.is_action:
+            if caps.is_action:
                 info.action_cards.append(name)
-                if card.stats.actions >= 2:
+                # Classify on capabilities, not raw stats: dynamic-draw cards
+                # (Magnate) have all-zero stats but belong with terminal draw.
+                if caps.actions >= 2:
                     info.villages.append(name)
-                elif card.stats.actions == 1:
+                elif caps.actions == 1:
                     info.cantrips.append(name)
-                elif card.stats.cards >= 2:
+                elif caps.draw >= 2:
                     info.terminal_draw.append(name)
                 else:
                     info.other_terminals.append(name)
-            if card.is_treasure:
+            if caps.is_treasure:
                 info.treasure_cards.append(name)
         return info
 
     def default_cap(self, card: str, rng) -> int:
-        """A sensible max-in-deck cap range per card role."""
+        """A sensible max-in-deck cap range per card role.
+
+        Village and draw ranges reach deep-engine counts (the Oslo winner
+        ran seven villages and seven draw cards; the old 2-4 / 1-3 caps
+        made that composition unsearchable).
+        """
         if card in self.villages:
-            return rng.randint(2, 4)
+            return rng.randint(2, 8)
         if card in self.terminal_draw:
-            return rng.randint(1, 3)
+            return rng.randint(1, 7)
         if card in self.other_terminals:
-            return rng.randint(1, 2)
+            return rng.randint(1, 3)
         if card in self.cantrips:
             return rng.randint(2, 5)
         if card in self.treasure_cards:

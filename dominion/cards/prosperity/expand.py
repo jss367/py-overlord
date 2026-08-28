@@ -6,7 +6,7 @@ class Expand(Card):
         super().__init__(
             name="Expand",
             cost=CardCost(coins=7),
-            stats=CardStats(actions=1),
+            stats=CardStats(),
             types=[CardType.ACTION],
         )
 

@@ -49,6 +49,7 @@ class _FakeLoader:
 class TestDeriveIslandSpecs:
     def test_random_islands_pad_the_roster(self, monkeypatch):
         monkeypatch.setattr(island_seeds, "find_compatible_strategies", lambda *a, **k: [])
+        monkeypatch.setattr(island_seeds, "build_engine_seeds", lambda board: [])
         monkeypatch.setattr(island_seeds, "build_seed_genomes", lambda board: [])
 
         specs = derive_island_specs(_board(), max_islands=4)
@@ -59,10 +60,14 @@ class TestDeriveIslandSpecs:
         # Random islands get distinct names.
         assert len({s.name for s in specs}) == 4
 
-    def test_library_and_trick_islands_come_first(self, monkeypatch):
+    def test_library_engine_and_trick_islands_come_first(self, monkeypatch):
         monkeypatch.setattr(
             island_seeds, "find_compatible_strategies",
             lambda *a, **k: [_FakeLibraryEntry("WitchEngine")],
+        )
+        monkeypatch.setattr(
+            island_seeds, "build_engine_seeds",
+            lambda board: [("Engine Village + Smithy", _strategy("engine0"))],
         )
         monkeypatch.setattr(
             island_seeds, "build_seed_genomes",
@@ -74,9 +79,10 @@ class TestDeriveIslandSpecs:
         # Library specs are keyed by the entry *spec* (module:function), not
         # the display name; the display name is "Reuse <name>".
         assert specs[0] == IslandSpec("library", "fake.module:WitchEngine", "Reuse WitchEngine")
-        assert specs[1] == IslandSpec("trick", "0", "Trail Butterfly Trick")
-        assert specs[2] == IslandSpec("loader", "Big Money", "Big Money Island")
-        assert [s.kind for s in specs[3:]] == ["random", "random", "random"]
+        assert specs[1] == IslandSpec("engine", "0", "Engine Village + Smithy")
+        assert specs[2] == IslandSpec("trick", "0", "Trail Butterfly Trick")
+        assert specs[3] == IslandSpec("loader", "Big Money", "Big Money Island")
+        assert [s.kind for s in specs[4:]] == ["random", "random"]
 
     def test_library_entries_sharing_a_name_get_distinct_key_and_name(self, monkeypatch):
         """Two library strategies with the same display name but different
@@ -90,6 +96,7 @@ class TestDeriveIslandSpecs:
                 _FakeLibraryEntry("BigMoneySmithy", spec="m:big_money_smithy2"),
             ],
         )
+        monkeypatch.setattr(island_seeds, "build_engine_seeds", lambda board: [])
         monkeypatch.setattr(island_seeds, "build_seed_genomes", lambda board: [])
 
         specs = derive_island_specs(_board(), max_islands=6)
@@ -111,6 +118,7 @@ class TestDeriveIslandSpecs:
                 _FakeLibraryEntry("Dup", spec=f"m:dup{i}") for i in range(3)
             ],
         )
+        monkeypatch.setattr(island_seeds, "build_engine_seeds", lambda board: [])
         monkeypatch.setattr(island_seeds, "build_seed_genomes", lambda board: [])
 
         specs = derive_island_specs(_board(), max_islands=6)
@@ -122,6 +130,7 @@ class TestDeriveIslandSpecs:
             island_seeds, "find_compatible_strategies",
             lambda *a, **k: [_FakeLibraryEntry(f"Lib{i}") for i in range(4)],
         )
+        monkeypatch.setattr(island_seeds, "build_engine_seeds", lambda board: [])
         monkeypatch.setattr(
             island_seeds, "build_seed_genomes",
             lambda board: [(f"Trick{i}", _strategy(f"t{i}")) for i in range(4)],
@@ -143,6 +152,7 @@ class TestDeriveIslandSpecs:
             island_seeds, "find_compatible_strategies",
             lambda *a, **k: [_FakeLibraryEntry(f"Lib{i}") for i in range(3)],
         )
+        monkeypatch.setattr(island_seeds, "build_engine_seeds", lambda board: [])
         monkeypatch.setattr(
             island_seeds, "build_seed_genomes",
             lambda board: [(f"Trick{i}", _strategy(f"t{i}")) for i in range(3)],
@@ -165,6 +175,7 @@ class TestDeriveIslandSpecs:
             island_seeds, "find_compatible_strategies",
             lambda *a, **k: [_FakeLibraryEntry("Lib0")],
         )
+        monkeypatch.setattr(island_seeds, "build_engine_seeds", lambda board: [])
         monkeypatch.setattr(
             island_seeds, "build_seed_genomes",
             lambda board: [("Trick0", _strategy("t0"))],
@@ -176,6 +187,7 @@ class TestDeriveIslandSpecs:
 
     def test_specs_are_plain_string_dataclasses(self, monkeypatch):
         monkeypatch.setattr(island_seeds, "find_compatible_strategies", lambda *a, **k: [])
+        monkeypatch.setattr(island_seeds, "build_engine_seeds", lambda board: [])
         monkeypatch.setattr(island_seeds, "build_seed_genomes", lambda board: [])
 
         for spec in derive_island_specs(_board(), max_islands=3):
@@ -216,9 +228,24 @@ class TestResolveIslandSeed:
         assert seed is t1
 
     def test_trick_index_out_of_range_raises(self, monkeypatch):
+        monkeypatch.setattr(island_seeds, "build_engine_seeds", lambda board: [])
         monkeypatch.setattr(island_seeds, "build_seed_genomes", lambda board: [])
         with pytest.raises(ValueError, match="out of range"):
             resolve_island_seed(IslandSpec("trick", "0", "Trick0"), _board(), _FakeLoader({}))
+
+    def test_engine_seed_resolves_by_index(self, monkeypatch):
+        e0, e1 = _strategy("e0"), _strategy("e1")
+        monkeypatch.setattr(
+            island_seeds, "build_engine_seeds",
+            lambda board: [("Engine0", e0), ("Engine1", e1)],
+        )
+        seed = resolve_island_seed(IslandSpec("engine", "1", "Engine1"), _board(), _FakeLoader({}))
+        assert seed is e1
+
+    def test_engine_index_out_of_range_raises(self, monkeypatch):
+        monkeypatch.setattr(island_seeds, "build_engine_seeds", lambda board: [])
+        with pytest.raises(ValueError, match="out of range"):
+            resolve_island_seed(IslandSpec("engine", "0", "Engine0"), _board(), _FakeLoader({}))
 
     def test_library_seed_resolves_by_entry_spec(self, monkeypatch):
         monkeypatch.setattr(
@@ -351,3 +378,21 @@ class TestRealBoardIntegration:
         assert "loader" in kinds or "library" in kinds
         # Names are unique (the tournament keys islands by name).
         assert len({s.name for s in specs}) == 6
+
+    def test_oslo_roster_without_library_leads_with_engine_islands(self):
+        """Rediscovery condition: with the reuse library hidden
+        (``reuse_top_k=0``), the Oslo roster must still open with the
+        board-derived Workers' Village/Magnate engine island, and that
+        spec must resolve to a real seed strategy."""
+        from dominion.boards.loader import load_board
+
+        board = load_board("boards/oslo.txt")
+        specs = derive_island_specs(board, max_islands=6, reuse_top_k=0)
+
+        assert all(s.kind != "library" for s in specs)
+        engine_specs = [s for s in specs if s.kind == "engine"]
+        assert engine_specs
+        assert engine_specs[0].name == "Engine Workers' Village + Magnate"
+
+        seed = resolve_island_seed(engine_specs[0], board, _FakeLoader({}))
+        assert seed is not None and seed.name == engine_specs[0].name
