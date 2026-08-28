@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from html import escape
 import inspect
 from pathlib import Path
+from shutil import copyfile
 from typing import Iterable
 
 from dominion.cards.base_card import CardType
@@ -26,6 +27,41 @@ class RenderedStrategy:
     factory_name: str
     references: dict[str, list[str]]
     compatible_boards: tuple[PageLink, ...] = field(default_factory=tuple)
+
+
+@dataclass(frozen=True)
+class CuratedStrategyGuide:
+    """Metadata for a hand-authored guide that lives beside generated pages."""
+
+    filename: str
+    display_name: str
+    description: str
+    kingdom_cards: tuple[str, ...]
+    source_label: str
+
+
+CURATED_STRATEGY_GUIDES = (
+    CuratedStrategyGuide(
+        filename="cursed-band-biding-time-strategy-guide.html",
+        display_name="Cursed Band and Biding Time Strategy Guide",
+        description=(
+            "Practical board guide: rush Cursed Band for Loot, activate Biding Time, "
+            "manage Baths, and threaten a two-pile ending."
+        ),
+        kingdom_cards=(
+            "Band of Misfits",
+            "Experiment",
+            "King's Cache",
+            "Poet",
+            "Trader",
+        ),
+        source_label="Repository simulation and card rules",
+    ),
+)
+
+CURATED_STRATEGY_GUIDES_DIRECTORY = Path(__file__).with_name(
+    "curated_strategy_guides"
+)
 
 
 def _condition_label(condition) -> str:
@@ -778,9 +814,24 @@ def render_strategy_page(
 def render_strategy_index(
     items: list[RenderedStrategy],
     *,
+    curated_guides: Iterable[CuratedStrategyGuide] = (),
     board_index_href: str | None = None,
 ) -> str:
     rows = []
+    for guide in curated_guides:
+        rows.append(
+            '<article class="strategy-card strategy-row">'
+            f'<h2><a href="{escape(guide.filename)}">{escape(guide.display_name)}</a></h2>'
+            f"<p>{escape(guide.description)}</p>"
+            f'{_tags_markup(["Curated guide"])}'
+            f'<div class="chip-list">{"".join(_card_chip(card) for card in guide.kingdom_cards)}</div>'
+            '<div class="card-footer">'
+            f"<span>{len(guide.kingdom_cards)} referenced cards</span>"
+            f"<span>{escape(guide.source_label)}</span>"
+            "</div>"
+            "</article>"
+        )
+
     for item in items:
         strategy = item.strategy
         refs = item.references["Kingdom Cards"]
@@ -807,7 +858,7 @@ def render_strategy_index(
 <header class="hero">
   <p class="eyebrow">Dominion simulator</p>
   <h1>Strategy Index</h1>
-  <p class="hero-description">Browse registered strategies, their defining cards, and the boards they support.</p>
+  <p class="hero-description">Browse registered strategies and curated board guides, their defining cards, and the boards they support.</p>
 </header>
 <label for="strategy-search" class="eyebrow">Find a strategy</label><br>
 <input class="search" id="strategy-search" type="search" placeholder="Search by name, description, card, or style">
@@ -834,6 +885,19 @@ search.addEventListener('input', () => {{
     return _page_shell("Strategy Index", body)
 
 
+def write_curated_strategy_guides(output_dir: Path) -> list[Path]:
+    """Copy every packaged curated guide into a strategy output directory."""
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    written = []
+    for guide in CURATED_STRATEGY_GUIDES:
+        source = CURATED_STRATEGY_GUIDES_DIRECTORY / guide.filename
+        destination = output_dir / guide.filename
+        copyfile(source, destination)
+        written.append(destination)
+    return written
+
+
 def render_strategy_pages(
     output_dir: Path,
     *,
@@ -844,10 +908,13 @@ def render_strategy_pages(
 
     output_dir.mkdir(parents=True, exist_ok=True)
     items = collect_rendered_strategies(loader, names=names)
-    written = []
+    written = write_curated_strategy_guides(output_dir)
 
     index_path = output_dir / "index.html"
-    index_path.write_text(render_strategy_index(items), encoding="utf-8")
+    index_path.write_text(
+        render_strategy_index(items, curated_guides=CURATED_STRATEGY_GUIDES),
+        encoding="utf-8",
+    )
     written.append(index_path)
 
     for item in items:

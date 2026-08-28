@@ -110,6 +110,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "boards/nested/other-board.html",
         "boards/sample-board.html",
         "strategies/big-money.html",
+        "strategies/cursed-band-biding-time-strategy-guide.html",
         "strategies/index.html",
         "strategies/village-smithy-lab.html",
     }
@@ -146,3 +147,24 @@ def test_catalog_indexes_link_to_each_other(tmp_path):
     board_index = (output / "boards" / "index.html").read_text()
     assert 'href="../boards/index.html">Board index</a>' in strategy_index
     assert 'href="../strategies/index.html">Strategy index</a>' in board_index
+
+
+def test_catalog_writes_curated_strategy_guide_to_clean_output(tmp_path):
+    boards_root = tmp_path / "boards"
+    board = _write_board(boards_root / "simple.txt", "Village\n")
+    output = tmp_path / "site"
+    guide = output / "strategies" / "cursed-band-biding-time-strategy-guide.html"
+
+    written = render_catalog_pages(
+        output,
+        boards_root=boards_root,
+        board_paths=[board],
+        strategy_names=["Big Money"],
+    )
+
+    assert guide in written
+    assert "<title>Cursed Band and Biding Time Strategy Guide</title>" in guide.read_text(
+        encoding="utf-8"
+    )
+    strategy_index = (output / "strategies" / "index.html").read_text()
+    assert 'href="cursed-band-biding-time-strategy-guide.html"' in strategy_index
