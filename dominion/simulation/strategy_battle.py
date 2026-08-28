@@ -572,6 +572,9 @@ class StrategyBattle:
             landmarks=landmark_objs,
             allies=ally_objs,
             prophecy=prophecy_obj,
+            card_cost_reduction=(
+                self.board_config.card_cost_reduction if self.board_config else 0
+            ),
             traits=self.board_config.traits if self.board_config else None,
         )
 

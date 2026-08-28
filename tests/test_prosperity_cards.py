@@ -1,6 +1,8 @@
+from dominion.ai.genetic_ai import GeneticAI
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
+from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 from tests.utils import DummyAI, TrashFirstAI
 
 
@@ -482,6 +484,55 @@ def test_anvil_discard_treasure_to_gain_card_up_to_4():
 
     # Copper was discarded from hand, Silver gained from supply
     assert any(card.name == "Silver" for card in player.discard + player.deck + player.hand)
+
+
+def test_anvil_gain_limit_uses_reduced_cost():
+    ai = AnvilAI(gain_target="Magnate")
+    player = PlayerState(ai)
+    state = GameState([player], setup_card_cost_reduction=1)
+    state.setup_supply([get_card("Anvil"), get_card("Magnate")])
+
+    anvil = get_card("Anvil")
+    player.hand = [anvil, get_card("Copper")]
+    state.phase = "treasure"
+    state.handle_treasure_phase()
+    state.handle_cleanup_phase()
+
+    assert any(
+        card.name == "Magnate" for card in player.discard + player.deck + player.hand
+    )
+
+
+def test_genetic_ai_uses_strategy_gain_priority_for_anvil():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Watchtower"), PriorityRule("Magnate")]
+    ai = GeneticAI(strategy)
+    state = GameState([])
+    player = PlayerState(ai)
+
+    choice = ai.choose_anvil_gain(
+        state, player, [get_card("Magnate"), get_card("Watchtower")]
+    )
+
+    assert choice.name == "Watchtower"
+
+
+def test_genetic_ai_prefers_anvil_specific_strategy_hook():
+    class AnvilSpecificStrategy(EnhancedStrategy):
+        def choose_anvil_gain(self, state, player, choices):
+            return next(card for card in choices if card.name == "Magnate")
+
+    strategy = AnvilSpecificStrategy()
+    strategy.gain_priority = [PriorityRule("Watchtower"), PriorityRule("Magnate")]
+    ai = GeneticAI(strategy)
+    state = GameState([])
+    player = PlayerState(ai)
+
+    choice = ai.choose_anvil_gain(
+        state, player, [get_card("Magnate"), get_card("Watchtower")]
+    )
+
+    assert choice.name == "Magnate"
 
 
 def test_anvil_no_gain_when_no_treasure_in_hand():

@@ -46,6 +46,15 @@ class GeneticAI(AI):
 
         return self.strategy.choose_gain(state, state.current_player, choices)
 
+    def choose_anvil_gain(
+        self, state: GameState, player, choices: list[Card]
+    ) -> Optional[Card]:
+        """Use an Anvil-specific policy when supplied, else the gain menu."""
+        hook = getattr(self.strategy, "choose_anvil_gain", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return self.strategy.choose_gain(state, player, choices)
+
     def choose_way(self, state: GameState, card: Card, ways: list) -> Optional[object]:
         if hasattr(self.strategy, 'choose_way'):
             return self.strategy.choose_way(state, state.current_player, card, ways)

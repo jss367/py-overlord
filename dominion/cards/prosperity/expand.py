@@ -24,11 +24,14 @@ class Expand(Card):
         player.hand.remove(card_to_trash)
         game_state.trash_card(player, card_to_trash)
 
-        max_cost = card_to_trash.cost.coins + 3
+        max_cost = game_state.get_card_cost(player, card_to_trash) + 3
         gains = [
             name
             for name, count in game_state.supply.items()
-            if count > 0 and get_card(name).cost.coins <= max_cost
+            if (
+                count > 0
+                and game_state.get_card_cost(player, get_card(name)) <= max_cost
+            )
         ]
         if not gains:
             return

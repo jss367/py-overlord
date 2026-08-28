@@ -85,6 +85,8 @@ class GameState:
     # Rising Sun: Prophecies and Sun tokens
     prophecy: object = None
     sun_tokens: int = 0
+    # Scenario-level discount applied to every card for the whole game.
+    setup_card_cost_reduction: int = 0
     riverboat_set_aside: object = None  # Card set aside at game start for Riverboat
     harsh_winter_debt: dict = field(default_factory=dict)  # pile_name → debt tokens
     # Names of the Kingdom card piles (and their split-pile partners) used at
@@ -454,6 +456,7 @@ class GameState:
         ways: list = None,
         allies: list = None,
         prophecy: object = None,
+        card_cost_reduction: int = 0,
         riverboat_set_aside: Card = None,
         landmarks: list = None,
         traits: dict[str, str] | None = None,
@@ -466,6 +469,7 @@ class GameState:
         # Charlatan-free kingdom.
         self._charlatan_seen = False
         self.trash = []
+        self.setup_card_cost_reduction = max(0, card_cost_reduction)
         # Create PlayerState objects for each AI
         self.players = [PlayerState(ai) for ai in ais]
         # Provide a back-reference so PlayerState methods (notably
@@ -2569,7 +2573,7 @@ class GameState:
 
     def get_card_cost(self, player: PlayerState, card: Card) -> int:
         """Return the coin cost of a card after modifiers."""
-        cost = card.cost.coins
+        cost = card.cost.coins - self.setup_card_cost_reduction
 
         if hasattr(card, "cost_modifier"):
             cost += card.cost_modifier(self, player)

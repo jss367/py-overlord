@@ -78,6 +78,7 @@ def render_board_page(item: RenderedBoard, *, index_href: str) -> str:
   <dt>Allies</dt><dd>{_value_list(config.allies)}</dd>
   <dt>Traits</dt><dd>{_value_list(traits)}</dd>
   <dt>Prophecy</dt><dd>{escape(config.prophecy) if config.prophecy else '<span class="empty">None</span>'}</dd>
+  <dt>Card cost reduction</dt><dd>${config.card_cost_reduction}</dd>
 </dl>
 
 <h2>Compatible Strategies</h2>

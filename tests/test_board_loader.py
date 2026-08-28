@@ -253,6 +253,55 @@ def test_load_board_parses_prophecy(tmp_path):
     assert board.prophecy == "Progress"
 
 
+def test_load_board_parses_card_cost_reduction(tmp_path):
+    path = write_board(
+        tmp_path,
+        """
+        Village
+        Card cost reduction: 1
+        """,
+    )
+
+    board = load_board(path)
+
+    assert board.kingdom_cards == ["Village"]
+    assert board.card_cost_reduction == 1
+
+
+@pytest.mark.parametrize("value", ["-1", "one"])
+def test_load_board_rejects_invalid_card_cost_reduction(tmp_path, value):
+    path = write_board(
+        tmp_path,
+        f"""
+        Village
+        Card cost reduction: {value}
+        """,
+    )
+
+    with pytest.raises(ValueError, match="non-negative integer"):
+        load_board(path)
+
+
+def test_strategy_battle_applies_board_card_cost_reduction(monkeypatch):
+    board = BoardConfig(["Village"], card_cost_reduction=1)
+    battle = StrategyBattle(board_config=board, log_frequency=0)
+    observed_costs = []
+
+    original_initialize = GameState.initialize_game
+
+    def capture_initialize(self, *args, **kwargs):
+        result = original_initialize(self, *args, **kwargs)
+        observed_costs.append(self.get_card_cost(self.players[0], get_card("Village")))
+        return result
+
+    monkeypatch.setattr(GameState, "initialize_game", capture_initialize)
+    monkeypatch.setattr(GameState, "is_game_over", lambda self: True)
+
+    battle.run_game(DummyAI(), DummyAI(), board.kingdom_cards)
+
+    assert observed_costs == [2]
+
+
 def test_strategy_battle_pins_board_prophecy(monkeypatch):
     board = BoardConfig(["River Shrine", "Village"], prophecy="Progress")
     battle = StrategyBattle(board_config=board, log_frequency=0)
