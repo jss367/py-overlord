@@ -64,6 +64,19 @@ class TestEnumeration:
         parts = enumerate_engine_parts(board)[0]
         assert parts.buy_source is None
 
+    def test_registry_alias_spellings_resolve(self):
+        """Boards may spell cards through registry aliases ("Wealthy village",
+        "Council room"); enumeration must canonicalize instead of KeyError-ing
+        when re-indexing capabilities by canonical name."""
+        board = BoardConfig(
+            kingdom_cards=["Wealthy village", "Council room", "Chapel"]
+        )
+        engines = enumerate_engine_parts(board)
+        assert engines
+        assert engines[0].village.name == "Wealthy Village"
+        assert engines[0].draw.name == "Council Room"
+        assert build_engine_seeds(board)
+
 
 class TestSeedShape:
     def test_seed_delays_greening_and_caps_core_high(self):

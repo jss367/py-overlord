@@ -96,11 +96,16 @@ def capabilities_for(name: str) -> Optional[CardCapabilities]:
 
 
 def kingdom_capabilities(kingdom_cards: list[str]) -> dict[str, CardCapabilities]:
-    """Capabilities for every resolvable kingdom card, keyed by name."""
+    """Capabilities for every resolvable kingdom card, keyed by canonical name.
+
+    Boards may spell cards through registry aliases ("Wealthy village");
+    keys are always ``CardCapabilities.name`` — the canonical registry
+    spelling — so lookups by a capability object's ``name`` never miss.
+    """
 
     out: dict[str, CardCapabilities] = {}
     for name in kingdom_cards:
         caps = capabilities_for(name)
         if caps is not None:
-            out[name] = caps
+            out[caps.name] = caps
     return out

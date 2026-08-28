@@ -56,3 +56,11 @@ def test_unknown_card_returns_none():
 def test_kingdom_capabilities_skips_unknown():
     caps = kingdom_capabilities(["Village", "Not A Card", "Smithy"])
     assert set(caps) == {"Village", "Smithy"}
+
+
+def test_kingdom_capabilities_keys_are_canonical():
+    """Boards may use registry aliases ("Wealthy village"); the dict must be
+    keyed by the canonical name so lookups via CardCapabilities.name hit."""
+    caps = kingdom_capabilities(["Wealthy village", "Council room"])
+    assert set(caps) == {"Wealthy Village", "Council Room"}
+    assert all(caps[name].name == name for name in caps)
