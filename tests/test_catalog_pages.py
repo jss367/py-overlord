@@ -138,3 +138,23 @@ def test_catalog_indexes_link_to_each_other(tmp_path):
     board_index = (output / "boards" / "index.html").read_text()
     assert 'href="../boards/index.html">Board index</a>' in strategy_index
     assert 'href="../strategies/index.html">Strategy index</a>' in board_index
+
+
+def test_catalog_preserves_curated_strategy_guide_in_index(tmp_path):
+    boards_root = tmp_path / "boards"
+    board = _write_board(boards_root / "simple.txt", "Village\n")
+    output = tmp_path / "site"
+    guide = output / "strategies" / "cursed-band-biding-time-strategy-guide.html"
+    guide.parent.mkdir(parents=True)
+    guide.write_text("curated guide", encoding="utf-8")
+
+    render_catalog_pages(
+        output,
+        boards_root=boards_root,
+        board_paths=[board],
+        strategy_names=["Big Money"],
+    )
+
+    assert guide.read_text(encoding="utf-8") == "curated guide"
+    strategy_index = (output / "strategies" / "index.html").read_text()
+    assert 'href="cursed-band-biding-time-strategy-guide.html"' in strategy_index

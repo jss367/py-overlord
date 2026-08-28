@@ -24,6 +24,7 @@ from dominion.reporting.strategy_links import PageLink
 from dominion.reporting.strategy_pages import (
     RenderedStrategy,
     collect_rendered_strategies,
+    existing_curated_strategy_guides,
     render_strategy_index,
     render_strategy_page,
 )
@@ -165,7 +166,11 @@ def render_catalog_pages(
 
     strategy_index = strategy_dir / "index.html"
     strategy_index.write_text(
-        render_strategy_index(strategies, board_index_href="../boards/index.html"),
+        render_strategy_index(
+            strategies,
+            curated_guides=existing_curated_strategy_guides(strategy_dir),
+            board_index_href="../boards/index.html",
+        ),
         encoding="utf-8",
     )
     written.append(strategy_index)
