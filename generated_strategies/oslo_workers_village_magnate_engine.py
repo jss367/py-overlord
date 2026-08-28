@@ -55,6 +55,27 @@ def _hold_copper_for_seed_engine():
     return condition
 
 
+def _multi_colony_greening_gate(min_colonies: int, fallback_turn: int):
+    """Delay the first Colony until one turn can buy ``min_colonies`` of them.
+
+    Before any Colony is owned, only green on a turn whose buy-phase coins and
+    buys cover ``min_colonies`` Colonies at the current (discounted) cost, so
+    the engine keeps building instead of trickling out single Colonies. Once
+    the first Colony is bought the gate stays open, and it always opens at
+    ``fallback_turn`` so the deck cannot build forever.
+    """
+
+    def condition(state, player):
+        if player.count_in_deck("Colony") > 0:
+            return True
+        if state.turn_number >= fallback_turn:
+            return True
+        cost = state.get_card_cost(player, get_card("Colony"))
+        return player.buys >= min_colonies and player.coins >= min_colonies * cost
+
+    return condition
+
+
 def _province_after_two_colonies_or_turn_18():
     return PriorityRule.or_(
         PriorityRule.colonies_left("<=", 2),
@@ -223,6 +244,32 @@ class OsloWorkersVillageMagnateRefinedEngine(EnhancedStrategy):
         return self.choose_gain(state, player, choices)
 
 
+class OsloWorkersVillageMagnateMultiColonyEngine(OsloWorkersVillageMagnateRefinedEngine):
+    """Refined engine that waits for a double-Colony turn before greening."""
+
+    def __init__(
+        self,
+        min_colonies: int = 4,
+        fallback_turn: int = 20,
+        province_turn: int = 18,
+    ) -> None:
+        super().__init__()
+        self.name = "Oslo Workers' Village Magnate Multi Colony Engine"
+        self.description = (
+            "Refined engine variant that keeps building until a single turn "
+            f"can buy {min_colonies} Colonies, then greens normally "
+            f"(forced open at turn {fallback_turn})."
+        )
+        for rule in self.gain_priority:
+            if rule.card_name == "Colony":
+                rule.condition = _multi_colony_greening_gate(min_colonies, fallback_turn)
+            elif rule.card_name == "Province" and province_turn != 18:
+                rule.condition = PriorityRule.or_(
+                    PriorityRule.colonies_left("<=", 2),
+                    PriorityRule.turn_number(">=", province_turn),
+                )
+
+
 def create_oslo_workers_village_magnate_starting_strategy() -> EnhancedStrategy:
     return OsloWorkersVillageMagnateStartingStrategy()
 
@@ -233,3 +280,7 @@ def create_oslo_workers_village_magnate_engine() -> EnhancedStrategy:
 
 def create_oslo_workers_village_magnate_refined_engine() -> EnhancedStrategy:
     return OsloWorkersVillageMagnateRefinedEngine()
+
+
+def create_oslo_workers_village_magnate_multi_colony_engine() -> EnhancedStrategy:
+    return OsloWorkersVillageMagnateMultiColonyEngine()

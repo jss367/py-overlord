@@ -7,7 +7,46 @@ Supply.
 
 ## Recommendation
 
-The best strategy found is `Oslo Workers' Village Magnate Refined Engine`,
+The best strategy found is `Oslo Workers' Village Magnate Multi Colony Engine`,
+defined in `generated_strategies/oslo_workers_village_magnate_engine.py`. It is
+the refined engine below with one change: it does not buy its first Colony
+until a single turn can afford four Colonies at once, then greens normally.
+
+## Multi-Colony Greening Gate
+
+The refined engine buys Colony whenever it can pay the discounted $10. The
+multi-colony variant replaces that rule with a gate:
+
+- Before any Colony is owned, only buy Colony on a turn whose buy-phase coins
+  and buys cover four Colonies at the current cost (4 × $10 = $40 and 4 buys).
+- Once the first Colony is bought, the gate stays open and Colonies are bought
+  whenever affordable.
+- The gate is forced open at turn 20 so the deck cannot build forever.
+
+Every other rule is unchanged from the refined engine.
+
+Instrumented games show the gate is genuinely adaptive rather than a fixed
+delay: in 200 diagnostic games it opened before turn 20 in 86% of the games
+where it opened at all, at a median of turn 15 with a median of 54 coins — a
+turn that immediately dumps four or five Colonies. A control strategy that
+simply waits until turn 20 to green (with no coin condition) lost 78% of its
+games against the gated variant, so the "wait for a monster turn" condition,
+not the delay itself, carries the improvement.
+
+A 1,000-game-per-variant sweep of gate sizes and fallback turns found win
+rates against the refined engine rising from 57–58% at a two-Colony gate to
+61–62% at four- and five-Colony gates with a turn-20 fallback; the top
+configurations were statistically indistinguishable head-to-head, and the
+four-Colony turn-20 gate was chosen for its balance of win rate and score
+margin. Delaying the Province fallback to match did not help.
+
+Validation: a fresh 3,000-game confirmation against the refined engine
+([HTML report](oslo_multi_colony_vs_refined_engine.html)) won 1,786 games
+(59.5%) and averaged 56.5 points versus 54.5.
+
+## Previous Recommendation
+
+The previous best strategy was `Oslo Workers' Village Magnate Refined Engine`,
 defined in `generated_strategies/oslo_workers_village_magnate_engine.py`.
 
 This strategy evolved from a Workers' Village/Magnate engine proposal. The
@@ -72,9 +111,9 @@ won 2,035 games (67.8%) and averaged 70.9 points versus 60.2.
 | Starting engine vs previous `Oslo Best Found` | 1,500 | 9.7% | 46.35 | 81.93 | 25.29 |
 | First evolved engine vs starting engine | 1,500 | 91.2% | 74.98 | 26.12 | 21.11 |
 
-The refined constrained engine therefore replaces the first evolved engine as
-the current recommendation. `Oslo Best Found` remains useful as a strong, much
-simpler baseline.
+The refined constrained engine replaced the first evolved engine at that
+point; the multi-colony gate above now supersedes it. `Oslo Best Found`
+remains useful as a strong, much simpler baseline.
 
 ## Previous Baseline Validation
 
