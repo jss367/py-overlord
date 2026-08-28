@@ -66,7 +66,7 @@ won 2,035 games (67.8%) and averaged 70.9 points versus 60.2.
 | Comparison | Games | First strategy win rate | Average score | Opponent score | Average turns |
 |---|---:|---:|---:|---:|---:|
 | Refined engine vs first evolved engine | 4,000 | 54.8% | 55.20 | 51.14 | 19.41 |
-| Refined engine vs previous `Oslo Best Found` | 3,000 | 68.0% | 71.02 | 59.83 | 19.77 |
+| Refined engine vs previous `Oslo Best Found` | 3,000 | 67.8% | 70.90 | 60.20 | — |
 | Refined engine vs starting engine | 1,500 | 90.4% | 77.08 | 26.18 | 20.98 |
 | First evolved engine vs previous `Oslo Best Found` | 3,000 | 63.2% | 69.77 | 64.27 | 20.71 |
 | Starting engine vs previous `Oslo Best Found` | 1,500 | 9.7% | 46.35 | 81.93 | 25.29 |
