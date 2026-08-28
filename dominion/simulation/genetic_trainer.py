@@ -753,8 +753,15 @@ class GeneticTrainer:
         if self.structured_genome:
             from dominion.simulation.strategic_genome import (
                 crossover_strategic_strategies,
+                promote_legacy_strategy,
             )
 
+            # Strong hand-written and previously published seeds should
+            # participate in semantic crossover whenever their rule lists can
+            # be represented exactly. Promotion is round-trip checked and is a
+            # no-op for strategies with unsupported custom behavior.
+            promote_legacy_strategy(parent1, self._kingdom_info)
+            promote_legacy_strategy(parent2, self._kingdom_info)
             semantic_child = crossover_strategic_strategies(
                 parent1, parent2, self._kingdom_info
             )
@@ -1123,8 +1130,15 @@ class GeneticTrainer:
             if self._strategies_to_inject:
                 injected: list[BaseStrategy] = []
                 for strategy in self._strategies_to_inject:
-                    injected.append(deepcopy(strategy))
-                    variant = self._mutate(deepcopy(strategy))
+                    exact = deepcopy(strategy)
+                    if self.structured_genome:
+                        from dominion.simulation.strategic_genome import (
+                            promote_legacy_strategy,
+                        )
+
+                        promote_legacy_strategy(exact, self._kingdom_info)
+                    injected.append(exact)
+                    variant = self._mutate(deepcopy(exact))
                     variant = self._normalize(variant)
                     variant.name = f"seed-variant-{id(variant)}"
                     injected.append(variant)

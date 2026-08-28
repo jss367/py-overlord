@@ -1,6 +1,9 @@
 from dominion.reporting.strategy_links import strategy_page_href, strategy_slug
 from dominion.reporting.strategy_pages import render_strategy_pages
-from dominion.reporting.html_report import _strategy_report_href, generate_leaderboard_html
+from dominion.reporting.html_report import (
+    _strategy_report_href,
+    generate_leaderboard_html,
+)
 
 
 def test_strategy_slug_is_stable_for_display_names():
@@ -9,9 +12,17 @@ def test_strategy_slug_is_stable_for_display_names():
 
 
 def test_strategy_report_href_resolves_aliases_to_rendered_pages():
-    assert _strategy_report_href("BigMoney", prefix="strategies") == "strategies/big-money.html"
-    assert _strategy_report_href("ChapelWitch", prefix="strategies") == "strategies/chapel-witch.html"
-    assert _strategy_report_href("strategy_20260212_094841", prefix="strategies") is None
+    assert (
+        _strategy_report_href("BigMoney", prefix="strategies")
+        == "strategies/big-money.html"
+    )
+    assert (
+        _strategy_report_href("ChapelWitch", prefix="strategies")
+        == "strategies/chapel-witch.html"
+    )
+    assert (
+        _strategy_report_href("strategy_20260212_094841", prefix="strategies") is None
+    )
 
 
 def test_leaderboard_html_does_not_link_unresolved_strategy_names(tmp_path):
@@ -65,6 +76,14 @@ def test_render_strategy_pages_writes_index_and_strategy_page(tmp_path):
     assert "Province" in page
     assert "dominion/strategy/strategies/big_money.py" in page
     assert "<title>Cursed Band and Biding Time Strategy Guide</title>" in guide
+    assert 'class="card-chip type-victory"' in page
+    assert 'class="card-chip type-treasure card-gold"' in page
+    assert "Implementation details and referenced components" in page
+    assert 'class="priority-table"' in page
+
+    assert 'class="catalog-grid"' in index
+    assert 'class="strategy-card strategy-row"' in index
+    assert "Curated guide" in index
 
 
 def test_render_strategy_pages_resolves_alias_names(tmp_path):
@@ -94,3 +113,13 @@ def test_render_strategy_pages_overwrites_stale_curated_guide(tmp_path):
     index = (tmp_path / "index.html").read_text(encoding="utf-8")
     assert 'href="cursed-band-biding-time-strategy-guide.html"' in index
     assert "Cursed Band and Biding Time Strategy Guide" in index
+
+
+def test_strategy_page_shows_readable_conditions_and_preserves_source(tmp_path):
+    render_strategy_pages(tmp_path, names=["Hyderabad Best Found"])
+
+    page = (tmp_path / "hyderabad-best-found.html").read_text(encoding="utf-8")
+
+    assert "Provinces remaining: at most" in page
+    assert "PriorityRule.provinces_left" in page
+    assert 'class="condition-detail"' in page
