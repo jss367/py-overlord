@@ -56,20 +56,17 @@ def _hold_copper_for_seed_engine():
 
 
 def _province_after_two_colonies_or_turn_18():
-    def condition(state, _player):
-        return state.supply.get("Colony", 0) <= 2 or state.turn_number >= 18
-
-    return condition
+    return PriorityRule.or_(
+        PriorityRule.colonies_left("<=", 2),
+        PriorityRule.turn_number(">=", 18),
+    )
 
 
 def _kings_court_after_three_magnates():
-    def condition(_state, player):
-        return (
-            player.count_in_deck("King's Court") < 3
-            and player.count_in_deck("Magnate") >= 3
-        )
-
-    return condition
+    return PriorityRule.and_(
+        PriorityRule.max_in_deck("King's Court", 3),
+        PriorityRule.has_cards(["Magnate"], 3),
+    )
 
 
 class OsloWorkersVillageMagnateStartingStrategy(EnhancedStrategy):
