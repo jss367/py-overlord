@@ -22,11 +22,12 @@ from dominion.reporting.board_pages import (
 )
 from dominion.reporting.strategy_links import PageLink
 from dominion.reporting.strategy_pages import (
+    CURATED_STRATEGY_GUIDES,
     RenderedStrategy,
     collect_rendered_strategies,
-    existing_curated_strategy_guides,
     render_strategy_index,
     render_strategy_page,
+    write_curated_strategy_guides,
 )
 from dominion.simulation.strategy_battle import canonical_landmark_name, canonical_way_name
 from dominion.strategy.strategy_loader import StrategyLoader
@@ -163,12 +164,13 @@ def render_catalog_pages(
     board_dir = output_dir / "boards"
     strategy_dir.mkdir(parents=True, exist_ok=True)
     board_dir.mkdir(parents=True, exist_ok=True)
+    written.extend(write_curated_strategy_guides(strategy_dir))
 
     strategy_index = strategy_dir / "index.html"
     strategy_index.write_text(
         render_strategy_index(
             strategies,
-            curated_guides=existing_curated_strategy_guides(strategy_dir),
+            curated_guides=CURATED_STRATEGY_GUIDES,
             board_index_href="../boards/index.html",
         ),
         encoding="utf-8",

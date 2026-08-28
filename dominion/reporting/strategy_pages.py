@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from html import escape
 import inspect
 from pathlib import Path
+from shutil import copyfile
 from typing import Iterable
 
 from dominion.simulation.strategy_battle import StrategyBattle
@@ -53,6 +54,10 @@ CURATED_STRATEGY_GUIDES = (
         ),
         source_label="Repository simulation and card rules",
     ),
+)
+
+CURATED_STRATEGY_GUIDES_DIRECTORY = Path(__file__).with_name(
+    "curated_strategy_guides"
 )
 
 
@@ -345,16 +350,17 @@ search.addEventListener('input', () => {{
     return _page_shell("Strategy Index", body)
 
 
-def existing_curated_strategy_guides(
-    output_dir: Path,
-) -> list[CuratedStrategyGuide]:
-    """Return curated guides already present in a strategy output directory."""
+def write_curated_strategy_guides(output_dir: Path) -> list[Path]:
+    """Copy every packaged curated guide into a strategy output directory."""
 
-    return [
-        guide
-        for guide in CURATED_STRATEGY_GUIDES
-        if (output_dir / guide.filename).is_file()
-    ]
+    output_dir.mkdir(parents=True, exist_ok=True)
+    written = []
+    for guide in CURATED_STRATEGY_GUIDES:
+        source = CURATED_STRATEGY_GUIDES_DIRECTORY / guide.filename
+        destination = output_dir / guide.filename
+        copyfile(source, destination)
+        written.append(destination)
+    return written
 
 
 def render_strategy_pages(
@@ -367,13 +373,11 @@ def render_strategy_pages(
 
     output_dir.mkdir(parents=True, exist_ok=True)
     items = collect_rendered_strategies(loader, names=names)
-    written = []
-
-    curated_guides = existing_curated_strategy_guides(output_dir)
+    written = write_curated_strategy_guides(output_dir)
 
     index_path = output_dir / "index.html"
     index_path.write_text(
-        render_strategy_index(items, curated_guides=curated_guides),
+        render_strategy_index(items, curated_guides=CURATED_STRATEGY_GUIDES),
         encoding="utf-8",
     )
     written.append(index_path)

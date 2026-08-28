@@ -46,37 +46,51 @@ def test_render_strategy_pages_writes_index_and_strategy_page(tmp_path):
     written = render_strategy_pages(tmp_path, names=["Big Money"])
 
     paths = {path.name for path in written}
-    assert paths == {"index.html", "big-money.html"}
+    assert paths == {
+        "index.html",
+        "big-money.html",
+        "cursed-band-biding-time-strategy-guide.html",
+    }
 
     index = (tmp_path / "index.html").read_text(encoding="utf-8")
     page = (tmp_path / "big-money.html").read_text(encoding="utf-8")
+    guide = (tmp_path / "cursed-band-biding-time-strategy-guide.html").read_text(
+        encoding="utf-8"
+    )
 
     assert "Strategy Index" in index
     assert 'href="big-money.html"' in index
+    assert 'href="cursed-band-biding-time-strategy-guide.html"' in index
     assert "Gain Priority" in page
     assert "Province" in page
     assert "dominion/strategy/strategies/big_money.py" in page
+    assert "<title>Cursed Band and Biding Time Strategy Guide</title>" in guide
 
 
 def test_render_strategy_pages_resolves_alias_names(tmp_path):
     written = render_strategy_pages(tmp_path, names=["BigMoney"])
 
     paths = {path.name for path in written}
-    assert paths == {"index.html", "big-money.html"}
+    assert paths == {
+        "index.html",
+        "big-money.html",
+        "cursed-band-biding-time-strategy-guide.html",
+    }
 
     page = (tmp_path / "big-money.html").read_text(encoding="utf-8")
     assert "Big Money" in page
     assert "dominion/strategy/strategies/big_money.py" in page
 
 
-def test_render_strategy_pages_preserves_curated_guide_in_index(tmp_path):
+def test_render_strategy_pages_overwrites_stale_curated_guide(tmp_path):
     guide = tmp_path / "cursed-band-biding-time-strategy-guide.html"
-    guide.write_text("curated guide", encoding="utf-8")
-
+    guide.write_text("stale guide", encoding="utf-8")
     written = render_strategy_pages(tmp_path, names=["Big Money"])
 
-    assert guide.read_text(encoding="utf-8") == "curated guide"
-    assert guide not in written
+    assert "<title>Cursed Band and Biding Time Strategy Guide</title>" in guide.read_text(
+        encoding="utf-8"
+    )
+    assert guide in written
     index = (tmp_path / "index.html").read_text(encoding="utf-8")
     assert 'href="cursed-band-biding-time-strategy-guide.html"' in index
     assert "Cursed Band and Biding Time Strategy Guide" in index
