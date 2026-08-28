@@ -8,10 +8,14 @@ tournament stage.
 The whole point of the island model is to escape local optima: each island
 starts from a distinct theory of the kingdom. By default the roster is
 **derived from the board** (see :mod:`dominion.analysis.island_seeds`):
-compatible strategies from the reuse library, one island per trick-scanner
+compatible strategies from the reuse library, one island per engine
+archetype composed from card capabilities, one island per trick-scanner
 interaction, a Big Money archetype island, and random structured-menu
 islands to fill the roster. ``--seeds`` overrides the roster with explicit
 registered strategy names (the original hand-curated workflow).
+``--no-library`` hides the reuse library from both the roster and the
+default panel — the rediscovery condition, for measuring whether the
+board-derived seeds alone can reinvent a known-good strategy.
 
 After every island has had equal optimization budget, the champions face
 each other in ``scripts/island_tournament.py`` (and optionally merge in
@@ -147,7 +151,7 @@ def _resolvable_seed_ref(
                     that aren't registered by name get ``None`` rather than a
                     ref the tournament would choke on). Needs ``board_config``
                     to do the spec→strategy lookup.
-    - ``trick`` / ``random`` : no standalone resolvable seed → ``None``.
+    - ``engine`` / ``trick`` / ``random`` : no standalone resolvable seed → ``None``.
 
     When resolvable, the ref is canonicalized via :func:`_canonical_ref`, so it
     is byte-identical to whatever the panel side records for the same strategy
@@ -272,7 +276,9 @@ def run_one_island(
     )
 
 
-def _resolve_panel_names(board_config, explicit: list[str] | None) -> list[str]:
+def _resolve_panel_names(
+    board_config, explicit: list[str] | None, include_library: bool = True
+) -> list[str]:
     """Resolve the opponent panel names shared by every island.
 
     Every recorded name is run through :func:`_canonical_ref`, so a panel entry
@@ -311,7 +317,12 @@ def _resolve_panel_names(board_config, explicit: list[str] | None) -> list[str]:
         if loader.get_strategy(strategy.name) is not None:
             baseline_names.append(_canonical_ref(strategy.name, loader))
 
-    names = augment_panel_with_compatible(board_config, baseline_names, loader)
+    if include_library:
+        names = augment_panel_with_compatible(board_config, baseline_names, loader)
+    else:
+        # Rediscovery condition (--no-library): the panel must not leak
+        # known-good strategies for this board back into evaluation.
+        names = baseline_names
     canonical = [_canonical_ref(name, loader) for name in names]
     return canonical or [_canonical_ref("Big Money", loader)]
 
@@ -371,6 +382,12 @@ def main() -> None:
         action="store_true",
         help="Override hyperparameters for a fast smoke test.",
     )
+    parser.add_argument(
+        "--no-library",
+        action="store_true",
+        help="Hide the reuse library from the derived roster AND the default "
+        "panel (rediscovery runs: board-derived seeds must stand alone).",
+    )
     args = parser.parse_args()
 
     if args.smoke:
@@ -383,7 +400,11 @@ def main() -> None:
     if args.seeds:
         specs = [IslandSpec("loader", name, name) for name in args.seeds]
     else:
-        specs = derive_island_specs(board_config, max_islands=args.max_islands)
+        specs = derive_island_specs(
+            board_config,
+            max_islands=args.max_islands,
+            reuse_top_k=0 if args.no_library else 3,
+        )
         logger.info(
             "Derived island roster from board: %s",
             ", ".join(f"{s.name} [{s.kind}]" for s in specs),
@@ -395,7 +416,9 @@ def main() -> None:
             logger.error("No island named %r in the roster", args.only)
             sys.exit(1)
 
-    panel_names = _resolve_panel_names(board_config, args.panel)
+    panel_names = _resolve_panel_names(
+        board_config, args.panel, include_library=not args.no_library
+    )
 
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_dir = Path(args.output_dir) / run_id

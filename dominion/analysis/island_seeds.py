@@ -9,10 +9,14 @@ This module derives the island roster from the board itself:
 
 1. **Library reuse** — existing strategies whose referenced cards overlap
    this kingdom (:func:`find_compatible_strategies`), each as its own island.
-2. **Trick seeds** — one island per mechanical interaction surfaced by the
+2. **Engine archetypes** — role-complete village/draw/payload compositions
+   assembled from card capabilities (:func:`build_engine_seeds`), each a
+   fully-built engine seed so the GA tunes it instead of having to cross
+   the fitness valley of partial engines.
+3. **Trick seeds** — one island per mechanical interaction surfaced by the
    trick scanner (:func:`build_seed_genomes`).
-3. **Big Money** — the archetype baseline island, always available.
-4. **Random islands** — unseeded lineages (the structured-genome random init
+4. **Big Money** — the archetype baseline island, always available.
+5. **Random islands** — unseeded lineages (the structured-genome random init
    produces coherent menus, so these are real hypotheses, not noise) filling
    the roster up to ``max_islands``.
 
@@ -27,6 +31,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
+from dominion.analysis.engine_archetypes import build_engine_seeds
 from dominion.analysis.seed_genomes import build_seed_genomes
 from dominion.analysis.strategy_library import find_compatible_strategies
 from dominion.boards.loader import BoardConfig
@@ -41,8 +46,9 @@ class IslandSpec:
     (a compatible strategy from the reuse library, keyed by the entry *spec* —
     its ``module:function`` reference, the canonical strategy identifier — so
     two library strategies that share a display name never collide on the key),
-    ``"trick"`` (an index into ``build_seed_genomes(board)``), or ``"random"``
-    (no seed — the island starts from random structured menus).
+    ``"engine"`` (an index into ``build_engine_seeds(board)``), ``"trick"``
+    (an index into ``build_seed_genomes(board)``), or ``"random"`` (no seed —
+    the island starts from random structured menus).
 
     ``name`` is the island's human-readable identity: it becomes the GA
     champion name, the output filename, and the log prefix. The roster returned
@@ -86,16 +92,20 @@ def derive_island_specs(
 ) -> list[IslandSpec]:
     """Derive an island roster for ``board``.
 
-    Library and trick islands come first (they carry the most board-specific
-    information), then the Big Money archetype, then random islands pad the
-    roster to ``max_islands``. The Big Money archetype is *always* present in
-    the returned roster (assuming ``max_islands >= 1``): it is the speed-test
+    Informed islands come first — library reuse, then engine archetypes, then
+    trick seeds (they carry the most board-specific information) — then the
+    Big Money archetype, then random islands pad the roster to
+    ``max_islands``. The Big Money archetype is *always* present in the
+    returned roster (assuming ``max_islands >= 1``): it is the speed-test
     baseline every board should be measured against. When the informed islands
-    (library + trick) alone would fill or overflow the roster, Big Money's slot
-    is reserved — the informed specs are truncated to ``max_islands - 1`` and
-    Big Money takes the final slot. Library entries are ranked by overlap score
-    and trick seeds follow scanner order, so the cut keeps the strongest
-    candidates while preserving their ranked order.
+    alone would fill or overflow the roster, Big Money's slot is reserved —
+    the informed specs are truncated to ``max_islands - 1`` and Big Money
+    takes the final slot. Library entries are ranked by overlap score, engine
+    seeds by core quality, and trick seeds follow scanner order, so the cut
+    keeps the strongest candidates while preserving their ranked order.
+
+    ``reuse_top_k=0`` disables library reuse entirely — the rediscovery
+    condition: the roster must stand on board-derived seeds alone.
     """
 
     informed: list[IslandSpec] = []
@@ -104,6 +114,9 @@ def derive_island_specs(
         board.kingdom_cards, top_k=reuse_top_k, min_overlap=reuse_min_overlap
     ):
         informed.append(IslandSpec("library", entry.spec, f"Reuse {entry.name}"))
+
+    for index, (name, _strategy) in enumerate(build_engine_seeds(board)):
+        informed.append(IslandSpec("engine", str(index), name))
 
     for index, (name, _strategy) in enumerate(build_seed_genomes(board)):
         informed.append(IslandSpec("trick", str(index), name))
@@ -218,6 +231,15 @@ def resolve_island_seed(
         # but their specs are unique, so matching on the spec guarantees each
         # island resolves to its OWN strategy.
         return resolve_library_spec(board, spec.key)
+
+    if spec.kind == "engine":
+        seeds = build_engine_seeds(board)
+        index = int(spec.key)
+        if index >= len(seeds):
+            raise ValueError(
+                f"Engine seed index {index} out of range ({len(seeds)} seeds on this board)"
+            )
+        return seeds[index][1]
 
     if spec.kind == "trick":
         seeds = build_seed_genomes(board)
