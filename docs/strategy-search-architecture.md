@@ -11,8 +11,8 @@ making genetic edits strategically meaningful.
 `dominion/simulation/strategic_genome.py` defines the current modules:
 
 - opening targets, including an exact copy count and opening turn window;
-- build targets, including copy count, timing, dependencies, and their
-  priority relative to Province and Duchy;
+- build targets, including copy count, start/end timing, dependencies, and
+  their priority relative to Province, Duchy, Gold, and Silver;
 - economy policy, including deliberate no-Gold rushes;
 - Province, Duchy, and Estate greening policy;
 - score-aware third-pile endings;
@@ -22,8 +22,10 @@ making genetic edits strategically meaningful.
 The compiler attaches the typed genome to an ordinary `BaseStrategy` as
 `_strategic_genome`. Semantic mutation changes one of the modules and then
 recompiles the phenotype. Semantic crossover exchanges whole modules between
-parents. Hand-written or older generated strategies without typed metadata
-continue through the previous structured-list operators.
+parents. Hand-written or older generated strategies are conservatively
+promoted when their rule lists round-trip through the typed compiler exactly.
+Strategies with unsupported custom or conditional play rules continue through
+the previous structured-list operators without behavior changes.
 
 The initial representability targets are all covered directly:
 
