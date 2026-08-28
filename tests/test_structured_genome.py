@@ -21,6 +21,7 @@ from dominion.simulation.structured_genome import (
     random_menu_strategy,
 )
 from dominion.simulation.strategic_genome import (
+    _normalize_build_dependencies,
     BuildTarget,
     EconomyPlan,
     EndgamePlan,
@@ -30,6 +31,7 @@ from dominion.simulation.strategic_genome import (
     crossover_strategic_strategies,
     mutate_strategic_strategy,
     promote_legacy_strategy,
+    random_strategic_genome,
     synchronize_strategic_genome,
 )
 from dominion.strategy.enhanced_strategy import PriorityRule
@@ -203,6 +205,38 @@ class TestRandomMenuStrategy:
 
 
 class TestStrategicGenomeRepresentability:
+    def test_random_dependencies_only_use_reachable_earlier_anchors(self):
+        rng = random.Random(27)
+        saw_dependency = False
+
+        for _ in range(200):
+            genome = random_strategic_genome(_info(), rng)
+            reachable = {opening.card for opening in genome.openings}
+            for target in genome.build_targets:
+                if target.requires_card is not None:
+                    saw_dependency = True
+                    assert target.requires_card in reachable
+                reachable.add(target.card)
+
+        assert saw_dependency
+
+    def test_dependency_normalization_breaks_cycles_and_stranded_anchors(self):
+        info = _info()
+        genome = StrategicGenome(
+            build_targets=[
+                BuildTarget("Smithy", 2, requires_card="Witch"),
+                BuildTarget("Witch", 2, requires_card="Smithy"),
+                BuildTarget("Village", 2, requires_card="Gold"),
+            ],
+            economy=EconomyPlan(buy_gold=False, buy_silver=False),
+        )
+
+        _normalize_build_dependencies(genome, info)
+
+        assert genome.build_targets[0].requires_card is None
+        assert genome.build_targets[1].requires_card == "Smithy"
+        assert genome.build_targets[2].requires_card is None
+
     def test_exact_early_single_card_opening_is_one_semantic_block(self):
         genome = StrategicGenome(
             openings=[OpeningTarget("Chapel", copies=1, through_turn=2)],
@@ -373,7 +407,10 @@ class TestStrategicGenomeRepresentability:
         assert target.from_turn == 11
         assert target.through_turn == 16
         assert target.while_provinces_above == 6
-        assert target.requires_card is not None
+        # The deterministic edit first selects an economy dependency and then
+        # disables both economy cards; final normalization removes that newly
+        # stranded anchor.
+        assert target.requires_card is None
         assert target.priority_band == "fallback"
         assert strategy._strategic_genome.economy.buy_silver is False
         assert strategy._strategic_genome.economy.silver_through_turn == 16

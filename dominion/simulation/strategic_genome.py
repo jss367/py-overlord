@@ -719,6 +719,61 @@ def _default_action_order(info, rng) -> list[str]:
     return ordered
 
 
+def _reachable_dependency_cards(
+    genome: StrategicGenome,
+    info,
+    *,
+    without_target: BuildTarget | None = None,
+) -> set[str]:
+    """Return cards obtainable without relying on ``without_target``.
+
+    Openings and enabled economy cards are roots. Unconditional build targets
+    add more roots, and conditional targets become reachable once their anchor
+    is reachable. Excluding the target being re-gated prevents selecting a
+    prerequisite whose own acquisition transitively depends on that target.
+    """
+
+    reachable = {opening.card for opening in genome.openings}
+    if genome.economy.buy_gold:
+        reachable.add("Gold")
+    if genome.economy.buy_silver:
+        reachable.add("Silver")
+    if info.has_platinum and genome.economy.prefer_platinum:
+        reachable.add("Platinum")
+
+    pending = [
+        target
+        for target in genome.build_targets
+        if target is not without_target
+    ]
+    while pending:
+        newly_reachable = [
+            target
+            for target in pending
+            if target.requires_card is None or target.requires_card in reachable
+        ]
+        if not newly_reachable:
+            break
+        reachable.update(target.card for target in newly_reachable)
+        reached_ids = {id(target) for target in newly_reachable}
+        pending = [target for target in pending if id(target) not in reached_ids]
+    return reachable
+
+
+def _normalize_build_dependencies(genome: StrategicGenome, info) -> None:
+    """Remove dependencies that became unreachable or cyclic after edits."""
+
+    for target in genome.build_targets:
+        if (
+            target.requires_card is not None
+            and target.requires_card
+            not in _reachable_dependency_cards(
+                genome, info, without_target=target
+            )
+        ):
+            target.requires_card = None
+
+
 def random_strategic_genome(info, rng=_random_module) -> StrategicGenome:
     """Create a coherent but diverse phase-aware strategic hypothesis."""
 
@@ -748,8 +803,15 @@ def random_strategic_genome(info, rng=_random_module) -> StrategicGenome:
         for card in picks
     ]
     targets.sort(key=lambda target: info.costs.get(target.card, 0), reverse=True)
-    for target in targets:
-        anchors = [other.card for other in targets if other.card != target.card]
+    for index, target in enumerate(targets):
+        # Earlier targets are reachable by construction, so dependencies form
+        # a directed acyclic graph. Openings are independent roots.
+        anchors = list(
+            dict.fromkeys(
+                [opening.card for opening in openings]
+                + [other.card for other in targets[:index]]
+            )
+        )
         if anchors and rng.random() < 0.15:
             target.requires_card = rng.choice(anchors)
 
@@ -851,16 +913,9 @@ def mutate_strategic_strategy(strategy: BaseStrategy, info, rate: float, rng=_ra
         target.while_provinces_above = rng.choice([None, 2, 3, 4, 5, 6])
     if rng.random() < rate * 0.3 and genome.build_targets:
         target = rng.choice(genome.build_targets)
-        anchors = list(
-            dict.fromkeys(
-                [opening.card for opening in genome.openings]
-                + [
-                    other.card
-                    for other in genome.build_targets
-                    if other.card != target.card
-                ]
-                + (["Gold"] if genome.economy.buy_gold else [])
-                + (["Silver"] if genome.economy.buy_silver else [])
+        anchors = sorted(
+            _reachable_dependency_cards(
+                genome, info, without_target=target
             )
         )
         target.requires_card = rng.choice([None, *anchors]) if anchors else None
@@ -924,6 +979,10 @@ def mutate_strategic_strategy(strategy: BaseStrategy, info, rate: float, rng=_ra
             genome.treasure_order[i + 1], genome.treasure_order[i]
         )
 
+    # Later mutations can remove a target/opening or disable an economy card
+    # selected as an anchor. Revalidate after the complete semantic edit.
+    _normalize_build_dependencies(genome, info)
+
     way_policy = deepcopy(getattr(strategy, "way_policy", []))
     name = strategy.name
     genome.compile_into(strategy, info)
@@ -947,6 +1006,10 @@ def crossover_strategic_strategies(parent1: BaseStrategy, parent2: BaseStrategy,
     ):
         if rng.random() < 0.5:
             setattr(child_genome, field_name, deepcopy(getattr(second, field_name)))
+
+    # Build targets can arrive from one parent while their opening or economy
+    # roots arrive from the other. Do not compile stranded dependencies.
+    _normalize_build_dependencies(child_genome, info)
 
     child = deepcopy(parent1)
     child_genome.compile_into(child, info)
