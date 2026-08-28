@@ -3,7 +3,10 @@ from dataclasses import replace
 
 from dominion.boards.loader import BoardConfig
 from dominion.reporting.board_pages import RenderedBoard
-from dominion.reporting.catalog_pages import render_catalog_pages, strategy_is_compatible
+from dominion.reporting.catalog_pages import (
+    render_catalog_pages,
+    strategy_is_compatible,
+)
 from dominion.reporting.strategy_links import board_display_name, board_page_path
 from dominion.reporting.strategy_pages import collect_rendered_strategies
 
@@ -117,9 +120,14 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
 
     assert 'href="../boards/sample-board.html">Sample Board</a>' in strategy
     assert "Other Board" not in strategy
-    assert 'href="../strategies/village-smithy-lab.html">Village Smithy Lab</a>' in compatible_board
+    assert (
+        'href="../strategies/village-smithy-lab.html">Village Smithy Lab</a>'
+        in compatible_board
+    )
     assert "Village Smithy Lab" not in incompatible_board
     assert 'href="../../strategies/big-money.html">Big Money</a>' in incompatible_board
+    assert 'class="card-chip type-action"' in compatible_board
+    assert "Setup details" in compatible_board
 
 
 def test_catalog_indexes_link_to_each_other(tmp_path):
