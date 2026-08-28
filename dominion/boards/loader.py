@@ -21,6 +21,11 @@ class BoardConfig:
     # Rising Sun: pins the dealt Prophecy. Without this, any Omen board gets a
     # random Prophecy per game, which makes board evaluation non-stationary.
     prophecy: str | None = None
+    # Optional setup rule for boards/scenarios where every card has a
+    # permanent coin-cost discount. This is deliberately separate from
+    # Flourishing Trade, whose additional unused-Actions-as-Buys rule would
+    # otherwise change the scenario being simulated.
+    card_cost_reduction: int = 0
 
 
 def _normalise_entry(entry: str) -> str:
@@ -67,11 +72,15 @@ def _parse_special_line(line: str, config: BoardConfig) -> bool:
     """
 
     prefix, _, remainder = line.partition(":")
+    key = prefix.strip().lower()
     if not remainder:
+        if key in {"card cost reduction", "cost reduction"}:
+            raise ValueError(
+                "Card cost reduction must be a non-negative integer, got ''"
+            )
         return False
 
     value = _normalise_entry(remainder)
-    key = prefix.strip().lower()
 
     if key == "event":
         config.events.append(value)
@@ -90,6 +99,18 @@ def _parse_special_line(line: str, config: BoardConfig) -> bool:
         config.allies.append(value)
     elif key == "prophecy":
         config.prophecy = value
+    elif key in {"card cost reduction", "cost reduction"}:
+        try:
+            reduction = int(value)
+        except ValueError as exc:
+            raise ValueError(
+                f"Card cost reduction must be a non-negative integer, got {value!r}"
+            ) from exc
+        if reduction < 0:
+            raise ValueError(
+                f"Card cost reduction must be a non-negative integer, got {value!r}"
+            )
+        config.card_cost_reduction = reduction
     elif key == "trait":
         # Formats: "Trait: TraitName - CardName" or "Trait: TraitName (CardName)".
         trait_name, card_name = _parse_trait_value(value)
@@ -106,8 +127,10 @@ def load_board(path: Path | str) -> BoardConfig:
 
     Lines without a ``":"`` separator are treated as kingdom piles. Lines
     beginning with recognised prefixes (``Event:``, ``Project:``, ``Way:``,
-    ``Landmark:``, ``Ally:``) populate the corresponding collections.
-    Comments (``#``) and blank lines are ignored.
+    ``Landmark:``, ``Ally:``, ``Prophecy:``, ``Trait:``) populate the
+    corresponding collections. ``Card cost reduction: N`` applies a permanent
+    scenario-level discount to every card. Comments (``#``) and blank lines
+    are ignored.
     """
 
     board_path = Path(path)

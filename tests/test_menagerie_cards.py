@@ -249,6 +249,17 @@ def test_livery_grants_horse_on_gain_4plus():
     assert horse_count == 1
 
 
+def test_livery_uses_reduced_cost_for_gain_threshold():
+    state, p1, _ = _two_player_state()
+    state.setup_card_cost_reduction = 1
+    p1.in_play.append(get_card("Livery"))
+    state.supply["Bounty Hunter"] = 9
+
+    state.gain_card(p1, get_card("Bounty Hunter"))
+
+    assert all(card.name != "Horse" for card in p1.discard)
+
+
 def test_animal_fair_cost_reduction():
     state, p1, _ = _two_player_state()
     af = get_card("Animal Fair")

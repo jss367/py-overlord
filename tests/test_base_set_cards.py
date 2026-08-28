@@ -422,6 +422,24 @@ def test_chancellor_can_skip_discarding():
     assert len(player.discard) == 0
 
 
+# ---- Workshop ---------------------------------------------------------------
+
+
+def test_workshop_uses_reduced_cost_for_gain_threshold():
+    state = _make_state()
+    player = state.players[0]
+    state.setup_card_cost_reduction = 1
+    state.supply["Magnate"] = 10
+    player.ai.choose_buy = lambda _state, choices: next(
+        card for card in choices if card.name == "Magnate"
+    )
+
+    play_action(state, player, get_card("Workshop"))
+
+    assert state.supply["Magnate"] == 9
+    assert any(card.name == "Magnate" for card in player.discard)
+
+
 # ---- Feast (1E) -------------------------------------------------------------
 
 

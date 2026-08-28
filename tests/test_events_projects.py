@@ -1,5 +1,9 @@
+import pytest
+
+from dominion.cards.base_card import CardCost
 from dominion.game.game_state import GameState
 from dominion.cards.registry import get_card
+from dominion.events.base_event import Event
 from dominion.events import (
     GainSilver,
     Looting,
@@ -9,6 +13,7 @@ from dominion.events import (
     SeizeTheDay,
 )
 from dominion.projects import CardDraw, Sewers
+from dominion.projects.base_project import Project
 from tests.utils import BuyEventAI, TrashFirstAI
 
 
@@ -35,6 +40,28 @@ def test_project_card_draw():
     state.handle_cleanup_phase()
     state.handle_start_phase()
     assert len(player.hand) == 6
+
+
+@pytest.mark.parametrize("landscape_type", [Event, Project])
+def test_card_cost_reduction_does_not_discount_landscapes(landscape_type):
+    player_ai = BuyEventAI()
+    state = GameState(players=[])
+    state.initialize_game([player_ai], [get_card("Village")], card_cost_reduction=1)
+    current_player = state.players[0]
+    landscape = landscape_type("Test Landscape", CardCost(coins=3))
+
+    if getattr(landscape, "is_event", False):
+        state.events = [landscape]
+    else:
+        state.projects = [landscape]
+
+    current_player.coins = 2
+    assert landscape not in state._get_affordable_cards(current_player)
+
+    current_player.coins = 3
+    assert state.get_card_cost(current_player, landscape) == 3
+    state._commit_buy(current_player, landscape)
+    assert current_player.coins == 0
 
 
 from dominion.cards.plunder import LOOT_CARD_NAMES

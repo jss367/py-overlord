@@ -48,7 +48,10 @@ class Anvil(Card):
             if count <= 0:
                 continue
             card = get_card(name)
-            if card.cost.coins <= 4 and card.cost.potions == 0:
+            if (
+                game_state.get_card_cost(player, card) <= 4
+                and card.cost.potions == 0
+            ):
                 gainable.append(card)
 
         if not gainable:

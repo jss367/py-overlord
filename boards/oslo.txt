@@ -1,0 +1,16 @@
+# Prosperity 2E Colony board with a permanent $1 discount on every card.
+Anvil
+Watchtower
+Monument
+Workers' Village
+Magnate
+Hoard
+Grand Market
+Bank
+Expand
+King's Court
+
+Colony
+Platinum
+
+Card cost reduction: 1

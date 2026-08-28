@@ -116,6 +116,7 @@ def without_landscape_piece(board: BoardConfig, piece: LandscapePiece) -> BoardC
         allies=list(board.allies),
         traits=dict(board.traits),
         prophecy=board.prophecy,
+        card_cost_reduction=board.card_cost_reduction,
     )
 
 
