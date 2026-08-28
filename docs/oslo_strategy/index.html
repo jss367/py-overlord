@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Strategy Index</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --border: #d8dde6;
+      --text: #1f2937;
+      --muted: #667085;
+      --header: #f3f5f8;
+      --row: #fbfcfe;
+      --accent: #255e8f;
+    }
+    body {
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      line-height: 1.4;
+      margin: 32px auto;
+      max-width: 1120px;
+      padding: 0 24px;
+    }
+    a { color: var(--accent); }
+    h1 { margin-bottom: 4px; }
+    h2 { border-bottom: 1px solid var(--border); margin-top: 32px; padding-bottom: 6px; }
+    .muted, .empty { color: var(--muted); }
+    .meta {
+      display: grid;
+      gap: 8px 20px;
+      grid-template-columns: max-content 1fr;
+      margin: 20px 0;
+    }
+    .meta dt { color: var(--muted); font-weight: bold; }
+    .meta dd { margin: 0; }
+    table {
+      border-collapse: collapse;
+      margin: 12px 0 24px;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 7px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--header); }
+    tr:nth-child(even) td { background: var(--row); }
+    td:first-child { width: 54px; }
+    .search {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 16px;
+      margin: 18px 0;
+      padding: 9px 11px;
+      width: min(460px, 100%);
+    }
+  </style>
+</head>
+<body>
+
+
+<h1>Strategy Index</h1>
+<p class="muted">Generated from registered strategy objects. Regenerate this directory after changing strategy code.</p>
+<input class="search" id="strategy-search" type="search" placeholder="Search strategies">
+<table id="strategy-table">
+  <tr><th>Strategy</th><th>Internal Name</th><th>Description</th><th>Kingdom Cards Used</th><th>Source</th></tr>
+  <tr class="strategy-row"><td><a href="oslo-best-found.html">Oslo Best Found</a></td><td>Oslo Best Found</td><td>Two-Hoard money with two Magnates, early Provinces, and a six-Provinces-left Duchy pivot.</td><td>Colony, Hoard, Magnate, Platinum</td><td>generated_strategies/oslo_best_found.py</td></tr><tr class="strategy-row"><td><a href="oslo-workers-village-magnate-refined-engine.html">Oslo Workers Village Magnate Refined Engine</a></td><td>Oslo Workers&#x27; Village Magnate Refined Engine</td><td>Balanced seven-Village/seven-Magnate engine; King&#x27;s Court waits for three Magnates and Provinces begin by round 18.</td><td>Anvil, Bank, Colony, Grand Market, Hoard, King&#x27;s Court, Magnate, Platinum, Workers&#x27; Village</td><td>generated_strategies/oslo_workers_village_magnate_engine.py</td></tr>
+</table>
+<script>
+const search = document.getElementById('strategy-search');
+const rows = Array.from(document.querySelectorAll('.strategy-row'));
+search.addEventListener('input', () => {
+  const query = search.value.toLowerCase();
+  for (const row of rows) {
+    row.style.display = row.innerText.toLowerCase().includes(query) ? '' : 'none';
+  }
+});
+</script>
+
+</body>
+</html>

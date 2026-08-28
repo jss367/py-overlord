@@ -58,6 +58,11 @@ Monument.
 
 The direct comparison used two-player games with alternating first player.
 
+The committed [HTML comparison report](oslo_refined_engine_vs_previous_best_strategy.html)
+provides charts, decision-firing counts, and linked strategy details from a
+fresh 3,000-game confirmation against `Oslo Best Found`. The refined engine
+won 2,035 games (67.8%) and averaged 70.9 points versus 60.2.
+
 | Comparison | Games | First strategy win rate | Average score | Opponent score | Average turns |
 |---|---:|---:|---:|---:|---:|
 | Refined engine vs first evolved engine | 4,000 | 54.8% | 55.20 | 51.14 | 19.41 |
