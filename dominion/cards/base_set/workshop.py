@@ -18,7 +18,7 @@ class Workshop(Card):
         possible_gains = [
             card
             for _name, card, _count in game_state._iter_gainable_supply_cards()
-            if card.cost.coins <= 4
+            if game_state.get_card_cost(player, card) <= 4
         ]
 
         # Let AI choose what to gain
