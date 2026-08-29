@@ -245,7 +245,7 @@ class OsloWorkersVillageMagnateRefinedEngine(EnhancedStrategy):
 
 
 class OsloWorkersVillageMagnateMultiColonyEngine(OsloWorkersVillageMagnateRefinedEngine):
-    """Refined engine that waits for a double-Colony turn before greening."""
+    """Refined engine with multi-Colony greening and protected Court payloads."""
 
     def __init__(
         self,
@@ -255,10 +255,11 @@ class OsloWorkersVillageMagnateMultiColonyEngine(OsloWorkersVillageMagnateRefine
     ) -> None:
         super().__init__()
         self.name = "Oslo Workers' Village Magnate Multi Colony Engine"
+        self.version = "1.1"
         self.description = (
-            "Refined engine variant that keeps building until a single turn "
-            f"can buy {min_colonies} Colonies, then greens normally "
-            f"(forced open at turn {fallback_turn})."
+            "Target-preserving engine that builds until a single turn can buy "
+            f"{min_colonies} Colonies, then greens normally (forced open at "
+            f"turn {fallback_turn})."
         )
         for rule in self.gain_priority:
             if rule.card_name == "Colony":
@@ -268,6 +269,28 @@ class OsloWorkersVillageMagnateMultiColonyEngine(OsloWorkersVillageMagnateRefine
                     PriorityRule.colonies_left("<=", 2),
                     PriorityRule.turn_number(">=", province_turn),
                 )
+
+    def choose_action(self, state, player, choices):
+        real_choices = [card for card in choices if card is not None]
+        kings_court = next(
+            (card for card in real_choices if card.name == "King's Court"),
+            None,
+        )
+        other_actions = [
+            card for card in real_choices if card.name != "King's Court"
+        ]
+
+        # Only override the ordinary Action-phase choice. When King's Court
+        # asks for its payload, the strategy's normal priority order should
+        # choose the best remaining Action (for example, Magnate).
+        if (
+            getattr(state, "_choosing_main_action_phase", False)
+            and kings_court is not None
+            and len(other_actions) == 1
+        ):
+            return kings_court
+
+        return super().choose_action(state, player, choices)
 
 
 def create_oslo_workers_village_magnate_starting_strategy() -> EnhancedStrategy:
