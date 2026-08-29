@@ -44,10 +44,11 @@ The indexes are written to `reports/boards/index.html` and
 contains all of its referenced cards and landscapes, and each board links
 back to those compatible strategies.
 
-The catalog is a build artifact: `reports/` is gitignored and the pages are
-not committed. Re-run the command whenever you want an up-to-date index; it
-takes a couple of seconds and always reflects the strategies currently on
-disk.
+The generated board and strategy catalog under `reports/boards/` and
+`reports/strategies/` is committed so it can be browsed directly from a
+checkout. Regenerate it after changing a board or strategy. Continuous
+integration regenerates the catalog in a temporary directory and fails if the
+committed pages are stale.
 
 ## Calibration suite
 

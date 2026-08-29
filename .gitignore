@@ -174,7 +174,11 @@ cython_debug/
 # /training_logs
 battle_logs/*
 # /optimal_strategy_logs
-/reports
+/reports/*
+!/reports/boards/
+!/reports/boards/**
+!/reports/strategies/
+!/reports/strategies/**
 /training_logs
 .worktrees/
 /checkpoints
