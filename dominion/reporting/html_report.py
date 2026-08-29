@@ -408,66 +408,28 @@ def generate_sweep_report(
 
 
 def generate_leaderboard_html(
-    results: dict[str, dict[str, any]],
+    results: dict[str, dict[str, object]],
     output_path: Path,
     *,
     verbose: bool = False,
+    context_label: str = "a cross-board round robin",
 ) -> None:
-    """Create an HTML leaderboard report for many strategies."""
-    sns.set_theme(style="whitegrid")
-    sorted_items = sorted(results.items(), key=lambda i: i[1]["win_rate"], reverse=True)
-    strategies = [name for name, _ in sorted_items]
-    win_rates = [stats["win_rate"] for _, stats in sorted_items]
+    """Create a catalog-styled HTML leaderboard report for many strategies."""
+    from dominion.reporting.strategy_pages import render_strategy_leaderboard
 
-    fig, ax = plt.subplots(figsize=(8, 4))
-    sns.barplot(x=strategies, y=win_rates, ax=ax)
-    ax.set_ylabel("Win Rate (%)")
-    ax.set_xlabel("Strategy")
-    ax.set_title("Strategy Win Rates")
-    plt.xticks(rotation=45, ha="right")
-    bar_png = fig_to_base64(fig)
-    plt.close(fig)
-
-    rows = ""
     strategy_link_prefix = _strategy_link_prefix(output_path)
-    for rank, (name, stats) in enumerate(sorted_items, 1):
-        cards = stats.get("cards", [])
-        cards_str = escape(", ".join(cards)) if cards else "-"
-        desc = escape(str(stats.get("description", "")))
-        name_label = _strategy_anchor(name, prefix=strategy_link_prefix)
-        rows += (
-            f"<tr><td>{rank}</td><td>{name_label}</td><td class='desc'>{desc}</td>"
-            f"<td>{stats['wins']}</td>"
-            f"<td>{stats['losses']}</td><td>{stats['win_rate']:.1f}%</td>"
-            f"<td class='cards'>{cards_str}</td></tr>\n"
-        )
-
-    html = f"""
-    <html>
-    <head>
-        <title>Strategy Leaderboard</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; }}
-            h1 {{ text-align: center; }}
-            img {{ max-width: 800px; display: block; margin: 20px auto; }}
-            table {{ margin: auto; border-collapse: collapse; width: 90%; }}
-            th, td {{ border: 1px solid #ccc; padding: 6px 10px; text-align: left; }}
-            th {{ background: #f5f5f5; }}
-            td.cards {{ font-size: 0.85em; color: #555; max-width: 400px; }}
-            td.desc {{ font-size: 0.85em; color: #666; max-width: 300px; }}
-            tr:nth-child(even) {{ background: #fafafa; }}
-        </style>
-    </head>
-    <body>
-    <h1>Strategy Leaderboard</h1>
-    <img src="data:image/png;base64,{bar_png}" />
-    <table>
-        <tr><th>#</th><th>Strategy</th><th>Description</th><th>Wins</th><th>Losses</th><th>Win Rate</th><th>Kingdom Cards Used</th></tr>
-        {rows}
-    </table>
-    </body>
-    </html>
-    """
+    index_href = f"{strategy_link_prefix}/index.html"
+    board_index_href = os.path.relpath(
+        Path("reports") / "boards" / "index.html",
+        output_path.parent,
+    )
+    html = render_strategy_leaderboard(
+        results,
+        strategy_link_prefix=strategy_link_prefix,
+        index_href=index_href,
+        board_index_href=board_index_href,
+        context_label=context_label,
+    )
     output_path.write_text(html)
     if verbose:
         print(f"Report written to {output_path}")

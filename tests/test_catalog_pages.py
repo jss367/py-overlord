@@ -109,6 +109,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "boards/index.html",
         "boards/nested/other-board.html",
         "boards/sample-board.html",
+        "leaderboard_all.html",
         "strategies/big-money.html",
         "strategies/cursed-band-biding-time-strategy-guide.html",
         "strategies/index.html",
@@ -144,9 +145,34 @@ def test_catalog_indexes_link_to_each_other(tmp_path):
     )
 
     strategy_index = (output / "strategies" / "index.html").read_text()
+    strategy_page = (output / "strategies" / "big-money.html").read_text()
+    leaderboard = (output / "leaderboard_all.html").read_text()
     board_index = (output / "boards" / "index.html").read_text()
     assert 'href="../boards/index.html">Board index</a>' in strategy_index
+    assert 'href="../leaderboard_all.html">Leaderboard</a>' in strategy_index
+    assert 'href="../leaderboard_all.html">Leaderboard</a>' in strategy_page
+    assert "No tournament results yet" in leaderboard
+    assert 'href="strategies/index.html">Strategy index</a>' in leaderboard
     assert 'href="../strategies/index.html">Strategy index</a>' in board_index
+
+
+def test_catalog_preserves_an_existing_leaderboard(tmp_path):
+    boards_root = tmp_path / "boards"
+    board = _write_board(boards_root / "simple.txt", "Village\n")
+    output = tmp_path / "site"
+    output.mkdir()
+    leaderboard = output / "leaderboard_all.html"
+    leaderboard.write_text("completed tournament", encoding="utf-8")
+
+    written = render_catalog_pages(
+        output,
+        boards_root=boards_root,
+        board_paths=[board],
+        strategy_names=["Big Money"],
+    )
+
+    assert leaderboard.read_text(encoding="utf-8") == "completed tournament"
+    assert leaderboard not in written
 
 
 def test_catalog_writes_curated_strategy_guide_to_clean_output(tmp_path):

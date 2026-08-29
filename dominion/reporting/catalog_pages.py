@@ -26,6 +26,7 @@ from dominion.reporting.strategy_pages import (
     RenderedStrategy,
     collect_rendered_strategies,
     render_strategy_index,
+    render_strategy_leaderboard,
     render_strategy_page,
     write_curated_strategy_guides,
 )
@@ -172,14 +173,34 @@ def render_catalog_pages(
             strategies,
             curated_guides=CURATED_STRATEGY_GUIDES,
             board_index_href="../boards/index.html",
+            leaderboard_href="../leaderboard_all.html",
         ),
         encoding="utf-8",
     )
     written.append(strategy_index)
     for strategy in strategies:
         path = strategy_dir / f"{strategy.slug}.html"
-        path.write_text(render_strategy_page(strategy), encoding="utf-8")
+        path.write_text(
+            render_strategy_page(
+                strategy,
+                leaderboard_href="../leaderboard_all.html",
+            ),
+            encoding="utf-8",
+        )
         written.append(path)
+
+    leaderboard = output_dir / "leaderboard_all.html"
+    if not leaderboard.exists():
+        leaderboard.write_text(
+            render_strategy_leaderboard(
+                {},
+                strategy_link_prefix="strategies",
+                index_href="strategies/index.html",
+                board_index_href="boards/index.html",
+            ),
+            encoding="utf-8",
+        )
+        written.append(leaderboard)
 
     board_index = board_dir / "index.html"
     board_index.write_text(

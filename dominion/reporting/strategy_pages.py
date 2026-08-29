@@ -9,7 +9,7 @@ import inspect
 from pathlib import Path
 from shutil import copyfile
 import textwrap
-from typing import Iterable
+from typing import Any, Iterable, Mapping
 
 from dominion.cards.base_card import CardType
 from dominion.cards.registry import get_card
@@ -676,6 +676,132 @@ def _page_link_list(values: Iterable[PageLink]) -> str:
     )
 
 
+def _strategy_leaderboard_href(
+    name: str,
+    *,
+    loader: StrategyLoader,
+    prefix: str,
+) -> str | None:
+    """Return a catalog link only when a leaderboard name is registered."""
+
+    display_name = loader.get_display_name(name)
+    if display_name is None:
+        return None
+    filename = f"{strategy_slug(display_name)}.html"
+    return f"{prefix.rstrip('/')}/{filename}" if prefix else filename
+
+
+def _strategy_leaderboard_label(
+    name: str,
+    *,
+    loader: StrategyLoader,
+    prefix: str,
+) -> str:
+    href = _strategy_leaderboard_href(name, loader=loader, prefix=prefix)
+    label = escape(name)
+    if href is None:
+        return label
+    return f'<a href="{escape(href)}">{label}</a>'
+
+
+def _leaderboard_sort_key(item: tuple[str, Mapping[str, Any]]) -> tuple[Any, ...]:
+    name, stats = item
+    return (
+        -float(stats.get("win_rate", 0)),
+        -int(stats.get("wins", 0)),
+        int(stats.get("losses", 0)),
+        name.casefold(),
+    )
+
+
+def render_strategy_leaderboard(
+    results: Mapping[str, Mapping[str, Any]],
+    *,
+    strategy_link_prefix: str = "",
+    index_href: str = "index.html",
+    board_index_href: str | None = None,
+    context_label: str = "a cross-board round robin",
+    loader: StrategyLoader | None = None,
+) -> str:
+    """Render tournament results as part of the strategy catalog experience."""
+
+    loader = loader or StrategyLoader()
+    ranked = sorted(results.items(), key=_leaderboard_sort_key)
+
+    podium = ""
+    if ranked:
+        podium_cards = []
+        for rank, (name, stats) in enumerate(ranked[:3], 1):
+            podium_cards.append(
+                f'<article class="podium-card podium-rank-{rank}">'
+                f'<span class="podium-place">#{rank}</span>'
+                f"<h2>{_strategy_leaderboard_label(name, loader=loader, prefix=strategy_link_prefix)}</h2>"
+                f'<strong class="podium-rate">{float(stats.get("win_rate", 0)):.1f}%</strong>'
+                f'<span class="muted">{int(stats.get("wins", 0))}-{int(stats.get("losses", 0))} record</span>'
+                "</article>"
+            )
+        podium = f'<div class="podium">{"".join(podium_cards)}</div>'
+
+    rows = []
+    for rank, (name, stats) in enumerate(ranked, 1):
+        wins = int(stats.get("wins", 0))
+        losses = int(stats.get("losses", 0))
+        games = int(stats.get("games", wins + losses))
+        win_rate = float(stats.get("win_rate", 0))
+        cards = list(stats.get("cards", []) or [])
+        description = escape(str(stats.get("description", "") or ""))
+        description_markup = description or '<span class="empty">No description</span>'
+        rows.append(
+            "<tr>"
+            f'<td data-label="Rank"><span class="rank-badge">{rank}</span></td>'
+            f"<td>{_strategy_leaderboard_label(name, loader=loader, prefix=strategy_link_prefix)}</td>"
+            f'<td data-label="Description" class="leaderboard-description">{description_markup}</td>'
+            f'<td data-label="Record"><strong>{wins}-{losses}</strong></td>'
+            f'<td data-label="Win rate"><div class="rate-value">{win_rate:.1f}%</div>'
+            f'<div class="rate-track" aria-hidden="true"><span style="width: {max(0, min(100, win_rate)):.1f}%"></span></div></td>'
+            f'<td data-label="Games">{games}</td>'
+            f'<td data-label="Kingdom cards">{_typed_value_list(cards, "Kingdom Cards")}</td>'
+            "</tr>"
+        )
+
+    if rows:
+        standings = f"""
+<div class="table-scroll">
+  <table class="leaderboard-table">
+    <thead><tr><th>#</th><th>Strategy</th><th>Description</th><th>Record</th><th>Win rate</th><th>Games</th><th>Kingdom cards used</th></tr></thead>
+    <tbody>{''.join(rows)}</tbody>
+  </table>
+</div>
+"""
+    else:
+        standings = """
+<div class="empty-state leaderboard-empty">
+  <h2>No tournament results yet</h2>
+  <p>Run <code>python compare_all_strategies.py</code> to simulate the registered strategies and populate this page.</p>
+</div>
+"""
+
+    board_nav = (
+        f'<a href="{escape(board_index_href)}">Board index</a>'
+        if board_index_href
+        else ""
+    )
+    body = f"""
+<nav><a href="{escape(index_href)}">Strategy index</a>{board_nav}</nav>
+<header class="hero leaderboard-hero">
+  <p class="eyebrow">Tournament standings</p>
+  <h1>Strategy Leaderboard</h1>
+  <p class="hero-description">Ranked by simulated win rate. Results reflect <strong>{escape(context_label)}</strong>; compare strategies on the same board before drawing broad conclusions.</p>
+</header>
+{podium}
+<section class="section">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">#</span><h2>Full standings</h2></div>
+  {standings}
+</section>
+"""
+    return _page_shell("Strategy Leaderboard", body)
+
+
 def _strategy_source(loader: StrategyLoader, display_name: str) -> tuple[str, str]:
     factory = loader.strategies.get(display_name)
     if factory is None:
@@ -1035,9 +1161,36 @@ def _page_shell(title: str, body: str) -> str:
     .tags {{ display: flex; flex-wrap: wrap; gap: 6px; }}
     .tag {{ background: #f0ede6; border: 0; color: #655c50; font-size: .68rem; letter-spacing: .04em; min-height: 22px; padding: 4px 8px; text-transform: uppercase; }}
     .empty-state {{ background: rgb(255 255 255 / 55%); border: 1px dashed var(--border-strong); border-radius: 12px; color: var(--muted); padding: 18px; }}
+    .podium {{ align-items: stretch; display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); margin: 0 0 30px; }}
+    .podium-card {{
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 5px 16px rgb(64 48 28 / 5%);
+      display: grid;
+      gap: 7px;
+      padding: 20px;
+    }}
+    .podium-card h2 {{ font-size: 1.12rem; line-height: 1.2; }}
+    .podium-card h2 a {{ color: var(--text); text-decoration: none; }}
+    .podium-place {{ color: var(--muted); font-size: .72rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }}
+    .podium-rate {{ color: var(--accent-dark); font-family: Georgia, "Times New Roman", serif; font-size: 2rem; line-height: 1; }}
+    .podium-rank-1 {{ border-color: #b9932f; box-shadow: inset 0 4px 0 var(--treasure), var(--shadow); }}
+    .table-scroll {{ overflow-x: auto; padding-bottom: 4px; }}
+    .leaderboard-table {{ min-width: 920px; }}
+    .leaderboard-table td:first-child {{ width: 54px; }}
+    .leaderboard-table td:nth-child(2) {{ font-weight: 800; min-width: 170px; }}
+    .leaderboard-description {{ color: #5d554a; font-size: .83rem; max-width: 300px; }}
+    .rank-badge {{ align-items: center; background: #eee8dc; border-radius: 50%; display: inline-flex; font-size: .76rem; font-weight: 850; height: 27px; justify-content: center; width: 27px; }}
+    .rate-value {{ font-variant-numeric: tabular-nums; font-weight: 850; }}
+    .rate-track {{ background: #e8e1d4; border-radius: 999px; height: 5px; margin-top: 5px; overflow: hidden; width: 76px; }}
+    .rate-track span {{ background: var(--accent); display: block; height: 100%; }}
+    .leaderboard-empty h2 {{ color: var(--text); font-size: 1.15rem; }}
+    .leaderboard-empty code {{ background: #ebe5d9; border-radius: 5px; color: var(--text); padding: 2px 5px; }}
     @media (max-width: 680px) {{
       body {{ padding: 18px 14px 44px; }}
       .hero {{ border-radius: 14px; }}
+      .podium {{ grid-template-columns: 1fr; }}
       .meta {{ grid-template-columns: 1fr; gap: 3px; }}
       .meta dd + dt {{ margin-top: 9px; }}
       .priority-table {{ background: transparent; border: 0; box-shadow: none; overflow: visible; }}
@@ -1065,15 +1218,23 @@ def _page_shell(title: str, body: str) -> str:
 
 
 def render_strategy_page(
-    item: RenderedStrategy, *, index_href: str = "index.html"
+    item: RenderedStrategy,
+    *,
+    index_href: str = "index.html",
+    leaderboard_href: str | None = None,
 ) -> str:
     strategy = item.strategy
     references = "".join(
         f"<dt>{escape(label)}</dt><dd>{_reference_list(values, label)}</dd>"
         for label, values in item.references.items()
     )
+    leaderboard_nav = (
+        f'<a href="{escape(leaderboard_href)}">Leaderboard</a>'
+        if leaderboard_href
+        else ""
+    )
     body = f"""
-<nav><a href="{escape(index_href)}">Strategy index</a></nav>
+<nav><a href="{escape(index_href)}">Strategy index</a>{leaderboard_nav}</nav>
 <header class="hero">
   <p class="eyebrow">Dominion strategy</p>
   <h1>{escape(item.display_name)}</h1>
@@ -1140,6 +1301,7 @@ def render_strategy_index(
     *,
     curated_guides: Iterable[CuratedStrategyGuide] = (),
     board_index_href: str | None = None,
+    leaderboard_href: str | None = None,
 ) -> str:
     rows = []
     for guide in curated_guides:
@@ -1173,12 +1335,22 @@ def render_strategy_index(
         )
 
     board_nav = (
-        f'<nav><a href="{escape(board_index_href)}">Board index</a></nav>'
+        f'<a href="{escape(board_index_href)}">Board index</a>'
         if board_index_href
         else ""
     )
+    leaderboard_nav = (
+        f'<a href="{escape(leaderboard_href)}">Leaderboard</a>'
+        if leaderboard_href
+        else ""
+    )
+    navigation = (
+        f"<nav>{board_nav}{leaderboard_nav}</nav>"
+        if board_nav or leaderboard_nav
+        else ""
+    )
     body = f"""
-{board_nav}
+{navigation}
 <header class="hero">
   <p class="eyebrow">Dominion simulator</p>
   <h1>Strategy Index</h1>
