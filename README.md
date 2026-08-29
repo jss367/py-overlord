@@ -50,6 +50,27 @@ checkout. Regenerate it after changing a board or strategy. Continuous
 integration regenerates the catalog in a temporary directory and fails if the
 committed pages are stale.
 
+## Adversarial league training
+
+Evolving against a fixed panel rewards specialising against its weakest
+member, which is why champions drift away from strategies that are strictly
+better. `scripts/league_evolve.py` trains against a maintained opponent pool
+instead: it seeds the pool with the board's assembled engine archetypes,
+scores fitness with worst-case pressure, and promotes each round's champion
+into the pool so the next round has to beat everything found so far.
+
+```
+PYTHONPATH=. python scripts/league_evolve.py --board boards/oslo.txt \
+    --rounds 3 --generations 15 --population 24 --games-per-eval 16 \
+    --compare "Oslo Workers Village Magnate Engine" --seed 1
+```
+
+`--compare` battles the final champion against registered reference
+strategies (the gate), and `--control` re-runs the same budget against the
+hall of fame with mean aggregation for a matched comparison. Reports are
+written to `reports/league/`. See `docs/strategy-search-architecture.md`
+for what the pool fixes and what is still unbuilt.
+
 ## Calibration suite
 
 `boards/calibration/` pairs boards with community-known best strategies so
