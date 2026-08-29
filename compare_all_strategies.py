@@ -168,7 +168,7 @@ def main() -> None:
         board_name = Path(args.board).stem
         output = Path(f"reports/leaderboard_{board_name}.html")
     else:
-        output = Path("reports/leaderboard_all.html")
+        output = Path("reports/strategies/leaderboard.html")
     output.parent.mkdir(parents=True, exist_ok=True)
     context_label = (
         f"the {board_display_name(Path(args.board))} board round robin"

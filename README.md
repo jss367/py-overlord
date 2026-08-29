@@ -17,11 +17,11 @@ To run every strategy against each other and produce a leaderboard:
 python compare_all_strategies.py --games 5
 ```
 
-The leaderboard will be written to `reports/leaderboard_all.html` by default.
+The leaderboard will be written to `reports/strategies/leaderboard.html` by default.
 The strategy catalog links to this leaderboard from both its index and each
 strategy detail page. On a clean catalog build, that route shows a short prompt
-to run the tournament; generated tournament results replace the prompt and are
-preserved by later catalog rebuilds.
+to run the tournament; running the tournament replaces that prompt with the
+latest results.
 
 When using `--board`, the default output is
 `reports/leaderboard_<board-name>.html`.

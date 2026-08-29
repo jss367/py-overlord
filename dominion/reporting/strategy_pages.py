@@ -799,7 +799,11 @@ def render_strategy_leaderboard(
   {standings}
 </section>
 """
-    return _page_shell("Strategy Leaderboard", body)
+    return _page_shell(
+        "Strategy Leaderboard",
+        body,
+        extra_styles=_LEADERBOARD_STYLES,
+    )
 
 
 def _strategy_source(loader: StrategyLoader, display_name: str) -> tuple[str, str]:
@@ -906,7 +910,41 @@ def collect_rendered_strategies(
     return rendered
 
 
-def _page_shell(title: str, body: str) -> str:
+_LEADERBOARD_STYLES = """
+    .podium { align-items: stretch; display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); margin: 0 0 30px; }
+    .podium-card {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 5px 16px rgb(64 48 28 / 5%);
+      display: grid;
+      gap: 7px;
+      padding: 20px;
+    }
+    .podium-card h2 { font-size: 1.12rem; line-height: 1.2; }
+    .podium-card h2 a { color: var(--text); text-decoration: none; }
+    .podium-place { color: var(--muted); font-size: .72rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+    .podium-rate { color: var(--accent-dark); font-family: Georgia, "Times New Roman", serif; font-size: 2rem; line-height: 1; }
+    .podium-rank-1 { border-color: #b9932f; box-shadow: inset 0 4px 0 var(--treasure), var(--shadow); }
+    .table-scroll { overflow-x: auto; padding-bottom: 4px; }
+    .leaderboard-table { min-width: 920px; }
+    .leaderboard-table td:first-child { width: 54px; }
+    .leaderboard-table td:nth-child(2) { font-weight: 800; min-width: 170px; }
+    .leaderboard-description { color: #5d554a; font-size: .83rem; max-width: 300px; }
+    .rank-badge { align-items: center; background: #eee8dc; border-radius: 50%; display: inline-flex; font-size: .76rem; font-weight: 850; height: 27px; justify-content: center; width: 27px; }
+    .rate-value { font-variant-numeric: tabular-nums; font-weight: 850; }
+    .rate-track { background: #e8e1d4; border-radius: 999px; height: 5px; margin-top: 5px; overflow: hidden; width: 76px; }
+    .rate-track span { background: var(--accent); display: block; height: 100%; }
+    .leaderboard-empty h2 { color: var(--text); font-size: 1.15rem; }
+    .leaderboard-empty code { background: #ebe5d9; border-radius: 5px; color: var(--text); padding: 2px 5px; }
+    @media (max-width: 680px) {
+      .podium { grid-template-columns: 1fr; }
+    }
+"""
+
+
+def _page_shell(title: str, body: str, *, extra_styles: str = "") -> str:
+    style_extension = f"\n{extra_styles}" if extra_styles else ""
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -1161,36 +1199,9 @@ def _page_shell(title: str, body: str) -> str:
     .tags {{ display: flex; flex-wrap: wrap; gap: 6px; }}
     .tag {{ background: #f0ede6; border: 0; color: #655c50; font-size: .68rem; letter-spacing: .04em; min-height: 22px; padding: 4px 8px; text-transform: uppercase; }}
     .empty-state {{ background: rgb(255 255 255 / 55%); border: 1px dashed var(--border-strong); border-radius: 12px; color: var(--muted); padding: 18px; }}
-    .podium {{ align-items: stretch; display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); margin: 0 0 30px; }}
-    .podium-card {{
-      background: var(--surface-raised);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      box-shadow: 0 5px 16px rgb(64 48 28 / 5%);
-      display: grid;
-      gap: 7px;
-      padding: 20px;
-    }}
-    .podium-card h2 {{ font-size: 1.12rem; line-height: 1.2; }}
-    .podium-card h2 a {{ color: var(--text); text-decoration: none; }}
-    .podium-place {{ color: var(--muted); font-size: .72rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }}
-    .podium-rate {{ color: var(--accent-dark); font-family: Georgia, "Times New Roman", serif; font-size: 2rem; line-height: 1; }}
-    .podium-rank-1 {{ border-color: #b9932f; box-shadow: inset 0 4px 0 var(--treasure), var(--shadow); }}
-    .table-scroll {{ overflow-x: auto; padding-bottom: 4px; }}
-    .leaderboard-table {{ min-width: 920px; }}
-    .leaderboard-table td:first-child {{ width: 54px; }}
-    .leaderboard-table td:nth-child(2) {{ font-weight: 800; min-width: 170px; }}
-    .leaderboard-description {{ color: #5d554a; font-size: .83rem; max-width: 300px; }}
-    .rank-badge {{ align-items: center; background: #eee8dc; border-radius: 50%; display: inline-flex; font-size: .76rem; font-weight: 850; height: 27px; justify-content: center; width: 27px; }}
-    .rate-value {{ font-variant-numeric: tabular-nums; font-weight: 850; }}
-    .rate-track {{ background: #e8e1d4; border-radius: 999px; height: 5px; margin-top: 5px; overflow: hidden; width: 76px; }}
-    .rate-track span {{ background: var(--accent); display: block; height: 100%; }}
-    .leaderboard-empty h2 {{ color: var(--text); font-size: 1.15rem; }}
-    .leaderboard-empty code {{ background: #ebe5d9; border-radius: 5px; color: var(--text); padding: 2px 5px; }}
     @media (max-width: 680px) {{
       body {{ padding: 18px 14px 44px; }}
       .hero {{ border-radius: 14px; }}
-      .podium {{ grid-template-columns: 1fr; }}
       .meta {{ grid-template-columns: 1fr; gap: 3px; }}
       .meta dd + dt {{ margin-top: 9px; }}
       .priority-table {{ background: transparent; border: 0; box-shadow: none; overflow: visible; }}
@@ -1207,7 +1218,7 @@ def _page_shell(title: str, body: str) -> str:
       .hero, table, .strategy-card, .board-card {{ box-shadow: none; }}
       .search, script {{ display: none; }}
       .condition-detail code {{ color: #000; background: #eee; }}
-    }}
+    }}{style_extension}
   </style>
 </head>
 <body>

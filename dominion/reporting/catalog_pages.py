@@ -173,7 +173,7 @@ def render_catalog_pages(
             strategies,
             curated_guides=CURATED_STRATEGY_GUIDES,
             board_index_href="../boards/index.html",
-            leaderboard_href="../leaderboard_all.html",
+            leaderboard_href="leaderboard.html",
         ),
         encoding="utf-8",
     )
@@ -183,24 +183,22 @@ def render_catalog_pages(
         path.write_text(
             render_strategy_page(
                 strategy,
-                leaderboard_href="../leaderboard_all.html",
+                leaderboard_href="leaderboard.html",
             ),
             encoding="utf-8",
         )
         written.append(path)
 
-    leaderboard = output_dir / "leaderboard_all.html"
-    if not leaderboard.exists():
-        leaderboard.write_text(
-            render_strategy_leaderboard(
-                {},
-                strategy_link_prefix="strategies",
-                index_href="strategies/index.html",
-                board_index_href="boards/index.html",
-            ),
-            encoding="utf-8",
-        )
-        written.append(leaderboard)
+    leaderboard = strategy_dir / "leaderboard.html"
+    leaderboard.write_text(
+        render_strategy_leaderboard(
+            {},
+            index_href="index.html",
+            board_index_href="../boards/index.html",
+        ),
+        encoding="utf-8",
+    )
+    written.append(leaderboard)
 
     board_index = board_dir / "index.html"
     board_index.write_text(
