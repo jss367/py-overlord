@@ -1,5 +1,8 @@
 from dominion.reporting.strategy_links import strategy_page_href, strategy_slug
-from dominion.reporting.strategy_pages import render_strategy_pages
+from dominion.reporting.strategy_pages import (
+    render_strategy_leaderboard,
+    render_strategy_pages,
+)
 from dominion.reporting.html_report import (
     _strategy_report_href,
     generate_leaderboard_html,
@@ -51,6 +54,41 @@ def test_leaderboard_html_does_not_link_unresolved_strategy_names(tmp_path):
     assert "big-money.html" in html
     assert "strategy_20260212_094841.html" not in html
     assert "<td>strategy_20260212_094841</td>" in html
+
+
+def test_strategy_leaderboard_ranks_results_and_links_registered_strategies():
+    html = render_strategy_leaderboard(
+        {
+            "Big Money": {
+                "wins": 7,
+                "losses": 3,
+                "win_rate": 70.0,
+                "description": "Simple treasure strategy.",
+                "cards": ["Gold", "Province"],
+            },
+            "Chapel Witch": {
+                "wins": 3,
+                "losses": 7,
+                "win_rate": 30.0,
+                "description": "Trash, then attack.",
+                "cards": ["Chapel", "Witch"],
+            },
+        }
+    )
+
+    assert "Strategy Leaderboard" in html
+    assert 'class="podium-card podium-rank-1"' in html
+    assert html.index("Big Money") < html.index("Chapel Witch")
+    assert 'href="big-money.html"' in html
+    assert "70.0%" in html
+    assert 'class="card-chip type-treasure card-gold"' in html
+
+
+def test_strategy_leaderboard_explains_how_to_generate_results():
+    html = render_strategy_leaderboard({})
+
+    assert "No tournament results yet" in html
+    assert "python compare_all_strategies.py" in html
 
 
 def test_render_strategy_pages_writes_index_and_strategy_page(tmp_path):
