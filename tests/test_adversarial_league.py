@@ -125,6 +125,37 @@ class TestLeagueMembership:
         )
         assert len(league) == 1
 
+    def test_colliding_names_are_uniquified(self):
+        """Distinct members must never share a name.
+
+        The trainer promotes its champion at a fixed generation of every
+        round, so it proposes the same ``League-g10`` each time. Sharing a
+        name makes :meth:`record_champion_results` assign one member's win
+        rate to the other and corrupts retention — observed in the first Oslo
+        league run, where two distinct members both reported 33.3%.
+        """
+
+        league = AdversarialLeague(capacity=4)
+        league.add(_make_strategy("A", "Province"), name="League-g10", origin=ORIGIN_CHAMPION)
+        league.add(_make_strategy("B", "Gold"), name="League-g10", origin=ORIGIN_CHAMPION)
+        league.add(_make_strategy("C", "Duchy"), name="League-g10", origin=ORIGIN_CHAMPION)
+
+        names = [m.name for m in league.members]
+        assert names == ["League-g10", "League-g10 (2)", "League-g10 (3)"]
+        assert len(set(names)) == len(names)
+        # The pooled strategy object carries the uniquified name too, so the
+        # trainer's breakdown entries match the member record.
+        assert [m.strategy.name for m in league.members] == names
+
+    def test_uniquified_members_record_their_own_results(self):
+        league = AdversarialLeague(capacity=4)
+        league.add(_make_strategy("A", "Province"), name="League-g10", origin=ORIGIN_CHAMPION)
+        league.add(_make_strategy("B", "Gold"), name="League-g10", origin=ORIGIN_CHAMPION)
+
+        league.record_champion_results([("League-g10", 30.0), ("League-g10 (2)", 90.0)])
+
+        assert [m.last_champion_win_rate for m in league.members] == [30.0, 90.0]
+
     def test_capacity_must_be_positive(self):
         with pytest.raises(ValueError):
             AdversarialLeague(capacity=0)

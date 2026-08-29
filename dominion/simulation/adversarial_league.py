@@ -140,6 +140,14 @@ class AdversarialLeague:
         the interesting duplicate is a champion that re-derives a member the
         pool already holds — it would otherwise consume a slot while adding no
         disagreement.
+
+        ``name`` is uniquified if taken. Distinct members must not share a
+        name: :meth:`record_champion_results` matches breakdown entries by
+        name, so a collision silently assigns one member's win rate to
+        another and corrupts the retention decision. Callers cannot guarantee
+        uniqueness on their own — a trainer promoting its champion at
+        generation 10 of every round proposes ``League-g10`` each time — so
+        the invariant is enforced here.
         """
 
         signature = genome_signature(strategy)
@@ -147,11 +155,25 @@ class AdversarialLeague:
             return False
 
         member = deepcopy(strategy)
-        member.name = name
+        member.name = self._unique_name(name)
         self.members.append(
-            LeagueMember(name=name, strategy=member, origin=origin, signature=signature)
+            LeagueMember(
+                name=member.name, strategy=member, origin=origin, signature=signature
+            )
         )
         return True
+
+    def _unique_name(self, name: str) -> str:
+        """Return ``name``, suffixed if a member already uses it."""
+
+        taken = {member.name for member in self.members}
+        if name not in taken:
+            return name
+        for suffix in range(2, len(taken) + 3):
+            candidate = f"{name} ({suffix})"
+            if candidate not in taken:
+                return candidate
+        raise AssertionError("unreachable: more suffixes tried than members")
 
     def strategies(self) -> list[BaseStrategy]:
         """Return the pool's strategies, for extending a fitness panel."""
