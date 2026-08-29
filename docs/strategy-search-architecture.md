@@ -45,21 +45,45 @@ dynamics, but not for comparing strategy strength. The published baseline used
 30 individuals, 30 generations, 15 screening games, and 400 confirmation
 games. Comparisons against it must use an equivalent budget and fixed seeds.
 
-## Next search layer: adversarial league training
+## Adversarial league training
 
-The next architectural slice replaces a fixed opponent average with an
-iterative league:
+Fitness against a fixed opponent average is the binding constraint on this
+search, diagnosed twice independently: the BM+X calibration boards stay behind
+their community-known best because a Big-Money panel gives no gradient toward
+mirror-optimal play, and on Oslo, evolving *from* the winning engine topology
+against the weak panel drifted away from it. In both cases the search was not
+punished for abandoning a better strategy, because nothing in the panel could
+exploit the abandonment.
 
-1. optimize separate strategic archetypes;
-2. build their complete cross-play matrix;
-3. search for a counterstrategy to the current league leader or mixture;
-4. retain counters that expose a statistically meaningful weakness;
-5. train subsequent candidates against a weighted league mixture;
-6. stop only after repeated counter searches fail to find an exploit.
+`dominion/simulation/adversarial_league.py` replaces the hall of fame with a
+maintained pool that fixes the three properties that let this happen:
 
-League evaluation should report both mixture win rate and the candidate's
-worst supported matchup. Historical champions remain useful regression
-opponents, but they are not a substitute for actively generated counters.
+- **Worst-case aggregation.** `aggregate_fitness` blends the panel mean with
+  the mean of the worst half (a CVaR — pure `min` over a screening budget is
+  mostly deck luck). Under a plain mean, a specialist going 70/40 outscores a
+  balanced 55/50; with worst-case weight the ordering flips. The
+  `worst_case_weight` trainer knob defaults to 0, preserving legacy behaviour.
+- **Retention by difficulty, not recency.** `hall_of_fame[-size:]` keeps the
+  newest champions, so a drifting lineage fills the pool with its own drift.
+  `AdversarialLeague.prune` evicts the member the champion beats most
+  convincingly — an opponent you beat 90% of the time supplies no gradient.
+  Members that have never been faced are never evicted.
+- **Outside reference opponents.** `build_seeded_league` pre-loads the board's
+  assembled engine archetypes (and any named reference strategies), so the
+  pool holds topologies the run did not invent and cannot quietly abandon.
+
+`scripts/league_evolve.py` runs the outer double-oracle loop: each round
+evolves a best response against the current pool, then promotes it into the
+pool. A round whose champion re-derives an existing member is the convergence
+signal. `--control` re-runs the identical budget against the hall of fame with
+mean aggregation, which is the comparison any claim about the league has to
+clear; `--compare` battles the final champion against registered reference
+strategies as the gate.
+
+Still unbuilt from the original plan: the full cross-play matrix over pool
+members, weighted mixture sampling (opponents are currently faced uniformly),
+and a significance test gating retention rather than a point estimate of
+difficulty.
 
 ## Card capabilities and board-derived engine archetypes
 
