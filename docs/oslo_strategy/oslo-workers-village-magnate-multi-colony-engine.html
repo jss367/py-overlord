@@ -61,14 +61,14 @@
 
 <p><a href="index.html">Strategy index</a></p>
 <h1>Oslo Workers&#x27; Village Magnate Multi Colony Engine</h1>
-<p class="muted">Refined engine variant that keeps building until a single turn can buy 4 Colonies, then greens normally (forced open at turn 20).</p>
+<p class="muted">Target-preserving engine that builds until a single turn can buy 4 Colonies, then greens normally (forced open at turn 20).</p>
 
 <h2>Compatible Boards</h2>
 <p><a href="../../boards/oslo.txt">Discounted Oslo Board</a></p>
 
 <dl class="meta">
   <dt>Internal Name</dt><dd>Oslo Workers&#x27; Village Magnate Multi Colony Engine</dd>
-  <dt>Version</dt><dd>1.0</dd>
+  <dt>Version</dt><dd>1.1</dd>
   <dt>Source</dt><dd>generated_strategies/oslo_workers_village_magnate_engine.py</dd>
   <dt>Factory</dt><dd>create_oslo_workers_village_magnate_multi_colony_engine</dd>
   <dt>Kingdom Cards</dt><dd>Anvil, Bank, Colony, Grand Market, Hoard, King&#x27;s Court, Magnate, Platinum, Workers&#x27; Village</dd><dt>Events</dt><dd><span class="empty">None</span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
@@ -93,6 +93,7 @@
 </table>
 
 <h2>Action Priority</h2>
+<p>During the main Action phase, play King&#x27;s Court before the last other Action in hand. While at least two non-Court Actions remain, follow the priority table below. When King&#x27;s Court selects its payload, follow the table normally.</p>
 <table>
   <tr><th>#</th><th>Card</th><th>Condition</th></tr>
   <tr><td>1</td><td>Workers&#x27; Village</td><td>always</td></tr>
