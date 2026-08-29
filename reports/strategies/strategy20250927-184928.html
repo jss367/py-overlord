@@ -217,7 +217,8 @@
     .condition-always { background: #f2efe9; border-color: #ded7ca; color: var(--muted); }
     .condition-detail summary { cursor: pointer; list-style-position: outside; }
     .condition-detail summary::marker { color: #8da1a7; font-size: .72rem; }
-    .condition-detail code { background: #282b2d; border-radius: 7px; color: #f3eee4; display: block; font-size: .73rem; margin-top: 7px; max-width: 720px; overflow-wrap: anywhere; padding: 8px 10px; white-space: normal; }
+    .condition-detail pre { margin: 7px 0 0; max-width: 720px; }
+    .condition-detail code { background: #282b2d; border-radius: 7px; color: #f3eee4; display: block; font-size: .73rem; overflow-wrap: anywhere; padding: 8px 10px; white-space: pre-wrap; }
     .search {
       background: var(--surface-raised);
       border: 1px solid var(--border-strong);
@@ -306,7 +307,7 @@
 <tr><td data-label="Priority"><span class="priority-number">6</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Council Room, Action card"><span>Council Room</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">7</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Giant, Action, Attack card"><span>Giant</span><span class="type-marker marker-attack" title="Attack" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">8</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Mint, Action card"><span>Mint</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">9</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Tragic Hero, Action card"><span>Tragic Hero</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Special strategy rule</span></summary><code>custom condition</code></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">9</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Tragic Hero, Action card"><span>Tragic Hero</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Turn number: at most 5</span></summary><pre><code>state.turn_number &lt;= 5</code></pre></details></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">10</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Nobles, Action, Victory card"><span>Nobles</span><span class="type-marker marker-action" title="Action" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">11</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">12</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
@@ -336,8 +337,8 @@
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
     <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-curse" aria-label="Curse, Curse card"><span>Curse</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Estate, Victory card"><span>Estate</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Special strategy rule</span></summary><code>custom condition</code></details></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Special strategy rule</span></summary><code>custom condition</code></details></td></tr></tbody>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Estate, Victory card"><span>Estate</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Provinces remaining: more than 4</span></summary><pre><code>state.provinces_left &gt; 4</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Silver copies owned plus Gold copies owned: at least 3</span></summary><pre><code>my.count(Silver) + my.count(Gold) &gt;= 3</code></pre></details></td></tr></tbody>
   </table>
 </section>
 
