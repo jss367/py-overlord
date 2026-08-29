@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wharf Big Money Board</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas: #f4f0e6;
+      --surface: #fffdf8;
+      --surface-raised: #ffffff;
+      --border: #d9d0bd;
+      --border-strong: #b7aa91;
+      --text: #28231d;
+      --muted: #72695d;
+      --accent: #245f73;
+      --accent-dark: #174555;
+      --shadow: 0 12px 30px rgb(64 48 28 / 8%);
+      --action: #f3ebdd;
+      --treasure: #e8c65a;
+      --victory: #83b96c;
+      --curse: #9270ac;
+      --reaction: #5b8fc4;
+      --attack: #b85d55;
+      --duration: #de914a;
+      --night: #45434a;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      background:
+        radial-gradient(circle at top left, rgb(232 198 90 / 12%), transparent 28rem),
+        var(--canvas);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      margin: 0 auto;
+      max-width: 1180px;
+      min-height: 100vh;
+      padding: 28px 28px 64px;
+    }
+    a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+    a:hover { color: var(--accent-dark); }
+    h1, h2 { font-family: Georgia, "Times New Roman", serif; }
+    h1 { font-size: clamp(2.15rem, 5vw, 3.45rem); letter-spacing: -.035em; line-height: 1.05; margin: 0; }
+    h2 { font-size: 1.45rem; margin: 0; }
+    p { margin: .6rem 0; }
+    nav { align-items: center; display: flex; gap: 16px; margin-bottom: 18px; }
+    nav a, .back-link { font-size: .9rem; font-weight: 700; text-decoration: none; }
+    nav a::before, .back-link::before { content: "← "; }
+    .muted, .empty { color: var(--muted); }
+    .eyebrow { color: var(--accent); font-size: .72rem; font-weight: 800; letter-spacing: .14em; margin-bottom: 8px; text-transform: uppercase; }
+    .hero {
+      background: linear-gradient(135deg, rgb(255 255 255 / 92%), rgb(255 253 248 / 86%));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 26px;
+      overflow: hidden;
+      padding: clamp(24px, 5vw, 44px);
+      position: relative;
+    }
+    .hero::after {
+      background: linear-gradient(180deg, var(--treasure), #b98a27);
+      content: "";
+      inset: 0 0 0 auto;
+      position: absolute;
+      width: 6px;
+    }
+    .hero-description { color: #51483e; font-size: 1.05rem; margin: 14px 0 0; max-width: 760px; }
+    .hero-links { align-items: center; display: flex; flex-wrap: wrap; gap: 10px 14px; margin-top: 20px; }
+    .hero-links strong { color: var(--muted); font-size: .76rem; letter-spacing: .06em; text-transform: uppercase; }
+    .section { margin-top: 30px; }
+    .section-heading { align-items: center; display: flex; gap: 10px; margin-bottom: 10px; }
+    .section-icon {
+      align-items: center;
+      background: var(--section-color, var(--accent));
+      border-radius: 9px;
+      color: #fff;
+      display: inline-flex;
+      font-size: .9rem;
+      font-weight: 900;
+      height: 30px;
+      justify-content: center;
+      width: 30px;
+    }
+    .section-gain { --section-color: #5f9251; }
+    .section-action { --section-color: #9b815a; }
+    .section-trash { --section-color: #a65b54; }
+    .section-treasure { --section-color: #bd8c24; }
+    .section-way { --section-color: #518ea6; }
+    .meta {
+      display: grid;
+      gap: 12px 24px;
+      grid-template-columns: minmax(120px, max-content) 1fr;
+      margin: 16px 0 0;
+    }
+    .meta dt { color: var(--muted); font-size: .75rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+    .meta dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+    .technical-details {
+      background: rgb(255 255 255 / 55%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-top: 18px;
+      padding: 0 16px;
+    }
+    .technical-details > summary { color: var(--muted); cursor: pointer; font-size: .86rem; font-weight: 750; padding: 12px 0; }
+    .technical-details[open] > summary { border-bottom: 1px solid var(--border); }
+    .technical-details .meta { padding-bottom: 16px; }
+    table {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-collapse: separate;
+      border-radius: 12px;
+      border-spacing: 0;
+      box-shadow: 0 4px 14px rgb(64 48 28 / 5%);
+      margin: 0;
+      overflow: hidden;
+      width: 100%;
+    }
+    th, td {
+      border-bottom: 1px solid #e8e1d4;
+      padding: 11px 14px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    th { background: #eee8dc; color: #675d50; font-size: .71rem; letter-spacing: .07em; position: sticky; text-transform: uppercase; top: 0; }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:hover td, table tr:not(:first-child):hover td { background: #fffcf4; }
+    td:first-child { width: 68px; }
+    .priority-number {
+      align-items: center;
+      background: var(--section-color, var(--accent));
+      border-radius: 50%;
+      color: #fff;
+      display: inline-flex;
+      font-size: .78rem;
+      font-weight: 800;
+      height: 27px;
+      justify-content: center;
+      width: 27px;
+    }
+    .chip-list { align-items: center; display: flex; flex-wrap: wrap; gap: 7px; }
+    .card-chip, .landscape-chip, .board-chip, .strategy-link-chip, .tag {
+      align-items: center;
+      border: 1px solid rgb(48 41 31 / 22%);
+      border-radius: 999px;
+      color: #28231d;
+      display: inline-flex;
+      font-size: .8rem;
+      font-weight: 750;
+      gap: 5px;
+      line-height: 1.1;
+      min-height: 27px;
+      padding: 5px 10px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .card-chip.type-action { background: var(--action); }
+    .card-chip.type-treasure { background: var(--treasure); }
+    .card-chip.type-victory { background: var(--victory); }
+    .card-chip.type-curse { background: var(--curse); color: #fff; }
+    .card-chip.type-night { background: var(--night); color: #fff; }
+    .card-chip.type-other, .card-chip.card-unknown { background: #e9e4da; }
+    .card-chip.card-copper { background: #c88758; }
+    .card-chip.card-silver { background: #d8dcdf; }
+    .card-chip.card-gold { background: #e7bd42; }
+    .type-marker { border: 1px solid rgb(0 0 0 / 22%); border-radius: 50%; height: 8px; width: 8px; }
+    .marker-attack { background: var(--attack); }
+    .marker-reaction { background: var(--reaction); }
+    .marker-duration { background: var(--duration); }
+    .marker-action { background: var(--action); }
+    .marker-treasure { background: var(--treasure); }
+    .marker-victory { background: var(--victory); }
+    .marker-curse { background: var(--curse); }
+    .marker-night { background: var(--night); }
+    .marker-reserve, .marker-traveller { background: #b89563; }
+    .marker-liaison { background: #8a72a7; }
+    .marker-omen { background: #6a94a2; }
+    .landscape-chip { border-radius: 7px; }
+    .landscape-event { background: #dedbd3; }
+    .landscape-project { background: #e6a99f; }
+    .landscape-way { background: #9dc8d7; }
+    .landscape-landmark { background: #8caf72; }
+    .landscape-ally { background: #ddc99a; }
+    .landscape-trait { background: #c8b08c; }
+    .landscape-prophecy { background: #a8c9cf; }
+    .board-chip { background: #e8f0ef; border-color: #b4cbc7; color: #245f73; }
+    .board-chip::before { content: "▦"; font-size: .72rem; }
+    .strategy-link-chip { background: #f0eadc; border-color: #d6c7a9; color: #6b5327; }
+    .strategy-link-chip::before { content: "♟"; font-size: .72rem; }
+    .coin-badge {
+      align-items: center;
+      background: var(--treasure);
+      border: 2px solid #9d7620;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 2px rgb(255 255 255 / 38%);
+      display: inline-flex;
+      font-size: .78rem;
+      font-weight: 900;
+      height: 29px;
+      justify-content: center;
+      width: 29px;
+    }
+    .condition {
+      background: #edf1f2;
+      border: 1px solid #d3dfe1;
+      border-radius: 999px;
+      color: #334e57;
+      display: inline-block;
+      font-size: .79rem;
+      font-weight: 650;
+      line-height: 1.25;
+      padding: 5px 9px;
+    }
+    .condition-always { background: #f2efe9; border-color: #ded7ca; color: var(--muted); }
+    .condition-detail summary { cursor: pointer; list-style-position: outside; }
+    .condition-detail summary::marker { color: #8da1a7; font-size: .72rem; }
+    .condition-detail pre { margin: 7px 0 0; max-width: 720px; }
+    .condition-detail code { background: #282b2d; border-radius: 7px; color: #f3eee4; display: block; font-size: .73rem; overflow-wrap: anywhere; padding: 8px 10px; white-space: pre-wrap; }
+    .search {
+      background: var(--surface-raised);
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      box-shadow: 0 3px 10px rgb(64 48 28 / 5%);
+      color: var(--text);
+      font: inherit;
+      margin: 20px 0 22px;
+      padding: 11px 16px;
+      width: min(520px, 100%);
+    }
+    .search:focus { border-color: var(--accent); outline: 3px solid rgb(36 95 115 / 15%); }
+    .catalog-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); }
+    .strategy-card, .board-card {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 5px 16px rgb(64 48 28 / 5%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+      padding: 20px;
+      transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+    }
+    .strategy-card:hover, .board-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow); transform: translateY(-2px); }
+    .strategy-card h2, .board-card h2 { font-size: 1.22rem; line-height: 1.2; }
+    .strategy-card h2 a, .board-card h2 a { color: var(--text); text-decoration: none; }
+    .strategy-card p, .board-card p { color: #5d554a; font-size: .88rem; margin: 0; }
+    .card-footer { align-items: center; border-top: 1px solid #ece5d9; color: var(--muted); display: flex; flex-wrap: wrap; font-size: .75rem; gap: 8px 14px; margin-top: auto; padding-top: 12px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { background: #f0ede6; border: 0; color: #655c50; font-size: .68rem; letter-spacing: .04em; min-height: 22px; padding: 4px 8px; text-transform: uppercase; }
+    .empty-state { background: rgb(255 255 255 / 55%); border: 1px dashed var(--border-strong); border-radius: 12px; color: var(--muted); padding: 18px; }
+    @media (max-width: 680px) {
+      body { padding: 18px 14px 44px; }
+      .hero { border-radius: 14px; }
+      .meta { grid-template-columns: 1fr; gap: 3px; }
+      .meta dd + dt { margin-top: 9px; }
+      .priority-table { background: transparent; border: 0; box-shadow: none; overflow: visible; }
+      .priority-table thead { clip: rect(0 0 0 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
+      .priority-table tbody, .priority-table tr, .priority-table td { display: block; width: 100%; }
+      .priority-table tr { background: var(--surface-raised); border: 1px solid var(--border); border-radius: 11px; box-shadow: 0 3px 10px rgb(64 48 28 / 5%); margin-bottom: 10px; overflow: hidden; padding: 9px 12px; }
+      .priority-table td { border: 0; padding: 6px 0 6px 92px; position: relative; }
+      .priority-table td::before { color: var(--muted); content: attr(data-label); font-size: .68rem; font-weight: 800; left: 0; letter-spacing: .05em; position: absolute; text-transform: uppercase; top: 9px; }
+      .priority-table td[colspan] { padding-left: 0; text-align: center; }
+      .priority-table td[colspan]::before { content: none; }
+    }
+    @media print {
+      body { background: #fff; max-width: none; padding: 0; }
+      .hero, table, .strategy-card, .board-card { box-shadow: none; }
+      .search, script { display: none; }
+      .condition-detail code { color: #000; background: #eee; }
+    }
+  </style>
+</head>
+<body>
+
+<nav><a href="../index.html">Board index</a></nav>
+<header class="hero">
+  <p class="eyebrow">Dominion board</p>
+  <h1>Wharf Big Money</h1>
+  <p class="hero-description">A 10-card Kingdom with 2 compatible registered strategies.</p>
+  <div class="hero-links"><strong>Compatible strategies</strong><span class="chip-list"><a class="strategy-link-chip" href="../../strategies/big-money.html">Big Money</a><a class="strategy-link-chip" href="../../strategies/big-money-wharf.html">Big Money Wharf</a></span></div>
+  <details class="technical-details">
+    <summary>Setup details</summary>
+    <dl class="meta">
+      <dt>Source</dt><dd>boards/calibration/wharf_bm.txt</dd>
+      <dt>Events</dt><dd><span class="empty">None</span></dd>
+      <dt>Projects</dt><dd><span class="empty">None</span></dd>
+      <dt>Ways</dt><dd><span class="empty">None</span></dd>
+      <dt>Landmarks</dt><dd><span class="empty">None</span></dd>
+      <dt>Allies</dt><dd><span class="empty">None</span></dd>
+      <dt>Traits</dt><dd><span class="empty">None</span></dd>
+      <dt>Prophecy</dt><dd><span class="empty">None</span></dd>
+      <dt>Card cost reduction</dt><dd><span class="coin-badge" aria-label="Coin cost reduction">0</span></dd>
+    </dl>
+  </details>
+</header>
+
+<section class="section section-action">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">K</span><h2>Kingdom Cards</h2></div>
+  <div class="chip-list"><span class="card-chip type-action" aria-label="Wharf, Action, Duration card"><span>Wharf</span><span class="type-marker marker-duration" title="Duration" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Cellar, Action card"><span>Cellar</span></span><span class="card-chip type-action" aria-label="Moat, Action, Reaction card"><span>Moat</span><span class="type-marker marker-reaction" title="Reaction" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Chancellor, Action card"><span>Chancellor</span></span><span class="card-chip type-action" aria-label="Woodcutter, Action card"><span>Woodcutter</span></span><span class="card-chip type-action" aria-label="Bureaucrat, Action, Attack card"><span>Bureaucrat</span><span class="type-marker marker-attack" title="Attack" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Feast, Action card"><span>Feast</span></span><span class="card-chip type-action" aria-label="Mine, Action card"><span>Mine</span></span><span class="card-chip type-action" aria-label="Adventurer, Action card"><span>Adventurer</span></span><span class="card-chip type-action" aria-label="Thief, Action, Attack card"><span>Thief</span><span class="type-marker marker-attack" title="Attack" aria-hidden="true"></span></span></div>
+</section>
+
+</body>
+</html>

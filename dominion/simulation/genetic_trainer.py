@@ -6,6 +6,11 @@ from typing import Callable, Optional, Tuple
 import coloredlogs
 
 from dominion.boards.loader import BoardConfig
+from dominion.simulation.adversarial_league import (
+    ORIGIN_CHAMPION,
+    AdversarialLeague,
+    aggregate_fitness,
+)
 from dominion.simulation.game_logger import GameLogger
 from dominion.simulation.strategy_battle import StrategyBattle, canonical_way_name
 from dominion.strategy.enhanced_strategy import PriorityRule, WayRule
@@ -71,6 +76,8 @@ class GeneticTrainer:
         hall_of_fame_size: int = 3,
         hall_of_fame_interval: int = 10,
         structured_genome: bool = True,
+        league: Optional["AdversarialLeague"] = None,
+        worst_case_weight: float = 0.0,
     ):
         if kingdom_cards is None:
             if board_config is None:
@@ -121,6 +128,19 @@ class GeneticTrainer:
         self.hall_of_fame_size = hall_of_fame_size
         self.hall_of_fame_interval = hall_of_fame_interval
         self.hall_of_fame: list[BaseStrategy] = []
+
+        # Adversarial league: a maintained opponent pool that replaces the
+        # hall of fame when supplied. Unlike the hall of fame it is seeded
+        # with outside reference opponents (engine archetypes) and retains by
+        # difficulty rather than recency, so the search cannot drift away from
+        # a strong topology unpunished. See
+        # :mod:`dominion.simulation.adversarial_league`.
+        self.league = league
+        # Worst-case pressure. 0.0 = the historical plain mean over panel
+        # members, which rewards specialising against the weakest opponent;
+        # higher values weight the worst matchups, which is the whole point of
+        # facing a league. Applies to any panel, league or not.
+        self.worst_case_weight = worst_case_weight
 
         # Structured "buy menu" genome: random init builds coherent menus
         # (greening block + capped kingdom picks) and mutation applies menu
@@ -521,7 +541,7 @@ class GeneticTrainer:
         rng_snapshot = random.getstate() if seeding else None
         try:
             panel = list(self._resolve_panel())
-            panel.extend(self.hall_of_fame)
+            panel.extend(self._pool_opponents())
             from dominion.ai.genetic_ai import GeneticAI
             from dominion.strategy.rule_pruning import reset_fire_flags
 
@@ -587,9 +607,9 @@ class GeneticTrainer:
                     breakdown.append((opponent.name, rate))
             self.last_eval_breakdown = breakdown
             if self.shape_rewards:
-                # Mean of the shaped per-opponent fitness values
-                return sum(entry[3] for entry in breakdown) / len(breakdown)
-            return sum(r for _, r in breakdown) / len(breakdown)
+                # Aggregate the shaped per-opponent fitness values
+                return self._aggregate([entry[3] for entry in breakdown])
+            return self._aggregate([r for _, r in breakdown])
         except Exception as e:
             log.exception("Error evaluating strategy %s. Got error: %s", strategy.name, e)
             # Clear the breakdown so train() can't credit this strategy with
@@ -720,6 +740,59 @@ class GeneticTrainer:
                 challenger_fitness,
                 self.confirm_games,
             )
+
+    def _pool_opponents(self) -> list[BaseStrategy]:
+        """Return the dynamic opponents appended to the static panel.
+
+        The league supersedes the hall of fame when supplied: both exist to
+        keep the gradient alive once the population beats the static
+        baselines, and running them together would double-count champions
+        while halving the games each opponent gets.
+        """
+
+        if self.league is not None:
+            return self.league.strategies()
+        return list(self.hall_of_fame)
+
+    def _aggregate(self, values: list[float]) -> float:
+        """Combine per-opponent scores into one fitness value."""
+
+        return aggregate_fitness(values, worst_case_weight=self.worst_case_weight)
+
+    def _update_league(self, gen: int) -> None:
+        """Promote the champion into the league and re-maintain the pool.
+
+        Mirrors :meth:`_update_hall_of_fame`, but the pool decides what to
+        keep by difficulty rather than recency, so the champion's own
+        breakdown is fed back before pruning.
+        """
+
+        champion = self._best_strategy
+        if champion is None or self.league is None:
+            return
+
+        added = self.league.add(
+            champion, name=f"League-g{gen + 1}", origin=ORIGIN_CHAMPION
+        )
+        if not added:
+            # The champion already re-derives a pool member; nothing changed,
+            # so there is no panel to rebase against.
+            return
+
+        self.league.record_champion_results(self.best_eval_breakdown)
+        self.league.prune()
+        log.info(
+            "League updated (%d member%s) — champion joins the opponent pool",
+            len(self.league),
+            "s" if len(self.league) != 1 else "",
+        )
+
+        # The panel just changed, so the incumbent's confirmed fitness is on
+        # the old scale; re-measure it so future challenger gating is fair.
+        rebased = self._eval_with_budget(champion, self.confirm_games, (_SEED_PHASE_REBASE, gen))
+        if rebased != float("-inf"):
+            self._record_champion_result(rebased, self.last_eval_breakdown)
+            self.league.record_champion_results(self.best_eval_breakdown)
 
     def _update_hall_of_fame(self, gen: int) -> None:
         """Add the current champion to the opponent hall of fame (if novel)
@@ -1257,12 +1330,14 @@ class GeneticTrainer:
                 # opponent panel so the fitness gradient doesn't saturate once
                 # the population beats the static baselines.
                 if (
-                    self.hall_of_fame_size > 0
-                    and self._best_strategy is not None
+                    self._best_strategy is not None
                     and (gen + 1) % self.hall_of_fame_interval == 0
                     and gen + 1 < self.generations
                 ):
-                    self._update_hall_of_fame(gen)
+                    if self.league is not None:
+                        self._update_league(gen)
+                    elif self.hall_of_fame_size > 0:
+                        self._update_hall_of_fame(gen)
 
                 # Calculate generation statistics
                 avg_fitness = sum(fitness_scores) / len(fitness_scores)

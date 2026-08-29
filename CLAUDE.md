@@ -12,15 +12,16 @@ To add a strategy, drop a module in one of those directories with a
 `create_<name>() -> EnhancedStrategy` factory (the return annotation is required;
 that is how the loader finds it). Do not add a lookup table anywhere else.
 
-## The board/strategy catalog is generated, never committed
+## Keep the committed board and strategy catalog current
 
 `PYTHONPATH=. python scripts/render_catalog.py` rebuilds
 `reports/strategies/index.html`, `reports/boards/index.html`, and one page per
 strategy and board. It runs in a couple of seconds.
 
-`reports/` is gitignored. Do not force-add catalog pages: a committed snapshot
-goes stale the moment a strategy is added, and a committed index whose target
-pages are missing is worse than no index. Regenerate on demand instead.
+The generated pages under `reports/strategies/` and `reports/boards/` are
+committed. Regenerate them whenever a strategy or board changes. Continuous
+integration compares a clean regeneration with the committed pages and rejects
+stale catalogs. Other content under `reports/` remains ignored.
 
 ## Checks before opening a PR
 

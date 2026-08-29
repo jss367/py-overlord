@@ -49,10 +49,32 @@ The indexes are written to `reports/boards/index.html` and
 contains all of its referenced cards and landscapes, and each board links
 back to those compatible strategies.
 
-The catalog is a build artifact: `reports/` is gitignored and the pages are
-not committed. Re-run the command whenever you want an up-to-date index; it
-takes a couple of seconds and always reflects the strategies currently on
-disk.
+The generated board and strategy catalog under `reports/boards/` and
+`reports/strategies/` is committed so it can be browsed directly from a
+checkout. Regenerate it after changing a board or strategy. Continuous
+integration regenerates the catalog in a temporary directory and fails if the
+committed pages are stale.
+
+## Adversarial league training
+
+Evolving against a fixed panel rewards specialising against its weakest
+member, which is why champions drift away from strategies that are strictly
+better. `scripts/league_evolve.py` trains against a maintained opponent pool
+instead: it seeds the pool with the board's assembled engine archetypes,
+scores fitness with worst-case pressure, and promotes each round's champion
+into the pool so the next round has to beat everything found so far.
+
+```
+PYTHONPATH=. python scripts/league_evolve.py --board boards/oslo.txt \
+    --rounds 3 --generations 15 --population 24 --games-per-eval 16 \
+    --compare "Oslo Workers Village Magnate Engine" --seed 1
+```
+
+`--compare` battles the final champion against registered reference
+strategies (the gate), and `--control` re-runs the same budget against the
+hall of fame with mean aggregation for a matched comparison. Reports are
+written to `reports/league/`. See `docs/strategy-search-architecture.md`
+for what the pool fixes and what is still unbuilt.
 
 ## Calibration suite
 

@@ -47,7 +47,9 @@ class StrategyLoader:
     def _load_from_directory(self, directory: Path, module_prefix: str) -> None:
         """Load strategies from *directory* using *module_prefix* for import names."""
 
-        strategy_files = [f for f in directory.glob("*.py") if f.stem != "__init__"]
+        strategy_files = sorted(
+            f for f in directory.glob("*.py") if f.stem != "__init__"
+        )
 
         for file_path in strategy_files:
             try:

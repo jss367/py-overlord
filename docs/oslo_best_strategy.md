@@ -8,9 +8,26 @@ Supply.
 ## Recommendation
 
 The best strategy found is `Oslo Workers' Village Magnate Multi Colony Engine`,
-defined in `generated_strategies/oslo_workers_village_magnate_engine.py`. It is
-the refined engine below with one change: it does not buy its first Colony
-until a single turn can afford four Colonies at once, then greens normally.
+defined in `generated_strategies/oslo_workers_village_magnate_engine.py`. It
+adds two policies to the refined engine below: it preserves a payload for
+King's Court, and it does not buy its first Colony until a single turn can
+afford four Colonies at once, then greens normally.
+
+## King's Court Target Preservation
+
+During the main Action phase, play King's Court before the last other Action
+in hand. Continue to follow the normal Action priority while at least two
+non-Court Actions remain. This produces the following choices:
+
+- With King's Court and one other Action, play King's Court and use it on that
+  Action.
+- With Workers' Village, King's Court, and Magnate, play Workers' Village
+  first. If it draws no additional Action, play King's Court and use it on
+  Magnate.
+
+Two seat-balanced 1,000-game comparisons against the previous version gave
+the target-preserving policy 1,082 wins in 2,000 games (54.1%) and an average
+score of 61.35 versus 54.79. No gain, greening, or Treasure rules changed.
 
 ## Multi-Colony Greening Gate
 
@@ -76,9 +93,11 @@ Use this gain order and the listed copy limits:
 9. Buy Duchy with two Provinces left, Estate with one Province left, then
    Silver as fallback economy.
 
-Play Workers' Villages and Grand Markets before King's Court. Chain King's
-Courts when possible, then use the final Court on Magnate. Play Bank after all
-other Treasures so it counts the complete Treasure payload.
+Play Workers' Villages and Grand Markets before King's Court while at least
+two possible non-Court payloads remain. Before playing the last other Action,
+play King's Court and use it on that Action. Chain King's Courts when possible,
+then use the final Court on Magnate. Play Bank after all other Treasures so it
+counts the complete Treasure payload.
 
 While an Anvil is in play and either the Village or Magnate target is
 unfinished, leave Coppers in hand. Anvil discards those Coppers at cleanup to
