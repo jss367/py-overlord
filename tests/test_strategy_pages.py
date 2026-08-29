@@ -123,3 +123,32 @@ def test_strategy_page_shows_readable_conditions_and_preserves_source(tmp_path):
     assert "Provinces remaining: at most" in page
     assert "PriorityRule.provinces_left" in page
     assert 'class="condition-detail"' in page
+
+
+def test_strategy_page_recovers_plain_english_from_untagged_lambdas(tmp_path):
+    render_strategy_pages(tmp_path, names=["Chapel Witch"])
+
+    page = (tmp_path / "chapel-witch.html").read_text(encoding="utf-8")
+
+    assert "You own no Witch" in page
+    assert "Turn number: at most 2 and You own no Chapel" in page
+    assert "Special strategy rule" not in page
+    assert "custom condition" not in page
+
+
+def test_strategy_page_shows_custom_function_source_and_configured_values(tmp_path):
+    render_strategy_pages(
+        tmp_path,
+        names=["Oslo Workers Village Magnate Multi Colony Engine"],
+    )
+
+    page = (
+        tmp_path / "oslo-workers-village-magnate-multi-colony-engine.html"
+    ).read_text(encoding="utf-8")
+
+    assert "Multi colony greening gate (fallback turn: 20; min colonies: 4)" in page
+    assert "Hold copper for anvil (magnate limit: 7; village limit: 7)" in page
+    assert "Configured values: fallback_turn = 20, min_colonies = 4" in page
+    assert "player.count_in_deck(&quot;Colony&quot;) &gt; 0" in page
+    assert "Special strategy rule" not in page
+    assert "custom condition" not in page

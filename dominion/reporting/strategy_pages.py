@@ -8,6 +8,7 @@ from html import escape
 import inspect
 from pathlib import Path
 from shutil import copyfile
+import textwrap
 from typing import Iterable
 
 from dominion.cards.base_card import CardType
@@ -64,16 +65,109 @@ CURATED_STRATEGY_GUIDES_DIRECTORY = Path(__file__).with_name(
 )
 
 
+def _tagged_condition_source(condition) -> str:
+    """Return the explicit, serializable source attached to a condition."""
+
+    if isinstance(condition, str):
+        return condition
+    return str(getattr(condition, "_source", ""))
+
+
+def _callable_source(condition) -> str:
+    """Recover readable source for a hand-written callable when possible."""
+
+    if not callable(condition):
+        return ""
+    try:
+        return textwrap.dedent(inspect.getsource(condition)).strip()
+    except (OSError, TypeError):
+        return ""
+
+
+def _callable_expression(condition, source: str) -> ast.AST | None:
+    """Extract a lambda or a single-return function's predicate expression."""
+
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return None
+
+    functions = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    ]
+    if functions:
+        if len(functions) == 1 and len(functions[0].body) == 1:
+            statement = functions[0].body[0]
+            if isinstance(statement, ast.Return):
+                return statement.value
+        return None
+
+    lambdas = [node for node in ast.walk(tree) if isinstance(node, ast.Lambda)]
+    if lambdas:
+        return lambdas[0].body
+    return None
+
+
+def _closure_values(condition) -> dict[str, object]:
+    if not callable(condition):
+        return {}
+    try:
+        return inspect.getclosurevars(condition).nonlocals
+    except TypeError:
+        return {}
+
+
+def _humanize_identifier(value: str) -> str:
+    return value.strip("_").replace("_", " ").capitalize()
+
+
+def _callable_condition_label(condition) -> str:
+    """Derive a useful title from a custom condition's enclosing helper."""
+
+    qualified_name = str(getattr(condition, "__qualname__", ""))
+    parts = qualified_name.split(".<locals>.")
+    candidate = parts[-2].split(".")[-1] if len(parts) > 1 else parts[-1].split(".")[-1]
+    if candidate in {"condition", "_condition", "<lambda>", "__init__", ""}:
+        return "Custom condition"
+
+    label = _humanize_identifier(candidate)
+    parameters = []
+    for name, value in _closure_values(condition).items():
+        if isinstance(value, (str, int, float, bool)):
+            parameters.append(f"{name.strip('_').replace('_', ' ')}: {value}")
+    if parameters:
+        label += f" ({'; '.join(parameters)})"
+    return label
+
+
 def _condition_label(condition) -> str:
     if condition is None:
         return "Always"
-    source = str(getattr(condition, "_source", ""))
-    if not source:
-        return "Special strategy rule"
-    try:
-        return _humanize_condition_node(ast.parse(source, mode="eval").body)
-    except (SyntaxError, ValueError, TypeError):
-        return "Special strategy rule"
+
+    source = _tagged_condition_source(condition)
+    if source:
+        try:
+            node = ast.parse(source, mode="eval").body
+            try:
+                return _humanize_condition_node(node)
+            except (ValueError, TypeError):
+                return _humanize_python_condition(node)
+        except (SyntaxError, ValueError, TypeError):
+            return source
+
+    callable_source = _callable_source(condition)
+    expression = _callable_expression(condition, callable_source)
+    if expression is not None:
+        try:
+            return _humanize_python_condition(
+                expression,
+                values=_closure_values(condition),
+            )
+        except (ValueError, TypeError):
+            pass
+    return _callable_condition_label(condition)
 
 
 _OPERATOR_LABELS = {
@@ -191,15 +285,244 @@ def _humanize_condition_node(node: ast.AST) -> str:
     raise ValueError(f"Unknown condition helper: {name}")
 
 
+_COMPARISON_LABELS = {
+    ast.Lt: "less than",
+    ast.LtE: "at most",
+    ast.Gt: "more than",
+    ast.GtE: "at least",
+    ast.Eq: "exactly",
+    ast.NotEq: "not",
+    ast.Is: "is",
+    ast.IsNot: "is not",
+    ast.In: "is among",
+    ast.NotIn: "is not among",
+}
+
+
+def _resolved_value(node: ast.AST, values: dict[str, object]) -> object:
+    if isinstance(node, ast.Name) and node.id in values:
+        return values[node.id]
+    return ast.literal_eval(node)
+
+
+def _call_argument(node: ast.Call, index: int, values: dict[str, object]) -> object:
+    return _resolved_value(node.args[index], values)
+
+
+def _deck_count_card(node: ast.AST, values: dict[str, object]) -> str | None:
+    if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+        return None
+    if node.func.attr not in {"count_in_deck", "count"} or not node.args:
+        return None
+    try:
+        return str(_call_argument(node, 0, values))
+    except (ValueError, TypeError):
+        if isinstance(node.args[0], ast.Name):
+            return node.args[0].id
+        return None
+
+
+def _supply_count_card(node: ast.AST, values: dict[str, object]) -> str | None:
+    if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+        return None
+    owner = node.func.value
+    if (
+        node.func.attr != "get"
+        or not isinstance(owner, ast.Attribute)
+        or owner.attr != "supply"
+        or not node.args
+    ):
+        return None
+    try:
+        return str(_call_argument(node, 0, values))
+    except (ValueError, TypeError):
+        return None
+
+
+def _remaining_pile_label(card_name: str) -> str:
+    plurals = {"Colony": "Colonies", "Duchy": "Duchies", "Province": "Provinces"}
+    return f"{plurals.get(card_name, card_name + ' cards')} remaining"
+
+
+def _humanize_python_value(node: ast.AST, values: dict[str, object]) -> str:
+    if isinstance(node, ast.Constant):
+        return str(node.value)
+    if isinstance(node, ast.Name):
+        if node.id in values and isinstance(values[node.id], (str, int, float, bool)):
+            return str(values[node.id])
+        return _humanize_identifier(node.id)
+    if isinstance(node, (ast.List, ast.Tuple, ast.Set)):
+        return _card_list_phrase(
+            _humanize_python_value(item, values) for item in node.elts
+        )
+    if isinstance(node, ast.Attribute):
+        attributes = {
+            "turn_number": "Turn number",
+            "provinces_left": "Provinces remaining",
+            "colonies_left": "Colonies remaining",
+            "actions": "Actions available",
+            "buys": "Buys available",
+            "coins": "Coins available",
+            "potions": "Potions available",
+            "hand": "Cards in hand",
+            "in_play": "Cards in play",
+        }
+        return attributes.get(node.attr, _humanize_identifier(node.attr))
+    if isinstance(node, ast.Call):
+        deck_card = _deck_count_card(node, values)
+        if deck_card is not None:
+            return f"{deck_card} copies owned"
+
+        supply_card = _supply_count_card(node, values)
+        if supply_card is not None:
+            return _remaining_pile_label(supply_card)
+
+        name = _call_name(node)
+        if name == "len" and node.args:
+            return _humanize_python_value(node.args[0], values)
+        if name == "get_card" and node.args:
+            return _humanize_python_value(node.args[0], values)
+        if name == "get_card_cost" and len(node.args) >= 2:
+            return f"{_humanize_python_value(node.args[1], values)} cost"
+        if name == "any" and node.args and isinstance(node.args[0], ast.GeneratorExp):
+            generator = node.args[0]
+            if generator.generators:
+                source = generator.generators[0].iter
+                comparison = generator.elt
+                if (
+                    isinstance(source, ast.Attribute)
+                    and source.attr == "in_play"
+                    and isinstance(comparison, ast.Compare)
+                    and len(comparison.comparators) == 1
+                ):
+                    return f"{_humanize_python_value(comparison.comparators[0], values)} is in play"
+        arguments = ", ".join(_humanize_python_value(arg, values) for arg in node.args)
+        return f"{_humanize_identifier(name)}({arguments})"
+    if isinstance(node, ast.BinOp):
+        operators = {
+            ast.Add: "plus",
+            ast.Sub: "minus",
+            ast.Mult: "times",
+            ast.Div: "divided by",
+        }
+        operator = operators.get(type(node.op), ast.unparse(node.op))
+        return (
+            f"{_humanize_python_value(node.left, values)} {operator} "
+            f"{_humanize_python_value(node.right, values)}"
+        )
+    return ast.unparse(node)
+
+
+def _humanize_python_condition(
+    node: ast.AST,
+    *,
+    values: dict[str, object] | None = None,
+) -> str:
+    """Translate common hand-written predicates without executing them."""
+
+    values = values or {}
+    if isinstance(node, ast.BoolOp):
+        joiner = " and " if isinstance(node.op, ast.And) else " or "
+        return joiner.join(
+            _humanize_python_condition(value, values=values) for value in node.values
+        )
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
+        return f"not ({_humanize_python_condition(node.operand, values=values)})"
+    if (
+        isinstance(node, ast.Call)
+        and _call_name(node) == "cmp"
+        and len(node.args) == 2
+        and values.get("cmp") is not None
+    ):
+        comparison_type = next(
+            (
+                {
+                    "<": ast.Lt,
+                    "<=": ast.LtE,
+                    ">": ast.Gt,
+                    ">=": ast.GtE,
+                    "==": ast.Eq,
+                    "!=": ast.NotEq,
+                }[symbol]
+                for symbol, comparator in PriorityRule._OP_MAP.items()
+                if comparator is values["cmp"]
+            ),
+            None,
+        )
+        if comparison_type is not None:
+            return _humanize_python_condition(
+                ast.Compare(
+                    left=node.args[0],
+                    ops=[comparison_type()],
+                    comparators=[node.args[1]],
+                ),
+                values=values,
+            )
+    if isinstance(node, ast.Compare) and len(node.ops) == len(node.comparators) == 1:
+        operator = _COMPARISON_LABELS.get(type(node.ops[0]), ast.unparse(node.ops[0]))
+        right_node = node.comparators[0]
+        left_card = _deck_count_card(node.left, values)
+        try:
+            right_value = _resolved_value(right_node, values)
+        except (ValueError, TypeError):
+            right_value = None
+
+        if left_card is not None and isinstance(right_value, (int, float)):
+            if isinstance(node.ops[0], ast.Eq) and right_value == 0:
+                return f"You own no {left_card}"
+            if isinstance(node.ops[0], ast.Lt) and right_value == 1:
+                return f"You do not own {left_card}"
+            if isinstance(node.ops[0], ast.Gt) and right_value == 0:
+                return f"You own {left_card}"
+            if isinstance(node.ops[0], ast.Lt):
+                return f"You own fewer than {right_value} copies of {left_card}"
+            if isinstance(node.ops[0], ast.LtE):
+                noun = "copy" if right_value == 1 else "copies"
+                return f"You own at most {right_value} {noun} of {left_card}"
+            if isinstance(node.ops[0], ast.GtE):
+                noun = "copy" if right_value == 1 else "copies"
+                return f"You own at least {right_value} {noun} of {left_card}"
+            if isinstance(node.ops[0], ast.Gt):
+                noun = "copy" if right_value == 1 else "copies"
+                return f"You own more than {right_value} {noun} of {left_card}"
+
+        left = _humanize_python_value(node.left, values)
+        right = _humanize_python_value(right_node, values)
+        return f"{left}: {operator} {right}"
+    if isinstance(node, ast.Call):
+        return _humanize_python_value(node, values)
+    return ast.unparse(node)
+
+
+def _condition_detail(condition) -> str:
+    source = _tagged_condition_source(condition)
+    if source:
+        return source
+
+    source = _callable_source(condition)
+    expression = _callable_expression(condition, source)
+    if expression is not None:
+        source = ast.unparse(expression)
+
+    parameters = [
+        f"{name} = {value!r}"
+        for name, value in _closure_values(condition).items()
+        if isinstance(value, (str, int, float, bool))
+    ]
+    if parameters:
+        source = f"{source}\n\nConfigured values: {', '.join(parameters)}"
+    return source or "Source unavailable"
+
+
 def _condition_markup(condition) -> str:
     label = escape(_condition_label(condition))
     if condition is None:
         return f'<span class="condition condition-always">{label}</span>'
-    source = str(getattr(condition, "_source", "custom condition"))
+    source = _condition_detail(condition)
     return (
         '<details class="condition-detail">'
         f'<summary><span class="condition">{label}</span></summary>'
-        f"<code>{escape(source)}</code>"
+        f"<pre><code>{escape(source)}</code></pre>"
         "</details>"
     )
 
@@ -677,7 +1000,8 @@ def _page_shell(title: str, body: str) -> str:
     .condition-always {{ background: #f2efe9; border-color: #ded7ca; color: var(--muted); }}
     .condition-detail summary {{ cursor: pointer; list-style-position: outside; }}
     .condition-detail summary::marker {{ color: #8da1a7; font-size: .72rem; }}
-    .condition-detail code {{ background: #282b2d; border-radius: 7px; color: #f3eee4; display: block; font-size: .73rem; margin-top: 7px; max-width: 720px; overflow-wrap: anywhere; padding: 8px 10px; white-space: normal; }}
+    .condition-detail pre {{ margin: 7px 0 0; max-width: 720px; }}
+    .condition-detail code {{ background: #282b2d; border-radius: 7px; color: #f3eee4; display: block; font-size: .73rem; overflow-wrap: anywhere; padding: 8px 10px; white-space: pre-wrap; }}
     .search {{
       background: var(--surface-raised);
       border: 1px solid var(--border-strong);
