@@ -136,6 +136,26 @@ def test_strategy_page_recovers_plain_english_from_untagged_lambdas(tmp_path):
     assert "custom condition" not in page
 
 
+def test_strategy_page_lists_overridden_decision_hooks(tmp_path):
+    render_strategy_pages(
+        tmp_path,
+        names=["Oslo Workers Village Magnate Multi Colony Engine", "Big Money"],
+    )
+
+    page = (
+        tmp_path / "oslo-workers-village-magnate-multi-colony-engine.html"
+    ).read_text(encoding="utf-8")
+
+    assert "Custom Behaviors" in page
+    assert "Choose anvil gain" in page
+    assert "Gain whichever of Village/Magnate is further below its target ratio." in page
+    assert "Choose action" in page
+    assert "preserve a payload" in page
+
+    plain_page = (tmp_path / "big-money.html").read_text(encoding="utf-8")
+    assert "Custom Behaviors" not in plain_page
+
+
 def test_strategy_page_shows_custom_function_source_and_configured_values(tmp_path):
     render_strategy_pages(
         tmp_path,
