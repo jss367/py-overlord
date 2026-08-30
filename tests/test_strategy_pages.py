@@ -139,6 +139,26 @@ def test_render_strategy_pages_resolves_alias_names(tmp_path):
     assert "dominion/strategy/strategies/big_money.py" in page
 
 
+def test_strategy_pages_distinguish_named_treasures_from_treasure_cards(tmp_path):
+    render_strategy_pages(
+        tmp_path,
+        names=["Oslo Workers Village Magnate Starting Strategy"],
+    )
+
+    page = (
+        tmp_path / "oslo-workers-village-magnate-starting-strategy.html"
+    ).read_text(encoding="utf-8")
+
+    assert '--treasure: #eadca9;' in page
+    assert 'class="card-chip type-treasure card-platinum"' in page
+    assert 'class="card-chip type-treasure card-gold"' in page
+    assert 'class="card-chip type-treasure card-silver"' in page
+    assert 'class="card-chip type-treasure card-copper"' in page
+    assert 'class="card-chip type-treasure" aria-label="Hoard' in page
+    assert '.card-chip.card-platinum {' in page
+    assert 'background: #f3efe7;' in page
+
+
 def test_render_strategy_pages_overwrites_stale_curated_guide(tmp_path):
     guide = tmp_path / "cursed-band-biding-time-strategy-guide.html"
     guide.write_text("stale guide", encoding="utf-8")
