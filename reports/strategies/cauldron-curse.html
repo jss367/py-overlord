@@ -18,7 +18,7 @@
       --accent-dark: #174555;
       --shadow: 0 12px 30px rgb(64 48 28 / 8%);
       --action: #f3ebdd;
-      --treasure: #e8c65a;
+      --treasure: #eadca9;
       --victory: #83b96c;
       --curse: #9270ac;
       --reaction: #5b8fc4;
@@ -131,9 +131,10 @@
     td:first-child { width: 68px; }
     .priority-number {
       align-items: center;
-      background: var(--section-color, var(--accent));
+      background: #f3efe7;
+      border: 1px solid #9d9384;
       border-radius: 50%;
-      color: #fff;
+      color: #5f574c;
       display: inline-flex;
       font-size: .78rem;
       font-weight: 800;
@@ -164,8 +165,12 @@
     .card-chip.type-night { background: var(--night); color: #fff; }
     .card-chip.type-other, .card-chip.card-unknown { background: #e9e4da; }
     .card-chip.card-copper { background: #c88758; }
-    .card-chip.card-silver { background: #d8dcdf; }
+    .card-chip.card-silver { background: #d7d9da; }
     .card-chip.card-gold { background: #e7bd42; }
+    .card-chip.card-platinum {
+      background: linear-gradient(135deg, #f4f7f7, #c6d8dd 48%, #e5eef0);
+      border-color: #91aeb5;
+    }
     .type-marker { border: 1px solid rgb(0 0 0 / 22%); border-radius: 50%; height: 8px; width: 8px; }
     .marker-attack { background: var(--attack); }
     .marker-reaction { background: var(--reaction); }
@@ -276,7 +281,7 @@
 </head>
 <body>
 
-<nav><a href="index.html">Strategy index</a></nav>
+<nav><a href="index.html">Strategy index</a><a href="leaderboard.html">Leaderboard</a></nav>
 <header class="hero">
   <p class="eyebrow">Dominion strategy</p>
   <h1>Cauldron Curse</h1>

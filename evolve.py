@@ -27,6 +27,7 @@ from dominion.analysis.strategy_library import find_compatible_strategies
 from dominion.analysis.seed_genomes import build_seed_genomes, trick_signature
 from dominion.boards.loader import load_board
 from dominion.reporting.html_report import generate_leaderboard_html
+from dominion.reporting.strategy_links import board_display_name
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.strategy.enhanced_strategy import EnhancedStrategy
@@ -404,7 +405,12 @@ def main():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     report_path = Path("reports") / f"{board_name}_tournament_{timestamp}.html"
     report_path.parent.mkdir(parents=True, exist_ok=True)
-    generate_leaderboard_html(final_results, report_path, verbose=True)
+    generate_leaderboard_html(
+        final_results,
+        report_path,
+        verbose=True,
+        context_label=f"the {board_display_name(Path(args.board))} board tournament",
+    )
 
 
 if __name__ == "__main__":

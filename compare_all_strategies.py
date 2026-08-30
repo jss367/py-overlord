@@ -12,6 +12,7 @@ from dominion.simulation.strategy_battle import (
     canonical_way_name,
 )
 from dominion.reporting.html_report import generate_leaderboard_html
+from dominion.reporting.strategy_links import board_display_name
 
 
 def _missing_board_components(
@@ -167,9 +168,14 @@ def main() -> None:
         board_name = Path(args.board).stem
         output = Path(f"reports/leaderboard_{board_name}.html")
     else:
-        output = Path("reports/leaderboard_all.html")
+        output = Path("reports/strategies/leaderboard.html")
     output.parent.mkdir(parents=True, exist_ok=True)
-    generate_leaderboard_html(results, output)
+    context_label = (
+        f"the {board_display_name(Path(args.board))} board round robin"
+        if args.board
+        else "a cross-board round robin"
+    )
+    generate_leaderboard_html(results, output, context_label=context_label)
     print(f"Leaderboard written to {output}")
 
 

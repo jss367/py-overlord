@@ -18,7 +18,7 @@
       --accent-dark: #174555;
       --shadow: 0 12px 30px rgb(64 48 28 / 8%);
       --action: #f3ebdd;
-      --treasure: #e8c65a;
+      --treasure: #eadca9;
       --victory: #83b96c;
       --curse: #9270ac;
       --reaction: #5b8fc4;
@@ -131,9 +131,10 @@
     td:first-child { width: 68px; }
     .priority-number {
       align-items: center;
-      background: var(--section-color, var(--accent));
+      background: #f3efe7;
+      border: 1px solid #9d9384;
       border-radius: 50%;
-      color: #fff;
+      color: #5f574c;
       display: inline-flex;
       font-size: .78rem;
       font-weight: 800;
@@ -164,8 +165,12 @@
     .card-chip.type-night { background: var(--night); color: #fff; }
     .card-chip.type-other, .card-chip.card-unknown { background: #e9e4da; }
     .card-chip.card-copper { background: #c88758; }
-    .card-chip.card-silver { background: #d8dcdf; }
+    .card-chip.card-silver { background: #d7d9da; }
     .card-chip.card-gold { background: #e7bd42; }
+    .card-chip.card-platinum {
+      background: linear-gradient(135deg, #f4f7f7, #c6d8dd 48%, #e5eef0);
+      border-color: #91aeb5;
+    }
     .type-marker { border: 1px solid rgb(0 0 0 / 22%); border-radius: 50%; height: 8px; width: 8px; }
     .marker-attack { background: var(--attack); }
     .marker-reaction { background: var(--reaction); }
@@ -276,7 +281,7 @@
 </head>
 <body>
 
-<nav><a href="index.html">Strategy index</a></nav>
+<nav><a href="index.html">Strategy index</a><a href="leaderboard.html">Leaderboard</a></nav>
 <header class="hero">
   <p class="eyebrow">Dominion strategy</p>
   <h1>Hunter Festival Infirmary</h1>
@@ -290,7 +295,7 @@
       <dt>Version</dt><dd>1.0</dd>
       <dt>Source</dt><dd>dominion/strategy/strategies/hunter_festival_infirmary.py</dd>
       <dt>Factory</dt><dd>create_hunter_festival_infirmary</dd>
-      <dt>Kingdom Cards</dt><dd><span class="chip-list"><span class="card-chip type-action" aria-label="Change, Action card"><span>Change</span></span><span class="card-chip type-victory" aria-label="Colony, Victory card"><span>Colony</span></span><span class="card-chip type-action" aria-label="Council Room, Action card"><span>Council Room</span></span><span class="card-chip type-action" aria-label="Festival, Action card"><span>Festival</span></span><span class="card-chip type-action" aria-label="Horse, Action card"><span>Horse</span></span><span class="card-chip type-action" aria-label="Hunter, Action, Liaison card"><span>Hunter</span><span class="type-marker marker-liaison" title="Liaison" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Infirmary, Action card"><span>Infirmary</span></span><span class="card-chip type-action" aria-label="Mystic, Action card"><span>Mystic</span></span><span class="card-chip type-treasure" aria-label="Platinum, Treasure card"><span>Platinum</span></span><span class="card-chip type-action" aria-label="Smithy, Action card"><span>Smithy</span></span><span class="card-chip type-action" aria-label="Storeroom, Action card"><span>Storeroom</span></span><span class="card-chip type-treasure" aria-label="Supplies, Treasure card"><span>Supplies</span></span><span class="card-chip type-action" aria-label="Vault, Action card"><span>Vault</span></span></span></dd><dt>Events</dt><dd><span class="chip-list"><span class="landscape-chip landscape-event">Triumph</span></span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
+      <dt>Kingdom Cards</dt><dd><span class="chip-list"><span class="card-chip type-action" aria-label="Change, Action card"><span>Change</span></span><span class="card-chip type-victory" aria-label="Colony, Victory card"><span>Colony</span></span><span class="card-chip type-action" aria-label="Council Room, Action card"><span>Council Room</span></span><span class="card-chip type-action" aria-label="Festival, Action card"><span>Festival</span></span><span class="card-chip type-action" aria-label="Horse, Action card"><span>Horse</span></span><span class="card-chip type-action" aria-label="Hunter, Action, Liaison card"><span>Hunter</span><span class="type-marker marker-liaison" title="Liaison" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Infirmary, Action card"><span>Infirmary</span></span><span class="card-chip type-action" aria-label="Mystic, Action card"><span>Mystic</span></span><span class="card-chip type-treasure card-platinum" aria-label="Platinum, Treasure card"><span>Platinum</span></span><span class="card-chip type-action" aria-label="Smithy, Action card"><span>Smithy</span></span><span class="card-chip type-action" aria-label="Storeroom, Action card"><span>Storeroom</span></span><span class="card-chip type-treasure" aria-label="Supplies, Treasure card"><span>Supplies</span></span><span class="card-chip type-action" aria-label="Vault, Action card"><span>Vault</span></span></span></dd><dt>Events</dt><dd><span class="chip-list"><span class="landscape-chip landscape-event">Triumph</span></span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
     </dl>
   </details>
 </header>
@@ -304,7 +309,7 @@
 
 Configured values: amount = 3</code></pre></details></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="landscape-chip landscape-event">Triumph</span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Cards gained this turn: at least 1</span></summary><pre><code>PriorityRule.cards_gained_this_turn(&#x27;&gt;=&#x27;, 1)</code></pre></details></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Platinum, Treasure card"><span>Platinum</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-treasure card-platinum" aria-label="Platinum, Treasure card"><span>Platinum</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">6</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Hunter, Action, Liaison card"><span>Hunter</span><span class="type-marker marker-liaison" title="Liaison" aria-hidden="true"></span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 4 copies of Hunter</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Hunter&#x27;, 4)</code></pre></details></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">7</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Festival, Action card"><span>Festival</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You do not own Festival</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Festival&#x27;, 1)</code></pre></details></td></tr>
@@ -353,7 +358,7 @@ Configured values: amount = 2</code></pre></details></td></tr>
   <div class="section-heading"><span class="section-icon" aria-hidden="true">$</span><h2>Treasure Priority</h2></div>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
-    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Platinum, Treasure card"><span>Platinum</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure card-platinum" aria-label="Platinum, Treasure card"><span>Platinum</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Supplies, Treasure card"><span>Supplies</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
