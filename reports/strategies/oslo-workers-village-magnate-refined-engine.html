@@ -18,7 +18,7 @@
       --accent-dark: #174555;
       --shadow: 0 12px 30px rgb(64 48 28 / 8%);
       --action: #f3ebdd;
-      --treasure: #e8c65a;
+      --treasure: #eadca9;
       --victory: #83b96c;
       --curse: #9270ac;
       --reaction: #5b8fc4;
@@ -131,9 +131,10 @@
     td:first-child { width: 68px; }
     .priority-number {
       align-items: center;
-      background: var(--section-color, var(--accent));
+      background: #f3efe7;
+      border: 1px solid #9d9384;
       border-radius: 50%;
-      color: #fff;
+      color: #5f574c;
       display: inline-flex;
       font-size: .78rem;
       font-weight: 800;
@@ -164,8 +165,12 @@
     .card-chip.type-night { background: var(--night); color: #fff; }
     .card-chip.type-other, .card-chip.card-unknown { background: #e9e4da; }
     .card-chip.card-copper { background: #c88758; }
-    .card-chip.card-silver { background: #d8dcdf; }
+    .card-chip.card-silver { background: #d7d9da; }
     .card-chip.card-gold { background: #e7bd42; }
+    .card-chip.card-platinum {
+      background: linear-gradient(135deg, #f4f7f7, #c6d8dd 48%, #e5eef0);
+      border-color: #91aeb5;
+    }
     .type-marker { border: 1px solid rgb(0 0 0 / 22%); border-radius: 50%; height: 8px; width: 8px; }
     .marker-attack { background: var(--attack); }
     .marker-reaction { background: var(--reaction); }
@@ -290,7 +295,7 @@
       <dt>Version</dt><dd>1.0</dd>
       <dt>Source</dt><dd>generated_strategies/oslo_workers_village_magnate_engine.py</dd>
       <dt>Factory</dt><dd>create_oslo_workers_village_magnate_refined_engine</dd>
-      <dt>Kingdom Cards</dt><dd><span class="chip-list"><span class="card-chip type-treasure" aria-label="Anvil, Treasure card"><span>Anvil</span></span><span class="card-chip type-treasure" aria-label="Bank, Treasure card"><span>Bank</span></span><span class="card-chip type-victory" aria-label="Colony, Victory card"><span>Colony</span></span><span class="card-chip type-action" aria-label="Grand Market, Action card"><span>Grand Market</span></span><span class="card-chip type-treasure" aria-label="Hoard, Treasure card"><span>Hoard</span></span><span class="card-chip type-action" aria-label="King&#x27;s Court, Action card"><span>King&#x27;s Court</span></span><span class="card-chip type-action" aria-label="Magnate, Action card"><span>Magnate</span></span><span class="card-chip type-treasure" aria-label="Platinum, Treasure card"><span>Platinum</span></span><span class="card-chip type-action" aria-label="Workers&#x27; Village, Action card"><span>Workers&#x27; Village</span></span></span></dd><dt>Events</dt><dd><span class="empty">None</span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
+      <dt>Kingdom Cards</dt><dd><span class="chip-list"><span class="card-chip type-treasure" aria-label="Anvil, Treasure card"><span>Anvil</span></span><span class="card-chip type-treasure" aria-label="Bank, Treasure card"><span>Bank</span></span><span class="card-chip type-victory" aria-label="Colony, Victory card"><span>Colony</span></span><span class="card-chip type-action" aria-label="Grand Market, Action card"><span>Grand Market</span></span><span class="card-chip type-treasure" aria-label="Hoard, Treasure card"><span>Hoard</span></span><span class="card-chip type-action" aria-label="King&#x27;s Court, Action card"><span>King&#x27;s Court</span></span><span class="card-chip type-action" aria-label="Magnate, Action card"><span>Magnate</span></span><span class="card-chip type-treasure card-platinum" aria-label="Platinum, Treasure card"><span>Platinum</span></span><span class="card-chip type-action" aria-label="Workers&#x27; Village, Action card"><span>Workers&#x27; Village</span></span></span></dd><dt>Events</dt><dd><span class="empty">None</span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
     </dl>
   </details>
 </header>
@@ -306,7 +311,7 @@
 <tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="King&#x27;s Court, Action card"><span>King&#x27;s Court</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 3 copies of King&#x27;s Court and You own at least 3 total copies of Magnate</span></summary><pre><code>PriorityRule.and_(PriorityRule.max_in_deck(&quot;King&#x27;s Court&quot;, 3), PriorityRule.has_cards([&#x27;Magnate&#x27;], 3))</code></pre></details></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">6</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Workers&#x27; Village, Action card"><span>Workers&#x27; Village</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 7 copies of Workers&#x27; Village</span></summary><pre><code>PriorityRule.max_in_deck(&quot;Workers&#x27; Village&quot;, 7)</code></pre></details></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">7</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Hoard, Treasure card"><span>Hoard</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You do not own Hoard</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Hoard&#x27;, 1)</code></pre></details></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">8</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Platinum, Treasure card"><span>Platinum</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You do not own Platinum</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Platinum&#x27;, 1)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">8</span></td><td data-label="Card"><span class="card-chip type-treasure card-platinum" aria-label="Platinum, Treasure card"><span>Platinum</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You do not own Platinum</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Platinum&#x27;, 1)</code></pre></details></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">9</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Magnate, Action card"><span>Magnate</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 7 copies of Magnate</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Magnate&#x27;, 7)</code></pre></details></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">10</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Grand Market, Action card"><span>Grand Market</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 2 copies of Grand Market</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Grand Market&#x27;, 2)</code></pre></details></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">11</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Duchy, Victory card"><span>Duchy</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Provinces remaining: at most 2</span></summary><pre><code>PriorityRule.provinces_left(&#x27;&lt;=&#x27;, 2)</code></pre></details></td></tr>
@@ -338,7 +343,7 @@
   <div class="section-heading"><span class="section-icon" aria-hidden="true">$</span><h2>Treasure Priority</h2></div>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
-    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Platinum, Treasure card"><span>Platinum</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure card-platinum" aria-label="Platinum, Treasure card"><span>Platinum</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Hoard, Treasure card"><span>Hoard</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
