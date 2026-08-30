@@ -90,6 +90,9 @@
     .section-trash { --section-color: #a65b54; }
     .section-treasure { --section-color: #bd8c24; }
     .section-way { --section-color: #518ea6; }
+    .section-custom { --section-color: #7b6aa8; }
+    .section-note { color: var(--muted, #666); margin: 0 0 10px; }
+    .behavior-name { font-weight: 600; }
     .meta {
       display: grid;
       gap: 12px 24px;
@@ -299,6 +302,77 @@
     </dl>
   </details>
 </header>
+
+<section class="section section-custom">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">ƒ</span><h2>Custom Behaviors</h2></div>
+  <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
+  <table class="priority-table">
+    <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
+    cards = {card.name: card for card in choices if card is not None}
+    coins = player.coins + player.coin_tokens
+    colonies = state.supply.get(&quot;Colony&quot;, 0)
+
+    if &quot;Colony&quot; in cards:
+        return cards[&quot;Colony&quot;]
+    if colonies &lt;= 3 and &quot;Province&quot; in cards:
+        return cards[&quot;Province&quot;]
+
+    if (
+        player.cards_gained_this_turn &gt;= 1
+        and coins &gt;= 5
+        and colonies &lt;= 4
+        and &quot;Triumph&quot; in cards
+    ):
+        return cards[&quot;Triumph&quot;]
+
+    if &quot;Platinum&quot; in cards:
+        return cards[&quot;Platinum&quot;]
+    if coins &gt;= 6 and &quot;Gold&quot; in cards:
+        return cards[&quot;Gold&quot;]
+
+    if coins == 5:
+        for card_name, limit in (
+            (&quot;Hunter&quot;, 4),
+            (&quot;Festival&quot;, 1),
+            (&quot;Council Room&quot;, 2),
+            (&quot;Smithy&quot;, 1),
+        ):
+            if self._count(player, card_name) &lt; limit and card_name in cards:
+                return cards[card_name]
+
+    if coins == 4:
+        if self._count(player, &quot;Smithy&quot;) &lt; 1 and &quot;Smithy&quot; in cards:
+            return cards[&quot;Smithy&quot;]
+        if (
+            self._count(player, &quot;Infirmary&quot;) &lt; 1
+            and self._junk_count(player) &gt;= 3
+            and &quot;Infirmary&quot; in cards
+        ):
+            return cards[&quot;Infirmary&quot;]
+        if self._count(player, &quot;Supplies&quot;) &lt; 5 and &quot;Supplies&quot; in cards:
+            return cards[&quot;Supplies&quot;]
+
+    if coins == 3:
+        if (
+            self._count(player, &quot;Infirmary&quot;) &lt; 1
+            and self._junk_count(player) &gt;= 3
+            and &quot;Infirmary&quot; in cards
+        ):
+            return cards[&quot;Infirmary&quot;]
+        if self._count(player, &quot;Supplies&quot;) &lt; 5 and &quot;Supplies&quot; in cards:
+            return cards[&quot;Supplies&quot;]
+
+    if coins &lt;= 2 and self._count(player, &quot;Supplies&quot;) &lt; 5 and &quot;Supplies&quot; in cards:
+        return cards[&quot;Supplies&quot;]
+    if colonies &lt;= 2 and &quot;Duchy&quot; in cards:
+        return cards[&quot;Duchy&quot;]
+    if &quot;Silver&quot; in cards:
+        return cards[&quot;Silver&quot;]
+    return None
+</code></pre></details></td></tr></tbody>
+  </table>
+</section>
 
 <section class="section section-gain">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>

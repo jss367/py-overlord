@@ -514,6 +514,60 @@ def _condition_detail(condition) -> str:
     return source or "Source unavailable"
 
 
+_DECISION_HOOK_PREFIXES = ("choose_", "should_")
+
+
+def _overridden_decision_hooks(strategy) -> list[tuple[str, str, str]]:
+    """Describe decision methods a strategy defines below ``EnhancedStrategy``.
+
+    Some strategies override Python hooks (for example an Anvil gain policy)
+    that the priority tables cannot express, so pages list them explicitly.
+    Returns ``(label, description, source)`` triples, most-derived class first.
+    """
+
+    hooks: list[tuple[str, str, str]] = []
+    seen: set[str] = set()
+    for klass in type(strategy).__mro__:
+        if klass is EnhancedStrategy:
+            break
+        for name, func in vars(klass).items():
+            if (
+                name in seen
+                or not name.startswith(_DECISION_HOOK_PREFIXES)
+                or not inspect.isfunction(func)
+            ):
+                continue
+            seen.add(name)
+            doc = inspect.getdoc(func) or ""
+            description = (
+                " ".join(doc.split("\n\n")[0].split())
+                if doc
+                else "See the source for details."
+            )
+            try:
+                source = textwrap.dedent(inspect.getsource(func))
+            except (OSError, TypeError):
+                source = "Source unavailable"
+            hooks.append((_humanize_identifier(name), description, source))
+    return hooks
+
+
+def _custom_behavior_rows(strategy) -> str:
+    rows = []
+    for label, description, source in _overridden_decision_hooks(strategy):
+        rows.append(
+            "<tr>"
+            f'<td data-label="Hook"><span class="behavior-name">{escape(label)}</span></td>'
+            f'<td data-label="What it does">{escape(description)}'
+            '<details class="condition-detail">'
+            '<summary><span class="condition">Source</span></summary>'
+            f"<pre><code>{escape(source)}</code></pre>"
+            "</details></td>"
+            "</tr>"
+        )
+    return "\n".join(rows)
+
+
 def _condition_markup(condition) -> str:
     label = escape(_condition_label(condition))
     if condition is None:
@@ -1037,6 +1091,9 @@ def _page_shell(title: str, body: str, *, extra_styles: str = "") -> str:
     .section-trash {{ --section-color: #a65b54; }}
     .section-treasure {{ --section-color: #bd8c24; }}
     .section-way {{ --section-color: #518ea6; }}
+    .section-custom {{ --section-color: #7b6aa8; }}
+    .section-note {{ color: var(--muted, #666); margin: 0 0 10px; }}
+    .behavior-name {{ font-weight: 600; }}
     .meta {{
       display: grid;
       gap: 12px 24px;
@@ -1244,6 +1301,21 @@ def render_strategy_page(
         f"<dt>{escape(label)}</dt><dd>{_reference_list(values, label)}</dd>"
         for label, values in item.references.items()
     )
+    custom_rows = _custom_behavior_rows(strategy)
+    custom_section = (
+        f"""
+<section class="section section-custom">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">ƒ</span><h2>Custom Behaviors</h2></div>
+  <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
+  <table class="priority-table">
+    <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
+    <tbody>{custom_rows}</tbody>
+  </table>
+</section>
+"""
+        if custom_rows
+        else ""
+    )
     leaderboard_nav = (
         f'<a href="{escape(leaderboard_href)}">Leaderboard</a>'
         if leaderboard_href
@@ -1268,7 +1340,7 @@ def render_strategy_page(
     </dl>
   </details>
 </header>
-
+{custom_section}
 <section class="section section-gain">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>
   <table class="priority-table">

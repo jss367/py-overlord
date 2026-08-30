@@ -90,6 +90,9 @@
     .section-trash { --section-color: #a65b54; }
     .section-treasure { --section-color: #bd8c24; }
     .section-way { --section-color: #518ea6; }
+    .section-custom { --section-color: #7b6aa8; }
+    .section-note { color: var(--muted, #666); margin: 0 0 10px; }
+    .behavior-name { font-weight: 600; }
     .meta {
       display: grid;
       gap: 12px 24px;
@@ -299,6 +302,58 @@
     </dl>
   </details>
 </header>
+
+<section class="section section-custom">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">ƒ</span><h2>Custom Behaviors</h2></div>
+  <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
+  <table class="priority-table">
+    <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">Buy rules tuned for BM+Smithy: - Province at 8+ - Duchy with pressure (&lt;=4 Provinces left) on $5+ - Estate very late (&lt;=2 Provinces left) on $2+ - 1–2 Smithies early at exactly $4 (avoid terminal collision spam) - Gold at 6+ - Silver at 3–5 (unless Duchy rule triggered at $5)<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
+    &quot;&quot;&quot;Buy rules tuned for BM+Smithy:
+    - Province at 8+
+    - Duchy with pressure (&lt;=4 Provinces left) on $5+
+    - Estate very late (&lt;=2 Provinces left) on $2+
+    - 1–2 Smithies early at exactly $4 (avoid terminal collision spam)
+    - Gold at 6+
+    - Silver at 3–5 (unless Duchy rule triggered at $5)
+    &quot;&quot;&quot;
+    card = {c.name: c for c in choices if c is not None}
+    coins = player.coins
+    prov_left = self._provinces_left(state)
+    smithies = self._count(player, &quot;Smithy&quot;)
+
+    # 1) Provinces always when affordable.
+    if coins &gt;= 8 and &quot;Province&quot; in card:
+        return card[&quot;Province&quot;]
+
+    # 2) Endgame VP rules (pressure matters in BM mirrors).
+    if prov_left &lt;= 4:
+        # Prefer Duchy on $5+ over more economy once the pile is low.
+        if coins &gt;= 5 and &quot;Duchy&quot; in card:
+            return card[&quot;Duchy&quot;]
+    if prov_left &lt;= 2:
+        if coins &gt;= 2 and &quot;Estate&quot; in card:
+            return card[&quot;Estate&quot;]
+
+    # 3) Payload
+    if coins &gt;= 6 and &quot;Gold&quot; in card:
+        return card[&quot;Gold&quot;]
+
+    # 4) Smithy buys (tempo-limited, early only).
+    #    Buy at exactly $4, cap at 2 copies, and avoid when Provinces already low.
+    if coins == 4 and smithies &lt; 2 and prov_left &gt; 6 and &quot;Smithy&quot; in card:
+        return card[&quot;Smithy&quot;]
+
+    # 5) Silver fallback (solid in BM, especially when we miss $6).
+    if coins &gt;= 3 and &quot;Silver&quot; in card:
+        # Minor tweak: if coins == 5 and Duchy rule didn&#x27;t trigger (prov_left &gt; 4), prefer Silver.
+        return card[&quot;Silver&quot;]
+
+    # Nothing worthwhile
+    return None
+</code></pre></details></td></tr></tbody>
+  </table>
+</section>
 
 <section class="section section-gain">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>

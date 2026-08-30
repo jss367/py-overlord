@@ -90,6 +90,9 @@
     .section-trash { --section-color: #a65b54; }
     .section-treasure { --section-color: #bd8c24; }
     .section-way { --section-color: #518ea6; }
+    .section-custom { --section-color: #7b6aa8; }
+    .section-note { color: var(--muted, #666); margin: 0 0 10px; }
+    .behavior-name { font-weight: 600; }
     .meta {
       display: grid;
       gap: 12px 24px;
@@ -299,6 +302,19 @@
     </dl>
   </details>
 </header>
+
+<section class="section section-custom">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">ƒ</span><h2>Custom Behaviors</h2></div>
+  <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
+  <table class="priority-table">
+    <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose torturer response</span></td><td data-label="What it does">Discard at 4+ cards; otherwise take the Curse to preserve hand shape.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_torturer_response(self, state, player):
+    &quot;&quot;&quot;Discard at 4+ cards; otherwise take the Curse to preserve hand shape.&quot;&quot;&quot;
+
+    return len(player.hand) &gt;= 4
+</code></pre></details></td></tr></tbody>
+  </table>
+</section>
 
 <section class="section section-gain">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>

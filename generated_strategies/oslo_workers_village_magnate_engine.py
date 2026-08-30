@@ -271,6 +271,13 @@ class OsloWorkersVillageMagnateMultiColonyEngine(OsloWorkersVillageMagnateRefine
                 )
 
     def choose_action(self, state, player, choices):
+        """Play King's Court before the last other Action to preserve a payload.
+
+        Only the ordinary Action-phase choice is overridden. When King's
+        Court asks for its payload, the strategy's normal priority order
+        chooses the best remaining Action (for example, Magnate).
+        """
+
         real_choices = [card for card in choices if card is not None]
         kings_court = next(
             (card for card in real_choices if card.name == "King's Court"),
@@ -280,9 +287,6 @@ class OsloWorkersVillageMagnateMultiColonyEngine(OsloWorkersVillageMagnateRefine
             card for card in real_choices if card.name != "King's Court"
         ]
 
-        # Only override the ordinary Action-phase choice. When King's Court
-        # asks for its payload, the strategy's normal priority order should
-        # choose the best remaining Action (for example, Magnate).
         if (
             getattr(state, "_choosing_main_action_phase", False)
             and kings_court is not None

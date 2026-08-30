@@ -90,6 +90,9 @@
     .section-trash { --section-color: #a65b54; }
     .section-treasure { --section-color: #bd8c24; }
     .section-way { --section-color: #518ea6; }
+    .section-custom { --section-color: #7b6aa8; }
+    .section-note { color: var(--muted, #666); margin: 0 0 10px; }
+    .behavior-name { font-weight: 600; }
     .meta {
       display: grid;
       gap: 12px 24px;
@@ -299,6 +302,54 @@
     </dl>
   </details>
 </header>
+
+<section class="section section-custom">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">ƒ</span><h2>Custom Behaviors</h2></div>
+  <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
+  <table class="priority-table">
+    <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">Play King&#x27;s Court before the last other Action to preserve a payload.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+    &quot;&quot;&quot;Play King&#x27;s Court before the last other Action to preserve a payload.
+
+    Only the ordinary Action-phase choice is overridden. When King&#x27;s
+    Court asks for its payload, the strategy&#x27;s normal priority order
+    chooses the best remaining Action (for example, Magnate).
+    &quot;&quot;&quot;
+
+    real_choices = [card for card in choices if card is not None]
+    kings_court = next(
+        (card for card in real_choices if card.name == &quot;King&#x27;s Court&quot;),
+        None,
+    )
+    other_actions = [
+        card for card in real_choices if card.name != &quot;King&#x27;s Court&quot;
+    ]
+
+    if (
+        getattr(state, &quot;_choosing_main_action_phase&quot;, False)
+        and kings_court is not None
+        and len(other_actions) == 1
+    ):
+        return kings_court
+
+    return super().choose_action(state, player, choices)
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose anvil gain</span></td><td data-label="What it does">Gain whichever of Village/Magnate is further below its target ratio.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_gain(self, state, player, choices):
+    &quot;&quot;&quot;Gain whichever of Village/Magnate is further below its target ratio.&quot;&quot;&quot;
+
+    targets = [
+        card
+        for card in choices
+        if card is not None
+        and card.name in {&quot;Workers&#x27; Village&quot;, &quot;Magnate&quot;}
+        and player.count_in_deck(card.name) &lt; 7
+    ]
+    if targets:
+        return min(targets, key=lambda card: player.count_in_deck(card.name) / 7)
+    return self.choose_gain(state, player, choices)
+</code></pre></details></td></tr></tbody>
+  </table>
+</section>
 
 <section class="section section-gain">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>
