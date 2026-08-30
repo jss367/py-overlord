@@ -25,6 +25,7 @@ import coloredlogs
 from dominion.ai.genetic_ai import GeneticAI
 from dominion.boards.loader import load_board
 from dominion.reporting.html_report import generate_leaderboard_html
+from dominion.reporting.strategy_links import board_display_name
 from dominion.simulation.strategy_battle import StrategyBattle
 
 logger = logging.getLogger(__name__)
@@ -227,7 +228,12 @@ def main():
         output_path = args.output
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    generate_leaderboard_html(results, output_path, verbose=True)
+    generate_leaderboard_html(
+        results,
+        output_path,
+        verbose=True,
+        context_label=f"the {board_display_name(Path(args.board))} board round robin",
+    )
     logger.info("Report: %s", output_path)
 
 

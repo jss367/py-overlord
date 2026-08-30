@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hyderabad Scholar Money Strategy</title>
+  <title>Strategy Leaderboard</title>
   <style>
     :root {
       color-scheme: light;
@@ -280,74 +280,56 @@
       .search, script { display: none; }
       .condition-detail code { color: #000; background: #eee; }
     }
+
+    .podium { align-items: stretch; display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); margin: 0 0 30px; }
+    .podium-card {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 5px 16px rgb(64 48 28 / 5%);
+      display: grid;
+      gap: 7px;
+      padding: 20px;
+    }
+    .podium-card h2 { font-size: 1.12rem; line-height: 1.2; }
+    .podium-card h2 a { color: var(--text); text-decoration: none; }
+    .podium-place { color: var(--muted); font-size: .72rem; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+    .podium-rate { color: var(--accent-dark); font-family: Georgia, "Times New Roman", serif; font-size: 2rem; line-height: 1; }
+    .podium-rank-1 { border-color: #b9932f; box-shadow: inset 0 4px 0 var(--treasure), var(--shadow); }
+    .table-scroll { overflow-x: auto; padding-bottom: 4px; }
+    .leaderboard-table { min-width: 920px; }
+    .leaderboard-table td:first-child { width: 54px; }
+    .leaderboard-table td:nth-child(2) { font-weight: 800; min-width: 170px; }
+    .leaderboard-description { color: #5d554a; font-size: .83rem; max-width: 300px; }
+    .rank-badge { align-items: center; background: #eee8dc; border-radius: 50%; display: inline-flex; font-size: .76rem; font-weight: 850; height: 27px; justify-content: center; width: 27px; }
+    .rate-value { font-variant-numeric: tabular-nums; font-weight: 850; }
+    .rate-track { background: #e8e1d4; border-radius: 999px; height: 5px; margin-top: 5px; overflow: hidden; width: 76px; }
+    .rate-track span { background: var(--accent); display: block; height: 100%; }
+    .leaderboard-empty h2 { color: var(--text); font-size: 1.15rem; }
+    .leaderboard-empty code { background: #ebe5d9; border-radius: 5px; color: var(--text); padding: 2px 5px; }
+    @media (max-width: 680px) {
+      .podium { grid-template-columns: 1fr; }
+    }
+
   </style>
 </head>
 <body>
 
-<nav><a href="index.html">Strategy index</a><a href="leaderboard.html">Leaderboard</a></nav>
-<header class="hero">
-  <p class="eyebrow">Dominion strategy</p>
-  <h1>Hyderabad Scholar Money</h1>
-  <p class="hero-description">Money + Scholar mass-draw riding Progress topdecks.</p>
-
-  <div class="hero-links"><strong>Compatible boards</strong><span class="chip-list"><a class="board-chip" href="../boards/hyderabad.html">Hyderabad</a></span></div>
-  <details class="technical-details">
-    <summary>Implementation details and referenced components</summary>
-    <dl class="meta">
-      <dt>Internal name</dt><dd>Hyderabad Scholar Money</dd>
-      <dt>Version</dt><dd>1.0</dd>
-      <dt>Source</dt><dd>dominion/strategy/strategies/hyderabad_seeds.py</dd>
-      <dt>Factory</dt><dd>create_hyderabad_scholar_money</dd>
-      <dt>Kingdom Cards</dt><dd><span class="chip-list"><span class="card-chip type-action" aria-label="Scholar, Action card"><span>Scholar</span></span></span></dd><dt>Events</dt><dd><span class="empty">None</span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
-    </dl>
-  </details>
+<nav><a href="index.html">Strategy index</a><a href="../boards/index.html">Board index</a></nav>
+<header class="hero leaderboard-hero">
+  <p class="eyebrow">Tournament standings</p>
+  <h1>Strategy Leaderboard</h1>
+  <p class="hero-description">Ranked by simulated win rate. Results reflect <strong>a cross-board round robin</strong>; compare strategies on the same board before drawing broad conclusions.</p>
 </header>
 
-<section class="section section-gain">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>
-  <table class="priority-table">
-    <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
-    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Province, Victory card"><span>Province</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Coins available: at least 8</span></summary><pre><code>PriorityRule.resources(&#x27;coins&#x27;, &#x27;&gt;=&#x27;, 8)</code></pre></details></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Scholar, Action card"><span>Scholar</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 2 copies of Scholar</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Scholar&#x27;, 2)</code></pre></details></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Duchy, Victory card"><span>Duchy</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Provinces remaining: at most 4</span></summary><pre><code>PriorityRule.provinces_left(&#x27;&lt;=&#x27;, 4)</code></pre></details></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">6</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Estate, Victory card"><span>Estate</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Provinces remaining: at most 2</span></summary><pre><code>PriorityRule.provinces_left(&#x27;&lt;=&#x27;, 2)</code></pre></details></td></tr></tbody>
-  </table>
-</section>
+<section class="section">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">#</span><h2>Full standings</h2></div>
+  
+<div class="empty-state leaderboard-empty">
+  <h2>No tournament results yet</h2>
+  <p>Run <code>python compare_all_strategies.py</code> to simulate the registered strategies and populate this page.</p>
+</div>
 
-<section class="section section-action">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">A</span><h2>Action Priority</h2></div>
-  <table class="priority-table">
-    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
-    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Scholar, Action card"><span>Scholar</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Treasures in hand: at most 3</span></summary><pre><code>PriorityRule.treasures_in_hand(&#x27;&lt;=&#x27;, 3)</code></pre></details></td></tr></tbody>
-  </table>
-</section>
-
-<section class="section section-trash">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">×</span><h2>Trash Priority</h2></div>
-  <table class="priority-table">
-    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
-    <tbody><tr><td colspan="3" class="empty">None</td></tr></tbody>
-  </table>
-</section>
-
-<section class="section section-treasure">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">$</span><h2>Treasure Priority</h2></div>
-  <table class="priority-table">
-    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
-    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
-  </table>
-</section>
-
-<section class="section section-way">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">W</span><h2>Way Policy</h2></div>
-  <table class="priority-table">
-    <thead><tr><th>#</th><th>Card</th><th>Way</th><th>Condition</th></tr></thead>
-    <tbody><tr><td colspan="4" class="empty">None</td></tr></tbody>
-  </table>
 </section>
 
 </body>
