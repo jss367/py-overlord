@@ -13,6 +13,16 @@ def test_strategy_loader_basic():
 def test_strategy_loader_unknown_returns_none():
     loader = StrategyLoader()
     assert loader.get_strategy('No Such Strategy') is None
+    assert loader.get_strategy_factory('No Such Strategy') is None
+
+
+def test_strategy_loader_exposes_resolved_factory():
+    loader = StrategyLoader()
+
+    factory = loader.get_strategy_factory("Big Money")
+
+    assert factory is not None
+    assert factory().name == loader.get_strategy("Big Money").name
 
 
 def test_strategy_loader_display_name_for_aliases():

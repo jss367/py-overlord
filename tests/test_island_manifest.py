@@ -16,6 +16,7 @@ import pytest  # noqa: E402
 
 from island_tournament import (  # noqa: E402
     DEFAULT_BOARD,
+    _resolve_strategy,
     _seed_refs_from_manifest,
     assemble_entrants,
     resolve_tournament_board,
@@ -198,12 +199,13 @@ def test_resolvable_seed_ref_unknown_loader_key_returns_none():
     assert _resolvable_seed_ref("loader", "Nonexistent", loader) is None
 
 
-# --- library seed_ref: spec -> canonical loadable NAME (PR #296 regression) --
+# --- library seed_ref: canonical name or exact factory spec -----------------
 #
 # Library island specs are keyed by their ``module:function`` entry *spec*, not
-# a loader name. The seed_ref must resolve that spec back to the strategy's
-# canonical loadable name so ``--include-seeds`` enters the library seed again,
-# and so it dedupes byte-identically against the panel ref for that strategy.
+# a loader name. When that spec is the factory exposed for the strategy's name,
+# the seed_ref uses the canonical loader name so it dedupes against the panel.
+# When the name points at a different same-named factory, the seed_ref must keep
+# the exact spec so ``--include-seeds`` runs the island's actual starting seed.
 
 
 def _lisbon_board():
@@ -261,9 +263,9 @@ def test_resolvable_library_ref_equals_panel_ref_for_same_strategy():
     assert seed_ref == panel_ref
 
 
-def test_resolvable_library_spec_that_does_not_round_trip_returns_none():
-    # A spec that resolves to a strategy whose .name is NOT a registered loader
-    # name -> None (acceptable; the tournament just skips it). No crash.
+def test_unregistered_library_strategy_uses_resolvable_factory_spec():
+    # A library strategy no longer needs a registered loader name: the
+    # tournament can resolve its module:function factory spec directly.
     from dominion.boards.loader import load_board
 
     board = load_board("boards/lisbon.txt")
@@ -281,7 +283,48 @@ def test_resolvable_library_spec_that_does_not_round_trip_returns_none():
     if found is None:
         pytest.skip("no library strategy for this board")
 
-    assert _resolvable_seed_ref("library", found, _UnregisteredLoader(), board) is None
+    assert _resolvable_seed_ref("library", found, _UnregisteredLoader(), board) == found
+
+
+def test_duplicate_named_library_seeds_keep_distinct_resolvable_refs():
+    """Regression for #297: both BigMoneySmithy implementations must survive."""
+    from dominion.analysis.strategy_library import find_compatible_strategies
+    from dominion.boards.loader import load_board
+    from dominion.strategy.strategy_loader import StrategyLoader
+
+    board = load_board("boards/cauldron_curse.txt")
+    loader = StrategyLoader()
+    entries = [
+        entry
+        for entry in find_compatible_strategies(
+            board.kingdom_cards, top_k=10_000, min_overlap=1
+        )
+        if entry.name == "BigMoneySmithy"
+    ]
+    assert len(entries) == 2
+
+    refs = [
+        _resolvable_seed_ref("library", entry.spec, loader, board)
+        for entry in entries
+    ]
+
+    assert len(set(refs)) == 2
+    assert all(ref is not None for ref in refs)
+    # The loader-exposed implementation keeps its canonical name so a panel
+    # entry dedupes; the shadowed implementation keeps its exact factory spec.
+    assert "BigMoneySmithy" in refs
+    assert any(ref == entry.spec for ref, entry in zip(refs, entries))
+
+    resolved_versions = {
+        entry.spec: _resolve_strategy(ref, loader)[1].version
+        for entry, ref in zip(entries, refs)
+    }
+    expected_versions = {entry.spec: entry.factory().version for entry in entries}
+    assert resolved_versions == expected_versions
+
+    entrants = assemble_entrants([*refs, "BigMoneySmithy"], loader)
+    assert len(entrants) == 2
+    assert len({name for name, _ in entrants}) == 2
 
 
 def test_resolvable_library_unknown_spec_returns_none():

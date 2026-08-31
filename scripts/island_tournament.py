@@ -15,13 +15,14 @@ Usage
     # From a manifest (typical):
     python scripts/island_tournament.py --manifest generated_strategies/island_champions/<RUN_ID>/manifest.json --games 400
 
-    # Ad-hoc strategy list (names or *.py paths):
+    # Ad-hoc strategy list (loader names, module:function specs, or *.py paths):
     python scripts/island_tournament.py --strategies "Big Money" "Lisbon City Engine" generated_strategies/island_champions/.../lisbon_investment_rush_champion.py --games 200
 """
 
 from __future__ import annotations
 
 import argparse
+import importlib
 import importlib.util
 import inspect
 import json
@@ -69,11 +70,40 @@ def _load_strategy_from_path(path: Path) -> tuple[str, EnhancedStrategy]:
     raise RuntimeError(f"No EnhancedStrategy subclass found in {path}")
 
 
+def _load_strategy_from_factory_ref(ref: str) -> tuple[str, EnhancedStrategy]:
+    """Load a strategy from its unique ``module:function`` factory reference."""
+    module_name, separator, factory_name = ref.rpartition(":")
+    if not separator or not module_name or not factory_name:
+        raise ValueError(f"Invalid strategy factory reference: {ref!r}")
+
+    try:
+        module = importlib.import_module(module_name)
+    except (ImportError, ModuleNotFoundError) as exc:
+        raise ValueError(f"Cannot import strategy module {module_name!r}") from exc
+
+    factory = getattr(module, factory_name, None)
+    if not callable(factory):
+        raise ValueError(f"Strategy factory not found: {ref!r}")
+
+    strategy = factory()
+    if not isinstance(strategy, EnhancedStrategy):
+        raise ValueError(f"Strategy factory did not return EnhancedStrategy: {ref!r}")
+
+    # A factory ref is used when a loader name cannot identify this exact
+    # factory (because the name is ambiguous or unregistered). Keep the
+    # ordinary strategy name readable, and append the ref so matrix keys remain
+    # unique and the report shows exactly which implementation ran.
+    name = getattr(strategy, "name", "") or factory_name
+    return f"{name} [{ref}]", strategy
+
+
 def _resolve_strategy(ref: str, loader: StrategyLoader) -> tuple[str, EnhancedStrategy]:
-    """Resolve a strategy reference: file path or registered name."""
+    """Resolve a strategy reference: file path, factory spec, or loader name."""
     p = Path(ref)
     if p.suffix == ".py" and p.exists():
         return _load_strategy_from_path(p)
+    if ":" in ref:
+        return _load_strategy_from_factory_ref(ref)
     s = loader.get_strategy(ref)
     if s is None:
         raise ValueError(f"Unknown strategy: {ref!r}")
@@ -84,8 +114,9 @@ def _seed_refs_from_manifest(manifest: dict) -> tuple[list[str], int]:
     """Collect tournament-resolvable seed refs from a manifest's islands.
 
     Returns ``(refs, skipped)`` where ``refs`` are resolvable seed references
-    (StrategyLoader names or ``*.py`` paths) and ``skipped`` counts islands with
-    no resolvable seed (trick/random, or library seeds that don't round-trip).
+    (StrategyLoader names, ``module:function`` specs, or ``*.py`` paths) and
+    ``skipped`` counts islands with no resolvable seed (currently trick/random
+    seeds).
 
     Board-derived manifests store ``seed_name`` as a DISPLAY name (``Reuse ...``,
     a trick name, ``Random Island 1``), which ``_resolve_strategy`` cannot
@@ -265,7 +296,10 @@ def main() -> None:
     parser.add_argument(
         "--strategies",
         nargs="+",
-        help="Explicit strategy refs (names or *.py paths). Used if --manifest is omitted.",
+        help=(
+            "Explicit strategy refs (loader names, module:function specs, or "
+            "*.py paths). Used if --manifest is omitted."
+        ),
     )
     parser.add_argument(
         "--include-seeds",
