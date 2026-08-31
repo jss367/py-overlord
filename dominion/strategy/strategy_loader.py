@@ -121,14 +121,21 @@ class StrategyLoader:
         # Log registration once per display name at debug level
         logging.getLogger(__name__).debug("Registered strategy: %s (aliases: %s)", name, ", ".join({slug, dash_slug}))
 
-    def get_strategy(self, name: str) -> Optional[EnhancedStrategy]:
-        """Get a new instance of a strategy by name or any of its aliases."""
+    def get_strategy_factory(
+        self, name: str
+    ) -> Optional[Callable[[], EnhancedStrategy]]:
+        """Return the factory registered for ``name`` or one of its aliases."""
         # Try exact match first, then case-insensitive, then slugify attempt.
         strategy_factory = self.strategies.get(name)
         if strategy_factory is None:
             strategy_factory = self.strategies.get(name.lower())
         if strategy_factory is None:
             strategy_factory = self.strategies.get(self._slugify(name))
+        return strategy_factory
+
+    def get_strategy(self, name: str) -> Optional[EnhancedStrategy]:
+        """Get a new instance of a strategy by name or any of its aliases."""
+        strategy_factory = self.get_strategy_factory(name)
         if strategy_factory is None:
             return None
         return strategy_factory()

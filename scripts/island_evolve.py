@@ -83,11 +83,11 @@ class IslandResult:
     panel_breakdown: list[tuple]
     wall_seconds: float
     # A reference the tournament's ``_resolve_strategy`` can re-resolve (a
-    # StrategyLoader name or a *.py path), so ``--include-seeds`` can compare a
-    # champion against its starting point. ``None`` for islands with no
-    # standalone resolvable seed (trick/random, or library entries whose name
-    # does not round-trip through the loader). ``seed_name`` stays the display
-    # name and must NOT be used as a resolvable ref.
+    # StrategyLoader name, module:function factory spec, or *.py path), so
+    # ``--include-seeds`` can compare a champion against its starting point.
+    # ``None`` for islands with no standalone resolvable seed (trick/random).
+    # ``seed_name`` stays the display name and must NOT be used as a resolvable
+    # ref.
     seed_ref: Optional[str] = None
 
 
@@ -137,27 +137,24 @@ def _resolvable_seed_ref(
 ) -> Optional[str]:
     """Compute a tournament-resolvable, canonical reference for an island seed.
 
-    The tournament's ``_resolve_strategy`` only accepts StrategyLoader names or
-    ``*.py`` paths — not the ``module:function`` specs the reuse library uses.
-    So a seed is resolvable only when it can be reduced to a loader name:
+    The tournament's ``_resolve_strategy`` accepts StrategyLoader names,
+    ``module:function`` library specs, and ``*.py`` paths:
 
     - ``loader``  : ``spec_key`` is the registered name → resolvable.
-    - ``library`` : ``spec_key`` is the entry *spec* (a ``module:function``
-                    reference), which the loader cannot resolve directly. Rebuild
-                    the strategy from the spec the same way
-                    :func:`~dominion.analysis.island_seeds.resolve_island_seed`
-                    does, then use its ``.name``. Resolvable only if that name
-                    round-trips through the loader (generated-strategy entries
-                    that aren't registered by name get ``None`` rather than a
-                    ref the tournament would choke on). Needs ``board_config``
-                    to do the spec→strategy lookup.
+    - ``library`` : rebuild the exact strategy from its unique factory spec. If
+                    its name round-trips through the loader to that SAME factory,
+                    use the canonical loader name so seed/panel overlap still
+                    dedupes. If the name is unregistered or resolves to a
+                    different same-named factory, keep the unique spec instead.
+                    Needs ``board_config`` to validate the spec against the
+                    board's reuse library.
     - ``engine`` / ``trick`` / ``random`` : no standalone resolvable seed → ``None``.
 
-    When resolvable, the ref is canonicalized via :func:`_canonical_ref`, so it
-    is byte-identical to whatever the panel side records for the same strategy
-    (e.g. the loader alias ``"Big Money"`` becomes ``"BigMoney"``, and a library
-    spec collapses to the same ``.name`` the panel records). This is the one
-    rule for both seeds and panels — see :func:`_canonical_ref`.
+    Loader refs are canonicalized via :func:`_canonical_ref`, so they are
+    byte-identical to whatever the panel side records for the same strategy.
+    A library spec is retained only when collapsing it to a name would resolve
+    the wrong factory (or no factory), in which case uniqueness is required for
+    correctness and the tournament can resolve the spec directly.
     """
     if spec_kind == "loader":
         if loader.get_strategy(spec_key) is not None:
@@ -171,13 +168,17 @@ def _resolvable_seed_ref(
             strategy = resolve_library_spec(board_config, spec_key)
         except ValueError:
             return None
-        # The library spec resolves to a concrete strategy; it's only a usable
-        # tournament ref if that strategy is *also* registered by name in the
-        # loader. Route through _canonical_ref so it's byte-identical to the
-        # panel ref for the same strategy (preserving the dedupe invariant).
-        if loader.get_strategy(strategy.name) is None:
-            return None
-        return _canonical_ref(strategy.name, loader)
+        # Preserve the canonical loader name only if it points back to this
+        # exact factory. Two library modules may expose strategies with the same
+        # ``strategy.name``; in that case StrategyLoader can expose only one by
+        # name, while the other must retain its unique module:function spec.
+        get_factory = getattr(loader, "get_strategy_factory", None)
+        factory = get_factory(strategy.name) if get_factory is not None else None
+        if factory is not None:
+            factory_ref = f"{factory.__module__}:{factory.__name__}"
+            if factory_ref == spec_key:
+                return _canonical_ref(strategy.name, loader)
+        return spec_key
 
     return None
 
