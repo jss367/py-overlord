@@ -67,6 +67,30 @@ PYTHONPATH=. python scripts/calibration_suite.py --mode evolve \
 
 Reports (markdown + JSON) land in `reports/calibration/`.
 
+**Multi-seed runs** — evolve mode is seeded (`--seed-base`, default 1), so a
+run is reproducible, but one trajectory says nothing about how much of its
+gap is luck: on Oslo a bookkeeping change moved a gate by 14pp at a fixed
+seed. Pass `--seeds N` to evolve each board N times (seeds
+`seed-base .. seed-base+N-1`). The report then shows, per board, the mean
+champion win rate over seeds, the across-seed standard deviation, a
+Student-t interval on that mean, and a gap taken on the mean; the verdict
+is `UNRESOLVED (N seeds)` when the interval straddles 50%. The JSON holds one
+record per (board, seed) and is checkpointed after every run, so a sweep
+that dies part-way is still readable.
+
+```bash
+PYTHONPATH=. python scripts/calibration_suite.py --mode evolve --seeds 4 \
+    --population 30 --generations 30 --games-per-eval 15 --games 400 \
+    --output-dir reports/calibration/<label>
+```
+
+To judge a pipeline change, run the same budget before and after and pass
+the earlier JSON as `--baseline` (or use `scripts/calibration_summary.py` on
+two saved reports). The comparison adds a per-board Welch test on the
+across-seed win rates and a paired t-test over boards on the suite mean gap.
+With one seed per arm the per-board test cannot be resolved and says so; the
+`n=1` numbers in the tables below should be read with that in mind.
+
 ## How to read the numbers
 
 Per board, the **gap** is how many percentage points the champion's win rate

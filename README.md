@@ -110,5 +110,9 @@ PYTHONPATH=. python scripts/calibration_suite.py --mode sanity --games 400
 PYTHONPATH=. python scripts/calibration_suite.py --mode evolve --games 400
 ```
 
-See `docs/calibration.md` for the board list, sources, and how to read the
-gap score.
+Evolve mode is seeded and takes `--seeds N` to run each board N times, which
+turns the per-board number into a mean with an across-seed interval; pass an
+earlier run's JSON as `--baseline` (or use `scripts/calibration_summary.py`)
+to get a per-board Welch test and a paired test on the suite mean gap. See
+`docs/calibration.md` for the board list, sources, and how to read the gap
+score.

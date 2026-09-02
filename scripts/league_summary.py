@@ -24,7 +24,8 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
-from scipy import stats
+from dominion.analysis.seed_stats import spread as _spread
+from dominion.analysis.seed_stats import welch
 
 
 def load_runs(paths: list[Path]) -> dict[str, dict[str, list[tuple[int, float]]]]:
@@ -40,32 +41,6 @@ def load_runs(paths: list[Path]) -> dict[str, dict[str, list[tuple[int, float]]]
         for gate in payload.get("gate", []):
             grouped[arm][gate["opponent"]].append((seed, gate["win_rate"]))
     return grouped
-
-
-def _spread(values: list[float]) -> tuple[float, float, float, float]:
-    """Return (mean, stdev, min, max); stdev is 0 for a single value."""
-
-    mean = statistics.fmean(values)
-    stdev = statistics.stdev(values) if len(values) > 1 else 0.0
-    return mean, stdev, min(values), max(values)
-
-
-def welch(a: list[float], b: list[float]) -> tuple[float, float]:
-    """Welch's t statistic and two-sided p-value for two small samples.
-
-    Welch rather than Student because the arms are not assumed to have equal
-    trajectory variance — on Oslo the league arm's across-seed spread is
-    several times the control's — and the samples are tiny.
-
-    The p-value matters more than the t here: at four seeds per arm, |t| = 2
-    is p = 0.11, not significance. Reporting the statistic alone invites
-    exactly that misreading.
-    """
-
-    if len(a) < 2 or len(b) < 2:
-        return float("nan"), float("nan")
-    result = stats.ttest_ind(b, a, equal_var=False)
-    return float(result.statistic), float(result.pvalue)
 
 
 def render(grouped: dict[str, dict[str, list[tuple[int, float]]]]) -> str:

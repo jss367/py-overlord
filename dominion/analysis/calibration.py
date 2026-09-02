@@ -18,10 +18,13 @@ from __future__ import annotations
 
 import json
 import math
+import random
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterable, Optional, Sequence
+
+from dominion.analysis.seed_stats import paired_t, spread, t_interval, welch
 
 if TYPE_CHECKING:
     from dominion.strategy.enhanced_strategy import EnhancedStrategy
@@ -148,6 +151,10 @@ class MatchOutcome:
     strategy_b: str
     wins_a: int
     games: int
+    # Seed of the run that produced strategy A (None for unseeded or
+    # hand-written strategies). Several outcomes for one board with distinct
+    # seeds are what :func:`summarize_by_board` aggregates.
+    seed: Optional[int] = None
 
     @property
     def winrate_a(self) -> float:
@@ -168,7 +175,91 @@ class MatchOutcome:
             "games": self.games,
             "winrate_a": round(self.winrate_a, 2),
             "ci_a": [round(lo, 2), round(hi, 2)],
+            "seed": self.seed,
         }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "MatchOutcome":
+        return cls(
+            board=data["board"],
+            strategy_a=data["strategy_a"],
+            strategy_b=data["strategy_b"],
+            wins_a=int(data["wins_a"]),
+            games=int(data["games"]),
+            seed=data.get("seed"),
+        )
+
+
+@dataclass
+class BoardSummary:
+    """All seeds' outcomes for one board, with across-seed statistics.
+
+    With one outcome the interval is that run's Wilson interval (deck luck
+    within the run); with several it is a Student-t interval over the seeds'
+    win rates (trajectory luck across runs), which is the spread a pipeline
+    change has to clear.
+    """
+
+    board: str
+    known_best: str
+    outcomes: list[MatchOutcome] = field(default_factory=list)
+
+    @property
+    def seeds(self) -> int:
+        return len(self.outcomes)
+
+    @property
+    def winrates(self) -> list[float]:
+        return [o.winrate_a for o in self.outcomes]
+
+    @property
+    def games_per_seed(self) -> int:
+        return self.outcomes[0].games if self.outcomes else 0
+
+    @property
+    def mean_winrate(self) -> float:
+        return spread(self.winrates)[0]
+
+    @property
+    def stdev(self) -> float:
+        return spread(self.winrates)[1]
+
+    @property
+    def ci(self) -> tuple[float, float]:
+        if self.seeds == 1:
+            return self.outcomes[0].ci_a
+        lo, hi = t_interval(self.winrates)
+        return (max(0.0, lo), min(100.0, hi))
+
+    @property
+    def gap(self) -> float:
+        return gap_points(self.mean_winrate)
+
+    @property
+    def verdict(self) -> str:
+        lo, hi = self.ci
+        if lo > 50.0:
+            return "BEATS KNOWN BEST"
+        if hi < 50.0:
+            return "BEHIND"
+        return "TIED" if self.seeds == 1 else f"UNRESOLVED ({self.seeds} seeds)"
+
+
+def summarize_by_board(outcomes: Sequence[MatchOutcome]) -> list[BoardSummary]:
+    """Group outcomes by board, preserving first-seen order."""
+
+    summaries: dict[str, BoardSummary] = {}
+    for outcome in outcomes:
+        summary = summaries.get(outcome.board)
+        if summary is None:
+            summary = BoardSummary(board=outcome.board, known_best=outcome.strategy_b)
+            summaries[outcome.board] = summary
+        summary.outcomes.append(outcome)
+    return list(summaries.values())
+
+
+def mean_gap(summaries: Sequence[BoardSummary]) -> float:
+    return sum(s.gap for s in summaries) / len(summaries) if summaries else 0.0
 
 
 def _sanity_verdict(outcome: MatchOutcome) -> str:
@@ -178,15 +269,6 @@ def _sanity_verdict(outcome: MatchOutcome) -> str:
     if outcome.winrate_a > 50.0:
         return "WEAK"
     return "FAIL"
-
-
-def _evolve_verdict(outcome: MatchOutcome) -> str:
-    lo, hi = outcome.ci_a
-    if lo > 50.0:
-        return "BEATS KNOWN BEST"
-    if hi < 50.0:
-        return "BEHIND"
-    return "TIED"
 
 
 def run_match(
@@ -253,14 +335,18 @@ def evolve_and_evaluate(
     *,
     confirm_games: int = 400,
     log_folder: str = "battle_logs/calibration",
+    seed: Optional[int] = None,
     **trainer_kwargs,
 ) -> tuple[MatchOutcome, dict, EnhancedStrategy]:
     """Evolve a champion for the entry's board and battle it vs known-best.
 
     ``trainer_kwargs`` are forwarded to :class:`GeneticTrainer` (population
     size, generations, games_per_eval, ...); a ``workers`` entry also drives
-    the confirmation battle. Returns the champion-vs-known-best outcome, the
-    trainer metadata, and the champion strategy itself (so callers can
+    the confirmation battle. ``seed`` fixes the GA's mutation stream, the
+    trainer's evaluation seed block, and the confirmation battle, making the
+    whole run reproducible; distinct seeds give independent trajectories for
+    :func:`summarize_by_board`. Returns the champion-vs-known-best outcome,
+    the trainer metadata, and the champion strategy itself (so callers can
     persist the genome for diagnosis).
     """
 
@@ -268,10 +354,14 @@ def evolve_and_evaluate(
     from dominion.simulation.genetic_trainer import GeneticTrainer
 
     board = load_board(entry.board_path())
+    if seed is not None:
+        random.seed(seed)
+        trainer_kwargs.setdefault("eval_seed", seed)
+    log_suffix = f"/seed{seed}" if seed is not None else ""
     trainer = GeneticTrainer(
         kingdom_cards=board.kingdom_cards,
         board_config=board,
-        log_folder=f"training_logs/calibration/{entry.key}",
+        log_folder=f"training_logs/calibration/{entry.key}{log_suffix}",
         **trainer_kwargs,
     )
     champion, metadata = trainer.train()
@@ -279,6 +369,10 @@ def evolve_and_evaluate(
         raise RuntimeError(f"Training produced no champion for board {entry.key}")
 
     champion_name = f"Champion {entry.key}"
+    if seed is not None:
+        # The confirmation battle draws its shuffles from the global RNG;
+        # re-seed so it does not depend on how many numbers training consumed.
+        random.seed(seed + 1)
     outcome = run_match(
         entry,
         champion_name,
@@ -288,6 +382,7 @@ def evolve_and_evaluate(
         champion_factory=lambda: deepcopy(champion),
         workers=trainer_kwargs.get("workers", 1),
     )
+    outcome.seed = seed
     return outcome, metadata, champion
 
 
@@ -325,36 +420,130 @@ def render_sanity_report(outcomes: Sequence[MatchOutcome]) -> str:
 
 
 def render_evolve_report(outcomes: Sequence[MatchOutcome]) -> str:
-    """Markdown report: evolved champion vs known-best, with per-board gap."""
+    """Markdown report: evolved champion vs known-best, with per-board gap.
 
+    Outcomes sharing a board are treated as independent seeds of the same
+    run and aggregated; see :class:`BoardSummary` for which interval is
+    shown. The gap is taken on the across-seed mean win rate.
+    """
+
+    summaries = summarize_by_board(outcomes)
     rows = []
-    gaps = []
-    for o in outcomes:
-        lo, hi = o.ci_a
-        gap = gap_points(o.winrate_a)
-        gaps.append(gap)
+    for s in summaries:
+        lo, hi = s.ci
         rows.append(
             [
-                o.board,
-                o.strategy_b,
-                str(o.games),
-                f"{o.winrate_a:.1f}%",
+                s.board,
+                s.known_best,
+                str(s.seeds),
+                str(s.games_per_seed),
+                f"{s.mean_winrate:.1f}%",
+                "n/a" if s.seeds == 1 else f"{s.stdev:.1f}",
                 f"[{lo:.1f}%, {hi:.1f}%]",
-                f"{gap:.1f}",
-                _evolve_verdict(o),
+                f"{s.gap:.1f}",
+                s.verdict,
             ]
         )
     table = _markdown_table(
-        ["Board", "Known best", "Games", "Champion win rate", "95% CI", "Gap (pp)", "Verdict"],
+        [
+            "Board",
+            "Known best",
+            "Seeds",
+            "Games/seed",
+            "Champion win rate",
+            "Across-seed sd",
+            "95% CI",
+            "Gap (pp)",
+            "Verdict",
+        ],
         rows,
     )
-    mean_gap = sum(gaps) / len(gaps) if gaps else 0.0
+    multi = any(s.seeds > 1 for s in summaries)
+    behind = sum(1 for s in summaries if s.verdict == "BEHIND")
+    interval_note = (
+        "CI is a Student-t interval over seeds where there are several, "
+        "otherwise the single run's Wilson interval."
+        if multi
+        else "Single seed per board: the CI reflects deck luck within the run, "
+        "not trajectory luck across runs — re-run with --seeds to measure that."
+    )
     return (
         "# Calibration: evolved champion vs known-best\n\n"
         + table
-        + f"\n\n**Mean gap: {mean_gap:.1f} percentage points** "
-        + "(0 = champions match or beat every known-best)\n"
+        + f"\n\n**Mean gap: {mean_gap(summaries):.1f} percentage points** "
+        + "(0 = champions match or beat every known-best); "
+        + f"behind on {behind} of {len(summaries)} boards.\n\n"
+        + interval_note
+        + "\n"
     )
+
+
+def _fmt_p(pvalue: float) -> str:
+    return "n/a" if math.isnan(pvalue) else f"{pvalue:.3f}"
+
+
+def render_comparison(
+    baseline: Sequence[MatchOutcome],
+    candidate: Sequence[MatchOutcome],
+    *,
+    baseline_label: str = "baseline",
+    candidate_label: str = "candidate",
+) -> str:
+    """Markdown: per-board Welch test of candidate vs baseline, plus suite gap.
+
+    Each board's test uses the across-seed win rates of both arms; with one
+    seed on either side it cannot be resolved and says so. The suite-level
+    mean gap is compared with a paired t-test over the boards both arms ran.
+    """
+
+    base_by_board = {s.board: s for s in summarize_by_board(baseline)}
+    cand_by_board = {s.board: s for s in summarize_by_board(candidate)}
+    shared = [board for board in cand_by_board if board in base_by_board]
+
+    rows = []
+    for board in shared:
+        b, c = base_by_board[board], cand_by_board[board]
+        delta = c.mean_winrate - b.mean_winrate
+        t, pvalue = welch(b.winrates, c.winrates)
+        if math.isnan(t):
+            verdict = "need >=2 seeds per arm"
+        elif pvalue < 0.05:
+            verdict = f"{candidate_label} better" if delta > 0 else f"{candidate_label} worse"
+        else:
+            verdict = "unresolved at this seed count"
+        rows.append(
+            [
+                board,
+                f"{b.mean_winrate:.1f}% (n={b.seeds})",
+                f"{c.mean_winrate:.1f}% (n={c.seeds})",
+                f"{delta:+.1f}pp",
+                _fmt_p(pvalue),
+                verdict,
+            ]
+        )
+    table = _markdown_table(
+        ["Board", baseline_label, candidate_label, "Delta", "Welch p", "Verdict"],
+        rows,
+    )
+
+    base_gaps = [base_by_board[board].gap for board in shared]
+    cand_gaps = [cand_by_board[board].gap for board in shared]
+    lines = [f"# Calibration comparison: {candidate_label} vs {baseline_label}", "", table, ""]
+    if shared:
+        base_mean = sum(base_gaps) / len(base_gaps)
+        cand_mean = sum(cand_gaps) / len(cand_gaps)
+        _, pvalue = paired_t(base_gaps, cand_gaps)
+        lines.append(
+            f"**Mean gap over {len(shared)} shared boards: {base_mean:.1f} -> {cand_mean:.1f} pp "
+            f"({cand_mean - base_mean:+.1f}); paired t over boards p = {_fmt_p(pvalue)}.**"
+        )
+    else:
+        lines.append("No boards in common between the two reports.")
+    missing = [board for board in cand_by_board if board not in base_by_board]
+    if missing:
+        lines.append(f"Boards only in {candidate_label}: {', '.join(missing)}.")
+    lines.append("")
+    return "\n".join(lines)
 
 
 def save_outcomes_json(outcomes: Sequence[MatchOutcome], path: Path) -> None:
@@ -362,3 +551,10 @@ def save_outcomes_json(outcomes: Sequence[MatchOutcome], path: Path) -> None:
     path.write_text(
         json.dumps([o.to_dict() for o in outcomes], indent=2) + "\n", encoding="utf-8"
     )
+
+
+def load_outcomes_json(path: Path) -> list[MatchOutcome]:
+    """Read outcomes written by :func:`save_outcomes_json` (any version)."""
+
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    return [MatchOutcome.from_dict(item) for item in payload]

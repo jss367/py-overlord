@@ -16,6 +16,18 @@ is trying to drive to zero.
         --population 40 --generations 40 --games-per-eval 20 --games 400
 
 Use --boards to restrict either mode to a comma-separated subset of keys.
+
+Evolve mode is seeded (``--seed-base``, default 1), so a run is reproducible.
+One trajectory says nothing about how much of its gap is luck, though: pass
+``--seeds N`` to evolve each board N times (seeds base..base+N-1) and get a
+Student-t interval over seeds plus a gap on the across-seed mean. To judge a
+pipeline change, run the same budget before and after and pass the earlier
+JSON as ``--baseline``: the report then adds a per-board Welch test and a
+paired test on the suite mean gap (see scripts/calibration_summary.py to do
+this on saved reports).
+
+    PYTHONPATH=. python scripts/calibration_suite.py --mode evolve --seeds 4 \
+        --baseline reports/calibration/evolve.json --output-dir reports/calibration/new
 """
 
 import argparse
@@ -30,6 +42,8 @@ from dominion.analysis.calibration import (
     CALIBRATION_SUITE,
     entries_for_keys,
     evolve_and_evaluate,
+    load_outcomes_json,
+    render_comparison,
     render_evolve_report,
     render_sanity_report,
     run_sanity,
@@ -75,6 +89,24 @@ def main() -> None:
         help="Worker processes for playing games (0 = one per CPU, 1 = run in-process)",
     )
     parser.add_argument(
+        "--seeds",
+        type=positive_int,
+        default=1,
+        help="Evolve mode: independent seeded runs per board (default: 1)",
+    )
+    parser.add_argument(
+        "--seed-base",
+        type=int,
+        default=1,
+        help="Evolve mode: first seed; run k uses seed-base + k (default: 1)",
+    )
+    parser.add_argument(
+        "--baseline",
+        type=Path,
+        default=None,
+        help="Evolve mode: earlier evolve JSON to compare against (per-board Welch test)",
+    )
+    parser.add_argument(
         "--output-dir", type=Path, default=Path("reports/calibration")
     )
     args = parser.parse_args()
@@ -90,32 +122,51 @@ def main() -> None:
         json_path = args.output_dir / "sanity.json"
     else:
         outcomes = []
-        for entry in entries:
-            logger.info("Evolving champion for board %s ...", entry.key)
-            outcome, _meta, champion = evolve_and_evaluate(
-                entry,
-                confirm_games=args.games,
-                population_size=args.population,
-                generations=args.generations,
-                games_per_eval=args.games_per_eval,
-                workers=args.workers,
-            )
-            logger.info(
-                "%s: champion won %.1f%% of %d games vs %s",
-                entry.key,
-                outcome.winrate_a,
-                outcome.games,
-                entry.known_best,
-            )
-            outcomes.append(outcome)
-            champion_path = args.output_dir / f"champion_{entry.key}.py"
-            save_strategy_as_python(
-                champion, champion_path, class_name=f"Champion{entry.key.title().replace('_', '')}"
-            )
-            logger.info("Champion genome saved to %s", champion_path)
-        report = render_evolve_report(outcomes)
-        report_path = args.output_dir / "evolve.md"
+        seeds = [args.seed_base + k for k in range(args.seeds)]
         json_path = args.output_dir / "evolve.json"
+        for entry in entries:
+            for seed in seeds:
+                logger.info("Evolving champion for board %s (seed %d) ...", entry.key, seed)
+                outcome, _meta, champion = evolve_and_evaluate(
+                    entry,
+                    confirm_games=args.games,
+                    seed=seed,
+                    population_size=args.population,
+                    generations=args.generations,
+                    games_per_eval=args.games_per_eval,
+                    workers=args.workers,
+                )
+                logger.info(
+                    "%s seed %d: champion won %.1f%% of %d games vs %s",
+                    entry.key,
+                    seed,
+                    outcome.winrate_a,
+                    outcome.games,
+                    entry.known_best,
+                )
+                outcomes.append(outcome)
+                # Checkpoint after every run so a long sweep that dies part-way
+                # still leaves a readable, comparable JSON behind.
+                save_outcomes_json(outcomes, json_path)
+                suffix = f"_seed{seed}" if args.seeds > 1 else ""
+                champion_path = args.output_dir / f"champion_{entry.key}{suffix}.py"
+                class_suffix = f"Seed{seed}" if args.seeds > 1 else ""
+                save_strategy_as_python(
+                    champion,
+                    champion_path,
+                    class_name=f"Champion{entry.key.title().replace('_', '')}{class_suffix}",
+                )
+                logger.info("Champion genome saved to %s", champion_path)
+        report = render_evolve_report(outcomes)
+        if args.baseline is not None:
+            comparison = render_comparison(
+                load_outcomes_json(args.baseline),
+                outcomes,
+                baseline_label=args.baseline.stem,
+                candidate_label="this run",
+            )
+            report = report + "\n" + comparison
+        report_path = args.output_dir / "evolve.md"
 
     report_path.write_text(report, encoding="utf-8")
     save_outcomes_json(outcomes, json_path)
