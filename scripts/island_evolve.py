@@ -195,6 +195,7 @@ def run_one_island(
     mutation_rate: float,
     output_dir: str,
     run_id: str,
+    workers: int = 1,
 ) -> IslandResult:
     """Run a single island. Designed to be called in a subprocess: takes only
     plain-string arguments and rebuilds the seed strategy + panel inside
@@ -230,6 +231,7 @@ def run_one_island(
         games_per_eval=games_per_eval,
         board_config=board_config,
         log_folder=f"island_logs/{run_id}/{_safe_filename(island_name)}",
+        workers=workers,
     )
     if seed is not None:
         trainer.inject_strategy(seed)
@@ -379,6 +381,14 @@ def main() -> None:
         help="Cap parallel workers. 0 = number of islands (one worker each).",
     )
     parser.add_argument(
+        "--workers",
+        type=int,
+        default=None,
+        help="Worker processes for each island's fitness evaluation "
+        "(0 = one per CPU, 1 = run in-process). Default: one per CPU, or 1 "
+        "with --parallel so islands do not oversubscribe the machine.",
+    )
+    parser.add_argument(
         "--smoke",
         action="store_true",
         help="Override hyperparameters for a fast smoke test.",
@@ -395,6 +405,8 @@ def main() -> None:
         args.population = 12
         args.generations = 5
         args.games_per_eval = 8
+    if args.workers is None:
+        args.workers = 1 if args.parallel else 0
 
     board_config = load_board(args.board)
 
@@ -442,6 +454,7 @@ def main() -> None:
         mutation_rate=args.mutation_rate,
         output_dir=str(output_dir),
         run_id=run_id,
+        workers=args.workers,
     )
 
     results: list[IslandResult] = []

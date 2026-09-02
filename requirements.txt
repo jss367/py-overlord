@@ -1,3 +1,4 @@
+cloudpickle
 coloredlogs
 matplotlib
 pytest

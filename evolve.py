@@ -149,6 +149,10 @@ def main():
         help="Mutation rate (default: 0.15)",
     )
     parser.add_argument(
+        "--workers", type=int, default=0,
+        help="Worker processes for fitness evaluation (0 = one per CPU, 1 = run in-process)",
+    )
+    parser.add_argument(
         "--tournament-games", type=int, default=2000,
         help="Games per matchup in tournaments (default: 2000)",
     )
@@ -277,6 +281,7 @@ def main():
             mutation_rate=args.mutation_rate,
             games_per_eval=args.games_per_eval,
             board_config=board_config,
+            workers=args.workers,
         )
         trainer.inject_strategy(seed_factory())
         reusable_factories = [

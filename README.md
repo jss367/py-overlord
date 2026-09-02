@@ -36,6 +36,28 @@ python -m dominion.simulation.strategy_battle "Chapel Witch" "Big Money" --games
 If `--output` is omitted, reports are written to the `reports` directory with
 an auto-generated filename.
 
+## Parallel game evaluation
+
+The simulator is single-threaded, so battles and fitness evaluation take a
+`--workers` flag that plays games in worker processes (`0`, the default on
+the command-line tools, means one worker per CPU; `1` keeps everything
+in-process). Seeded runs give identical results either way: with common
+random numbers on, every game's seed is derived from the evaluation context,
+so a parallel `GeneticTrainer` reproduces the serial fitness, breakdown, and
+rule-firing flags exactly. A parallel `StrategyBattle` draws one seed per game
+from the global RNG, so `random.seed(...)` before `run_battle` makes it
+reproducible too.
+
+```
+python -m dominion.simulation.strategy_battle "Chapel Witch" "Big Money" --games 400 --workers 8
+PYTHONPATH=. python scripts/league_evolve.py --board boards/oslo.txt --workers 0 ...
+```
+
+In code, pass `workers=` to `GeneticTrainer` or `StrategyBattle`; call
+`close()` (or use the battle as a context manager) to stop the pool early.
+Strategies cross the process boundary with `cloudpickle`, so hand-written
+conditions and decision hooks work unchanged.
+
 ## Board and strategy catalog
 
 Generate linked HTML pages for every board and registered strategy:
