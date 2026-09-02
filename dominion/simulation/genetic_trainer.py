@@ -3,6 +3,7 @@ import random
 from copy import deepcopy
 from typing import Callable, Optional, Tuple
 
+import cloudpickle
 import coloredlogs
 
 from dominion.boards.loader import BoardConfig
@@ -12,6 +13,12 @@ from dominion.simulation.adversarial_league import (
     aggregate_fitness,
 )
 from dominion.simulation.game_logger import GameLogger
+from dominion.simulation.parallel_games import (
+    DEFAULT_GAMES_PER_TASK,
+    GamePool,
+    GameTask,
+    chunk_games,
+)
 from dominion.simulation.strategy_battle import StrategyBattle, canonical_way_name
 from dominion.strategy.enhanced_strategy import PriorityRule, WayRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
@@ -78,6 +85,8 @@ class GeneticTrainer:
         structured_genome: bool = True,
         league: Optional["AdversarialLeague"] = None,
         worst_case_weight: float = 0.0,
+        workers: int = 1,
+        games_per_task: int = DEFAULT_GAMES_PER_TASK,
     ):
         if kingdom_cards is None:
             if board_config is None:
@@ -142,6 +151,17 @@ class GeneticTrainer:
         # facing a league. Applies to any panel, league or not.
         self.worst_case_weight = worst_case_weight
 
+        # Worker processes for fitness evaluation. ``1`` plays every game in
+        # this process (the historical behaviour); ``0`` means one worker per
+        # CPU. With workers, every (candidate, opponent) game chunk of an
+        # evaluation phase is submitted at once, so a whole generation's
+        # screen keeps the pool busy. Seeded (common-random-number) results
+        # are identical to the serial path; see
+        # :mod:`dominion.simulation.parallel_games`.
+        self.workers = workers
+        self.games_per_task = games_per_task
+        self._pool: Optional[GamePool] = None
+
         # Structured "buy menu" genome: random init builds coherent menus
         # (greening block + capped kingdom picks) and mutation applies menu
         # edits from a curated gate vocabulary, instead of free-form condition
@@ -168,6 +188,9 @@ class GeneticTrainer:
         # (not a dict) so multiple panel members sharing a name (e.g. two
         # BigMoneySmithy variants) each contribute independently.
         self.last_eval_breakdown: list[tuple] = []
+        # Per-strategy breakdowns from the most recent ``evaluate_population``
+        # call, parallel to the strategies it was given.
+        self.last_population_breakdowns: list[list[tuple]] = []
         # Champion bookkeeping. ``_best_confirmed`` is the champion's fitness
         # from its most recent confirmation eval (racing mode) or its single
         # screening eval (legacy mode).
@@ -524,6 +547,175 @@ class GeneticTrainer:
         return 0.8 * win_rate_pct + 0.2 * margin_score
 
     def evaluate_strategy(self, strategy: BaseStrategy) -> float:
+        """Evaluate one strategy; see :meth:`_evaluate_strategy_serial`.
+
+        With worker processes configured the games run in the pool, which
+        for a single candidate mostly helps when the budget is large. The
+        per-opponent breakdown lands in ``last_eval_breakdown`` either way.
+        """
+        if self._use_workers():
+            fitness, breakdown = self._evaluate_population_parallel([strategy])[0]
+            self.last_eval_breakdown = breakdown
+            return fitness
+        return self._evaluate_strategy_serial(strategy)
+
+    def _use_workers(self) -> bool:
+        return self.workers is None or self.workers == 0 or self.workers > 1
+
+    def _get_pool(self) -> GamePool:
+        if self._pool is None:
+            self._pool = GamePool(self.workers, self.battle_system.spec())
+        return self._pool
+
+    def close(self) -> None:
+        """Shut down the evaluation worker pool, if one was started."""
+        if self._pool is not None:
+            self._pool.close()
+            self._pool = None
+
+    def evaluate_population(self, strategies: list[BaseStrategy]) -> list[float]:
+        """Evaluate several strategies under the current budget and seed context.
+
+        Returns one fitness per strategy and stores the matching per-opponent
+        breakdowns in ``last_population_breakdowns``. Serially this is just
+        :meth:`evaluate_strategy` in a loop; with workers every game of every
+        candidate is submitted to the pool at once.
+        """
+        if self._use_workers():
+            scored = self._evaluate_population_parallel(strategies)
+        else:
+            scored = []
+            for strategy in strategies:
+                fitness = self.evaluate_strategy(strategy)
+                scored.append((fitness, list(self.last_eval_breakdown)))
+        self.last_population_breakdowns = [breakdown for _, breakdown in scored]
+        if scored:
+            self.last_eval_breakdown = list(scored[-1][1])
+        return [fitness for fitness, _ in scored]
+
+    def _opponent_entry(self, opponent_name: str, wins: int, margin_total: float, games: int) -> tuple:
+        """Build one ``last_eval_breakdown`` entry from raw game outcomes."""
+        rate = wins / games * 100
+        avg_margin = margin_total / games
+        if self.shape_rewards:
+            return (opponent_name, rate, avg_margin, self._shape_fitness(rate, avg_margin))
+        return (opponent_name, rate)
+
+    def _fitness_from_breakdown(self, breakdown: list[tuple]) -> float:
+        if self.shape_rewards:
+            # Aggregate the shaped per-opponent fitness values
+            return self._aggregate([entry[3] for entry in breakdown])
+        return self._aggregate([entry[1] for entry in breakdown])
+
+    def _landscape_kwargs(self, strategy: BaseStrategy, opponent: BaseStrategy) -> tuple[list[str], dict[str, list[str]]]:
+        board_references = self.battle_system._determine_board_references(strategy, opponent)
+        landscape_kwargs = {
+            key: value
+            for key, value in {
+                "events": board_references.events,
+                "projects": board_references.projects,
+                "ways": board_references.ways,
+                "landmarks": board_references.landmarks,
+                "allies": board_references.allies,
+            }.items()
+            if value
+        }
+        return list(board_references.kingdom_cards), landscape_kwargs
+
+    def _evaluate_population_parallel(self, strategies: list[BaseStrategy]) -> list[tuple[float, list[tuple]]]:
+        """Play every candidate's games in the worker pool.
+
+        Games are seeded exactly as in :meth:`_evaluate_strategy_serial`
+        (from the seed context when common random numbers are on, otherwise
+        from the global RNG here), so a seeded parallel evaluation returns
+        the same fitness and breakdown as the serial one. Rule-firing flags
+        reported by the workers are applied to the local strategy objects so
+        rule pruning is unaffected.
+        """
+        from dominion.strategy.rule_pruning import reset_fire_flags
+
+        seeding = self._eval_seed_context is not None
+        panel = list(self._resolve_panel())
+        panel.extend(self._pool_opponents())
+        games_for_opp = _distribute_games(self.games_per_eval, len(panel))
+        opponent_blobs = [cloudpickle.dumps(opponent) for opponent in panel]
+
+        tasks: list[GameTask] = []
+        owners: dict[int, tuple[int, int]] = {}
+        failed: set[int] = set()
+        for cand_index, strategy in enumerate(strategies):
+            try:
+                if self.rule_pruning:
+                    reset_fire_flags(strategy)
+                strategy_blob = cloudpickle.dumps(strategy)
+                for opp_index, opponent in enumerate(panel):
+                    kingdom_card_names, landscape_kwargs = self._landscape_kwargs(strategy, opponent)
+                    games = [
+                        (game_num, self._game_seed(opp_index, game_num) if seeding else random.getrandbits(31))
+                        for game_num in range(games_for_opp[opp_index])
+                    ]
+                    for chunk in chunk_games(games, self.games_per_task):
+                        task_id = len(tasks)
+                        tasks.append(
+                            GameTask(
+                                task_id=task_id,
+                                strategy_blob=strategy_blob,
+                                opponent_blob=opponent_blobs[opp_index],
+                                kingdom_card_names=kingdom_card_names,
+                                landscape_kwargs=landscape_kwargs,
+                                games=chunk,
+                                collect_fired=self.rule_pruning,
+                            )
+                        )
+                        owners[task_id] = (cand_index, opp_index)
+            except Exception as e:
+                log.exception("Error preparing strategy %s for evaluation. Got error: %s", strategy.name, e)
+                failed.add(cand_index)
+
+        outcome = self._get_pool().run(tasks)
+
+        wins = [[0] * len(panel) for _ in strategies]
+        margins = [[0.0] * len(panel) for _ in strategies]
+        fired: list[dict[str, set[int]]] = [{} for _ in strategies]
+        for task_id, task_result in outcome.items():
+            cand_index, opp_index = owners[task_id]
+            if isinstance(task_result, BaseException):
+                log.error(
+                    "Error evaluating strategy %s. Got error: %s",
+                    strategies[cand_index].name,
+                    task_result,
+                    exc_info=task_result,
+                )
+                failed.add(cand_index)
+                continue
+            for game in task_result.games:
+                if game.won:
+                    wins[cand_index][opp_index] += 1
+                margins[cand_index][opp_index] += game.my_score - game.opp_score
+            for attr, indices in task_result.fired.items():
+                fired[cand_index].setdefault(attr, set()).update(indices)
+
+        scored: list[tuple[float, list[tuple]]] = []
+        for cand_index, strategy in enumerate(strategies):
+            if cand_index in failed:
+                # Mirror the serial path: a failed eval can never outrank a
+                # legitimate one, and it must not inherit another candidate's
+                # breakdown.
+                scored.append((float("-inf"), []))
+                continue
+            for attr, indices in fired[cand_index].items():
+                rules = getattr(strategy, attr, None) or []
+                for index in indices:
+                    if index < len(rules):
+                        rules[index]._fired = True
+            breakdown = [
+                self._opponent_entry(panel[opp_index].name, wins[cand_index][opp_index], margins[cand_index][opp_index], games_for_opp[opp_index])
+                for opp_index in range(len(panel))
+            ]
+            scored.append((self._fitness_from_breakdown(breakdown), breakdown))
+        return scored
+
+    def _evaluate_strategy_serial(self, strategy: BaseStrategy) -> float:
         """Evaluate a strategy by playing games against each panel opponent.
 
         With ``shape_rewards=False`` (the historical behavior), returns the
@@ -556,19 +748,7 @@ class GeneticTrainer:
             breakdown: list[tuple] = []
             for i, opponent in enumerate(panel):
                 games_per_opp = games_for_opp[i]
-                board_references = self.battle_system._determine_board_references(strategy, opponent)
-                kingdom_card_names = board_references.kingdom_cards
-                landscape_kwargs = {
-                    key: value
-                    for key, value in {
-                        "events": board_references.events,
-                        "projects": board_references.projects,
-                        "ways": board_references.ways,
-                        "landmarks": board_references.landmarks,
-                        "allies": board_references.allies,
-                    }.items()
-                    if value
-                }
+                kingdom_card_names, landscape_kwargs = self._landscape_kwargs(strategy, opponent)
                 wins = 0
                 margin_total = 0.0
                 for game_num in range(games_per_opp):
@@ -598,18 +778,9 @@ class GeneticTrainer:
                         my_score = scores.get(ai1.name, 0)
                         opp_score = scores.get(ai2.name, 0)
                         margin_total += my_score - opp_score
-                rate = wins / games_per_opp * 100
-                avg_margin = margin_total / games_per_opp
-                if self.shape_rewards:
-                    fitness = self._shape_fitness(rate, avg_margin)
-                    breakdown.append((opponent.name, rate, avg_margin, fitness))
-                else:
-                    breakdown.append((opponent.name, rate))
+                breakdown.append(self._opponent_entry(opponent.name, wins, margin_total, games_per_opp))
             self.last_eval_breakdown = breakdown
-            if self.shape_rewards:
-                # Aggregate the shaped per-opponent fitness values
-                return self._aggregate([entry[3] for entry in breakdown])
-            return self._aggregate([r for _, r in breakdown])
+            return self._fitness_from_breakdown(breakdown)
         except Exception as e:
             log.exception("Error evaluating strategy %s. Got error: %s", strategy.name, e)
             # Clear the breakdown so train() can't credit this strategy with
@@ -646,6 +817,36 @@ class GeneticTrainer:
         finally:
             self.games_per_eval = saved_games
             self._eval_seed_context = saved_context
+
+    def _eval_population_with_budget(
+        self, strategies: list[BaseStrategy], games: int, context: Optional[tuple]
+    ) -> list[float]:
+        """Batch form of :meth:`_eval_with_budget`.
+
+        Returns one fitness per strategy and leaves the matching breakdowns in
+        ``last_population_breakdowns``. Serially it calls
+        :meth:`_eval_with_budget` once per strategy, in order.
+        """
+        if not strategies:
+            self.last_population_breakdowns = []
+            return []
+        if self._use_workers():
+            saved_games = self.games_per_eval
+            saved_context = self._eval_seed_context
+            self.games_per_eval = games
+            self._eval_seed_context = context if self.common_random_numbers else None
+            try:
+                return self.evaluate_population(strategies)
+            finally:
+                self.games_per_eval = saved_games
+                self._eval_seed_context = saved_context
+        fitness_values: list[float] = []
+        breakdowns: list[list[tuple]] = []
+        for strategy in strategies:
+            fitness_values.append(self._eval_with_budget(strategy, games, context))
+            breakdowns.append(list(self.last_eval_breakdown))
+        self.last_population_breakdowns = breakdowns
+        return fitness_values
 
     @staticmethod
     def _genome_signature(strategy: BaseStrategy) -> tuple:
@@ -718,10 +919,12 @@ class GeneticTrainer:
         if screen_fitness < self._best_confirmed - self.confirm_slack:
             return
 
-        incumbent_fitness = self._eval_with_budget(self._best_strategy, self.confirm_games, context)
-        incumbent_breakdown = list(self.last_eval_breakdown)
-        challenger_fitness = self._eval_with_budget(challenger, self.confirm_games, context)
-        challenger_breakdown = list(self.last_eval_breakdown)
+        incumbent_fitness, challenger_fitness = self._eval_population_with_budget(
+            [self._best_strategy, challenger], self.confirm_games, context
+        )
+        incumbent_breakdown, challenger_breakdown = (
+            list(breakdown) for breakdown in self.last_population_breakdowns
+        )
 
         if challenger_fitness > incumbent_fitness:
             self._set_champion(challenger, challenger_fitness, challenger_breakdown)
@@ -1265,20 +1468,20 @@ class GeneticTrainer:
                     self._eval_seed_context = (_SEED_PHASE_SCREEN, gen)
                 fitness_scores = []
                 try:
-                    for strategy in population:
-                        fitness = self.evaluate_strategy(strategy)
-                        fitness_scores.append(fitness)
-
+                    fitness_scores = self.evaluate_population(population)
+                    for strategy, fitness, breakdown in zip(
+                        population, fitness_scores, self.last_population_breakdowns
+                    ):
                         if not self.racing and fitness > self._best_confirmed:
                             # Legacy mode: champion = best single eval ever
                             # seen. Kept behind racing=False for comparison;
                             # subject to the winner's curse on noisy evals.
-                            self._set_champion(strategy, fitness, self.last_eval_breakdown)
+                            self._set_champion(strategy, fitness, breakdown)
                             log.info("New best fitness: %.2f", fitness)
-                            if len(self.last_eval_breakdown) > 1:
+                            if len(breakdown) > 1:
                                 parts = ", ".join(
                                     f"{entry[0]}: {entry[1]:.1f}%"
-                                    for entry in self.last_eval_breakdown
+                                    for entry in breakdown
                                 )
                                 log.info("  panel breakdown — %s", parts)
                 finally:
@@ -1295,12 +1498,13 @@ class GeneticTrainer:
                         key=lambda idx: fitness_scores[idx],
                         reverse=True,
                     )
-                    for idx in ranked[:top_k]:
-                        if fitness_scores[idx] == float("-inf"):
-                            continue
-                        extra = self._eval_with_budget(
-                            population[idx], self.refine_games, (_SEED_PHASE_REFINE, gen)
-                        )
+                    candidates = [idx for idx in ranked[:top_k] if fitness_scores[idx] != float("-inf")]
+                    extras = self._eval_population_with_budget(
+                        [population[idx] for idx in candidates],
+                        self.refine_games,
+                        (_SEED_PHASE_REFINE, gen),
+                    )
+                    for idx, extra in zip(candidates, extras):
                         if extra == float("-inf"):
                             fitness_scores[idx] = extra
                             continue
@@ -1386,6 +1590,8 @@ class GeneticTrainer:
         except Exception as exc:
             log.exception("Error during training")
             return None, {"error": str(exc)}
+        finally:
+            self.close()
 
     def inject_strategy(self, strategy: BaseStrategy):
         """Inject an existing strategy into the initial population.

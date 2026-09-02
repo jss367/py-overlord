@@ -71,6 +71,12 @@ def main() -> None:
     parser.add_argument("--games-per-eval", type=int, default=30)
     parser.add_argument("--mutation-rate", type=float, default=0.15)
     parser.add_argument(
+        "--workers",
+        type=int,
+        default=0,
+        help="Worker processes for fitness evaluation (0 = one per CPU, 1 = run in-process)",
+    )
+    parser.add_argument(
         "--output-dir",
         default="generated_strategies/island_merged",
     )
@@ -116,6 +122,7 @@ def main() -> None:
         games_per_eval=args.games_per_eval,
         board_config=board_config,
         log_folder=f"island_logs/{run_id}/merged",
+        workers=args.workers,
     )
     trainer.inject_strategies(champions)
     trainer.set_baseline_panel(panel)

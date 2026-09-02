@@ -48,16 +48,30 @@ def run_full_battle(
     num_games: int = 10,
     use_shelters: bool = False,
     board_config: Optional[BoardConfig] = None,
+    workers: int = 1,
 ) -> Dict[str, Dict[str, Any]]:
     """Play each strategy against all others.
 
-    Returns aggregated results keyed by strategy name.
+    Returns aggregated results keyed by strategy name. ``workers`` > 1 plays
+    each pairing's games in worker processes (0 = one per CPU).
     """
     battle = StrategyBattle(
         use_shelters=use_shelters,
         log_frequency=0,
         board_config=board_config,
+        workers=workers,
     )
+    try:
+        return _run_full_battle(battle, num_games, board_config)
+    finally:
+        battle.close()
+
+
+def _run_full_battle(
+    battle: StrategyBattle,
+    num_games: int,
+    board_config: Optional[BoardConfig],
+) -> Dict[str, Dict[str, Any]]:
 
     strategy_names = battle.strategy_loader.list_strategies()
 
@@ -137,6 +151,12 @@ def main() -> None:
     )
     parser.add_argument("--games", type=int, default=10, help="Games per pairing")
     parser.add_argument(
+        "--workers",
+        type=int,
+        default=0,
+        help="Worker processes for playing games (0 = one per CPU, 1 = run in-process)",
+    )
+    parser.add_argument(
         "--use-shelters", action="store_true", help="Start games with Shelters"
     )
     parser.add_argument(
@@ -160,6 +180,7 @@ def main() -> None:
         num_games=args.games,
         use_shelters=args.use_shelters,
         board_config=board_config,
+        workers=args.workers,
     )
 
     if args.output:

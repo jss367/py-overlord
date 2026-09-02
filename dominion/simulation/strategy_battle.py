@@ -1,4 +1,5 @@
 import argparse
+import random
 import logging
 import re
 from dataclasses import dataclass
@@ -18,6 +19,13 @@ from dominion.projects.registry import PROJECT_TYPES, get_project
 from dominion.prophecies.registry import get_prophecy
 from dominion.reporting.html_report import generate_html_report
 from dominion.simulation.game_logger import GameLogger
+from dominion.simulation.parallel_games import (
+    DEFAULT_GAMES_PER_TASK,
+    BattleSpec,
+    GamePool,
+    GameTask,
+    chunk_games,
+)
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 from dominion.strategy.strategy_loader import StrategyLoader
 from dominion.traits import apply_trait
@@ -94,11 +102,22 @@ class StrategyBattle:
         *,
         verbose: bool = False,
         log_frequency: int = 10,
+        workers: int = 1,
+        games_per_task: int = DEFAULT_GAMES_PER_TASK,
     ):
         # ``kingdom_cards`` allows explicitly providing the supply. If omitted
         # the supply will be dynamically determined from the strategies used in
         # each battle.
+        #
+        # ``workers`` > 1 plays the games of each battle in that many worker
+        # processes (see :mod:`dominion.simulation.parallel_games`); the
+        # per-game seeds are drawn from the global RNG, so seeding it before
+        # ``run_battle`` makes a parallel battle reproducible. ``0`` means one
+        # worker per CPU.
         self.board_config = board_config
+        self.workers = workers
+        self.games_per_task = games_per_task
+        self._pool: Optional[GamePool] = None
         if board_config and kingdom_cards and board_config.kingdom_cards != kingdom_cards:
             raise ValueError("kingdom_cards and board_config.kingdom_cards must match when both provided")
 
@@ -107,6 +126,41 @@ class StrategyBattle:
         self.strategy_loader = StrategyLoader()  # Now automatically loads all strategies
         self.use_shelters = use_shelters
         self.verbose = verbose
+
+    # ------------------------------------------------------------------
+    # Worker-process support
+    # ------------------------------------------------------------------
+    def spec(self) -> BattleSpec:
+        """Describe this battle system so a worker process can rebuild it."""
+        return BattleSpec(
+            kingdom_cards=tuple(self.kingdom_cards) if self.kingdom_cards else None,
+            log_folder=self.logger.log_folder,
+            log_frequency=self.logger.log_frequency,
+            use_shelters=self.use_shelters,
+            board_config=self.board_config,
+        )
+
+    @property
+    def parallel(self) -> bool:
+        return self.workers is None or self.workers == 0 or self.workers > 1
+
+    def get_pool(self) -> GamePool:
+        """The process pool for this battle system, started on first use."""
+        if self._pool is None:
+            self._pool = GamePool(self.workers, self.spec())
+        return self._pool
+
+    def close(self) -> None:
+        """Shut down the worker pool, if one was started."""
+        if self._pool is not None:
+            self._pool.close()
+            self._pool = None
+
+    def __enter__(self) -> "StrategyBattle":
+        return self
+
+    def __exit__(self, *exc_info) -> None:
+        self.close()
 
     def _extract_cards_from_strategy(self, strat: EnhancedStrategy) -> set[str]:
         """Return all names referenced by a strategy's priority lists."""
@@ -433,6 +487,12 @@ class StrategyBattle:
                 or "(no landscapes)",
             )
 
+        if self.parallel and num_games > 1:
+            log_paths = self._play_games_parallel(
+                strategy1, strategy2, strategy1_name, strategy2_name, num_games, board_references, results
+            )
+            return self._finalize_results(results, num_games, log_paths)
+
         for game_num in range(num_games):
             if self.verbose:
                 logger.info("Playing game %d/%d...", game_num + 1, num_games)
@@ -504,15 +564,98 @@ class StrategyBattle:
             results["strategy1_total_score"] += scores[ai1.name]
             results["strategy2_total_score"] += scores[ai2.name]
 
-        # Calculate final statistics
+        return self._finalize_results(results, num_games, list(self.logger.game_logs))
+
+    @staticmethod
+    def _finalize_results(results: dict[str, Any], num_games: int, log_paths: list[Optional[str]]) -> dict[str, Any]:
         results["strategy1_win_rate"] = results["strategy1_wins"] / num_games * 100
         results["strategy2_win_rate"] = results["strategy2_wins"] / num_games * 100
         results["strategy1_avg_score"] = results["strategy1_total_score"] / num_games
         results["strategy2_avg_score"] = results["strategy2_total_score"] / num_games
-
-        results["log_paths"] = list(self.logger.game_logs)
-
+        results["log_paths"] = log_paths
         return results
+
+    def _play_games_parallel(
+        self,
+        strategy1: EnhancedStrategy,
+        strategy2: EnhancedStrategy,
+        strategy1_name: str,
+        strategy2_name: str,
+        num_games: int,
+        board_references: StrategyBoardReferences,
+        results: dict[str, Any],
+    ) -> list[Optional[str]]:
+        """Play ``num_games`` in the worker pool and fill ``results`` in game order.
+
+        Every game gets a seed drawn from the global RNG here, so the parent
+        RNG advances exactly once per game and the battle is reproducible
+        from a ``random.seed`` call regardless of how many workers run it.
+        """
+        import cloudpickle
+
+        pool = self.get_pool()
+        if self.verbose:
+            logger.info("Playing %d games on %d worker processes...", num_games, pool.workers)
+        landscape_kwargs = {
+            "events": board_references.events,
+            "projects": board_references.projects,
+            "ways": board_references.ways,
+            "landmarks": board_references.landmarks,
+            "allies": board_references.allies,
+        }
+        games = [(game_num, random.getrandbits(31)) for game_num in range(num_games)]
+        blob1 = cloudpickle.dumps(strategy1)
+        blob2 = cloudpickle.dumps(strategy2)
+        tasks = [
+            GameTask(
+                task_id=task_id,
+                strategy_blob=blob1,
+                opponent_blob=blob2,
+                kingdom_card_names=list(board_references.kingdom_cards),
+                landscape_kwargs=landscape_kwargs,
+                games=chunk,
+                collect_decisions=True,
+                strategy_label=strategy1_name,
+                opponent_label=strategy2_name,
+            )
+            for task_id, chunk in enumerate(chunk_games(games, self.games_per_task))
+        ]
+        outcome = pool.run(tasks)
+        game_results = []
+        for task_id in sorted(outcome):
+            task_result = outcome[task_id]
+            if isinstance(task_result, BaseException):
+                raise task_result
+            game_results.extend(task_result.games)
+        game_results.sort(key=lambda game: game.game_num)
+
+        for game in game_results:
+            game_decision_firings = game.decision_firings or {
+                "strategy1": self._empty_decision_firings(strategy1_name),
+                "strategy2": self._empty_decision_firings(strategy2_name),
+            }
+            results["detailed_results"].append(
+                {
+                    "game_number": game.game_num + 1,
+                    "winner": strategy1_name if game.won else strategy2_name,
+                    "strategy1_score": game.my_score,
+                    "strategy2_score": game.opp_score,
+                    "margin": abs(game.my_score - game.opp_score),
+                    "turns": game.turns,
+                    "log_path": game.log_path,
+                    "decision_firings": game_decision_firings,
+                }
+            )
+            self._merge_decision_firings(results["decision_firings"]["strategy1"], game_decision_firings["strategy1"])
+            self._merge_decision_firings(results["decision_firings"]["strategy2"], game_decision_firings["strategy2"])
+            if game.won:
+                results["strategy1_wins"] += 1
+            else:
+                results["strategy2_wins"] += 1
+            results["strategy1_total_score"] += game.my_score
+            results["strategy2_total_score"] += game.opp_score
+
+        return [game.log_path for game in game_results]
 
     @staticmethod
     def _select_winner(players):
@@ -633,6 +776,12 @@ def main():
     parser.add_argument("--no-report", action="store_true", help="Do not generate an HTML report")
     parser.add_argument("--log", action="store_true", help="Write detailed game logs to battle_logs/")
     parser.add_argument("--log-frequency", type=int, default=10, help="Log every Nth game (1 = every game). Only applies when --log is used.")
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=0,
+        help="Worker processes for playing games (0 = one per CPU, 1 = run in-process)",
+    )
 
     args = parser.parse_args()
 
@@ -649,9 +798,13 @@ def main():
         board_config=board_config,
         verbose=args.do_print,
         log_frequency=log_freq,
+        workers=args.workers,
     )
 
-    results = battle.run_battle(args.strategy1_name, args.strategy2_name, args.games)
+    try:
+        results = battle.run_battle(args.strategy1_name, args.strategy2_name, args.games)
+    finally:
+        battle.close()
 
     if args.do_print:
         log_results(results)

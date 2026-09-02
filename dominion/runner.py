@@ -159,6 +159,12 @@ def main():
     )
     parser.add_argument("--board", help="Board definition file containing kingdom cards and landscapes")
     parser.add_argument(
+        "--workers",
+        type=int,
+        default=0,
+        help="Worker processes for fitness evaluation (0 = one per CPU, 1 = run in-process)",
+    )
+    parser.add_argument(
         "--seed-strategy",
         help="Python module path to a strategy factory function to inject into the initial population "
         "(e.g. generated_strategies.torture_campaign_v2:create_torture_campaign_v2)",
@@ -279,6 +285,7 @@ def main():
         games_per_eval=games_per_eval,
         board_config=board_config,
         default_baseline_panel=True,
+        workers=args.workers,
     )
 
     # Load strategies from module:function paths

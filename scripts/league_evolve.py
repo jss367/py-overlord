@@ -63,6 +63,7 @@ def head_to_head(
     games: int,
     *,
     log_folder: str = "battle_logs/league",
+    workers: int = 1,
 ) -> dict:
     """Battle two strategies on ``board`` and return A's record.
 
@@ -71,13 +72,16 @@ def head_to_head(
     ``--compare`` gate) are faced without copying them into the pool.
     """
 
-    battle = StrategyBattle(board_config=board, log_folder=log_folder)
+    battle = StrategyBattle(board_config=board, log_folder=log_folder, workers=workers)
     if strategy_a is not None:
         battle.strategy_loader.register_strategy(name_a, lambda s=strategy_a: deepcopy(s))
     if strategy_b is not None:
         battle.strategy_loader.register_strategy(name_b, lambda s=strategy_b: deepcopy(s))
 
-    results = battle.run_battle(name_a, name_b, games)
+    try:
+        results = battle.run_battle(name_a, name_b, games)
+    finally:
+        battle.close()
     wins = results["strategy1_wins"]
     low, high = wilson_interval(wins, games)
     return {
@@ -238,6 +242,8 @@ def run_gate(
     champion: BaseStrategy,
     compare_names: list[str],
     games: int,
+    *,
+    workers: int = 1,
 ) -> list[dict]:
     """Battle the final champion against each reference strategy."""
 
@@ -245,7 +251,7 @@ def run_gate(
     for name in compare_names:
         log.info("Gate: champion vs %s (%d games)", name, games)
         results.append(
-            head_to_head(board, "LeagueChampion", champion, name, None, games)
+            head_to_head(board, "LeagueChampion", champion, name, None, games, workers=workers)
         )
     return results
 
@@ -336,6 +342,12 @@ def main() -> None:
     parser.add_argument("--games-per-eval", type=int, default=20)
     parser.add_argument("--mutation-rate", type=float, default=0.1)
     parser.add_argument(
+        "--workers",
+        type=int,
+        default=0,
+        help="Worker processes for playing games (0 = one per CPU, 1 = run in-process)",
+    )
+    parser.add_argument(
         "--control",
         action="store_true",
         help=(
@@ -390,6 +402,7 @@ def main() -> None:
             "generations": args.generations,
             "games_per_eval": args.games_per_eval,
             "mutation_rate": args.mutation_rate,
+            "workers": args.workers,
         },
     )
     if not round_reports:
@@ -398,7 +411,7 @@ def main() -> None:
     final_champion = champions[-1] if champions else None
     gate: list[dict] = []
     if final_champion is not None and args.compare:
-        gate = run_gate(board, final_champion, args.compare, args.gate_games)
+        gate = run_gate(board, final_champion, args.compare, args.gate_games, workers=args.workers)
 
     payload = {
         "board": args.board.stem,

@@ -197,11 +197,13 @@ def run_match(
     *,
     log_folder: str = "battle_logs/calibration",
     champion_factory=None,
+    workers: int = 1,
 ) -> MatchOutcome:
     """Battle two registered strategies on the entry's board.
 
     ``champion_factory`` registers an unregistered strategy (e.g. a freshly
-    evolved champion) under ``strategy_a`` before the battle runs.
+    evolved champion) under ``strategy_a`` before the battle runs. ``workers``
+    > 1 plays the games in worker processes (0 = one per CPU).
     """
 
     if games <= 0:
@@ -211,10 +213,13 @@ def run_match(
     from dominion.simulation.strategy_battle import StrategyBattle
 
     board = load_board(entry.board_path())
-    battle = StrategyBattle(board_config=board, log_folder=log_folder)
+    battle = StrategyBattle(board_config=board, log_folder=log_folder, workers=workers)
     if champion_factory is not None:
         battle.strategy_loader.register_strategy(strategy_a, champion_factory)
-    results = battle.run_battle(strategy_a, strategy_b, games)
+    try:
+        results = battle.run_battle(strategy_a, strategy_b, games)
+    finally:
+        battle.close()
     return MatchOutcome(
         board=entry.key,
         strategy_a=strategy_a,
@@ -230,6 +235,7 @@ def run_sanity(
     baselines: Sequence[str] = ("Big Money",),
     *,
     log_folder: str = "battle_logs/calibration",
+    workers: int = 1,
 ) -> list[MatchOutcome]:
     """Battle each entry's known-best strategy against the baseline(s)."""
 
@@ -237,7 +243,7 @@ def run_sanity(
     for entry in entries:
         for baseline in baselines:
             outcomes.append(
-                run_match(entry, entry.known_best, baseline, games, log_folder=log_folder)
+                run_match(entry, entry.known_best, baseline, games, log_folder=log_folder, workers=workers)
             )
     return outcomes
 
@@ -252,9 +258,10 @@ def evolve_and_evaluate(
     """Evolve a champion for the entry's board and battle it vs known-best.
 
     ``trainer_kwargs`` are forwarded to :class:`GeneticTrainer` (population
-    size, generations, games_per_eval, ...). Returns the champion-vs-known-best
-    outcome, the trainer metadata, and the champion strategy itself (so
-    callers can persist the genome for diagnosis).
+    size, generations, games_per_eval, ...); a ``workers`` entry also drives
+    the confirmation battle. Returns the champion-vs-known-best outcome, the
+    trainer metadata, and the champion strategy itself (so callers can
+    persist the genome for diagnosis).
     """
 
     from dominion.boards.loader import load_board
@@ -279,6 +286,7 @@ def evolve_and_evaluate(
         confirm_games,
         log_folder=log_folder,
         champion_factory=lambda: deepcopy(champion),
+        workers=trainer_kwargs.get("workers", 1),
     )
     return outcome, metadata, champion
 

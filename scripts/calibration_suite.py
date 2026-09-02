@@ -69,6 +69,12 @@ def main() -> None:
     parser.add_argument("--generations", type=positive_int, default=40)
     parser.add_argument("--games-per-eval", type=positive_int, default=20)
     parser.add_argument(
+        "--workers",
+        type=int,
+        default=0,
+        help="Worker processes for playing games (0 = one per CPU, 1 = run in-process)",
+    )
+    parser.add_argument(
         "--output-dir", type=Path, default=Path("reports/calibration")
     )
     args = parser.parse_args()
@@ -78,7 +84,7 @@ def main() -> None:
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     if args.mode == "sanity":
-        outcomes = run_sanity(entries, args.games)
+        outcomes = run_sanity(entries, args.games, workers=args.workers)
         report = render_sanity_report(outcomes)
         report_path = args.output_dir / "sanity.md"
         json_path = args.output_dir / "sanity.json"
@@ -92,6 +98,7 @@ def main() -> None:
                 population_size=args.population,
                 generations=args.generations,
                 games_per_eval=args.games_per_eval,
+                workers=args.workers,
             )
             logger.info(
                 "%s: champion won %.1f%% of %d games vs %s",
