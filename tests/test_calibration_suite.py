@@ -8,12 +8,18 @@ of only against itself.
 import pytest
 
 from dominion.analysis.calibration import (
+    BoardSummary,
     CALIBRATION_SUITE,
-    MatchOutcome,
     entries_for_keys,
+    evolve_and_evaluate,
     gap_points,
+    load_outcomes_json,
+    MatchOutcome,
+    render_comparison,
     render_evolve_report,
     render_sanity_report,
+    save_outcomes_json,
+    summarize_by_board,
     wilson_interval,
 )
 from dominion.boards.loader import load_board
@@ -151,3 +157,98 @@ def test_render_evolve_report_includes_mean_gap():
     assert "Mean gap" in text
     # tied game: gap 0; behind: 40% -> gap 10; mean 5.0
     assert "5.0" in text
+
+
+def test_match_outcome_roundtrips_seed_through_json(tmp_path):
+    seeded = _outcome(seed=7)
+    legacy = _outcome(board="witch_bm", strategy_b="Double Witch")
+    path = tmp_path / "evolve.json"
+    save_outcomes_json([seeded, legacy], path)
+    loaded = load_outcomes_json(path)
+    assert loaded == [seeded, legacy]
+    assert loaded[0].seed == 7 and loaded[1].seed is None
+    assert seeded.to_dict()["seed"] == 7
+
+
+def test_summarize_by_board_groups_seeds_and_picks_interval():
+    single = _outcome(board="witch_bm", strategy_b="Double Witch", wins_a=70, games=200)
+    multi = [
+        _outcome(strategy_b="Double Smithy", wins_a=w, games=200, seed=i)
+        for i, w in enumerate((80, 90, 100, 110))
+    ]
+    summaries = summarize_by_board(multi[:2] + [single] + multi[2:])
+    assert [s.board for s in summaries] == ["smithy_bm", "witch_bm"]
+
+    smithy, witch = summaries
+    assert smithy.seeds == 4
+    assert smithy.winrates == pytest.approx([40.0, 45.0, 50.0, 55.0])
+    assert smithy.mean_winrate == pytest.approx(47.5)
+    assert smithy.stdev == pytest.approx(6.4549722)
+    lo, hi = smithy.ci
+    assert lo < 47.5 < hi and hi > 50.0  # t-interval straddles parity
+    assert smithy.verdict == "UNRESOLVED (4 seeds)"
+    assert smithy.gap == pytest.approx(2.5)
+
+    assert witch.seeds == 1 and witch.ci == single.ci_a
+    assert witch.verdict == "BEHIND"
+
+
+def test_board_summary_verdicts_on_t_interval():
+    ahead = BoardSummary("b", "k", [_outcome(wins_a=w, games=100, seed=i) for i, w in enumerate((70, 72, 68))])
+    assert ahead.verdict == "BEATS KNOWN BEST"
+    behind = BoardSummary("b", "k", [_outcome(wins_a=w, games=100, seed=i) for i, w in enumerate((30, 32, 28))])
+    assert behind.verdict == "BEHIND"
+
+
+def test_render_evolve_report_aggregates_seeds():
+    outcomes = [
+        _outcome(strategy_a="Champion", strategy_b="Double Smithy", wins_a=w, games=200, seed=i)
+        for i, w in enumerate((80, 100, 120))
+    ]
+    text = render_evolve_report(outcomes)
+    assert "| smithy_bm | Double Smithy | 3 | 200 | 50.0% | 10.0 |" in text
+    assert "UNRESOLVED (3 seeds)" in text
+    assert "Mean gap: 0.0" in text
+    assert "Student-t interval over seeds" in text
+
+
+def test_render_comparison_reports_welch_and_paired_gap():
+    def arm(offset, seeds):
+        outcomes = []
+        for board, base in (("smithy_bm", 80), ("witch_bm", 60), ("wharf_bm", 90)):
+            for seed in range(seeds):
+                outcomes.append(
+                    _outcome(board=board, strategy_b="Known", wins_a=base + offset + seed * 2, games=200, seed=seed)
+                )
+        return outcomes
+
+    baseline = arm(0, 3)
+    candidate = arm(20, 3)
+    text = render_comparison(baseline, candidate, baseline_label="old", candidate_label="new")
+    assert "| Board | old | new | Delta | Welch p | Verdict |" in text
+    assert "+10.0pp" in text
+    assert "new better" in text
+    assert "Mean gap over 3 shared boards" in text
+    assert "paired t over boards p = " in text
+
+    single = render_comparison(arm(0, 1), arm(20, 1))
+    assert "need >=2 seeds per arm" in single
+    assert "Mean gap over 3 shared boards" in single
+
+
+def test_evolve_and_evaluate_is_reproducible_from_seed(tmp_path):
+    entry = entries_for_keys(["smithy_bm"])[0]
+    kwargs = dict(
+        confirm_games=4,
+        log_folder=str(tmp_path / "battles"),
+        population_size=3,
+        generations=1,
+        games_per_eval=2,
+        hall_of_fame_size=0,
+    )
+    first, _, champion_a = evolve_and_evaluate(entry, seed=5, **kwargs)
+    second, _, champion_b = evolve_and_evaluate(entry, seed=5, **kwargs)
+    assert first.seed == 5 and first.games == 4
+    assert first == second
+    assert champion_a.gain_priority[0].card_name == champion_b.gain_priority[0].card_name
+    assert len(champion_a.gain_priority) == len(champion_b.gain_priority)
