@@ -7,6 +7,14 @@ name: Auto Merge
 #   - a comment on the PR containing 👍 (event-driven).
 #
 # Skip conditions:
+#   - The comment is Codex's review-summary comment. Its boilerplate
+#     "About Codex in GitHub" block always contains the literal text
+#     "reacts with 👍 once all reviews finish with no findings", so a
+#     naive body match armed auto-merge on *every* Codex review —
+#     including ones that went on to post P2 findings, and roughly two
+#     minutes before those findings landed. Codex signals approval with a
+#     reaction, not a comment, so the scheduled poll below is the real
+#     path for bot approval; this job now only serves human 👍 comments.
 #   - PR targets a branch other than main (event-driven posts a comment
 #     explaining; scheduled poll skips silently).
 #   - Open child PRs still target this PR's head branch (event-driven
@@ -42,6 +50,7 @@ jobs:
       github.event_name == 'issue_comment'
       && github.event.issue.pull_request
       && contains(github.event.comment.body, '👍')
+      && !contains(github.event.comment.body, '<!-- codex-pull-request-review-summary -->')
       && (github.event.comment.author_association == 'OWNER'
           || github.event.comment.author_association == 'COLLABORATOR'
           || github.actor == 'chatgpt-codex-connector[bot]')
