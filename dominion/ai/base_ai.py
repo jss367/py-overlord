@@ -1985,6 +1985,18 @@ class AI(ABC):
         if name == "Herald":
             actions_in_discard = sum(1 for c in player.discard if c.is_action)
             return min(max_amount, actions_in_discard, 2)
+        if name == "Infirmary":
+            # Each $1 overpaid plays the Infirmary once (+1 Card, may trash a
+            # card from hand). Pay for one play per junk card still in hand
+            # plus one speculative draw, while junk remains to trash.
+            junk = {"Curse", "Copper", "Estate", "Hovel", "Overgrown Estate"}
+            junk_in_hand = sum(1 for c in player.hand if c.name in junk)
+            junk_in_deck = sum(
+                1 for c in player.deck + player.discard if c.name in junk
+            )
+            if junk_in_hand == 0 and junk_in_deck == 0:
+                return 0
+            return min(max_amount, junk_in_hand + 1, 3)
         return 0
 
     def choose_doctor_overpay_action(
@@ -2641,6 +2653,29 @@ class AI(ABC):
         if not_exiled:
             return min(not_exiled, key=lambda c: (c.cost.coins, c.name))
         return min(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_card_to_exile_for_cardinal(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Cardinal's victim picks which revealed $3-$6 card to Exile.
+
+        Default: give up the cheapest card; a copy can be reclaimed later by
+        gaining another one.
+        """
+        if not choices:
+            return None
+        return min(choices, key=lambda c: (c.cost.coins, c.name))
+
+    def choose_card_to_invest(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Pick the Action card to Exile with the Invest event.
+
+        Default: the most expensive Action in the Supply.
+        """
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (c.cost.coins, c.name))
 
     def choose_treasures_to_discard_for_hostelry(
         self, state: GameState, player: PlayerState, treasures: list[Card]

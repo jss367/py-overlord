@@ -66,6 +66,13 @@ _OVERRIDES: dict[str, dict] = {
     "Mine": {"is_gainer": True, "is_trasher": True},
     # Pure trashers.
     "Chapel": {"is_trasher": True},
+    # Menagerie / Guilds / Cornucopia 2E / Plunder (Black Cat and Livery board).
+    "Journeyman": {"draw": 3.0},       # reveal until 3 non-named cards
+    "Barge": {"draw": 3.0, "buys": 1}, # +3 Cards +1 Buy now or next turn
+    "Cavalry": {"is_gainer": True},    # gains 2 Horses (each +2 Cards +1 Action)
+    "Livery": {"is_gainer": True},     # Horse per $4+ gain this turn
+    "Bounty Hunter": {"is_trasher": True},  # Exiles a card from hand (+$3)
+    "Infirmary": {"is_trasher": True},      # cantrip trash
 }
 
 

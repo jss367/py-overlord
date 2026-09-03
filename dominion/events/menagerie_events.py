@@ -229,8 +229,10 @@ class Invest(Event):
         if not available:
             return
 
-        available.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
-        chosen = available[0]
+        chosen = player.ai.choose_card_to_invest(game_state, player, available)
+        if chosen is None or chosen.name not in {c.name for c in available}:
+            return
+        chosen = next(c for c in available if c.name == chosen.name)
         game_state.supply[chosen.name] -= 1
         player.exile.append(chosen)
         player.invested_exile.append(chosen)

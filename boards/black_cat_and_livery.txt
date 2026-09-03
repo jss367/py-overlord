@@ -1,0 +1,18 @@
+# Black Cat and Livery board.
+#
+# Menagerie-heavy kingdom with Guilds, Cornucopia 2E and Plunder guests.
+# Cavalry and Livery bring the Horse pile; Way of the Ox turns any Action
+# into +2 Actions; Invest is the only Event. No Colony/Platinum.
+Black Cat
+Stockpile
+Infirmary
+Bounty Hunter
+Cardinal
+Cavalry
+Barge
+Journeyman
+Livery
+Fisherman
+
+Way: Way of the Ox
+Event: Invest

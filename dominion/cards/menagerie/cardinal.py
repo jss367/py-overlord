@@ -4,8 +4,8 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Cardinal(Card):
-    """+$2. Each other player reveals top 2 cards of their deck. Exile any
-    costing $3-$6, then they discard the rest.
+    """+$2. Each other player reveals the top 2 cards of their deck, Exiles
+    one costing $3-$6 (their choice), and discards the rest.
     """
 
     def __init__(self):
@@ -33,13 +33,21 @@ class Cardinal(Card):
                         break
                     revealed.append(target.deck.pop())
 
-                # Exile cards costing $3-$6 to the *target's* exile mat;
-                # discard the rest.
+                # The target Exiles exactly one card costing $3-$6 (their
+                # choice) to their own Exile mat and discards the rest.
+                eligible = [c for c in revealed if 3 <= c.cost.coins <= 6]
+                exiled = None
+                if eligible:
+                    exiled = target.ai.choose_card_to_exile_for_cardinal(
+                        game_state, target, eligible
+                    )
+                    if exiled not in eligible:
+                        exiled = eligible[0]
+                    target.exile.append(exiled)
                 for c in revealed:
-                    if 3 <= c.cost.coins <= 6:
-                        target.exile.append(c)
-                    else:
-                        game_state.discard_card(target, c)
+                    if c is exiled:
+                        continue
+                    game_state.discard_card(target, c)
 
             game_state.attack_player(
                 other, attack_target, attacker=player, attack_card=self
