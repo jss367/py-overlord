@@ -292,6 +292,14 @@ def mutate_menu(strategy: BaseStrategy, info: KingdomInfo, rate: float, rng=_ran
         i = rng.randint(0, len(treasure) - 2)
         treasure[i], treasure[i + 1] = treasure[i + 1], treasure[i]
 
+    # Bounty Hunter exile order: swap adjacent. This compatibility path only
+    # reorders what a seed already declared; introducing an override outright
+    # is a semantic edit, so it lives in mutate_strategic_strategy.
+    exile = getattr(strategy, "bounty_hunter_exile_priority", None) or []
+    if rng.random() < rate * 0.5 and len(exile) >= 2:
+        i = rng.randint(0, len(exile) - 2)
+        exile[i], exile[i + 1] = exile[i + 1], exile[i]
+
     # Trash thresholds.
     if rng.random() < rate:
         for rule in strategy.trash_priority:

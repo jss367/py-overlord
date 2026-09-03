@@ -1082,6 +1082,12 @@ class GeneticTrainer:
         if parent2_way_policy and random.random() < 0.5:
             child.way_policy = deepcopy(parent2_way_policy)
 
+        # Same for the Bounty Hunter exile order: short, and only meaningful as
+        # a whole ordering, so splice it wholesale rather than positionally.
+        parent2_exile = getattr(parent2, "bounty_hunter_exile_priority", None)
+        if parent2_exile and random.random() < 0.5:
+            child.bounty_hunter_exile_priority = deepcopy(parent2_exile)
+
         return child
 
     def _mutate(self, strategy: BaseStrategy) -> BaseStrategy:
