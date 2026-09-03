@@ -1084,9 +1084,15 @@ class GeneticTrainer:
 
         # Same for the Bounty Hunter exile order: short, and only meaningful as
         # a whole ordering, so splice it wholesale rather than positionally.
-        parent2_exile = getattr(parent2, "bounty_hunter_exile_priority", None)
-        if parent2_exile and random.random() < 0.5:
-            child.bounty_hunter_exile_priority = deepcopy(parent2_exile)
+        # Presence, not truthiness: an *empty* order is the meaningful "use the
+        # generic policy" value, and the legacy mutation path can only reorder
+        # an order a seed already declared. Skipping empty parent2 lists would
+        # make an override a one-way ratchet on this path — a child of a parent
+        # that declared one could never get back to the generic policy.
+        if hasattr(parent2, "bounty_hunter_exile_priority") and random.random() < 0.5:
+            child.bounty_hunter_exile_priority = deepcopy(
+                parent2.bounty_hunter_exile_priority
+            )
 
         return child
 
