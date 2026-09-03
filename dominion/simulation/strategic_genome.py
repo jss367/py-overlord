@@ -115,6 +115,10 @@ class StrategicGenome:
     trash: TrashPlan = field(default_factory=TrashPlan)
     action_order: list[str] = field(default_factory=list)
     treasure_order: list[str] = field(default_factory=list)
+    #: Cards to prefer when Bounty Hunter asks what to Exile.  An empty list
+    #: means "no override": the generic policy in
+    #: :meth:`BaseAI.choose_card_to_exile_for_bounty_hunter` decides.
+    bounty_exile_order: list[str] = field(default_factory=list)
 
     def compile_into(self, strategy: BaseStrategy, info) -> BaseStrategy:
         """Replace phenotype rule lists while preserving identity and Ways."""
@@ -273,6 +277,12 @@ class StrategicGenome:
         strategy.gain_priority = gain
         strategy.action_priority = [PriorityRule(card) for card in self.action_order]
         strategy.treasure_priority = [PriorityRule(card) for card in self.treasure_order]
+        # Assigned unconditionally: the genome is authoritative for every rule
+        # list it owns, so recompiling after a mutation that cleared the order
+        # correctly drops back to the generic Bounty Hunter policy.
+        strategy.bounty_hunter_exile_priority = [
+            PriorityRule(card) for card in self.bounty_exile_order
+        ]
 
         trash: list[PriorityRule] = []
         if self.trash.trash_curse:
@@ -362,6 +372,33 @@ _TRASH_COPPER_RE = re.compile(
 _DECISION_HOOK_PREFIXES = ("choose_", "should_", "select_", "decide_")
 
 
+def _default_bounty_exile_order(info) -> list[str]:
+    """The generic Bounty Hunter order, restricted to this board's piles.
+
+    Mirrors :meth:`BaseAI.choose_card_to_exile_for_bounty_hunter` so a mutation
+    that turns the override on starts from the known-good default rather than
+    an arbitrary order, and improves from there.
+    """
+
+    order = ["Province", "Duchy", "Estate", "Curse", "Copper"]
+    if info.has_colony:
+        order.insert(0, "Colony")
+    return order
+
+
+def _bounty_exile_candidates(info) -> list[str]:
+    """Cards worth naming in an exile order on this board.
+
+    Dead scoring cards and junk, plus the kingdom's own gainable cards — the
+    latter are what a deck-specific override exists to reorder (exiling a
+    surplus engine piece over a Copper, say).  Silver/Gold/Platinum are left
+    out: giving away economy is never the point, and the generic
+    cheapest-first fallback already covers them.
+    """
+
+    return _default_bounty_exile_order(info) + list(info.gainable)
+
+
 def _has_custom_decision_hooks(strategy: BaseStrategy) -> bool:
     """Whether a strategy customizes behavior outside typed rule lists."""
 
@@ -407,6 +444,7 @@ def promote_legacy_strategy(strategy: BaseStrategy, info) -> bool:
     action = list(getattr(strategy, "action_priority", []) or [])
     treasure = list(getattr(strategy, "treasure_priority", []) or [])
     trash = list(getattr(strategy, "trash_priority", []) or [])
+    exile = list(getattr(strategy, "bounty_hunter_exile_priority", []) or [])
 
     if _has_custom_decision_hooks(strategy):
         return False
@@ -416,7 +454,9 @@ def promote_legacy_strategy(strategy: BaseStrategy, info) -> bool:
         for rule in gain + trash
     ):
         return False
-    if any(rule.condition is not None for rule in action + treasure):
+    # Like the action and Treasure orders, the genome stores the exile order as
+    # bare card names, so a condition-gated entry cannot round-trip.
+    if any(rule.condition is not None for rule in action + treasure + exile):
         return False
 
     province_rules = [rule for rule in gain if rule.card_name == "Province"]
@@ -602,6 +642,7 @@ def promote_legacy_strategy(strategy: BaseStrategy, info) -> bool:
         trash=trash_plan,
         action_order=[rule.card_name for rule in action],
         treasure_order=[rule.card_name for rule in treasure],
+        bounty_exile_order=[rule.card_name for rule in exile],
     )
     probe = genome.compile_into(BaseStrategy(), info)
     if _strategy_rule_signature(probe) != _strategy_rule_signature(strategy):
@@ -629,6 +670,10 @@ def synchronize_strategic_genome(strategy: BaseStrategy, info) -> bool:
     gain_signatures = {_rule_signature(rule) for rule in strategy.gain_priority}
     action_names = [rule.card_name for rule in strategy.action_priority]
     treasure_names = [rule.card_name for rule in strategy.treasure_priority]
+    exile_names = [
+        rule.card_name
+        for rule in getattr(strategy, "bounty_hunter_exile_priority", []) or []
+    ]
     trash_signatures = {_rule_signature(rule) for rule in strategy.trash_priority}
 
     # Match typed entries by compiling each one in isolation. This avoids
@@ -738,6 +783,9 @@ def synchronize_strategic_genome(strategy: BaseStrategy, info) -> bool:
 
     genome.action_order = [card for card in action_names if card in genome.action_order]
     genome.treasure_order = [card for card in treasure_names if card in genome.treasure_order]
+    genome.bounty_exile_order = [
+        card for card in exile_names if card in genome.bounty_exile_order
+    ]
     genome.trash.trash_curse = any(card == "Curse" for card, _ in trash_signatures)
     if not any(card == "Estate" for card, _ in trash_signatures):
         genome.trash.estate_until_provinces = None
@@ -869,6 +917,24 @@ def random_strategic_genome(info, rng=_random_module) -> StrategicGenome:
         + sorted(info.treasure_cards, key=lambda c: -info.costs.get(c, 0))
         + ["Silver", "Copper"]
     )
+
+    # Most individuals should inherit the tuned generic exile policy, so only a
+    # minority open with an override — and those start one edit away from the
+    # default rather than at a random permutation.
+    bounty_exile_order: list[str] = []
+    if "Bounty Hunter" in info.kingdom_cards and rng.random() < 0.15:
+        bounty_exile_order = _default_bounty_exile_order(info)
+        if rng.random() < 0.5:
+            index = rng.randint(0, len(bounty_exile_order) - 2)
+            bounty_exile_order[index], bounty_exile_order[index + 1] = (
+                bounty_exile_order[index + 1],
+                bounty_exile_order[index],
+            )
+        elif info.gainable:
+            bounty_exile_order.insert(
+                rng.randint(0, len(bounty_exile_order)), rng.choice(info.gainable)
+            )
+
     return StrategicGenome(
         openings=openings,
         build_targets=targets,
@@ -898,6 +964,7 @@ def random_strategic_genome(info, rng=_random_module) -> StrategicGenome:
         ),
         action_order=_default_action_order(info, rng),
         treasure_order=treasures,
+        bounty_exile_order=bounty_exile_order,
     )
 
 
@@ -1017,6 +1084,30 @@ def mutate_strategic_strategy(strategy: BaseStrategy, info, rate: float, rng=_ra
             genome.treasure_order[i + 1], genome.treasure_order[i]
         )
 
+    # Bounty Hunter exile order. Toggling the override on and off is itself a
+    # searchable edit: an empty order means the generic policy decides, so the
+    # GA can always retreat to it if a deck-specific order is not paying off.
+    if "Bounty Hunter" in info.kingdom_cards:
+        if rng.random() < rate * 0.4:
+            if not genome.bounty_exile_order:
+                genome.bounty_exile_order = _default_bounty_exile_order(info)
+            elif rng.random() < 0.3:
+                genome.bounty_exile_order = []
+            else:
+                genome.bounty_exile_order.pop(
+                    rng.randrange(len(genome.bounty_exile_order))
+                )
+        order = genome.bounty_exile_order
+        if rng.random() < rate and len(order) >= 2:
+            i = rng.randint(0, len(order) - 2)
+            order[i], order[i + 1] = order[i + 1], order[i]
+        if rng.random() < rate * 0.3 and order:
+            missing = [
+                card for card in _bounty_exile_candidates(info) if card not in order
+            ]
+            if missing:
+                order.insert(rng.randint(0, len(order)), rng.choice(missing))
+
     # Later mutations can remove a target/opening or disable an economy card
     # selected as an anchor. Revalidate after the complete semantic edit.
     _normalize_build_dependencies(genome, info)
@@ -1040,7 +1131,7 @@ def crossover_strategic_strategies(parent1: BaseStrategy, parent2: BaseStrategy,
     child_genome = deepcopy(first)
     for field_name in (
         "openings", "build_targets", "economy", "greening", "endgame",
-        "trash", "action_order", "treasure_order",
+        "trash", "action_order", "treasure_order", "bounty_exile_order",
     ):
         if rng.random() < 0.5:
             setattr(child_genome, field_name, deepcopy(getattr(second, field_name)))

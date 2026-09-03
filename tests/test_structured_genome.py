@@ -39,6 +39,7 @@ from dominion.strategy.strategies.base_strategy import BaseStrategy
 
 KINGDOM = ["Village", "Smithy", "Market", "Festival", "Laboratory", "Witch", "Chapel", "Moat"]
 COLONY_KINGDOM = KINGDOM + ["Colony", "Platinum"]
+BOUNTY_KINGDOM = ["Bounty Hunter", "Stockpile"] + KINGDOM[:6]
 
 
 def _info() -> KingdomInfo:
@@ -47,6 +48,10 @@ def _info() -> KingdomInfo:
 
 def _colony_info() -> KingdomInfo:
     return KingdomInfo.from_kingdom(COLONY_KINGDOM)
+
+
+def _bounty_info() -> KingdomInfo:
+    return KingdomInfo.from_kingdom(BOUNTY_KINGDOM)
 
 
 def _mock_state(turn_number=5, provinces_left=8):
@@ -590,6 +595,187 @@ class TestStrategicGenomeRepresentability:
         ]
         assert len(estate_sources) == 1
         assert "empty_piles" in estate_sources[0]
+
+
+class TestBountyHunterExileGenome:
+    """The Bounty Hunter exile order is part of the genome, not just the
+    phenotype.
+
+    It appears in the fitness signature, so reproduction has to be able to
+    inherit, discover, and abandon it. An empty order is not a missing value:
+    it means "let the generic policy decide", which is the tuned default.
+    """
+
+    def test_compiles_order_and_stays_authoritative(self):
+        genome = StrategicGenome(
+            bounty_exile_order=["Province", "Duchy", "Curse"],
+            treasure_order=["Gold", "Silver", "Copper"],
+        )
+        strategy = genome.compile_into(BaseStrategy(), _bounty_info())
+
+        assert [
+            rule.card_name for rule in strategy.bounty_hunter_exile_priority
+        ] == ["Province", "Duchy", "Curse"]
+        assert all(
+            rule.condition is None
+            for rule in strategy.bounty_hunter_exile_priority
+        )
+
+        # Clearing the order must clear the phenotype, not leave the previous
+        # override stranded on a recompiled strategy.
+        genome.bounty_exile_order = []
+        genome.compile_into(strategy, _bounty_info())
+        assert strategy.bounty_hunter_exile_priority == []
+
+    def test_seed_with_exile_order_is_promoted(self):
+        strategy = BaseStrategy()
+        strategy.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        strategy.treasure_priority = [
+            PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")
+        ]
+        strategy.bounty_hunter_exile_priority = [
+            PriorityRule("Province"), PriorityRule("Duchy")
+        ]
+        before = GeneticTrainer._genome_signature(strategy)
+
+        assert promote_legacy_strategy(strategy, _bounty_info()) is True
+        assert GeneticTrainer._genome_signature(strategy) == before
+        assert strategy._strategic_genome.bounty_exile_order == [
+            "Province", "Duchy"
+        ]
+
+    def test_condition_gated_exile_rule_is_not_promoted(self):
+        strategy = BaseStrategy()
+        strategy.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        strategy.treasure_priority = [
+            PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")
+        ]
+        # The genome stores bare card names, so a gate cannot round-trip.
+        strategy.bounty_hunter_exile_priority = [
+            PriorityRule("Province", PriorityRule.provinces_left("<=", 4))
+        ]
+
+        assert promote_legacy_strategy(strategy, _bounty_info()) is False
+        assert not hasattr(strategy, "_strategic_genome")
+
+    def test_semantic_crossover_can_take_the_other_parent_order(self):
+        info = _bounty_info()
+        first = StrategicGenome(
+            treasure_order=["Gold", "Silver", "Copper"],
+        ).compile_into(BaseStrategy(), info)
+        second = StrategicGenome(
+            bounty_exile_order=["Curse", "Copper"],
+            treasure_order=["Gold", "Silver", "Copper"],
+        ).compile_into(BaseStrategy(), info)
+        child = crossover_strategic_strategies(
+            first, second, info, rng=_DeterministicRng()
+        )
+
+        assert child is not None
+        assert child._strategic_genome.bounty_exile_order == ["Curse", "Copper"]
+        assert [
+            rule.card_name for rule in child.bounty_hunter_exile_priority
+        ] == ["Curse", "Copper"]
+
+    def test_compatibility_crossover_inherits_order_from_second_parent(self):
+        trainer = GeneticTrainer(
+            BOUNTY_KINGDOM, population_size=1, generations=1
+        )
+        random.seed(21)
+        first = trainer.create_random_strategy()
+        first.bounty_hunter_exile_priority = []
+
+        # A hand-written seed with a custom hook can never be promoted, so it
+        # only ever reproduces through positional crossover — which still has
+        # to pass its exile order down.
+        class CustomGainSeed(BaseStrategy):
+            def choose_gain(self, state, player, choices):
+                return choices[-1]
+
+        second = CustomGainSeed()
+        second.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        second.treasure_priority = [
+            PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")
+        ]
+        second.bounty_hunter_exile_priority = [
+            PriorityRule("Curse"), PriorityRule("Copper")
+        ]
+
+        inherited = [
+            [
+                rule.card_name
+                for rule in trainer._crossover(
+                    first, second
+                ).bounty_hunter_exile_priority
+            ]
+            for _ in range(40)
+        ]
+
+        assert ["Curse", "Copper"] in inherited
+        assert [] in inherited
+
+    def test_mutation_discovers_reorders_and_abandons_the_override(self):
+        info = _bounty_info()
+        rng = random.Random(5)
+        seen = set()
+        for _ in range(60):
+            strategy = StrategicGenome(
+                treasure_order=["Gold", "Silver", "Copper"],
+            ).compile_into(BaseStrategy(), info)
+            for _ in range(20):
+                mutate_strategic_strategy(strategy, info, 0.3, rng)
+            seen.add(
+                tuple(
+                    rule.card_name
+                    for rule in strategy.bounty_hunter_exile_priority
+                )
+            )
+
+        default = tuple(("Province", "Duchy", "Estate", "Curse", "Copper"))
+        assert () in seen                       # can fall back to generic
+        assert default in seen                  # can adopt the tuned default
+        assert len(seen - {(), default}) >= 3   # and search around it
+
+    def test_mutation_leaves_the_order_empty_off_a_bounty_hunter_board(self):
+        info = _info()
+        rng = random.Random(6)
+        for _ in range(40):
+            strategy = StrategicGenome(
+                treasure_order=["Gold", "Silver", "Copper"],
+            ).compile_into(BaseStrategy(), info)
+            for _ in range(20):
+                mutate_strategic_strategy(strategy, info, 1.0, rng)
+            assert strategy.bounty_hunter_exile_priority == []
+
+    def test_pruned_exile_rule_is_not_resurrected_by_semantic_crossover(self):
+        from dominion.strategy.rule_pruning import prune_unfired_rules
+
+        info = _bounty_info()
+        parent = StrategicGenome(
+            bounty_exile_order=["Province", "Duchy", "Curse"],
+            greening=GreeningPlan(duchy_mode="never"),
+            treasure_order=["Gold", "Silver", "Copper"],
+        ).compile_into(BaseStrategy(), info)
+        for rules in (
+            parent.gain_priority,
+            parent.action_priority,
+            parent.treasure_priority,
+            parent.trash_priority,
+            parent.bounty_hunter_exile_priority,
+        ):
+            for rule in rules:
+                rule._fired = rule.card_name != "Duchy"
+
+        prune_unfired_rules(parent, min_rules=0)
+        synchronize_strategic_genome(parent, info)
+        child = crossover_strategic_strategies(parent, parent, info)
+
+        assert child is not None
+        assert child._strategic_genome.bounty_exile_order == ["Province", "Curse"]
+        assert all(
+            rule.card_name != "Duchy"
+            for rule in child.bounty_hunter_exile_priority
+        )
 
 
 class TestMutateMenu:
