@@ -29,5 +29,6 @@ jobs:
         diff --recursive --unified reports/boards "$catalog_output/boards"
         # Tournament runs intentionally replace the clean catalog's empty leaderboard.
         diff --recursive --unified --exclude=leaderboard.html reports/strategies "$catalog_output/strategies"
+        PYTHONPATH=. python scripts/validate_strategy_leaderboard.py reports/strategies/leaderboard.html
     - name: Run tests
       run: pytest -q
