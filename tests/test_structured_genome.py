@@ -714,6 +714,49 @@ class TestBountyHunterExileGenome:
         assert ["Curse", "Copper"] in inherited
         assert [] in inherited
 
+    def test_compatibility_crossover_can_inherit_an_empty_order(self):
+        """An empty order is a value, not a missing one.
+
+        The legacy mutation path can only reorder an order a seed already
+        declared, so if crossover skipped empty ``parent2`` lists the override
+        would be a one-way ratchet: a lineage that once declared an order
+        could never return to the generic policy.
+        """
+        trainer = GeneticTrainer(
+            BOUNTY_KINGDOM, population_size=1, generations=1
+        )
+
+        class CustomGainSeed(BaseStrategy):
+            def choose_gain(self, state, player, choices):
+                return choices[-1]
+
+        first = CustomGainSeed()
+        first.gain_priority = [PriorityRule("Province"), PriorityRule("Gold")]
+        first.treasure_priority = [
+            PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")
+        ]
+        first.bounty_hunter_exile_priority = [
+            PriorityRule("Curse"), PriorityRule("Copper")
+        ]
+        second = CustomGainSeed()
+        second.gain_priority = list(first.gain_priority)
+        second.treasure_priority = list(first.treasure_priority)
+        second.bounty_hunter_exile_priority = []
+
+        random.seed(22)
+        inherited = [
+            [
+                rule.card_name
+                for rule in trainer._crossover(
+                    first, second
+                ).bounty_hunter_exile_priority
+            ]
+            for _ in range(40)
+        ]
+
+        assert [] in inherited
+        assert ["Curse", "Copper"] in inherited
+
     def test_mutation_discovers_reorders_and_abandons_the_override(self):
         info = _bounty_info()
         rng = random.Random(5)
