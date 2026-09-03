@@ -27,6 +27,7 @@ jobs:
         catalog_output="$(mktemp -d)"
         PYTHONPATH=. python scripts/render_catalog.py --output-dir "$catalog_output"
         diff --recursive --unified reports/boards "$catalog_output/boards"
-        diff --recursive --unified reports/strategies "$catalog_output/strategies"
+        # Tournament runs intentionally replace the clean catalog's empty leaderboard.
+        diff --recursive --unified --exclude=leaderboard.html reports/strategies "$catalog_output/strategies"
     - name: Run tests
       run: pytest -q
