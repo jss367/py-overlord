@@ -1,0 +1,13 @@
+# Base-set engine kingdom: Village draw into Smithy and Laboratory, Festival for
+# actions and coin, Chapel thinning, and a Witch attack. This is the card pool
+# the evolved gen-0 strategies were bred against.
+Chapel
+Moat
+Village
+Workshop
+Smithy
+Festival
+Laboratory
+Market
+Mine
+Witch
