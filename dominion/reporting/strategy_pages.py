@@ -1316,6 +1316,22 @@ def render_strategy_page(
         if custom_rows
         else ""
     )
+    bounty_hunter_exile_rules = getattr(
+        strategy, "bounty_hunter_exile_priority", []
+    )
+    bounty_hunter_exile_section = (
+        f"""
+<section class="section section-exile">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">↗</span><h2>Bounty Hunter Exile Priority</h2></div>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
+    <tbody>{_priority_rows(bounty_hunter_exile_rules)}</tbody>
+  </table>
+</section>
+"""
+        if bounty_hunter_exile_rules
+        else ""
+    )
     leaderboard_nav = (
         f'<a href="{escape(leaderboard_href)}">Leaderboard</a>'
         if leaderboard_href
@@ -1355,7 +1371,7 @@ def render_strategy_page(
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
     <tbody>{_priority_rows(getattr(strategy, "action_priority", []))}</tbody>
   </table>
-</section>
+</section>{bounty_hunter_exile_section}
 
 <section class="section section-trash">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">×</span><h2>Trash Priority</h2></div>

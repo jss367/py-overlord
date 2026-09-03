@@ -870,6 +870,9 @@ class GeneticTrainer:
             rule_sig(strategy.action_priority),
             rule_sig(strategy.treasure_priority),
             rule_sig(strategy.trash_priority),
+            rule_sig(
+                getattr(strategy, "bounty_hunter_exile_priority", [])
+            ),
             way_sig,
         )
 

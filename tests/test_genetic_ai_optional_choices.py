@@ -58,3 +58,35 @@ def test_priority_matches_still_win_when_none_is_present():
     assert action_choice.name == "Village"
     assert buy_choice is not None
     assert buy_choice.name == "Silver"
+
+
+def test_bounty_hunter_exile_priority_overrides_generic_order():
+    strategy = EnhancedStrategy()
+    strategy.bounty_hunter_exile_priority = [PriorityRule("Copper")]
+    state, ai = _state_with_strategy(strategy)
+    player = state.players[0]
+
+    choice = ai.choose_card_to_exile_for_bounty_hunter(
+        state,
+        player,
+        [get_card("Province"), get_card("Copper")],
+    )
+
+    assert choice is not None
+    assert choice.name == "Copper"
+
+
+def test_bounty_hunter_exile_priority_falls_back_when_no_rule_matches():
+    strategy = EnhancedStrategy()
+    strategy.bounty_hunter_exile_priority = [PriorityRule("Gold")]
+    state, ai = _state_with_strategy(strategy)
+    player = state.players[0]
+
+    choice = ai.choose_card_to_exile_for_bounty_hunter(
+        state,
+        player,
+        [get_card("Province"), get_card("Copper")],
+    )
+
+    assert choice is not None
+    assert choice.name == "Province"

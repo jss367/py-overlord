@@ -40,6 +40,7 @@ _PRIORITY_LIST_ATTRS = (
     "action_priority",
     "treasure_priority",
     "trash_priority",
+    "bounty_hunter_exile_priority",
 )
 
 

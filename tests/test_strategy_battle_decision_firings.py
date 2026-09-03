@@ -81,6 +81,7 @@ def test_priority_rule_firings_are_counted_by_decision_list():
     strategy.action_priority = [PriorityRule("Village")]
     strategy.treasure_priority = [PriorityRule("Silver")]
     strategy.trash_priority = [PriorityRule("Estate")]
+    strategy.bounty_hunter_exile_priority = [PriorityRule("Copper")]
     ai = GeneticAI(strategy)
     battle = StrategyBattle()
     stats = battle._empty_decision_firings("Trace Strategy")
@@ -91,10 +92,17 @@ def test_priority_rule_firings_are_counted_by_decision_list():
     ai.choose_action(state, [_card("Village"), None])
     ai.choose_treasure(state, [_card("Silver")])
     ai.choose_card_to_trash(state, [_card("Estate")])
+    ai.choose_card_to_exile_for_bounty_hunter(
+        state, state.current_player, [_card("Copper")]
+    )
 
     assert stats["priority_rules"]["action"]["Village [always]"] == 1
     assert stats["priority_rules"]["treasure"]["Silver [always]"] == 1
     assert stats["priority_rules"]["trash"]["Estate [always]"] == 1
+    assert (
+        stats["priority_rules"]["bounty_hunter_exile"]["Copper [always]"]
+        == 1
+    )
 
 
 def test_untagged_priority_rule_condition_is_not_reported_as_always():

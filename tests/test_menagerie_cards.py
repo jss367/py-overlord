@@ -166,6 +166,41 @@ def test_bounty_hunter_gives_three_coins_for_new_exile():
     assert p1.coins == 3
 
 
+def test_bounty_hunter_prefers_scoring_cards_in_value_order():
+    state, player, _ = _two_player_state()
+    priority = [
+        "Colony",
+        "Province",
+        "Duchy",
+        "Estate",
+        "Curse",
+        "Copper",
+    ]
+    player.exile = [get_card(name) for name in priority]
+
+    for index, expected in enumerate(priority):
+        choices = [get_card(name) for name in reversed(priority[index:])]
+        choice = player.ai.choose_card_to_exile_for_bounty_hunter(
+            state, player, choices
+        )
+
+        assert choice is not None
+        assert choice.name == expected
+
+
+def test_bounty_hunter_fallback_prefers_a_new_card_name():
+    state, player, _ = _two_player_state()
+    player.exile = [get_card("Black Cat")]
+    choices = [get_card("Black Cat"), get_card("Gold")]
+
+    choice = player.ai.choose_card_to_exile_for_bounty_hunter(
+        state, player, choices
+    )
+
+    assert choice is not None
+    assert choice.name == "Gold"
+
+
 def test_groom_action_gain_horse():
     state, p1, _ = _two_player_state()
     state.supply["Village"] = state.supply.get("Village", 10)

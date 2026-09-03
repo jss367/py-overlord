@@ -333,6 +333,7 @@ class EnhancedStrategy:
         self.gain_priority: list[PriorityRule] = []
         self.action_priority: list[PriorityRule] = []
         self.trash_priority: list[PriorityRule] = []
+        self.bounty_hunter_exile_priority: list[PriorityRule] = []
         self.treasure_priority: list[PriorityRule] = []
         self.way_policy: list[WayRule] = []
         self._decision_trace_callback = None
@@ -504,6 +505,20 @@ class EnhancedStrategy:
 
     def choose_trash(self, state, player, choices):
         return self._choose_from_priority(self.trash_priority, choices, state, player, "trash")
+
+    def choose_bounty_hunter_exile(self, state, player, choices):
+        """Apply a strategy-specific Bounty Hunter exile order, if supplied.
+
+        Returning ``None`` lets :class:`GeneticAI` fall back to the generic
+        Bounty Hunter policy, so a partial or condition-gated list is safe.
+        """
+        return self._choose_from_priority(
+            self.bounty_hunter_exile_priority,
+            choices,
+            state,
+            player,
+            "bounty_hunter_exile",
+        )
 
     def choose_way(self, state, player, card, ways):
         """Choose a Way from ``way_policy``, or apply the default

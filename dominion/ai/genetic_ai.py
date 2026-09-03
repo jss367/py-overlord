@@ -71,6 +71,17 @@ class GeneticAI(AI):
 
         return self.strategy.choose_trash(state, state.current_player, choices)
 
+    def choose_card_to_exile_for_bounty_hunter(
+        self, state: GameState, player, choices: list[Card]
+    ) -> Optional[Card]:
+        """Use the strategy's Bounty Hunter order before the generic policy."""
+        choice = self.strategy.choose_bounty_hunter_exile(state, player, choices)
+        if choice is not None:
+            return choice
+        return super().choose_card_to_exile_for_bounty_hunter(
+            state, player, choices
+        )
+
     def choose_watchtower_reaction(
         self, state: GameState, player, gained_card: Card
     ) -> Optional[str]:

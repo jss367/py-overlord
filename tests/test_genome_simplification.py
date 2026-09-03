@@ -10,13 +10,16 @@ from dominion.strategy.genome_simplification import simplify_strategy
 from dominion.strategy.strategies.base_strategy import BaseStrategy
 
 
-def _make_strategy(gain=None, action=None, treasure=None, trash=None) -> BaseStrategy:
+def _make_strategy(
+    gain=None, action=None, treasure=None, trash=None, bounty_hunter_exile=None
+) -> BaseStrategy:
     s = BaseStrategy()
     s.name = "Test"
     s.gain_priority = list(gain or [])
     s.action_priority = list(action or [])
     s.treasure_priority = list(treasure or [])
     s.trash_priority = list(trash or [])
+    s.bounty_hunter_exile_priority = list(bounty_hunter_exile or [])
     return s
 
 
@@ -103,18 +106,26 @@ class TestPreservesUnrelatedLists:
             PriorityRule("Curse"),
             PriorityRule("Curse"),  # dropped
         ]
+        exile_rules = [
+            PriorityRule("Province"),
+            PriorityRule("Province"),  # dropped
+        ]
         s = simplify_strategy(
             _make_strategy(
                 gain=gain_rules,
                 action=action_rules,
                 treasure=treasure_rules,
                 trash=trash_rules,
+                bounty_hunter_exile=exile_rules,
             )
         )
         assert [r.card for r in s.gain_priority] == ["Province"]
         assert [r.card for r in s.action_priority] == ["Village"]
         assert [r.card for r in s.treasure_priority] == ["Gold", "Silver"]
         assert [r.card for r in s.trash_priority] == ["Curse"]
+        assert [r.card for r in s.bounty_hunter_exile_priority] == [
+            "Province"
+        ]
 
 
 class TestEvolvedExample:

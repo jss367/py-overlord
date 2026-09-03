@@ -125,16 +125,25 @@ class TestResetFireFlags:
         treasure_rule._fired = True
         trash_rule = PriorityRule("Estate")
         trash_rule._fired = True
+        exile_rule = PriorityRule("Copper")
+        exile_rule._fired = True
 
         strategy = BaseStrategy()
         strategy.gain_priority = [gain_rule]
         strategy.action_priority = [action_rule]
         strategy.treasure_priority = [treasure_rule]
         strategy.trash_priority = [trash_rule]
+        strategy.bounty_hunter_exile_priority = [exile_rule]
 
         reset_fire_flags(strategy)
 
-        for r in (gain_rule, action_rule, treasure_rule, trash_rule):
+        for r in (
+            gain_rule,
+            action_rule,
+            treasure_rule,
+            trash_rule,
+            exile_rule,
+        ):
             assert getattr(r, "_fired", False) is False
 
 
@@ -193,16 +202,26 @@ class TestPruneUnfiredRules:
 
     def test_prunes_across_all_priority_lists(self):
         strategy = BaseStrategy()
-        for attr in ("gain_priority", "action_priority",
-                     "treasure_priority", "trash_priority"):
+        for attr in (
+            "gain_priority",
+            "action_priority",
+            "treasure_priority",
+            "trash_priority",
+            "bounty_hunter_exile_priority",
+        ):
             fired = PriorityRule("Silver"); fired._fired = True
             unfired = PriorityRule("Gold")  # no _fired set
             setattr(strategy, attr, [fired, unfired])
 
         prune_unfired_rules(strategy)
 
-        for attr in ("gain_priority", "action_priority",
-                     "treasure_priority", "trash_priority"):
+        for attr in (
+            "gain_priority",
+            "action_priority",
+            "treasure_priority",
+            "trash_priority",
+            "bounty_hunter_exile_priority",
+        ):
             cards = [r.card for r in getattr(strategy, attr)]
             assert cards == ["Silver"], f"{attr} not pruned: {cards}"
 

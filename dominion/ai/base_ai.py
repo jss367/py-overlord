@@ -2641,14 +2641,31 @@ class AI(ABC):
     def choose_card_to_exile_for_bounty_hunter(
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Optional[Card]:
-        """Prefer to exile a junk card not yet in exile."""
+        """Prefer dead scoring cards, then preserve Bounty Hunter's +$3.
+
+        Cards in Exile still belong to the player and count at scoring, so
+        Victory cards are especially attractive targets: they leave the
+        shuffle without sacrificing their points.  Continue exiling them even
+        when a same-named copy is already on the mat; keeping dead cards out of
+        the deck is generally worth more than chasing the first-copy bonus by
+        exiling an engine card.
+        """
         if not choices:
             return None
+
+        for target in (
+            "Colony",
+            "Province",
+            "Duchy",
+            "Estate",
+            "Curse",
+            "Copper",
+        ):
+            for card in choices:
+                if card.name == target:
+                    return card
+
         already = {c.name for c in player.exile}
-        for junk in ("Curse", "Estate", "Copper"):
-            for c in choices:
-                if c.name == junk and junk not in already:
-                    return c
         not_exiled = [c for c in choices if c.name not in already]
         if not_exiled:
             return min(not_exiled, key=lambda c: (c.cost.coins, c.name))

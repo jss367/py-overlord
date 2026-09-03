@@ -26,9 +26,19 @@ def test_referenced_cards_ignores_list_boundaries():
     strategy = _strategy("Village", "Smithy")
     strategy.action_priority = [PriorityRule("Festival")]
     strategy.trash_priority = [PriorityRule("Estate")]
+    strategy.bounty_hunter_exile_priority = [PriorityRule("Market")]
 
     assert referenced_cards(strategy) == frozenset(
-        {"Village", "Smithy", "Festival", "Estate", "Gold", "Silver", "Copper"}
+        {
+            "Village",
+            "Smithy",
+            "Festival",
+            "Estate",
+            "Market",
+            "Gold",
+            "Silver",
+            "Copper",
+        }
     )
 
 
