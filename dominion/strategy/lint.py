@@ -241,6 +241,10 @@ def lint_strategy(strategy: EnhancedStrategy) -> list[StrategyLintWarning]:
         ("action", getattr(strategy, "action_priority", []) or []),
         ("treasure", getattr(strategy, "treasure_priority", []) or []),
         ("trash", getattr(strategy, "trash_priority", []) or []),
+        (
+            "bounty_hunter_exile",
+            getattr(strategy, "bounty_hunter_exile_priority", []) or [],
+        ),
     ):
         warnings.extend(_lint_priority_list(list_name, rules))
 

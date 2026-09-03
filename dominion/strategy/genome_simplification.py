@@ -111,6 +111,9 @@ def simplify_strategy(strategy: EnhancedStrategy) -> EnhancedStrategy:
     out.action_priority = _simplify_priority_list(out.action_priority)
     out.treasure_priority = _simplify_priority_list(out.treasure_priority)
     out.trash_priority = _simplify_priority_list(out.trash_priority)
+    out.bounty_hunter_exile_priority = _simplify_priority_list(
+        out.bounty_hunter_exile_priority
+    )
     if getattr(out, "way_policy", None):
         out.way_policy = _simplify_way_policy(out.way_policy)
     return out

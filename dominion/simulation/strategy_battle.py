@@ -169,6 +169,7 @@ class StrategyBattle:
             strat.gain_priority,
             strat.action_priority,
             strat.trash_priority,
+            strat.bounty_hunter_exile_priority,
             strat.treasure_priority,
         ]:
             for rule in priority_list:

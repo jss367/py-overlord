@@ -1,12 +1,15 @@
 from dominion.reporting.strategy_links import strategy_page_href, strategy_slug
 from dominion.reporting.strategy_pages import (
+    RenderedStrategy,
     render_strategy_leaderboard,
+    render_strategy_page,
     render_strategy_pages,
 )
 from dominion.reporting.html_report import (
     _strategy_report_href,
     generate_leaderboard_html,
 )
+from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 
 def test_strategy_slug_is_stable_for_display_names():
@@ -26,6 +29,29 @@ def test_strategy_report_href_resolves_aliases_to_rendered_pages():
     assert (
         _strategy_report_href("strategy_20260212_094841", prefix="strategies") is None
     )
+
+
+def test_strategy_page_renders_bounty_hunter_exile_override():
+    strategy = EnhancedStrategy()
+    strategy.name = "Copper Before Curse"
+    strategy.bounty_hunter_exile_priority = [
+        PriorityRule("Copper"),
+        PriorityRule("Curse"),
+    ]
+    item = RenderedStrategy(
+        display_name=strategy.name,
+        slug="copper-before-curse",
+        strategy=strategy,
+        source_path="example.py",
+        factory_name="create_example",
+        references={},
+    )
+
+    html = render_strategy_page(item)
+
+    assert "Bounty Hunter Exile Priority" in html
+    section = html.split("Bounty Hunter Exile Priority", 1)[1]
+    assert section.index("Copper") < section.index("Curse")
 
 
 def test_leaderboard_html_does_not_link_unresolved_strategy_names(tmp_path):

@@ -316,6 +316,7 @@ def _strategy_rule_signature(strategy: BaseStrategy) -> tuple[tuple, ...]:
             "action_priority",
             "treasure_priority",
             "trash_priority",
+            "bounty_hunter_exile_priority",
         )
     )
 

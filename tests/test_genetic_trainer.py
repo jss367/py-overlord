@@ -469,6 +469,10 @@ class TestSerialization:
             PriorityRule("Estate", PriorityRule.provinces_left(">", 4)),
             PriorityRule("Copper", PriorityRule.has_cards(["Silver", "Gold"], 3)),
         ]
+        strategy.bounty_hunter_exile_priority = [
+            PriorityRule("Copper"),
+            PriorityRule("Curse"),
+        ]
 
         out_file = tmp_path / "test_strategy.py"
         save_strategy_as_python(strategy, out_file, "TestStrategy")
@@ -491,6 +495,10 @@ class TestSerialization:
             generated = mod.TestStrategy()
             assert generated.name == "TestRoundTrip"
             assert len(generated.gain_priority) == 5
+            assert [
+                rule.card_name
+                for rule in generated.bounty_hunter_exile_priority
+            ] == ["Copper", "Curse"]
 
             # Verify the conditions are callable and evaluate
             state = _make_mock_state()

@@ -234,6 +234,9 @@ def _describe(strategy: BaseStrategy) -> dict:
         "action_priority": rules("action_priority"),
         "treasure_priority": rules("treasure_priority"),
         "trash_priority": rules("trash_priority"),
+        "bounty_hunter_exile_priority": rules(
+            "bounty_hunter_exile_priority"
+        ),
     }
 
 

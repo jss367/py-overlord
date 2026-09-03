@@ -104,6 +104,14 @@ def save_strategy_as_python(
     if strategy.trash_priority:
         lines.extend(format_list("trash_priority", strategy.trash_priority))
         lines.append("")
+    if getattr(strategy, "bounty_hunter_exile_priority", None):
+        lines.extend(
+            format_list(
+                "bounty_hunter_exile_priority",
+                strategy.bounty_hunter_exile_priority,
+            )
+        )
+        lines.append("")
     if getattr(strategy, "discard_priority", None):
         lines.extend(format_list("discard_priority", strategy.discard_priority))
         lines.append("")

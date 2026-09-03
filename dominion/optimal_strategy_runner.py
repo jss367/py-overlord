@@ -131,6 +131,13 @@ def train_optimal_strategy():
             lines.extend(format_list("treasure_priority", strategy.treasure_priority))
         if strategy.trash_priority:
             lines.extend(format_list("trash_priority", strategy.trash_priority))
+        if getattr(strategy, "bounty_hunter_exile_priority", None):
+            lines.extend(
+                format_list(
+                    "bounty_hunter_exile_priority",
+                    strategy.bounty_hunter_exile_priority,
+                )
+            )
         if getattr(strategy, "discard_priority", None):
             lines.extend(format_list("discard_priority", strategy.discard_priority))
         if needs_way_rule:
