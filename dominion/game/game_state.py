@@ -2370,6 +2370,14 @@ class GameState:
 
             self._commit_buy(player, choice)
 
+            # Cavalry: "if it's your Buy phase, return to your Action phase."
+            # Play the new Action phase (with whatever Actions remain), then a
+            # fresh Treasure/Buy phase — start-of-Buy effects fire again —
+            # and keep buying with the coins already accumulated.
+            if self.phase == "action":
+                self.handle_action_phase()
+                self.handle_treasure_phase()
+
         self._handle_buy_phase_end(player)
         self.phase = "night"
 

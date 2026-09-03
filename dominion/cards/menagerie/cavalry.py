@@ -16,6 +16,11 @@ class Cavalry(Card):
             types=[CardType.ACTION],
         )
 
+    def get_additional_non_supply_piles(self) -> dict[str, int]:
+        from .supplies import HORSE_PILE_COUNT
+
+        return {"Horse": HORSE_PILE_COUNT}
+
     def play_effect(self, game_state):
         from ..registry import get_card
 

@@ -144,13 +144,14 @@ def main() -> None:
     # ``island_tournament.py`` then rejects the entrant list via its
     # duplicate-name guard. Match island_evolve.py and assign a stable
     # merged-stage display name before serialization.
-    best.name = "Lisbon Merged Champion"
+    board_label = Path(board_path).stem.replace("_", " ").title()
+    best.name = f"{board_label} Merged Champion"
 
     output_path = output_dir / "merged_champion.py"
     save_strategy_as_python(
         best,
         output_path,
-        "LisbonMergedChampion",
+        f"{board_label.replace(' ', '')}MergedChampion",
         board_config=board_config,
     )
     logger.info(

@@ -674,3 +674,101 @@ def test_kiln_consumes_trigger_when_pile_empty():
     # Pending must have been consumed by the first play even though no copy
     # could be gained.
     assert getattr(p1, "kiln_pending", 0) == 0
+
+
+def _kingdom_state(names):
+    ai1 = ChooseFirstActionAI()
+    ai2 = ChooseFirstActionAI()
+    state = GameState(players=[])
+    state.initialize_game([ai1, ai2], [get_card(n) for n in names])
+    return state, state.players[0], state.players[1]
+
+
+def test_cavalry_and_livery_register_horse_pile_at_setup():
+    for name in ("Cavalry", "Livery"):
+        state, _, _ = _kingdom_state([name])
+        assert state.supply.get("Horse") == 30, name
+        assert "Horse" in state.non_supply_pile_names
+
+
+def test_journeyman_and_livery_are_terminal():
+    assert get_card("Journeyman").stats.actions == 0
+    assert get_card("Livery").stats.actions == 0
+
+
+def test_cardinal_exiles_exactly_one_of_two_eligible_cards():
+    state, p1, p2 = _two_player_state()
+    p2.deck = [get_card("Gold"), get_card("Silver")]  # Silver on top
+    p2.discard = []
+    p1.actions = 1
+    p1.hand = [get_card("Cardinal")]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert [c.name for c in p2.exile] == ["Silver"]
+    assert [c.name for c in p2.discard] == ["Gold"]
+    assert p1.coins == 2
+
+
+class _CavalryBuyerAI(ChooseFirstActionAI):
+    """Plays every Treasure and buys one Cavalry."""
+
+    def choose_treasure(self, state, choices):
+        for ch in choices:
+            if ch is not None:
+                return ch
+        return None
+
+    def choose_buy(self, state, choices):
+        for ch in choices:
+            if ch is not None and ch.name == "Cavalry":
+                return ch
+        return None
+
+
+def test_buying_cavalry_returns_to_action_phase_and_plays_actions():
+    state = GameState(players=[])
+    state.initialize_game([_CavalryBuyerAI(), _CavalryBuyerAI()], [get_card("Cavalry")])
+    p1 = state.players[0]
+    p1.hand = [get_card("Gold"), get_card("Gold")]
+    p1.deck = [get_card("Copper"), get_card("Horse")]  # Horse drawn first
+    p1.discard = []
+    p1.actions = 1
+    p1.buys = 1
+    state.phase = "action"
+    state.handle_action_phase()
+    state.handle_treasure_phase()
+    assert p1.coins == 6
+    state.handle_buy_phase()
+    # Cavalry bought ($4, leaving $2) and drew Horse + Copper. The turn went
+    # back to the Action phase: the Horse was played (back to its pile) and
+    # drew the reshuffled Cavalry, which was played and gained two Horses.
+    # The fresh Treasure phase then played the Copper.
+    assert any(c.name == "Cavalry" for c in p1.in_play)
+    assert "Horse" not in {c.name for c in p1.hand}
+    assert state.supply["Horse"] == 29
+    assert p1.coins == 3
+    assert state.phase == "night"
+
+
+def test_journeyman_stops_when_fewer_than_three_non_named_cards_remain(monkeypatch):
+    state, p1, _ = _two_player_state()
+    p1.deck = [get_card("Copper")]
+    p1.discard = [get_card("Silver"), get_card("Gold")]
+    p1.hand = [get_card("Journeyman")]
+    p1.actions = 1
+    state.phase = "action"
+
+    # Make the reshuffle deterministic. The named Copper must remain set aside
+    # while Silver and Gold are revealed; putting it straight into the discard
+    # pile would allow it to be shuffled back into the deck.
+    def reverse_discard_into_deck():
+        p1.deck.extend(reversed(p1.discard))
+        p1.discard.clear()
+
+    monkeypatch.setattr(p1, "shuffle_discard_into_deck", reverse_discard_into_deck)
+
+    # Names Copper (no Estates left anywhere); only two non-Copper cards exist.
+    state.handle_action_phase()
+    assert [c.name for c in p1.hand] == ["Silver", "Gold"]
+    assert [c.name for c in p1.discard] == ["Copper"]
+    assert p1.deck == []
