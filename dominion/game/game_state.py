@@ -2162,6 +2162,15 @@ class GameState:
             return True
         return False
 
+    def live_type_count(self, card: Card) -> int:
+        """Number of types ``card`` has right now, including game-level
+        modifiers (Charlatan adds Treasure to Curse). Used by "2 or more
+        types" triggers such as Falconer."""
+        count = len(card.types)
+        if not card.is_treasure and self.is_treasure(card):
+            count += 1
+        return count
+
     def is_treasure(self, card: Card) -> bool:
         """Treasure check that respects game-level type modifiers.
 
@@ -4770,7 +4779,8 @@ class GameState:
     def _handle_secluded_shrine_gain(self, player: PlayerState, gained_card: Card) -> None:
         """Plunder Secluded Shrine: the owner's next Treasure gain trashes up
         to 2 cards from their hand. Each armed Shrine fires once."""
-        if not gained_card.is_treasure:
+        # Live type check: Charlatan makes Curse a Treasure for the whole game.
+        if not self.is_treasure(gained_card):
             return
         for card in list(player.duration):
             if card.name == "Secluded Shrine" and getattr(card, "shrine_armed", False):
@@ -4782,7 +4792,7 @@ class GameState:
         player reacts first, then the others in turn order. Each Falconer in
         hand reacts separately (a played Falconer can gain a 2-type card and
         trigger the next one)."""
-        if len(gained_card.types) < 2:
+        if self.live_type_count(gained_card) < 2:
             return
         if not self.players:
             return

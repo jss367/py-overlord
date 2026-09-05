@@ -926,3 +926,33 @@ def test_own_turn_falconer_gaining_messenger_is_not_first_buy_phase_gain():
     assert p2.discard == []
     assert state.supply["Messenger"] == messengers_before - 1
     assert p1.cards_gained_this_buy_phase == 2
+
+
+def _charlatan_state():
+    state, p1, p2 = _two_player_state(extra_kingdom=[get_card("Charlatan")])
+    state.supply.setdefault("Charlatan", 10)
+    assert state.charlatan_curse_active()
+    return state, p1, p2
+
+
+def test_falconer_reacts_to_curse_gain_under_charlatan():
+    """With Charlatan in the kingdom a Curse is Curse-Treasure (2 types)."""
+    state, p1, p2 = _charlatan_state()
+    falconer = get_card("Falconer")
+    p2.hand = [falconer]
+    state.supply["Curse"] -= 1
+    state.gain_card(p1, get_card("Curse"))
+    assert falconer in p2.in_play
+
+
+def test_secluded_shrine_fires_on_curse_gain_under_charlatan():
+    state, p1, _ = _charlatan_state()
+    shrine = get_card("Secluded Shrine")
+    p1.hand = [get_card("Estate"), get_card("Estate")]
+    p1.in_play.append(shrine)
+    state.current_player_index = 0
+    shrine.on_play(state)
+    assert shrine.shrine_armed
+    state.supply["Curse"] -= 1
+    state.gain_card(p1, get_card("Curse"))
+    assert not shrine.shrine_armed
