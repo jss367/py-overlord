@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Callable, Iterable, Optional, ClassVar
 
 from dominion.cards.base_card import Card
+from dominion.ai import tactical_defaults
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
 
@@ -596,6 +597,39 @@ class EnhancedStrategy:
         return float("inf")
 
     # -- Card-specific tactical defaults -----------------------------------
+    def choose_overlord_target(self, state, player, choices: list[Card]) -> Optional[Card]:
+        """Reuse action preferences, then rank supply targets independently.
+
+        Override this method to distinguish copying from playing out of hand.
+        Returning None requests the engine's shared fallback.
+        """
+        choice = self.choose_action(state, player, choices + [None])
+        if choice is not None:
+            return choice
+        # Prefer unspecified cards over rules whose conditions did not pass.
+        specified = {rule.card for rule in self.action_priority}
+        return tactical_defaults.choose_overlord_target(
+            player, [c for c in choices if c.name not in specified] or choices
+        )
+
+    def choose_quartermaster_gain(self, state, player, choices: list[Card]) -> Optional[Card]:
+        """Reuse gain preferences, with a baseline when none selects a card.
+
+        Override for mat-specific gains. Returning None from an override
+        requests the engine's shared fallback.
+        """
+        choice = self.choose_gain(state, player, choices)
+        if choice is not None:
+            return choice
+        specified = {rule.card for rule in self.gain_priority}
+        return tactical_defaults.choose_quartermaster_gain(
+            [c for c in choices if c.name not in specified] or choices
+        )
+
+    def quartermaster_take_all(self, state, player, mat: list[Card]) -> bool:
+        """Override to collect based on hand, game stage, or stored cards."""
+        return tactical_defaults.quartermaster_take_all(mat)
+
     def choose_watchtower_reaction(self, state, player, gained_card: Card) -> Optional[str]:
         """Default Watchtower reaction policy.
 
