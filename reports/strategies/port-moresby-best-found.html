@@ -308,7 +308,13 @@
   <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
   <table class="priority-table">
     <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
-    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose quartermaster option</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_quartermaster_option(self, state, player, mat, candidates):
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose quartermaster option</span></td><td data-label="What it does">In order: (1) if this Quartermaster has banked Silvers, the hand is short of 8 coins, and either the hand plus 2 per banked Silver reaches 8 or two or fewer Provinces remain, take one Silver into hand; (2) otherwise run the normal gain priority over the affordable cards and bank its pick; (3) otherwise bank a Silver if one is offered; (4) otherwise take the most expensive banked card; (5) otherwise bank the first offered card.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_quartermaster_option(self, state, player, mat, candidates):
+    &quot;&quot;&quot;In order: (1) if this Quartermaster has banked Silvers, the hand is
+    short of 8 coins, and either the hand plus 2 per banked Silver reaches 8
+    or two or fewer Provinces remain, take one Silver into hand; (2) otherwise
+    run the normal gain priority over the affordable cards and bank its pick;
+    (3) otherwise bank a Silver if one is offered; (4) otherwise take the most
+    expensive banked card; (5) otherwise bank the first offered card.&quot;&quot;&quot;
     silvers = [c for c in mat if c.name == &quot;Silver&quot;]
     coins = _hand_coins(player)
     provinces = state.supply.get(&quot;Province&quot;, 0)

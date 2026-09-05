@@ -75,6 +75,12 @@ class PortMoresbyBestFound(EnhancedStrategy):
         ]
 
     def choose_quartermaster_option(self, state, player, mat, candidates):
+        """In order: (1) if this Quartermaster has banked Silvers, the hand is
+        short of 8 coins, and either the hand plus 2 per banked Silver reaches 8
+        or two or fewer Provinces remain, take one Silver into hand; (2) otherwise
+        run the normal gain priority over the affordable cards and bank its pick;
+        (3) otherwise bank a Silver if one is offered; (4) otherwise take the most
+        expensive banked card; (5) otherwise bank the first offered card."""
         silvers = [c for c in mat if c.name == "Silver"]
         coins = _hand_coins(player)
         provinces = state.supply.get("Province", 0)
