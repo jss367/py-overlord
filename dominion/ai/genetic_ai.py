@@ -67,6 +67,24 @@ class GeneticAI(AI):
             return hook(state, player, mat, candidates)
         return super().choose_quartermaster_option(state, player, mat, candidates)
 
+    def choose_overlord_target(self, state, player, choices: list[Card]) -> Optional[Card]:
+        hook = getattr(self.strategy, "choose_overlord_target", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_overlord_target(state, player, choices)
+
+    def choose_quartermaster_gain(self, state, player, choices: list[Card]) -> Optional[Card]:
+        hook = getattr(self.strategy, "choose_quartermaster_gain", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_quartermaster_gain(state, player, choices)
+
+    def quartermaster_take_all(self, state, player, mat: list[Card]) -> bool:
+        hook = getattr(self.strategy, "quartermaster_take_all", None)
+        if hook is not None:
+            return bool(hook(state, player, mat))
+        return super().quartermaster_take_all(state, player, mat)
+
     def choose_way(self, state: GameState, card: Card, ways: list) -> Optional[object]:
         if hasattr(self.strategy, 'choose_way'):
             return self.strategy.choose_way(state, state.current_player, card, ways)

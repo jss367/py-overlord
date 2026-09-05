@@ -840,8 +840,10 @@ def test_quartermaster_rejects_gains_outside_the_offer():
 
     player.ai = _GoldAI()
     state._handle_quartermaster_start_of_turn(player)
-    assert qm.set_aside == []
+    # An illegal pick requests the shared legal fallback (never the Gold).
+    assert len(qm.set_aside) == 1 and qm.set_aside[0].name != "Gold"
     assert state.supply["Gold"] == gold_before
+    qm.set_aside.clear()
 
     class _BogusModeAI(_NullAI):
         def choose_quartermaster_option(self, state, player, mat, candidates):

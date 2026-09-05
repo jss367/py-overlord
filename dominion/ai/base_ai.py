@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from dominion.cards.base_card import Card
+from dominion.ai import tactical_defaults
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
 
@@ -42,6 +43,18 @@ class AI(ABC):
         if "coins" in options:
             return "coins"
         return options[0] if options else "coins"
+
+    def choose_overlord_target(self, state, player, choices: list[Card]) -> Optional[Card]:
+        choice = self.choose_action(state, choices + [None])
+        if choice is not None and choice.name in {card.name for card in choices}:
+            return choice
+        return tactical_defaults.choose_overlord_target(player, choices)
+
+    def choose_quartermaster_gain(self, state, player, choices: list[Card]) -> Optional[Card]:
+        return tactical_defaults.choose_quartermaster_gain(choices)
+
+    def quartermaster_take_all(self, state, player, mat: list[Card]) -> bool:
+        return tactical_defaults.quartermaster_take_all(mat)
 
     def should_trash_engineer_for_extra_gains(
         self, state: GameState, player: PlayerState, engineer: Card
@@ -2730,21 +2743,22 @@ class AI(ABC):
         mat: list[Card],
         candidates: list[Card],
     ) -> tuple[str, Optional[Card]]:
-        """Quartermaster start-of-turn choice.
+        """Quartermaster start-of-turn choice for one Quartermaster.
 
-        Returns ``("take", card)`` to put ``card`` from the mat into hand, or
-        ``("gain", card)`` to gain ``card`` (costing up to $4) onto the mat.
-        Default: bank two cards, then take the priciest one each time the
-        mat is full again.
+        Returns ``("take", card)`` to put ``card`` from that Quartermaster's
+        pile into hand, or ``("gain", card)`` to gain ``card`` (costing up to
+        $4) onto it. The default composes the shared tactical hooks:
+        ``quartermaster_take_all`` decides whether to collect this turn (the
+        rules allow one card per Quartermaster per turn, so collecting takes
+        the priciest stored card) and ``choose_quartermaster_gain`` picks the
+        gain otherwise.
         """
-        if mat and len(mat) >= 2:
+        if mat and self.quartermaster_take_all(state, player, list(mat)):
             return "take", max(mat, key=lambda c: (c.cost.coins, c.name))
         if candidates:
-            pick = self.choose_buy(state, candidates + [None])
-            if pick is None or pick not in candidates:
-                non_victory = [c for c in candidates if not c.is_victory]
-                pool = non_victory or candidates
-                pick = max(pool, key=lambda c: (c.cost.coins, c.name))
+            pick = self.choose_quartermaster_gain(state, player, list(candidates))
+            if pick is None or pick.name not in {c.name for c in candidates}:
+                pick = tactical_defaults.choose_quartermaster_gain(candidates)
             return "gain", pick
         if mat:
             return "take", max(mat, key=lambda c: (c.cost.coins, c.name))

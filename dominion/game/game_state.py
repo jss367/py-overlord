@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from dominion.cards.base_card import Card
+from dominion.ai import tactical_defaults
 from dominion.cards.registry import get_all_card_names, get_card
 from dominion.cards.split_pile import SplitPileMixin
 from dominion.game.player_state import PlayerState
@@ -1698,7 +1699,7 @@ class GameState:
             candidates = []
             for _name, card, _count in self._iter_gainable_supply_cards():
                 if (
-                    card.cost.coins <= 4
+                    self.get_card_cost(player, card) <= 4
                     and card.cost.potions == 0
                     and card.cost.debt == 0
                 ):
@@ -1715,11 +1716,16 @@ class GameState:
                     ("action", player.ai.name, f"takes {pick} from Quartermaster", {})
                 )
                 continue
-            if mode != "gain" or pick is None:
+            if mode != "gain" or not candidates:
                 continue
-            # A strategy hook may hand back its own Card instance; resolve it
-            # against the offered candidates so the $4 limit is enforced.
-            pick = next((c for c in candidates if c.name == pick.name), None)
+            # A strategy hook may hand back its own Card instance (or an
+            # illegal one); resolve it against the offered candidates so the
+            # $4 limit is enforced, falling back to the shared baseline.
+            names = {c.name for c in candidates}
+            if pick is None or pick.name not in names:
+                pick = tactical_defaults.choose_quartermaster_gain(candidates)
+            else:
+                pick = next(c for c in candidates if c.name == pick.name)
             if pick is None or self.supply.get(pick.name, 0) <= 0:
                 continue
             self.supply[pick.name] -= 1
@@ -1727,8 +1733,8 @@ class GameState:
             if gained is None:
                 continue
             if gained in player.discard:
-                # Default destination — move onto the QM mat per card text.
-                # On-gain reactions that redirected the card (Watchtower
+                # Default destination — move onto this Quartermaster per card
+                # text. On-gain reactions that redirected the card (Watchtower
                 # topdeck/trash, Trail playing itself) take precedence.
                 player.discard.remove(gained)
                 mat.append(gained)
