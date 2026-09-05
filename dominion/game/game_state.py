@@ -3033,7 +3033,7 @@ class GameState:
                 return False
             if card in trickster_selected:
                 return False
-            if getattr(card, "_frog_topdeck", False):
+            if getattr(card, "_frog_topdeck", None) == player.turns_taken:
                 return False
             if card.name == "Merchant Camp":
                 return False
@@ -3093,9 +3093,11 @@ class GameState:
         for card in in_play_cards:
             if card in durations_to_keep:
                 player.in_play.append(card)
-            elif getattr(card, "_frog_topdeck", False):
-                # Menagerie Way of the Frog: topdeck on cleanup.
-                card._frog_topdeck = False
+            elif getattr(card, "_frog_topdeck", None) == player.turns_taken:
+                # Menagerie Way of the Frog: topdeck on cleanup. The marker is
+                # the turn it was set in, so a stale marker on a card that left
+                # play and came back on a later turn does not fire.
+                card._frog_topdeck = None
                 player.deck.append(card)
             elif card.name == "Merchant Camp":
                 # Allies Merchant Camp: "When you discard this card from
@@ -3245,6 +3247,9 @@ class GameState:
             other.coins = 0
             other.potions = 0
             other.way_of_seal_active = False
+            # An off-turn Reaction play bumps the reactor's per-turn count too;
+            # in 3+ player games it would otherwise leak into the next turn.
+            other.actions_this_turn = 0
         # Adventures: clear Mission no-buy flag at end of the bonus turn.
         player.mission_no_buy_turn = False
         # Allies Voyage: clear the extra-turn card-play limit.

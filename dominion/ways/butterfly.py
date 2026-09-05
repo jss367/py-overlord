@@ -1,5 +1,6 @@
 from dominion.cards.base_card import Card
 from .base_way import Way
+from .horse import _resolve_pile_name
 
 
 class WayOfTheButterfly(Way):
@@ -17,8 +18,18 @@ class WayOfTheButterfly(Way):
         # Way moved it) cannot be returned, so nothing is gained either.
         if card not in player.in_play:
             return
+        # Return the card to its OWNING pile, as Way of the Horse does. A
+        # Knight or Ruins variant (Dame Anna, Ruined Library...) lives under
+        # the shared "Knights"/"Ruins" key, not under ``card.name``; a card
+        # with no resolvable pile cannot be returned, so it stays in play and
+        # nothing is gained.
+        pile_name = _resolve_pile_name(game_state, card)
+        if pile_name is None:
+            return
         player.in_play.remove(card)
-        game_state.supply[card.name] = game_state.supply.get(card.name, 0) + 1
+        game_state.supply[pile_name] = game_state.supply.get(pile_name, 0) + 1
+        if pile_name in game_state.pile_order:
+            game_state.pile_order[pile_name].append(card.name)
 
         target_cost = card.cost.coins + 1
 

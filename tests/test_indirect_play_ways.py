@@ -573,3 +573,118 @@ def test_turtle_played_card_is_offered_its_own_way():
     assert len(p1.hand) == 0  # Turtle replaced Smithy's draw
     assert p1.turtle_set_aside == [smithy]
     assert smithy not in p1.in_play
+
+
+def test_frog_marker_expires_when_a_later_replay_moves_the_card():
+    """Throne Room on Village: the first play picks Frog (marking the card
+    for topdecking at this turn's cleanup), the second picks Turtle, which
+    sets the card aside before cleanup can consume the marker. The marker is
+    scoped to the turn it was set in, so this turn's cleanup leaves the card
+    set aside, and when Turtle plays it next turn that turn's cleanup
+    discards it normally instead of honouring the expired Frog."""
+    ai = ScriptedWayAI({"Village": ["Way of the Frog", "Way of the Turtle"]})
+    state = _game(
+        ["Throne Room", "Village"],
+        ["Way of the Frog", "Way of the Turtle"],
+        [ai, ChooseFirstActionAI()],
+    )
+    p1 = state.players[0]
+    village = get_card("Village")
+    p1.hand = [get_card("Throne Room"), village]
+    p1.deck = [get_card("Copper") for _ in range(20)]
+    p1.actions = 1
+    state.phase = "action"
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Throne Room", "Village", "Village"]
+    assert p1.turtle_set_aside == [village]
+    assert village not in p1.in_play
+
+    state.handle_cleanup_phase()
+
+    # Still set aside for next turn; not topdecked into the new hand.
+    assert p1.turtle_set_aside == [village]
+    assert village not in p1.deck
+    assert village not in p1.hand
+
+    # Next turn: Turtle plays it (the script is exhausted, so no Way).
+    _run_start_phase(state)
+    assert village in p1.in_play
+    assert p1.turtle_set_aside == []
+
+    state.handle_cleanup_phase()
+
+    # The expired Frog marker did not topdeck it; it was discarded normally.
+    assert village in p1.discard
+    assert village not in p1.deck
+    assert village not in p1.hand
+
+
+def test_frog_still_topdecks_at_the_cleanup_of_the_turn_it_was_played():
+    """Regression guard for the turn-scoped marker: a plain Frog play on a
+    turn that went through a real start phase is still topdecked at that
+    turn's cleanup and drawn into the next hand."""
+    ai = ScriptedWayAI({"Village": ["Way of the Frog"]})
+    state, p1 = _start_phase_game(ai, ["Way of the Frog"])
+    _run_start_phase(state)
+    village = get_card("Village")
+    p1.hand = [village]
+    p1.actions = 1
+    state.phase = "action"
+
+    state.handle_action_phase()
+    state.handle_cleanup_phase()
+
+    assert village in p1.hand
+    assert village not in p1.discard
+
+
+def test_vassal_butterfly_returns_a_knight_to_the_knights_pile():
+    """Knights share a "Knights" pile; ``card.name`` ("Dame Anna") is not a
+    supply key. Butterfly chosen for a Knight that Vassal plays must return it
+    to the owning pile (count and pile_order) rather than manufacture a
+    synthetic "Dame Anna" pile, then gain a card costing $1 more."""
+    ai = ScriptedWayAI({"Dame Anna": ["Way of the Butterfly"]})
+    state = _game(["Vassal", "Knights"], ["Way of the Butterfly"], [ai, ChooseFirstActionAI()])
+    p1 = state.players[0]
+    dame_anna = get_card("Dame Anna")
+    p1.hand = [get_card("Vassal")]
+    p1.deck = [get_card("Copper"), dame_anna]  # top of deck is last
+    p1.actions = 1
+    state.phase = "action"
+    knights_before = state.supply["Knights"]
+    assert "Dame Anna" not in state.supply
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Vassal", "Dame Anna"]
+    assert dame_anna not in p1.in_play
+    assert state.supply["Knights"] == knights_before + 1
+    assert "Dame Anna" not in state.supply
+    assert state.pile_order["Knights"][-1] == "Dame Anna"
+    # The return happened, so the $6 gain did too.
+    assert any(card.cost.coins == dame_anna.cost.coins + 1 for card in p1.discard)
+
+
+def test_cleanup_resets_off_turn_action_counts_for_every_player():
+    """An off-turn Reaction play (p3's Sheepdog during p1's turn) bumps the
+    reactor's ``actions_this_turn``. In a 3+ player game that count would
+    otherwise survive into p2's turn, so cleanup resets it for everyone."""
+    state = _game(
+        ["Sheepdog"],
+        [],
+        [ChooseFirstActionAI(), ChooseFirstActionAI(), ChooseFirstActionAI()],
+    )
+    p1, p2, p3 = state.players
+    assert state.current_player is p1
+    p3.hand = [get_card("Sheepdog")]
+    p3.deck = [get_card("Copper") for _ in range(3)]
+
+    state.gain_card(p3, get_card("Silver"))
+
+    assert p3.actions_this_turn == 1
+
+    state.handle_cleanup_phase()
+
+    assert p3.actions_this_turn == 0
