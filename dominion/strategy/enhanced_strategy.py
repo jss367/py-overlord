@@ -597,6 +597,10 @@ class EnhancedStrategy:
         return float("inf")
 
     # -- Card-specific tactical defaults -----------------------------------
+    def _tactical_priority_names(self, state, player, kind: str) -> set[str]:
+        """Cards covered by the action or gain rules consulted this decision."""
+        return {rule.card for rule in getattr(self, f"{kind}_priority")}
+
     def choose_overlord_target(self, state, player, choices: list[Card]) -> Optional[Card]:
         """Reuse action preferences, then rank supply targets independently.
 
@@ -607,7 +611,7 @@ class EnhancedStrategy:
         if choice is not None:
             return choice
         # Prefer unspecified cards over rules whose conditions did not pass.
-        specified = {rule.card for rule in self.action_priority}
+        specified = self._tactical_priority_names(state, player, "action")
         return tactical_defaults.choose_overlord_target(
             player, [c for c in choices if c.name not in specified] or choices
         )
@@ -621,7 +625,7 @@ class EnhancedStrategy:
         choice = self.choose_gain(state, player, choices)
         if choice is not None:
             return choice
-        specified = {rule.card for rule in self.gain_priority}
+        specified = self._tactical_priority_names(state, player, "gain")
         return tactical_defaults.choose_quartermaster_gain(
             [c for c in choices if c.name not in specified] or choices
         )

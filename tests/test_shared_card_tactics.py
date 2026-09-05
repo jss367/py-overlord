@@ -170,6 +170,26 @@ def test_failed_priority_conditions_prefer_unspecified_alternatives():
     assert player.ai.choose_quartermaster_gain(state, player, choices).name == "Village"
 
 
+@pytest.mark.parametrize("phase, expected", [
+    (StrategyPhase.ENDGAME, "Village"),
+    (StrategyPhase.OPENING, "Smithy"),
+])
+@pytest.mark.parametrize("card_name", ["Overlord", "Quartermaster"])
+def test_tactical_fallback_deprioritizes_only_active_phase_rules(phase, expected, card_name):
+    strategy = PhaseAwareStrategy()
+    strategy.phase_action_priority[phase] = [PriorityRule("Smithy", lambda *_: False)]
+    strategy.phase_gain_priority[phase] = [PriorityRule("Smithy", lambda *_: False)]
+    state, player = make_state(strategy)
+    assert strategy.classify_phase(state, player) == StrategyPhase.ENDGAME
+
+    get_card(card_name).play_effect(state)
+    if card_name == "Quartermaster":
+        state._handle_quartermaster_start_of_turn(player)
+        assert state.quartermaster_mats[id(player)][0].name == expected
+    else:
+        assert len(player.hand) == (1 if expected == "Village" else 3)
+
+
 @pytest.mark.parametrize("card_name, target", [("Overlord", "Gold"), ("Quartermaster", "Province")])
 def test_no_eligible_targets_are_a_noop(card_name, target):
     state, player = make_state(names=(target,))
