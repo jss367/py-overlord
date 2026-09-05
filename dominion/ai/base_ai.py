@@ -2712,15 +2712,43 @@ class AI(ABC):
         """Default: resolve immediately."""
         return True
 
-    def should_reveal_falconer(
+    def should_play_falconer(
         self,
         state: GameState,
         player: PlayerState,
         gainer: PlayerState,
         gained_card: Card,
     ) -> bool:
-        """Default: reveal whenever a cheaper card can be gained."""
-        return gained_card.cost.coins >= 1
+        """Falconer reaction: play it from hand when any player gains a card
+        with 2+ types. Default: always (it gains a card to hand)."""
+        return True
+
+    def choose_quartermaster_option(
+        self,
+        state: GameState,
+        player: PlayerState,
+        mat: list[Card],
+        candidates: list[Card],
+    ) -> tuple[str, Optional[Card]]:
+        """Quartermaster start-of-turn choice.
+
+        Returns ``("take", card)`` to put ``card`` from the mat into hand, or
+        ``("gain", card)`` to gain ``card`` (costing up to $4) onto the mat.
+        Default: bank two cards, then take the priciest one each time the
+        mat is full again.
+        """
+        if mat and len(mat) >= 2:
+            return "take", max(mat, key=lambda c: (c.cost.coins, c.name))
+        if candidates:
+            pick = self.choose_buy(state, candidates + [None])
+            if pick is None or pick not in candidates:
+                non_victory = [c for c in candidates if not c.is_victory]
+                pool = non_victory or candidates
+                pick = max(pool, key=lambda c: (c.cost.coins, c.name))
+            return "gain", pick
+        if mat:
+            return "take", max(mat, key=lambda c: (c.cost.coins, c.name))
+        return "gain", None
 
     def choose_card_to_exile_for_sanctuary(
         self, state: GameState, player: PlayerState, choices: list[Card]

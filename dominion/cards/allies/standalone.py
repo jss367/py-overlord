@@ -221,14 +221,15 @@ class Broker(Card):
 
 
 class Carpenter(Card):
-    """$4 Action. +1 Action. If no empty piles, gain a card up to $4.
-    Otherwise trash a card from hand and gain a card up to $5."""
+    """$4 Action. If no Supply piles are empty, +1 Action and gain a card
+    costing up to $4. Otherwise, trash a card from your hand and gain a card
+    costing up to $2 more than it."""
 
     def __init__(self):
         super().__init__(
             name="Carpenter",
             cost=CardCost(coins=4),
-            stats=CardStats(actions=1),
+            stats=CardStats(),
             types=[CardType.ACTION],
         )
 
@@ -237,30 +238,43 @@ class Carpenter(Card):
 
         player = game_state.current_player
         if game_state.empty_piles == 0:
+            player.actions += 1
             max_cost = 4
         else:
-            if player.hand:
-                target = player.ai.choose_card_to_trash(game_state, player.hand)
-                if target is not None and target in player.hand:
-                    player.hand.remove(target)
-                    game_state.trash_card(player, target)
-            max_cost = 5
+            if not player.hand:
+                return
+            target = player.ai.choose_card_to_trash(game_state, player.hand)
+            if target is None or target not in player.hand:
+                # Mandatory trash: junk first, then the cheapest card.
+                target = min(
+                    player.hand,
+                    key=lambda c: (
+                        0 if c.name == "Curse" else 1 if c.is_victory else 2,
+                        c.cost.coins,
+                        c.name,
+                    ),
+                )
+            player.hand.remove(target)
+            game_state.trash_card(player, target)
+            max_cost = target.cost.coins + 2
 
         candidates = []
         for name, count in game_state.supply.items():
             if count <= 0:
                 continue
-            card = get_card(name)
-            if card.cost.potions > 0 or card.cost.coins > max_cost:
+            if name in game_state.non_supply_pile_names:
                 continue
-            if not card.may_be_bought(game_state):
+            card = get_card(name)
+            if card.cost.potions > 0 or card.cost.debt > 0 or card.cost.coins > max_cost:
+                continue
+            if not card.may_be_gained(game_state):
                 continue
             candidates.append(card)
         if not candidates:
             return
         chosen = player.ai.choose_buy(game_state, candidates + [None])
         if chosen is None:
-            return
+            chosen = max(candidates, key=lambda c: (c.cost.coins, c.name))
         if game_state.supply.get(chosen.name, 0) <= 0:
             return
         game_state.supply[chosen.name] -= 1

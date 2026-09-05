@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Iron Barbarian Board</title>
+  <title>Port Moresby Quartermaster Trail Engine Strategy</title>
   <style>
     :root {
       color-scheme: light;
@@ -284,31 +284,98 @@
 </head>
 <body>
 
-<nav><a href="index.html">Board index</a></nav>
+<nav><a href="index.html">Strategy index</a><a href="leaderboard.html">Leaderboard</a></nav>
 <header class="hero">
-  <p class="eyebrow">Dominion board</p>
-  <h1>Iron Barbarian</h1>
-  <p class="hero-description">A 10-card Kingdom with 3 compatible registered strategies.</p>
-  <div class="hero-links"><strong>Compatible strategies</strong><span class="chip-list"><a class="strategy-link-chip" href="../strategies/big-money.html">Big Money</a><a class="strategy-link-chip" href="../strategies/port-moresby-barbarian-money.html">Port Moresby Barbarian Money</a><a class="strategy-link-chip" href="../strategies/strategy20250927-184928.html">Strategy20250927 184928</a></span></div>
+  <p class="eyebrow">Dominion strategy</p>
+  <h1>Port Moresby Quartermaster Trail Engine</h1>
+  <p class="hero-description">Quartermasters gain a Trail each turn; Swamp Shacks + Barbarian.</p>
+<span class="tags"><span class="tag">Engine</span></span>
+  <div class="hero-links"><strong>Compatible boards</strong><span class="chip-list"><a class="board-chip" href="../boards/port-moresby.html">Port Moresby</a></span></div>
   <details class="technical-details">
-    <summary>Setup details</summary>
+    <summary>Implementation details and referenced components</summary>
     <dl class="meta">
-      <dt>Source</dt><dd>boards/iron_barbarian.txt</dd>
-      <dt>Events</dt><dd><span class="empty">None</span></dd>
-      <dt>Projects</dt><dd><span class="chip-list"><span class="landscape-chip landscape-project">Innovation</span></span></dd>
-      <dt>Ways</dt><dd><span class="chip-list"><span class="landscape-chip landscape-way">Way of the Butterfly</span></span></dd>
-      <dt>Landmarks</dt><dd><span class="empty">None</span></dd>
-      <dt>Allies</dt><dd><span class="empty">None</span></dd>
-      <dt>Traits</dt><dd><span class="empty">None</span></dd>
-      <dt>Prophecy</dt><dd><span class="empty">None</span></dd>
-      <dt>Card cost reduction</dt><dd><span class="coin-badge" aria-label="Coin cost reduction">0</span></dd>
+      <dt>Internal name</dt><dd>Port Moresby Quartermaster Trail Engine</dd>
+      <dt>Version</dt><dd>1.0</dd>
+      <dt>Source</dt><dd>dominion/strategy/strategies/port_moresby_seeds.py</dd>
+      <dt>Factory</dt><dd>create_port_moresby_quartermaster_trail_engine</dd>
+      <dt>Kingdom Cards</dt><dd><span class="chip-list"><span class="card-chip type-action" aria-label="Barbarian, Action, Attack card"><span>Barbarian</span><span class="type-marker marker-attack" title="Attack" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Quartermaster, Action, Duration card"><span>Quartermaster</span><span class="type-marker marker-duration" title="Duration" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Swamp Shacks, Action card"><span>Swamp Shacks</span></span><span class="card-chip type-action" aria-label="Trail, Action, Reaction card"><span>Trail</span><span class="type-marker marker-reaction" title="Reaction" aria-hidden="true"></span></span></span></dd><dt>Events</dt><dd><span class="empty">None</span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
     </dl>
   </details>
 </header>
 
+<section class="section section-custom">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">ƒ</span><h2>Custom Behaviors</h2></div>
+  <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
+  <table class="priority-table">
+    <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose quartermaster option</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_quartermaster_option(self, state, player, mat, candidates):
+    # Always gain: a Trail plays itself immediately (+1 Card at turn
+    # start) and never even reaches the mat. Fall back to Silver.
+    for name in (&quot;Trail&quot;, &quot;Swamp Shacks&quot;, &quot;Silver&quot;):
+        pick = next((c for c in candidates if c.name == name), None)
+        if pick is not None:
+            return &quot;gain&quot;, pick
+    if mat:
+        return &quot;take&quot;, max(mat, key=lambda c: (c.cost.coins, c.name))
+    return &quot;gain&quot;, (candidates[0] if candidates else None)
+</code></pre></details></td></tr></tbody>
+  </table>
+</section>
+
+<section class="section section-gain">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Province, Victory card"><span>Province</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Coins available: at least 8</span></summary><pre><code>PriorityRule.resources(&#x27;coins&#x27;, &#x27;&gt;=&#x27;, 8)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Quartermaster, Action, Duration card"><span>Quartermaster</span><span class="type-marker marker-duration" title="Duration" aria-hidden="true"></span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 2 copies of Quartermaster</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Quartermaster&#x27;, 2)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Barbarian, Action, Attack card"><span>Barbarian</span><span class="type-marker marker-attack" title="Attack" aria-hidden="true"></span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 2 copies of Barbarian</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Barbarian&#x27;, 2)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 2 copies of Gold</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Gold&#x27;, 2)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Swamp Shacks, Action card"><span>Swamp Shacks</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 3 copies of Swamp Shacks</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Swamp Shacks&#x27;, 3)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">6</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Trail, Action, Reaction card"><span>Trail</span><span class="type-marker marker-reaction" title="Reaction" aria-hidden="true"></span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 8 copies of Trail</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Trail&#x27;, 8)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">7</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Duchy, Victory card"><span>Duchy</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Provinces remaining: at most 3</span></summary><pre><code>PriorityRule.provinces_left(&#x27;&lt;=&#x27;, 3)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">8</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">9</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">10</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Estate, Victory card"><span>Estate</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Provinces remaining: at most 2</span></summary><pre><code>PriorityRule.provinces_left(&#x27;&lt;=&#x27;, 2)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">11</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 10 copies of Copper</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Copper&#x27;, 10)</code></pre></details></td></tr></tbody>
+  </table>
+</section>
+
 <section class="section section-action">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">K</span><h2>Kingdom Cards</h2></div>
-  <div class="chip-list"><span class="card-chip type-action" aria-label="Bridge, Action card"><span>Bridge</span></span><span class="card-chip type-action" aria-label="Ironmonger, Action card"><span>Ironmonger</span></span><span class="card-chip type-action" aria-label="Marauder, Action, Attack, Looter card"><span>Marauder</span><span class="type-marker marker-attack" title="Attack" aria-hidden="true"></span></span><span class="card-chip type-victory" aria-label="Mill, Action, Victory card"><span>Mill</span><span class="type-marker marker-action" title="Action" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Barbarian, Action, Attack card"><span>Barbarian</span><span class="type-marker marker-attack" title="Attack" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Council Room, Action card"><span>Council Room</span></span><span class="card-chip type-action" aria-label="Giant, Action, Attack card"><span>Giant</span><span class="type-marker marker-attack" title="Attack" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Mint, Action card"><span>Mint</span></span><span class="card-chip type-action" aria-label="Tragic Hero, Action card"><span>Tragic Hero</span></span><span class="card-chip type-victory" aria-label="Nobles, Action, Victory card"><span>Nobles</span><span class="type-marker marker-action" title="Action" aria-hidden="true"></span></span></div>
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">A</span><h2>Action Priority</h2></div>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Trail, Action, Reaction card"><span>Trail</span><span class="type-marker marker-reaction" title="Reaction" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Quartermaster, Action, Duration card"><span>Quartermaster</span><span class="type-marker marker-duration" title="Duration" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Swamp Shacks, Action card"><span>Swamp Shacks</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Barbarian, Action, Attack card"><span>Barbarian</span><span class="type-marker marker-attack" title="Attack" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
+  </table>
+</section>
+
+<section class="section section-trash">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">×</span><h2>Trash Priority</h2></div>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-curse" aria-label="Curse, Curse card"><span>Curse</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Estate, Victory card"><span>Estate</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
+  </table>
+</section>
+
+<section class="section section-treasure">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">$</span><h2>Treasure Priority</h2></div>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
+  </table>
+</section>
+
+<section class="section section-way">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">W</span><h2>Way Policy</h2></div>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card</th><th>Way</th><th>Condition</th></tr></thead>
+    <tbody><tr><td colspan="4" class="empty">None</td></tr></tbody>
+  </table>
 </section>
 
 </body>

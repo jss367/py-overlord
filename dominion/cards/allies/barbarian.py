@@ -36,11 +36,19 @@ class Barbarian(Card):
                     if count <= 0:
                         continue
                     card = get_card(name)
-                    if card.cost.coins < cost and shared_types.intersection(card.types):
+                    if (
+                        card.cost.coins < cost
+                        and card.cost.debt == 0
+                        and card.cost.potions == 0
+                        and shared_types.intersection(card.types)
+                    ):
                         candidates.append(card)
                 if candidates:
-                    candidates.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
-                    gain = candidates[0]
+                    # The attacked player picks which qualifying card to gain;
+                    # the gain is mandatory, so fall back to the priciest.
+                    gain = target.ai.choose_buy(game_state, candidates + [None])
+                    if gain is None or gain not in candidates:
+                        gain = max(candidates, key=lambda c: (c.cost.coins, c.name))
                     game_state.supply[gain.name] -= 1
                     game_state.gain_card(target, gain)
             else:

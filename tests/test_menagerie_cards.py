@@ -355,16 +355,52 @@ def test_black_cat_reaction_respects_warlord_hand_limit():
     assert len(p2.hand) == 1
 
 
-def test_falconer_reaction_gains_cheaper_card():
+def test_falconer_reacts_to_opponent_gaining_two_type_card():
     state, p1, p2 = _two_player_state()
-    # p2 has a Falconer in hand, p1 gains a Gold ($6).
-    p2.hand.append(get_card("Falconer"))
-    state.supply["Gold"] = state.supply.get("Gold", 30)
+    falconer = get_card("Falconer")
+    p2.hand = [falconer]
+    state.supply["Falconer"] = 10
+    # p1 gains a Falconer (Action-Reaction: 2 types) -> p2 may play theirs.
+    state.supply["Falconer"] -= 1
+    state.gain_card(p1, get_card("Falconer"))
+    assert falconer in p2.in_play
+    assert falconer not in p2.hand
+    # The played Falconer gained a card costing < $5 into p2's hand.
+    assert len(p2.hand) == 1 and p2.hand[0].cost.coins < 5
+
+
+def test_falconer_ignores_single_type_gains():
+    state, p1, p2 = _two_player_state()
+    falconer = get_card("Falconer")
+    p2.hand = [falconer]
     state.supply["Gold"] -= 1
     state.gain_card(p1, get_card("Gold"))
-    # p2 should have gained something cheaper than Gold.
-    cheaper_gain = any(c.cost.coins < 6 for c in p2.discard + p2.deck)
-    assert cheaper_gain
+    assert falconer in p2.hand
+    assert p2.hand == [falconer]
+
+
+def test_falconer_reacts_to_own_gain():
+    state, p1, _ = _two_player_state()
+    falconer = get_card("Falconer")
+    p1.hand = [falconer]
+    state.supply["Falconer"] = 10
+    state.supply["Falconer"] -= 1
+    state.gain_card(p1, get_card("Falconer"))
+    assert falconer in p1.in_play
+
+
+def test_falconer_never_gains_debt_cost_cards():
+    state, p1, _ = _two_player_state()
+    state.supply["Daimyo"] = 10
+    for name in list(state.supply):
+        if name not in {"Daimyo", "Falconer", "Curse"}:
+            state.supply[name] = 0
+    state.supply["Curse"] = 10
+    p1.actions = 1
+    p1.hand = [get_card("Falconer")]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert not any(c.name == "Daimyo" for c in p1.hand + p1.discard)
 
 
 def test_coven_exiles_curse_for_opponent():
@@ -807,3 +843,29 @@ def test_journeyman_stops_when_fewer_than_three_non_named_cards_remain(monkeypat
     assert [c.name for c in p1.hand] == ["Silver", "Gold"]
     assert [c.name for c in p1.discard] == ["Copper"]
     assert p1.deck == []
+
+
+def test_falconer_chain_through_trail_gain():
+    """Falconer gains a Trail to hand; Trail (Action-Reaction, 2 types) plays
+    itself on gain and its gain fires the next Falconer in hand."""
+    from dominion.ai.genetic_ai import GeneticAI
+    from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+
+    strat = EnhancedStrategy()
+    strat.gain_priority = [PriorityRule("Trail")]
+    strat.action_priority = [PriorityRule("Trail"), PriorityRule("Falconer")]
+    ai = GeneticAI(strat)
+    state = GameState(players=[])
+    state.initialize_game([ai, ChooseFirstActionAI()], [get_card("Trail"), get_card("Falconer")])
+    p1 = state.players[0]
+    p1.deck = [get_card("Copper") for _ in range(10)]
+    p1.hand = [get_card("Falconer"), get_card("Falconer")]
+    p1.actions = 1
+    state.phase = "action"
+    state.handle_action_phase()
+    # Both Falconers played (the second via the reaction), both Trails played.
+    assert sum(1 for c in p1.in_play if c.name == "Falconer") == 2
+    assert sum(1 for c in p1.in_play if c.name == "Trail") == 2
+    assert state.supply["Trail"] == 8
+    # Each Trail drew a card: hand is the two drawn Coppers.
+    assert [c.name for c in p1.hand] == ["Copper", "Copper"]

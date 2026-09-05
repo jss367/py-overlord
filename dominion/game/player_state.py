@@ -555,6 +555,12 @@ class PlayerState:
             self.summon_set_aside,
             self.farmhands_set_aside,
         ]
+        # Cards set aside on a Quartermaster are still the player's at game
+        # end (they count for scoring and for Fountain's Copper count).
+        game_state = getattr(self, "game_state", None)
+        mats = getattr(game_state, "quartermaster_mats", None)
+        if mats:
+            zones.append(mats.get(id(self), []))
 
         cards: list[Card] = []
         seen_ids: set[int] = set()

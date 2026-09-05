@@ -43,7 +43,7 @@ class Messenger(Card):
             if count <= 0:
                 continue
             card = get_card(name)
-            if card.cost.coins <= 4:
+            if card.cost.coins <= 4 and card.cost.debt == 0 and card.cost.potions == 0:
                 gain_options.append(card)
 
         if not gain_options:

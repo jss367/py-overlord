@@ -86,7 +86,10 @@ def test_trail_gain_reaction_can_be_declined():
     assert gained not in player.in_play
 
 
-def test_trail_trash_reaction_returns_to_trash():
+def test_trail_trash_reaction_plays_it_and_keeps_it():
+    """Official FAQ: "If you trash Trail, playing it means you get the Trail
+    back; it will go into play, and be discarded into your discard pile in
+    that turn's Clean-up." """
     ai = ChooseFirstActionAI()
     state, player = _setup_game(ai)
 
@@ -99,8 +102,8 @@ def test_trail_trash_reaction_returns_to_trash():
 
     state.trash_card(player, trail)
 
-    assert trail in state.trash
-    assert trail not in player.in_play
+    assert trail not in state.trash
+    assert trail in player.in_play
     assert player.actions == 1
     assert player.actions_this_turn == 1
     assert player.actions_played == 1

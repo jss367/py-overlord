@@ -1658,58 +1658,53 @@ class GameState:
                 player.discard.append(card)
 
     def _handle_quartermaster_start_of_turn(self, player: PlayerState) -> None:
+        """Plunder Quartermaster: each copy in play resolves one choice per turn.
+
+        "Choose one: gain a card costing up to $4, setting it aside on this;
+        or put a card from this into your hand." Gains route through
+        ``gain_card`` so on-gain hooks fire (Watchtower, Trail, etc.); only
+        cards that land in the default discard destination move to the mat.
+        """
         quartermasters = [c for c in player.duration if c.name == "Quartermaster"]
         if not quartermasters:
             return
         for _qm in quartermasters:
             mat = self.quartermaster_mats.setdefault(id(player), [])
-            take_all = False
-            if mat and hasattr(player.ai, "quartermaster_take_all"):
-                take_all = player.ai.quartermaster_take_all(self, player, list(mat))
-            elif mat:
-                take_all = len(mat) >= 2
-            if take_all:
-                player.hand.extend(mat)
-                self.quartermaster_mats[id(player)] = []
-            else:
-                candidates = []
-                for _name, card, _count in self._iter_gainable_supply_cards():
-                    if (
-                        card.cost.coins <= 4
-                        and card.cost.potions == 0
-                        and card.cost.debt == 0
-                    ):
-                        candidates.append(card)
-                if not candidates:
+            candidates = []
+            for _name, card, _count in self._iter_gainable_supply_cards():
+                if (
+                    card.cost.coins <= 4
+                    and card.cost.potions == 0
+                    and card.cost.debt == 0
+                ):
+                    candidates.append(card)
+            mode, pick = player.ai.choose_quartermaster_option(
+                self, player, list(mat), candidates
+            )
+            if mode == "take":
+                if pick is None or pick not in mat:
                     continue
-                candidates.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
-                non_v = [c for c in candidates if not c.is_victory]
-                pick = (non_v or candidates)[0]
-                if self.supply.get(pick.name, 0) > 0:
-                    # Route the gain through gain_card so on-gain hooks
-                    # (gained-this-turn counters, Watchtower, Trader, Royal
-                    # Seal, Allies/Landmark gain reactions, etc.) all fire
-                    # consistently with every other gain path. The card
-                    # text places the gain on the Quartermaster mat, but
-                    # on-gain reactions that redirect the gain (Watchtower
-                    # topdeck/trash, Trader, etc.) take precedence — the
-                    # player chose those destinations. Only move to the
-                    # mat if the card landed in the default destination
-                    # (discard).
-                    self.supply[pick.name] -= 1
-                    gained = self.gain_card(player, get_card(pick.name))
-                    if gained is None:
-                        continue
-                    if gained in player.discard:
-                        # Default destination — move onto QM mat per card text.
-                        player.discard.remove(gained)
-                        self.quartermaster_mats[id(player)].append(gained)
-                    # Otherwise an on-gain reaction redirected the card
-                    # (e.g. Watchtower topdecked it to player.deck or
-                    # trashed it to self.trash, or another effect routed
-                    # it to the hand). Respect the player's choice and
-                    # leave the card where it ended up — the QM trigger
-                    # has already fired.
+                mat.remove(pick)
+                player.hand.append(pick)
+                self.log_callback(
+                    ("action", player.ai.name, f"takes {pick} from Quartermaster", {})
+                )
+                continue
+            if pick is None or self.supply.get(pick.name, 0) <= 0:
+                continue
+            self.supply[pick.name] -= 1
+            gained = self.gain_card(player, get_card(pick.name))
+            if gained is None:
+                continue
+            if gained in player.discard:
+                # Default destination — move onto the QM mat per card text.
+                # On-gain reactions that redirected the card (Watchtower
+                # topdeck/trash, Trail playing itself) take precedence.
+                player.discard.remove(gained)
+                mat.append(gained)
+            self.log_callback(
+                ("action", player.ai.name, f"gains {gained} onto Quartermaster", {})
+            )
 
     def do_duration_phase(self):
         """Handle effects of duration cards from previous turn."""
@@ -3803,6 +3798,8 @@ class GameState:
         self._handle_menagerie_gain_reactions(player, actual_card)
         self._handle_opponent_gain_hooks(player, actual_card)
         self._handle_livery_gain(player, actual_card)
+        self._handle_secluded_shrine_gain(player, actual_card)
+        self._handle_falconer_reactions(player, actual_card)
 
         if (
             hasattr(player, "cards_gained_this_buy_phase")
@@ -4732,6 +4729,37 @@ class GameState:
             for card in list(player.hand):
                 if hasattr(card, "on_opponent_gain"):
                     card.on_opponent_gain(self, player, gainer, gained_card)
+
+    def _handle_secluded_shrine_gain(self, player: PlayerState, gained_card: Card) -> None:
+        """Plunder Secluded Shrine: the owner's next Treasure gain trashes up
+        to 2 cards from their hand. Each armed Shrine fires once."""
+        if not gained_card.is_treasure:
+            return
+        for card in list(player.duration):
+            if card.name == "Secluded Shrine" and getattr(card, "shrine_armed", False):
+                card.on_owner_gains_treasure(self, player)
+
+    def _handle_falconer_reactions(self, gainer: PlayerState, gained_card: Card) -> None:
+        """Menagerie Falconer: when ANY player gains a card with 2 or more
+        types, each player may play a Falconer from their hand. The turn
+        player reacts first, then the others in turn order. Each Falconer in
+        hand reacts separately (a played Falconer can gain a 2-type card and
+        trigger the next one)."""
+        if len(gained_card.types) < 2:
+            return
+        if not self.players:
+            return
+        start = self.current_player_index
+        order = self.players[start:] + self.players[:start]
+        for player in order:
+            while True:
+                falconers = [c for c in player.hand if c.name == "Falconer"]
+                if not falconers:
+                    break
+                if not player.ai.should_play_falconer(self, player, gainer, gained_card):
+                    break
+                if not self.play_action_from_hand_indirectly(player, falconers[0]):
+                    break
 
     def _handle_menagerie_gain_reactions(
         self, player: PlayerState, gained_card: Card

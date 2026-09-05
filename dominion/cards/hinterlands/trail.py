@@ -49,11 +49,12 @@ class Trail(Card):
             self.on_play(game_state)
             game_state.fire_ally_play_hooks(player, self)
 
-        if origin == "trash":
-            if self in player.in_play:
-                player.in_play.remove(self)
-            if self not in game_state.trash:
-                game_state.trash.append(self)
+        # A trashed Trail that reacts comes back: "playing it means you get
+        # the Trail back; it will go into play, and be discarded into your
+        # discard pile in that turn's Clean-up" (official FAQ). The trash
+        # itself still happened for whoever caused it (Remodel, Barbarian).
+        if origin == "trash" and self in game_state.trash:
+            game_state.trash.remove(self)
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
