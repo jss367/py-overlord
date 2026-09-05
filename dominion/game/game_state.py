@@ -290,8 +290,43 @@ class GameState:
     def play_action_from_hand_indirectly(
         self, player: PlayerState, card: Card
     ) -> bool:
+        """Move ``card`` from ``player``'s hand into play and resolve it as
+        ``player``, even off-turn (Reactions: Sheepdog, Black Cat, Caravan
+        Guard, Weaver, Falconer, Trail)."""
         if not self.move_card_from_hand_to_play(player, card):
             return False
+        return self.play_action_as_owner_indirectly(
+            player, card, blocked_return_zone=player.hand
+        )
+
+    def play_action_from_zone_indirectly(
+        self, player: PlayerState, card: Card, zone: list[Card]
+    ) -> bool:
+        """Move ``card`` from ``zone`` (discard, deck, trash, ...) into play and
+        resolve it as ``player``. Reaction plays that do not start in hand
+        (Trail from the discard pile or trash, Weaver from the discard pile,
+        Berserker on gain) use this so they get the same bookkeeping and Way
+        offer as every other indirect play."""
+        if zone is player.hand:
+            return self.play_action_from_hand_indirectly(player, card)
+        if card not in zone:
+            return False
+        zone.remove(card)
+        player.in_play.append(card)
+        return self.play_action_as_owner_indirectly(
+            player, card, blocked_return_zone=zone
+        )
+
+    def play_action_as_owner_indirectly(
+        self,
+        player: PlayerState,
+        card: Card,
+        *,
+        blocked_return_zone: list[Card] | None = None,
+    ) -> bool:
+        """Resolve ``card`` (already in play) with ``player`` as
+        ``current_player`` so the effect applies to its owner, restoring the
+        real turn player afterwards."""
         original_index = self.current_player_index
         original_turn_index = self.reaction_turn_player_index
         is_players_turn = self.turn_player is player
@@ -301,7 +336,7 @@ class GameState:
             return self.play_action_indirectly(
                 player,
                 card,
-                blocked_return_zone=player.hand,
+                blocked_return_zone=blocked_return_zone,
                 apply_enchantress=is_players_turn,
             )
         if not is_players_turn and original_turn_index is None:
@@ -312,7 +347,7 @@ class GameState:
             return self.play_action_indirectly(
                 player,
                 card,
-                blocked_return_zone=player.hand,
+                blocked_return_zone=blocked_return_zone,
                 apply_enchantress=is_players_turn,
             )
         finally:
@@ -338,7 +373,8 @@ class GameState:
         - bump ``player.actions_this_turn`` / ``player.actions_played`` so
           cards keying off "Actions played this turn" (Conspirator, Peddler)
           see the correct count
-        - call ``card.on_play`` or Enchantress's substitute effect
+        - offer a Way when the kingdom has any, then call ``way.apply`` or
+          ``card.on_play`` (or Enchantress's substitute effect)
         - fire Prophecy hooks (Rising Sun: Great Leader, Approaching Army)
         - fire Ally on-play hooks (League of Shopkeepers, etc.)
         - fire Tavern "action_played" triggers (Coin of the Realm,
@@ -397,7 +433,25 @@ class GameState:
             )
             self._fire_urchin_reaction(player, card)
         else:
-            card.on_play(self)
+            # Menagerie Ways: "when you play an Action card, you may instead
+            # follow the Way's instructions" applies to every play, so each
+            # Throne Room replay, Vassal play and off-turn Reaction play gets
+            # its own independent offer, mirroring the action-phase loop.
+            way = None
+            if self.ways and card.is_action:
+                way = player.ai.choose_way(self, card, self.ways + [None])
+            if way:
+                self.log_callback(
+                    (
+                        "action",
+                        player.ai.name,
+                        f"plays {card} using {way.name}",
+                        {"card": card.name, "way": way.name},
+                    )
+                )
+                way.apply(self, card)
+            else:
+                card.on_play(self)
         training_pile = getattr(player, "training_pile", None)
         if training_pile and card.name == training_pile:
             player.coins += 1
@@ -3568,15 +3622,9 @@ class GameState:
             if not player.ai.should_play_weaver_on_discard(self, player, card):
                 return
             if card in player.discard:
-                player.discard.remove(card)
-                player.in_play.append(card)
+                self.play_action_from_zone_indirectly(player, card, player.discard)
             elif card in player.hand:
-                if not self.play_action_from_hand_indirectly(player, card):
-                    return
-                return
-            else:
-                return
-            card.on_play(self)
+                self.play_action_from_hand_indirectly(player, card)
         elif hasattr(card, "react_to_discard"):
             card.react_to_discard(self, player)
 

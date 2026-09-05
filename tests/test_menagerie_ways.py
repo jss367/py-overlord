@@ -7,11 +7,17 @@ from tests.utils import ChooseFirstActionAI
 
 
 class WayPickerAI(ChooseFirstActionAI):
-    def __init__(self, way_name: str):
+    def __init__(self, way_name: str, only_for: set[str] | None = None):
         super().__init__()
         self._way_name = way_name
+        # When set, only use the Way for these card names. Indirect plays
+        # (Throne Room replays, Vassal plays) are offered a Way too, so tests
+        # that want the nested card to resolve normally must opt out here.
+        self._only_for = only_for
 
     def choose_way(self, state, card, ways):
+        if self._only_for is not None and card.name not in self._only_for:
+            return None
         for w in ways:
             if w and w.name == self._way_name:
                 return w
@@ -32,10 +38,10 @@ class NamedWayGainAI(WayPickerAI):
         return super().choose_buy(state, choices)
 
 
-def _state(way_name: str | None = None, kingdom=None):
+def _state(way_name: str | None = None, kingdom=None, way_only_for=None):
     kingdom = kingdom or [get_card("Village"), get_card("Smithy")]
     if way_name is not None:
-        ais = [WayPickerAI(way_name), ChooseFirstActionAI()]
+        ais = [WayPickerAI(way_name, way_only_for), ChooseFirstActionAI()]
         ways = [get_way(way_name)]
     else:
         ais = [ChooseFirstActionAI(), ChooseFirstActionAI()]
@@ -326,6 +332,7 @@ def test_way_of_the_chameleon_does_not_swap_vassal_played_card():
     state, p1 = _state(
         "Way of the Chameleon",
         kingdom=[get_card("Village"), get_card("Vassal")],
+        way_only_for={"Vassal"},
     )
     p1.actions = 1
     vassal = get_card("Vassal")
@@ -365,6 +372,7 @@ def test_way_of_the_chameleon_throne_room_does_not_swap_smithy_draws():
     state, p1 = _state(
         "Way of the Chameleon",
         kingdom=[get_card("Throne Room"), get_card("Smithy")],
+        way_only_for={"Throne Room"},
     )
     p1.actions = 1
     throne = get_card("Throne Room")

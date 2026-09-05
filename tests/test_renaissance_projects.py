@@ -718,9 +718,17 @@ def test_citadel_helper_fires_tavern_triggers():
     from dominion.ways.otter import WayOfTheOtter
 
     class WayOtterAI(ChooseFirstActionAI):
+        used_way = False
+
         def choose_way(self, state, card, ways):
+            # Use the Way for the initial play only. Royal Carriage's replay
+            # is a play in its own right and is offered a Way too; declining
+            # keeps it as Village's normal +2 Actions.
+            if self.used_way:
+                return None
             for w in ways:
                 if w and w.name == "Way of the Otter":
+                    self.used_way = True
                     return w
             return None
 
