@@ -426,9 +426,16 @@ def test_citadel_replays_first_action_played_via_way():
     from dominion.ways.otter import WayOfTheOtter
 
     class WayOtterAI(ChooseFirstActionAI):
+        used_way = False
+
         def choose_way(self, state, card, ways):
+            # The Citadel replay is offered a Way too; declining keeps the
+            # assertions about the card's normal text.
+            if self.used_way:
+                return None
             for w in ways:
                 if w and w.name == "Way of the Otter":
+                    self.used_way = True
                     return w
             return None
 
@@ -597,9 +604,16 @@ def test_citadel_inheritance_replay_preserves_inherited_identity():
     from dominion.ways.otter import WayOfTheOtter
 
     class WayOtterAI(ChooseFirstActionAI):
+        used_way = False
+
         def choose_way(self, state, card, ways):
+            # The Citadel replay is offered a Way too; declining keeps the
+            # assertions about the card's normal text.
+            if self.used_way:
+                return None
             for w in ways:
                 if w and w.name == "Way of the Otter":
+                    self.used_way = True
                     return w
             return None
 
@@ -640,9 +654,16 @@ def test_citadel_replays_inherited_estate_played_via_way():
     from dominion.ways.otter import WayOfTheOtter
 
     class WayOtterAI(ChooseFirstActionAI):
+        used_way = False
+
         def choose_way(self, state, card, ways):
+            # The Citadel replay is offered a Way too; declining keeps the
+            # assertions about the card's normal text.
+            if self.used_way:
+                return None
             for w in ways:
                 if w and w.name == "Way of the Otter":
+                    self.used_way = True
                     return w
             return None
 
@@ -771,9 +792,16 @@ def test_citadel_helper_fires_prophecy_hooks():
     from dominion.ways.otter import WayOfTheOtter
 
     class WayOtterAI(ChooseFirstActionAI):
+        used_way = False
+
         def choose_way(self, state, card, ways):
+            # The Citadel replay is offered a Way too; declining keeps the
+            # assertions about the card's normal text.
+            if self.used_way:
+                return None
             for w in ways:
                 if w and w.name == "Way of the Otter":
+                    self.used_way = True
                     return w
             return None
 

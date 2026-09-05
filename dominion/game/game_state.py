@@ -445,26 +445,7 @@ class GameState:
             # Butterfly, Worm) no-op the move when it is not in play, per the
             # rulebook ("it stays set aside, even if it has instructions on
             # it that would move it").
-            way = None
-            if self.ways and card.is_action:
-                way = player.ai.choose_way(self, card, self.ways + [None])
-            if way:
-                self.log_callback(
-                    (
-                        "action",
-                        player.ai.name,
-                        f"plays {card} using {way.name}",
-                        {"card": card.name, "way": way.name},
-                    )
-                )
-                way.apply(self, card)
-                # A Way replaces the card's instructions, not the play
-                # itself: an Attack played via a Way is still an Attack
-                # play, so Urchins in play still react (Card.on_play, which
-                # normally fires them, did not run).
-                self._fire_urchin_reaction(player, card)
-            else:
-                card.on_play(self)
+            self._resolve_action_text(player, card)
         training_pile = getattr(player, "training_pile", None)
         if training_pile and card.name == training_pile:
             player.coins += 1
@@ -479,6 +460,35 @@ class GameState:
         # — funnels through the same Citadel trigger.
         self._maybe_citadel_replay(player, card)
         return True
+
+    def _resolve_action_text(self, player: PlayerState, card: Card) -> None:
+        """Resolve one play of ``card``: offer a Way if the kingdom has any,
+        then run the Way's text or the card's own.
+
+        Shared by ``play_action_indirectly`` and Citadel's replay so that
+        every play — including a replay of a card whose first play already
+        chose a Way — gets its own independent offer.
+        """
+        way = None
+        if self.ways and card.is_action:
+            way = player.ai.choose_way(self, card, self.ways + [None])
+        if way:
+            self.log_callback(
+                (
+                    "action",
+                    player.ai.name,
+                    f"plays {card} using {way.name}",
+                    {"card": card.name, "way": way.name},
+                )
+            )
+            way.apply(self, card)
+            # A Way replaces the card's instructions, not the play itself:
+            # an Attack played via a Way is still an Attack play, so Urchins
+            # in play still react (Card.on_play, which normally fires them,
+            # did not run).
+            self._fire_urchin_reaction(player, card)
+        else:
+            card.on_play(self)
 
     def fire_prophecy_action_hooks(self, player: PlayerState, card: Card) -> None:
         """Fire the active Prophecy's after-Action-play hooks for ``card``.
@@ -1666,9 +1676,10 @@ class GameState:
     def _maybe_citadel_replay(self, player: PlayerState, card: Card) -> bool:
         """Renaissance Citadel: if this is the first Action played this turn
         and the player owns Citadel, mark the per-turn flag and replay the
-        card using its normal text. Fires per-play side effects (training
-        token bonus, Kiln, ally play hooks) so the replay matches a regular
-        play. Returns True if Citadel triggered.
+        card. The replay is a play in its own right, so it is offered its
+        own Way (independent of whatever the first play chose) and fires the
+        per-play side effects (training token bonus, Kiln, ally play hooks)
+        so it matches a regular play. Returns True if Citadel triggered.
 
         Callers should invoke this immediately after a successful Action
         play so it runs at most once per turn — every play site (the action
@@ -1705,7 +1716,7 @@ class GameState:
             else None
         )
         try:
-            card.on_play(self)
+            self._resolve_action_text(player, card)
             training_pile = getattr(player, "training_pile", None)
             if training_pile and card.name == training_pile:
                 player.coins += 1
@@ -1986,8 +1997,8 @@ class GameState:
                 # different text. Match the non-Way branch's behaviour.
                 self.fire_ally_play_hooks(player, choice)
                 # Renaissance Citadel: a Way-played Action still counts as
-                # the first Action played this turn — replay it using the
-                # card's normal text (not the Way again).
+                # the first Action played this turn — replay it. The replay
+                # is its own play and gets its own Way offer.
                 self._maybe_citadel_replay(player, choice)
             else:
                 flagships_to_resolve: list[Card] = []

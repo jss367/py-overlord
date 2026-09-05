@@ -37,13 +37,18 @@ class Procession(Card):
                 player, choice, blocked_return_zone=player.hand
             )
 
-        # Trash the played card
+        # "Trash it" only happens if the card is still somewhere Procession
+        # can trash it from. A Way may have moved it during either play
+        # (Turtle sets it aside, Horse and Butterfly return it to its pile,
+        # Worm exiles it), and the same instance must not also land in the
+        # trash. The gain keys off the card's cost and happens either way.
         target_cost = choice.cost.coins + 1
         if choice in player.in_play:
             player.in_play.remove(choice)
+            game_state.trash_card(player, choice)
         elif choice in player.hand:
             player.hand.remove(choice)
-        game_state.trash_card(player, choice)
+            game_state.trash_card(player, choice)
 
         # Gain an Action card costing exactly 1 more
         options = []

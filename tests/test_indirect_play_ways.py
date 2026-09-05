@@ -420,3 +420,64 @@ def test_citadel_does_not_replay_an_off_turn_reaction_play():
     assert p2.citadel_used is False
     assert p1.citadel_used is False
     assert state.current_player is p1
+
+
+def test_citadel_replay_of_an_indirect_play_is_offered_its_own_way():
+    """Citadel's replay is a separate play of the card, so it gets its own
+    Way offer and chooses independently of the first play. The first Action
+    of the turn is played indirectly (as Ghost, Captain or a Throne Room
+    target would be): Village resolves normally, then the Citadel replay
+    picks Way of the Otter."""
+    from dominion.projects import Citadel
+
+    ai = ScriptedWayAI({"Village": [None, "Way of the Otter"]})
+    state = _game(
+        ["Village"],
+        ["Way of the Otter"],
+        [ai, ChooseFirstActionAI()],
+        projects=[Citadel()],
+    )
+    p1 = state.players[0]
+    assert state.turn_player is p1
+    p1.projects.append(state.projects[0])
+    village = get_card("Village")
+    p1.in_play = [village]
+    p1.deck = [get_card("Copper") for _ in range(10)]
+
+    state.play_action_indirectly(p1, village)
+
+    assert ai.offers == ["Village", "Village"]
+    assert p1.citadel_used
+    assert p1.actions == 2  # Village's +2 Actions; Otter adds none
+    assert len(p1.hand) == 3  # Village's +1 Card, then Otter's +2 Cards
+
+
+def test_procession_does_not_trash_a_card_a_way_moved():
+    """Procession: "play it twice. Trash it. Gain an Action card costing
+    exactly $1 more than it." If a Way moved the card during either play
+    (Turtle sets it aside here), it is no longer anywhere Procession can trash
+    it from, so the same instance must not also land in the trash. The gain
+    still happens: it keys off the card's cost, not on the trash."""
+    ai = ScriptedWayAI({"Village": ["Way of the Turtle", None]})
+    state = _game(
+        ["Procession", "Village", "Smithy"],
+        ["Way of the Turtle"],
+        [ai, ChooseFirstActionAI()],
+    )
+    p1 = state.players[0]
+    village = get_card("Village")
+    p1.hand = [get_card("Procession"), village]
+    p1.deck = [get_card("Copper") for _ in range(5)]
+    p1.actions = 1
+    state.phase = "action"
+    state.supply["Procession"] = 0  # leave Smithy as the only $4 Action
+    smithies_before = state.supply["Smithy"]
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Procession", "Village", "Village"]
+    assert p1.turtle_set_aside.count(village) == 1
+    assert village not in state.trash
+    assert village not in p1.in_play
+    assert state.supply["Smithy"] == smithies_before - 1
+    assert any(card.name == "Smithy" for card in p1.discard)
