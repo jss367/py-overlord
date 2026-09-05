@@ -167,6 +167,10 @@ def main():
     )
     parser.add_argument("--board", help="Board definition file containing kingdom cards and landscapes")
     parser.add_argument(
+        "--confirm-min-games-per-opponent", type=int, default=100,
+        help="Minimum confirmation games per opponent (default: 100; rounded up to seat pairs)",
+    )
+    parser.add_argument(
         "--workers",
         type=int,
         default=0,
@@ -294,6 +298,7 @@ def main():
         board_config=board_config,
         default_baseline_panel=True,
         workers=args.workers,
+        confirm_min_games_per_opponent=args.confirm_min_games_per_opponent,
     )
 
     # Load strategies from module:function paths

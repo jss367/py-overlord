@@ -93,10 +93,21 @@ PYTHONPATH=. python scripts/league_evolve.py --board boards/oslo.txt \
 ```
 
 `--compare` battles the final champion against registered reference
-strategies (the gate), and `--control` re-runs the same budget against the
-hall of fame with mean aggregation for a matched comparison. Reports are
+strategies (the gate), and `--control` runs the same search settings against the
+hall of fame with mean aggregation. Reports are
 written to `reports/league/`. See `docs/strategy-search-architecture.md`
 for what the pool fixes and what is still unbuilt.
+
+Later rounds carry the preceding champion forward and also seed from the
+current league. Champion promotion uses confirmed win rates; score-margin
+shaping remains available during search. Confirmation defaults to at least
+100 games per opponent per candidate, with balanced seats, so its cost grows
+with the opponent pool. Set `--confirm-min-games-per-opponent` on the runner
+or league command to adjust that floor. A floor of `0` is useful for smoke
+runs, but small confirmation budgets should not be used to claim strength
+improvements. Because confirmation scales with pool size, the league and
+control arms can consume different numbers of games even at identical search
+settings; account for this when comparing strength per simulation budget.
 
 ## Calibration suite
 

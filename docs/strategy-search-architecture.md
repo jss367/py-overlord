@@ -75,15 +75,62 @@ maintained pool that fixes the three properties that let this happen:
 `scripts/league_evolve.py` runs the outer double-oracle loop: each round
 evolves a best response against the current pool, then promotes it into the
 pool. A round whose champion re-derives an existing member is the convergence
-signal. `--control` re-runs the identical budget against the hall of fame with
-mean aggregation, which is the comparison any claim about the league has to
-clear; `--compare` battles the final champion against registered reference
+signal. `--control` uses the same search settings against the hall of fame with
+mean aggregation; compare actual simulation costs as well as results because
+confirmation budgets scale with pool size. `--compare` battles the final
+champion against registered reference
 strategies as the gate.
 
 Still unbuilt from the original plan: the full cross-play matrix over pool
 members, weighted mixture sampling (opponents are currently faced uniformly),
 and a significance test gating retention rather than a point estimate of
 difficulty.
+
+### Continuing search across rounds
+
+After the first round, the preceding champion is injected into the next
+population, followed by distinct members of the current league. The control
+arm also carries its preceding champion, so a comparison does not confuse
+opponent-pool improvements with random restarts. Exact seeds take precedence
+over mutated neighbors when the population cannot hold both.
+
+League membership and trainer confirmation share one rule fingerprint.
+Predicates with canonical source use that source; custom predicates use a
+digest of their serialized callable, including captured values. Two instances
+of the same custom Colony gate with different thresholds therefore remain
+distinct, while copies of the same gate deduplicate. These fingerprints are
+for comparisons within a run, not persistent identifiers across Python or
+dependency versions.
+
+### Champion confirmation
+
+Screening and refinement retain optional score-margin shaping. Champion
+replacement uses confirmed per-opponent win rates with the configured mean
+or worst-case aggregation. A larger victory-point margin cannot compensate
+for a worse confirmed win-rate score; equal scores retain the incumbent.
+The old `confirm_slack` argument remains accepted for compatibility but no
+longer discards challengers based on shaped screening scores.
+
+Confirmation defaults to at least **100 games per opponent per candidate**.
+`confirm_games` remains a lower bound on the total; the effective budget is
+rounded up so every opponent receives the same even number of games. This
+preserves complete seat-swapped pairs and scales as the pool grows. Pool
+rebasing uses the same budget rule. Screening budgets retain their existing
+total-game semantics.
+
+For example, a 20-game screening budget formerly implied 80 confirmation
+games total. With six opponents, the default now confirms each candidate on
+600 games. This costs more simulation time. The runner and league CLI expose
+`--confirm-min-games-per-opponent`; Python callers use
+`confirm_min_games_per_opponent`. Set the floor to zero for cheap smoke runs;
+confirmation still rounds up to equal seat pairs. Training metadata reports
+`confirmation_games`, the current total per candidate, and `promotion_score`,
+the aggregate confirmed win rate, separately from shaped `fitness`.
+
+This sampling floor is not a statistical significance gate. Small observed
+differences can still be noise. Strength claims require independent matchups
+and multiple search seeds, with actual evaluation cost accounted for when
+comparing the old and new pipelines.
 
 ## Card capabilities and board-derived engine archetypes
 

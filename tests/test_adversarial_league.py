@@ -365,3 +365,55 @@ class TestTrainerIntegration:
 
         # 4 games split across the baseline panel and the pool.
         assert games_against == {"Baseline": 2, "Pool": 2}
+
+
+class TestCustomConditionSignatures:
+    @staticmethod
+    def _gated_strategy(copies):
+        from generated_strategies.oslo_workers_village_magnate_engine import (
+            _multi_colony_greening_gate,
+        )
+        strategy = _make_strategy('Colony engine', 'Colony')
+        strategy.gain_priority[0].condition = _multi_colony_greening_gate(copies, 20)
+        return strategy
+
+    def test_different_closure_values_remain_distinct_pool_members(self):
+        league = AdversarialLeague(capacity=3)
+        for copies in (2, 5):
+            assert league.add(
+                self._gated_strategy(copies), name=f'Gate {copies}', origin=ORIGIN_SEED
+            )
+        assert not league.add(
+            self._gated_strategy(2), name='Duplicate', origin=ORIGIN_CHAMPION
+        )
+        assert len(league) == 2
+
+    def test_copy_and_worker_roundtrip_preserve_signature(self):
+        from copy import deepcopy
+        import cloudpickle
+
+        strategy = self._gated_strategy(4)
+        signature = genome_signature(strategy)
+        clone = deepcopy(strategy)
+        clone.name = 'Renamed'
+        clone.gain_priority[0]._fired = True
+        assert genome_signature(clone) == signature
+        assert genome_signature(cloudpickle.loads(cloudpickle.dumps(strategy))) == signature
+        assert GeneticTrainer._genome_signature(clone) == signature
+
+    def test_unconditional_and_custom_conditions_differ(self):
+        custom = self._gated_strategy(4)
+        unconditional = _make_strategy('Always', 'Colony')
+        assert genome_signature(custom) != genome_signature(unconditional)
+
+    def test_defaults_and_way_conditions_are_included(self):
+        from dominion.strategy.enhanced_strategy import WayRule
+
+        def gate(threshold):
+            return lambda state, player, limit=threshold: player.coins >= limit
+
+        a = _make_strategy('A')
+        b = _make_strategy('B')
+        a.way_policy = [WayRule('Village', 'Way of the Otter', gate(4))]
+        b.way_policy = [WayRule('Village', 'Way of the Otter', gate(8))]
+        assert genome_signature(a) != genome_signature(b)

@@ -31,10 +31,13 @@ Public API: :class:`AdversarialLeague`, :func:`aggregate_fitness`,
 
 from __future__ import annotations
 
+import hashlib
 import logging
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Iterable, Optional
+
+import cloudpickle
 
 from dominion.boards.loader import BoardConfig
 from dominion.strategy.strategies.base_strategy import BaseStrategy
@@ -245,22 +248,30 @@ class AdversarialLeague:
 
 
 def genome_signature(strategy: BaseStrategy) -> tuple:
-    """Structural fingerprint of a genome: every rule's card and condition
-    source, in order.
+    """Fingerprint rules, including custom callable code and captured values.
 
-    Mirrors ``GeneticTrainer._genome_signature``; kept here so the league has
-    no dependency on the trainer (the trainer imports the league, not the
-    other way round).
+    Generated predicates have canonical source strings. Hand-written closures,
+    partials, and callable objects need their serialized behavior instead;
+    treating missing source as None conflates them with unconditional rules.
+    This is shared with trainer confirmation and hall-of-fame deduplication.
     """
+
+    def condition_sig(condition) -> tuple | None:
+        if condition is None:
+            return None
+        source = getattr(condition, "_source", None)
+        if source is not None:
+            return ("source", source)
+        return ("callable", hashlib.sha256(cloudpickle.dumps(condition)).digest())
 
     def rule_sig(rules) -> tuple:
         return tuple(
-            (r.card_name, getattr(getattr(r, "condition", None), "_source", None))
+            (r.card_name, condition_sig(r.condition))
             for r in rules or []
         )
 
     way_sig = tuple(
-        (r.card_name, r.way_name, getattr(getattr(r, "condition", None), "_source", None))
+        (r.card_name, r.way_name, condition_sig(r.condition))
         for r in getattr(strategy, "way_policy", []) or []
     )
     return (

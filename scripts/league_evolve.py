@@ -46,6 +46,7 @@ from dominion.simulation.adversarial_league import (
     ORIGIN_CHAMPION,
     AdversarialLeague,
     build_seeded_league,
+    genome_signature,
 )
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.simulation.strategy_battle import StrategyBattle
@@ -143,8 +144,9 @@ def run_rounds(
 
     ``league=None`` is the control arm: the trainer falls back to its hall of
     fame and (with ``worst_case_weight=0``) to mean aggregation, i.e. exactly
-    the pipeline that drifted. Everything else — board, budget, seeds, RNG —
-    is held fixed, so the gate difference is attributable to the league.
+    the pipeline that drifted. Board, population, generation count, and seed
+    settings are held fixed. Confirmation cost can differ because its floor
+    applies per opponent; this is not a matched-compute comparison.
     """
 
     seeds = build_engine_seeds(board, max_engines=max_engines) if inject_engine_seeds else []
@@ -172,11 +174,22 @@ def run_rounds(
             log_folder=f"training_logs/league/round{round_index + 1}",
             **trainer_kwargs,
         )
-        # Round 1 starts from the assembled engines: composing one is the
-        # fitness valley the archetype seeds exist to skip. Later rounds start
-        # from the pool's own champions via the same injection path.
+        # Keep the preceding champion first so it survives seed truncation in
+        # small populations. Carry it in the control arm too; random restarts
+        # must not be a confound when measuring the opponent pool's effect.
+        starting_strategies = []
+        if champions:
+            starting_strategies.append(champions[-1])
+            if league is not None:
+                starting_strategies.extend(league.strategies())
         if round_index == 0 and seeds:
-            trainer.inject_strategies([deepcopy(s) for _, s in seeds])
+            starting_strategies.extend(s for _, s in seeds)
+        seen = set()
+        for strategy in starting_strategies:
+            signature = genome_signature(strategy)
+            if signature not in seen:
+                trainer.inject_strategy(deepcopy(strategy))
+                seen.add(signature)
 
         champion, metadata = trainer.train()
         if champion is None:
@@ -200,6 +213,8 @@ def run_rounds(
                 "champion_added": added,
                 "champion_fitness": metadata.get("fitness"),
                 "champion_win_rate": metadata.get("win_rate"),
+                "champion_promotion_score": metadata.get("promotion_score"),
+                "confirmation_games": metadata.get("confirmation_games"),
                 "breakdown": [list(entry) for entry in breakdown],
                 "dropped": [m.name for m in dropped],
                 "league": league.summary() if league is not None else [],
@@ -343,6 +358,10 @@ def main() -> None:
     parser.add_argument("--population", type=int, default=30)
     parser.add_argument("--generations", type=int, default=20)
     parser.add_argument("--games-per-eval", type=int, default=20)
+    parser.add_argument(
+        "--confirm-min-games-per-opponent", type=int, default=100,
+        help="Minimum confirmation games per opponent (default: 100; rounded up to seat pairs)",
+    )
     parser.add_argument("--mutation-rate", type=float, default=0.1)
     parser.add_argument(
         "--workers",
@@ -406,6 +425,7 @@ def main() -> None:
             "games_per_eval": args.games_per_eval,
             "mutation_rate": args.mutation_rate,
             "workers": args.workers,
+            "confirm_min_games_per_opponent": args.confirm_min_games_per_opponent,
         },
     )
     if not round_reports:
@@ -423,6 +443,7 @@ def main() -> None:
         "capacity": args.capacity,
         "worst_case_weight": 0.0 if args.control else args.worst_case_weight,
         "seed": args.seed,
+        "confirm_min_games_per_opponent": args.confirm_min_games_per_opponent,
         "final_league": league.summary() if league is not None else [],
         "round_reports": round_reports,
         "gate": gate,

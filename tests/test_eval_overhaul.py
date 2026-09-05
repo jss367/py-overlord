@@ -50,6 +50,7 @@ def _make_trainer(**kwargs) -> GeneticTrainer:
         generations=1,
         games_per_eval=2,
         eval_seed=1234,
+        confirm_min_games_per_opponent=0,
     )
     defaults.update(kwargs)
     return GeneticTrainer(**defaults)
@@ -241,18 +242,55 @@ class TestConsiderChallenger:
         assert calls == []
         assert trainer._best_strategy is incumbent
 
-    def test_weak_screen_is_gated_without_spending_budget(self, monkeypatch):
+    def test_low_shaped_screen_does_not_veto_better_win_rate(self, monkeypatch):
         trainer = _make_trainer(confirm_slack=5.0)
         trainer._best_strategy = _make_strategy("Champ", "Province", "Gold")
         trainer._best_confirmed = 60.0
         calls: list = []
-        self._patch_budget(monkeypatch, trainer, {}, calls)
+        self._patch_budget(
+            monkeypatch, trainer, {"Champ": (60.0, 60.0), "Weak": (40.0, 70.0)}, calls
+        )
 
         challenger = _make_strategy("Weak", "Duchy")
         trainer._consider_challenger(challenger, screen_fitness=40.0, gen=1)
 
-        assert calls == []
+        assert len(calls) == 2
+        assert trainer._best_strategy.name == "Weak"
+
+    def test_larger_margin_cannot_replace_more_frequent_winner(self, monkeypatch):
+        trainer = _make_trainer()
+        trainer._best_strategy = _make_strategy("Champ", "Province")
+        calls = []
+        self._patch_budget(
+            monkeypatch, trainer, {"Champ": (52.0, 65.0), "Margin": (54.0, 60.0)}, calls
+        )
+        trainer._consider_challenger(_make_strategy("Margin", "Gold"), 80.0, gen=1)
         assert trainer._best_strategy.name == "Champ"
+        assert trainer._best_win_rate == 65.0
+
+    def test_equal_win_rate_retains_incumbent(self, monkeypatch):
+        trainer = _make_trainer()
+        trainer._best_strategy = _make_strategy("Champ", "Province")
+        self._patch_budget(
+            monkeypatch, trainer, {"Champ": (40.0, 60.0), "Margin": (90.0, 60.0)}, []
+        )
+        trainer._consider_challenger(_make_strategy("Margin", "Gold"), 90.0, gen=1)
+        assert trainer._best_strategy.name == "Champ"
+
+    def test_failed_challenger_cannot_replace_incumbent(self, monkeypatch):
+        trainer = _make_trainer()
+        trainer._best_strategy = _make_strategy("Champ", "Province")
+        self._patch_budget(
+            monkeypatch, trainer,
+            {"Champ": (40.0, 60.0), "Failed": (float("-inf"), 100.0)}, [],
+        )
+        trainer._consider_challenger(_make_strategy("Failed", "Gold"), 90.0, gen=1)
+        assert trainer._best_strategy.name == "Champ"
+
+    def test_promotion_preserves_worst_case_pressure(self):
+        trainer = _make_trainer(worst_case_weight=1.0)
+        assert trainer._promotion_score(90.0, [("A", 70), ("B", 40)]) == 40
+        assert trainer._promotion_score(80.0, [("A", 55), ("B", 50)]) == 50
 
     def test_challenger_replaces_incumbent_when_confirmed_better(self, monkeypatch):
         trainer = _make_trainer(confirm_games=8)
@@ -406,3 +444,34 @@ class TestTrainWithRacing:
         trainer.train()
 
         assert trainer.hall_of_fame == []
+
+
+class TestConfirmationBudget:
+    def test_default_floor_scales_with_pool_and_balances_seats(self, monkeypatch):
+        trainer = _make_trainer(confirm_games=15, confirm_min_games_per_opponent=100)
+        trainer.set_baseline_panel([_make_strategy('Base', 'Province')])
+        trainer.hall_of_fame = [_make_strategy('Pool', 'Gold')]
+        seen = {}
+
+        def game(first, second, kingdom, **kwargs):
+            candidate_first = first.strategy.name == 'Candidate'
+            opponent = second if candidate_first else first
+            counts = seen.setdefault(opponent.strategy.name, [0, 0])
+            counts[0 if candidate_first else 1] += 1
+            return first, {}, None, 0
+
+        monkeypatch.setattr(trainer.battle_system, 'run_game', game)
+        trainer._consider_challenger(_make_strategy('Candidate', 'Silver'), 80, 0)
+        assert seen == {'Base': [50, 50], 'Pool': [50, 50]}
+        trainer.hall_of_fame.append(_make_strategy('New', 'Duchy'))
+        assert trainer._confirmation_budget() == 300
+
+    @pytest.mark.parametrize('total, floor, expected', [(15, 0, 18), (600, 100, 600), (1, 5, 18)])
+    def test_requested_total_and_floor_round_up_to_equal_pairs(self, total, floor, expected):
+        trainer = _make_trainer(confirm_games=total, confirm_min_games_per_opponent=floor)
+        trainer.set_baseline_panel([_make_strategy(str(i)) for i in range(3)])
+        assert trainer._confirmation_budget() == expected
+
+    def test_negative_floor_rejected(self):
+        with pytest.raises(ValueError, match='nonnegative'):
+            _make_trainer(confirm_min_games_per_opponent=-1)
