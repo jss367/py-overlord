@@ -1014,3 +1014,40 @@ def test_falconer_reacts_to_plus_coin_action_gain_under_capitalism():
     state.supply["Market"] -= 1
     state.gain_card(p1, get_card("Market"))
     assert falconer in p2.in_play
+
+
+def test_daimyo_charge_is_reserved_for_the_first_reacting_falconer():
+    """Falconer -> Trail -> nested Falconer: the pending Daimyo charge belongs
+    to the first (outer) Falconer play, not the nested one."""
+    from dominion.ai.genetic_ai import GeneticAI
+    from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+
+    plays = []
+
+    class _Trace(EnhancedStrategy):
+        def choose_gain(self, state, player, choices):
+            trail = next((c for c in choices if c is not None and c.name == "Trail"), None)
+            if trail is not None:
+                plays.append(len([c for c in player.in_play if c.name == "Falconer"]))
+            return trail
+
+    strat = _Trace()
+    strat.action_priority = [PriorityRule("Trail"), PriorityRule("Falconer")]
+    ai = GeneticAI(strat)
+    state = GameState(players=[])
+    state.initialize_game([ai, ChooseFirstActionAI()], [get_card("Falconer"), get_card("Trail"), get_card("Daimyo")])
+    p1 = state.players[0]
+    p1.deck = [get_card("Copper") for _ in range(10)]
+    p1.hand = [get_card("Falconer"), get_card("Falconer")]
+    p1.daimyo_pending = 1
+    state.current_player_index = 0
+    state.phase = "buy"
+    trails_before = state.supply["Trail"]
+    state.supply["Falconer"] -= 1
+    state.gain_card(p1, get_card("Falconer"))
+    # Outer Falconer, nested Falconer (via the Trail gain), then the outer
+    # Falconer's Daimyo replay: three Trail gains in total.
+    assert state.supply["Trail"] == trails_before - 3
+    assert p1.daimyo_pending == 0
+    # The replay (third Trail gain) happens with both Falconers already in play.
+    assert plays == [1, 2, 2]

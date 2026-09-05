@@ -4828,17 +4828,22 @@ class GameState:
                 if not player.ai.should_play_falconer(self, player, gainer, gained_card):
                     break
                 falconer = falconers[0]
-                if not self.play_action_from_hand_indirectly(player, falconer):
-                    break
                 # Rising Sun Daimyo: "the next time you play a non-Command
                 # Action card this turn, replay it" also covers a Falconer the
                 # turn player plays in reaction (e.g. during their Buy phase).
+                # Reserve the charge for THIS play before resolving it: the
+                # Falconer's own gain (a Trail, say) can nest another Falconer
+                # reaction, which must not consume the charge first.
+                replays = 0
                 if player is self.turn_player and getattr(player, "daimyo_pending", 0):
                     replays, player.daimyo_pending = player.daimyo_pending, 0
-                    for _ in range(replays):
-                        if falconer not in player.in_play:
-                            break
-                        self.play_action_indirectly(player, falconer)
+                if not self.play_action_from_hand_indirectly(player, falconer):
+                    player.daimyo_pending = getattr(player, "daimyo_pending", 0) + replays
+                    break
+                for _ in range(replays):
+                    if falconer not in player.in_play:
+                        break
+                    self.play_action_indirectly(player, falconer)
 
     def _handle_menagerie_gain_reactions(
         self, player: PlayerState, gained_card: Card
