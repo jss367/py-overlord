@@ -206,11 +206,18 @@ class SecludedShrine(Card):
             types=[CardType.ACTION, CardType.DURATION],
         )
         self.duration_persistent = True
-        self.shrine_armed = False
+        # Each play (including Daimyo / Throne Room replays) is its own
+        # "next time you gain a Treasure" trigger; they all resolve on that
+        # next Treasure gain, each allowing up to 2 trashes.
+        self.shrine_charges = 0
+
+    @property
+    def shrine_armed(self) -> bool:
+        return self.shrine_charges > 0
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        self.shrine_armed = True
+        self.shrine_charges += 1
         self.duration_persistent = True
         if self not in player.duration:
             player.duration.append(self)
@@ -221,12 +228,12 @@ class SecludedShrine(Card):
         self.duration_persistent = self.shrine_armed
 
     def on_owner_gains_treasure(self, game_state, player):
-        """Resolve the "next time you gain a Treasure" trigger."""
+        """Resolve every pending "next time you gain a Treasure" trigger."""
         if not self.shrine_armed:
             return
-        self.shrine_armed = False
+        charges, self.shrine_charges = self.shrine_charges, 0
         self.duration_persistent = False
-        for _ in range(2):
+        for _ in range(2 * charges):
             if not player.hand:
                 break
             choice = player.ai.choose_card_to_trash(game_state, player.hand + [None])

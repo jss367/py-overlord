@@ -956,3 +956,45 @@ def test_secluded_shrine_fires_on_curse_gain_under_charlatan():
     state.supply["Curse"] -= 1
     state.gain_card(p1, get_card("Curse"))
     assert not shrine.shrine_armed
+
+
+def test_falconer_reacts_to_treasure_gain_under_enlightenment():
+    """Enlightenment makes Treasures Actions too, so a gained Gold has two
+    live types and opens a Falconer reaction."""
+    from dominion.prophecies import get_prophecy
+
+    state, p1, p2 = _two_player_state()
+    state.prophecy = get_prophecy("Enlightenment")
+    state.sun_tokens = 0
+    if hasattr(state.prophecy, "activate"):
+        state.prophecy.activate(state)
+    assert state.prophecy.is_active
+    falconer = get_card("Falconer")
+    p2.hand = [falconer]
+    state.supply["Gold"] -= 1
+    state.gain_card(p1, get_card("Gold"))
+    assert falconer in p2.in_play
+
+
+def test_daimyo_charge_replays_a_reacting_falconer():
+    from dominion.ai.genetic_ai import GeneticAI
+    from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+
+    strat = EnhancedStrategy()
+    strat.gain_priority = [PriorityRule("Silver")]
+    ai = GeneticAI(strat)
+    state = GameState(players=[])
+    state.initialize_game([ai, ChooseFirstActionAI()], [get_card("Falconer"), get_card("Daimyo")])
+    p1 = state.players[0]
+    p1.deck = [get_card("Copper") for _ in range(10)]
+    falconer = get_card("Falconer")
+    p1.hand = [falconer]
+    p1.daimyo_pending = 1
+    state.current_player_index = 0
+    state.phase = "buy"
+    # p1 gains a 2-type card in its own Buy phase -> its Falconer reacts,
+    # and the pending Daimyo charge replays it: two Silvers gained to hand.
+    state.supply["Falconer"] -= 1
+    state.gain_card(p1, get_card("Falconer"))
+    assert p1.daimyo_pending == 0
+    assert sum(1 for c in p1.hand if c.name == "Silver") == 2

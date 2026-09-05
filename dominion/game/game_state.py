@@ -2169,6 +2169,15 @@ class GameState:
         count = len(card.types)
         if not card.is_treasure and self.is_treasure(card):
             count += 1
+        # Rising Sun Enlightenment: Treasures are also Actions for all purposes.
+        if (
+            self.prophecy is not None
+            and self.prophecy.is_active
+            and self.prophecy.name == "Enlightenment"
+            and self.is_treasure(card)
+            and not card.is_action
+        ):
+            count += 1
         return count
 
     def is_treasure(self, card: Card) -> bool:
@@ -4807,8 +4816,18 @@ class GameState:
                     break
                 if not player.ai.should_play_falconer(self, player, gainer, gained_card):
                     break
-                if not self.play_action_from_hand_indirectly(player, falconers[0]):
+                falconer = falconers[0]
+                if not self.play_action_from_hand_indirectly(player, falconer):
                     break
+                # Rising Sun Daimyo: "the next time you play a non-Command
+                # Action card this turn, replay it" also covers a Falconer the
+                # turn player plays in reaction (e.g. during their Buy phase).
+                if player is self.turn_player and getattr(player, "daimyo_pending", 0):
+                    replays, player.daimyo_pending = player.daimyo_pending, 0
+                    for _ in range(replays):
+                        if falconer not in player.in_play:
+                            break
+                        self.play_action_indirectly(player, falconer)
 
     def _handle_menagerie_gain_reactions(
         self, player: PlayerState, gained_card: Card

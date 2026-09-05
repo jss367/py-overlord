@@ -884,3 +884,21 @@ def test_secluded_shrine_fired_off_turn_is_discarded_exactly_once():
     assert sum(1 for c in zones if c is ss) == 1
     assert ss not in player.in_play
     assert ss not in player.duration
+
+
+def test_secluded_shrine_replays_stack_their_triggers():
+    """Daimyo / Throne Room replays each add a trigger: the next Treasure
+    gain then allows up to 2 trashes per play."""
+    state = _make_state()
+    player = state.current_player
+    player.hand = [get_card("Curse") for _ in range(4)]
+    ss = get_card("Secluded Shrine")
+    player.in_play.append(ss)
+    ss.on_play(state)
+    ss.on_play(state)
+    assert ss.shrine_charges == 2
+    pre_trash = len(state.trash)
+    state.supply["Silver"] -= 1
+    state.gain_card(player, get_card("Silver"))
+    assert len(state.trash) == pre_trash + 4
+    assert not ss.shrine_armed
