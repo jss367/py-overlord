@@ -898,3 +898,31 @@ def test_off_turn_falconer_gaining_messenger_does_not_distribute():
     # No Messenger distribution: p1 only has the Falconer it gained.
     assert [c.name for c in p1.discard] == ["Falconer"]
     assert p2.discard == []
+
+
+def test_own_turn_falconer_gaining_messenger_is_not_first_buy_phase_gain():
+    """The turn player buys a 2-type card and reacts with a Falconer from
+    hand that gains Messenger. The bought card was already the first gain of
+    the Buy phase, so Messenger's on-gain must not distribute; ``gain_card``
+    counts the triggering gain before the Falconer reaction resolves."""
+    state, p1, p2 = _two_player_state([get_card("Falconer"), get_card("Messenger")])
+    state.current_player_index = 0
+    state.phase = "buy"
+
+    class _MessengerAI(ChooseFirstActionAI):
+        def choose_buy(self, state, choices):
+            return next((c for c in choices if c is not None and c.name == "Messenger"), None)
+
+    p1.ai = _MessengerAI()
+    p1.hand = [get_card("Falconer")]
+    p1.cards_gained_this_buy_phase = 0
+    p1.discard, p2.discard = [], []
+    messengers_before = state.supply["Messenger"]
+    state.supply["Falconer"] -= 1
+    state.gain_card(p1, get_card("Falconer"))
+
+    assert [c.name for c in p1.hand] == ["Messenger"]
+    assert [c.name for c in p1.discard] == ["Falconer"]
+    assert p2.discard == []
+    assert state.supply["Messenger"] == messengers_before - 1
+    assert p1.cards_gained_this_buy_phase == 2

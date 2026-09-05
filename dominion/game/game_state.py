@@ -3776,6 +3776,19 @@ class GameState:
         else:
             player.discard.append(actual_card)
 
+        # Record the Buy-phase gain before any on-gain hook runs: hooks can
+        # nest further gains (Falconer reacting to a 2-type card, Border
+        # Village, Messenger's own distribution), and "first card you gain
+        # in your Buy phase" checks inside those nested gains must already
+        # see this one. ``turn_player`` rather than ``current_player``: an
+        # off-turn reactor gaining a card is not in its own Buy phase.
+        if player is self.turn_player and self.phase == "buy":
+            player.cards_gained_this_buy_phase += 1
+            if actual_card.is_action or actual_card.is_treasure:
+                player.gained_action_or_treasure_this_buy_phase = True
+            if actual_card.is_victory:
+                player.gained_victory_this_buy_phase = True
+
         self._handle_gatekeeper_exile(player, actual_card, destination_is_deck, had_exiled_copy)
 
         # "When you gain a card, you may discard all copies of it from
@@ -3830,18 +3843,6 @@ class GameState:
         self._handle_livery_gain(player, actual_card)
         self._handle_secluded_shrine_gain(player, actual_card)
         self._handle_falconer_reactions(player, actual_card)
-
-        if (
-            hasattr(player, "cards_gained_this_buy_phase")
-            and player is self.current_player
-            and self.phase == "buy"
-        ):
-            player.cards_gained_this_buy_phase += 1
-            if actual_card.is_action or actual_card.is_treasure:
-                player.gained_action_or_treasure_this_buy_phase = True
-
-        if actual_card.is_victory and player is self.current_player and self.phase == "buy":
-            player.gained_victory_this_buy_phase = True
 
         # Treasury cares about Victory cards gained anywhere on your turn
         # (Action phase via Workshop / Charm / Ironworks counts too).

@@ -30,11 +30,13 @@ class Messenger(Card):
         super().on_gain(game_state, player)
 
         # ``turn_player`` rather than ``current_player``: an off-turn Falconer
-        # gaining Messenger is not in its owner's Buy phase.
+        # gaining Messenger is not in its owner's Buy phase. ``gain_card``
+        # counts this gain before calling on_gain, so "first card gained
+        # this Buy phase" means the counter is exactly 1.
         if (
             player is not game_state.turn_player
             or game_state.phase != "buy"
-            or getattr(player, "cards_gained_this_buy_phase", 0) != 0
+            or getattr(player, "cards_gained_this_buy_phase", 0) != 1
         ):
             return
 

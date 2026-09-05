@@ -158,7 +158,8 @@ the champion evolved from.
 | Big Money | 9.9% |
 | Falconer Trail Engine (seed) | 6.8% |
 
-Key head-to-heads:
+Key head-to-heads (400 games per matchup with alternating first player,
+except the first row, which is a separate 1,000-game run):
 
 | Matchup | Result |
 |---|---:|
