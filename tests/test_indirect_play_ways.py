@@ -156,3 +156,29 @@ def test_trail_reaction_fires_ally_play_hooks_when_using_a_way():
     state.gain_card(p1, get_card("Trail"))
 
     assert seen == ["Trail"]
+
+
+def test_riverboat_virtual_play_is_not_offered_a_way():
+    """Riverboat plays its set-aside card in place ("it stays set aside, even
+    if it has instructions on it that would move it"). A Way that moves the
+    played card — Turtle here — would stash a card that is not in play, so
+    virtual plays get no Way offer and the card resolves normally."""
+    ai = ScriptedWayAI({"Village": ["Way of the Turtle"]})
+    state = _game(["Riverboat", "Village"], ["Way of the Turtle"], [ai, ChooseFirstActionAI()])
+    p1 = state.players[0]
+    village = get_card("Village")
+    state.riverboat_set_aside = village
+    riverboat = get_card("Riverboat")
+    riverboat.duration_persistent = True
+    p1.duration = [riverboat]
+    p1.deck = [get_card("Copper")]
+
+    riverboat.on_duration(state)
+
+    assert ai.offers == []
+    assert p1.actions == 2  # Village resolved normally
+    assert len(p1.hand) == 1
+    assert state.riverboat_set_aside is village
+    assert village not in p1.in_play
+    assert not getattr(p1, "turtle_set_aside", [])
+    assert riverboat.duration_persistent is False

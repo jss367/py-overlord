@@ -437,8 +437,12 @@ class GameState:
             # follow the Way's instructions" applies to every play, so each
             # Throne Room replay, Vassal play and off-turn Reaction play gets
             # its own independent offer, mirroring the action-phase loop.
+            # Virtual plays are the exception: Riverboat plays its set-aside
+            # card in place and Necromancer plays a card that stays in the
+            # trash, and Ways that move the played card (Turtle, Butterfly)
+            # assume it is in play, so they would corrupt those zones.
             way = None
-            if self.ways and card.is_action:
+            if self.ways and card.is_action and card_was_in_play:
                 way = player.ai.choose_way(self, card, self.ways + [None])
             if way:
                 self.log_callback(
