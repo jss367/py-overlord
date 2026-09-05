@@ -840,3 +840,29 @@ def test_royal_galley_keeps_multiple_set_aside_actions():
     assert village in player.in_play
     assert smithy in player.in_play
     assert galley._set_aside == []
+
+
+def test_carpenter_replacement_compares_debt_and_potion_costs():
+    """Up to $2 more keeps the trashed card's Debt/Potion components, so a
+    trashed Daimyo (6 Debt) may be replaced by another Daimyo, and by cards
+    up to $2, but not by a $3 card."""
+    state, player = _state()
+    state.supply = {"Daimyo": 5, "Silver": 5, "Estate": 5, "Workshop": 0}
+    player.hand = [get_card("Daimyo")]
+    offered = []
+
+    class _AI(DummyAI):
+        def choose_card_to_trash(self, state, choices):
+            return choices[0]
+
+        def choose_buy(self, state, choices):
+            offered.extend(c.name for c in choices if c is not None)
+            return next(c for c in choices if c is not None and c.name == "Daimyo")
+
+    player.ai = _AI()
+    carpenter = get_card("Carpenter")
+    player.in_play.append(carpenter)
+    carpenter.on_play(state)
+    assert sorted(offered) == ["Daimyo", "Estate"]
+    assert any(c.name == "Daimyo" for c in state.trash)
+    assert any(c.name == "Daimyo" for c in player.discard)

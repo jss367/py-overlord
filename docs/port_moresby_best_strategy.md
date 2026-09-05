@@ -38,8 +38,11 @@ the board's whole character:
    phantom +1 Buy. The real card is +$1 and "the next time you gain a
    Treasure, trash up to 2 cards from your hand" (any turn, fires once).
 4. **Quartermaster** took every set-aside card at once. The real choice is
-   "put *a* card from this into your hand". Set-aside cards now also count
-   as owned at game end (they count for Fountain's Copper total).
+   "put *a* card from this into your hand". Each Quartermaster keeps its
+   own set-aside pile (a second copy cannot take the Silver the first one
+   just gained), the pile survives the endgame guard's cloned game state,
+   and set-aside cards count as owned at game end (they count for
+   Fountain's Copper total).
 5. **Carpenter** gained up to $5 flat after trashing and gave no +1 Card
    on the no-empty-piles branch. The real card is "+1 Action and gain up
    to $4" / "trash a card, gain a card costing up to $2 more than it".
@@ -91,9 +94,10 @@ The shape is Quartermaster money:
 - Quartermaster gains follow the ordinary gain list: Silvers early, then
   Coppers once the Silver rule expires. Coppers gained this way sit on
   the mat, count for Fountain, and are never drawn.
-- A banked Silver is taken into hand only when it turns the hand into a
-  Province, or when two or fewer Provinces remain. Otherwise the
-  Quartermaster keeps gaining.
+- A Quartermaster takes a banked Silver into hand when the hand's Treasure
+  plus $2 per Silver banked on that Quartermaster reaches $8 (one Silver
+  per turn, so a $4 hand with two banked Silvers starts cashing them in),
+  or when two or fewer Provinces remain. Otherwise it keeps gaining.
 - Nothing ever trashes a Copper.
 
 ## Why This Strategy Wins
@@ -163,6 +167,26 @@ Key head-to-heads:
 | Best Found vs Copper Mat Money | 70.8% |
 | Best Found vs Double Quartermaster Money seed | 95.0% |
 | Best Found vs Big Money | 100.0% |
+
+The tables above predate three review fixes: each Quartermaster now keeps
+its own set-aside pile (a second copy can no longer take the Silver the
+first one just gained), those piles survive the endgame guard's cloned
+state, and an off-turn Falconer gaining Messenger no longer triggers the
+Buy-phase distribution. The island champions are not checked in, so the
+confirmation tournament was not repeated; the checked-in opponents were,
+400 games each with alternating first player:
+
+| Matchup (after the fixes) | Result |
+|---|---:|
+| Best Found vs Copper Mat Money | 56.0% |
+| Best Found vs Double Quartermaster Money seed | 94.8% |
+| Best Found vs Barbarian Money seed | 98.0% |
+| Best Found vs Falconer Trail Engine seed | 99.8% |
+| Best Found vs Big Money | 100.0% |
+
+The Copper Mat Money margin narrowed from 70.8% to 56.0%, most likely
+because the shared mat had let Best Found's third Quartermaster cash in a
+Silver the same turn another copy banked it.
 
 ## Search notes
 

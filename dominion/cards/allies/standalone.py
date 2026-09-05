@@ -239,7 +239,7 @@ class Carpenter(Card):
         player = game_state.current_player
         if game_state.empty_piles == 0:
             player.actions += 1
-            max_cost = 4
+            max_cost = CardCost(coins=4)
         else:
             if not player.hand:
                 return
@@ -256,7 +256,13 @@ class Carpenter(Card):
                 )
             player.hand.remove(target)
             game_state.trash_card(player, target)
-            max_cost = target.cost.coins + 2
+            # "Costing up to $2 more" compares every component: +$2 on
+            # coins, no more Debt or Potion than the trashed card had.
+            max_cost = CardCost(
+                coins=target.cost.coins + 2,
+                potions=target.cost.potions,
+                debt=target.cost.debt,
+            )
 
         candidates = []
         for name, count in game_state.supply.items():
@@ -265,7 +271,11 @@ class Carpenter(Card):
             if name in game_state.non_supply_pile_names:
                 continue
             card = get_card(name)
-            if card.cost.potions > 0 or card.cost.debt > 0 or card.cost.coins > max_cost:
+            if (
+                card.cost.coins > max_cost.coins
+                or card.cost.potions > max_cost.potions
+                or card.cost.debt > max_cost.debt
+            ):
                 continue
             if not card.may_be_gained(game_state):
                 continue
@@ -273,7 +283,7 @@ class Carpenter(Card):
         if not candidates:
             return
         chosen = player.ai.choose_buy(game_state, candidates + [None])
-        if chosen is None:
+        if chosen is None or chosen not in candidates:
             chosen = max(candidates, key=lambda c: (c.cost.coins, c.name))
         if game_state.supply.get(chosen.name, 0) <= 0:
             return

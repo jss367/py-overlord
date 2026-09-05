@@ -9,8 +9,8 @@ five Provinces left, Coppers up to ten for Fountain), with its dead
 Sculptor rule pruned. The Quartermaster policy is hand-written: gain
 through the ordinary gain list (Silver early; after turn 12 the list falls
 through to Coppers, which sit on the mat and still count for Fountain),
-and take a banked Silver into hand only when it turns the hand into a
-Province, or when the game is nearly over.
+and take a banked Silver into hand when the hand plus that Quartermaster's
+banked Silvers would reach a Province, or when the game is nearly over.
 """
 
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
@@ -26,7 +26,7 @@ class PortMoresbyBestFound(EnhancedStrategy):
         self.name = "Port Moresby Best Found"
         self.description = (
             "Triple Quartermaster money with a Messenger/Trail opener and two "
-            "Barbarians; banked Silvers are taken only to complete a Province."
+            "Barbarians; banked Silvers are cashed in toward a Province or in the endgame."
         )
         self.version = "1.0"
 

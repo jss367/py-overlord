@@ -110,3 +110,28 @@ def test_barbarian_does_not_curse_without_valid_replacement():
     assert not opponent.discard
     assert state.supply["Curse"] == 10
     assert any(card.name == "Gold" for card in state.trash)
+
+
+def test_barbarian_offers_cheaper_potion_cost_replacement():
+    """Trashing Familiar ($3P) may be replaced by Scrying Pool ($2P): cheaper
+    means no cost component higher and at least one lower."""
+    state = make_state(
+        num_players=2,
+        kingdom=[get_card("Barbarian"), get_card("Familiar"), get_card("Scrying Pool")],
+    )
+    player, opponent = state.players
+    opponent.deck = [get_card("Familiar")]
+    opponent.discard = []
+    offered = []
+
+    class _PoolAI(DummyAI):
+        def choose_buy(self, state, choices):
+            offered.extend(c.name for c in choices if c is not None)
+            return next(c for c in choices if c is not None and c.name == "Scrying Pool")
+
+    opponent.ai = _PoolAI()
+    get_card("Barbarian").on_play(state)
+    assert "Scrying Pool" in offered
+    assert "Familiar" not in offered
+    assert any(c.name == "Scrying Pool" for c in opponent.discard)
+    assert any(c.name == "Familiar" for c in state.trash)

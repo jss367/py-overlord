@@ -877,6 +877,8 @@ class Quartermaster(Card):
     this; or put a card from this into your hand.
 
     The per-turn choice is resolved by ``GameState._handle_quartermaster_start_of_turn``.
+    ``set_aside`` is this copy's own pile; the owner still owns those cards
+    (``PlayerState.all_cards`` counts them).
     """
 
     def __init__(self):
@@ -887,6 +889,7 @@ class Quartermaster(Card):
             types=[CardType.ACTION, CardType.DURATION],
         )
         self.duration_persistent = True
+        self.set_aside: list[Card] = []
 
     def play_effect(self, game_state):
         player = game_state.current_player

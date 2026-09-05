@@ -869,3 +869,32 @@ def test_falconer_chain_through_trail_gain():
     assert state.supply["Trail"] == 8
     # Each Trail drew a card: hand is the two drawn Coppers.
     assert [c.name for c in p1.hand] == ["Copper", "Copper"]
+
+
+def test_off_turn_falconer_gaining_messenger_does_not_distribute():
+    """A Falconer played in reaction during another player's Buy phase is not
+    in its owner's Buy phase, so a Messenger it gains must not hand every
+    player a card. ``turn_player`` stays the turn player during the reaction."""
+    state, p1, p2 = _two_player_state([get_card("Falconer"), get_card("Messenger")])
+    state.current_player_index = 0
+    state.phase = "buy"
+    seen_turn_players = []
+
+    class _MessengerAI(ChooseFirstActionAI):
+        def choose_buy(self, state, choices):
+            seen_turn_players.append(state.turn_player)
+            return next((c for c in choices if c is not None and c.name == "Messenger"), None)
+
+    p2.ai = _MessengerAI()
+    p2.hand = [get_card("Falconer")]
+    p2.cards_gained_this_buy_phase = 0
+    p1.discard, p2.discard = [], []
+    state.supply["Falconer"] -= 1
+    state.gain_card(p1, get_card("Falconer"))
+
+    assert seen_turn_players == [p1]
+    assert state.turn_player is p1 and state.current_player is p1
+    assert [c.name for c in p2.hand] == ["Messenger"]
+    # No Messenger distribution: p1 only has the Falconer it gained.
+    assert [c.name for c in p1.discard] == ["Falconer"]
+    assert p2.discard == []

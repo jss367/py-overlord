@@ -41,6 +41,10 @@ class GameState:
     allies: list = field(default_factory=list)
     landmarks: list = field(default_factory=list)
     current_player_index: int = 0
+    # Index of the player whose turn it is while an off-turn Reaction play
+    # (Falconer, Black Cat, Caravan Guard, ...) temporarily makes the reactor
+    # ``current_player``; None outside such plays. See ``turn_player``.
+    reaction_turn_player_index: int | None = None
     phase: str = "start"
     turn_number: int = 1
     extra_turn: bool = False
@@ -77,7 +81,6 @@ class GameState:
     patient_mat: dict = field(default_factory=dict)  # PlayerState id -> list[Card]
     # Plunder card / event state hooks
     landing_party_pending: dict = field(default_factory=dict)
-    quartermaster_mats: dict = field(default_factory=dict)
     enlarge_pending: dict = field(default_factory=dict)
     rush_pending: dict = field(default_factory=dict)
     mirror_pending: dict = field(default_factory=dict)
@@ -200,6 +203,19 @@ class GameState:
     def current_player(self) -> PlayerState:
         return self.players[self.current_player_index]
 
+    @property
+    def turn_player(self) -> PlayerState:
+        """The player whose turn it is.
+
+        Equals ``current_player`` except while
+        ``play_action_from_hand_indirectly`` resolves an off-turn Reaction, when
+        ``current_player`` is the reactor so the card's effect applies to its
+        owner. "Your turn" / "your Buy phase" checks (Messenger) must use this.
+        """
+        if self.reaction_turn_player_index is not None:
+            return self.players[self.reaction_turn_player_index]
+        return self.current_player
+
     def _warlord_action_name(self, player: PlayerState, card: Card) -> str | None:
         if card.is_action:
             return card.name
@@ -276,7 +292,8 @@ class GameState:
         if not self.move_card_from_hand_to_play(player, card):
             return False
         original_index = self.current_player_index
-        is_players_turn = self.players[original_index] is player
+        original_turn_index = self.reaction_turn_player_index
+        is_players_turn = self.turn_player is player
         try:
             self.current_player_index = self.players.index(player)
         except ValueError:
@@ -286,6 +303,10 @@ class GameState:
                 blocked_return_zone=player.hand,
                 apply_enchantress=is_players_turn,
             )
+        if not is_players_turn and original_turn_index is None:
+            # Remember the real turn player so "your Buy phase" effects on
+            # cards the reactor gains (Messenger) do not fire for the reactor.
+            self.reaction_turn_player_index = original_index
         try:
             return self.play_action_indirectly(
                 player,
@@ -295,6 +316,7 @@ class GameState:
             )
         finally:
             self.current_player_index = original_index
+            self.reaction_turn_player_index = original_turn_index
 
     def play_action_indirectly(
         self,
@@ -1661,15 +1683,18 @@ class GameState:
         """Plunder Quartermaster: each copy in play resolves one choice per turn.
 
         "Choose one: gain a card costing up to $4, setting it aside on this;
-        or put a card from this into your hand." Gains route through
-        ``gain_card`` so on-gain hooks fire (Watchtower, Trail, etc.); only
-        cards that land in the default discard destination move to the mat.
+        or put a card from this into your hand." Each Quartermaster keeps its
+        own set-aside pile (``card.set_aside``): a copy may only take cards
+        set aside on itself, so a later copy cannot take a card an earlier
+        copy gained this turn. Gains route through ``gain_card`` so on-gain
+        hooks fire (Watchtower, Trail, etc.); only cards that land in the
+        default discard destination move onto the Quartermaster.
         """
         quartermasters = [c for c in player.duration if c.name == "Quartermaster"]
         if not quartermasters:
             return
-        for _qm in quartermasters:
-            mat = self.quartermaster_mats.setdefault(id(player), [])
+        for qm in quartermasters:
+            mat = qm.set_aside
             candidates = []
             for _name, card, _count in self._iter_gainable_supply_cards():
                 if (
@@ -1690,6 +1715,11 @@ class GameState:
                     ("action", player.ai.name, f"takes {pick} from Quartermaster", {})
                 )
                 continue
+            if mode != "gain" or pick is None:
+                continue
+            # A strategy hook may hand back its own Card instance; resolve it
+            # against the offered candidates so the $4 limit is enforced.
+            pick = next((c for c in candidates if c.name == pick.name), None)
             if pick is None or self.supply.get(pick.name, 0) <= 0:
                 continue
             self.supply[pick.name] -= 1
@@ -4749,7 +4779,9 @@ class GameState:
             return
         if not self.players:
             return
-        start = self.current_player_index
+        # The turn player reacts first even when this gain happened inside
+        # another player's off-turn Falconer play (Falconer -> Trail chains).
+        start = self.players.index(self.turn_player)
         order = self.players[start:] + self.players[:start]
         for player in order:
             while True:

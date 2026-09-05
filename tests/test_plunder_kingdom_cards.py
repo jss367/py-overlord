@@ -333,10 +333,9 @@ def test_quartermaster_gains_card_to_mat_first_turn():
     player = state.current_player
     qm = get_card("Quartermaster")
     player.duration.append(qm)
-    state.quartermaster_mats[id(player)] = []
     state._handle_quartermaster_start_of_turn(player)
     # Mat now contains a card up to $4.
-    assert len(state.quartermaster_mats[id(player)]) == 1
+    assert len(qm.set_aside) == 1
 
 
 def test_quartermaster_takes_one_card_per_turn():
@@ -344,20 +343,21 @@ def test_quartermaster_takes_one_card_per_turn():
     player = state.current_player
     qm = get_card("Quartermaster")
     player.duration.append(qm)
-    state.quartermaster_mats[id(player)] = [get_card("Silver"), get_card("Gold")]
+    qm.set_aside = [get_card("Silver"), get_card("Gold")]
     pre_hand = len(player.hand)
     state._handle_quartermaster_start_of_turn(player)
     # "put a card from this into your hand" -- exactly one card leaves the mat.
     assert len(player.hand) == pre_hand + 1
-    assert [c.name for c in state.quartermaster_mats[id(player)]] == ["Silver"]
+    assert [c.name for c in qm.set_aside] == ["Silver"]
     assert any(c.name == "Gold" for c in player.hand)
 
 
 def test_quartermaster_mat_cards_count_as_owned():
     state = _make_state()
     player = state.current_player
-    player.game_state = state
-    state.quartermaster_mats[id(player)] = [get_card("Estate")]
+    qm = get_card("Quartermaster")
+    player.duration.append(qm)
+    qm.set_aside = [get_card("Estate")]
     assert any(c.name == "Estate" for c in player.all_cards())
 
 
@@ -644,7 +644,7 @@ def test_quartermaster_routes_gain_through_gain_card_hooks():
     state.current_player_index = 0
     state.handle_start_phase()
     # Quartermaster mat should have one card.
-    mat = state.quartermaster_mats.get(id(player), [])
+    mat = qm.set_aside
     assert len(mat) == 1
     gained_name = mat[0].name
     # gain_card-side bookkeeping must have run.
@@ -672,12 +672,11 @@ def test_quartermaster_respects_watchtower_topdeck():
     qm = get_card("Quartermaster")
     qm.duration_persistent = True
     player.duration.append(qm)
-    state.quartermaster_mats[id(player)] = []
 
     state._handle_quartermaster_start_of_turn(player)
 
     # QM mat should be empty: Watchtower's topdeck reaction wins.
-    mat = state.quartermaster_mats.get(id(player), [])
+    mat = qm.set_aside
     assert mat == [], (
         "Watchtower topdeck reaction should redirect the gain off the "
         f"Quartermaster mat; mat was {[c.name for c in mat]}"
@@ -700,12 +699,11 @@ def test_quartermaster_no_watchtower_keeps_card_on_mat():
     qm = get_card("Quartermaster")
     qm.duration_persistent = True
     player.duration.append(qm)
-    state.quartermaster_mats[id(player)] = []
     pre_discard = len(player.discard)
 
     state._handle_quartermaster_start_of_turn(player)
 
-    mat = state.quartermaster_mats.get(id(player), [])
+    mat = qm.set_aside
     assert len(mat) == 1, (
         "Without a Watchtower redirect the gain must land on the QM mat"
     )
@@ -776,7 +774,6 @@ def test_quartermaster_gained_trail_plays_itself_and_skips_the_mat():
     qm = get_card("Quartermaster")
     player.duration.append(qm)
     player.in_play.append(qm)
-    state.quartermaster_mats[id(player)] = []
 
     class _TrailAI(_NullAI):
         def choose_quartermaster_option(self, state, player, mat, candidates):
@@ -784,6 +781,74 @@ def test_quartermaster_gained_trail_plays_itself_and_skips_the_mat():
 
     player.ai = _TrailAI()
     state._handle_quartermaster_start_of_turn(player)
-    assert state.quartermaster_mats[id(player)] == []
+    assert qm.set_aside == []
     assert any(c.name == "Trail" for c in player.in_play)
     assert len(player.hand) == 1
+
+
+def test_quartermaster_copies_keep_separate_piles():
+    """Cards are set aside on a specific Quartermaster and only that copy may
+    take them: a second copy cannot take the Silver the first just gained."""
+    state = _make_state()
+    player = state.current_player
+    first, second = get_card("Quartermaster"), get_card("Quartermaster")
+    player.duration.extend([first, second])
+    player.hand = []
+
+    class _BankThenTakeAI(_NullAI):
+        def choose_quartermaster_option(self, state, player, mat, candidates):
+            silver = next((c for c in mat if c.name == "Silver"), None)
+            if silver is not None:
+                return "take", silver
+            return "gain", next(c for c in candidates if c.name == "Silver")
+
+    player.ai = _BankThenTakeAI()
+    state._handle_quartermaster_start_of_turn(player)
+    assert [c.name for c in first.set_aside] == ["Silver"]
+    assert [c.name for c in second.set_aside] == ["Silver"]
+    assert player.hand == []
+
+
+def test_quartermaster_pile_survives_game_state_clone():
+    """The endgame guard scores a deep-copied state; set-aside cards must
+    still count as the cloned player's."""
+    import copy
+
+    state = _make_state()
+    player = state.current_player
+    qm = get_card("Quartermaster")
+    player.duration.append(qm)
+    qm.set_aside = [get_card("Copper"), get_card("Estate")]
+    clone = copy.deepcopy(state)
+    clone_player = clone.players[0]
+    assert clone_player is not player
+    assert clone_player.count_in_deck("Copper") == player.count_in_deck("Copper")
+    assert any(c.name == "Estate" for c in clone_player.all_cards())
+    assert clone_player.get_victory_points(clone) == player.get_victory_points(state)
+
+
+def test_quartermaster_rejects_gains_outside_the_offer():
+    state = _make_state()
+    player = state.current_player
+    qm = get_card("Quartermaster")
+    player.duration.append(qm)
+    gold_before = state.supply["Gold"]
+
+    class _GoldAI(_NullAI):
+        def choose_quartermaster_option(self, state, player, mat, candidates):
+            return "gain", get_card("Gold")
+
+    player.ai = _GoldAI()
+    state._handle_quartermaster_start_of_turn(player)
+    assert qm.set_aside == []
+    assert state.supply["Gold"] == gold_before
+
+    class _BogusModeAI(_NullAI):
+        def choose_quartermaster_option(self, state, player, mat, candidates):
+            return "steal", candidates[0]
+
+    player.ai = _BogusModeAI()
+    supply_before = dict(state.supply)
+    state._handle_quartermaster_start_of_turn(player)
+    assert qm.set_aside == []
+    assert state.supply == supply_before

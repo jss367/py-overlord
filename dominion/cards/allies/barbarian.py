@@ -1,6 +1,16 @@
 from ..base_card import Card, CardCost, CardStats, CardType
 
 
+def _costs_less(cost: CardCost, than: CardCost) -> bool:
+    """Dominion "cheaper": no cost component higher, at least one lower."""
+    return (
+        cost.coins <= than.coins
+        and cost.potions <= than.potions
+        and cost.debt <= than.debt
+        and cost.comparison_tuple() != than.comparison_tuple()
+    )
+
+
 class Barbarian(Card):
     """Implements the Barbarian attack from Allies."""
 
@@ -26,21 +36,18 @@ class Barbarian(Card):
                 return
 
             revealed = target.deck.pop()
-            cost = revealed.cost.coins
+            cost = revealed.cost
             game_state.trash_card(target, revealed)
 
-            if cost >= 3:
+            if cost.coins >= 3:
                 shared_types = set(revealed.types)
                 candidates: list[Card] = []
                 for name, count in game_state.supply.items():
                     if count <= 0:
                         continue
                     card = get_card(name)
-                    if (
-                        card.cost.coins < cost
-                        and card.cost.debt == 0
-                        and card.cost.potions == 0
-                        and shared_types.intersection(card.types)
+                    if _costs_less(card.cost, cost) and shared_types.intersection(
+                        card.types
                     ):
                         candidates.append(card)
                 if candidates:
