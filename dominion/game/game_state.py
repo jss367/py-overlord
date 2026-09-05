@@ -437,12 +437,16 @@ class GameState:
             # follow the Way's instructions" applies to every play, so each
             # Throne Room replay, Vassal play and off-turn Reaction play gets
             # its own independent offer, mirroring the action-phase loop.
-            # Virtual plays are the exception: Riverboat plays its set-aside
-            # card in place and Necromancer plays a card that stays in the
-            # trash, and Ways that move the played card (Turtle, Butterfly)
-            # assume it is in play, so they would corrupt those zones.
+            # That includes plays of a card that is not in play: virtual
+            # plays (Riverboat's set-aside card, Necromancer's trashed card,
+            # Captain's Supply proxy) and Throne Room replays after a Way
+            # already moved the card. The offer is not gated on the zone;
+            # instead the Ways that move the played card (Turtle, Horse,
+            # Butterfly, Worm) no-op the move when it is not in play, per the
+            # rulebook ("it stays set aside, even if it has instructions on
+            # it that would move it").
             way = None
-            if self.ways and card.is_action and card_was_in_play:
+            if self.ways and card.is_action:
                 way = player.ai.choose_way(self, card, self.ways + [None])
             if way:
                 self.log_callback(
@@ -454,6 +458,11 @@ class GameState:
                     )
                 )
                 way.apply(self, card)
+                # A Way replaces the card's instructions, not the play
+                # itself: an Attack played via a Way is still an Attack
+                # play, so Urchins in play still react (Card.on_play, which
+                # normally fires them, did not run).
+                self._fire_urchin_reaction(player, card)
             else:
                 card.on_play(self)
         training_pile = getattr(player, "training_pile", None)

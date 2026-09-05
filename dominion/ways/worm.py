@@ -10,7 +10,10 @@ class WayOfTheWorm(Way):
 
     def apply(self, game_state, card) -> None:
         player = game_state.current_player
-        # Exile the played card
+        # "Exile this card. Gain an Estate." The Exile only happens when the
+        # card is in play (virtual plays and already-moved Throne Room
+        # replays stay put); the Estate gain has no "if you did" and always
+        # happens.
         if card in player.in_play:
             player.in_play.remove(card)
             player.exile.append(card)

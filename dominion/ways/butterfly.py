@@ -11,9 +11,13 @@ class WayOfTheButterfly(Way):
     def apply(self, game_state, card: Card) -> None:
         player = game_state.current_player
 
-        # Return the card to its supply pile
-        if card in player.in_play:
-            player.in_play.remove(card)
+        # "You may return this to its pile. If you do, gain a card costing
+        # exactly $1 more." A card that is not in play (Riverboat's set-aside
+        # card, Captain's Supply proxy, a Throne Room replay after an earlier
+        # Way moved it) cannot be returned, so nothing is gained either.
+        if card not in player.in_play:
+            return
+        player.in_play.remove(card)
         game_state.supply[card.name] = game_state.supply.get(card.name, 0) + 1
 
         target_cost = card.cost.coins + 1

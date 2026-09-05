@@ -47,8 +47,10 @@ class Captain(Card):
         choice = player.ai.choose_action(game_state, candidates + [None])
         if choice is None or choice.name not in {card.name for card in candidates}:
             choice = candidates[0]
+        # "play a non-Duration Action card from the Supply costing up to $4,
+        # leaving it there": a virtual play like Riverboat's. The proxy never
+        # enters in_play, so Ways that move the played card (Turtle,
+        # Butterfly, Horse, Worm) see it is not in play and leave the Supply
+        # alone instead of stashing or returning a card the player never had.
         temp = get_card(choice.name)
-        player.in_play.append(temp)
         game_state.play_action_indirectly(player, temp)
-        if temp in player.in_play:
-            player.in_play.remove(temp)

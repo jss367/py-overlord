@@ -9,9 +9,14 @@ class WayOfTheTurtle(Way):
 
     def apply(self, game_state, card) -> None:
         player = game_state.current_player
-        # Remove the just-played card from in_play and stash it for next turn.
-        if card in player.in_play:
-            player.in_play.remove(card)
+        # "Set this aside. If you did, play it at the start of your next
+        # turn." A card that is not in play cannot be set aside: virtual
+        # plays (Riverboat, Necromancer, Captain's Supply proxy) stay where
+        # they are, and a Throne Room replay of a card an earlier Turtle
+        # already stashed must not stash it a second time.
+        if card not in player.in_play:
+            return
+        player.in_play.remove(card)
         if not hasattr(player, "turtle_set_aside"):
             player.turtle_set_aside = []
         player.turtle_set_aside.append(card)
