@@ -688,3 +688,58 @@ def test_cleanup_resets_off_turn_action_counts_for_every_player():
     state.handle_cleanup_phase()
 
     assert p3.actions_this_turn == 0
+
+
+def _vassal_plays_village(ai, way_names):
+    """Vassal (in hand) reveals Village from the top of the deck and plays it."""
+    state = _game(["Vassal", "Village"], way_names, [ai, ChooseFirstActionAI()])
+    p1 = state.players[0]
+    p1.hand = [get_card("Vassal")]
+    p1.deck = [get_card("Copper"), get_card("Village")]  # top of deck is last
+    p1.actions = 1
+    state.phase = "action"
+    return state, p1
+
+
+def test_way_played_indirect_action_still_gets_its_pile_token_bonus():
+    """Lost Arts token on Village. Vassal plays Village via Way of the Ox:
+    Ox's +2 Actions plus the token's +1, since the Village was still played
+    (compare the plain Ox play above, which ends on 2)."""
+    ai = ScriptedWayAI({"Village": ["Way of the Ox"]})
+    state, p1 = _vassal_plays_village(ai, ["Way of the Ox"])
+    state.add_pile_token(p1, "Village", "+1 Action")
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Vassal", "Village"]
+    assert p1.actions == 3
+    assert p1.hand == []  # Ox replaced Village's +1 Card
+
+
+def test_way_played_indirect_action_still_gets_champions_action():
+    """Champion in play: +1 Action per Action play. Vassal from hand pays 1
+    and earns 1 back from Champion (net 1); Village via Ox is +2 from Ox and
+    +1 from Champion, for 4."""
+    ai = ScriptedWayAI({"Village": ["Way of the Ox"]})
+    state, p1 = _vassal_plays_village(ai, ["Way of the Ox"])
+    p1.champions_in_play = 1
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Vassal", "Village"]
+    assert p1.actions == 4
+
+
+def test_plain_indirect_play_applies_the_pile_token_exactly_once():
+    """Regression guard for the on_play refactor: with no Way in the kingdom
+    the indirect Village play is +2 Actions from its text plus +1 from the
+    token, applied once."""
+    ai = ScriptedWayAI()
+    state, p1 = _vassal_plays_village(ai, [])
+    state.add_pile_token(p1, "Village", "+1 Action")
+
+    state.handle_action_phase()
+
+    assert ai.offers == []
+    assert p1.actions == 3
+    assert len(p1.hand) == 1  # Village's own +1 Card still drew the Copper

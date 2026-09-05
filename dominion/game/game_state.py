@@ -482,10 +482,17 @@ class GameState:
                 )
             )
             way.apply(self, card)
-            # A Way replaces the card's instructions, not the play itself:
-            # an Attack played via a Way is still an Attack play, so Urchins
-            # in play still react (Card.on_play, which normally fires them,
-            # did not run).
+            # A Way replaces the card's instructions, not the play itself, so
+            # the per-play bonuses Card.on_play would have applied still do:
+            # pile tokens on the played card's pile and Champion's +1 Action.
+            # Way of the Mouse already ran the set-aside card's on_play,
+            # which applied them once (keyed on the set-aside card's pile);
+            # skip here rather than pay Champion twice.
+            if getattr(way, "name", "") != "Way of the Mouse":
+                self._apply_external_play_bonuses(player, card)
+            # Likewise an Attack played via a Way is still an Attack play, so
+            # Urchins in play still react (on_play, which normally fires
+            # them, did not run).
             self._fire_urchin_reaction(player, card)
         else:
             card.on_play(self)
@@ -5307,6 +5314,18 @@ class GameState:
         if existing is not None:
             self.remove_pile_token(player, existing, token_kind)
         self.add_pile_token(player, new_pile, token_kind)
+
+    def _apply_external_play_bonuses(
+        self, player: PlayerState, card: Card
+    ) -> None:
+        """Per-play bonuses that come from outside the card's own text and
+        therefore apply whether the card's instructions or a Way's ran:
+        Adventures pile tokens (Lost Arts / Pathfinding / Seaway / Training)
+        and Champion's +1 Action per Action play.
+        """
+        self._apply_pile_token_play_bonuses(player, card)
+        if card.is_action and getattr(player, "champions_in_play", 0) > 0:
+            player.actions += player.champions_in_play
 
     def _apply_pile_token_play_bonuses(
         self, player: PlayerState, card: Card

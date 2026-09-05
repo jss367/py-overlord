@@ -212,14 +212,13 @@ class Card:
         # King's Court / Procession / Crown / Captain / Imp / Conclave /
         # Band of Misfits / Vassal, etc. We fire them inside on_play so any
         # caller that invokes on_play directly gets the bonus, not just the
-        # main action-phase loop.
-        apply_token_bonuses = getattr(
-            game_state, "_apply_pile_token_play_bonuses", None
+        # main action-phase loop. (GameState._resolve_action_text applies
+        # the same bonuses itself when a Way replaced on_play.)
+        apply_external_bonuses = getattr(
+            game_state, "_apply_external_play_bonuses", None
         )
-        if apply_token_bonuses is not None:
-            apply_token_bonuses(player, self)
-        if self.is_action and getattr(player, "champions_in_play", 0) > 0:
-            player.actions += player.champions_in_play
+        if apply_external_bonuses is not None:
+            apply_external_bonuses(player, self)
 
         # Dark Ages — Urchin reacts to any Attack played while it is in
         # play, including Attacks played indirectly via Throne Room,
