@@ -11,6 +11,7 @@ from dominion.simulation.adversarial_league import (
     ORIGIN_CHAMPION,
     AdversarialLeague,
     aggregate_fitness,
+    genome_signature,
 )
 from dominion.simulation.game_logger import GameLogger
 from dominion.simulation.parallel_games import (
@@ -87,6 +88,7 @@ class GeneticTrainer:
         worst_case_weight: float = 0.0,
         workers: int = 1,
         games_per_task: int = DEFAULT_GAMES_PER_TASK,
+        confirm_min_games_per_opponent: int = 100,
     ):
         if kingdom_cards is None:
             if board_config is None:
@@ -114,14 +116,19 @@ class GeneticTrainer:
         # gets. With ``racing`` on, the top ``race_top_fraction`` of each
         # generation is re-evaluated with ``refine_games`` extra games, and a
         # would-be champion only replaces the incumbent after both are scored
-        # on the same ``confirm_games`` seeded games. This prevents the
-        # winner's-curse failure mode where the returned champion is whichever
-        # mediocre candidate got the luckiest single evaluation.
+        # on independent confirmation games with shared seeds. Confirmation
+        # has a per-opponent floor and compares win rates rather than shaped
+        # fitness, reducing the influence of lucky screening estimates.
         self.racing = racing
         self.refine_games = refine_games if refine_games is not None else 2 * games_per_eval
         self.confirm_games = confirm_games if confirm_games is not None else 4 * games_per_eval
         self.race_top_fraction = race_top_fraction
+        # Kept as a compatibility argument. A shaped screening score cannot
+        # safely veto a challenger judged on confirmed win rates.
         self.confirm_slack = confirm_slack
+        if confirm_min_games_per_opponent < 0:
+            raise ValueError("confirm_min_games_per_opponent must be nonnegative")
+        self.confirm_min_games_per_opponent = confirm_min_games_per_opponent
         # Common random numbers: every candidate in the same evaluation phase
         # plays the same seeded shuffles, so candidate-vs-candidate comparisons
         # cancel deck luck instead of compounding it.
@@ -850,31 +857,28 @@ class GeneticTrainer:
 
     @staticmethod
     def _genome_signature(strategy: BaseStrategy) -> tuple:
-        """Structural fingerprint of a genome: every rule's card and condition
-        source, in order. Used to skip re-confirming the elite when it is the
-        generation's best again (it usually is), saving the confirmation
-        budget for genuinely new challengers."""
+        """Use the same behavior fingerprint as league membership."""
+        return genome_signature(strategy)
 
-        def rule_sig(rules) -> tuple:
-            return tuple(
-                (r.card_name, getattr(getattr(r, "condition", None), "_source", None))
-                for r in rules
-            )
+    def _confirmation_budget(self) -> int:
+        """Equal samples per opponent, rounded up to complete seat pairs.
 
-        way_sig = tuple(
-            (r.card_name, r.way_name, getattr(getattr(r, "condition", None), "_source", None))
-            for r in getattr(strategy, "way_policy", []) or []
+        The configured total is a lower bound. A growing pool must not dilute
+        confirmation into a handful of games against each opponent.
+        """
+        opponents = len(self._resolve_panel()) + len(self._pool_opponents())
+        per_opponent = max(
+            self.confirm_min_games_per_opponent,
+            (self.confirm_games + opponents - 1) // opponents,
+            2,
         )
-        return (
-            rule_sig(strategy.gain_priority),
-            rule_sig(strategy.action_priority),
-            rule_sig(strategy.treasure_priority),
-            rule_sig(strategy.trash_priority),
-            rule_sig(
-                getattr(strategy, "bounty_hunter_exile_priority", [])
-            ),
-            way_sig,
-        )
+        return opponents * (per_opponent + per_opponent % 2)
+
+    def _promotion_score(self, fitness: float, breakdown: list[tuple]) -> float:
+        """Judge confirmed match results with the configured panel aggregation."""
+        if fitness == float("-inf") or not breakdown:
+            return float("-inf")
+        return self._aggregate([entry[1] for entry in breakdown])
 
     def _record_champion_result(self, fitness: float, breakdown: list[tuple]) -> None:
         """Update the champion's confirmed fitness, breakdown, and win rate."""
@@ -892,8 +896,8 @@ class GeneticTrainer:
         replace the incumbent champion.
 
         The incumbent and challenger are both evaluated on the same
-        ``confirm_games`` seeded games, so the comparison is paired: deck luck
-        cancels and the better strategy wins the head-to-head. Re-evaluating
+        confirmation games against the panel, with shared seeds and balanced
+        seats. Promotion uses win rates, never victory-point margins. Re-evaluating
         the incumbent every time also keeps its confirmed fitness current as
         the hall-of-fame panel evolves. A champion is never crowned from a
         single screening eval — that is the winner's-curse path this method
@@ -904,9 +908,10 @@ class GeneticTrainer:
             return
 
         context = (_SEED_PHASE_CONFIRM, gen)
+        confirm_games = self._confirmation_budget()
 
         if self._best_strategy is None:
-            confirmed = self._eval_with_budget(challenger, self.confirm_games, context)
+            confirmed = self._eval_with_budget(challenger, confirm_games, context)
             if confirmed == float("-inf"):
                 return
             self._set_champion(challenger, confirmed, self.last_eval_breakdown)
@@ -917,34 +922,31 @@ class GeneticTrainer:
             )
             return
 
-        # Don't spend the confirmation budget on challengers whose screening
-        # estimate isn't even close to the incumbent.
-        if screen_fitness < self._best_confirmed - self.confirm_slack:
-            return
-
         incumbent_fitness, challenger_fitness = self._eval_population_with_budget(
-            [self._best_strategy, challenger], self.confirm_games, context
+            [self._best_strategy, challenger], confirm_games, context
         )
         incumbent_breakdown, challenger_breakdown = (
             list(breakdown) for breakdown in self.last_population_breakdowns
         )
 
-        if challenger_fitness > incumbent_fitness:
+        incumbent_score = self._promotion_score(incumbent_fitness, incumbent_breakdown)
+        challenger_score = self._promotion_score(challenger_fitness, challenger_breakdown)
+        if challenger_score > incumbent_score:
             self._set_champion(challenger, challenger_fitness, challenger_breakdown)
             log.info(
-                "Champion replaced: challenger %.2f beat incumbent %.2f (confirmation, %d games)",
-                challenger_fitness,
-                incumbent_fitness,
-                self.confirm_games,
+                "Champion replaced: win-rate score %.2f beat %.2f (confirmation, %d games each)",
+                challenger_score,
+                incumbent_score,
+                confirm_games,
             )
         else:
             if incumbent_fitness != float("-inf"):
                 self._record_champion_result(incumbent_fitness, incumbent_breakdown)
             log.info(
-                "Champion retained: incumbent %.2f vs challenger %.2f (confirmation, %d games)",
-                incumbent_fitness,
-                challenger_fitness,
-                self.confirm_games,
+                "Champion retained: win-rate score %.2f vs %.2f (confirmation, %d games each)",
+                incumbent_score,
+                challenger_score,
+                confirm_games,
             )
 
     def _pool_opponents(self) -> list[BaseStrategy]:
@@ -993,9 +995,8 @@ class GeneticTrainer:
             "s" if len(self.league) != 1 else "",
         )
 
-        # The panel just changed, so the incumbent's confirmed fitness is on
-        # the old scale; re-measure it so future challenger gating is fair.
-        rebased = self._eval_with_budget(champion, self.confirm_games, (_SEED_PHASE_REBASE, gen))
+        # Refresh confirmed metrics and opponent difficulty on the new panel.
+        rebased = self._eval_with_budget(champion, self._confirmation_budget(), (_SEED_PHASE_REBASE, gen))
         if rebased != float("-inf"):
             self._record_champion_result(rebased, self.last_eval_breakdown)
             self.league.record_champion_results(self.best_eval_breakdown)
@@ -1021,9 +1022,8 @@ class GeneticTrainer:
             "s" if len(self.hall_of_fame) != 1 else "",
         )
 
-        # The panel just changed, so the incumbent's confirmed fitness is on
-        # the old scale; re-measure it so future challenger gating is fair.
-        rebased = self._eval_with_budget(champion, self.confirm_games, (_SEED_PHASE_REBASE, gen))
+        # Refresh confirmed metrics on the new panel.
+        rebased = self._eval_with_budget(champion, self._confirmation_budget(), (_SEED_PHASE_REBASE, gen))
         if rebased != float("-inf"):
             self._record_champion_result(rebased, self.last_eval_breakdown)
 
@@ -1420,6 +1420,7 @@ class GeneticTrainer:
             # into clones.
             if self._strategies_to_inject:
                 injected: list[BaseStrategy] = []
+                variants: list[BaseStrategy] = []
                 for strategy in self._strategies_to_inject:
                     exact = deepcopy(strategy)
                     if self.structured_genome:
@@ -1432,8 +1433,10 @@ class GeneticTrainer:
                     variant = self._mutate(deepcopy(exact))
                     variant = self._normalize(variant)
                     variant.name = f"seed-variant-{id(variant)}"
-                    injected.append(variant)
+                    variants.append(variant)
 
+                # Reserve exact copies before spending slots on neighbors.
+                injected.extend(variants)
                 slot_count = min(len(population), len(injected))
                 for slot, strategy in zip(
                     random.sample(range(len(population)), slot_count),
@@ -1596,6 +1599,10 @@ class GeneticTrainer:
             metrics = {
                 "win_rate": self._best_win_rate,
                 "fitness": reported_fitness,
+                "promotion_score": self._promotion_score(
+                    reported_fitness, self.best_eval_breakdown
+                ) if self._best_strategy is not None else None,
+                "confirmation_games": self._confirmation_budget() if self.racing else 0,
                 "generations": self.generations,
                 "final_generation": self.generations,
             }

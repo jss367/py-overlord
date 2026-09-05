@@ -3,6 +3,8 @@ import sys
 import types
 from pathlib import Path
 
+import pytest
+
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.strategy.enhanced_strategy import PriorityRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
@@ -926,10 +928,11 @@ class TestRandomImmigrants:
 
 
 class TestInjectedSeedStrategies:
-    def test_train_injects_multiple_exact_seed_strategies(self, monkeypatch):
+    @pytest.mark.parametrize("population_size", [2, 4])
+    def test_train_injects_multiple_exact_seed_strategies(self, monkeypatch, population_size):
         trainer = GeneticTrainer(
             ["Village", "Smithy", "Festival"],
-            population_size=4,
+            population_size=population_size,
             generations=1,
             games_per_eval=2,
             mutation_rate=0.0,
