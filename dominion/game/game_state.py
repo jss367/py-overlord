@@ -1295,6 +1295,14 @@ class GameState:
     def handle_start_phase(self):
         """Handle the start of turn phase."""
         player = self.current_player
+        # Menagerie "next turn" Ways: take what was banked by LAST turn's
+        # plays before any start-of-turn play (Ghost, Clerk, Hasty, Patient,
+        # Turtle itself) can bank new values; anything scheduled during this
+        # start phase belongs to the following turn.
+        squirrel_pending = getattr(player, "squirrel_pending", 0)
+        player.squirrel_pending = 0
+        turtle_set_aside = list(getattr(player, "turtle_set_aside", None) or [])
+        player.turtle_set_aside = []
         player.turns_taken += 1
         player.gained_five_last_turn = player.gained_five_this_turn
         player.gained_five_this_turn = False
@@ -1444,21 +1452,19 @@ class GameState:
                 gold_card.on_play(self)
 
         # Menagerie Way of the Squirrel: +2 Cards next turn (banked draw).
-        squirrel_pending = getattr(self.current_player, "squirrel_pending", 0)
+        # ``squirrel_pending`` was snapshotted at the top of this method.
         if squirrel_pending > 0:
             self.draw_cards(self.current_player, squirrel_pending)
-            self.current_player.squirrel_pending = 0
 
-        # Menagerie Way of the Turtle: play set-aside cards now.
-        turtle_set_aside = getattr(self.current_player, "turtle_set_aside", None)
-        if turtle_set_aside:
-            self.current_player.turtle_set_aside = []
-            for c in turtle_set_aside:
-                self.current_player.in_play.append(c)
-                c.on_play(self)
-                # Renaissance Citadel: a Turtle-played Action before the
-                # action phase still counts as the first Action of the turn.
-                self._maybe_citadel_replay(self.current_player, c)
+        # Menagerie Way of the Turtle: play the cards set aside last turn.
+        # ``turtle_set_aside`` was snapshotted at the top of this method.
+        # Each is a real play, so it goes through the shared indirect-play
+        # helper (own Way offer, prophecy/ally/tavern hooks, Citadel replay,
+        # action counters). A Turtle-played card may choose Turtle again; it
+        # then lands in the fresh list for the following turn.
+        for c in turtle_set_aside:
+            self.current_player.in_play.append(c)
+            self.play_action_indirectly(self.current_player, c)
 
         # Adventures Save: cards set aside last turn return to hand.
         if self.current_player.save_set_aside:

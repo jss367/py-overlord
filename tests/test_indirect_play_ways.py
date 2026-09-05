@@ -481,3 +481,95 @@ def test_procession_does_not_trash_a_card_a_way_moved():
     assert village not in p1.in_play
     assert state.supply["Smithy"] == smithies_before - 1
     assert any(card.name == "Smithy" for card in p1.discard)
+
+
+def _start_phase_game(ai, way_names):
+    state = _game(["Village", "Smithy"], way_names, [ai, ChooseFirstActionAI()])
+    p1 = state.players[0]
+    assert state.turn_player is p1
+    p1.deck = [get_card("Copper") for _ in range(20)]
+    return state, p1
+
+
+def _run_start_phase(state):
+    state.current_player_index = 0
+    state.phase = "start"
+    state.handle_start_phase()
+
+
+def test_ghost_replay_choosing_squirrel_defers_the_draw_to_next_turn():
+    """Ghost replays its card during the start phase, before the banked
+    Squirrel draw is consumed. A Squirrel chosen there is scheduled for the
+    FOLLOWING turn, not drawn later in this same start phase."""
+    ai = ScriptedWayAI({"Village": ["Way of the Squirrel"]})
+    state, p1 = _start_phase_game(ai, ["Way of the Squirrel"])
+    village = get_card("Village")
+    p1.ghost_pending_actions = [(village, 1)]
+
+    _run_start_phase(state)
+
+    assert ai.offers == ["Village"]
+    assert len(p1.hand) == 0  # not drawn this start phase
+    assert p1.squirrel_pending == 2
+    assert p1.ghost_pending_actions == []
+
+    _run_start_phase(state)
+
+    assert len(p1.hand) == 2
+    assert p1.squirrel_pending == 0
+
+
+def test_ghost_replay_choosing_turtle_waits_for_next_turn():
+    """A Turtle chosen during a Ghost replay sets the card aside for the
+    FOLLOWING turn; it must not be picked up and played again later in this
+    same start phase."""
+    ai = ScriptedWayAI({"Village": ["Way of the Turtle"]})
+    state, p1 = _start_phase_game(ai, ["Way of the Turtle"])
+    village = get_card("Village")
+    p1.ghost_pending_actions = [(village, 1)]
+
+    _run_start_phase(state)
+
+    assert p1.turtle_set_aside == [village]
+    assert village not in p1.in_play
+    assert p1.actions_this_turn == 1  # the Ghost replay only
+    assert p1.actions == 0  # Turtle replaced Village's text; no second play
+
+    _run_start_phase(state)
+
+    assert village in p1.in_play
+    assert p1.turtle_set_aside == []
+    assert p1.actions == 2  # Village's +2 Actions from the Turtle play
+
+
+def test_banked_squirrel_and_turtle_from_last_turn_still_fire():
+    ai = ScriptedWayAI()
+    state, p1 = _start_phase_game(ai, ["Way of the Squirrel", "Way of the Turtle"])
+    smithy = get_card("Smithy")
+    p1.squirrel_pending = 2
+    p1.turtle_set_aside = [smithy]
+
+    _run_start_phase(state)
+
+    assert len(p1.hand) == 5  # Squirrel's 2 + Smithy's 3
+    assert smithy in p1.in_play
+    assert p1.squirrel_pending == 0
+    assert p1.turtle_set_aside == []
+
+
+def test_turtle_played_card_is_offered_its_own_way():
+    """A Turtle-played card is a real play, so it goes through the shared
+    helper and gets its own Way offer; choosing Turtle again stashes it for
+    the following turn rather than replaying it now."""
+    ai = ScriptedWayAI({"Smithy": ["Way of the Turtle"]})
+    state, p1 = _start_phase_game(ai, ["Way of the Turtle"])
+    smithy = get_card("Smithy")
+    p1.turtle_set_aside = [smithy]
+
+    _run_start_phase(state)
+
+    assert ai.offers == ["Smithy"]
+    assert p1.actions_this_turn == 1
+    assert len(p1.hand) == 0  # Turtle replaced Smithy's draw
+    assert p1.turtle_set_aside == [smithy]
+    assert smithy not in p1.in_play

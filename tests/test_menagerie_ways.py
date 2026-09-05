@@ -261,12 +261,15 @@ def test_way_of_the_turtle_plays_next_turn():
     state.handle_treasure_phase()
     state.handle_buy_phase()
     state.handle_cleanup_phase()
-    # Now next turn for p1
+    # Now next turn for p1. The Turtle play is a real play and gets its own
+    # Way offer; decline it so Smithy resolves normally here.
+    p1.ai._only_for = set()
     state.current_player_index = 0
     state.phase = "start"
     state.handle_start_phase()
     # Smithy should fire (drew 3 cards)
     assert smithy in p1.in_play
+    assert p1.turtle_set_aside == []
 
 
 def test_way_of_the_frog_topdecks_on_cleanup():
