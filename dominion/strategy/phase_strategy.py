@@ -53,6 +53,12 @@ class PhaseAwareStrategy(EnhancedStrategy):
             return StrategyPhase.PAYLOAD
         return StrategyPhase.BUILD
 
+    def _tactical_priority_names(self, state, player, kind: str) -> set[str]:
+        names = super()._tactical_priority_names(state, player, kind)
+        phase = self.classify_phase(state, player)
+        phase_rules = getattr(self, f"phase_{kind}_priority").get(phase, [])
+        return names | {rule.card for rule in phase_rules}
+
     def choose_gain(self, state, player, choices):
         phase = self.classify_phase(state, player)
         phase_rules = self.phase_gain_priority.get(phase, [])

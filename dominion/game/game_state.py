@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from dominion.cards.base_card import Card
+from dominion.ai import tactical_defaults
 from dominion.cards.registry import get_all_card_names, get_card
 from dominion.cards.split_pile import SplitPileMixin
 from dominion.game.player_state import PlayerState
@@ -1667,7 +1668,7 @@ class GameState:
             if mat and hasattr(player.ai, "quartermaster_take_all"):
                 take_all = player.ai.quartermaster_take_all(self, player, list(mat))
             elif mat:
-                take_all = len(mat) >= 2
+                take_all = tactical_defaults.quartermaster_take_all(mat)
             if take_all:
                 player.hand.extend(mat)
                 self.quartermaster_mats[id(player)] = []
@@ -1675,16 +1676,20 @@ class GameState:
                 candidates = []
                 for _name, card, _count in self._iter_gainable_supply_cards():
                     if (
-                        card.cost.coins <= 4
+                        self.get_card_cost(player, card) <= 4
                         and card.cost.potions == 0
                         and card.cost.debt == 0
                     ):
                         candidates.append(card)
                 if not candidates:
                     continue
-                candidates.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
-                non_v = [c for c in candidates if not c.is_victory]
-                pick = (non_v or candidates)[0]
+                hook = getattr(player.ai, "choose_quartermaster_gain", None)
+                if hook is not None:
+                    pick = hook(self, player, candidates)
+                else:
+                    pick = tactical_defaults.choose_quartermaster_gain(candidates)
+                if pick is None or pick.name not in {card.name for card in candidates}:
+                    pick = tactical_defaults.choose_quartermaster_gain(candidates)
                 if self.supply.get(pick.name, 0) > 0:
                     # Route the gain through gain_card so on-gain hooks
                     # (gained-this-turn counters, Watchtower, Trader, Royal

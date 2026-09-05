@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from dominion.cards.base_card import Card
+from dominion.ai import tactical_defaults
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
 
@@ -42,6 +43,18 @@ class AI(ABC):
         if "coins" in options:
             return "coins"
         return options[0] if options else "coins"
+
+    def choose_overlord_target(self, state, player, choices: list[Card]) -> Optional[Card]:
+        choice = self.choose_action(state, choices + [None])
+        if choice is not None and choice.name in {card.name for card in choices}:
+            return choice
+        return tactical_defaults.choose_overlord_target(player, choices)
+
+    def choose_quartermaster_gain(self, state, player, choices: list[Card]) -> Optional[Card]:
+        return tactical_defaults.choose_quartermaster_gain(choices)
+
+    def quartermaster_take_all(self, state, player, mat: list[Card]) -> bool:
+        return tactical_defaults.quartermaster_take_all(mat)
 
     def should_trash_engineer_for_extra_gains(
         self, state: GameState, player: PlayerState, engineer: Card
