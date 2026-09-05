@@ -193,8 +193,9 @@ class SecludedShrine(Card):
 
     The trigger can fire on the same turn (buying a Silver right after
     playing this) or many turns later, and on any player's turn. Once it
-    fires the Shrine is done and is discarded from play in that turn's
-    Clean-up (or at the owner's next duration phase if it fired off-turn).
+    fires the Shrine is done: it stops being a pending duration and is
+    discarded from play at the owner's next Clean-up (this turn's if it
+    fired on the owner's turn, otherwise the owner's following turn).
     """
 
     def __init__(self):
@@ -233,9 +234,12 @@ class SecludedShrine(Card):
                 break
             player.hand.remove(choice)
             game_state.trash_card(player, choice)
-        if player is game_state.current_player and self in player.duration:
-            # Fired on the owner's own turn: it leaves the duration list so
-            # this turn's Clean-up discards it from play like any other card.
+        if self in player.duration:
+            # The Shrine has nothing left to do, so it leaves the duration
+            # list whether or not it is the owner's turn. It stays in
+            # ``in_play`` and the owner's next Clean-up discards it like any
+            # other card. Leaving it in both zones would let the duration
+            # phase discard it and Clean-up discard the same object again.
             player.duration.remove(self)
 
 

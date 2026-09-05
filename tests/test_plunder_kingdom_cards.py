@@ -852,3 +852,33 @@ def test_quartermaster_rejects_gains_outside_the_offer():
     state._handle_quartermaster_start_of_turn(player)
     assert qm.set_aside == []
     assert state.supply == supply_before
+
+
+def test_secluded_shrine_fired_off_turn_is_discarded_exactly_once():
+    """A Shrine that fires on another player's turn (e.g. from an opponent's
+    Messenger distribution) must not sit in both ``duration`` and
+    ``in_play``: the duration phase would discard it and Clean-up would
+    discard the same object again, duplicating the card."""
+    state = _make_state(num_players=2)
+    state.current_player_index = 0
+    player = state.players[0]
+    player.hand = [get_card("Curse")]
+    ss = _armed_shrine(state, player)
+
+    # Opponent's turn: the owner gains a Silver and the Shrine fires.
+    state.current_player_index = 1
+    state.supply["Silver"] -= 1
+    state.gain_card(player, get_card("Silver"))
+    assert not ss.shrine_armed
+    assert ss not in player.duration
+    assert ss in player.in_play
+
+    # Owner's next turn: duration phase then Clean-up.
+    state.current_player_index = 0
+    state.do_duration_phase()
+    state.handle_cleanup_phase()
+
+    zones = player.hand + player.deck + player.discard + player.in_play + player.duration
+    assert sum(1 for c in zones if c is ss) == 1
+    assert ss not in player.in_play
+    assert ss not in player.duration

@@ -11,6 +11,19 @@ def _costs_less(cost: CardCost, than: CardCost) -> bool:
     )
 
 
+def _choose_as_player(game_state, target, choices):
+    """Ask ``target.ai.choose_buy`` with ``target`` as the current player."""
+    original_index = game_state.current_player_index
+    try:
+        game_state.current_player_index = game_state.players.index(target)
+    except ValueError:
+        return target.ai.choose_buy(game_state, choices)
+    try:
+        return target.ai.choose_buy(game_state, choices)
+    finally:
+        game_state.current_player_index = original_index
+
+
 class Barbarian(Card):
     """Implements the Barbarian attack from Allies."""
 
@@ -53,7 +66,14 @@ class Barbarian(Card):
                 if candidates:
                     # The attacked player picks which qualifying card to gain;
                     # the gain is mandatory, so fall back to the priciest.
-                    gain = target.ai.choose_buy(game_state, candidates + [None])
+                    # Strategy-backed AIs evaluate gain rules against
+                    # ``game_state.current_player``, so point it at the
+                    # target for the choice (as play_action_from_hand_indirectly
+                    # does) rather than judging the victim's deck by the
+                    # attacker's.
+                    gain = _choose_as_player(
+                        game_state, target, candidates + [None]
+                    )
                     if gain is None or gain not in candidates:
                         gain = max(candidates, key=lambda c: (c.cost.coins, c.name))
                     game_state.supply[gain.name] -= 1
