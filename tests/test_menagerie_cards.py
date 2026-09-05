@@ -998,3 +998,19 @@ def test_daimyo_charge_replays_a_reacting_falconer():
     state.gain_card(p1, get_card("Falconer"))
     assert p1.daimyo_pending == 0
     assert sum(1 for c in p1.hand if c.name == "Silver") == 2
+
+
+def test_falconer_reacts_to_plus_coin_action_gain_under_capitalism():
+    """Capitalism makes +$ Actions Treasures on its owner's turn, so a
+    gained Market has two live types and opens a Falconer reaction."""
+    from dominion.projects import get_project
+
+    state, p1, p2 = _two_player_state(extra_kingdom=[get_card("Market")])
+    state.supply.setdefault("Market", 10)
+    p1.projects.append(get_project("Capitalism"))
+    state.current_player_index = 0
+    falconer = get_card("Falconer")
+    p2.hand = [falconer]
+    state.supply["Market"] -= 1
+    state.gain_card(p1, get_card("Market"))
+    assert falconer in p2.in_play

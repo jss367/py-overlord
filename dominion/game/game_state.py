@@ -2178,6 +2178,17 @@ class GameState:
             and not card.is_action
         ):
             count += 1
+        # Renaissance Capitalism: during its owner's turns, Actions with +$
+        # are also Treasures.
+        turn_player = getattr(self, "turn_player", None)
+        if (
+            turn_player is not None
+            and card.is_action
+            and not self.is_treasure(card)
+            and card.stats.coins > 0
+            and any(getattr(p, "name", "") == "Capitalism" for p in turn_player.projects)
+        ):
+            count += 1
         return count
 
     def is_treasure(self, card: Card) -> bool:
