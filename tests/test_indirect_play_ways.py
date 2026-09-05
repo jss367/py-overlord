@@ -336,6 +336,63 @@ def test_off_turn_seal_expires_when_the_turn_players_turn_ends():
     assert p1.way_of_seal_active is False
 
 
+def test_off_turn_way_resources_expire_when_the_turn_players_turn_ends():
+    """+Actions/+$/+Buys granted to a reactor off-turn (p2's Sheepdog via Way
+    of the Ox during p1's turn) are meaningless outside their own turn and
+    vanish when the current turn ends; only cards drawn persist. Cleanup must
+    therefore reset every player's resources, not just the turn player's, or
+    p2 would start their next turn with the banked Actions."""
+    p2_ai = ScriptedWayAI({"Sheepdog": ["Way of the Ox"]})
+    state = _game(["Sheepdog"], ["Way of the Ox"], [ChooseFirstActionAI(), p2_ai])
+    p1, p2 = state.players
+    assert state.current_player is p1
+    p1.actions = 0
+    p1.coins = 5
+    p1.buys = 2
+    p2.actions = 1
+    p2.hand = [get_card("Sheepdog")]
+    p2.deck = [get_card("Copper") for _ in range(3)]
+
+    state.gain_card(p2, get_card("Silver"))
+
+    assert p2_ai.offers == ["Sheepdog"]
+    assert p2.actions == 3  # Ox's +2 Actions landed on the reactor
+    p2_hand_before = list(p2.hand)
+
+    state.handle_cleanup_phase()
+
+    assert p2.actions == 1
+    assert p2.coins == 0
+    assert p2.buys == 1
+    assert p2.hand == p2_hand_before  # not p2's cleanup: nothing discarded or drawn
+    assert p1.actions == 1
+    assert p1.coins == 0
+    assert p1.buys == 1
+
+
+def test_off_turn_frog_gives_the_action_but_leaves_no_marker():
+    """Way of the Frog played off-turn (p2's Sheepdog during p1's turn): the
+    Sheepdog is really in p2's in_play, but it is not discarded from play
+    this turn, and Frog's "this turn" ends with p1's turn. A marker would
+    survive to p2's own later cleanup and topdeck the card then, so Frog only
+    marks cards the turn player is playing. The +1 Action still applies."""
+    p2_ai = ScriptedWayAI({"Sheepdog": ["Way of the Frog"]})
+    state = _game(["Sheepdog"], ["Way of the Frog"], [ChooseFirstActionAI(), p2_ai])
+    p1, p2 = state.players
+    assert state.current_player is p1
+    sheepdog = get_card("Sheepdog")
+    p2.hand = [sheepdog]
+    p2.deck = [get_card("Copper") for _ in range(3)]
+
+    state.gain_card(p2, get_card("Silver"))
+
+    assert p2_ai.offers == ["Sheepdog"]
+    assert p2.actions == 1  # Frog's +1 Action went to the reactor
+    assert p1.actions == 0
+    assert sheepdog in p2.in_play
+    assert getattr(sheepdog, "_frog_topdeck", False) is False
+
+
 def test_citadel_does_not_replay_an_off_turn_reaction_play():
     """Renaissance Citadel: "When you play an Action card during your turn, if
     it's the first time you played an Action card this turn, you may play it

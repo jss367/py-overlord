@@ -16,5 +16,10 @@ class WayOfTheFrog(Way):
         # and cleanup only clears the marker while iterating cards in play,
         # so a marker set on such a card would persist and topdeck that
         # instance on a later turn. Only mark cards that are actually in play.
-        if card in player.in_play:
+        # Likewise an off-turn Reaction play (Sheepdog, Trail...) puts the card
+        # in the reactor's in_play, but it is not discarded from play *this*
+        # turn -- Frog's "this turn" ends with the turn player's turn -- so a
+        # marker would survive to the reactor's own cleanup and topdeck the
+        # card then. Only mark cards the turn player is playing.
+        if card in player.in_play and game_state.turn_player is player:
             card._frog_topdeck = True

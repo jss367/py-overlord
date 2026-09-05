@@ -3215,11 +3215,19 @@ class GameState:
                 self._resolve_donate(player)
             player.donate_pending = 0
 
-        # Reset resources
-        player.actions = 1
-        player.buys = 1
-        player.coins = 0
-        player.potions = 0
+        # Reset resources for every player, not just the turn player. Off-turn
+        # Reaction plays (Sheepdog, Trail, Falconer...) resolve with the reactor
+        # as current player, so a Way (Ox, Sheep, Monkey, Mule...) or the card
+        # itself can hand them +Actions/+$/+Buys. Those mean nothing off-turn
+        # and expire with this turn; only the cards drawn persist. Coffers,
+        # Villagers and pending_* fields are banked and deliberately untouched.
+        # Seal's "this turn" flag likewise ends with the turn player's turn.
+        for other in self.players:
+            other.actions = 1
+            other.buys = 1
+            other.coins = 0
+            other.potions = 0
+            other.way_of_seal_active = False
         # Adventures: clear Mission no-buy flag at end of the bonus turn.
         player.mission_no_buy_turn = False
         # Allies Voyage: clear the extra-turn card-play limit.
@@ -3235,11 +3243,6 @@ class GameState:
         player.goons_played = 0
         player.groundskeeper_bonus = 0
         player.topdeck_gains = False
-        # Off-turn Way plays (Sheepdog, Trail, Falconer...) can set Seal's
-        # "this turn" flag on a non-turn player; "this turn" ends with the
-        # turn player's turn, so clear it for everyone here.
-        for other in self.players:
-            other.way_of_seal_active = False
         player.cannot_buy_actions = False
         player.envious_effect_active = False
         player.cost_reduction = 0
