@@ -10,5 +10,11 @@ class WayOfTheFrog(Way):
     def apply(self, game_state, card) -> None:
         player = game_state.current_player
         player.actions += 1
-        # Mark the card so cleanup knows to topdeck it.
-        card._frog_topdeck = True
+        # "When you discard this from play this turn, put it onto your deck."
+        # That cannot apply to a card that is not in play (Necromancer's
+        # trashed card, Riverboat's set-aside card, Captain's Supply proxy),
+        # and cleanup only clears the marker while iterating cards in play,
+        # so a marker set on such a card would persist and topdeck that
+        # instance on a later turn. Only mark cards that are actually in play.
+        if card in player.in_play:
+            card._frog_topdeck = True

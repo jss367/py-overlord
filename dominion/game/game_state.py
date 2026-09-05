@@ -1686,6 +1686,11 @@ class GameState:
         )
         if not (card.is_action or inherited_action_play):
             return False
+        # "When you play an Action card during your turn": off-turn plays
+        # (Sheepdog, Trail, Weaver reacting on another player's turn) do
+        # not qualify.
+        if self.turn_player is not player:
+            return False
         if player.citadel_used:
             return False
         if not any(p.name == "Citadel" for p in player.projects):
@@ -3230,7 +3235,11 @@ class GameState:
         player.goons_played = 0
         player.groundskeeper_bonus = 0
         player.topdeck_gains = False
-        player.way_of_seal_active = False
+        # Off-turn Way plays (Sheepdog, Trail, Falconer...) can set Seal's
+        # "this turn" flag on a non-turn player; "this turn" ends with the
+        # turn player's turn, so clear it for everyone here.
+        for other in self.players:
+            other.way_of_seal_active = False
         player.cannot_buy_actions = False
         player.envious_effect_active = False
         player.cost_reduction = 0

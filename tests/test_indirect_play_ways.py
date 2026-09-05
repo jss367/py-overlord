@@ -33,12 +33,13 @@ class ScriptedWayAI(ChooseFirstActionAI):
         return None
 
 
-def _game(kingdom, way_names, ais):
+def _game(kingdom, way_names, ais, projects=None):
     state = GameState(players=[])
     state.initialize_game(
         ais,
         [get_card(name) for name in kingdom],
         ways=[get_way(name) for name in way_names],
+        projects=projects,
     )
     for player in state.players:
         player.hand = []
@@ -283,3 +284,82 @@ def test_way_played_indirect_attack_still_fires_urchin():
     assert state.supply["Mercenary"] == 9
     assert len(p2.hand) == 5  # Militia's own attack was replaced by the Way
     assert p1.actions == 2
+
+
+def test_frog_on_a_virtual_play_gives_the_action_but_leaves_no_marker():
+    """Way of the Frog: "+1 Action. When you discard this from play this turn,
+    put it onto your deck." A virtual play (Necromancer's trashed card here,
+    played from the trash without entering play) still gets the +1 Action,
+    but the topdeck clause cannot apply to a card that is not in play. If the
+    marker were set anyway, cleanup would never clear it (it only clears
+    markers on cards in play) and the instance would be topdecked on a later
+    turn."""
+    ai = ScriptedWayAI({"Smithy": ["Way of the Frog"]})
+    state = _game(["Smithy"], ["Way of the Frog"], [ai, ChooseFirstActionAI()])
+    p1 = state.players[0]
+    smithy = get_card("Smithy")
+    state.trash = [smithy]
+    p1.deck = [get_card("Copper") for _ in range(3)]
+
+    state.play_action_indirectly(p1, smithy)
+
+    assert ai.offers == ["Smithy"]
+    assert p1.actions == 1
+    assert p1.hand == []  # Smithy's draw was replaced by the Way
+    assert smithy not in p1.in_play
+    assert getattr(smithy, "_frog_topdeck", False) is False
+
+
+def test_off_turn_seal_expires_when_the_turn_players_turn_ends():
+    """Way of the Seal: "+$1. This turn, when you gain a card, put it onto
+    your deck." Played off-turn (p2's Sheepdog during p1's turn) it applies to
+    the reactor, and "this turn" is p1's turn, so p1's cleanup must clear
+    p2's flag too — otherwise it would linger into other players' turns."""
+    p2_ai = ScriptedWayAI({"Sheepdog": ["Way of the Seal"]})
+    state = _game(["Sheepdog"], ["Way of the Seal"], [ChooseFirstActionAI(), p2_ai])
+    p1, p2 = state.players
+    assert state.current_player is p1
+    p2.hand = [get_card("Sheepdog")]
+    p2.deck = [get_card("Copper") for _ in range(3)]
+
+    state.gain_card(p2, get_card("Silver"))
+
+    assert p2_ai.offers == ["Sheepdog"]
+    assert p2.coins == 1  # Seal's +$1 went to the reactor
+    assert p1.coins == 0
+    assert p2.way_of_seal_active is True
+    assert p1.way_of_seal_active is False
+
+    state.handle_cleanup_phase()
+
+    assert p2.way_of_seal_active is False
+    assert p1.way_of_seal_active is False
+
+
+def test_citadel_does_not_replay_an_off_turn_reaction_play():
+    """Renaissance Citadel: "When you play an Action card during your turn, if
+    it's the first time you played an Action card this turn, you may play it
+    again." p2 owns Citadel and reacts with Sheepdog during p1's turn; that is
+    not p2's turn, so Sheepdog resolves once and Citadel's per-turn flag is
+    untouched."""
+    from dominion.projects import Citadel
+
+    state = _game(
+        ["Sheepdog"],
+        [],
+        [ChooseFirstActionAI(), ChooseFirstActionAI()],
+        projects=[Citadel()],
+    )
+    p1, p2 = state.players
+    assert state.current_player is p1
+    p2.projects.append(state.projects[0])
+    p2.hand = [get_card("Sheepdog")]
+    p2.deck = [get_card("Copper") for _ in range(5)]
+
+    state.gain_card(p2, get_card("Silver"))
+
+    assert len(p2.hand) == 2  # Sheepdog's +2 Cards, exactly once
+    assert len(p2.deck) == 3
+    assert p2.citadel_used is False
+    assert p1.citadel_used is False
+    assert state.current_player is p1
