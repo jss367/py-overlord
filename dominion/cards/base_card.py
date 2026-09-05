@@ -213,11 +213,16 @@ class Card:
         # Band of Misfits / Vassal, etc. We fire them inside on_play so any
         # caller that invokes on_play directly gets the bonus, not just the
         # main action-phase loop. (GameState._resolve_action_text applies
-        # the same bonuses itself when a Way replaced on_play.)
+        # the same bonuses itself when a Way replaced on_play.) A Way that
+        # runs an on_play as its instruction proxy (Chameleon on the played
+        # card, Mouse on the set-aside card) suppresses them here so the
+        # play helper applies them once, for the card actually played.
         apply_external_bonuses = getattr(
             game_state, "_apply_external_play_bonuses", None
         )
-        if apply_external_bonuses is not None:
+        if apply_external_bonuses is not None and not getattr(
+            game_state, "_external_play_bonuses_suppressed", False
+        ):
             apply_external_bonuses(player, self)
 
         # Dark Ages — Urchin reacts to any Attack played while it is in

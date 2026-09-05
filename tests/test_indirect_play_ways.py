@@ -743,3 +743,94 @@ def test_plain_indirect_play_applies_the_pile_token_exactly_once():
     assert ai.offers == []
     assert p1.actions == 3
     assert len(p1.hand) == 1  # Village's own +1 Card still drew the Copper
+
+
+def test_chameleon_on_an_indirect_play_applies_the_pile_token_once():
+    """Lost Arts token on Village. Vassal plays Village via Way of the
+    Chameleon, whose proxy runs Village's own on_play: Village's +2 Actions,
+    its +1 Card swapped to +$1, and the token's +1 Action applied once (not
+    again by the Way branch): 3 Actions, Vassal's $2 plus the swapped $1."""
+    ai = ScriptedWayAI({"Village": ["Way of the Chameleon"]})
+    state, p1 = _vassal_plays_village(ai, ["Way of the Chameleon"])
+    state.add_pile_token(p1, "Village", "+1 Action")
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Vassal", "Village"]
+    assert p1.actions == 3
+    assert p1.coins == 3
+    assert p1.hand == []  # the +1 Card became +$1
+
+
+def test_chameleon_on_an_indirect_play_pays_champion_once():
+    """Champion in play. Vassal from hand nets 1 Action (pays 1, Champion
+    refunds 1); Village via Chameleon is +2 from Village and +1 from
+    Champion, paid once even though Chameleon ran Village's on_play: 4."""
+    ai = ScriptedWayAI({"Village": ["Way of the Chameleon"]})
+    state, p1 = _vassal_plays_village(ai, ["Way of the Chameleon"])
+    p1.champions_in_play = 1
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Vassal", "Village"]
+    assert p1.actions == 4
+
+
+def test_mouse_credits_the_pile_token_to_the_card_actually_played():
+    """Way of the Mouse with Smithy set aside; +1 Action token on Village,
+    none on Smithy. Vassal plays Village via Mouse: Smithy's text runs (+3
+    Cards, only the Copper left to draw) and the Village token applies once
+    for the card actually played."""
+    ai = ScriptedWayAI({"Village": ["Way of the Mouse"]})
+    state, p1 = _vassal_plays_village(ai, ["Way of the Mouse (Smithy)"])
+    state.add_pile_token(p1, "Village", "+1 Action")
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Vassal", "Village"]
+    assert p1.actions == 1
+    assert [c.name for c in p1.hand] == ["Copper"]
+
+
+def test_mouse_does_not_apply_the_set_aside_cards_pile_token():
+    """Mirror of the above: the token sits on Smithy (the set-aside card)
+    only. Smithy was not played, so no token bonus applies."""
+    ai = ScriptedWayAI({"Village": ["Way of the Mouse"]})
+    state, p1 = _vassal_plays_village(ai, ["Way of the Mouse (Smithy)"])
+    state.add_pile_token(p1, "Smithy", "+1 Action")
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Vassal", "Village"]
+    assert p1.actions == 0
+    assert [c.name for c in p1.hand] == ["Copper"]
+
+
+def test_nested_plays_under_mouse_still_get_their_own_pile_tokens():
+    """Way of the Mouse with Throne Room set aside, +1 Action tokens on
+    Village and Smithy. Vassal plays Village via Mouse; the Throne Room
+    proxy plays the Smithy in hand twice through the shared helper. Those
+    are real plays of Smithy, so the suppression that kept Throne Room's
+    proxy from applying bonuses must not leak into them: Smithy's token
+    fires twice and Village's once, for 3 Actions; Smithy draws six."""
+    ai = ScriptedWayAI({"Village": ["Way of the Mouse"]})
+    state = _game(
+        ["Vassal", "Village", "Smithy", "Throne Room"],
+        ["Way of the Mouse (Throne Room)"],
+        [ai, ChooseFirstActionAI()],
+    )
+    p1 = state.players[0]
+    p1.hand = [get_card("Vassal"), get_card("Smithy")]
+    p1.deck = [get_card("Copper") for _ in range(6)] + [get_card("Village")]
+    p1.actions = 1
+    state.phase = "action"
+    state.add_pile_token(p1, "Village", "+1 Action")
+    state.add_pile_token(p1, "Smithy", "+1 Action")
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Vassal", "Village", "Smithy", "Smithy"]
+    assert p1.actions == 3
+    assert [c.name for c in p1.hand] == ["Copper"] * 6
+    assert [c.name for c in p1.in_play] == ["Vassal", "Village", "Smithy"]
+    assert state._external_play_bonuses_suppressed is False

@@ -46,6 +46,12 @@ class GameState:
     # (Falconer, Black Cat, Caravan Guard, ...) temporarily makes the reactor
     # ``current_player``; None outside such plays. See ``turn_player``.
     reaction_turn_player_index: int | None = None
+    # True while a Way's instruction proxy runs an ``on_play`` (Chameleon on
+    # the played card, Mouse on the set-aside card). ``Card.on_play`` then
+    # skips the external per-play bonuses (pile tokens, Champion) so
+    # ``_resolve_action_text`` can apply them exactly once, for the card
+    # actually played. Nested plays reset it; see ``_resolve_action_text``.
+    _external_play_bonuses_suppressed: bool = False
     phase: str = "start"
     turn_number: int = 1
     extra_turn: bool = False
@@ -469,33 +475,46 @@ class GameState:
         every play — including a replay of a card whose first play already
         chose a Way — gets its own independent offer.
         """
-        way = None
-        if self.ways and card.is_action:
-            way = player.ai.choose_way(self, card, self.ways + [None])
-        if way:
-            self.log_callback(
-                (
-                    "action",
-                    player.ai.name,
-                    f"plays {card} using {way.name}",
-                    {"card": card.name, "way": way.name},
+        # This is its own play, so it applies its own bonuses even when it is
+        # nested inside a Way proxy that suppressed them (Way of the Mouse
+        # with a set-aside Throne Room playing a Smithy from hand).
+        outer_suppressed = self._external_play_bonuses_suppressed
+        self._external_play_bonuses_suppressed = False
+        try:
+            way = None
+            if self.ways and card.is_action:
+                way = player.ai.choose_way(self, card, self.ways + [None])
+            if way:
+                self.log_callback(
+                    (
+                        "action",
+                        player.ai.name,
+                        f"plays {card} using {way.name}",
+                        {"card": card.name, "way": way.name},
+                    )
                 )
-            )
-            way.apply(self, card)
-            # A Way replaces the card's instructions, not the play itself, so
-            # the per-play bonuses Card.on_play would have applied still do:
-            # pile tokens on the played card's pile and Champion's +1 Action.
-            # Way of the Mouse already ran the set-aside card's on_play,
-            # which applied them once (keyed on the set-aside card's pile);
-            # skip here rather than pay Champion twice.
-            if getattr(way, "name", "") != "Way of the Mouse":
+                # A Way that runs an on_play as its instruction proxy
+                # (Chameleon on the played card, Mouse on the set-aside
+                # card) must not apply the per-play bonuses there.
+                self._external_play_bonuses_suppressed = True
+                try:
+                    way.apply(self, card)
+                finally:
+                    self._external_play_bonuses_suppressed = False
+                # A Way replaces the card's instructions, not the play
+                # itself. External per-play bonuses (pile tokens on the
+                # played card's pile, Champion's +1 Action) belong to the
+                # card actually played, exactly once per play, whichever
+                # Way replaced its text.
                 self._apply_external_play_bonuses(player, card)
-            # Likewise an Attack played via a Way is still an Attack play, so
-            # Urchins in play still react (on_play, which normally fires
-            # them, did not run).
-            self._fire_urchin_reaction(player, card)
-        else:
-            card.on_play(self)
+                # Likewise an Attack played via a Way is still an Attack
+                # play, so Urchins in play still react (on_play, which
+                # normally fires them, did not run).
+                self._fire_urchin_reaction(player, card)
+            else:
+                card.on_play(self)
+        finally:
+            self._external_play_bonuses_suppressed = outer_suppressed
 
     def fire_prophecy_action_hooks(self, player: PlayerState, card: Card) -> None:
         """Fire the active Prophecy's after-Action-play hooks for ``card``.
