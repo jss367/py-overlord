@@ -110,3 +110,62 @@ def test_barbarian_does_not_curse_without_valid_replacement():
     assert not opponent.discard
     assert state.supply["Curse"] == 10
     assert any(card.name == "Gold" for card in state.trash)
+
+
+def test_barbarian_offers_cheaper_potion_cost_replacement():
+    """Trashing Familiar ($3P) may be replaced by Scrying Pool ($2P): cheaper
+    means no cost component higher and at least one lower."""
+    state = make_state(
+        num_players=2,
+        kingdom=[get_card("Barbarian"), get_card("Familiar"), get_card("Scrying Pool")],
+    )
+    player, opponent = state.players
+    opponent.deck = [get_card("Familiar")]
+    opponent.discard = []
+    offered = []
+
+    class _PoolAI(DummyAI):
+        def choose_buy(self, state, choices):
+            offered.extend(c.name for c in choices if c is not None)
+            return next(c for c in choices if c is not None and c.name == "Scrying Pool")
+
+    opponent.ai = _PoolAI()
+    get_card("Barbarian").on_play(state)
+    assert "Scrying Pool" in offered
+    assert "Familiar" not in offered
+    assert any(c.name == "Scrying Pool" for c in opponent.discard)
+    assert any(c.name == "Familiar" for c in state.trash)
+
+
+def test_barbarian_replacement_is_chosen_against_the_victim_deck():
+    """The attacked player's gain rules must see the attacked player as the
+    current player, not the attacker (GeneticAI.choose_buy evaluates its
+    strategy against ``state.current_player``)."""
+    from dominion.ai.genetic_ai import GeneticAI
+    from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+
+    state = make_state(num_players=2, kingdom=[get_card("Barbarian")])
+    player, opponent = state.players
+
+    victim = EnhancedStrategy()
+    victim.name = "victim"
+    victim.gain_priority = [
+        PriorityRule("Silver", PriorityRule.max_in_deck("Silver", 1)),
+        PriorityRule("Copper"),
+    ]
+    opponent.ai = GeneticAI(victim)
+
+    # The victim already owns a Silver, so its rule says "no more Silver";
+    # the attacker owns none, so the same rule evaluated against the
+    # attacker's deck would wrongly pick Silver.
+    opponent.deck = [get_card("Gold")]
+    opponent.discard = [get_card("Silver")]
+    opponent.hand = []
+    assert player.count_in_deck("Silver") == 0
+    assert opponent.count_in_deck("Silver") == 1
+
+    get_card("Barbarian").on_play(state)
+
+    assert state.current_player is player
+    assert any(c.name == "Gold" for c in state.trash)
+    assert [c.name for c in opponent.discard] == ["Silver", "Copper"]

@@ -73,6 +73,15 @@ _OVERRIDES: dict[str, dict] = {
     "Livery": {"is_gainer": True},     # Horse per $4+ gain this turn
     "Bounty Hunter": {"is_trasher": True},  # Exiles a card from hand (+$3)
     "Infirmary": {"is_trasher": True},      # cantrip trash
+    # Port Moresby board (Daimyo / Swamp Shacks / Falconer / Quartermaster ...).
+    "Swamp Shacks": {"draw": 2.0},          # +1 Card per 3 cards in play
+    "Daimyo": {"is_multiplier": True},      # replays the next non-Command Action
+    "Falconer": {"is_gainer": True},        # gains a <$5 card to hand
+    "Sculptor": {"is_gainer": True},        # gains a <=$4 card to hand
+    "Carpenter": {"is_gainer": True},       # gains a <=$4 card (+1 Action)
+    "Messenger": {"is_gainer": True},       # on-gain: everyone gains a <=$4 card
+    "Quartermaster": {"is_gainer": True},   # banks a <=$4 card every turn
+    "Secluded Shrine": {"is_trasher": True},  # next Treasure gain: trash 2
 }
 
 

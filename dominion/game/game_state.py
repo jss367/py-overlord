@@ -42,6 +42,10 @@ class GameState:
     allies: list = field(default_factory=list)
     landmarks: list = field(default_factory=list)
     current_player_index: int = 0
+    # Index of the player whose turn it is while an off-turn Reaction play
+    # (Falconer, Black Cat, Caravan Guard, ...) temporarily makes the reactor
+    # ``current_player``; None outside such plays. See ``turn_player``.
+    reaction_turn_player_index: int | None = None
     phase: str = "start"
     turn_number: int = 1
     extra_turn: bool = False
@@ -78,7 +82,6 @@ class GameState:
     patient_mat: dict = field(default_factory=dict)  # PlayerState id -> list[Card]
     # Plunder card / event state hooks
     landing_party_pending: dict = field(default_factory=dict)
-    quartermaster_mats: dict = field(default_factory=dict)
     enlarge_pending: dict = field(default_factory=dict)
     rush_pending: dict = field(default_factory=dict)
     mirror_pending: dict = field(default_factory=dict)
@@ -201,6 +204,19 @@ class GameState:
     def current_player(self) -> PlayerState:
         return self.players[self.current_player_index]
 
+    @property
+    def turn_player(self) -> PlayerState:
+        """The player whose turn it is.
+
+        Equals ``current_player`` except while
+        ``play_action_from_hand_indirectly`` resolves an off-turn Reaction, when
+        ``current_player`` is the reactor so the card's effect applies to its
+        owner. "Your turn" / "your Buy phase" checks (Messenger) must use this.
+        """
+        if self.reaction_turn_player_index is not None:
+            return self.players[self.reaction_turn_player_index]
+        return self.current_player
+
     def _warlord_action_name(self, player: PlayerState, card: Card) -> str | None:
         if card.is_action:
             return card.name
@@ -277,7 +293,8 @@ class GameState:
         if not self.move_card_from_hand_to_play(player, card):
             return False
         original_index = self.current_player_index
-        is_players_turn = self.players[original_index] is player
+        original_turn_index = self.reaction_turn_player_index
+        is_players_turn = self.turn_player is player
         try:
             self.current_player_index = self.players.index(player)
         except ValueError:
@@ -287,6 +304,10 @@ class GameState:
                 blocked_return_zone=player.hand,
                 apply_enchantress=is_players_turn,
             )
+        if not is_players_turn and original_turn_index is None:
+            # Remember the real turn player so "your Buy phase" effects on
+            # cards the reactor gains (Messenger) do not fire for the reactor.
+            self.reaction_turn_player_index = original_index
         try:
             return self.play_action_indirectly(
                 player,
@@ -296,6 +317,7 @@ class GameState:
             )
         finally:
             self.current_player_index = original_index
+            self.reaction_turn_player_index = original_turn_index
 
     def play_action_indirectly(
         self,
@@ -1659,62 +1681,66 @@ class GameState:
                 player.discard.append(card)
 
     def _handle_quartermaster_start_of_turn(self, player: PlayerState) -> None:
+        """Plunder Quartermaster: each copy in play resolves one choice per turn.
+
+        "Choose one: gain a card costing up to $4, setting it aside on this;
+        or put a card from this into your hand." Each Quartermaster keeps its
+        own set-aside pile (``card.set_aside``): a copy may only take cards
+        set aside on itself, so a later copy cannot take a card an earlier
+        copy gained this turn. Gains route through ``gain_card`` so on-gain
+        hooks fire (Watchtower, Trail, etc.); only cards that land in the
+        default discard destination move onto the Quartermaster.
+        """
         quartermasters = [c for c in player.duration if c.name == "Quartermaster"]
         if not quartermasters:
             return
-        for _qm in quartermasters:
-            mat = self.quartermaster_mats.setdefault(id(player), [])
-            take_all = False
-            if mat and hasattr(player.ai, "quartermaster_take_all"):
-                take_all = player.ai.quartermaster_take_all(self, player, list(mat))
-            elif mat:
-                take_all = tactical_defaults.quartermaster_take_all(mat)
-            if take_all:
-                player.hand.extend(mat)
-                self.quartermaster_mats[id(player)] = []
-            else:
-                candidates = []
-                for _name, card, _count in self._iter_gainable_supply_cards():
-                    if (
-                        self.get_card_cost(player, card) <= 4
-                        and card.cost.potions == 0
-                        and card.cost.debt == 0
-                    ):
-                        candidates.append(card)
-                if not candidates:
+        for qm in quartermasters:
+            mat = qm.set_aside
+            candidates = []
+            for _name, card, _count in self._iter_gainable_supply_cards():
+                if (
+                    self.get_card_cost(player, card) <= 4
+                    and card.cost.potions == 0
+                    and card.cost.debt == 0
+                ):
+                    candidates.append(card)
+            mode, pick = player.ai.choose_quartermaster_option(
+                self, player, list(mat), candidates
+            )
+            if mode == "take":
+                if pick is None or pick not in mat:
                     continue
-                hook = getattr(player.ai, "choose_quartermaster_gain", None)
-                if hook is not None:
-                    pick = hook(self, player, candidates)
-                else:
-                    pick = tactical_defaults.choose_quartermaster_gain(candidates)
-                if pick is None or pick.name not in {card.name for card in candidates}:
-                    pick = tactical_defaults.choose_quartermaster_gain(candidates)
-                if self.supply.get(pick.name, 0) > 0:
-                    # Route the gain through gain_card so on-gain hooks
-                    # (gained-this-turn counters, Watchtower, Trader, Royal
-                    # Seal, Allies/Landmark gain reactions, etc.) all fire
-                    # consistently with every other gain path. The card
-                    # text places the gain on the Quartermaster mat, but
-                    # on-gain reactions that redirect the gain (Watchtower
-                    # topdeck/trash, Trader, etc.) take precedence — the
-                    # player chose those destinations. Only move to the
-                    # mat if the card landed in the default destination
-                    # (discard).
-                    self.supply[pick.name] -= 1
-                    gained = self.gain_card(player, get_card(pick.name))
-                    if gained is None:
-                        continue
-                    if gained in player.discard:
-                        # Default destination — move onto QM mat per card text.
-                        player.discard.remove(gained)
-                        self.quartermaster_mats[id(player)].append(gained)
-                    # Otherwise an on-gain reaction redirected the card
-                    # (e.g. Watchtower topdecked it to player.deck or
-                    # trashed it to self.trash, or another effect routed
-                    # it to the hand). Respect the player's choice and
-                    # leave the card where it ended up — the QM trigger
-                    # has already fired.
+                mat.remove(pick)
+                player.hand.append(pick)
+                self.log_callback(
+                    ("action", player.ai.name, f"takes {pick} from Quartermaster", {})
+                )
+                continue
+            if mode != "gain" or not candidates:
+                continue
+            # A strategy hook may hand back its own Card instance (or an
+            # illegal one); resolve it against the offered candidates so the
+            # $4 limit is enforced, falling back to the shared baseline.
+            names = {c.name for c in candidates}
+            if pick is None or pick.name not in names:
+                pick = tactical_defaults.choose_quartermaster_gain(candidates)
+            else:
+                pick = next(c for c in candidates if c.name == pick.name)
+            if pick is None or self.supply.get(pick.name, 0) <= 0:
+                continue
+            self.supply[pick.name] -= 1
+            gained = self.gain_card(player, get_card(pick.name))
+            if gained is None:
+                continue
+            if gained in player.discard:
+                # Default destination — move onto this Quartermaster per card
+                # text. On-gain reactions that redirected the card (Watchtower
+                # topdeck/trash, Trail playing itself) take precedence.
+                player.discard.remove(gained)
+                mat.append(gained)
+            self.log_callback(
+                ("action", player.ai.name, f"gains {gained} onto Quartermaster", {})
+            )
 
     def do_duration_phase(self):
         """Handle effects of duration cards from previous turn."""
@@ -2135,6 +2161,35 @@ class GameState:
             self._charlatan_seen = True
             return True
         return False
+
+    def live_type_count(self, card: Card) -> int:
+        """Number of types ``card`` has right now, including game-level
+        modifiers (Charlatan adds Treasure to Curse). Used by "2 or more
+        types" triggers such as Falconer."""
+        count = len(card.types)
+        if not card.is_treasure and self.is_treasure(card):
+            count += 1
+        # Rising Sun Enlightenment: Treasures are also Actions for all purposes.
+        if (
+            self.prophecy is not None
+            and self.prophecy.is_active
+            and self.prophecy.name == "Enlightenment"
+            and self.is_treasure(card)
+            and not card.is_action
+        ):
+            count += 1
+        # Renaissance Capitalism: during its owner's turns, Actions with +$
+        # are also Treasures.
+        turn_player = getattr(self, "turn_player", None)
+        if (
+            turn_player is not None
+            and card.is_action
+            and not self.is_treasure(card)
+            and card.stats.coins > 0
+            and any(getattr(p, "name", "") == "Capitalism" for p in turn_player.projects)
+        ):
+            count += 1
+        return count
 
     def is_treasure(self, card: Card) -> bool:
         """Treasure check that respects game-level type modifiers.
@@ -3756,6 +3811,19 @@ class GameState:
         else:
             player.discard.append(actual_card)
 
+        # Record the Buy-phase gain before any on-gain hook runs: hooks can
+        # nest further gains (Falconer reacting to a 2-type card, Border
+        # Village, Messenger's own distribution), and "first card you gain
+        # in your Buy phase" checks inside those nested gains must already
+        # see this one. ``turn_player`` rather than ``current_player``: an
+        # off-turn reactor gaining a card is not in its own Buy phase.
+        if player is self.turn_player and self.phase == "buy":
+            player.cards_gained_this_buy_phase += 1
+            if actual_card.is_action or actual_card.is_treasure:
+                player.gained_action_or_treasure_this_buy_phase = True
+            if actual_card.is_victory:
+                player.gained_victory_this_buy_phase = True
+
         self._handle_gatekeeper_exile(player, actual_card, destination_is_deck, had_exiled_copy)
 
         # "When you gain a card, you may discard all copies of it from
@@ -3808,18 +3876,8 @@ class GameState:
         self._handle_menagerie_gain_reactions(player, actual_card)
         self._handle_opponent_gain_hooks(player, actual_card)
         self._handle_livery_gain(player, actual_card)
-
-        if (
-            hasattr(player, "cards_gained_this_buy_phase")
-            and player is self.current_player
-            and self.phase == "buy"
-        ):
-            player.cards_gained_this_buy_phase += 1
-            if actual_card.is_action or actual_card.is_treasure:
-                player.gained_action_or_treasure_this_buy_phase = True
-
-        if actual_card.is_victory and player is self.current_player and self.phase == "buy":
-            player.gained_victory_this_buy_phase = True
+        self._handle_secluded_shrine_gain(player, actual_card)
+        self._handle_falconer_reactions(player, actual_card)
 
         # Treasury cares about Victory cards gained anywhere on your turn
         # (Action phase via Workshop / Charm / Ironworks counts too).
@@ -4737,6 +4795,55 @@ class GameState:
             for card in list(player.hand):
                 if hasattr(card, "on_opponent_gain"):
                     card.on_opponent_gain(self, player, gainer, gained_card)
+
+    def _handle_secluded_shrine_gain(self, player: PlayerState, gained_card: Card) -> None:
+        """Plunder Secluded Shrine: the owner's next Treasure gain trashes up
+        to 2 cards from their hand. Each armed Shrine fires once."""
+        # Live type check: Charlatan makes Curse a Treasure for the whole game.
+        if not self.is_treasure(gained_card):
+            return
+        for card in list(player.duration):
+            if card.name == "Secluded Shrine" and getattr(card, "shrine_armed", False):
+                card.on_owner_gains_treasure(self, player)
+
+    def _handle_falconer_reactions(self, gainer: PlayerState, gained_card: Card) -> None:
+        """Menagerie Falconer: when ANY player gains a card with 2 or more
+        types, each player may play a Falconer from their hand. The turn
+        player reacts first, then the others in turn order. Each Falconer in
+        hand reacts separately (a played Falconer can gain a 2-type card and
+        trigger the next one)."""
+        if self.live_type_count(gained_card) < 2:
+            return
+        if not self.players:
+            return
+        # The turn player reacts first even when this gain happened inside
+        # another player's off-turn Falconer play (Falconer -> Trail chains).
+        start = self.players.index(self.turn_player)
+        order = self.players[start:] + self.players[:start]
+        for player in order:
+            while True:
+                falconers = [c for c in player.hand if c.name == "Falconer"]
+                if not falconers:
+                    break
+                if not player.ai.should_play_falconer(self, player, gainer, gained_card):
+                    break
+                falconer = falconers[0]
+                # Rising Sun Daimyo: "the next time you play a non-Command
+                # Action card this turn, replay it" also covers a Falconer the
+                # turn player plays in reaction (e.g. during their Buy phase).
+                # Reserve the charge for THIS play before resolving it: the
+                # Falconer's own gain (a Trail, say) can nest another Falconer
+                # reaction, which must not consume the charge first.
+                replays = 0
+                if player is self.turn_player and getattr(player, "daimyo_pending", 0):
+                    replays, player.daimyo_pending = player.daimyo_pending, 0
+                if not self.play_action_from_hand_indirectly(player, falconer):
+                    player.daimyo_pending = getattr(player, "daimyo_pending", 0) + replays
+                    break
+                for _ in range(replays):
+                    if falconer not in player.in_play:
+                        break
+                    self.play_action_indirectly(player, falconer)
 
     def _handle_menagerie_gain_reactions(
         self, player: PlayerState, gained_card: Card

@@ -1,0 +1,18 @@
+# Port Moresby board.
+#
+# Rising Sun / Plunder / Allies / Adventures / Hinterlands 2E / Menagerie /
+# Renaissance mix with the Seaway event and the Fountain landmark. Daimyo is
+# the only Command card and costs 6 Debt. No Colony/Platinum.
+Daimyo
+Secluded Shrine
+Carpenter
+Messenger
+Swamp Shacks
+Trail
+Barbarian
+Falconer
+Quartermaster
+Sculptor
+
+Event: Seaway
+Landmark: Fountain

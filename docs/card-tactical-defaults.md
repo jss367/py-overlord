@@ -57,7 +57,7 @@ tested, then expand coverage by expansion.
 | Card | Expansion | Decision | Current status and next work |
 | --- | --- | --- | --- |
 | Overlord | Empires | Select a supply Action | Connected and tested; evaluate attacks, trashing, duration targets, and action support beyond printed resources. |
-| Quartermaster | Plunder | Select a gain and collection timing | Connected and tested against current engine behavior; evaluate collection cadence, endgame value, and audit rules and multiple-copy storage. |
+| Quartermaster | Plunder | Select a gain and collection timing | Connected and tested; each copy keeps its own pile and collects one card per turn per the printed rules. Strategies may also override `choose_quartermaster_option` for a single hand-aware take/gain decision. |
 | Captain | Promo | Select a supply Action | Needs context: reuses hand action priorities and falls back to the first candidate. |
 | Band of Misfits | Dark Ages | Select a supply Action | Needs forwarding: its dedicated base-AI hook is not forwarded to the strategy. |
 | Workshop | Base | Select a free gain | Needs context: calls the buy selector, which uses gain priorities; evaluate free-gain fallback and ownership limits. |
@@ -92,7 +92,7 @@ validate menus; `GeneticAI` forwards the following strategy hooks:
 | --- | --- |
 | `choose_overlord_target(state, player, choices)` | Try the strategy's action preferences. Otherwise prefer action support when terminal Actions exceed remaining Actions, then printed draw and money, with deterministic tie-breaking. |
 | `choose_quartermaster_gain(state, player, choices)` | Try the strategy's gain preferences. Otherwise prefer non-junk, non-Victory gains, then printed cost and resources. |
-| `quartermaster_take_all(state, player, mat)` | Preserve the current simulator's baseline: collect when at least two cards are stored. |
+| `quartermaster_take_all(state, player, mat)` | Decide whether this Quartermaster collects this turn (the card puts *one* stored card into hand; the engine takes the priciest). Baseline: collect when at least two cards are stored. |
 
 Conditional rules that fail are deprioritized in favor of unspecified cards.
 When every candidate is covered by a failed rule, the baseline still chooses

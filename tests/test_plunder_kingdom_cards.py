@@ -53,6 +53,17 @@ class _NullAI:
     def should_reveal_moat(self, *args, **kwargs):
         return True
 
+    def should_play_falconer(self, *args, **kwargs):
+        return True
+
+    def choose_quartermaster_option(self, state, player, mat, candidates):
+        if len(mat) >= 2:
+            return "take", max(mat, key=lambda c: (c.cost.coins, c.name))
+        pool = [c for c in candidates if not c.is_victory] or candidates
+        if not pool:
+            return "take", (mat[0] if mat else None)
+        return "gain", max(pool, key=lambda c: (c.cost.coins, c.name))
+
 
 def _make_state(num_players: int = 1) -> GameState:
     state = GameState(players=[])
@@ -190,18 +201,35 @@ def test_mapmaker_puts_2_into_hand():
     assert len(player.hand) == pre_hand + 2
 
 
-def test_swamp_shacks_gives_basics_and_attacks():
-    state = _make_state(num_players=2)
-    me = state.players[0]
-    foe = state.players[1]
-    foe.hand = [get_card("Copper") for _ in range(5)]
-    pre_foe_hand = len(foe.hand)
-    state.current_player_index = 0
+def test_swamp_shacks_draws_one_per_three_cards_in_play():
+    state = _make_state()
+    me = state.current_player
+    me.deck = [get_card("Copper") for _ in range(10)]
+    me.hand = []
+    pre_actions = me.actions
+    # Two cards already in play (a Duration from last turn and a Copper),
+    # plus Swamp Shacks itself = 3 cards in play -> +1 Card.
+    me.in_play = [get_card("Quartermaster"), get_card("Copper")]
     sh = get_card("Swamp Shacks")
     me.in_play.append(sh)
     sh.on_play(state)
-    # Foe with 5 in hand should have discarded one.
-    assert len(foe.hand) == pre_foe_hand - 1
+    assert me.actions == pre_actions + 2
+    assert len(me.hand) == 1
+    # Six cards in play -> +2 Cards; five -> still +1 (round down).
+    me.hand = []
+    me.in_play = [get_card("Copper") for _ in range(5)] + [sh]
+    sh.on_play(state)
+    assert len(me.hand) == 2
+    me.hand = []
+    me.in_play = [get_card("Copper") for _ in range(4)] + [sh]
+    sh.on_play(state)
+    assert len(me.hand) == 1
+
+
+def test_swamp_shacks_is_not_an_attack():
+    sh = get_card("Swamp Shacks")
+    assert not sh.is_attack
+    assert sh.stats.coins == 0 and sh.stats.cards == 0
 
 
 def test_fisherman_basic_play():
@@ -305,33 +333,96 @@ def test_quartermaster_gains_card_to_mat_first_turn():
     player = state.current_player
     qm = get_card("Quartermaster")
     player.duration.append(qm)
-    state.quartermaster_mats[id(player)] = []
     state._handle_quartermaster_start_of_turn(player)
     # Mat now contains a card up to $4.
-    assert len(state.quartermaster_mats[id(player)]) == 1
+    assert len(qm.set_aside) == 1
 
 
-def test_quartermaster_take_all_with_two_cards():
+def test_quartermaster_takes_one_card_per_turn():
     state = _make_state()
     player = state.current_player
     qm = get_card("Quartermaster")
     player.duration.append(qm)
-    state.quartermaster_mats[id(player)] = [get_card("Silver"), get_card("Gold")]
+    qm.set_aside = [get_card("Silver"), get_card("Gold")]
     pre_hand = len(player.hand)
     state._handle_quartermaster_start_of_turn(player)
-    assert len(player.hand) >= pre_hand + 2
-    assert state.quartermaster_mats[id(player)] == []
+    # "put a card from this into your hand" -- exactly one card leaves the mat.
+    assert len(player.hand) == pre_hand + 1
+    assert [c.name for c in qm.set_aside] == ["Silver"]
+    assert any(c.name == "Gold" for c in player.hand)
 
 
-def test_secluded_shrine_trashes_up_to_two():
+def test_quartermaster_mat_cards_count_as_owned():
+    state = _make_state()
+    player = state.current_player
+    qm = get_card("Quartermaster")
+    player.duration.append(qm)
+    qm.set_aside = [get_card("Estate")]
+    assert any(c.name == "Estate" for c in player.all_cards())
+
+
+def _armed_shrine(state, player):
+    ss = get_card("Secluded Shrine")
+    player.in_play.append(ss)
+    ss.on_play(state)
+    assert ss in player.duration
+    assert ss.shrine_armed
+    return ss
+
+
+def test_secluded_shrine_gives_only_one_coin():
+    state = _make_state()
+    player = state.current_player
+    pre_coins, pre_buys = player.coins, player.buys
+    _armed_shrine(state, player)
+    assert player.coins == pre_coins + 1
+    assert player.buys == pre_buys
+
+
+def test_secluded_shrine_trashes_up_to_two_on_next_treasure_gain():
     state = _make_state()
     player = state.current_player
     player.hand = [get_card("Curse"), get_card("Curse"), get_card("Copper")]
-    ss = get_card("Secluded Shrine")
-    player.duration.append(ss)
+    ss = _armed_shrine(state, player)
     pre_trash = len(state.trash)
-    ss.on_duration(state)
-    assert len(state.trash) >= pre_trash + 2
+    # Gaining a non-Treasure does nothing.
+    state.supply["Village"] -= 1
+    state.gain_card(player, get_card("Village"))
+    assert len(state.trash) == pre_trash
+    assert ss.shrine_armed
+    # Gaining a Treasure fires it: two Curses trashed, Copper kept.
+    state.supply["Silver"] -= 1
+    state.gain_card(player, get_card("Silver"))
+    assert len(state.trash) == pre_trash + 2
+    assert [c.name for c in player.hand] == ["Copper"]
+    assert not ss.shrine_armed
+    # Fired on the owner's own turn: it is no longer a pending Duration, so
+    # this turn's Clean-up discards it from play.
+    assert ss not in player.duration
+    assert ss in player.in_play
+
+
+def test_secluded_shrine_fires_only_once():
+    state = _make_state()
+    player = state.current_player
+    player.hand = [get_card("Curse"), get_card("Curse"), get_card("Curse")]
+    _armed_shrine(state, player)
+    pre_trash = len(state.trash)
+    state.supply["Silver"] -= 2
+    state.gain_card(player, get_card("Silver"))
+    state.gain_card(player, get_card("Silver"))
+    assert len(state.trash) == pre_trash + 2
+
+
+def test_secluded_shrine_waits_across_turns():
+    state = _make_state(num_players=2)
+    state.current_player_index = 0
+    player = state.players[0]
+    ss = _armed_shrine(state, player)
+    # Owner's next duration phase: nothing gained yet, so it stays in play.
+    state.do_duration_phase()
+    assert ss in player.duration
+    assert ss.duration_persistent
 
 
 def test_shaman_gains_from_trash():
@@ -523,26 +614,18 @@ def test_landing_party_top_decks_treasure_gained_to_hand():
     assert "Landing Party" in top_two
 
 
-def test_crucible_counts_duration_phase_trashes():
-    """Regression for PR #193 review: cards trashed during the duration
-    phase (e.g. Secluded Shrine's start-of-turn trash) must count toward
-    cards_trashed_this_turn for Crucible."""
+def test_crucible_counts_secluded_shrine_trashes():
+    """Cards trashed by Secluded Shrine's Treasure-gain trigger must count
+    toward cards_trashed_this_turn for Crucible."""
     state = _make_state(num_players=2)
     state.current_player_index = 0
     player = state.players[0]
-    # Put a Secluded Shrine in duration so the duration phase fires.
-    shrine = get_card("Secluded Shrine")
-    player.duration.append(shrine)
-    # Give the player two trashable Curses in hand for Shrine to trash.
+    state.handle_start_phase()
     player.hand = [get_card("Curse"), get_card("Curse")]
-    # Cycle: end this turn → opponent → back to player 0 (duration fires).
-    state.current_player_index = 1
-    state.handle_start_phase()
-    state.current_player_index = 0
-    state.handle_start_phase()
-    # Shrine trashed up to 2 Curses during the duration phase, AFTER the
-    # per-turn counter reset; so the count should reflect them.
-    assert player.cards_trashed_this_turn >= 1
+    _armed_shrine(state, player)
+    state.supply["Silver"] -= 1
+    state.gain_card(player, get_card("Silver"))
+    assert player.cards_trashed_this_turn == 2
 
 
 def test_quartermaster_routes_gain_through_gain_card_hooks():
@@ -561,7 +644,7 @@ def test_quartermaster_routes_gain_through_gain_card_hooks():
     state.current_player_index = 0
     state.handle_start_phase()
     # Quartermaster mat should have one card.
-    mat = state.quartermaster_mats.get(id(player), [])
+    mat = qm.set_aside
     assert len(mat) == 1
     gained_name = mat[0].name
     # gain_card-side bookkeeping must have run.
@@ -589,12 +672,11 @@ def test_quartermaster_respects_watchtower_topdeck():
     qm = get_card("Quartermaster")
     qm.duration_persistent = True
     player.duration.append(qm)
-    state.quartermaster_mats[id(player)] = []
 
     state._handle_quartermaster_start_of_turn(player)
 
     # QM mat should be empty: Watchtower's topdeck reaction wins.
-    mat = state.quartermaster_mats.get(id(player), [])
+    mat = qm.set_aside
     assert mat == [], (
         "Watchtower topdeck reaction should redirect the gain off the "
         f"Quartermaster mat; mat was {[c.name for c in mat]}"
@@ -617,12 +699,11 @@ def test_quartermaster_no_watchtower_keeps_card_on_mat():
     qm = get_card("Quartermaster")
     qm.duration_persistent = True
     player.duration.append(qm)
-    state.quartermaster_mats[id(player)] = []
     pre_discard = len(player.discard)
 
     state._handle_quartermaster_start_of_turn(player)
 
-    mat = state.quartermaster_mats.get(id(player), [])
+    mat = qm.set_aside
     assert len(mat) == 1, (
         "Without a Watchtower redirect the gain must land on the QM mat"
     )
@@ -681,3 +762,143 @@ def test_river_shrine_cleanup_gain_eligible_for_deliver():
     state.handle_start_phase()
     # The set-aside card should now be in hand.
     assert player.deliver_set_aside == []
+
+
+def test_quartermaster_gained_trail_plays_itself_and_skips_the_mat():
+    state = _make_state(num_players=2)
+    state.current_player_index = 0
+    player = state.current_player
+    player.deck = [get_card("Copper") for _ in range(5)]
+    player.hand = []
+    state.supply["Trail"] = 10
+    qm = get_card("Quartermaster")
+    player.duration.append(qm)
+    player.in_play.append(qm)
+
+    class _TrailAI(_NullAI):
+        def choose_quartermaster_option(self, state, player, mat, candidates):
+            return "gain", next(c for c in candidates if c.name == "Trail")
+
+    player.ai = _TrailAI()
+    state._handle_quartermaster_start_of_turn(player)
+    assert qm.set_aside == []
+    assert any(c.name == "Trail" for c in player.in_play)
+    assert len(player.hand) == 1
+
+
+def test_quartermaster_copies_keep_separate_piles():
+    """Cards are set aside on a specific Quartermaster and only that copy may
+    take them: a second copy cannot take the Silver the first just gained."""
+    state = _make_state()
+    player = state.current_player
+    first, second = get_card("Quartermaster"), get_card("Quartermaster")
+    player.duration.extend([first, second])
+    player.hand = []
+
+    class _BankThenTakeAI(_NullAI):
+        def choose_quartermaster_option(self, state, player, mat, candidates):
+            silver = next((c for c in mat if c.name == "Silver"), None)
+            if silver is not None:
+                return "take", silver
+            return "gain", next(c for c in candidates if c.name == "Silver")
+
+    player.ai = _BankThenTakeAI()
+    state._handle_quartermaster_start_of_turn(player)
+    assert [c.name for c in first.set_aside] == ["Silver"]
+    assert [c.name for c in second.set_aside] == ["Silver"]
+    assert player.hand == []
+
+
+def test_quartermaster_pile_survives_game_state_clone():
+    """The endgame guard scores a deep-copied state; set-aside cards must
+    still count as the cloned player's."""
+    import copy
+
+    state = _make_state()
+    player = state.current_player
+    qm = get_card("Quartermaster")
+    player.duration.append(qm)
+    qm.set_aside = [get_card("Copper"), get_card("Estate")]
+    clone = copy.deepcopy(state)
+    clone_player = clone.players[0]
+    assert clone_player is not player
+    assert clone_player.count_in_deck("Copper") == player.count_in_deck("Copper")
+    assert any(c.name == "Estate" for c in clone_player.all_cards())
+    assert clone_player.get_victory_points(clone) == player.get_victory_points(state)
+
+
+def test_quartermaster_rejects_gains_outside_the_offer():
+    state = _make_state()
+    player = state.current_player
+    qm = get_card("Quartermaster")
+    player.duration.append(qm)
+    gold_before = state.supply["Gold"]
+
+    class _GoldAI(_NullAI):
+        def choose_quartermaster_option(self, state, player, mat, candidates):
+            return "gain", get_card("Gold")
+
+    player.ai = _GoldAI()
+    state._handle_quartermaster_start_of_turn(player)
+    # An illegal pick requests the shared legal fallback (never the Gold).
+    assert len(qm.set_aside) == 1 and qm.set_aside[0].name != "Gold"
+    assert state.supply["Gold"] == gold_before
+    qm.set_aside.clear()
+
+    class _BogusModeAI(_NullAI):
+        def choose_quartermaster_option(self, state, player, mat, candidates):
+            return "steal", candidates[0]
+
+    player.ai = _BogusModeAI()
+    supply_before = dict(state.supply)
+    state._handle_quartermaster_start_of_turn(player)
+    assert qm.set_aside == []
+    assert state.supply == supply_before
+
+
+def test_secluded_shrine_fired_off_turn_is_discarded_exactly_once():
+    """A Shrine that fires on another player's turn (e.g. from an opponent's
+    Messenger distribution) must not sit in both ``duration`` and
+    ``in_play``: the duration phase would discard it and Clean-up would
+    discard the same object again, duplicating the card."""
+    state = _make_state(num_players=2)
+    state.current_player_index = 0
+    player = state.players[0]
+    player.hand = [get_card("Curse")]
+    ss = _armed_shrine(state, player)
+
+    # Opponent's turn: the owner gains a Silver and the Shrine fires.
+    state.current_player_index = 1
+    state.supply["Silver"] -= 1
+    state.gain_card(player, get_card("Silver"))
+    assert not ss.shrine_armed
+    assert ss not in player.duration
+    assert ss in player.in_play
+
+    # Owner's next turn: duration phase then Clean-up.
+    state.current_player_index = 0
+    state.do_duration_phase()
+    state.handle_cleanup_phase()
+
+    zones = player.hand + player.deck + player.discard + player.in_play + player.duration
+    assert sum(1 for c in zones if c is ss) == 1
+    assert ss not in player.in_play
+    assert ss not in player.duration
+
+
+def test_secluded_shrine_replays_stack_their_triggers():
+    """Daimyo / Throne Room replays each add a trigger: the next Treasure
+    gain then allows up to 2 trashes per play."""
+    state = _make_state()
+    player = state.current_player
+    player.hand = [get_card("Curse") for _ in range(4)]
+    ss = get_card("Secluded Shrine")
+    player.in_play.append(ss)
+    ss.on_play(state)
+    ss.on_play(state)
+    assert ss.shrine_charges == 2
+    pre_trash = len(state.trash)
+    state.supply["Silver"] -= 1
+    state.gain_card(player, get_card("Silver"))
+    assert len(state.trash) == pre_trash + 4
+    assert not ss.shrine_armed

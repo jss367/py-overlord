@@ -188,25 +188,52 @@ class Shaman(Card):
 
 
 class SecludedShrine(Card):
-    """$3 Action-Duration: +1 Buy +$1. Next turn, may trash up to 2 cards."""
+    """$3 Action-Duration: +$1. The next time you gain a Treasure, trash up
+    to 2 cards from your hand.
+
+    The trigger can fire on the same turn (buying a Silver right after
+    playing this) or many turns later, and on any player's turn. Once it
+    fires the Shrine is done: it stops being a pending duration and is
+    discarded from play at the owner's next Clean-up (this turn's if it
+    fired on the owner's turn, otherwise the owner's following turn).
+    """
 
     def __init__(self):
         super().__init__(
             name="Secluded Shrine",
             cost=CardCost(coins=3),
-            stats=CardStats(coins=1, buys=1),
+            stats=CardStats(coins=1),
             types=[CardType.ACTION, CardType.DURATION],
         )
         self.duration_persistent = True
+        # Each play (including Daimyo / Throne Room replays) is its own
+        # "next time you gain a Treasure" trigger; they all resolve on that
+        # next Treasure gain, each allowing up to 2 trashes.
+        self.shrine_charges = 0
+
+    @property
+    def shrine_armed(self) -> bool:
+        return self.shrine_charges > 0
 
     def play_effect(self, game_state):
         player = game_state.current_player
+        self.shrine_charges += 1
+        self.duration_persistent = True
         if self not in player.duration:
             player.duration.append(self)
 
     def on_duration(self, game_state):
-        player = game_state.current_player
-        for _ in range(2):
+        # Nothing happens at the start of the turn; the Shrine simply keeps
+        # waiting until its owner gains a Treasure.
+        self.duration_persistent = self.shrine_armed
+
+    def on_owner_gains_treasure(self, game_state, player):
+        """Resolve every pending "next time you gain a Treasure" trigger."""
+        if not self.shrine_armed:
+            return
+        charges, self.shrine_charges = self.shrine_charges, 0
+        self.duration_persistent = False
+        for _ in range(2 * charges):
             if not player.hand:
                 break
             choice = player.ai.choose_card_to_trash(game_state, player.hand + [None])
@@ -214,7 +241,13 @@ class SecludedShrine(Card):
                 break
             player.hand.remove(choice)
             game_state.trash_card(player, choice)
-        self.duration_persistent = False
+        if self in player.duration:
+            # The Shrine has nothing left to do, so it leaves the duration
+            # list whether or not it is the owner's turn. It stays in
+            # ``in_play`` and the owner's next Clean-up discards it like any
+            # other card. Leaving it in both zones would let the duration
+            # phase discard it and Clean-up discard the same object again.
+            player.duration.remove(self)
 
 
 class Siren(Card):
@@ -575,29 +608,26 @@ class Rope(Card):
 
 
 class SwampShacks(Card):
-    """$4 Action-Attack: +1 Card +1 Action +$1. Each other 5+ → discards one."""
+    """$4 Action: +2 Actions. +1 Card per 3 cards you have in play (round down).
+
+    Counts itself and Duration cards still in play from earlier turns
+    (``player.in_play`` keeps them); set-aside cards such as a
+    Quartermaster's mat do not count.
+    """
 
     def __init__(self):
         super().__init__(
             name="Swamp Shacks",
             cost=CardCost(coins=4),
-            stats=CardStats(actions=1, cards=1, coins=1),
-            types=[CardType.ACTION, CardType.ATTACK],
+            stats=CardStats(actions=2),
+            types=[CardType.ACTION],
         )
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        for other in game_state.players:
-            if other is player:
-                continue
-
-            def attack(target):
-                if len(target.hand) >= 5:
-                    candidate = min(target.hand, key=lambda c: (c.cost.coins, c.name))
-                    target.hand.remove(candidate)
-                    game_state.discard_card(target, candidate)
-
-            game_state.attack_player(other, attack)
+        draws = len(player.in_play) // 3
+        if draws > 0:
+            game_state.draw_cards(player, draws)
 
 
 class Tools(Card):
@@ -853,7 +883,14 @@ class Pendant(Card):
 
 
 class Quartermaster(Card):
-    """$5 Action-Duration: At start of each turn, choose: gain to mat, or take all."""
+    """$5 Action-Duration: At the start of each of your turns for the rest of
+    the game, choose one: gain a card costing up to $4, setting it aside on
+    this; or put a card from this into your hand.
+
+    The per-turn choice is resolved by ``GameState._handle_quartermaster_start_of_turn``.
+    ``set_aside`` is this copy's own pile; the owner still owns those cards
+    (``PlayerState.all_cards`` counts them).
+    """
 
     def __init__(self):
         super().__init__(
@@ -863,6 +900,7 @@ class Quartermaster(Card):
             types=[CardType.ACTION, CardType.DURATION],
         )
         self.duration_persistent = True
+        self.set_aside: list[Card] = []
 
     def play_effect(self, game_state):
         player = game_state.current_player

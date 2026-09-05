@@ -55,6 +55,18 @@ class GeneticAI(AI):
             return hook(state, player, choices)
         return self.strategy.choose_gain(state, player, choices)
 
+    def should_play_falconer(self, state: GameState, player, gainer, gained_card):
+        hook = getattr(self.strategy, "should_play_falconer", None)
+        if hook is not None:
+            return bool(hook(state, player, gainer, gained_card))
+        return super().should_play_falconer(state, player, gainer, gained_card)
+
+    def choose_quartermaster_option(self, state: GameState, player, mat, candidates):
+        hook = getattr(self.strategy, "choose_quartermaster_option", None)
+        if hook is not None:
+            return hook(state, player, mat, candidates)
+        return super().choose_quartermaster_option(state, player, mat, candidates)
+
     def choose_overlord_target(self, state, player, choices: list[Card]) -> Optional[Card]:
         hook = getattr(self.strategy, "choose_overlord_target", None)
         if hook is not None:

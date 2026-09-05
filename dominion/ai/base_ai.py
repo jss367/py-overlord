@@ -2725,15 +2725,44 @@ class AI(ABC):
         """Default: resolve immediately."""
         return True
 
-    def should_reveal_falconer(
+    def should_play_falconer(
         self,
         state: GameState,
         player: PlayerState,
         gainer: PlayerState,
         gained_card: Card,
     ) -> bool:
-        """Default: reveal whenever a cheaper card can be gained."""
-        return gained_card.cost.coins >= 1
+        """Falconer reaction: play it from hand when any player gains a card
+        with 2+ types. Default: always (it gains a card to hand)."""
+        return True
+
+    def choose_quartermaster_option(
+        self,
+        state: GameState,
+        player: PlayerState,
+        mat: list[Card],
+        candidates: list[Card],
+    ) -> tuple[str, Optional[Card]]:
+        """Quartermaster start-of-turn choice for one Quartermaster.
+
+        Returns ``("take", card)`` to put ``card`` from that Quartermaster's
+        pile into hand, or ``("gain", card)`` to gain ``card`` (costing up to
+        $4) onto it. The default composes the shared tactical hooks:
+        ``quartermaster_take_all`` decides whether to collect this turn (the
+        rules allow one card per Quartermaster per turn, so collecting takes
+        the priciest stored card) and ``choose_quartermaster_gain`` picks the
+        gain otherwise.
+        """
+        if mat and self.quartermaster_take_all(state, player, list(mat)):
+            return "take", max(mat, key=lambda c: (c.cost.coins, c.name))
+        if candidates:
+            pick = self.choose_quartermaster_gain(state, player, list(candidates))
+            if pick is None or pick.name not in {c.name for c in candidates}:
+                pick = tactical_defaults.choose_quartermaster_gain(candidates)
+            return "gain", pick
+        if mat:
+            return "take", max(mat, key=lambda c: (c.cost.coins, c.name))
+        return "gain", None
 
     def choose_card_to_exile_for_sanctuary(
         self, state: GameState, player: PlayerState, choices: list[Card]

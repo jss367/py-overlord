@@ -355,16 +355,52 @@ def test_black_cat_reaction_respects_warlord_hand_limit():
     assert len(p2.hand) == 1
 
 
-def test_falconer_reaction_gains_cheaper_card():
+def test_falconer_reacts_to_opponent_gaining_two_type_card():
     state, p1, p2 = _two_player_state()
-    # p2 has a Falconer in hand, p1 gains a Gold ($6).
-    p2.hand.append(get_card("Falconer"))
-    state.supply["Gold"] = state.supply.get("Gold", 30)
+    falconer = get_card("Falconer")
+    p2.hand = [falconer]
+    state.supply["Falconer"] = 10
+    # p1 gains a Falconer (Action-Reaction: 2 types) -> p2 may play theirs.
+    state.supply["Falconer"] -= 1
+    state.gain_card(p1, get_card("Falconer"))
+    assert falconer in p2.in_play
+    assert falconer not in p2.hand
+    # The played Falconer gained a card costing < $5 into p2's hand.
+    assert len(p2.hand) == 1 and p2.hand[0].cost.coins < 5
+
+
+def test_falconer_ignores_single_type_gains():
+    state, p1, p2 = _two_player_state()
+    falconer = get_card("Falconer")
+    p2.hand = [falconer]
     state.supply["Gold"] -= 1
     state.gain_card(p1, get_card("Gold"))
-    # p2 should have gained something cheaper than Gold.
-    cheaper_gain = any(c.cost.coins < 6 for c in p2.discard + p2.deck)
-    assert cheaper_gain
+    assert falconer in p2.hand
+    assert p2.hand == [falconer]
+
+
+def test_falconer_reacts_to_own_gain():
+    state, p1, _ = _two_player_state()
+    falconer = get_card("Falconer")
+    p1.hand = [falconer]
+    state.supply["Falconer"] = 10
+    state.supply["Falconer"] -= 1
+    state.gain_card(p1, get_card("Falconer"))
+    assert falconer in p1.in_play
+
+
+def test_falconer_never_gains_debt_cost_cards():
+    state, p1, _ = _two_player_state()
+    state.supply["Daimyo"] = 10
+    for name in list(state.supply):
+        if name not in {"Daimyo", "Falconer", "Curse"}:
+            state.supply[name] = 0
+    state.supply["Curse"] = 10
+    p1.actions = 1
+    p1.hand = [get_card("Falconer")]
+    state.phase = "action"
+    state.handle_action_phase()
+    assert not any(c.name == "Daimyo" for c in p1.hand + p1.discard)
 
 
 def test_coven_exiles_curse_for_opponent():
@@ -807,3 +843,211 @@ def test_journeyman_stops_when_fewer_than_three_non_named_cards_remain(monkeypat
     assert [c.name for c in p1.hand] == ["Silver", "Gold"]
     assert [c.name for c in p1.discard] == ["Copper"]
     assert p1.deck == []
+
+
+def test_falconer_chain_through_trail_gain():
+    """Falconer gains a Trail to hand; Trail (Action-Reaction, 2 types) plays
+    itself on gain and its gain fires the next Falconer in hand."""
+    from dominion.ai.genetic_ai import GeneticAI
+    from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+
+    strat = EnhancedStrategy()
+    strat.gain_priority = [PriorityRule("Trail")]
+    strat.action_priority = [PriorityRule("Trail"), PriorityRule("Falconer")]
+    ai = GeneticAI(strat)
+    state = GameState(players=[])
+    state.initialize_game([ai, ChooseFirstActionAI()], [get_card("Trail"), get_card("Falconer")])
+    p1 = state.players[0]
+    p1.deck = [get_card("Copper") for _ in range(10)]
+    p1.hand = [get_card("Falconer"), get_card("Falconer")]
+    p1.actions = 1
+    state.phase = "action"
+    state.handle_action_phase()
+    # Both Falconers played (the second via the reaction), both Trails played.
+    assert sum(1 for c in p1.in_play if c.name == "Falconer") == 2
+    assert sum(1 for c in p1.in_play if c.name == "Trail") == 2
+    assert state.supply["Trail"] == 8
+    # Each Trail drew a card: hand is the two drawn Coppers.
+    assert [c.name for c in p1.hand] == ["Copper", "Copper"]
+
+
+def test_off_turn_falconer_gaining_messenger_does_not_distribute():
+    """A Falconer played in reaction during another player's Buy phase is not
+    in its owner's Buy phase, so a Messenger it gains must not hand every
+    player a card. ``turn_player`` stays the turn player during the reaction."""
+    state, p1, p2 = _two_player_state([get_card("Falconer"), get_card("Messenger")])
+    state.current_player_index = 0
+    state.phase = "buy"
+    seen_turn_players = []
+
+    class _MessengerAI(ChooseFirstActionAI):
+        def choose_buy(self, state, choices):
+            seen_turn_players.append(state.turn_player)
+            return next((c for c in choices if c is not None and c.name == "Messenger"), None)
+
+    p2.ai = _MessengerAI()
+    p2.hand = [get_card("Falconer")]
+    p2.cards_gained_this_buy_phase = 0
+    p1.discard, p2.discard = [], []
+    state.supply["Falconer"] -= 1
+    state.gain_card(p1, get_card("Falconer"))
+
+    assert seen_turn_players == [p1]
+    assert state.turn_player is p1 and state.current_player is p1
+    assert [c.name for c in p2.hand] == ["Messenger"]
+    # No Messenger distribution: p1 only has the Falconer it gained.
+    assert [c.name for c in p1.discard] == ["Falconer"]
+    assert p2.discard == []
+
+
+def test_own_turn_falconer_gaining_messenger_is_not_first_buy_phase_gain():
+    """The turn player buys a 2-type card and reacts with a Falconer from
+    hand that gains Messenger. The bought card was already the first gain of
+    the Buy phase, so Messenger's on-gain must not distribute; ``gain_card``
+    counts the triggering gain before the Falconer reaction resolves."""
+    state, p1, p2 = _two_player_state([get_card("Falconer"), get_card("Messenger")])
+    state.current_player_index = 0
+    state.phase = "buy"
+
+    class _MessengerAI(ChooseFirstActionAI):
+        def choose_buy(self, state, choices):
+            return next((c for c in choices if c is not None and c.name == "Messenger"), None)
+
+    p1.ai = _MessengerAI()
+    p1.hand = [get_card("Falconer")]
+    p1.cards_gained_this_buy_phase = 0
+    p1.discard, p2.discard = [], []
+    messengers_before = state.supply["Messenger"]
+    state.supply["Falconer"] -= 1
+    state.gain_card(p1, get_card("Falconer"))
+
+    assert [c.name for c in p1.hand] == ["Messenger"]
+    assert [c.name for c in p1.discard] == ["Falconer"]
+    assert p2.discard == []
+    assert state.supply["Messenger"] == messengers_before - 1
+    assert p1.cards_gained_this_buy_phase == 2
+
+
+def _charlatan_state():
+    state, p1, p2 = _two_player_state(extra_kingdom=[get_card("Charlatan")])
+    state.supply.setdefault("Charlatan", 10)
+    assert state.charlatan_curse_active()
+    return state, p1, p2
+
+
+def test_falconer_reacts_to_curse_gain_under_charlatan():
+    """With Charlatan in the kingdom a Curse is Curse-Treasure (2 types)."""
+    state, p1, p2 = _charlatan_state()
+    falconer = get_card("Falconer")
+    p2.hand = [falconer]
+    state.supply["Curse"] -= 1
+    state.gain_card(p1, get_card("Curse"))
+    assert falconer in p2.in_play
+
+
+def test_secluded_shrine_fires_on_curse_gain_under_charlatan():
+    state, p1, _ = _charlatan_state()
+    shrine = get_card("Secluded Shrine")
+    p1.hand = [get_card("Estate"), get_card("Estate")]
+    p1.in_play.append(shrine)
+    state.current_player_index = 0
+    shrine.on_play(state)
+    assert shrine.shrine_armed
+    state.supply["Curse"] -= 1
+    state.gain_card(p1, get_card("Curse"))
+    assert not shrine.shrine_armed
+
+
+def test_falconer_reacts_to_treasure_gain_under_enlightenment():
+    """Enlightenment makes Treasures Actions too, so a gained Gold has two
+    live types and opens a Falconer reaction."""
+    from dominion.prophecies import get_prophecy
+
+    state, p1, p2 = _two_player_state()
+    state.prophecy = get_prophecy("Enlightenment")
+    state.sun_tokens = 0
+    if hasattr(state.prophecy, "activate"):
+        state.prophecy.activate(state)
+    assert state.prophecy.is_active
+    falconer = get_card("Falconer")
+    p2.hand = [falconer]
+    state.supply["Gold"] -= 1
+    state.gain_card(p1, get_card("Gold"))
+    assert falconer in p2.in_play
+
+
+def test_daimyo_charge_replays_a_reacting_falconer():
+    from dominion.ai.genetic_ai import GeneticAI
+    from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+
+    strat = EnhancedStrategy()
+    strat.gain_priority = [PriorityRule("Silver")]
+    ai = GeneticAI(strat)
+    state = GameState(players=[])
+    state.initialize_game([ai, ChooseFirstActionAI()], [get_card("Falconer"), get_card("Daimyo")])
+    p1 = state.players[0]
+    p1.deck = [get_card("Copper") for _ in range(10)]
+    falconer = get_card("Falconer")
+    p1.hand = [falconer]
+    p1.daimyo_pending = 1
+    state.current_player_index = 0
+    state.phase = "buy"
+    # p1 gains a 2-type card in its own Buy phase -> its Falconer reacts,
+    # and the pending Daimyo charge replays it: two Silvers gained to hand.
+    state.supply["Falconer"] -= 1
+    state.gain_card(p1, get_card("Falconer"))
+    assert p1.daimyo_pending == 0
+    assert sum(1 for c in p1.hand if c.name == "Silver") == 2
+
+
+def test_falconer_reacts_to_plus_coin_action_gain_under_capitalism():
+    """Capitalism makes +$ Actions Treasures on its owner's turn, so a
+    gained Market has two live types and opens a Falconer reaction."""
+    from dominion.projects import get_project
+
+    state, p1, p2 = _two_player_state(extra_kingdom=[get_card("Market")])
+    state.supply.setdefault("Market", 10)
+    p1.projects.append(get_project("Capitalism"))
+    state.current_player_index = 0
+    falconer = get_card("Falconer")
+    p2.hand = [falconer]
+    state.supply["Market"] -= 1
+    state.gain_card(p1, get_card("Market"))
+    assert falconer in p2.in_play
+
+
+def test_daimyo_charge_is_reserved_for_the_first_reacting_falconer():
+    """Falconer -> Trail -> nested Falconer: the pending Daimyo charge belongs
+    to the first (outer) Falconer play, not the nested one."""
+    from dominion.ai.genetic_ai import GeneticAI
+    from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+
+    plays = []
+
+    class _Trace(EnhancedStrategy):
+        def choose_gain(self, state, player, choices):
+            trail = next((c for c in choices if c is not None and c.name == "Trail"), None)
+            if trail is not None:
+                plays.append(len([c for c in player.in_play if c.name == "Falconer"]))
+            return trail
+
+    strat = _Trace()
+    strat.action_priority = [PriorityRule("Trail"), PriorityRule("Falconer")]
+    ai = GeneticAI(strat)
+    state = GameState(players=[])
+    state.initialize_game([ai, ChooseFirstActionAI()], [get_card("Falconer"), get_card("Trail"), get_card("Daimyo")])
+    p1 = state.players[0]
+    p1.deck = [get_card("Copper") for _ in range(10)]
+    p1.hand = [get_card("Falconer"), get_card("Falconer")]
+    p1.daimyo_pending = 1
+    state.current_player_index = 0
+    state.phase = "buy"
+    trails_before = state.supply["Trail"]
+    state.supply["Falconer"] -= 1
+    state.gain_card(p1, get_card("Falconer"))
+    # Outer Falconer, nested Falconer (via the Trail gain), then the outer
+    # Falconer's Daimyo replay: three Trail gains in total.
+    assert state.supply["Trail"] == trails_before - 3
+    assert p1.daimyo_pending == 0
+    # The replay (third Trail gain) happens with both Falconers already in play.
+    assert plays == [1, 2, 2]

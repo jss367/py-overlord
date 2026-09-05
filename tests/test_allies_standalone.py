@@ -191,7 +191,7 @@ def test_skirmisher_attacks_on_action_gain():
     assert len(p2.hand) == 4
 
 
-def test_carpenter_no_empty_piles_gains_4():
+def test_carpenter_no_empty_piles_gives_action_and_gains_4():
     state, player = _state()
     state.supply = {"Smithy": 5, "Silver": 5}
 
@@ -205,29 +205,37 @@ def test_carpenter_no_empty_piles_gains_4():
     player.ai = _AI()
     carpenter = get_card("Carpenter")
     player.in_play.append(carpenter)
+    actions_before = player.actions
     carpenter.on_play(state)
-    assert any(c.name in {"Smithy", "Silver"} for c in player.discard)
+    assert player.actions == actions_before + 1
+    assert any(c.name == "Smithy" for c in player.discard)
 
 
-def test_carpenter_with_empty_pile_trashes_and_gains_5():
+def test_carpenter_with_empty_pile_trashes_and_gains_up_to_2_more():
     state, player = _state()
-    state.supply = {"Smithy": 5, "Silver": 5, "Workshop": 0}
-    player.hand = [get_card("Estate")]
+    state.supply = {"Smithy": 5, "Silver": 5, "Estate": 5, "Workshop": 0}
+    player.hand = [get_card("Copper")]
 
     class TrashAI(DummyAI):
         def choose_card_to_trash(self, state, choices):
             return choices[0] if choices else None
+
         def choose_buy(self, state, choices):
-            for c in choices:
-                if c is not None and c.name == "Smithy":
-                    return c
-            return choices[-1] if choices else None
+            # Prefer the priciest offer to prove the $2 cap is enforced.
+            real = [c for c in choices if c is not None]
+            return max(real, key=lambda c: c.cost.coins) if real else None
 
     player.ai = TrashAI()
     carpenter = get_card("Carpenter")
     player.in_play.append(carpenter)
+    actions_before = player.actions
     carpenter.on_play(state)
-    assert any(c.name == "Estate" for c in state.trash)
+    assert any(c.name == "Copper" for c in state.trash)
+    # Copper costs $0 -> may gain up to $2: Estate, never Smithy/Silver.
+    assert any(c.name == "Estate" for c in player.discard)
+    assert not any(c.name in {"Smithy", "Silver"} for c in player.discard)
+    # No +1 Action on the empty-pile branch.
+    assert player.actions == actions_before
 
 
 def test_courier_plays_action_from_top_of_deck():
@@ -832,3 +840,29 @@ def test_royal_galley_keeps_multiple_set_aside_actions():
     assert village in player.in_play
     assert smithy in player.in_play
     assert galley._set_aside == []
+
+
+def test_carpenter_replacement_compares_debt_and_potion_costs():
+    """Up to $2 more keeps the trashed card's Debt/Potion components, so a
+    trashed Daimyo (6 Debt) may be replaced by another Daimyo, and by cards
+    up to $2, but not by a $3 card."""
+    state, player = _state()
+    state.supply = {"Daimyo": 5, "Silver": 5, "Estate": 5, "Workshop": 0}
+    player.hand = [get_card("Daimyo")]
+    offered = []
+
+    class _AI(DummyAI):
+        def choose_card_to_trash(self, state, choices):
+            return choices[0]
+
+        def choose_buy(self, state, choices):
+            offered.extend(c.name for c in choices if c is not None)
+            return next(c for c in choices if c is not None and c.name == "Daimyo")
+
+    player.ai = _AI()
+    carpenter = get_card("Carpenter")
+    player.in_play.append(carpenter)
+    carpenter.on_play(state)
+    assert sorted(offered) == ["Daimyo", "Estate"]
+    assert any(c.name == "Daimyo" for c in state.trash)
+    assert any(c.name == "Daimyo" for c in player.discard)

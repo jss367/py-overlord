@@ -109,13 +109,14 @@ def test_quartermaster_uses_gain_priorities_and_collects_with_strategy_override(
     strategy = Strategy()
     strategy.gain_priority = [PriorityRule("Village")]
     state, player = make_state(strategy)
-    player.duration = [get_card("Quartermaster")]
+    qm = get_card("Quartermaster")
+    player.duration = [qm]
     state._handle_quartermaster_start_of_turn(player)
-    assert [c.name for c in state.quartermaster_mats[id(player)]] == ["Village"]
+    assert [c.name for c in qm.set_aside] == ["Village"]
     assert state.supply["Village"] == 9
     state._handle_quartermaster_start_of_turn(player)
     assert [c.name for c in player.hand] == ["Village"]
-    assert state.quartermaster_mats[id(player)] == []
+    assert qm.set_aside == []
 
 
 def test_quartermaster_specific_gain_override_can_differ_from_buy_preferences():
@@ -126,9 +127,10 @@ def test_quartermaster_specific_gain_override_can_differ_from_buy_preferences():
     strategy = Strategy()
     strategy.gain_priority = [PriorityRule("Village")]
     state, player = make_state(strategy)
-    player.duration = [get_card("Quartermaster")]
+    qm = get_card("Quartermaster")
+    player.duration = [qm]
     state._handle_quartermaster_start_of_turn(player)
-    assert [c.name for c in state.quartermaster_mats[id(player)]] == ["Smithy"]
+    assert [c.name for c in qm.set_aside] == ["Smithy"]
 
 
 @pytest.mark.parametrize("invalid", [None, "Gold"])
@@ -138,16 +140,18 @@ def test_invalid_or_absent_quartermaster_selection_uses_legal_fallback(invalid):
             return get_card(invalid) if invalid else None
 
     state, player = make_state(Strategy())
-    player.duration = [get_card("Quartermaster")]
+    qm = get_card("Quartermaster")
+    player.duration = [qm]
     state._handle_quartermaster_start_of_turn(player)
-    assert [c.name for c in state.quartermaster_mats[id(player)]] == ["Smithy"]
+    assert [c.name for c in qm.set_aside] == ["Smithy"]
 
 
 def test_quartermaster_fallback_avoids_curse_when_only_victory_is_alternative():
     state, player = make_state(names=("Curse", "Estate"))
-    player.duration = [get_card("Quartermaster")]
+    qm = get_card("Quartermaster")
+    player.duration = [qm]
     state._handle_quartermaster_start_of_turn(player)
-    assert [c.name for c in state.quartermaster_mats[id(player)]] == ["Estate"]
+    assert [c.name for c in qm.set_aside] == ["Estate"]
 
 
 def test_card_specific_choices_respect_phase_preferences():
@@ -185,7 +189,7 @@ def test_tactical_fallback_deprioritizes_only_active_phase_rules(phase, expected
     get_card(card_name).play_effect(state)
     if card_name == "Quartermaster":
         state._handle_quartermaster_start_of_turn(player)
-        assert state.quartermaster_mats[id(player)][0].name == expected
+        assert player.duration[0].set_aside[0].name == expected
     else:
         assert len(player.hand) == (1 if expected == "Village" else 3)
 
@@ -204,9 +208,10 @@ def test_no_eligible_targets_are_a_noop(card_name, target):
 def test_modified_costs_are_used_in_both_menus():
     state, player = make_state(names=("Laboratory",))
     player.cost_reduction = 1
-    player.duration = [get_card("Quartermaster")]
+    qm = get_card("Quartermaster")
+    player.duration = [qm]
     state._handle_quartermaster_start_of_turn(player)
-    assert state.quartermaster_mats[id(player)][0].name == "Laboratory"
+    assert qm.set_aside[0].name == "Laboratory"
 
     state, player = make_state(names=("Hunting Grounds",))
     player.cost_reduction = 1

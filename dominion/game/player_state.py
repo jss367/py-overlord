@@ -555,6 +555,12 @@ class PlayerState:
             self.summon_set_aside,
             self.farmhands_set_aside,
         ]
+        # Cards set aside on a Quartermaster are still the player's at game
+        # end (they count for scoring and for Fountain's Copper count). Each
+        # Quartermaster keeps its own pile and stays in play for the game.
+        for card in self.duration:
+            if card.name == "Quartermaster" and getattr(card, "set_aside", None):
+                zones.append(card.set_aside)
 
         cards: list[Card] = []
         seen_ids: set[int] = set()

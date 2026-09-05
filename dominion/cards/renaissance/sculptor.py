@@ -22,7 +22,7 @@ class Sculptor(Card):
             if count <= 0:
                 continue
             cand = get_card(name)
-            if cand.cost.potions > 0:
+            if cand.cost.potions > 0 or cand.cost.debt > 0:
                 continue
             if cand.cost.coins > 4:
                 continue
