@@ -6,6 +6,9 @@ from .base_way import Way
 class WayOfTheMouse(Way):
     """Play the set-aside card's effect instead of the played card's."""
 
+    # Runs the set-aside card's on_play as its instruction proxy.
+    uses_on_play_proxy = True
+
     def __init__(self, set_aside_card_name: str = "Village"):
         super().__init__("Way of the Mouse")
         self.set_aside_card = get_card(set_aside_card_name)

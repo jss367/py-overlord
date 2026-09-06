@@ -730,6 +730,75 @@ def test_way_played_indirect_action_still_gets_champions_action():
     assert p1.actions == 4
 
 
+def test_innovation_play_from_a_butterfly_gain_is_a_real_play():
+    """Way of the Butterfly is not an on_play proxy, so the Way branch runs
+    it with the proxy flag clear. Its gain reaches Innovation, which plays
+    the gained Smithy directly; that is a real play and keeps Champion's
+    +1 Action. Vassal from hand: -1 +1 (Champion) = 1; Village via Butterfly
+    +1 (Champion) = 2; Innovation's Smithy +1 (Champion) = 3."""
+    from dominion.projects import Innovation
+
+    ai = ScriptedWayAI({"Village": ["Way of the Butterfly"]})
+    state = _game(
+        ["Vassal", "Village", "Smithy"],
+        ["Way of the Butterfly"],
+        [ai, ChooseFirstActionAI()],
+        projects=[Innovation()],
+    )
+    p1 = state.players[0]
+    p1.projects.append(state.projects[0])
+    p1.hand = [get_card("Vassal")]
+    p1.deck = [get_card("Copper"), get_card("Village")]  # top of deck is last
+    p1.actions = 1
+    p1.champions_in_play = 1
+    state.phase = "action"
+    smithies_before = state.supply["Smithy"]
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Vassal", "Village"]
+    assert state.supply["Smithy"] == smithies_before - 1
+    assert [c.name for c in p1.in_play].count("Smithy") == 1
+    assert "Village" not in [c.name for c in p1.in_play]  # returned by Butterfly
+    assert p1.actions == 3
+    assert state._way_proxy_play_active is False
+
+
+def _flag_seen_during_apply(way_cls, monkeypatch):
+    """Record ``_way_proxy_play_active`` as observed inside ``way_cls.apply``."""
+    seen: list[bool] = []
+    original = way_cls.apply
+
+    def recording_apply(self, game_state, card):
+        seen.append(game_state._way_proxy_play_active)
+        return original(self, game_state, card)
+
+    monkeypatch.setattr(way_cls, "apply", recording_apply)
+    return seen
+
+
+def test_only_proxy_ways_arm_the_suppression_flag(monkeypatch):
+    """Chameleon runs the played card's on_play as its proxy and is armed;
+    Butterfly gains a card without any proxy on_play and is not."""
+    from dominion.ways.butterfly import WayOfTheButterfly
+    from dominion.ways.chameleon import WayOfTheChameleon
+
+    butterfly_seen = _flag_seen_during_apply(WayOfTheButterfly, monkeypatch)
+    chameleon_seen = _flag_seen_during_apply(WayOfTheChameleon, monkeypatch)
+    ways = ["Way of the Butterfly", "Way of the Chameleon"]
+
+    ai = ScriptedWayAI({"Village": ["Way of the Butterfly"]})
+    state, p1 = _vassal_plays_village(ai, ways)
+    state.handle_action_phase()
+    assert butterfly_seen == [False]
+
+    ai = ScriptedWayAI({"Village": ["Way of the Chameleon"]})
+    state, p1 = _vassal_plays_village(ai, ways)
+    state.handle_action_phase()
+    assert chameleon_seen == [True]
+    assert state._way_proxy_play_active is False
+
+
 def test_plain_indirect_play_applies_the_pile_token_exactly_once():
     """Regression guard for the on_play refactor: with no Way in the kingdom
     the indirect Village play is +2 Actions from its text plus +1 from the
@@ -836,12 +905,13 @@ def test_nested_plays_under_mouse_still_get_their_own_pile_tokens():
     assert state._way_proxy_play_active is False
 
 
-def test_turtle_does_not_re_append_a_card_ghost_already_put_in_play():
+def test_turtle_loses_track_of_a_card_ghost_already_played():
     """Ghost holds its card for two plays over two turns. If the first of
     them chooses Turtle, the same instance is pending for BOTH Ghost and
-    Turtle on the following turn. Ghost puts it back in play and plays it;
-    the Turtle play must reuse that in-play instance rather than append it
-    a second time, or cleanup would discard the same object twice."""
+    Turtle on the following turn. Ghost's play takes the card out of the
+    set-aside zone and plays it, so Turtle cannot find it where it was left
+    and loses track: Ghost's play is the only play of the card that turn,
+    and the card is in play exactly once afterwards."""
     ai = ScriptedWayAI({"Village": ["Way of the Turtle", None, None]})
     state, p1 = _start_phase_game(ai, ["Way of the Turtle"])
     village = get_card("Village")
@@ -855,18 +925,56 @@ def test_turtle_does_not_re_append_a_card_ghost_already_put_in_play():
     assert village not in p1.in_play
 
     state.handle_cleanup_phase()
-    _run_start_phase(state)  # Ghost play 2, then the Turtle play
+    _run_start_phase(state)  # Ghost play 2; Turtle has lost track, no play
 
-    assert ai.offers == ["Village"] * 3
+    # Two offers in total, one per Ghost play: Turtle did not play it again
+    # (before the lose-track rule this was three offers and 5 Actions).
+    assert ai.offers == ["Village"] * 2
     assert p1.in_play.count(village) == 1
     assert p1.ghost_pending_actions == []
     assert p1.turtle_set_aside == []
-    assert p1.actions == 5  # the turn's 1 Action, +2 from each Village play
+    assert p1.actions_this_turn == 1  # Ghost's play only
+    assert p1.actions == 3  # the turn's 1 Action, +2 from the one Village play
 
     state.handle_cleanup_phase()
 
     everywhere = p1.discard + p1.deck + p1.hand + p1.in_play
     assert everywhere.count(village) == 1
+
+
+def test_turtle_does_not_replay_a_card_ghost_returned_to_its_pile():
+    """Same double pending as above, but Ghost's second-turn play chooses
+    Horse, which returns the Village to its pile. Turtle has lost track of
+    it and must not put that returned instance back into play: the pile
+    goes up by exactly one and the Village is in no player zone."""
+    # One Ghost play per turn: Turtle on turn 1, Horse on turn 2.
+    ai = ScriptedWayAI({"Village": ["Way of the Turtle", "Way of the Horse"]})
+    state, p1 = _start_phase_game(ai, ["Way of the Turtle", "Way of the Horse"])
+    village = get_card("Village")
+    p1.ghost_pending_actions = [(village, 2)]
+    pile_before = state.supply["Village"]
+
+    def zones():
+        return p1.hand + p1.deck + p1.discard + p1.in_play + list(p1.turtle_set_aside)
+
+    _run_start_phase(state)  # Ghost play 1 chooses Turtle
+
+    assert p1.turtle_set_aside == [village]
+    assert p1.ghost_pending_actions == [(village, 1)]
+
+    state.handle_cleanup_phase()
+    _run_start_phase(state)  # Ghost play 2 chooses Horse; Turtle lost track
+
+    assert ai.offers == ["Village"] * 2
+    assert state.supply["Village"] == pile_before + 1
+    assert village not in p1.in_play
+    assert village not in zones()
+    assert p1.actions == 2  # the turn's 1 Action, +1 from Horse (+2 Cards, +1 Action)
+
+    state.handle_cleanup_phase()
+
+    assert state.supply["Village"] == pile_before + 1
+    assert village not in zones()
 
 
 def _vassal_plays_top_card_with_urchin_in_play(ai, kingdom, way_names, top_card):

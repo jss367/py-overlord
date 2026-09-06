@@ -497,18 +497,27 @@ class GameState:
                 )
                 # A Way that runs an on_play as its instruction proxy
                 # (Chameleon on the played card, Mouse on the set-aside
-                # card) must not apply the per-play bonuses or fire play
-                # reactions there; both belong to ``card`` and are applied
-                # once below. The first on_play the Way invokes consumes
-                # the flag (Card.on_play clears it before running its text),
-                # so plays nested inside the proxy's own instructions
-                # (Herald revealing an Action, Counterfeit, Storyteller)
-                # are real plays and keep their side effects.
-                self._way_proxy_play_active = True
-                try:
+                # card; ``Way.uses_on_play_proxy``) must not apply the
+                # per-play bonuses or fire play reactions there; both
+                # belong to ``card`` and are applied once below. The first
+                # on_play the Way invokes consumes the flag (Card.on_play
+                # clears it before running its text), so plays nested
+                # inside the proxy's own instructions (Herald revealing an
+                # Action, Counterfeit, Storyteller) are real plays and keep
+                # their side effects. Every other Way runs with the flag
+                # clear: its instructions never invoke a proxy on_play, so
+                # any play they trigger indirectly (Butterfly's, Rat's or
+                # Worm's gain reaching Innovation, which plays the gained
+                # Action directly) is a real play that keeps its own
+                # bonuses and reactions.
+                if getattr(way, "uses_on_play_proxy", False):
+                    self._way_proxy_play_active = True
+                    try:
+                        way.apply(self, card)
+                    finally:
+                        self._way_proxy_play_active = False
+                else:
                     way.apply(self, card)
-                finally:
-                    self._way_proxy_play_active = False
                 # A Way replaces the card's instructions, not the play
                 # itself. External per-play bonuses (pile tokens on the
                 # played card's pile, Champion's +1 Action) belong to the
@@ -1456,7 +1465,10 @@ class GameState:
             self.receive_boon(player)
         player.pending_blessed_boons = 0
 
-        # Nocturne — Ghost: play the set-aside Action twice over two turns
+        # Nocturne — Ghost: play the set-aside Action twice over two turns.
+        # Record the identity of every card Ghost plays this start phase so
+        # the Turtle loop below can tell that Ghost, not Turtle, moved it.
+        ghost_played_ids: set[int] = set()
         if getattr(player, "ghost_pending_actions", None):
             updated: list = []
             for entry in player.ghost_pending_actions:
@@ -1465,6 +1477,7 @@ class GameState:
                     continue
                 if action_card not in player.in_play:
                     player.in_play.append(action_card)
+                ghost_played_ids.add(id(action_card))
                 self.log_callback(
                     ("action", player.ai.name, f"Ghost replays {action_card}", {})
                 )
@@ -1497,10 +1510,20 @@ class GameState:
         # Each is a real play, so it goes through the shared indirect-play
         # helper (own Way offer, prophecy/ally/tavern hooks, Citadel replay,
         # action counters). A Turtle-played card may choose Turtle again; it
-        # then lands in the fresh list for the following turn. The same
-        # instance can be pending for both Ghost and Turtle (a Ghost replay
-        # that chose Turtle), and Ghost above already put it back in play.
+        # then lands in the fresh list for the following turn.
         for c in turtle_set_aside:
+            # The same instance can be pending for both Ghost and Turtle (a
+            # Ghost replay that chose Turtle). Ghost above already took the
+            # card out of the set-aside zone and played it, so Turtle's
+            # "play it at the start of your next turn" cannot find the card
+            # where Turtle left it: Turtle loses track of it and does
+            # nothing, wherever Ghost's play sent it afterwards (still in
+            # play, back on its pile via Horse or Butterfly, exiled via Worm,
+            # or set aside again via Turtle). Playing it here anyway would
+            # append the instance back into play alongside the copy Ghost's
+            # play already returned or moved, duplicating the card.
+            if id(c) in ghost_played_ids:
+                continue
             if c not in self.current_player.in_play:
                 self.current_player.in_play.append(c)
             self.play_action_indirectly(self.current_player, c)
