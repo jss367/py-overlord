@@ -833,4 +833,98 @@ def test_nested_plays_under_mouse_still_get_their_own_pile_tokens():
     assert p1.actions == 3
     assert [c.name for c in p1.hand] == ["Copper"] * 6
     assert [c.name for c in p1.in_play] == ["Vassal", "Village", "Smithy"]
-    assert state._external_play_bonuses_suppressed is False
+    assert state._way_proxy_play_active is False
+
+
+def test_turtle_does_not_re_append_a_card_ghost_already_put_in_play():
+    """Ghost holds its card for two plays over two turns. If the first of
+    them chooses Turtle, the same instance is pending for BOTH Ghost and
+    Turtle on the following turn. Ghost puts it back in play and plays it;
+    the Turtle play must reuse that in-play instance rather than append it
+    a second time, or cleanup would discard the same object twice."""
+    ai = ScriptedWayAI({"Village": ["Way of the Turtle", None, None]})
+    state, p1 = _start_phase_game(ai, ["Way of the Turtle"])
+    village = get_card("Village")
+    p1.ghost_pending_actions = [(village, 2)]
+
+    _run_start_phase(state)  # Ghost play 1 chooses Turtle
+
+    assert ai.offers == ["Village"]
+    assert p1.turtle_set_aside == [village]
+    assert p1.ghost_pending_actions == [(village, 1)]
+    assert village not in p1.in_play
+
+    state.handle_cleanup_phase()
+    _run_start_phase(state)  # Ghost play 2, then the Turtle play
+
+    assert ai.offers == ["Village"] * 3
+    assert p1.in_play.count(village) == 1
+    assert p1.ghost_pending_actions == []
+    assert p1.turtle_set_aside == []
+    assert p1.actions == 5  # the turn's 1 Action, +2 from each Village play
+
+    state.handle_cleanup_phase()
+
+    everywhere = p1.discard + p1.deck + p1.hand + p1.in_play
+    assert everywhere.count(village) == 1
+
+
+def _vassal_plays_top_card_with_urchin_in_play(ai, kingdom, way_names, top_card):
+    state = _game(kingdom, way_names, [ai, ChooseFirstActionAI()])
+    p1, p2 = state.players
+    urchin = get_card("Urchin")
+    p1.in_play = [urchin]
+    p1.hand = [get_card("Vassal")]
+    # Top of deck is last; the Coppers feed any draw the Way turns into.
+    p1.deck = [get_card("Copper") for _ in range(3)] + [get_card(top_card)]
+    p1.actions = 1
+    p2.hand = [get_card("Copper") for _ in range(5)]
+    state.phase = "action"
+    return state, p1, p2, urchin
+
+
+def test_mouse_with_a_set_aside_attack_does_not_fire_urchin():
+    """Way of the Mouse with Militia set aside. Vassal plays Village via
+    Mouse: Militia's instructions run (the opponent discards to 3, +$2) but
+    the card actually played is Village, not an Attack, so an Urchin in
+    play does not react. The proxy on_play of the set-aside Militia must
+    not fire it."""
+    ai = ScriptedWayAI({"Village": ["Way of the Mouse"]})
+    state, p1, p2, urchin = _vassal_plays_top_card_with_urchin_in_play(
+        ai,
+        ["Vassal", "Village", "Militia", "Urchin"],
+        ["Way of the Mouse (Militia)"],
+        "Village",
+    )
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Vassal", "Village"]
+    assert urchin in p1.in_play
+    assert urchin not in state.trash
+    assert not any(card.name == "Mercenary" for card in p1.discard)
+    assert state.supply["Mercenary"] == 10
+    assert len(p2.hand) == 3  # Militia's instructions still ran
+    assert p1.coins == 4  # Vassal's +$2 and Militia's +$2
+
+
+def test_chameleon_on_an_indirect_attack_fires_urchin_exactly_once():
+    """Mirror of the Mouse case. Vassal plays Militia via Way of the
+    Chameleon, whose proxy run of Militia's own on_play is suppressed; the
+    Way branch then fires the Urchin reaction once for the Attack actually
+    played: one Urchin trashed, one Mercenary gained."""
+    ai = ScriptedWayAI({"Militia": ["Way of the Chameleon"]})
+    state, p1, p2, urchin = _vassal_plays_top_card_with_urchin_in_play(
+        ai, ["Vassal", "Militia", "Urchin"], ["Way of the Chameleon"], "Militia"
+    )
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Vassal", "Militia"]
+    assert urchin not in p1.in_play
+    assert state.trash.count(urchin) == 1
+    assert [card.name for card in p1.discard].count("Mercenary") == 1
+    assert state.supply["Mercenary"] == 9
+    assert len(p2.hand) == 3  # Militia's attack still ran
+    assert p1.coins == 2  # Vassal's +$2 only; Chameleon swapped Militia's for +2 Cards
+    assert [card.name for card in p1.hand] == ["Copper", "Copper"]

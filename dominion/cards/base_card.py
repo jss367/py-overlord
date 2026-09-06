@@ -213,24 +213,26 @@ class Card:
         # Band of Misfits / Vassal, etc. We fire them inside on_play so any
         # caller that invokes on_play directly gets the bonus, not just the
         # main action-phase loop. (GameState._resolve_action_text applies
-        # the same bonuses itself when a Way replaced on_play.) A Way that
-        # runs an on_play as its instruction proxy (Chameleon on the played
-        # card, Mouse on the set-aside card) suppresses them here so the
-        # play helper applies them once, for the card actually played.
+        # the same bonuses itself when a Way replaced on_play.) While a Way's
+        # instruction proxy runs (Chameleon on the played card, Mouse on the
+        # set-aside card) this on_play is not its own play: the per-play
+        # side effects below (external bonuses, Urchin reactions) belong to
+        # the card actually played, and the play helper applies them once
+        # for that card afterwards.
+        way_proxy_play_active = getattr(game_state, "_way_proxy_play_active", False)
         apply_external_bonuses = getattr(
             game_state, "_apply_external_play_bonuses", None
         )
-        if apply_external_bonuses is not None and not getattr(
-            game_state, "_external_play_bonuses_suppressed", False
-        ):
+        if apply_external_bonuses is not None and not way_proxy_play_active:
             apply_external_bonuses(player, self)
 
         # Dark Ages — Urchin reacts to any Attack played while it is in
         # play, including Attacks played indirectly via Throne Room,
         # King's Court, Procession, Band of Misfits, etc. We trigger this
         # at the end of on_play so every Attack play (no matter how it was
-        # initiated) is observed exactly once.
-        if self.is_attack and self.name != "Urchin":
+        # initiated) is observed exactly once. Not for a Way proxy run: a
+        # Mouse following a set-aside Militia's text is not an Attack play.
+        if self.is_attack and self.name != "Urchin" and not way_proxy_play_active:
             urchins = [
                 c for c in list(player.in_play)
                 if c.name == "Urchin" and c is not self

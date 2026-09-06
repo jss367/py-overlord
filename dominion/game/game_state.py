@@ -46,12 +46,13 @@ class GameState:
     # (Falconer, Black Cat, Caravan Guard, ...) temporarily makes the reactor
     # ``current_player``; None outside such plays. See ``turn_player``.
     reaction_turn_player_index: int | None = None
-    # True while a Way's instruction proxy runs an ``on_play`` (Chameleon on
-    # the played card, Mouse on the set-aside card). ``Card.on_play`` then
-    # skips the external per-play bonuses (pile tokens, Champion) so
-    # ``_resolve_action_text`` can apply them exactly once, for the card
-    # actually played. Nested plays reset it; see ``_resolve_action_text``.
-    _external_play_bonuses_suppressed: bool = False
+    # True while a Way's instruction proxy runs (Chameleon on the played
+    # card, Mouse on the set-aside card). ``Card.on_play`` then skips the
+    # per-play side effects that belong to the card actually played, which
+    # ``_resolve_action_text`` applies once afterwards (external bonuses:
+    # pile tokens and Champion; Urchin reactions). Nested plays reset it;
+    # see ``_resolve_action_text``.
+    _way_proxy_play_active: bool = False
     phase: str = "start"
     turn_number: int = 1
     extra_turn: bool = False
@@ -475,11 +476,12 @@ class GameState:
         every play — including a replay of a card whose first play already
         chose a Way — gets its own independent offer.
         """
-        # This is its own play, so it applies its own bonuses even when it is
-        # nested inside a Way proxy that suppressed them (Way of the Mouse
-        # with a set-aside Throne Room playing a Smithy from hand).
-        outer_suppressed = self._external_play_bonuses_suppressed
-        self._external_play_bonuses_suppressed = False
+        # This is its own play, so it applies its own bonuses and reactions
+        # even when it is nested inside a Way proxy that suppressed them
+        # (Way of the Mouse with a set-aside Throne Room playing a Smithy
+        # from hand).
+        outer_proxy_active = self._way_proxy_play_active
+        self._way_proxy_play_active = False
         try:
             way = None
             if self.ways and card.is_action:
@@ -495,12 +497,14 @@ class GameState:
                 )
                 # A Way that runs an on_play as its instruction proxy
                 # (Chameleon on the played card, Mouse on the set-aside
-                # card) must not apply the per-play bonuses there.
-                self._external_play_bonuses_suppressed = True
+                # card) must not apply the per-play bonuses or fire play
+                # reactions there; both belong to ``card`` and are applied
+                # once below.
+                self._way_proxy_play_active = True
                 try:
                     way.apply(self, card)
                 finally:
-                    self._external_play_bonuses_suppressed = False
+                    self._way_proxy_play_active = False
                 # A Way replaces the card's instructions, not the play
                 # itself. External per-play bonuses (pile tokens on the
                 # played card's pile, Champion's +1 Action) belong to the
@@ -509,12 +513,14 @@ class GameState:
                 self._apply_external_play_bonuses(player, card)
                 # Likewise an Attack played via a Way is still an Attack
                 # play, so Urchins in play still react (on_play, which
-                # normally fires them, did not run).
+                # normally fires them, either did not run or was the
+                # suppressed proxy run above). A Mouse whose set-aside card
+                # is an Attack does not make a non-Attack play an Attack.
                 self._fire_urchin_reaction(player, card)
             else:
                 card.on_play(self)
         finally:
-            self._external_play_bonuses_suppressed = outer_suppressed
+            self._way_proxy_play_active = outer_proxy_active
 
     def fire_prophecy_action_hooks(self, player: PlayerState, card: Card) -> None:
         """Fire the active Prophecy's after-Action-play hooks for ``card``.
@@ -1487,9 +1493,12 @@ class GameState:
         # Each is a real play, so it goes through the shared indirect-play
         # helper (own Way offer, prophecy/ally/tavern hooks, Citadel replay,
         # action counters). A Turtle-played card may choose Turtle again; it
-        # then lands in the fresh list for the following turn.
+        # then lands in the fresh list for the following turn. The same
+        # instance can be pending for both Ghost and Turtle (a Ghost replay
+        # that chose Turtle), and Ghost above already put it back in play.
         for c in turtle_set_aside:
-            self.current_player.in_play.append(c)
+            if c not in self.current_player.in_play:
+                self.current_player.in_play.append(c)
             self.play_action_indirectly(self.current_player, c)
 
         # Adventures Save: cards set aside last turn return to hand.
