@@ -25,12 +25,14 @@ class WayOfTheFrog(Way):
         # The marker names the owner and the turn it was set in (the player's
         # own turn counter, which also advances on Outpost/Journey extra
         # turns), and cleanup only honours a marker from the current player's
-        # current turn. A card that leaves play after being marked -- Throne
-        # Room's second play picks Turtle, Horse or Butterfly; Procession
-        # trashes it -- keeps the attribute, but when it comes back on a later
-        # turn the expired Frog no longer topdecks it. The owner is part of the
-        # key because turn counters are only unique per player: a trashed
-        # marked card that Lurker + Innovation gains and plays for an opponent
-        # with the same ``turns_taken`` must not topdeck at their cleanup.
+        # current turn, so a marker that somehow survives past its turn is
+        # inert. The owner is part of the key because turn counters are only
+        # unique per player: a trashed marked card that Lurker + Innovation
+        # gains and plays for an opponent with the same ``turns_taken`` must
+        # not topdeck at their cleanup. A card that leaves play before cleanup
+        # (Throne Room's second play picks Turtle, Horse, Butterfly or Worm;
+        # Procession trashes it) has its marker cleared at that point, so if
+        # the same owner regains and replays the instance this turn without
+        # Frog (Lurker + Innovation) cleanup discards it normally.
         if card in player.in_play and game_state.turn_player is player:
             card._frog_topdeck = (id(player), player.turns_taken)

@@ -49,6 +49,8 @@ class WayOfTheHorse(Way):
         if pile_name is None:
             return
         player.in_play.remove(card)
+        # Leaving play ends any Frog marker from an earlier play this turn.
+        card._frog_topdeck = None
         game_state.supply[pile_name] = game_state.supply.get(pile_name, 0) + 1
         # For ordered mixed-name piles (Knights, Ruins, etc.), put the
         # specific card back on top of the pile_order so the next gain

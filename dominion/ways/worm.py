@@ -16,6 +16,8 @@ class WayOfTheWorm(Way):
         # happens.
         if card in player.in_play:
             player.in_play.remove(card)
+            # Leaving play ends any Frog marker from an earlier play this turn.
+            card._frog_topdeck = None
             player.exile.append(card)
         if game_state.supply.get("Estate", 0) > 0:
             game_state.supply["Estate"] -= 1

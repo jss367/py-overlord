@@ -495,45 +495,59 @@ class GameState:
                         {"card": card.name, "way": way.name},
                     )
                 )
-                # A Way that runs an on_play as its instruction proxy
-                # (Chameleon on the played card, Mouse on the set-aside
-                # card; ``Way.uses_on_play_proxy``) must not apply the
-                # per-play bonuses or fire play reactions there; both
-                # belong to ``card`` and are applied once below. The first
-                # on_play the Way invokes consumes the flag (Card.on_play
-                # clears it before running its text), so plays nested
-                # inside the proxy's own instructions (Herald revealing an
-                # Action, Counterfeit, Storyteller) are real plays and keep
-                # their side effects. Every other Way runs with the flag
-                # clear: its instructions never invoke a proxy on_play, so
-                # any play they trigger indirectly (Butterfly's, Rat's or
-                # Worm's gain reaching Innovation, which plays the gained
-                # Action directly) is a real play that keeps its own
-                # bonuses and reactions.
-                if getattr(way, "uses_on_play_proxy", False):
-                    self._way_proxy_play_active = True
-                    try:
-                        way.apply(self, card)
-                    finally:
-                        self._way_proxy_play_active = False
-                else:
-                    way.apply(self, card)
-                # A Way replaces the card's instructions, not the play
-                # itself. External per-play bonuses (pile tokens on the
-                # played card's pile, Champion's +1 Action) belong to the
-                # card actually played, exactly once per play, whichever
-                # Way replaced its text.
-                self._apply_external_play_bonuses(player, card)
-                # Likewise an Attack played via a Way is still an Attack
-                # play, so Urchins in play still react (on_play, which
-                # normally fires them, either did not run or was the
-                # suppressed proxy run above). A Mouse whose set-aside card
-                # is an Attack does not make a non-Attack play an Attack.
-                self._fire_urchin_reaction(player, card)
+                self._apply_way_text(player, card, way)
             else:
                 card.on_play(self)
         finally:
             self._way_proxy_play_active = outer_proxy_active
+
+    def _apply_way_text(self, player: PlayerState, card: Card, way) -> None:
+        """Resolve one play of ``card`` using ``way``'s instructions instead of
+        its own: arm the proxy flag for on_play-proxy Ways (Chameleon, Mouse),
+        apply the Way, then apply the per-play side effects that belong to the
+        card actually played (external bonuses, Urchin).
+
+        Shared by ``_resolve_action_text`` and the action-phase loop so a Way
+        play from hand and a Way play through the helper get the same
+        treatment. Self-contained: the flag is restored to its previous value
+        afterwards, whatever the caller left it at.
+        """
+        # A Way that runs an on_play as its instruction proxy
+        # (Chameleon on the played card, Mouse on the set-aside
+        # card; ``Way.uses_on_play_proxy``) must not apply the
+        # per-play bonuses or fire play reactions there; both
+        # belong to ``card`` and are applied once below. The first
+        # on_play the Way invokes consumes the flag (Card.on_play
+        # clears it before running its text), so plays nested
+        # inside the proxy's own instructions (Herald revealing an
+        # Action, Counterfeit, Storyteller) are real plays and keep
+        # their side effects. Every other Way runs with the flag
+        # clear: its instructions never invoke a proxy on_play, so
+        # any play they trigger indirectly (Butterfly's, Rat's or
+        # Worm's gain reaching Innovation, which plays the gained
+        # Action directly) is a real play that keeps its own
+        # bonuses and reactions.
+        if getattr(way, "uses_on_play_proxy", False):
+            previous = self._way_proxy_play_active
+            self._way_proxy_play_active = True
+            try:
+                way.apply(self, card)
+            finally:
+                self._way_proxy_play_active = previous
+        else:
+            way.apply(self, card)
+        # A Way replaces the card's instructions, not the play
+        # itself. External per-play bonuses (pile tokens on the
+        # played card's pile, Champion's +1 Action) belong to the
+        # card actually played, exactly once per play, whichever
+        # Way replaced its text.
+        self._apply_external_play_bonuses(player, card)
+        # Likewise an Attack played via a Way is still an Attack
+        # play, so Urchins in play still react (on_play, which
+        # normally fires them, either did not run or was the
+        # suppressed proxy run above). A Mouse whose set-aside card
+        # is an Attack does not make a non-Attack play an Attack.
+        self._fire_urchin_reaction(player, card)
 
     def fire_prophecy_action_hooks(self, player: PlayerState, card: Card) -> None:
         """Fire the active Prophecy's after-Action-play hooks for ``card``.
@@ -2044,7 +2058,10 @@ class GameState:
             training_pile = getattr(player, "training_pile", None)
 
             if way:
-                way.apply(self, choice)
+                # Same Way protocol as the shared helper: proxy flag for
+                # Chameleon/Mouse, then the pile-token/Champion bonuses and
+                # Urchin reaction for the card actually played.
+                self._apply_way_text(player, choice, way)
                 if training_pile and choice.name == training_pile:
                     player.coins += 1
                 # Menagerie: Kiln triggers on Way-played card too.
@@ -4854,6 +4871,11 @@ class GameState:
 
     def trash_card(self, player: PlayerState, card: Card) -> None:
         """Move a card to the trash and trigger related effects."""
+        # A Frog-marked card that leaves play (Procession trashes it) is no
+        # longer "this" Frog play: if the same instance is regained and
+        # replayed this turn (Lurker + Innovation) cleanup must not topdeck it.
+        if hasattr(card, "_frog_topdeck"):
+            card._frog_topdeck = None
         self.trash.append(card)
         card.on_trash(self, player)
 

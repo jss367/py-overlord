@@ -1304,3 +1304,98 @@ def test_mouse_proxy_of_a_set_aside_attack_still_skips_its_token_and_urchin():
     assert urchin not in state.trash
     assert state.supply["Mercenary"] == 10
     assert len(p2.hand) == 3  # Militia's instructions still ran
+
+
+def test_frog_marker_is_cleared_when_the_card_is_trashed():
+    """Same owner, same turn: p1's Vassal plays Village with Frog, Procession
+    style trashes it, and Lurker + Innovation put the same instance back
+    into play without Frog. Trashing clears the marker, so cleanup discards
+    the Village normally instead of honouring the earlier Frog play."""
+    ai = ScriptedWayAI({"Village": ["Way of the Frog"]})
+    state, p1 = _vassal_plays_village(ai, ["Way of the Frog"])
+    village = p1.deck[-1]
+
+    state.handle_action_phase()
+
+    assert village._frog_topdeck == (id(p1), p1.turns_taken)
+
+    p1.in_play.remove(village)
+    state.trash_card(p1, village)
+    assert village._frog_topdeck is None
+
+    # Regained and replayed this turn (the script is exhausted, so no Way).
+    state.trash.remove(village)
+    p1.in_play.append(village)
+    p1.deck = [get_card("Copper") for _ in range(10)]
+
+    state.handle_cleanup_phase()
+
+    assert village in p1.discard
+    assert village not in p1.deck
+    assert village not in p1.hand
+
+
+def _hand_play_game(ai, kingdom, way_names):
+    state = _game(kingdom, way_names, [ai, ChooseFirstActionAI()])
+    p1, p2 = state.players
+    p1.deck = [get_card("Copper") for _ in range(10)]
+    p1.actions = 1
+    p2.hand = [get_card("Copper") for _ in range(5)]
+    state.phase = "action"
+    return state, p1, p2
+
+
+def test_main_loop_mouse_credits_bonuses_to_the_card_played_from_hand():
+    """Action-phase loop, not the helper: Village from hand via Way of the
+    Mouse (Smithy) with a +1 Action token on Village and a Champion in play.
+    Smithy's text runs (+3 Cards) and Village's token and Champion each pay
+    once for the card actually played: 1 - 1 + 1 + 1 = 2 Actions."""
+    ai = ScriptedWayAI({"Village": ["Way of the Mouse"]})
+    state, p1, _ = _hand_play_game(ai, ["Village", "Smithy"], ["Way of the Mouse (Smithy)"])
+    state.add_pile_token(p1, "Village", "+1 Action")
+    p1.champions_in_play = 1
+    p1.hand = [get_card("Village")]
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Village"]
+    assert p1.actions == 2
+    assert len(p1.hand) == 3  # Smithy's draw, no Village draw
+    assert state._way_proxy_play_active is False
+
+
+def test_main_loop_mouse_does_not_apply_the_set_aside_cards_token():
+    """Mirror of the above with the token on Smithy only: the set-aside
+    Smithy was not played, so nothing pays and Village's play costs its
+    Action outright."""
+    ai = ScriptedWayAI({"Village": ["Way of the Mouse"]})
+    state, p1, _ = _hand_play_game(ai, ["Village", "Smithy"], ["Way of the Mouse (Smithy)"])
+    state.add_pile_token(p1, "Smithy", "+1 Action")
+    p1.hand = [get_card("Village")]
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Village"]
+    assert p1.actions == 0
+    assert len(p1.hand) == 3
+
+
+def test_main_loop_way_played_attack_from_hand_still_fires_urchin():
+    """Action-phase loop: Militia from hand via Way of the Ox with an Urchin
+    in play. Ox replaced Militia's text, but the play is still an Attack
+    play, so the Urchin is trashed once and one Mercenary gained."""
+    ai = ScriptedWayAI({"Militia": ["Way of the Ox"]})
+    state, p1, p2 = _hand_play_game(ai, ["Militia", "Urchin"], ["Way of the Ox"])
+    urchin = get_card("Urchin")
+    p1.in_play = [urchin]
+    p1.hand = [get_card("Militia")]
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Militia"]
+    assert urchin not in p1.in_play
+    assert state.trash.count(urchin) == 1
+    assert [card.name for card in p1.discard].count("Mercenary") == 1
+    assert state.supply["Mercenary"] == 9
+    assert len(p2.hand) == 5  # Ox replaced the attack
+    assert p1.actions == 2

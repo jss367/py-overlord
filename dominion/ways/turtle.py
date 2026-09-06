@@ -17,6 +17,8 @@ class WayOfTheTurtle(Way):
         if card not in player.in_play:
             return
         player.in_play.remove(card)
+        # Leaving play ends any Frog marker from an earlier play this turn.
+        card._frog_topdeck = None
         if not hasattr(player, "turtle_set_aside"):
             player.turtle_set_aside = []
         player.turtle_set_aside.append(card)
