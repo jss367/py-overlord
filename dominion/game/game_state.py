@@ -1506,15 +1506,12 @@ class GameState:
             self.current_player.hand.extend(self.current_player.save_set_aside)
             self.current_player.save_set_aside = []
 
-        # Promo Summon: play any cards set aside by Summon last turn.
-        # Increment ``actions_this_turn`` before ``on_play`` so cards keyed
-        # off that counter (e.g. Conspirator) see the Summoned play, matching
-        # ``_handle_hasty_start_of_turn`` / ``_handle_patient_start_of_turn``.
-        # After ``on_play`` we also run the post-play hook chain that the
-        # main action loop fires (Rising Sun prophecy, Allies play hooks,
-        # Adventures Tavern triggers like Coin of the Realm / Royal
-        # Carriage), so Reserve/ally/prophecy effects keyed on "when you
-        # play an Action" trigger for Summoned plays too.
+        # Promo Summon: play any cards set aside by Summon last turn. Each
+        # Action play goes through ``play_action_indirectly`` so it gets the
+        # same per-play bookkeeping as the action-phase loop (Way offer,
+        # actions_this_turn for Conspirator, prophecy / ally / Tavern hooks,
+        # Citadel replay), matching ``_handle_hasty_start_of_turn`` /
+        # ``_handle_patient_start_of_turn``.
         summoned = list(self.current_player.summon_set_aside)
         if summoned:
             self.current_player.summon_set_aside = []
@@ -1522,19 +1519,9 @@ class GameState:
                 player = self.current_player
                 player.in_play.append(card)
                 if card.is_action:
-                    player.actions_this_turn += 1
-                card.on_play(self)
-                if card.is_action:
-                    if self.prophecy is not None and self.prophecy.is_active:
-                        self.prophecy.on_play_action(self, player, card)
-                        if card.is_attack:
-                            self.prophecy.on_play_attack(self, player, card)
-                    self.fire_ally_play_hooks(player, card)
-                    self._call_tavern_triggers(player, "action_played", card)
-                    # Renaissance Citadel: a Summoned Action played at
-                    # start of turn counts as the first Action of the
-                    # turn, so Citadel marks used and replays it.
-                    self._maybe_citadel_replay(player, card)
+                    self.play_action_indirectly(player, card)
+                else:
+                    card.on_play(self)
 
         # Adventures: reset once-per-turn caps for events.
         self.current_player.borrow_used_this_turn = False
@@ -1780,10 +1767,11 @@ class GameState:
         cards = self.hasty_set_aside.pop(id(player), [])
         for card in cards:
             if card.is_action:
+                # A real Action play: route it through the shared helper so
+                # it is offered a Way and fires the per-play hooks (Citadel
+                # replay included) like any other play.
                 player.in_play.append(card)
-                player.actions_this_turn += 1
-                card.on_play(self)
-                self._maybe_citadel_replay(player, card)
+                self.play_action_indirectly(player, card)
             elif card.is_treasure:
                 player.in_play.append(card)
                 card.on_play(self)
@@ -1794,10 +1782,11 @@ class GameState:
         cards = self.patient_mat.pop(id(player), [])
         for card in cards:
             if card.is_action:
+                # A real Action play: route it through the shared helper so
+                # it is offered a Way and fires the per-play hooks (Citadel
+                # replay included) like any other play.
                 player.in_play.append(card)
-                player.actions_this_turn += 1
-                card.on_play(self)
-                self._maybe_citadel_replay(player, card)
+                self.play_action_indirectly(player, card)
             elif card.is_treasure:
                 player.in_play.append(card)
                 card.on_play(self)

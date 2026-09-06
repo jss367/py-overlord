@@ -928,3 +928,67 @@ def test_chameleon_on_an_indirect_attack_fires_urchin_exactly_once():
     assert len(p2.hand) == 3  # Militia's attack still ran
     assert p1.coins == 2  # Vassal's +$2 only; Chameleon swapped Militia's for +2 Cards
     assert [card.name for card in p1.hand] == ["Copper", "Copper"]
+
+
+def _start_of_turn_ox_play(ai, schedule):
+    """Schedule one Village for a start-of-turn play via ``schedule(state, p1,
+    village)`` and run the start phase with Way of the Ox available."""
+    state, p1 = _start_phase_game(ai, ["Way of the Ox", "Way of the Squirrel"])
+    village = get_card("Village")
+    schedule(state, p1, village)
+    _run_start_phase(state)
+    return state, p1, village
+
+
+def _assert_ox_replaced_village(ai, p1, village):
+    assert ai.offers == ["Village"]
+    assert p1.actions == 2  # Ox's +2 Actions, not Village's +1 Card +2 Actions
+    assert len(p1.hand) == 0  # Village's draw did not happen
+    assert village in p1.in_play
+    assert p1.actions_this_turn == 1
+
+
+def test_hasty_start_of_turn_play_is_offered_a_way():
+    ai = ScriptedWayAI({"Village": ["Way of the Ox"]})
+    _, p1, village = _start_of_turn_ox_play(
+        ai, lambda state, p, card: state.hasty_set_aside.setdefault(id(p), []).append(card)
+    )
+    _assert_ox_replaced_village(ai, p1, village)
+
+
+def test_patient_start_of_turn_play_is_offered_a_way():
+    ai = ScriptedWayAI({"Village": ["Way of the Ox"]})
+    _, p1, village = _start_of_turn_ox_play(
+        ai, lambda state, p, card: state.patient_mat.setdefault(id(p), []).append(card)
+    )
+    _assert_ox_replaced_village(ai, p1, village)
+
+
+def test_summon_start_of_turn_play_is_offered_a_way():
+    ai = ScriptedWayAI({"Village": ["Way of the Ox"]})
+    _, p1, village = _start_of_turn_ox_play(
+        ai, lambda state, p, card: setattr(p, "summon_set_aside", [card])
+    )
+    _assert_ox_replaced_village(ai, p1, village)
+
+
+def test_hasty_play_choosing_squirrel_defers_the_draw_to_next_turn():
+    """The round-6 start-phase snapshot already defers a Squirrel chosen
+    during the start phase to the following turn; this proves the Hasty
+    routing actually reaches that Way offer."""
+    ai = ScriptedWayAI({"Village": ["Way of the Squirrel"]})
+    state, p1 = _start_phase_game(ai, ["Way of the Squirrel"])
+    village = get_card("Village")
+    state.hasty_set_aside.setdefault(id(p1), []).append(village)
+
+    _run_start_phase(state)
+
+    assert ai.offers == ["Village"]
+    assert len(p1.hand) == 0  # not drawn this start phase
+    assert p1.squirrel_pending == 2
+    assert village in p1.in_play
+
+    _run_start_phase(state)
+
+    assert len(p1.hand) == 2
+    assert p1.squirrel_pending == 0
