@@ -992,3 +992,115 @@ def test_hasty_play_choosing_squirrel_defers_the_draw_to_next_turn():
 
     assert len(p1.hand) == 2
     assert p1.squirrel_pending == 0
+
+
+# --- The proxy flag is consumed by the proxy's own on_play (round 12) ---
+
+
+def _vassal_plays_village_via_mouse_herald(ai, urchin_in_play):
+    """Vassal reveals Village and plays it via Way of the Mouse with Herald
+    set aside. The proxy Herald draws one card (a Copper) and then reveals
+    Militia from the top of the deck and plays it directly through
+    ``Militia.on_play`` (not the shared helper). Opponent holds 5 cards."""
+    state = _game(
+        ["Vassal", "Village", "Herald", "Militia", "Urchin"],
+        ["Way of the Mouse (Herald)"],
+        [ai, ChooseFirstActionAI()],
+    )
+    p1, p2 = state.players
+    urchin = get_card("Urchin")
+    if urchin_in_play:
+        p1.in_play = [urchin]
+    p1.hand = [get_card("Vassal")]
+    # Top of deck is last: Vassal takes Village, Herald's +1 Card takes the
+    # Copper, Herald's reveal takes Militia.
+    p1.deck = [
+        get_card("Copper"),
+        get_card("Militia"),
+        get_card("Copper"),
+        get_card("Village"),
+    ]
+    p1.actions = 1
+    p2.hand = [get_card("Copper") for _ in range(5)]
+    state.phase = "action"
+    return state, p1, p2, urchin
+
+
+def test_play_nested_under_a_mouse_proxy_is_a_real_play():
+    """Champion in play, Urchin in play. Vassal plays Village via Way of the
+    Mouse (Herald); the proxy Herald reveals Militia and plays it directly.
+    Militia is a real Attack play, so it gets Champion's +1 Action and
+    fires the Urchin (one trash, one Mercenary); the proxy Herald itself
+    does not get Champion (that Action belongs to Village and is paid by
+    the Way branch once).
+
+    Actions: start 1, Vassal costs 1 (0), Champion for Vassal (1), Herald
+    proxy's own +1 Action (2), Champion for Militia (3), Champion for the
+    Way-played Village (4)."""
+    ai = ScriptedWayAI({"Village": ["Way of the Mouse"]})
+    state, p1, p2, urchin = _vassal_plays_village_via_mouse_herald(
+        ai, urchin_in_play=True
+    )
+    p1.champions_in_play = 1
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Vassal", "Village"]
+    assert p1.actions == 4
+    assert p1.coins == 4  # Vassal's +$2 and Militia's +$2
+    assert len(p2.hand) == 3
+    assert urchin not in p1.in_play
+    assert state.trash.count(urchin) == 1
+    assert [card.name for card in p1.discard].count("Mercenary") == 1
+    assert state.supply["Mercenary"] == 9
+    assert [c.name for c in p1.in_play] == ["Vassal", "Village", "Militia"]
+    assert state._way_proxy_play_active is False
+
+
+def test_play_nested_under_a_mouse_proxy_gets_its_own_pile_token():
+    """Same shape with a +1 Action token on Militia and no Champion. The
+    token fires once for the directly played Militia; Village and Herald
+    have no token.
+
+    Actions: start 1, Vassal costs 1 (0), Herald proxy's +1 Action (1),
+    Militia's token (2)."""
+    ai = ScriptedWayAI({"Village": ["Way of the Mouse"]})
+    state, p1, p2, _ = _vassal_plays_village_via_mouse_herald(
+        ai, urchin_in_play=False
+    )
+    state.add_pile_token(p1, "Militia", "+1 Action")
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Vassal", "Village"]
+    assert p1.actions == 2
+    assert len(p2.hand) == 3
+    assert [c.name for c in p1.in_play] == ["Vassal", "Village", "Militia"]
+
+
+def test_mouse_proxy_of_a_set_aside_attack_still_skips_its_token_and_urchin():
+    """Regression guard for the one-shot consume: the proxy run itself is
+    still suppressed. Way of the Mouse (Militia), +1 Action tokens on both
+    Village and Militia, Urchin in play. Vassal plays Village via Mouse:
+    Militia's token does not apply (only Village's), and the Urchin does
+    not react.
+
+    Actions: start 1, Vassal costs 1 (0), Village's token (1)."""
+    ai = ScriptedWayAI({"Village": ["Way of the Mouse"]})
+    state, p1, p2, urchin = _vassal_plays_top_card_with_urchin_in_play(
+        ai,
+        ["Vassal", "Village", "Militia", "Urchin"],
+        ["Way of the Mouse (Militia)"],
+        "Village",
+    )
+    state.add_pile_token(p1, "Village", "+1 Action")
+    state.add_pile_token(p1, "Militia", "+1 Action")
+
+    state.handle_action_phase()
+
+    assert ai.offers == ["Vassal", "Village"]
+    assert p1.actions == 1
+    assert urchin in p1.in_play
+    assert urchin not in state.trash
+    assert state.supply["Mercenary"] == 10
+    assert len(p2.hand) == 3  # Militia's instructions still ran

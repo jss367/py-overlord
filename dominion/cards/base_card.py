@@ -184,6 +184,19 @@ class Card:
         """Execute this card's effects when played."""
         player = game_state.current_player
 
+        # A Way's instruction proxy (Chameleon on the played card, Mouse on
+        # the set-aside card) is flagged by GameState._resolve_action_text.
+        # Consume the flag here, first thing, so it applies to THIS on_play
+        # only: any play this card's own text triggers (Herald, Counterfeit,
+        # Storyteller, ...) is a real play and must keep its per-play side
+        # effects. Residual limitation: an on_play override that does not
+        # call super() (Bauble, Contract style) never reaches this line, so
+        # the flag would leak into plays nested under it; no such override
+        # plays other cards today.
+        way_proxy_run = getattr(game_state, "_way_proxy_play_active", False)
+        if way_proxy_run:
+            game_state._way_proxy_play_active = False
+
         # Rising Sun: "+1 Sun" always appears first on Omens, before any
         # other text. Removing the last Sun token activates the Prophecy in
         # the middle of resolving the Omen (e.g. so Kitsune sees the new
@@ -213,17 +226,16 @@ class Card:
         # Band of Misfits / Vassal, etc. We fire them inside on_play so any
         # caller that invokes on_play directly gets the bonus, not just the
         # main action-phase loop. (GameState._resolve_action_text applies
-        # the same bonuses itself when a Way replaced on_play.) While a Way's
-        # instruction proxy runs (Chameleon on the played card, Mouse on the
-        # set-aside card) this on_play is not its own play: the per-play
-        # side effects below (external bonuses, Urchin reactions) belong to
-        # the card actually played, and the play helper applies them once
-        # for that card afterwards.
-        way_proxy_play_active = getattr(game_state, "_way_proxy_play_active", False)
+        # the same bonuses itself when a Way replaced on_play.) When this
+        # on_play is a Way's instruction proxy (``way_proxy_run``, consumed
+        # at the top) it is not its own play: the per-play side effects
+        # below (external bonuses, Urchin reactions) belong to the card
+        # actually played, and the play helper applies them once for that
+        # card afterwards.
         apply_external_bonuses = getattr(
             game_state, "_apply_external_play_bonuses", None
         )
-        if apply_external_bonuses is not None and not way_proxy_play_active:
+        if apply_external_bonuses is not None and not way_proxy_run:
             apply_external_bonuses(player, self)
 
         # Dark Ages — Urchin reacts to any Attack played while it is in
@@ -232,7 +244,7 @@ class Card:
         # at the end of on_play so every Attack play (no matter how it was
         # initiated) is observed exactly once. Not for a Way proxy run: a
         # Mouse following a set-aside Militia's text is not an Attack play.
-        if self.is_attack and self.name != "Urchin" and not way_proxy_play_active:
+        if self.is_attack and self.name != "Urchin" and not way_proxy_run:
             urchins = [
                 c for c in list(player.in_play)
                 if c.name == "Urchin" and c is not self

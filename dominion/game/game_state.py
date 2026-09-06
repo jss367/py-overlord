@@ -499,7 +499,11 @@ class GameState:
                 # (Chameleon on the played card, Mouse on the set-aside
                 # card) must not apply the per-play bonuses or fire play
                 # reactions there; both belong to ``card`` and are applied
-                # once below.
+                # once below. The first on_play the Way invokes consumes
+                # the flag (Card.on_play clears it before running its text),
+                # so plays nested inside the proxy's own instructions
+                # (Herald revealing an Action, Counterfeit, Storyteller)
+                # are real plays and keep their side effects.
                 self._way_proxy_play_active = True
                 try:
                     way.apply(self, card)
