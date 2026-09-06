@@ -3084,7 +3084,7 @@ class GameState:
                 return False
             if card in trickster_selected:
                 return False
-            if getattr(card, "_frog_topdeck", None) == player.turns_taken:
+            if getattr(card, "_frog_topdeck", None) == (id(player), player.turns_taken):
                 return False
             if card.name == "Merchant Camp":
                 return False
@@ -3144,10 +3144,11 @@ class GameState:
         for card in in_play_cards:
             if card in durations_to_keep:
                 player.in_play.append(card)
-            elif getattr(card, "_frog_topdeck", None) == player.turns_taken:
+            elif getattr(card, "_frog_topdeck", None) == (id(player), player.turns_taken):
                 # Menagerie Way of the Frog: topdeck on cleanup. The marker is
-                # the turn it was set in, so a stale marker on a card that left
-                # play and came back on a later turn does not fire.
+                # (owner, turn it was set in), so a stale marker on a card that
+                # left play and came back on a later turn -- or under another
+                # player whose turn counter happens to match -- does not fire.
                 card._frog_topdeck = None
                 player.deck.append(card)
             elif card.name == "Merchant Camp":
@@ -3301,6 +3302,18 @@ class GameState:
             # An off-turn Reaction play bumps the reactor's per-turn count too;
             # in 3+ player games it would otherwise leak into the next turn.
             other.actions_this_turn = 0
+            if other is player:
+                continue
+            # An off-turn Way can gain the reactor cards (Worm's Estate, Rat's
+            # Action) and ``gain_card`` records them in turn-scoped history.
+            # That is not a gain on *their* turn, so clear it without rotating
+            # it into ``*_last_turn`` (Smugglers, Taskmaster); the turn player's
+            # own history is rotated below.
+            other.gained_cards_this_turn = []
+            other.cards_gained_this_turn = 0
+            other.cards_gained_this_turn_count = 0
+            other.gained_five_this_turn = False
+            other.gained_victory_this_turn = False
         # Adventures: clear Mission no-buy flag at end of the bonus turn.
         player.mission_no_buy_turn = False
         # Allies Voyage: clear the extra-turn card-play limit.

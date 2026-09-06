@@ -690,6 +690,98 @@ def test_cleanup_resets_off_turn_action_counts_for_every_player():
     assert p3.actions_this_turn == 0
 
 
+def test_cleanup_clears_off_turn_gain_history_without_rotating_it():
+    """p2's Sheepdog reacts during p1's turn and picks Way of the Worm, which
+    exiles the Sheepdog and gains p2 an Estate. ``gain_card`` records that in
+    p2's turn-scoped history, but it is not a gain on p2's turn: cleanup must
+    clear it (Wayfarer, Treasury) without rotating it into p2's
+    ``gained_cards_last_turn`` (Smugglers). p1's own history still rotates."""
+    p2_ai = ScriptedWayAI({"Sheepdog": ["Way of the Worm"]})
+    state = _game(["Sheepdog"], ["Way of the Worm"], [ChooseFirstActionAI(), p2_ai])
+    p1, p2 = state.players
+    assert state.current_player is p1
+    p1.deck = [get_card("Copper") for _ in range(5)]
+    p2.hand = [get_card("Sheepdog")]
+    p2.deck = [get_card("Copper") for _ in range(5)]
+    p2.gained_cards_last_turn = ["Gold"]
+    p2.gained_five_last_turn = True
+
+    state.gain_card(p2, get_card("Silver"))
+    state.gain_card(p1, get_card("Copper"))
+
+    assert p2_ai.offers == ["Sheepdog"]
+    assert sorted(p2.gained_cards_this_turn) == ["Estate", "Silver"]
+    assert p2.cards_gained_this_turn == 2
+    assert p2.gained_victory_this_turn is True
+    assert p1.gained_cards_this_turn == ["Copper"]
+
+    state.handle_cleanup_phase()
+
+    assert p2.gained_cards_this_turn == []
+    assert p2.cards_gained_this_turn == 0
+    assert p2.cards_gained_this_turn_count == 0
+    assert p2.gained_five_this_turn is False
+    assert p2.gained_victory_this_turn is False
+    # Not rotated: the off-turn gain is not "last turn's" gain for p2.
+    assert p2.gained_cards_last_turn == ["Gold"]
+    assert p2.gained_five_last_turn is True
+    # The turn player's history rotated as before.
+    assert p1.gained_cards_last_turn == ["Copper"]
+    assert p1.gained_cards_this_turn == []
+
+
+def test_cleanup_clears_an_off_turn_five_cost_gain_flag():
+    """Way of the Rat on an off-turn Sheepdog gains p2 a $5 Action, which sets
+    ``gained_five_this_turn``. Without a reset it would become p2's
+    ``gained_five_last_turn`` at their next start phase and keep Taskmaster."""
+    p2_ai = ScriptedWayAI({"Sheepdog": ["Way of the Rat"]})
+    state = _game(["Sheepdog", "Laboratory"], ["Way of the Rat"], [ChooseFirstActionAI(), p2_ai])
+    p1, p2 = state.players
+    assert state.current_player is p1
+    p2.hand = [get_card("Sheepdog"), get_card("Copper")]
+    p2.deck = [get_card("Copper") for _ in range(5)]
+
+    state.gain_card(p2, get_card("Silver"))
+
+    assert "Laboratory" in p2.gained_cards_this_turn
+    assert p2.gained_five_this_turn is True
+
+    state.handle_cleanup_phase()
+
+    assert p2.gained_five_this_turn is False
+    assert p2.gained_five_last_turn is False
+
+
+def test_frog_marker_is_bound_to_the_player_who_set_it():
+    """A Frog marker names its owner as well as the turn. If the marked
+    instance changes hands (Procession trashes it, Lurker + Innovation gains
+    and plays it for p2) while both players' ``turns_taken`` match, p2's
+    cleanup must discard it normally rather than honour p1's Frog."""
+    ai = ScriptedWayAI({"Village": ["Way of the Frog"]})
+    state, p1 = _vassal_plays_village(ai, ["Way of the Frog"])
+    p2 = state.players[1]
+    village = p1.deck[-1]
+
+    state.handle_action_phase()
+
+    assert village in p1.in_play
+    assert village._frog_topdeck == (id(p1), p1.turns_taken)
+    assert p1.turns_taken == p2.turns_taken
+
+    # The same instance ends up in play for p2 on a turn with a matching
+    # counter.
+    p1.in_play.remove(village)
+    p2.in_play.append(village)
+    p2.deck = [get_card("Copper") for _ in range(10)]
+    state.current_player_index = 1
+
+    state.handle_cleanup_phase()
+
+    assert village in p2.discard
+    assert village not in p2.deck
+    assert village not in p2.hand
+
+
 def _vassal_plays_village(ai, way_names):
     """Vassal (in hand) reveals Village from the top of the deck and plays it."""
     state = _game(["Vassal", "Village"], way_names, [ai, ChooseFirstActionAI()])
