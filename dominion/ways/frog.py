@@ -10,5 +10,29 @@ class WayOfTheFrog(Way):
     def apply(self, game_state, card) -> None:
         player = game_state.current_player
         player.actions += 1
-        # Mark the card so cleanup knows to topdeck it.
-        card._frog_topdeck = True
+        # "When you discard this from play this turn, put it onto your deck."
+        # That cannot apply to a card that is not in play (Necromancer's
+        # trashed card, Riverboat's set-aside card, Captain's Supply proxy),
+        # and cleanup only clears the marker while iterating cards in play,
+        # so a marker set on such a card would persist and topdeck that
+        # instance on a later turn. Only mark cards that are actually in play.
+        # Likewise an off-turn Reaction play (Sheepdog, Trail...) puts the card
+        # in the reactor's in_play, but it is not discarded from play *this*
+        # turn -- Frog's "this turn" ends with the turn player's turn -- so a
+        # marker would survive to the reactor's own cleanup and topdeck the
+        # card then. Only mark cards the turn player is playing.
+        #
+        # The marker names the owner and the turn it was set in (the player's
+        # own turn counter, which also advances on Outpost/Journey extra
+        # turns), and cleanup only honours a marker from the current player's
+        # current turn, so a marker that somehow survives past its turn is
+        # inert. The owner is part of the key because turn counters are only
+        # unique per player: a trashed marked card that Lurker + Innovation
+        # gains and plays for an opponent with the same ``turns_taken`` must
+        # not topdeck at their cleanup. A card that leaves play before cleanup
+        # (Throne Room's second play picks Turtle, Horse, Butterfly or Worm;
+        # Procession trashes it) has its marker cleared at that point, so if
+        # the same owner regains and replays the instance this turn without
+        # Frog (Lurker + Innovation) cleanup discards it normally.
+        if card in player.in_play and game_state.turn_player is player:
+            card._frog_topdeck = (id(player), player.turns_taken)

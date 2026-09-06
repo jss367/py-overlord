@@ -67,17 +67,9 @@ class Berserker(Card):
                 game_state.discard_card(other, to_discard)
 
     def _play_now(self, game_state, player):
-        if self in player.discard:
-            player.discard.remove(self)
-        elif self in player.deck:
-            player.deck.remove(self)
-        elif self in player.hand:
-            player.hand.remove(self)
-        elif self in game_state.trash:
-            game_state.trash.remove(self)
-        else:
-            return
-
-        player.in_play.append(self)
-        self.on_play(game_state)
-        game_state.fire_ally_play_hooks(player, self)
+        # Shared indirect-play helper: owner swap, Way offer and the
+        # post-play hooks every other reaction play gets.
+        for zone in (player.discard, player.deck, player.hand, game_state.trash):
+            if self in zone:
+                game_state.play_action_from_zone_indirectly(player, self, zone)
+                return

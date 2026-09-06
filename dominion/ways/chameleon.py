@@ -105,6 +105,9 @@ def chameleon_swap_block(game_state, player):
 
 
 class WayOfTheChameleon(Way):
+    # Runs the played card's own on_play as its instruction proxy.
+    uses_on_play_proxy = True
+
     def __init__(self):
         super().__init__("Way of the Chameleon")
 

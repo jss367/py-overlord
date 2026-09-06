@@ -13,47 +13,26 @@ class Trail(Card):
     def _play_now(self, game_state, player):
         """Play Trail immediately from its current location."""
 
-        origin = None
-        if self in player.discard:
-            player.discard.remove(self)
-            origin = "discard"
-        elif self in player.deck:
-            player.deck.remove(self)
-            origin = "deck"
-        elif self in player.hand:
-            player.hand.remove(self)
-            origin = "hand"
-        elif self in game_state.trash:
-            game_state.trash.remove(self)
-            origin = "trash"
-        elif self in player.in_play:
-            player.in_play.remove(self)
-            origin = "in_play"
+        # Route through the engine's shared indirect-play helpers so this
+        # reaction play gets the same bookkeeping as every other one (owner
+        # swap for off-turn plays, Way offer, Warlord/Enchantress, Prophecy,
+        # Ally, Tavern, Kiln, Training and Citadel hooks).
+        from_trash = self in game_state.trash
+        if self in player.in_play:
+            game_state.play_action_as_owner_indirectly(player, self)
         else:
-            return
-
-        if self.is_action:
-            player.actions_played += 1
-            player.actions_this_turn += 1
-
-        player.in_play.append(self)
-
-        # Offer Way choice just like the normal action phase does
-        way = None
-        if game_state.ways:
-            way = player.ai.choose_way(game_state, self, game_state.ways + [None])
-
-        if way:
-            way.apply(game_state, self)
-        else:
-            self.on_play(game_state)
-            game_state.fire_ally_play_hooks(player, self)
+            for zone in (player.discard, player.deck, player.hand, game_state.trash):
+                if self in zone:
+                    game_state.play_action_from_zone_indirectly(player, self, zone)
+                    break
+            else:
+                return
 
         # A trashed Trail that reacts comes back: "playing it means you get
         # the Trail back; it will go into play, and be discarded into your
         # discard pile in that turn's Clean-up" (official FAQ). The trash
         # itself still happened for whoever caused it (Remodel, Barbarian).
-        if origin == "trash" and self in game_state.trash:
+        if from_trash and self in game_state.trash:
             game_state.trash.remove(self)
 
     def on_gain(self, game_state, player):

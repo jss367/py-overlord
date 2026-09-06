@@ -1,5 +1,6 @@
 from dominion.cards.base_card import Card
 from .base_way import Way
+from .horse import _resolve_pile_name
 
 
 class WayOfTheButterfly(Way):
@@ -11,10 +12,26 @@ class WayOfTheButterfly(Way):
     def apply(self, game_state, card: Card) -> None:
         player = game_state.current_player
 
-        # Return the card to its supply pile
-        if card in player.in_play:
-            player.in_play.remove(card)
-        game_state.supply[card.name] = game_state.supply.get(card.name, 0) + 1
+        # "You may return this to its pile. If you do, gain a card costing
+        # exactly $1 more." A card that is not in play (Riverboat's set-aside
+        # card, Captain's Supply proxy, a Throne Room replay after an earlier
+        # Way moved it) cannot be returned, so nothing is gained either.
+        if card not in player.in_play:
+            return
+        # Return the card to its OWNING pile, as Way of the Horse does. A
+        # Knight or Ruins variant (Dame Anna, Ruined Library...) lives under
+        # the shared "Knights"/"Ruins" key, not under ``card.name``; a card
+        # with no resolvable pile cannot be returned, so it stays in play and
+        # nothing is gained.
+        pile_name = _resolve_pile_name(game_state, card)
+        if pile_name is None:
+            return
+        player.in_play.remove(card)
+        # Leaving play ends any Frog marker from an earlier play this turn.
+        card._frog_topdeck = None
+        game_state.supply[pile_name] = game_state.supply.get(pile_name, 0) + 1
+        if pile_name in game_state.pile_order:
+            game_state.pile_order[pile_name].append(card.name)
 
         target_cost = card.cost.coins + 1
 

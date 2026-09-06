@@ -46,6 +46,13 @@ class GameState:
     # (Falconer, Black Cat, Caravan Guard, ...) temporarily makes the reactor
     # ``current_player``; None outside such plays. See ``turn_player``.
     reaction_turn_player_index: int | None = None
+    # True while a Way's instruction proxy runs (Chameleon on the played
+    # card, Mouse on the set-aside card). ``Card.on_play`` then skips the
+    # per-play side effects that belong to the card actually played, which
+    # ``_resolve_action_text`` applies once afterwards (external bonuses:
+    # pile tokens and Champion; Urchin reactions). Nested plays reset it;
+    # see ``_resolve_action_text``.
+    _way_proxy_play_active: bool = False
     phase: str = "start"
     turn_number: int = 1
     extra_turn: bool = False
@@ -290,8 +297,43 @@ class GameState:
     def play_action_from_hand_indirectly(
         self, player: PlayerState, card: Card
     ) -> bool:
+        """Move ``card`` from ``player``'s hand into play and resolve it as
+        ``player``, even off-turn (Reactions: Sheepdog, Black Cat, Caravan
+        Guard, Weaver, Falconer, Trail)."""
         if not self.move_card_from_hand_to_play(player, card):
             return False
+        return self.play_action_as_owner_indirectly(
+            player, card, blocked_return_zone=player.hand
+        )
+
+    def play_action_from_zone_indirectly(
+        self, player: PlayerState, card: Card, zone: list[Card]
+    ) -> bool:
+        """Move ``card`` from ``zone`` (discard, deck, trash, ...) into play and
+        resolve it as ``player``. Reaction plays that do not start in hand
+        (Trail from the discard pile or trash, Weaver from the discard pile,
+        Berserker on gain) use this so they get the same bookkeeping and Way
+        offer as every other indirect play."""
+        if zone is player.hand:
+            return self.play_action_from_hand_indirectly(player, card)
+        if card not in zone:
+            return False
+        zone.remove(card)
+        player.in_play.append(card)
+        return self.play_action_as_owner_indirectly(
+            player, card, blocked_return_zone=zone
+        )
+
+    def play_action_as_owner_indirectly(
+        self,
+        player: PlayerState,
+        card: Card,
+        *,
+        blocked_return_zone: list[Card] | None = None,
+    ) -> bool:
+        """Resolve ``card`` (already in play) with ``player`` as
+        ``current_player`` so the effect applies to its owner, restoring the
+        real turn player afterwards."""
         original_index = self.current_player_index
         original_turn_index = self.reaction_turn_player_index
         is_players_turn = self.turn_player is player
@@ -301,7 +343,7 @@ class GameState:
             return self.play_action_indirectly(
                 player,
                 card,
-                blocked_return_zone=player.hand,
+                blocked_return_zone=blocked_return_zone,
                 apply_enchantress=is_players_turn,
             )
         if not is_players_turn and original_turn_index is None:
@@ -312,7 +354,7 @@ class GameState:
             return self.play_action_indirectly(
                 player,
                 card,
-                blocked_return_zone=player.hand,
+                blocked_return_zone=blocked_return_zone,
                 apply_enchantress=is_players_turn,
             )
         finally:
@@ -338,7 +380,8 @@ class GameState:
         - bump ``player.actions_this_turn`` / ``player.actions_played`` so
           cards keying off "Actions played this turn" (Conspirator, Peddler)
           see the correct count
-        - call ``card.on_play`` or Enchantress's substitute effect
+        - offer a Way when the kingdom has any, then call ``way.apply`` or
+          ``card.on_play`` (or Enchantress's substitute effect)
         - fire Prophecy hooks (Rising Sun: Great Leader, Approaching Army)
         - fire Ally on-play hooks (League of Shopkeepers, etc.)
         - fire Tavern "action_played" triggers (Coin of the Realm,
@@ -397,7 +440,19 @@ class GameState:
             )
             self._fire_urchin_reaction(player, card)
         else:
-            card.on_play(self)
+            # Menagerie Ways: "when you play an Action card, you may instead
+            # follow the Way's instructions" applies to every play, so each
+            # Throne Room replay, Vassal play and off-turn Reaction play gets
+            # its own independent offer, mirroring the action-phase loop.
+            # That includes plays of a card that is not in play: virtual
+            # plays (Riverboat's set-aside card, Necromancer's trashed card,
+            # Captain's Supply proxy) and Throne Room replays after a Way
+            # already moved the card. The offer is not gated on the zone;
+            # instead the Ways that move the played card (Turtle, Horse,
+            # Butterfly, Worm) no-op the move when it is not in play, per the
+            # rulebook ("it stays set aside, even if it has instructions on
+            # it that would move it").
+            self._resolve_action_text(player, card)
         training_pile = getattr(player, "training_pile", None)
         if training_pile and card.name == training_pile:
             player.coins += 1
@@ -412,6 +467,87 @@ class GameState:
         # — funnels through the same Citadel trigger.
         self._maybe_citadel_replay(player, card)
         return True
+
+    def _resolve_action_text(self, player: PlayerState, card: Card) -> None:
+        """Resolve one play of ``card``: offer a Way if the kingdom has any,
+        then run the Way's text or the card's own.
+
+        Shared by ``play_action_indirectly`` and Citadel's replay so that
+        every play — including a replay of a card whose first play already
+        chose a Way — gets its own independent offer.
+        """
+        # This is its own play, so it applies its own bonuses and reactions
+        # even when it is nested inside a Way proxy that suppressed them
+        # (Way of the Mouse with a set-aside Throne Room playing a Smithy
+        # from hand).
+        outer_proxy_active = self._way_proxy_play_active
+        self._way_proxy_play_active = False
+        try:
+            way = None
+            if self.ways and card.is_action:
+                way = player.ai.choose_way(self, card, self.ways + [None])
+            if way:
+                self.log_callback(
+                    (
+                        "action",
+                        player.ai.name,
+                        f"plays {card} using {way.name}",
+                        {"card": card.name, "way": way.name},
+                    )
+                )
+                self._apply_way_text(player, card, way)
+            else:
+                card.on_play(self)
+        finally:
+            self._way_proxy_play_active = outer_proxy_active
+
+    def _apply_way_text(self, player: PlayerState, card: Card, way) -> None:
+        """Resolve one play of ``card`` using ``way``'s instructions instead of
+        its own: arm the proxy flag for on_play-proxy Ways (Chameleon, Mouse),
+        apply the Way, then apply the per-play side effects that belong to the
+        card actually played (external bonuses, Urchin).
+
+        Shared by ``_resolve_action_text`` and the action-phase loop so a Way
+        play from hand and a Way play through the helper get the same
+        treatment. Self-contained: the flag is restored to its previous value
+        afterwards, whatever the caller left it at.
+        """
+        # A Way that runs an on_play as its instruction proxy
+        # (Chameleon on the played card, Mouse on the set-aside
+        # card; ``Way.uses_on_play_proxy``) must not apply the
+        # per-play bonuses or fire play reactions there; both
+        # belong to ``card`` and are applied once below. The first
+        # on_play the Way invokes consumes the flag (Card.on_play
+        # clears it before running its text), so plays nested
+        # inside the proxy's own instructions (Herald revealing an
+        # Action, Counterfeit, Storyteller) are real plays and keep
+        # their side effects. Every other Way runs with the flag
+        # clear: its instructions never invoke a proxy on_play, so
+        # any play they trigger indirectly (Butterfly's, Rat's or
+        # Worm's gain reaching Innovation, which plays the gained
+        # Action directly) is a real play that keeps its own
+        # bonuses and reactions.
+        if getattr(way, "uses_on_play_proxy", False):
+            previous = self._way_proxy_play_active
+            self._way_proxy_play_active = True
+            try:
+                way.apply(self, card)
+            finally:
+                self._way_proxy_play_active = previous
+        else:
+            way.apply(self, card)
+        # A Way replaces the card's instructions, not the play
+        # itself. External per-play bonuses (pile tokens on the
+        # played card's pile, Champion's +1 Action) belong to the
+        # card actually played, exactly once per play, whichever
+        # Way replaced its text.
+        self._apply_external_play_bonuses(player, card)
+        # Likewise an Attack played via a Way is still an Attack
+        # play, so Urchins in play still react (on_play, which
+        # normally fires them, either did not run or was the
+        # suppressed proxy run above). A Mouse whose set-aside card
+        # is an Attack does not make a non-Attack play an Attack.
+        self._fire_urchin_reaction(player, card)
 
     def fire_prophecy_action_hooks(self, player: PlayerState, card: Card) -> None:
         """Fire the active Prophecy's after-Action-play hooks for ``card``.
@@ -1218,6 +1354,14 @@ class GameState:
     def handle_start_phase(self):
         """Handle the start of turn phase."""
         player = self.current_player
+        # Menagerie "next turn" Ways: take what was banked by LAST turn's
+        # plays before any start-of-turn play (Ghost, Clerk, Hasty, Patient,
+        # Turtle itself) can bank new values; anything scheduled during this
+        # start phase belongs to the following turn.
+        squirrel_pending = getattr(player, "squirrel_pending", 0)
+        player.squirrel_pending = 0
+        turtle_set_aside = list(getattr(player, "turtle_set_aside", None) or [])
+        player.turtle_set_aside = []
         player.turns_taken += 1
         player.gained_five_last_turn = player.gained_five_this_turn
         player.gained_five_this_turn = False
@@ -1335,7 +1479,10 @@ class GameState:
             self.receive_boon(player)
         player.pending_blessed_boons = 0
 
-        # Nocturne — Ghost: play the set-aside Action twice over two turns
+        # Nocturne — Ghost: play the set-aside Action twice over two turns.
+        # Record the identity of every card Ghost plays this start phase so
+        # the Turtle loop below can tell that Ghost, not Turtle, moved it.
+        ghost_played_ids: set[int] = set()
         if getattr(player, "ghost_pending_actions", None):
             updated: list = []
             for entry in player.ghost_pending_actions:
@@ -1344,6 +1491,7 @@ class GameState:
                     continue
                 if action_card not in player.in_play:
                     player.in_play.append(action_card)
+                ghost_played_ids.add(id(action_card))
                 self.log_callback(
                     ("action", player.ai.name, f"Ghost replays {action_card}", {})
                 )
@@ -1367,36 +1515,44 @@ class GameState:
                 gold_card.on_play(self)
 
         # Menagerie Way of the Squirrel: +2 Cards next turn (banked draw).
-        squirrel_pending = getattr(self.current_player, "squirrel_pending", 0)
+        # ``squirrel_pending`` was snapshotted at the top of this method.
         if squirrel_pending > 0:
             self.draw_cards(self.current_player, squirrel_pending)
-            self.current_player.squirrel_pending = 0
 
-        # Menagerie Way of the Turtle: play set-aside cards now.
-        turtle_set_aside = getattr(self.current_player, "turtle_set_aside", None)
-        if turtle_set_aside:
-            self.current_player.turtle_set_aside = []
-            for c in turtle_set_aside:
+        # Menagerie Way of the Turtle: play the cards set aside last turn.
+        # ``turtle_set_aside`` was snapshotted at the top of this method.
+        # Each is a real play, so it goes through the shared indirect-play
+        # helper (own Way offer, prophecy/ally/tavern hooks, Citadel replay,
+        # action counters). A Turtle-played card may choose Turtle again; it
+        # then lands in the fresh list for the following turn.
+        for c in turtle_set_aside:
+            # The same instance can be pending for both Ghost and Turtle (a
+            # Ghost replay that chose Turtle). Ghost above already took the
+            # card out of the set-aside zone and played it, so Turtle's
+            # "play it at the start of your next turn" cannot find the card
+            # where Turtle left it: Turtle loses track of it and does
+            # nothing, wherever Ghost's play sent it afterwards (still in
+            # play, back on its pile via Horse or Butterfly, exiled via Worm,
+            # or set aside again via Turtle). Playing it here anyway would
+            # append the instance back into play alongside the copy Ghost's
+            # play already returned or moved, duplicating the card.
+            if id(c) in ghost_played_ids:
+                continue
+            if c not in self.current_player.in_play:
                 self.current_player.in_play.append(c)
-                c.on_play(self)
-                # Renaissance Citadel: a Turtle-played Action before the
-                # action phase still counts as the first Action of the turn.
-                self._maybe_citadel_replay(self.current_player, c)
+            self.play_action_indirectly(self.current_player, c)
 
         # Adventures Save: cards set aside last turn return to hand.
         if self.current_player.save_set_aside:
             self.current_player.hand.extend(self.current_player.save_set_aside)
             self.current_player.save_set_aside = []
 
-        # Promo Summon: play any cards set aside by Summon last turn.
-        # Increment ``actions_this_turn`` before ``on_play`` so cards keyed
-        # off that counter (e.g. Conspirator) see the Summoned play, matching
-        # ``_handle_hasty_start_of_turn`` / ``_handle_patient_start_of_turn``.
-        # After ``on_play`` we also run the post-play hook chain that the
-        # main action loop fires (Rising Sun prophecy, Allies play hooks,
-        # Adventures Tavern triggers like Coin of the Realm / Royal
-        # Carriage), so Reserve/ally/prophecy effects keyed on "when you
-        # play an Action" trigger for Summoned plays too.
+        # Promo Summon: play any cards set aside by Summon last turn. Each
+        # Action play goes through ``play_action_indirectly`` so it gets the
+        # same per-play bookkeeping as the action-phase loop (Way offer,
+        # actions_this_turn for Conspirator, prophecy / ally / Tavern hooks,
+        # Citadel replay), matching ``_handle_hasty_start_of_turn`` /
+        # ``_handle_patient_start_of_turn``.
         summoned = list(self.current_player.summon_set_aside)
         if summoned:
             self.current_player.summon_set_aside = []
@@ -1404,19 +1560,9 @@ class GameState:
                 player = self.current_player
                 player.in_play.append(card)
                 if card.is_action:
-                    player.actions_this_turn += 1
-                card.on_play(self)
-                if card.is_action:
-                    if self.prophecy is not None and self.prophecy.is_active:
-                        self.prophecy.on_play_action(self, player, card)
-                        if card.is_attack:
-                            self.prophecy.on_play_attack(self, player, card)
-                    self.fire_ally_play_hooks(player, card)
-                    self._call_tavern_triggers(player, "action_played", card)
-                    # Renaissance Citadel: a Summoned Action played at
-                    # start of turn counts as the first Action of the
-                    # turn, so Citadel marks used and replays it.
-                    self._maybe_citadel_replay(player, card)
+                    self.play_action_indirectly(player, card)
+                else:
+                    card.on_play(self)
 
         # Adventures: reset once-per-turn caps for events.
         self.current_player.borrow_used_this_turn = False
@@ -1599,9 +1745,10 @@ class GameState:
     def _maybe_citadel_replay(self, player: PlayerState, card: Card) -> bool:
         """Renaissance Citadel: if this is the first Action played this turn
         and the player owns Citadel, mark the per-turn flag and replay the
-        card using its normal text. Fires per-play side effects (training
-        token bonus, Kiln, ally play hooks) so the replay matches a regular
-        play. Returns True if Citadel triggered.
+        card. The replay is a play in its own right, so it is offered its
+        own Way (independent of whatever the first play chose) and fires the
+        per-play side effects (training token bonus, Kiln, ally play hooks)
+        so it matches a regular play. Returns True if Citadel triggered.
 
         Callers should invoke this immediately after a successful Action
         play so it runs at most once per turn — every play site (the action
@@ -1619,6 +1766,11 @@ class GameState:
         )
         if not (card.is_action or inherited_action_play):
             return False
+        # "When you play an Action card during your turn": off-turn plays
+        # (Sheepdog, Trail, Weaver reacting on another player's turn) do
+        # not qualify.
+        if self.turn_player is not player:
+            return False
         if player.citadel_used:
             return False
         if not any(p.name == "Citadel" for p in player.projects):
@@ -1633,7 +1785,7 @@ class GameState:
             else None
         )
         try:
-            card.on_play(self)
+            self._resolve_action_text(player, card)
             training_pile = getattr(player, "training_pile", None)
             if training_pile and card.name == training_pile:
                 player.coins += 1
@@ -1656,10 +1808,11 @@ class GameState:
         cards = self.hasty_set_aside.pop(id(player), [])
         for card in cards:
             if card.is_action:
+                # A real Action play: route it through the shared helper so
+                # it is offered a Way and fires the per-play hooks (Citadel
+                # replay included) like any other play.
                 player.in_play.append(card)
-                player.actions_this_turn += 1
-                card.on_play(self)
-                self._maybe_citadel_replay(player, card)
+                self.play_action_indirectly(player, card)
             elif card.is_treasure:
                 player.in_play.append(card)
                 card.on_play(self)
@@ -1670,10 +1823,11 @@ class GameState:
         cards = self.patient_mat.pop(id(player), [])
         for card in cards:
             if card.is_action:
+                # A real Action play: route it through the shared helper so
+                # it is offered a Way and fires the per-play hooks (Citadel
+                # replay included) like any other play.
                 player.in_play.append(card)
-                player.actions_this_turn += 1
-                card.on_play(self)
-                self._maybe_citadel_replay(player, card)
+                self.play_action_indirectly(player, card)
             elif card.is_treasure:
                 player.in_play.append(card)
                 card.on_play(self)
@@ -1904,7 +2058,10 @@ class GameState:
             training_pile = getattr(player, "training_pile", None)
 
             if way:
-                way.apply(self, choice)
+                # Same Way protocol as the shared helper: proxy flag for
+                # Chameleon/Mouse, then the pile-token/Champion bonuses and
+                # Urchin reaction for the card actually played.
+                self._apply_way_text(player, choice, way)
                 if training_pile and choice.name == training_pile:
                     player.coins += 1
                 # Menagerie: Kiln triggers on Way-played card too.
@@ -1914,8 +2071,8 @@ class GameState:
                 # different text. Match the non-Way branch's behaviour.
                 self.fire_ally_play_hooks(player, choice)
                 # Renaissance Citadel: a Way-played Action still counts as
-                # the first Action played this turn — replay it using the
-                # card's normal text (not the Way again).
+                # the first Action played this turn — replay it. The replay
+                # is its own play and gets its own Way offer.
                 self._maybe_citadel_replay(player, choice)
             else:
                 flagships_to_resolve: list[Card] = []
@@ -2944,7 +3101,7 @@ class GameState:
                 return False
             if card in trickster_selected:
                 return False
-            if getattr(card, "_frog_topdeck", False):
+            if getattr(card, "_frog_topdeck", None) == (id(player), player.turns_taken):
                 return False
             if card.name == "Merchant Camp":
                 return False
@@ -3004,9 +3161,12 @@ class GameState:
         for card in in_play_cards:
             if card in durations_to_keep:
                 player.in_play.append(card)
-            elif getattr(card, "_frog_topdeck", False):
-                # Menagerie Way of the Frog: topdeck on cleanup.
-                card._frog_topdeck = False
+            elif getattr(card, "_frog_topdeck", None) == (id(player), player.turns_taken):
+                # Menagerie Way of the Frog: topdeck on cleanup. The marker is
+                # (owner, turn it was set in), so a stale marker on a card that
+                # left play and came back on a later turn -- or under another
+                # player whose turn counter happens to match -- does not fire.
+                card._frog_topdeck = None
                 player.deck.append(card)
             elif card.name == "Merchant Camp":
                 # Allies Merchant Camp: "When you discard this card from
@@ -3143,11 +3303,34 @@ class GameState:
                 self._resolve_donate(player)
             player.donate_pending = 0
 
-        # Reset resources
-        player.actions = 1
-        player.buys = 1
-        player.coins = 0
-        player.potions = 0
+        # Reset resources for every player, not just the turn player. Off-turn
+        # Reaction plays (Sheepdog, Trail, Falconer...) resolve with the reactor
+        # as current player, so a Way (Ox, Sheep, Monkey, Mule...) or the card
+        # itself can hand them +Actions/+$/+Buys. Those mean nothing off-turn
+        # and expire with this turn; only the cards drawn persist. Coffers,
+        # Villagers and pending_* fields are banked and deliberately untouched.
+        # Seal's "this turn" flag likewise ends with the turn player's turn.
+        for other in self.players:
+            other.actions = 1
+            other.buys = 1
+            other.coins = 0
+            other.potions = 0
+            other.way_of_seal_active = False
+            # An off-turn Reaction play bumps the reactor's per-turn count too;
+            # in 3+ player games it would otherwise leak into the next turn.
+            other.actions_this_turn = 0
+            if other is player:
+                continue
+            # An off-turn Way can gain the reactor cards (Worm's Estate, Rat's
+            # Action) and ``gain_card`` records them in turn-scoped history.
+            # That is not a gain on *their* turn, so clear it without rotating
+            # it into ``*_last_turn`` (Smugglers, Taskmaster); the turn player's
+            # own history is rotated below.
+            other.gained_cards_this_turn = []
+            other.cards_gained_this_turn = 0
+            other.cards_gained_this_turn_count = 0
+            other.gained_five_this_turn = False
+            other.gained_victory_this_turn = False
         # Adventures: clear Mission no-buy flag at end of the bonus turn.
         player.mission_no_buy_turn = False
         # Allies Voyage: clear the extra-turn card-play limit.
@@ -3163,7 +3346,6 @@ class GameState:
         player.goons_played = 0
         player.groundskeeper_bonus = 0
         player.topdeck_gains = False
-        player.way_of_seal_active = False
         player.cannot_buy_actions = False
         player.envious_effect_active = False
         player.cost_reduction = 0
@@ -3568,15 +3750,9 @@ class GameState:
             if not player.ai.should_play_weaver_on_discard(self, player, card):
                 return
             if card in player.discard:
-                player.discard.remove(card)
-                player.in_play.append(card)
+                self.play_action_from_zone_indirectly(player, card, player.discard)
             elif card in player.hand:
-                if not self.play_action_from_hand_indirectly(player, card):
-                    return
-                return
-            else:
-                return
-            card.on_play(self)
+                self.play_action_from_hand_indirectly(player, card)
         elif hasattr(card, "react_to_discard"):
             card.react_to_discard(self, player)
 
@@ -4695,6 +4871,11 @@ class GameState:
 
     def trash_card(self, player: PlayerState, card: Card) -> None:
         """Move a card to the trash and trigger related effects."""
+        # A Frog-marked card that leaves play (Procession trashes it) is no
+        # longer "this" Frog play: if the same instance is regained and
+        # replayed this turn (Lurker + Innovation) cleanup must not topdeck it.
+        if hasattr(card, "_frog_topdeck"):
+            card._frog_topdeck = None
         self.trash.append(card)
         card.on_trash(self, player)
 
@@ -5212,6 +5393,18 @@ class GameState:
         if existing is not None:
             self.remove_pile_token(player, existing, token_kind)
         self.add_pile_token(player, new_pile, token_kind)
+
+    def _apply_external_play_bonuses(
+        self, player: PlayerState, card: Card
+    ) -> None:
+        """Per-play bonuses that come from outside the card's own text and
+        therefore apply whether the card's instructions or a Way's ran:
+        Adventures pile tokens (Lost Arts / Pathfinding / Seaway / Training)
+        and Champion's +1 Action per Action play.
+        """
+        self._apply_pile_token_play_bonuses(player, card)
+        if card.is_action and getattr(player, "champions_in_play", 0) > 0:
+            player.actions += player.champions_in_play
 
     def _apply_pile_token_play_bonuses(
         self, player: PlayerState, card: Card
