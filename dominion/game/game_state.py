@@ -2451,6 +2451,9 @@ class GameState:
             if self.pile_traits.get(choice.name) == "Reckless":
                 if choice in player.in_play:
                     choice.on_play(self)
+                    if self.prophecy is not None and self.prophecy.is_active:
+                        self.prophecy.on_play_treasure(self, player, choice)
+                    self.fire_ally_play_hooks(player, choice)
             self._maybe_corsair_trash(player, choice)
             # Menagerie: Kiln — gain a copy of the next card played.
             self._maybe_kiln_gain(player, choice)

@@ -173,6 +173,52 @@ def test_courier_treasure_consumes_pending_kiln_gain():
     assert any(c.name == "Gold" for c in player.discard)
 
 
+@pytest.mark.parametrize("source", ["treasure_phase", "courier", "gain"])
+@pytest.mark.parametrize("prophecy_name", ["Good Harvest", "Panic"])
+def test_reckless_treasure_replay_fires_prophecy_hooks(source, prophecy_name):
+    class PlayTreasureAI(DummyAI):
+        def choose_treasure(self, state, choices):
+            return next((c for c in choices if c is not None), None)
+
+    state, player = setup("Courier", "Buried Treasure", ai=PlayTreasureAI())
+    card = get_card("Buried Treasure" if source == "gain" else "Gold")
+    state.pile_traits[card.name] = "Reckless"
+    state.prophecy = get_prophecy(prophecy_name)
+    state.prophecy.is_active = True
+    buys = player.buys
+
+    if source == "gain":
+        state.supply[card.name] -= 1
+        state.gain_card(player, card)
+    elif source == "courier":
+        player.deck = [card]
+        get_card("Courier").on_play(state)
+    else:
+        player.hand = [card]
+        state.handle_treasure_phase()
+
+    assert player.buys == buys + (1 if prophecy_name == "Good Harvest" else 4)
+    if prophecy_name == "Good Harvest":
+        assert player.good_harvest_treasures_played == {card.name}
+
+
+def test_reckless_courier_contract_fires_league_of_shopkeepers_twice():
+    from dominion.allies.league_of_shopkeepers import LeagueOfShopkeepers
+
+    state, player = setup("Courier", "Contract")
+    state.allies = [LeagueOfShopkeepers()]
+    state.pile_traits["Contract"] = "Reckless"
+    player.favors = 3
+    player.deck = [get_card("Contract")]
+    buys = player.buys
+
+    get_card("Courier").on_play(state)
+
+    assert player.favors == 5
+    assert player.coins == 7  # Courier + two Contracts + two Ally bonuses.
+    assert player.buys == buys + 1
+
+
 def test_courier_inspiring_treasure_plays_action_from_hand():
     class PlayVillageAI(DummyAI):
         def choose_action(self, state, choices):
