@@ -2431,7 +2431,8 @@ class GameState:
 
         coins_before = player.coins
         blocked = (
-            getattr(player, "highwayman_attacks", 0) > 0
+            self.turn_player is player
+            and getattr(player, "highwayman_attacks", 0) > 0
             and not getattr(player, "highwayman_blocked_this_turn", False)
         )
 

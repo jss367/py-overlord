@@ -246,6 +246,26 @@ def test_buried_treasure_gain_can_be_blocked_by_highwayman():
     assert player.gained_five_this_turn
 
 
+def test_highwayman_does_not_block_off_turn_buried_treasure_gain():
+    state, current = setup("Buried Treasure")
+    player = PlayerState(DummyAI())
+    state.players.append(player)
+    player.highwayman_attacks = 1
+    card = get_card("Buried Treasure")
+    state.supply[card.name] -= 1
+
+    state.gain_card(player, card)
+
+    assert card in player.duration
+    assert not player.highwayman_blocked_this_turn
+    assert state.current_player is current and state.turn_player is current
+    state.current_player_index = 1
+    coins, buys = player.coins, player.buys
+    state.do_duration_phase()
+    assert player.coins == coins + 3
+    assert player.buys == buys + 1
+
+
 @pytest.mark.parametrize("prophecy_name", ["Good Harvest", "Panic"])
 @pytest.mark.parametrize("active", [False, True])
 @pytest.mark.parametrize("off_turn", [False, True])
