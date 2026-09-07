@@ -410,3 +410,53 @@ def test_urchin_reacts_to_enlightened_treasure_attack_play():
     assert state.supply["Mercenary"] == 9
     assert any(c.name == "Mercenary" for c in player.discard)
     assert player.coins == 1
+
+
+def test_highwayman_blocks_first_courier_crown_without_losing_action_bookkeeping():
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [PriorityRule("Village")]
+    state, player = make_state(strategy)
+    state.phase = "action"
+    player.highwayman_attacks = 1
+    player.actions = 0
+    village = get_card("Village")
+    player.hand = [village]
+    first, second = get_card("Crown"), get_card("Crown")
+    player.discard = [first]
+    player.deck = [get_card("Estate") for _ in range(5)]
+    play_courier(state, player)
+    assert first in player.in_play
+    assert player.hand == [village]
+    assert player.actions == 0
+    assert player.actions_played == 2
+    assert player.highwayman_blocked_this_turn
+    player.discard.append(second)
+    play_courier(state, player)
+    assert second in player.in_play
+    assert village in player.in_play
+    assert player.actions_played == 6  # Two Couriers, two Crowns, two Village plays.
+    assert player.coins == 2
+
+
+def test_enlightenment_applies_to_courier_played_during_another_players_action_phase():
+    from dominion.prophecies.enlightenment import Enlightenment
+
+    state, owner = make_state()
+    turn_player = PlayerState(DummyAI())
+    state.players.insert(0, turn_player)
+    state.current_player_index = 0
+    state.phase = "action"
+    state.prophecy = Enlightenment()
+    state.prophecy.is_active = True
+    owner.actions = 0
+    drawn = get_card("Estate")
+    owner.deck = [drawn, get_card("Estate")]
+    gold, courier = get_card("Gold"), get_card("Courier")
+    owner.discard = [gold]
+    owner.in_play = [courier]
+    state.play_action_as_owner_indirectly(owner, courier)
+    assert state.current_player is turn_player
+    assert owner.coins == 1
+    assert owner.actions == 1
+    assert owner.hand == [drawn]
+    assert gold in owner.in_play

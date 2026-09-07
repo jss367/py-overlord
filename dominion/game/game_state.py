@@ -422,7 +422,13 @@ class GameState:
         player.actions_this_turn += 1
         player.actions_played += 1
         self._maybe_kiln_gain(player, card)
-        if (
+        if self._highwayman_blocks_treasure(player, card):
+            # Action-Treasures remain Treasures when played by Courier or
+            # another Action. Suppress their instructions, but retain the
+            # Action play, external bonuses, and Attack reactions.
+            self._apply_external_play_bonuses(player, card)
+            self._fire_urchin_reaction(player, card)
+        elif (
             apply_enchantress
             and card.is_action
             and getattr(player, "enchantress_active", False)
@@ -2428,6 +2434,18 @@ class GameState:
         """Whether this play uses Enlightenment's Action-phase instructions."""
         return self.phase == "action" and self._is_enlightened_treasure(card)
 
+    def _highwayman_blocks_treasure(self, player: PlayerState, card: Card) -> bool:
+        """Consume Highwayman's first-Treasure block, including dual types."""
+        if (
+            self.is_treasure(card)
+            and not self._enlightenment_replaces_treasure(card)
+            and getattr(player, "highwayman_attacks", 0) > 0
+            and not getattr(player, "highwayman_blocked_this_turn", False)
+        ):
+            player.highwayman_blocked_this_turn = True
+            return True
+        return False
+
     def play_treasure_indirectly(self, player: PlayerState, card: Card) -> None:
         """Resolve a Treasure already moved into play, without spending an Action.
 
@@ -2442,14 +2460,7 @@ class GameState:
             return
         self._maybe_kiln_gain(player, card)
         coins_before = player.coins
-        blocked = (
-            getattr(player, "highwayman_attacks", 0) > 0
-            and not getattr(player, "highwayman_blocked_this_turn", False)
-        )
-
-        if blocked:
-            player.highwayman_blocked_this_turn = True
-        else:
+        if not self._highwayman_blocks_treasure(player, card):
             # Corsair trashes AFTER on_play: the treasure is fully played
             # (so its +$ applies and any "while in play" counters tick),
             # then Corsair removes it from in-play to the trash. The
