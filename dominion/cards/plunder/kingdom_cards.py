@@ -679,6 +679,8 @@ class BuriedTreasure(Card):
         self.duration_persistent = True
         if self not in player.duration:
             player.duration.append(self)
+        else:
+            player.multiplied_durations.append(self)
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)

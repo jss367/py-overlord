@@ -462,6 +462,58 @@ def test_buried_treasure_gain_plays_now_but_resources_arrive_next_turn():
     assert sum(c is card for c in player.hand + player.deck + player.discard) == 1
 
 
+@pytest.mark.parametrize("reckless, tiara, plays", [(True, False, 2), (False, True, 2), (True, True, 3)])
+def test_buried_treasure_replays_each_schedule_next_turn_resources(reckless, tiara, plays):
+    class ReplayAI(DummyAI):
+        def should_replay_treasure_with_tiara(self, state, player, card):
+            return True
+
+    state, player = setup("Buried Treasure", ai=ReplayAI())
+    if reckless:
+        state.pile_traits["Buried Treasure"] = "Reckless"
+    if tiara:
+        player.in_play = [get_card("Tiara")]
+    card = get_card("Buried Treasure")
+    state.supply[card.name] -= 1
+    state.gain_card(player, card)
+    assert player.duration == [card]
+    assert player.multiplied_durations == [card] * (plays - 1)
+
+    state.handle_cleanup_phase()
+    coins, buys = player.coins, player.buys
+    state.do_duration_phase()
+
+    assert player.coins == coins + 3 * plays
+    assert player.buys == buys + plays
+    assert not player.duration and not player.multiplied_durations
+    state.handle_cleanup_phase()
+    assert sum(c is card for c in player.hand + player.deck + player.discard) == 1
+
+
+def test_reckless_buried_treasure_gained_by_duration_waits_until_next_turn(monkeypatch):
+    state, player = setup("Buried Treasure", "Mastermind")
+    state.pile_traits["Buried Treasure"] = "Reckless"
+    trigger = get_card("Mastermind")
+    treasure = get_card("Buried Treasure")
+
+    def gain_treasure(current_state):
+        current_state.supply[treasure.name] -= 1
+        current_state.gain_card(player, treasure)
+        trigger.duration_persistent = False
+
+    monkeypatch.setattr(trigger, "on_duration", gain_treasure)
+    player.duration = [trigger]
+    coins, buys = player.coins, player.buys
+    state.do_duration_phase()
+    assert (player.coins, player.buys) == (coins, buys)
+    assert player.duration == [treasure]
+    assert player.multiplied_durations == [treasure]
+
+    state.do_duration_phase()
+    assert player.coins == coins + 6
+    assert player.buys == buys + 2
+
+
 def test_buried_treasure_off_turn_gain_preserves_current_player():
     state, current = setup("Buried Treasure")
     other = PlayerState(DummyAI())

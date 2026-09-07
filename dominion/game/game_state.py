@@ -1918,6 +1918,9 @@ class GameState:
     def do_duration_phase(self):
         """Handle effects of duration cards from previous turn."""
         player = self.current_player
+        # Plays caused by a Duration can schedule new effects for next turn.
+        # Snapshot both queues before resolving either of them.
+        multiplied_durations = player.multiplied_durations[:]
 
         # Process duration cards that were played last turn
         for card in player.duration[:]:
@@ -1948,7 +1951,7 @@ class GameState:
                     player.in_play.append(card)
 
         # Process any cards that were multiplied (e.g. by Throne Room)
-        for card in player.multiplied_durations[:]:
+        for card in multiplied_durations:
             self.log_callback(
                 (
                     "action",
