@@ -52,6 +52,12 @@ class GeneticAI(AI):
             return hook(state, player, choices)
         return super().choose_mastermind_action(state, player, choices)
 
+    def choose_coffers_for_debt(self, state, player, maximum):
+        hook = getattr(self.strategy, "choose_coffers_for_debt", None)
+        if hook is not None:
+            return hook(state, player, maximum)
+        return super().choose_coffers_for_debt(state, player, maximum)
+
     def choose_mine_treasure(self, state, player, choices):
         hook = getattr(self.strategy, "choose_mine_treasure", None)
         if hook is not None:

@@ -1799,6 +1799,10 @@ class AI(ABC):
     def choose_mastermind_action(self, state, player, choices):
         return self.choose_action(state, choices + [None])
 
+    def choose_coffers_for_debt(self, state, player, maximum):
+        """Choose 0..maximum Coffers to spend on debt; default pays it down."""
+        return maximum
+
     def choose_mine_treasure(self, state, player, choices):
         """Choose the optional Mine trash separately from playing Treasures."""
         return self.choose_treasure(state, choices)

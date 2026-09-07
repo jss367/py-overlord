@@ -384,6 +384,27 @@ def test_coffers_pay_debt_before_a_purchase():
     assert any(c.name == "Silver" for c in player.discard)
 
 
+@pytest.mark.parametrize("choice, spent", [(0, 0), (1, 1), (99, 3), (-1, 0), (None, 0)])
+def test_strategy_can_preserve_coffers_during_debt_payment(choice, spent):
+    class SaveCoffers(EnhancedStrategy):
+        def choose_coffers_for_debt(self, state, player, maximum):
+            assert maximum == 3
+            return choice
+
+    state, player = setup("Imperial Envoy", ai=GeneticAI(SaveCoffers()))
+    player.coins = 1
+    player.coin_tokens = 3
+    player.debt = 5
+    player.buys = 0
+
+    state.handle_buy_phase()
+
+    assert player.coins == 0
+    assert player.coin_tokens == 3 - spent
+    assert player.debt == 4 - spent
+    assert player.coins_spent_this_turn == 1 + spent
+
+
 def test_mastermind_mine_upgrades_then_recycles_gold_for_three_coffers():
     from generated_strategies.mine_guildhall import MineGuildhall
 

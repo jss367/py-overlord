@@ -2582,8 +2582,17 @@ class GameState:
                 if player.coins + player.coin_tokens > 0:
                     paid = min(player.debt, player.coins + player.coin_tokens)
                     coins_paid = min(max(0, player.coins), paid)
+                    maximum = paid - coins_paid
+                    coffers_paid = 0
+                    if maximum > 0:
+                        chosen = player.ai.choose_coffers_for_debt(self, player, maximum)
+                        if isinstance(chosen, int):
+                            coffers_paid = max(0, min(chosen, maximum))
+                    paid = coins_paid + coffers_paid
+                    if paid == 0:
+                        break
                     player.coins -= coins_paid
-                    player.coin_tokens -= paid - coins_paid
+                    player.coin_tokens -= coffers_paid
                     player.coins_spent_this_turn += paid
                     player.debt -= paid
                     context = {
@@ -2594,6 +2603,10 @@ class GameState:
                     self.log_callback(
                         ("action", player.ai.name, f"pays {paid} Debt", context)
                     )
+                    if player.debt > 0:
+                        # A partial payment ends this decision; do not ask
+                        # repeatedly and drain Coffers the AI chose to keep.
+                        break
                     continue
                 break
 
