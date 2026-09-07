@@ -159,7 +159,7 @@ def main():
             (CHAMPION, b, 1000, 100000 + 2000 * i)
             for i, b in enumerate(VALIDATION_PANEL)
         ]
-    path = args.output or Path(f"reports/tea_house_{args.mode}.json")
+    path = args.output or Path(f"docs/analysis/tea_house_kind_emperor_{args.mode}.json")
     results = run(tasks, path)
     print(json.dumps(results, indent=2))
     if any(r["truncated"] for r in results):
