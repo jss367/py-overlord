@@ -1,5 +1,7 @@
 """Rule regressions that materially affect the Kind Emperor strategy search."""
 
+import pytest
+
 from dominion.ai.genetic_ai import GeneticAI
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
@@ -63,6 +65,28 @@ def test_courier_may_decline_to_play_the_discarded_card():
     assert player.coins == 1
 
 
+@pytest.mark.parametrize("prophecy_name", ["Good Harvest", "Panic"])
+@pytest.mark.parametrize("active", [False, True])
+def test_courier_treasure_plays_trigger_active_prophecy(prophecy_name, active):
+    state, player = setup("Courier")
+    state.prophecy = get_prophecy(prophecy_name)
+    state.prophecy.is_active = active
+    player.deck = [get_card("Gold"), get_card("Gold")]
+    coins, buys = player.coins, player.buys
+
+    get_card("Courier").on_play(state)
+    get_card("Courier").on_play(state)
+
+    bonus_coins = int(active and prophecy_name == "Good Harvest")
+    bonus_buys = (1 if prophecy_name == "Good Harvest" else 4) if active else 0
+    assert player.coins == coins + 8 + bonus_coins
+    assert player.buys == buys + bonus_buys
+    if active and prophecy_name == "Good Harvest":
+        assert player.good_harvest_treasures_played == {"Gold"}
+    if active and prophecy_name == "Panic":
+        assert player.panic_active
+
+
 def test_fortune_hunter_keeps_existing_top_card_out_of_reshuffle():
     state, player = setup("Fortune Hunter")
     gold = get_card("Gold")
@@ -101,6 +125,39 @@ def test_buried_treasure_off_turn_gain_preserves_current_player():
     assert state.current_player is current
     assert state.turn_player is current
     assert card in other.duration and card not in current.duration
+
+
+@pytest.mark.parametrize("prophecy_name", ["Good Harvest", "Panic"])
+@pytest.mark.parametrize("active", [False, True])
+@pytest.mark.parametrize("off_turn", [False, True])
+def test_buried_treasure_gain_triggers_active_prophecy_for_owner(
+    prophecy_name, active, off_turn
+):
+    state, current = setup("Buried Treasure")
+    player = PlayerState(DummyAI()) if off_turn else current
+    if off_turn:
+        state.players.append(player)
+    state.prophecy = get_prophecy(prophecy_name)
+    state.prophecy.is_active = active
+    coins, buys = player.coins, player.buys
+    current_resources = current.coins, current.buys
+
+    for _ in range(2):
+        state.supply["Buried Treasure"] -= 1
+        state.gain_card(player, get_card("Buried Treasure"))
+
+    bonus_coins = int(active and prophecy_name == "Good Harvest")
+    bonus_buys = (1 if prophecy_name == "Good Harvest" else 4) if active else 0
+    assert player.coins == coins + bonus_coins
+    assert player.buys == buys + bonus_buys
+    assert len(player.duration) == 2
+    assert state.current_player is current and state.turn_player is current
+    if off_turn:
+        assert (current.coins, current.buys) == current_resources
+    if active and prophecy_name == "Good Harvest":
+        assert player.good_harvest_treasures_played == {"Buried Treasure"}
+    if active and prophecy_name == "Panic":
+        assert player.panic_active
 
 
 def test_mine_does_not_move_played_buried_treasure_back_to_hand():
