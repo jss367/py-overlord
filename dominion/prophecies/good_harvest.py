@@ -16,7 +16,8 @@ class GoodHarvest(Prophecy):
     )
 
     def on_turn_start(self, game_state, player) -> None:
-        player.good_harvest_treasures_played = set()
+        for participant in game_state.players:
+            participant.good_harvest_treasures_played = set()
 
     def on_play_treasure(self, game_state, player, card) -> None:
         seen = getattr(player, "good_harvest_treasures_played", None)

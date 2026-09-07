@@ -388,6 +388,26 @@ def test_buried_treasure_off_turn_gain_preserves_current_player():
     assert card in other.duration and card not in current.duration
 
 
+def test_good_harvest_resets_off_turn_plays_between_opponents_turns():
+    state, first = setup("Buried Treasure")
+    second, recipient = PlayerState(DummyAI()), PlayerState(DummyAI())
+    state.players.extend([second, recipient])
+    state.prophecy = get_prophecy("Good Harvest")
+    state.prophecy.is_active = True
+
+    for opponent_index in (0, 1):
+        state.current_player_index = opponent_index
+        state.handle_start_phase()
+        coins, buys = recipient.coins, recipient.buys
+        for _ in range(2):
+            state.supply["Buried Treasure"] -= 1
+            state.gain_card(recipient, get_card("Buried Treasure"))
+        # Once on each opponent's distinct turn, not once until our next turn.
+        assert recipient.coins == coins + 1
+        assert recipient.buys == buys + 1
+        state.handle_cleanup_phase()
+
+
 def test_buried_treasure_gain_can_be_blocked_by_highwayman():
     state, player = setup("Buried Treasure")
     player.highwayman_attacks = 1
