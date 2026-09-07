@@ -509,6 +509,7 @@ class GameState:
                 and self.prophecy.is_active
                 and self.prophecy.name == "Enlightenment"
                 and self.phase == "action"
+                and self.turn_player is player
                 and self.is_treasure(card)
             ):
                 self.draw_cards(player, 1)

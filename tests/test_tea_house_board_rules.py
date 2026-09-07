@@ -138,6 +138,31 @@ def test_enlightened_buried_treasure_gain_draws_instead_of_scheduling_duration()
     assert card in player.in_play and card not in player.duration
 
 
+def test_enlightened_buried_treasure_off_turn_gain_keeps_duration_instructions():
+    state, current = setup("Buried Treasure")
+    player = PlayerState(DummyAI())
+    state.players.append(player)
+    state.prophecy = get_prophecy("Enlightenment")
+    state.prophecy.is_active = True
+    state.phase = "action"
+    player.deck = [get_card("Estate")]
+    card = get_card("Buried Treasure")
+    actions = player.actions
+    state.supply[card.name] -= 1
+
+    state.gain_card(player, card)
+
+    assert not player.hand
+    assert player.actions == actions
+    assert card in player.duration
+    assert state.current_player is current and state.turn_player is current
+    state.current_player_index = 1
+    coins, buys = player.coins, player.buys
+    state.do_duration_phase()
+    assert player.coins == coins + 3
+    assert player.buys == buys + 1
+
+
 def test_enlightened_courier_treasure_can_use_way_and_champion_bonus():
     from dominion.ways.registry import get_way
 
