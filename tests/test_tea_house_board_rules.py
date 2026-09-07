@@ -101,6 +101,66 @@ def test_courier_crown_gets_action_and_treasure_bookkeeping(highwayman):
         assert [c.name for c in player.hand] == ["Copper"] * 6
 
 
+@pytest.mark.parametrize("active", [False, True])
+@pytest.mark.parametrize("phase", ["action", "treasure"])
+def test_courier_gold_uses_enlightenment_action_phase_instructions(active, phase):
+    state, player = setup("Courier")
+    state.prophecy = get_prophecy("Enlightenment")
+    state.prophecy.is_active = active
+    state.phase = phase
+    player.deck = [get_card("Estate"), get_card("Gold")]
+    actions = player.actions
+
+    get_card("Courier").on_play(state)
+
+    substituted = active and phase == "action"
+    assert player.coins == (1 if substituted else 4)
+    assert player.actions == actions + int(substituted)
+    assert len(player.hand) == int(substituted)
+    assert player.actions_this_turn == int(active)
+
+
+def test_enlightened_buried_treasure_gain_draws_instead_of_scheduling_duration():
+    state, player = setup("Buried Treasure")
+    state.prophecy = get_prophecy("Enlightenment")
+    state.prophecy.is_active = True
+    state.phase = "action"
+    player.deck = [get_card("Estate")]
+    card = get_card("Buried Treasure")
+    actions = player.actions
+    state.supply[card.name] -= 1
+
+    state.gain_card(player, card)
+
+    assert [c.name for c in player.hand] == ["Estate"]
+    assert player.actions == actions + 1
+    assert player.actions_this_turn == 1
+    assert card in player.in_play and card not in player.duration
+
+
+def test_enlightened_courier_treasure_can_use_way_and_champion_bonus():
+    from dominion.ways.registry import get_way
+
+    class ChooseSheep(DummyAI):
+        def choose_way(self, state, card, choices):
+            return choices[0]
+
+    state, player = setup("Courier", ai=ChooseSheep())
+    state.prophecy = get_prophecy("Enlightenment")
+    state.prophecy.is_active = True
+    state.ways = [get_way("Way of the Sheep")]
+    state.phase = "action"
+    player.champions_in_play = 1
+    player.deck = [get_card("Gold")]
+    actions = player.actions
+
+    get_card("Courier").on_play(state)
+
+    assert player.coins == 3  # Courier's $1 and the Way's $2, not Gold's $3.
+    assert player.actions == actions + 2  # Champion reacts to Courier and Gold.
+    assert player.actions_this_turn == 1
+
+
 def test_courier_may_decline_to_play_the_discarded_card():
     class DeclineAI(DummyAI):
         def choose_courier_card(self, state, player, choices):

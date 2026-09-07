@@ -428,7 +428,7 @@ class GameState:
         if not suppress_instructions:
             if (
                 apply_enchantress
-                and card.is_action
+                and self.is_action(card)
                 and getattr(player, "enchantress_active", False)
                 and not getattr(player, "enchantress_used_this_turn", False)
             ):
@@ -492,7 +492,7 @@ class GameState:
         self._way_proxy_play_active = False
         try:
             way = None
-            if self.ways and card.is_action:
+            if self.ways and self.is_action(card):
                 way = player.ai.choose_way(self, card, self.ways + [None])
             if way:
                 self.log_callback(
@@ -504,6 +504,16 @@ class GameState:
                     )
                 )
                 self._apply_way_text(player, card, way)
+            elif (
+                self.prophecy is not None
+                and self.prophecy.is_active
+                and self.prophecy.name == "Enlightenment"
+                and self.phase == "action"
+                and self.is_treasure(card)
+            ):
+                self.draw_cards(player, 1)
+                player.actions += 1
+                self._apply_external_play_bonuses(player, card)
             else:
                 card.on_play(self)
         finally:
@@ -1772,7 +1782,7 @@ class GameState:
             card.name == "Estate"
             and getattr(player, "inherited_action_name", None)
         )
-        if not (card.is_action or inherited_action_play):
+        if not (self.is_action(card) or inherited_action_play):
             return False
         # "When you play an Action card during your turn": off-turn plays
         # (Sheepdog, Trail, Weaver reacting on another player's turn) do
@@ -2362,6 +2372,15 @@ class GameState:
             count += 1
         return count
 
+    def is_action(self, card: Card) -> bool:
+        """Action type including Treasures made Actions by Enlightenment."""
+        return card.is_action or (
+            self.prophecy is not None
+            and self.prophecy.is_active
+            and self.prophecy.name == "Enlightenment"
+            and self.is_treasure(card)
+        )
+
     def is_treasure(self, card: Card) -> bool:
         """Treasure check that respects game-level type modifiers.
 
@@ -2445,7 +2464,7 @@ class GameState:
         )
 
         def play_instructions(suppressed=False):
-            if choice.is_action:
+            if self.is_action(choice):
                 self.play_action_indirectly(
                     player,
                     choice,
@@ -5449,7 +5468,7 @@ class GameState:
         and Champion's +1 Action per Action play.
         """
         self._apply_pile_token_play_bonuses(player, card)
-        if card.is_action and getattr(player, "champions_in_play", 0) > 0:
+        if self.is_action(card) and getattr(player, "champions_in_play", 0) > 0:
             player.actions += player.champions_in_play
 
     def _apply_pile_token_play_bonuses(

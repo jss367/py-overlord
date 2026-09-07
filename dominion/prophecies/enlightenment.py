@@ -17,7 +17,7 @@ class Enlightenment(Prophecy):
     )
 
     def on_activate(self, game_state) -> None:
-        # The Action-phase substitution is handled at play time by the action
-        # phase loop checking the prophecy. The "treasures are actions" rule
-        # is exposed via Card.is_action which checks this prophecy.
+        # Action-phase substitution is handled by the action loop and the
+        # shared indirect-play resolver. GameState.is_action exposes the
+        # current Action type without changing the card's printed types.
         pass
