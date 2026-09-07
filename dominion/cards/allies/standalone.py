@@ -325,7 +325,7 @@ class Courier(Card):
             return
         if not any(choice is c for c in player.discard):
             return
-        if choice.is_action:
+        if choice.is_action and not game_state.is_treasure(choice):
             game_state.play_action_from_zone_indirectly(player, choice, player.discard)
         else:
             player.discard.remove(choice)

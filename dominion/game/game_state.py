@@ -1,7 +1,7 @@
 import copy
 import random
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Callable, Optional
 
 from dominion.cards.base_card import Card
 from dominion.ai import tactical_defaults
@@ -368,6 +368,7 @@ class GameState:
         *,
         blocked_return_zone: list[Card] | None = None,
         apply_enchantress: bool | None = None,
+        resolve_effect: Callable[[], None] | None = None,
     ) -> bool:
         """Resolve a single Action play that originates outside the main
         action-phase loop, applying the bookkeeping that loop would.
@@ -393,7 +394,8 @@ class GameState:
         freshly moved card, ``blocked_return_zone`` lets the caller preserve
         that card's source-zone semantics. ``apply_enchantress`` defaults to
         whether this is the player's own turn; off-turn Reaction plays are not
-        covered by Enchantress.
+        covered by Enchantress. ``resolve_effect`` lets Treasure resolution
+        retain its own triggers inside the same Action-play bookkeeping.
         """
         if apply_enchantress is None:
             apply_enchantress = self.current_player is player
@@ -459,7 +461,10 @@ class GameState:
             # Butterfly, Worm) no-op the move when it is not in play, per the
             # rulebook ("it stays set aside, even if it has instructions on
             # it that would move it").
-            self._resolve_action_text(player, card)
+            if resolve_effect is None:
+                self._resolve_action_text(player, card)
+            else:
+                resolve_effect()
         training_pile = getattr(player, "training_pile", None)
         if training_pile and card.name == training_pile:
             player.coins += 1
@@ -491,7 +496,7 @@ class GameState:
         try:
             way = None
             enlightened = self._enlightenment_replaces_treasure(card)
-            if self.ways and (card.is_action or enlightened):
+            if self.ways and (card.is_action or self._is_enlightened_treasure(card)):
                 way = player.ai.choose_way(self, card, self.ways + [None])
             if way:
                 self.log_callback(
@@ -2371,6 +2376,13 @@ class GameState:
             return True
         if card.name == "Curse" and self.charlatan_curse_active():
             return True
+        if (
+            self.players
+            and card.is_action
+            and card.stats.coins > 0
+            and any(p.name == "Capitalism" for p in self.turn_player.projects)
+        ):
+            return True
         return False
 
     def _handle_start_of_buy_phase_effects(self) -> None:
@@ -2446,19 +2458,27 @@ class GameState:
             return True
         return False
 
-    def play_treasure_indirectly(self, player: PlayerState, card: Card) -> None:
+    def play_treasure_indirectly(
+        self, player: PlayerState, card: Card, *, _action_wrapped: bool = False
+    ) -> None:
         """Resolve a Treasure already moved into play, without spending an Action.
 
         Shared by the Treasure phase and Courier so attacks, replays, and
         on-play triggers also apply to Treasures played from the discard pile.
         """
-        if self._enlightenment_replaces_treasure(card):
-            # Enlightenment turns this into an Action play, including its
-            # bookkeeping and Way offer. Highwayman cannot suppress the
-            # replacement instructions (Rising Sun rulebook, Enlightenment).
-            self.play_action_indirectly(player, card)
+        if not _action_wrapped and (card.is_action or self._is_enlightened_treasure(card)):
+            # Wrap Treasure effects in Action bookkeeping in every phase.
+            # The resolver still applies Treasure triggers and replays, while
+            # _resolve_action_text handles Ways and Enlightenment's text.
+            self.play_action_indirectly(
+                player, card,
+                resolve_effect=lambda: self.play_treasure_indirectly(
+                    player, card, _action_wrapped=True
+                ),
+            )
             return
-        self._maybe_kiln_gain(player, card)
+        if not _action_wrapped:
+            self._maybe_kiln_gain(player, card)
         coins_before = player.coins
         if not self._highwayman_blocks_treasure(player, card):
             # Corsair trashes AFTER on_play: the treasure is fully played
@@ -2467,11 +2487,17 @@ class GameState:
             # Charlatan +$1 for a Curse-as-Treasure is applied inside
             # ``Curse.play_effect``, so it fires automatically here and
             # on any replay (Reckless, Tiara) below.
-            card.on_play(self)
+            if _action_wrapped:
+                self._resolve_action_text(player, card)
+            else:
+                card.on_play(self)
             # Plunder Reckless trait: Treasures from Reckless pile play twice.
             if self.pile_traits.get(card.name) == "Reckless":
                 if card in player.in_play:
-                    card.on_play(self)
+                    if _action_wrapped:
+                        self.play_action_indirectly(player, card)
+                    else:
+                        card.on_play(self)
             self._maybe_corsair_trash(player, card)
             coins_after = player.coins
             if (
@@ -2487,14 +2513,16 @@ class GameState:
 
             # Allies hook: City-state, League of Shopkeepers,
             # Fellowship of Scribes can react to treasures played.
-            self.fire_ally_play_hooks(player, card)
+            if not _action_wrapped:
+                self.fire_ally_play_hooks(player, card)
 
             # Renaissance Citadel: if Capitalism makes an Action card
             # playable in the Buy/Treasure phase, that play still
             # counts as the first Action played this turn and Citadel
             # replays it. The helper's is_action gate filters regular
             # Treasures out automatically.
-            self._maybe_citadel_replay(player, card)
+            if not _action_wrapped:
+                self._maybe_citadel_replay(player, card)
 
             # Prosperity 2E: Tiara — once per turn, when you play a
             # Treasure, you may play it again. Tiara may target itself
@@ -2508,13 +2536,17 @@ class GameState:
                     self, player, card
                 ):
                     player.tiara_replay_used = True
-                    card.on_play(self)
+                    if _action_wrapped:
+                        self.play_action_indirectly(player, card)
+                    else:
+                        card.on_play(self)
                     if self.prophecy is not None and self.prophecy.is_active:
                         self.prophecy.on_play_treasure(self, player, card)
                     # Tiara's bonus replay is another play of the
                     # treasure, so Allies that react to plays should
                     # fire again here.
-                    self.fire_ally_play_hooks(player, card)
+                    if not _action_wrapped:
+                        self.fire_ally_play_hooks(player, card)
 
             # Plunder Inspiring trait: applies to any pile, including
             # Treasures. After playing this Treasure, the player may play

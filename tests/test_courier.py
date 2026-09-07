@@ -460,3 +460,104 @@ def test_enlightenment_applies_to_courier_played_during_another_players_action_p
     assert owner.actions == 1
     assert owner.hand == [drawn]
     assert gold in owner.in_play
+
+
+def test_highwayman_recognizes_capitalism_treasures_in_treasure_phase():
+    from dominion.projects import Capitalism
+
+    state, player = make_state()
+    player.projects = [Capitalism()]
+    player.highwayman_attacks = 1
+    player.actions = 0
+    bazaar = get_card("Bazaar")
+    player.hand = [bazaar]
+    state.phase = "treasure"
+    state.handle_treasure_phase()
+    assert bazaar in player.in_play
+    assert player.highwayman_blocked_this_turn
+    assert player.coins == 0
+    assert player.actions == 0
+    assert player.hand == []
+
+
+def test_capitalism_treasure_type_ends_on_another_players_turn():
+    from dominion.projects import Capitalism
+
+    state, player = make_state()
+    player.projects = [Capitalism()]
+    bazaar = get_card("Bazaar")
+    assert state.is_treasure(bazaar)
+    state.players.append(PlayerState(DummyAI()))
+    state.current_player_index = 1
+    assert not state.is_treasure(bazaar)
+
+
+@pytest.mark.parametrize("use_way", [False, True])
+def test_enlightened_courier_treasure_keeps_action_semantics_in_buy_phase(use_way):
+    from dominion.prophecies.enlightenment import Enlightenment
+    from dominion.ways.registry import get_way
+
+    class UseOx(EnhancedStrategy):
+        def choose_way(self, state, player, card, ways):
+            if use_way and card.name == "Gold":
+                return next(w for w in ways if w is not None)
+            return None
+
+    state, player = make_state(UseOx())
+    state.prophecy = Enlightenment()
+    state.prophecy.is_active = True
+    state.phase = "buy"
+    state.ways = [get_way("Way of the Ox")]
+    gold = get_card("Gold")
+    player.discard = [gold]
+    player.actions = 0
+    tavern_plays, ally_plays = [], []
+    state._call_tavern_triggers = lambda owner, event, card: tavern_plays.append((event, card))
+    state.fire_ally_play_hooks = lambda owner, card: ally_plays.append(card)
+    courier = play_courier(state, player)
+    assert player.coins == (1 if use_way else 4)
+    assert player.actions == (2 if use_way else 0)
+    assert player.actions_played == 2
+    assert ("action_played", gold) in tavern_plays
+    assert ally_plays == [gold, courier]
+
+
+def test_enlightened_courier_treasure_keeps_tiara_replay_in_buy_phase():
+    from dominion.prophecies.enlightenment import Enlightenment
+
+    state, player = make_state()
+    state.prophecy = Enlightenment()
+    state.prophecy.is_active = True
+    state.phase = "buy"
+    gold = get_card("Gold")
+    player.in_play = [get_card("Tiara")]
+    player.discard = [gold]
+    plays = []
+    state.fire_ally_play_hooks = lambda owner, card: plays.append(card)
+    play_courier(state, player)
+    assert player.coins == 7
+    assert player.actions_played == 3
+    assert plays.count(gold) == 2
+    assert player.tiara_replay_used
+
+
+def test_enlightened_courier_treasure_keeps_corsair_trigger_in_buy_phase():
+    from dominion.prophecies.enlightenment import Enlightenment
+
+    state, player = make_state()
+    opponent = PlayerState(DummyAI())
+    state.players.append(opponent)
+    corsair = get_card("Corsair")
+    state.current_player_index = 1
+    corsair.on_play(state)
+    state.current_player_index = 0
+    state.prophecy = Enlightenment()
+    state.prophecy.is_active = True
+    state.phase = "buy"
+    gold = get_card("Gold")
+    player.discard = [gold]
+    play_courier(state, player)
+    assert player.coins == 4
+    assert player.actions_played == 2
+    assert gold in state.trash
+    assert gold not in player.in_play
