@@ -440,10 +440,12 @@ class FortuneHunter(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if len(player.deck) < 3 and player.discard:
-            player.shuffle_discard_into_deck()
         top: list = []
-        while len(top) < 3 and player.deck:
+        while len(top) < 3:
+            if not player.deck and player.discard:
+                player.shuffle_discard_into_deck()
+            if not player.deck:
+                break
             top.append(player.deck.pop())
         treasures_top = [c for c in top if c.is_treasure]
         if treasures_top:
@@ -661,25 +663,46 @@ class Tools(Card):
 
 
 class BuriedTreasure(Card):
-    """$5 Treasure-Duration: +1 Buy. Start of next turn, +$3."""
+    """$5 Treasure-Duration: next turn +1 Buy, +$3; play when gained."""
 
     def __init__(self):
         super().__init__(
             name="Buried Treasure",
             cost=CardCost(coins=5),
-            stats=CardStats(buys=1),
+            stats=CardStats(),
             types=[CardType.TREASURE, CardType.DURATION],
         )
         self.duration_persistent = True
 
     def play_effect(self, game_state):
         player = game_state.current_player
+        self.duration_persistent = True
         if self not in player.duration:
             player.duration.append(self)
+
+    def on_gain(self, game_state, player):
+        for zone in (player.discard, player.deck, player.hand):
+            if self in zone:
+                zone.remove(self)
+                player.in_play.append(self)
+                original_index = game_state.current_player_index
+                original_turn_index = game_state.reaction_turn_player_index
+                try:
+                    if player is not game_state.current_player:
+                        if original_turn_index is None:
+                            game_state.reaction_turn_player_index = original_index
+                        game_state.current_player_index = game_state.players.index(player)
+                    self.on_play(game_state)
+                    game_state.fire_ally_play_hooks(player, self)
+                finally:
+                    game_state.current_player_index = original_index
+                    game_state.reaction_turn_player_index = original_turn_index
+                break
 
     def on_duration(self, game_state):
         player = game_state.current_player
         player.coins += 3
+        player.buys += 1
         self.duration_persistent = False
 
 

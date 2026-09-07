@@ -1,0 +1,8319 @@
+[
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.28125,
+    "paired_ci95": [
+      0.199204116257992,
+      0.363295883742008
+    ],
+    "totals": {
+      "wins": 27,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1232,
+      "score": 2706,
+      "opponent_score": 3288,
+      "coffers_generated": 99,
+      "mine_games": 94,
+      "mine_first_turn": 718,
+      "guildhall_games": 51,
+      "guildhall_first_turn": 410,
+      "both_games": 51,
+      "both_first_turn": 410
+    },
+    "mine_gains": {
+      "Copper -> Silver": 189,
+      "Silver -> Gold": 4
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.28125,
+    "paired_ci95": [
+      0.20456813383015002,
+      0.35793186616984995
+    ],
+    "totals": {
+      "wins": 27,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1225,
+      "score": 2725,
+      "opponent_score": 3278,
+      "coffers_generated": 97,
+      "mine_games": 94,
+      "mine_first_turn": 718,
+      "guildhall_games": 48,
+      "guildhall_first_turn": 385,
+      "both_games": 48,
+      "both_first_turn": 385
+    },
+    "mine_gains": {
+      "Copper -> Silver": 192,
+      "Silver -> Gold": 3
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2708333333333333,
+    "paired_ci95": [
+      0.19960809293376458,
+      0.34205857373290205
+    ],
+    "totals": {
+      "wins": 26,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1218,
+      "score": 2676,
+      "opponent_score": 3289,
+      "coffers_generated": 115,
+      "mine_games": 93,
+      "mine_first_turn": 658,
+      "guildhall_games": 58,
+      "guildhall_first_turn": 461,
+      "both_games": 58,
+      "both_first_turn": 461
+    },
+    "mine_gains": {
+      "Copper -> Silver": 200,
+      "Silver -> Gold": 5
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.24329574634891105,
+      0.38170425365108895
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1214,
+      "score": 2730,
+      "opponent_score": 3252,
+      "coffers_generated": 116,
+      "mine_games": 93,
+      "mine_first_turn": 658,
+      "guildhall_games": 56,
+      "guildhall_first_turn": 444,
+      "both_games": 56,
+      "both_first_turn": 444
+    },
+    "mine_gains": {
+      "Copper -> Silver": 206,
+      "Silver -> Gold": 3
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3229166666666667,
+    "paired_ci95": [
+      0.2430619901862503,
+      0.40277134314708307
+    ],
+    "totals": {
+      "wins": 31,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1229,
+      "score": 2616,
+      "opponent_score": 3287,
+      "coffers_generated": 229,
+      "mine_games": 96,
+      "mine_first_turn": 604,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 649,
+      "both_games": 88,
+      "both_first_turn": 649
+    },
+    "mine_gains": {
+      "Copper -> Silver": 258,
+      "Silver -> Gold": 5
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.375,
+    "paired_ci95": [
+      0.300607662638172,
+      0.449392337361828
+    ],
+    "totals": {
+      "wins": 36,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1222,
+      "score": 2695,
+      "opponent_score": 3216,
+      "coffers_generated": 232,
+      "mine_games": 96,
+      "mine_first_turn": 604,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 649,
+      "both_games": 88,
+      "both_first_turn": 649
+    },
+    "mine_gains": {
+      "Copper -> Silver": 267,
+      "Silver -> Gold": 3
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3229166666666667,
+    "paired_ci95": [
+      0.2430619901862503,
+      0.40277134314708307
+    ],
+    "totals": {
+      "wins": 31,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1234,
+      "score": 2784,
+      "opponent_score": 3300,
+      "coffers_generated": 120,
+      "mine_games": 94,
+      "mine_first_turn": 718,
+      "guildhall_games": 52,
+      "guildhall_first_turn": 420,
+      "both_games": 52,
+      "both_first_turn": 420
+    },
+    "mine_gains": {
+      "Copper -> Silver": 209,
+      "Silver -> Gold": 6
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3333333333333333,
+    "paired_ci95": [
+      0.25990093731583996,
+      0.40676572935082667
+    ],
+    "totals": {
+      "wins": 32,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1224,
+      "score": 2820,
+      "opponent_score": 3243,
+      "coffers_generated": 109,
+      "mine_games": 94,
+      "mine_first_turn": 718,
+      "guildhall_games": 49,
+      "guildhall_first_turn": 395,
+      "both_games": 49,
+      "both_first_turn": 395
+    },
+    "mine_gains": {
+      "Copper -> Silver": 203,
+      "Silver -> Gold": 2
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.24329574634891105,
+      0.38170425365108895
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1220,
+      "score": 2757,
+      "opponent_score": 3304,
+      "coffers_generated": 137,
+      "mine_games": 93,
+      "mine_first_turn": 658,
+      "guildhall_games": 59,
+      "guildhall_first_turn": 471,
+      "both_games": 59,
+      "both_first_turn": 471
+    },
+    "mine_gains": {
+      "Copper -> Silver": 222,
+      "Silver -> Gold": 6
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.34375,
+    "paired_ci95": [
+      0.27135148641371465,
+      0.41614851358628535
+    ],
+    "totals": {
+      "wins": 33,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1211,
+      "score": 2811,
+      "opponent_score": 3225,
+      "coffers_generated": 127,
+      "mine_games": 93,
+      "mine_first_turn": 658,
+      "guildhall_games": 57,
+      "guildhall_first_turn": 454,
+      "both_games": 57,
+      "both_first_turn": 454
+    },
+    "mine_gains": {
+      "Copper -> Silver": 216,
+      "Silver -> Gold": 2
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.4270833333333333,
+    "paired_ci95": [
+      0.34460619361783323,
+      0.5095604730488333
+    ],
+    "totals": {
+      "wins": 41,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1229,
+      "score": 2769,
+      "opponent_score": 3285,
+      "coffers_generated": 257,
+      "mine_games": 96,
+      "mine_first_turn": 604,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 649,
+      "both_games": 88,
+      "both_first_turn": 649
+    },
+    "mine_gains": {
+      "Copper -> Silver": 284,
+      "Silver -> Gold": 9
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.4166666666666667,
+    "paired_ci95": [
+      0.34928047857775885,
+      0.4840528547555745
+    ],
+    "totals": {
+      "wins": 40,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1219,
+      "score": 2843,
+      "opponent_score": 3226,
+      "coffers_generated": 254,
+      "mine_games": 96,
+      "mine_first_turn": 604,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 649,
+      "both_games": 88,
+      "both_first_turn": 649
+    },
+    "mine_gains": {
+      "Copper -> Silver": 286,
+      "Silver -> Gold": 3
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2916666666666667,
+    "paired_ci95": [
+      0.21539068089966312,
+      0.36794265243367025
+    ],
+    "totals": {
+      "wins": 28,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1237,
+      "score": 2732,
+      "opponent_score": 3299,
+      "coffers_generated": 105,
+      "mine_games": 94,
+      "mine_first_turn": 718,
+      "guildhall_games": 49,
+      "guildhall_first_turn": 394,
+      "both_games": 49,
+      "both_first_turn": 394
+    },
+    "mine_gains": {
+      "Silver -> Gold": 109,
+      "Copper -> Silver": 87
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3020833333333333,
+    "paired_ci95": [
+      0.22633238927317834,
+      0.3778342773934883
+    ],
+    "totals": {
+      "wins": 29,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1229,
+      "score": 2745,
+      "opponent_score": 3284,
+      "coffers_generated": 108,
+      "mine_games": 94,
+      "mine_first_turn": 718,
+      "guildhall_games": 48,
+      "guildhall_first_turn": 385,
+      "both_games": 48,
+      "both_first_turn": 385
+    },
+    "mine_gains": {
+      "Silver -> Gold": 118,
+      "Copper -> Silver": 79
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2916666666666667,
+    "paired_ci95": [
+      0.2211925042735469,
+      0.3621408290597865
+    ],
+    "totals": {
+      "wins": 28,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1222,
+      "score": 2710,
+      "opponent_score": 3282,
+      "coffers_generated": 124,
+      "mine_games": 93,
+      "mine_first_turn": 658,
+      "guildhall_games": 56,
+      "guildhall_first_turn": 442,
+      "both_games": 56,
+      "both_first_turn": 442
+    },
+    "mine_gains": {
+      "Silver -> Gold": 119,
+      "Copper -> Silver": 87
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.34375,
+    "paired_ci95": [
+      0.27135148641371465,
+      0.41614851358628535
+    ],
+    "totals": {
+      "wins": 33,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1216,
+      "score": 2758,
+      "opponent_score": 3233,
+      "coffers_generated": 129,
+      "mine_games": 93,
+      "mine_first_turn": 658,
+      "guildhall_games": 55,
+      "guildhall_first_turn": 433,
+      "both_games": 55,
+      "both_first_turn": 433
+    },
+    "mine_gains": {
+      "Silver -> Gold": 131,
+      "Copper -> Silver": 78
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3541666666666667,
+    "paired_ci95": [
+      0.27719619629203096,
+      0.4311371370413024
+    ],
+    "totals": {
+      "wins": 34,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1228,
+      "score": 2645,
+      "opponent_score": 3264,
+      "coffers_generated": 237,
+      "mine_games": 96,
+      "mine_first_turn": 604,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 638,
+      "both_games": 87,
+      "both_first_turn": 638
+    },
+    "mine_gains": {
+      "Silver -> Gold": 150,
+      "Copper -> Silver": 113,
+      "Gold -> Gold": 1
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3958333333333333,
+    "paired_ci95": [
+      0.3188628629586976,
+      0.47280380370796904
+    ],
+    "totals": {
+      "wins": 38,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1221,
+      "score": 2703,
+      "opponent_score": 3193,
+      "coffers_generated": 240,
+      "mine_games": 96,
+      "mine_first_turn": 604,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 638,
+      "both_games": 87,
+      "both_first_turn": 638
+    },
+    "mine_gains": {
+      "Silver -> Gold": 170,
+      "Copper -> Silver": 98,
+      "Gold -> Gold": 1
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3229166666666667,
+    "paired_ci95": [
+      0.2430619901862503,
+      0.40277134314708307
+    ],
+    "totals": {
+      "wins": 31,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1235,
+      "score": 2803,
+      "opponent_score": 3290,
+      "coffers_generated": 121,
+      "mine_games": 94,
+      "mine_first_turn": 718,
+      "guildhall_games": 50,
+      "guildhall_first_turn": 404,
+      "both_games": 50,
+      "both_first_turn": 404
+    },
+    "mine_gains": {
+      "Silver -> Gold": 120,
+      "Copper -> Silver": 92,
+      "Gold -> Gold": 1
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.34375,
+    "paired_ci95": [
+      0.27135148641371465,
+      0.41614851358628535
+    ],
+    "totals": {
+      "wins": 33,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1226,
+      "score": 2828,
+      "opponent_score": 3235,
+      "coffers_generated": 120,
+      "mine_games": 94,
+      "mine_first_turn": 718,
+      "guildhall_games": 49,
+      "guildhall_first_turn": 395,
+      "both_games": 49,
+      "both_first_turn": 395
+    },
+    "mine_gains": {
+      "Silver -> Gold": 125,
+      "Copper -> Silver": 80
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3229166666666667,
+    "paired_ci95": [
+      0.2485839624505839,
+      0.3972493708827495
+    ],
+    "totals": {
+      "wins": 31,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1222,
+      "score": 2787,
+      "opponent_score": 3290,
+      "coffers_generated": 143,
+      "mine_games": 93,
+      "mine_first_turn": 658,
+      "guildhall_games": 57,
+      "guildhall_first_turn": 452,
+      "both_games": 57,
+      "both_first_turn": 452
+    },
+    "mine_gains": {
+      "Silver -> Gold": 131,
+      "Copper -> Silver": 95,
+      "Gold -> Gold": 1
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3854166666666667,
+    "paired_ci95": [
+      0.30690606390587466,
+      0.4639272694274587
+    ],
+    "totals": {
+      "wins": 37,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1213,
+      "score": 2837,
+      "opponent_score": 3189,
+      "coffers_generated": 140,
+      "mine_games": 93,
+      "mine_first_turn": 658,
+      "guildhall_games": 56,
+      "guildhall_first_turn": 443,
+      "both_games": 56,
+      "both_first_turn": 443
+    },
+    "mine_gains": {
+      "Silver -> Gold": 140,
+      "Copper -> Silver": 77
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3958333333333333,
+    "paired_ci95": [
+      0.3188628629586976,
+      0.47280380370796904
+    ],
+    "totals": {
+      "wins": 38,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1234,
+      "score": 2769,
+      "opponent_score": 3341,
+      "coffers_generated": 268,
+      "mine_games": 96,
+      "mine_first_turn": 604,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 638,
+      "both_games": 87,
+      "both_first_turn": 638
+    },
+    "mine_gains": {
+      "Silver -> Gold": 177,
+      "Copper -> Silver": 114,
+      "Gold -> Gold": 2
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.4166666666666667,
+    "paired_ci95": [
+      0.34323427064917333,
+      0.49009906268416004
+    ],
+    "totals": {
+      "wins": 40,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1220,
+      "score": 2819,
+      "opponent_score": 3220,
+      "coffers_generated": 263,
+      "mine_games": 96,
+      "mine_first_turn": 604,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 638,
+      "both_games": 87,
+      "both_first_turn": 638
+    },
+    "mine_gains": {
+      "Silver -> Gold": 187,
+      "Copper -> Silver": 92,
+      "Gold -> Gold": 1
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2916666666666667,
+    "paired_ci95": [
+      0.21539068089966312,
+      0.36794265243367025
+    ],
+    "totals": {
+      "wins": 28,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1236,
+      "score": 2726,
+      "opponent_score": 3291,
+      "coffers_generated": 106,
+      "mine_games": 94,
+      "mine_first_turn": 718,
+      "guildhall_games": 49,
+      "guildhall_first_turn": 394,
+      "both_games": 49,
+      "both_first_turn": 394
+    },
+    "mine_gains": {
+      "Silver -> Gold": 98,
+      "Gold -> Gold": 25,
+      "Copper -> Silver": 72
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3020833333333333,
+    "paired_ci95": [
+      0.22633238927317834,
+      0.3778342773934883
+    ],
+    "totals": {
+      "wins": 29,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1228,
+      "score": 2740,
+      "opponent_score": 3275,
+      "coffers_generated": 108,
+      "mine_games": 94,
+      "mine_first_turn": 718,
+      "guildhall_games": 48,
+      "guildhall_first_turn": 385,
+      "both_games": 48,
+      "both_first_turn": 385
+    },
+    "mine_gains": {
+      "Silver -> Gold": 101,
+      "Gold -> Gold": 34,
+      "Copper -> Silver": 61
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3020833333333333,
+    "paired_ci95": [
+      0.23217777499718656,
+      0.37198889166948007
+    ],
+    "totals": {
+      "wins": 29,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1222,
+      "score": 2711,
+      "opponent_score": 3282,
+      "coffers_generated": 126,
+      "mine_games": 93,
+      "mine_first_turn": 658,
+      "guildhall_games": 56,
+      "guildhall_first_turn": 442,
+      "both_games": 56,
+      "both_first_turn": 442
+    },
+    "mine_gains": {
+      "Silver -> Gold": 105,
+      "Gold -> Gold": 30,
+      "Copper -> Silver": 73
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.34375,
+    "paired_ci95": [
+      0.2774919715824019,
+      0.4100080284175981
+    ],
+    "totals": {
+      "wins": 33,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1216,
+      "score": 2756,
+      "opponent_score": 3243,
+      "coffers_generated": 130,
+      "mine_games": 93,
+      "mine_first_turn": 658,
+      "guildhall_games": 55,
+      "guildhall_first_turn": 433,
+      "both_games": 55,
+      "both_first_turn": 433
+    },
+    "mine_gains": {
+      "Silver -> Gold": 108,
+      "Gold -> Gold": 43,
+      "Copper -> Silver": 60
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3645833333333333,
+    "paired_ci95": [
+      0.28883238927317834,
+      0.4403342773934883
+    ],
+    "totals": {
+      "wins": 35,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1231,
+      "score": 2655,
+      "opponent_score": 3274,
+      "coffers_generated": 241,
+      "mine_games": 96,
+      "mine_first_turn": 604,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 638,
+      "both_games": 87,
+      "both_first_turn": 638
+    },
+    "mine_gains": {
+      "Silver -> Gold": 118,
+      "Copper -> Silver": 77,
+      "Gold -> Gold": 72
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3854166666666667,
+    "paired_ci95": [
+      0.3125297933207303,
+      0.4583035400126031
+    ],
+    "totals": {
+      "wins": 37,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1222,
+      "score": 2702,
+      "opponent_score": 3210,
+      "coffers_generated": 242,
+      "mine_games": 96,
+      "mine_first_turn": 604,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 638,
+      "both_games": 87,
+      "both_first_turn": 638
+    },
+    "mine_gains": {
+      "Silver -> Gold": 121,
+      "Copper -> Silver": 62,
+      "Gold -> Gold": 88
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3333333333333333,
+    "paired_ci95": [
+      0.2543160236816735,
+      0.41235064298499313
+    ],
+    "totals": {
+      "wins": 32,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1234,
+      "score": 2787,
+      "opponent_score": 3282,
+      "coffers_generated": 122,
+      "mine_games": 94,
+      "mine_first_turn": 718,
+      "guildhall_games": 50,
+      "guildhall_first_turn": 404,
+      "both_games": 50,
+      "both_first_turn": 404
+    },
+    "mine_gains": {
+      "Silver -> Gold": 102,
+      "Gold -> Gold": 37,
+      "Copper -> Silver": 73
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3541666666666667,
+    "paired_ci95": [
+      0.28294142626709795,
+      0.4253919070662354
+    ],
+    "totals": {
+      "wins": 34,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1225,
+      "score": 2807,
+      "opponent_score": 3228,
+      "coffers_generated": 120,
+      "mine_games": 94,
+      "mine_first_turn": 718,
+      "guildhall_games": 49,
+      "guildhall_first_turn": 395,
+      "both_games": 49,
+      "both_first_turn": 395
+    },
+    "mine_gains": {
+      "Silver -> Gold": 101,
+      "Copper -> Silver": 60,
+      "Gold -> Gold": 43
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.24329574634891105,
+      0.38170425365108895
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1222,
+      "score": 2763,
+      "opponent_score": 3298,
+      "coffers_generated": 139,
+      "mine_games": 93,
+      "mine_first_turn": 658,
+      "guildhall_games": 57,
+      "guildhall_first_turn": 452,
+      "both_games": 57,
+      "both_first_turn": 452
+    },
+    "mine_gains": {
+      "Silver -> Gold": 108,
+      "Gold -> Gold": 40,
+      "Copper -> Silver": 76
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3541666666666667,
+    "paired_ci95": [
+      0.28294142626709795,
+      0.4253919070662354
+    ],
+    "totals": {
+      "wins": 34,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1214,
+      "score": 2803,
+      "opponent_score": 3218,
+      "coffers_generated": 137,
+      "mine_games": 93,
+      "mine_first_turn": 658,
+      "guildhall_games": 56,
+      "guildhall_first_turn": 443,
+      "both_games": 56,
+      "both_first_turn": 443
+    },
+    "mine_gains": {
+      "Silver -> Gold": 108,
+      "Copper -> Silver": 58,
+      "Gold -> Gold": 49
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3333333333333333,
+    "paired_ci95": [
+      0.2543160236816735,
+      0.41235064298499313
+    ],
+    "totals": {
+      "wins": 32,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1240,
+      "score": 2720,
+      "opponent_score": 3397,
+      "coffers_generated": 276,
+      "mine_games": 96,
+      "mine_first_turn": 604,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 638,
+      "both_games": 87,
+      "both_first_turn": 638
+    },
+    "mine_gains": {
+      "Silver -> Gold": 131,
+      "Copper -> Silver": 78,
+      "Gold -> Gold": 87
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3541666666666667,
+    "paired_ci95": [
+      0.27719619629203096,
+      0.4311371370413024
+    ],
+    "totals": {
+      "wins": 34,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1226,
+      "score": 2781,
+      "opponent_score": 3291,
+      "coffers_generated": 269,
+      "mine_games": 96,
+      "mine_first_turn": 604,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 638,
+      "both_games": 87,
+      "both_first_turn": 638
+    },
+    "mine_gains": {
+      "Silver -> Gold": 117,
+      "Gold -> Gold": 111,
+      "Copper -> Silver": 56
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.34375,
+    "paired_ci95": [
+      0.26041704344056804,
+      0.42708295655943196
+    ],
+    "totals": {
+      "wins": 33,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1260,
+      "score": 2685,
+      "opponent_score": 3240,
+      "coffers_generated": 225,
+      "mine_games": 96,
+      "mine_first_turn": 551,
+      "guildhall_games": 81,
+      "guildhall_first_turn": 548,
+      "both_games": 81,
+      "both_first_turn": 548
+    },
+    "mine_gains": {
+      "Copper -> Silver": 259,
+      "Silver -> Gold": 8
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.375,
+    "paired_ci95": [
+      0.2899291075773349,
+      0.4600708924226651
+    ],
+    "totals": {
+      "wins": 36,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1251,
+      "score": 2726,
+      "opponent_score": 3180,
+      "coffers_generated": 220,
+      "mine_games": 96,
+      "mine_first_turn": 551,
+      "guildhall_games": 80,
+      "guildhall_first_turn": 538,
+      "both_games": 80,
+      "both_first_turn": 538
+    },
+    "mine_gains": {
+      "Copper -> Silver": 256,
+      "Silver -> Gold": 7
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3541666666666667,
+    "paired_ci95": [
+      0.27719619629203096,
+      0.4311371370413024
+    ],
+    "totals": {
+      "wins": 34,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1253,
+      "score": 2674,
+      "opponent_score": 3206,
+      "coffers_generated": 246,
+      "mine_games": 96,
+      "mine_first_turn": 495,
+      "guildhall_games": 86,
+      "guildhall_first_turn": 558,
+      "both_games": 86,
+      "both_first_turn": 558
+    },
+    "mine_gains": {
+      "Copper -> Silver": 269,
+      "Silver -> Gold": 8
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.40625,
+    "paired_ci95": [
+      0.32040076663828426,
+      0.49209923336171574
+    ],
+    "totals": {
+      "wins": 39,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1245,
+      "score": 2757,
+      "opponent_score": 3132,
+      "coffers_generated": 244,
+      "mine_games": 96,
+      "mine_first_turn": 495,
+      "guildhall_games": 85,
+      "guildhall_first_turn": 548,
+      "both_games": 85,
+      "both_first_turn": 548
+    },
+    "mine_gains": {
+      "Copper -> Silver": 270,
+      "Silver -> Gold": 7
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3020833333333333,
+    "paired_ci95": [
+      0.21582185638424928,
+      0.38834481028241735
+    ],
+    "totals": {
+      "wins": 29,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1253,
+      "score": 2576,
+      "opponent_score": 3271,
+      "coffers_generated": 286,
+      "mine_games": 96,
+      "mine_first_turn": 470,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 592,
+      "both_games": 95,
+      "both_first_turn": 592
+    },
+    "mine_gains": {
+      "Copper -> Silver": 294,
+      "Silver -> Gold": 6
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.22197429932737606,
+      0.40302570067262394
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1245,
+      "score": 2622,
+      "opponent_score": 3229,
+      "coffers_generated": 280,
+      "mine_games": 96,
+      "mine_first_turn": 470,
+      "guildhall_games": 94,
+      "guildhall_first_turn": 582,
+      "both_games": 94,
+      "both_first_turn": 582
+    },
+    "mine_gains": {
+      "Copper -> Silver": 292,
+      "Silver -> Gold": 4
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3958333333333333,
+    "paired_ci95": [
+      0.3188628629586976,
+      0.47280380370796904
+    ],
+    "totals": {
+      "wins": 38,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1262,
+      "score": 2770,
+      "opponent_score": 3226,
+      "coffers_generated": 234,
+      "mine_games": 96,
+      "mine_first_turn": 551,
+      "guildhall_games": 81,
+      "guildhall_first_turn": 548,
+      "both_games": 81,
+      "both_first_turn": 548
+    },
+    "mine_gains": {
+      "Copper -> Silver": 270,
+      "Silver -> Gold": 9
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3854166666666667,
+    "paired_ci95": [
+      0.29672195642250665,
+      0.4741113769108267
+    ],
+    "totals": {
+      "wins": 37,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1253,
+      "score": 2784,
+      "opponent_score": 3181,
+      "coffers_generated": 226,
+      "mine_games": 96,
+      "mine_first_turn": 551,
+      "guildhall_games": 80,
+      "guildhall_first_turn": 538,
+      "both_games": 80,
+      "both_first_turn": 538
+    },
+    "mine_gains": {
+      "Copper -> Silver": 262,
+      "Silver -> Gold": 6
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.4375,
+    "paired_ci95": [
+      0.35180586926426527,
+      0.5231941307357347
+    ],
+    "totals": {
+      "wins": 42,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1254,
+      "score": 2767,
+      "opponent_score": 3175,
+      "coffers_generated": 256,
+      "mine_games": 96,
+      "mine_first_turn": 495,
+      "guildhall_games": 86,
+      "guildhall_first_turn": 558,
+      "both_games": 86,
+      "both_first_turn": 558
+    },
+    "mine_gains": {
+      "Copper -> Silver": 279,
+      "Silver -> Gold": 10
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.4270833333333333,
+    "paired_ci95": [
+      0.33035312143033446,
+      0.5238135452363322
+    ],
+    "totals": {
+      "wins": 41,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1244,
+      "score": 2812,
+      "opponent_score": 3109,
+      "coffers_generated": 251,
+      "mine_games": 96,
+      "mine_first_turn": 495,
+      "guildhall_games": 85,
+      "guildhall_first_turn": 548,
+      "both_games": 85,
+      "both_first_turn": 548
+    },
+    "mine_gains": {
+      "Copper -> Silver": 277,
+      "Silver -> Gold": 6
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.375,
+    "paired_ci95": [
+      0.28044898933897494,
+      0.46955101066102506
+    ],
+    "totals": {
+      "wins": 36,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1251,
+      "score": 2704,
+      "opponent_score": 3208,
+      "coffers_generated": 307,
+      "mine_games": 96,
+      "mine_first_turn": 470,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 592,
+      "both_games": 95,
+      "both_first_turn": 592
+    },
+    "mine_gains": {
+      "Copper -> Silver": 318,
+      "Silver -> Gold": 4
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3958333333333333,
+    "paired_ci95": [
+      0.3037534298318547,
+      0.4879132368348119
+    ],
+    "totals": {
+      "wins": 38,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1244,
+      "score": 2779,
+      "opponent_score": 3152,
+      "coffers_generated": 293,
+      "mine_games": 96,
+      "mine_first_turn": 470,
+      "guildhall_games": 94,
+      "guildhall_first_turn": 582,
+      "both_games": 94,
+      "both_first_turn": 582
+    },
+    "mine_gains": {
+      "Copper -> Silver": 306,
+      "Silver -> Gold": 2
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.34375,
+    "paired_ci95": [
+      0.26041704344056804,
+      0.42708295655943196
+    ],
+    "totals": {
+      "wins": 33,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1260,
+      "score": 2707,
+      "opponent_score": 3247,
+      "coffers_generated": 235,
+      "mine_games": 96,
+      "mine_first_turn": 551,
+      "guildhall_games": 81,
+      "guildhall_first_turn": 548,
+      "both_games": 81,
+      "both_first_turn": 548
+    },
+    "mine_gains": {
+      "Copper -> Silver": 119,
+      "Silver -> Gold": 152
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3645833333333333,
+    "paired_ci95": [
+      0.2783218563842493,
+      0.45084481028241735
+    ],
+    "totals": {
+      "wins": 35,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1254,
+      "score": 2748,
+      "opponent_score": 3200,
+      "coffers_generated": 233,
+      "mine_games": 96,
+      "mine_first_turn": 551,
+      "guildhall_games": 80,
+      "guildhall_first_turn": 538,
+      "both_games": 80,
+      "both_first_turn": 538
+    },
+    "mine_gains": {
+      "Copper -> Silver": 116,
+      "Silver -> Gold": 153
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.375,
+    "paired_ci95": [
+      0.2899291075773349,
+      0.4600708924226651
+    ],
+    "totals": {
+      "wins": 36,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1253,
+      "score": 2709,
+      "opponent_score": 3201,
+      "coffers_generated": 259,
+      "mine_games": 96,
+      "mine_first_turn": 495,
+      "guildhall_games": 86,
+      "guildhall_first_turn": 558,
+      "both_games": 86,
+      "both_first_turn": 558
+    },
+    "mine_gains": {
+      "Copper -> Silver": 121,
+      "Silver -> Gold": 160
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.4166666666666667,
+    "paired_ci95": [
+      0.3228690625195712,
+      0.5104642708137621
+    ],
+    "totals": {
+      "wins": 40,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1248,
+      "score": 2794,
+      "opponent_score": 3140,
+      "coffers_generated": 260,
+      "mine_games": 96,
+      "mine_first_turn": 495,
+      "guildhall_games": 85,
+      "guildhall_first_turn": 548,
+      "both_games": 85,
+      "both_first_turn": 548
+    },
+    "mine_gains": {
+      "Copper -> Silver": 120,
+      "Silver -> Gold": 163
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.22197429932737606,
+      0.40302570067262394
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1251,
+      "score": 2601,
+      "opponent_score": 3251,
+      "coffers_generated": 297,
+      "mine_games": 96,
+      "mine_first_turn": 470,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 592,
+      "both_games": 95,
+      "both_first_turn": 592
+    },
+    "mine_gains": {
+      "Copper -> Silver": 132,
+      "Silver -> Gold": 171,
+      "Gold -> Gold": 1
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.22197429932737606,
+      0.40302570067262394
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1244,
+      "score": 2634,
+      "opponent_score": 3234,
+      "coffers_generated": 287,
+      "mine_games": 96,
+      "mine_first_turn": 470,
+      "guildhall_games": 94,
+      "guildhall_first_turn": 582,
+      "both_games": 94,
+      "both_first_turn": 582
+    },
+    "mine_gains": {
+      "Copper -> Silver": 127,
+      "Silver -> Gold": 171
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.40625,
+    "paired_ci95": [
+      0.3255117040737296,
+      0.4869882959262704
+    ],
+    "totals": {
+      "wins": 39,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1263,
+      "score": 2788,
+      "opponent_score": 3234,
+      "coffers_generated": 247,
+      "mine_games": 96,
+      "mine_first_turn": 551,
+      "guildhall_games": 81,
+      "guildhall_first_turn": 548,
+      "both_games": 81,
+      "both_first_turn": 548
+    },
+    "mine_gains": {
+      "Copper -> Silver": 122,
+      "Silver -> Gold": 160
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3958333333333333,
+    "paired_ci95": [
+      0.30849897475021154,
+      0.4831676919164551
+    ],
+    "totals": {
+      "wins": 38,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1256,
+      "score": 2823,
+      "opponent_score": 3186,
+      "coffers_generated": 241,
+      "mine_games": 96,
+      "mine_first_turn": 551,
+      "guildhall_games": 80,
+      "guildhall_first_turn": 538,
+      "both_games": 80,
+      "both_first_turn": 538
+    },
+    "mine_gains": {
+      "Copper -> Silver": 112,
+      "Silver -> Gold": 163
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.4479166666666667,
+    "paired_ci95": [
+      0.35922195642250665,
+      0.5366113769108267
+    ],
+    "totals": {
+      "wins": 43,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1253,
+      "score": 2789,
+      "opponent_score": 3171,
+      "coffers_generated": 269,
+      "mine_games": 96,
+      "mine_first_turn": 495,
+      "guildhall_games": 86,
+      "guildhall_first_turn": 558,
+      "both_games": 86,
+      "both_first_turn": 558
+    },
+    "mine_gains": {
+      "Copper -> Silver": 124,
+      "Silver -> Gold": 165
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.4375,
+    "paired_ci95": [
+      0.338012617072806,
+      0.536987382927194
+    ],
+    "totals": {
+      "wins": 42,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1247,
+      "score": 2853,
+      "opponent_score": 3116,
+      "coffers_generated": 268,
+      "mine_games": 96,
+      "mine_first_turn": 495,
+      "guildhall_games": 85,
+      "guildhall_first_turn": 548,
+      "both_games": 85,
+      "both_first_turn": 548
+    },
+    "mine_gains": {
+      "Copper -> Silver": 117,
+      "Silver -> Gold": 172
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3541666666666667,
+    "paired_ci95": [
+      0.25757408378082647,
+      0.4507592495525069
+    ],
+    "totals": {
+      "wins": 34,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1250,
+      "score": 2717,
+      "opponent_score": 3230,
+      "coffers_generated": 321,
+      "mine_games": 96,
+      "mine_first_turn": 470,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 592,
+      "both_games": 95,
+      "both_first_turn": 592
+    },
+    "mine_gains": {
+      "Copper -> Silver": 136,
+      "Silver -> Gold": 187
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3958333333333333,
+    "paired_ci95": [
+      0.3037534298318547,
+      0.4879132368348119
+    ],
+    "totals": {
+      "wins": 38,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1242,
+      "score": 2786,
+      "opponent_score": 3162,
+      "coffers_generated": 305,
+      "mine_games": 96,
+      "mine_first_turn": 470,
+      "guildhall_games": 94,
+      "guildhall_first_turn": 582,
+      "both_games": 94,
+      "both_first_turn": 582
+    },
+    "mine_gains": {
+      "Copper -> Silver": 126,
+      "Silver -> Gold": 184
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.23192664458496914,
+      0.39307335541503086
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1260,
+      "score": 2661,
+      "opponent_score": 3268,
+      "coffers_generated": 239,
+      "mine_games": 96,
+      "mine_first_turn": 551,
+      "guildhall_games": 81,
+      "guildhall_first_turn": 548,
+      "both_games": 81,
+      "both_first_turn": 548
+    },
+    "mine_gains": {
+      "Copper -> Silver": 84,
+      "Silver -> Gold": 120,
+      "Gold -> Gold": 67
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3333333333333333,
+    "paired_ci95": [
+      0.24910059822219852,
+      0.4175660684444681
+    ],
+    "totals": {
+      "wins": 32,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1254,
+      "score": 2703,
+      "opponent_score": 3224,
+      "coffers_generated": 236,
+      "mine_games": 96,
+      "mine_first_turn": 551,
+      "guildhall_games": 80,
+      "guildhall_first_turn": 538,
+      "both_games": 80,
+      "both_first_turn": 538
+    },
+    "mine_gains": {
+      "Copper -> Silver": 79,
+      "Silver -> Gold": 120,
+      "Gold -> Gold": 69
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3333333333333333,
+    "paired_ci95": [
+      0.24910059822219852,
+      0.4175660684444681
+    ],
+    "totals": {
+      "wins": 32,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1255,
+      "score": 2659,
+      "opponent_score": 3241,
+      "coffers_generated": 264,
+      "mine_games": 96,
+      "mine_first_turn": 495,
+      "guildhall_games": 86,
+      "guildhall_first_turn": 558,
+      "both_games": 86,
+      "both_first_turn": 558
+    },
+    "mine_gains": {
+      "Copper -> Silver": 85,
+      "Silver -> Gold": 125,
+      "Gold -> Gold": 72
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.375,
+    "paired_ci95": [
+      0.28506404958357884,
+      0.46493595041642116
+    ],
+    "totals": {
+      "wins": 36,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1249,
+      "score": 2740,
+      "opponent_score": 3174,
+      "coffers_generated": 264,
+      "mine_games": 96,
+      "mine_first_turn": 495,
+      "guildhall_games": 85,
+      "guildhall_first_turn": 548,
+      "both_games": 85,
+      "both_first_turn": 548
+    },
+    "mine_gains": {
+      "Copper -> Silver": 80,
+      "Silver -> Gold": 126,
+      "Gold -> Gold": 76
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3229166666666667,
+    "paired_ci95": [
+      0.23303003676419126,
+      0.4128032965691421
+    ],
+    "totals": {
+      "wins": 31,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1254,
+      "score": 2591,
+      "opponent_score": 3259,
+      "coffers_generated": 299,
+      "mine_games": 96,
+      "mine_first_turn": 470,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 592,
+      "both_games": 95,
+      "both_first_turn": 592
+    },
+    "mine_gains": {
+      "Copper -> Silver": 88,
+      "Silver -> Gold": 131,
+      "Gold -> Gold": 85
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3020833333333333,
+    "paired_ci95": [
+      0.21582185638424928,
+      0.38834481028241735
+    ],
+    "totals": {
+      "wins": 29,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1248,
+      "score": 2615,
+      "opponent_score": 3260,
+      "coffers_generated": 295,
+      "mine_games": 96,
+      "mine_first_turn": 470,
+      "guildhall_games": 94,
+      "guildhall_first_turn": 582,
+      "both_games": 94,
+      "both_first_turn": 582
+    },
+    "mine_gains": {
+      "Copper -> Silver": 78,
+      "Silver -> Gold": 127,
+      "Gold -> Gold": 95
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.34375,
+    "paired_ci95": [
+      0.26041704344056804,
+      0.42708295655943196
+    ],
+    "totals": {
+      "wins": 33,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1265,
+      "score": 2725,
+      "opponent_score": 3282,
+      "coffers_generated": 251,
+      "mine_games": 96,
+      "mine_first_turn": 551,
+      "guildhall_games": 81,
+      "guildhall_first_turn": 548,
+      "both_games": 81,
+      "both_first_turn": 548
+    },
+    "mine_gains": {
+      "Copper -> Silver": 88,
+      "Silver -> Gold": 126,
+      "Gold -> Gold": 68
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3645833333333333,
+    "paired_ci95": [
+      0.2783218563842493,
+      0.45084481028241735
+    ],
+    "totals": {
+      "wins": 35,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1258,
+      "score": 2779,
+      "opponent_score": 3226,
+      "coffers_generated": 245,
+      "mine_games": 96,
+      "mine_first_turn": 551,
+      "guildhall_games": 80,
+      "guildhall_first_turn": 538,
+      "both_games": 80,
+      "both_first_turn": 538
+    },
+    "mine_gains": {
+      "Copper -> Silver": 79,
+      "Silver -> Gold": 117,
+      "Gold -> Gold": 79
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.375,
+    "paired_ci95": [
+      0.28506404958357884,
+      0.46493595041642116
+    ],
+    "totals": {
+      "wins": 36,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1256,
+      "score": 2722,
+      "opponent_score": 3235,
+      "coffers_generated": 273,
+      "mine_games": 96,
+      "mine_first_turn": 495,
+      "guildhall_games": 86,
+      "guildhall_first_turn": 558,
+      "both_games": 86,
+      "both_first_turn": 558
+    },
+    "mine_gains": {
+      "Copper -> Silver": 88,
+      "Silver -> Gold": 131,
+      "Gold -> Gold": 70
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.40625,
+    "paired_ci95": [
+      0.3066289872168363,
+      0.5058710127831637
+    ],
+    "totals": {
+      "wins": 39,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1248,
+      "score": 2799,
+      "opponent_score": 3153,
+      "coffers_generated": 273,
+      "mine_games": 96,
+      "mine_first_turn": 495,
+      "guildhall_games": 85,
+      "guildhall_first_turn": 548,
+      "both_games": 85,
+      "both_first_turn": 548
+    },
+    "mine_gains": {
+      "Copper -> Silver": 79,
+      "Silver -> Gold": 125,
+      "Gold -> Gold": 85
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3541666666666667,
+    "paired_ci95": [
+      0.25757408378082647,
+      0.4507592495525069
+    ],
+    "totals": {
+      "wins": 34,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1257,
+      "score": 2700,
+      "opponent_score": 3258,
+      "coffers_generated": 331,
+      "mine_games": 96,
+      "mine_first_turn": 470,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 592,
+      "both_games": 95,
+      "both_first_turn": 592
+    },
+    "mine_gains": {
+      "Copper -> Silver": 91,
+      "Silver -> Gold": 141,
+      "Gold -> Gold": 96
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "tea_mine_guild",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3854166666666667,
+    "paired_ci95": [
+      0.29204552516667315,
+      0.4787878081666602
+    ],
+    "totals": {
+      "wins": 37,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1242,
+      "score": 2739,
+      "opponent_score": 3172,
+      "coffers_generated": 311,
+      "mine_games": 96,
+      "mine_first_turn": 470,
+      "guildhall_games": 94,
+      "guildhall_first_turn": 582,
+      "both_games": 94,
+      "both_first_turn": 582
+    },
+    "mine_gains": {
+      "Copper -> Silver": 74,
+      "Silver -> Gold": 125,
+      "Gold -> Gold": 112
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.24329574634891105,
+      0.38170425365108895
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1294,
+      "score": 2661,
+      "opponent_score": 3235,
+      "coffers_generated": 291,
+      "mine_games": 96,
+      "mine_first_turn": 352,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 497,
+      "both_games": 88,
+      "both_first_turn": 497
+    },
+    "mine_gains": {
+      "Copper -> Silver": 323,
+      "Silver -> Gold": 17
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3541666666666667,
+    "paired_ci95": [
+      0.27719619629203096,
+      0.4311371370413024
+    ],
+    "totals": {
+      "wins": 34,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1286,
+      "score": 2696,
+      "opponent_score": 3179,
+      "coffers_generated": 288,
+      "mine_games": 96,
+      "mine_first_turn": 352,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 497,
+      "both_games": 88,
+      "both_first_turn": 497
+    },
+    "mine_gains": {
+      "Copper -> Silver": 323,
+      "Silver -> Gold": 14
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3333333333333333,
+    "paired_ci95": [
+      0.25990093731583996,
+      0.40676572935082667
+    ],
+    "totals": {
+      "wins": 32,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1292,
+      "score": 2662,
+      "opponent_score": 3217,
+      "coffers_generated": 322,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Copper -> Silver": 342,
+      "Silver -> Gold": 20
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.375,
+    "paired_ci95": [
+      0.29508981105095333,
+      0.45491018894904667
+    ],
+    "totals": {
+      "wins": 36,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1285,
+      "score": 2695,
+      "opponent_score": 3164,
+      "coffers_generated": 321,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Copper -> Silver": 343,
+      "Silver -> Gold": 18
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3645833333333333,
+    "paired_ci95": [
+      0.28340683448224313,
+      0.4457598321844235
+    ],
+    "totals": {
+      "wins": 35,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1299,
+      "score": 2652,
+      "opponent_score": 3227,
+      "coffers_generated": 356,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 503,
+      "both_games": 96,
+      "both_first_turn": 503
+    },
+    "mine_gains": {
+      "Copper -> Silver": 361,
+      "Silver -> Gold": 24
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "copper",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3541666666666667,
+    "paired_ci95": [
+      0.27719619629203096,
+      0.4311371370413024
+    ],
+    "totals": {
+      "wins": 34,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1297,
+      "score": 2662,
+      "opponent_score": 3210,
+      "coffers_generated": 357,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 503,
+      "both_games": 96,
+      "both_first_turn": 503
+    },
+    "mine_gains": {
+      "Copper -> Silver": 365,
+      "Silver -> Gold": 21
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3333333333333333,
+    "paired_ci95": [
+      0.2659471452444255,
+      0.40071952142224115
+    ],
+    "totals": {
+      "wins": 32,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1303,
+      "score": 2745,
+      "opponent_score": 3267,
+      "coffers_generated": 293,
+      "mine_games": 96,
+      "mine_first_turn": 352,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 497,
+      "both_games": 88,
+      "both_first_turn": 497
+    },
+    "mine_gains": {
+      "Copper -> Silver": 325,
+      "Silver -> Gold": 18
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.375,
+    "paired_ci95": [
+      0.29508981105095333,
+      0.45491018894904667
+    ],
+    "totals": {
+      "wins": 36,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1286,
+      "score": 2772,
+      "opponent_score": 3164,
+      "coffers_generated": 290,
+      "mine_games": 96,
+      "mine_first_turn": 352,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 497,
+      "both_games": 88,
+      "both_first_turn": 497
+    },
+    "mine_gains": {
+      "Copper -> Silver": 327,
+      "Silver -> Gold": 13
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3541666666666667,
+    "paired_ci95": [
+      0.28294142626709795,
+      0.4253919070662354
+    ],
+    "totals": {
+      "wins": 34,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1303,
+      "score": 2751,
+      "opponent_score": 3266,
+      "coffers_generated": 327,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Copper -> Silver": 348,
+      "Silver -> Gold": 19
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3958333333333333,
+    "paired_ci95": [
+      0.31351764983736163,
+      0.478149016829305
+    ],
+    "totals": {
+      "wins": 38,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1285,
+      "score": 2770,
+      "opponent_score": 3162,
+      "coffers_generated": 323,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Copper -> Silver": 348,
+      "Silver -> Gold": 15
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3854166666666667,
+    "paired_ci95": [
+      0.30690606390587466,
+      0.4639272694274587
+    ],
+    "totals": {
+      "wins": 37,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1300,
+      "score": 2736,
+      "opponent_score": 3215,
+      "coffers_generated": 355,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 503,
+      "both_games": 96,
+      "both_first_turn": 503
+    },
+    "mine_gains": {
+      "Copper -> Silver": 364,
+      "Silver -> Gold": 21
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "copper",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3958333333333333,
+    "paired_ci95": [
+      0.31351764983736163,
+      0.478149016829305
+    ],
+    "totals": {
+      "wins": 38,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1292,
+      "score": 2770,
+      "opponent_score": 3170,
+      "coffers_generated": 354,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 503,
+      "both_games": 96,
+      "both_first_turn": 503
+    },
+    "mine_gains": {
+      "Copper -> Silver": 365,
+      "Silver -> Gold": 19
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.24329574634891105,
+      0.38170425365108895
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1293,
+      "score": 2672,
+      "opponent_score": 3219,
+      "coffers_generated": 296,
+      "mine_games": 96,
+      "mine_first_turn": 352,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 490,
+      "both_games": 87,
+      "both_first_turn": 490
+    },
+    "mine_gains": {
+      "Silver -> Gold": 174,
+      "Copper -> Silver": 159,
+      "Gold -> Gold": 3
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.34375,
+    "paired_ci95": [
+      0.27135148641371465,
+      0.41614851358628535
+    ],
+    "totals": {
+      "wins": 33,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1288,
+      "score": 2709,
+      "opponent_score": 3172,
+      "coffers_generated": 292,
+      "mine_games": 96,
+      "mine_first_turn": 352,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 490,
+      "both_games": 87,
+      "both_first_turn": 490
+    },
+    "mine_gains": {
+      "Silver -> Gold": 181,
+      "Copper -> Silver": 148,
+      "Gold -> Gold": 2
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3333333333333333,
+    "paired_ci95": [
+      0.25990093731583996,
+      0.40676572935082667
+    ],
+    "totals": {
+      "wins": 32,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1288,
+      "score": 2671,
+      "opponent_score": 3185,
+      "coffers_generated": 337,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 182,
+      "Copper -> Silver": 173,
+      "Gold -> Gold": 3
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3645833333333333,
+    "paired_ci95": [
+      0.28883238927317834,
+      0.4403342773934883
+    ],
+    "totals": {
+      "wins": 35,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1284,
+      "score": 2705,
+      "opponent_score": 3144,
+      "coffers_generated": 335,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 190,
+      "Copper -> Silver": 164,
+      "Gold -> Gold": 2
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.34375,
+    "paired_ci95": [
+      0.2656925646769005,
+      0.4218074353230995
+    ],
+    "totals": {
+      "wins": 33,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1292,
+      "score": 2624,
+      "opponent_score": 3224,
+      "coffers_generated": 367,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 504,
+      "both_games": 96,
+      "both_first_turn": 504
+    },
+    "mine_gains": {
+      "Silver -> Gold": 201,
+      "Copper -> Silver": 176,
+      "Gold -> Gold": 2
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "silver",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3333333333333333,
+    "paired_ci95": [
+      0.2543160236816735,
+      0.41235064298499313
+    ],
+    "totals": {
+      "wins": 32,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1294,
+      "score": 2651,
+      "opponent_score": 3232,
+      "coffers_generated": 366,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 504,
+      "both_games": 96,
+      "both_first_turn": 504
+    },
+    "mine_gains": {
+      "Silver -> Gold": 210,
+      "Copper -> Silver": 166,
+      "Gold -> Gold": 2
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3229166666666667,
+    "paired_ci95": [
+      0.2545505019624847,
+      0.3912828313708487
+    ],
+    "totals": {
+      "wins": 31,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1295,
+      "score": 2729,
+      "opponent_score": 3225,
+      "coffers_generated": 302,
+      "mine_games": 96,
+      "mine_first_turn": 352,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 490,
+      "both_games": 87,
+      "both_first_turn": 490
+    },
+    "mine_gains": {
+      "Silver -> Gold": 177,
+      "Copper -> Silver": 160,
+      "Gold -> Gold": 4
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3645833333333333,
+    "paired_ci95": [
+      0.28883238927317834,
+      0.4403342773934883
+    ],
+    "totals": {
+      "wins": 35,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1285,
+      "score": 2772,
+      "opponent_score": 3144,
+      "coffers_generated": 299,
+      "mine_games": 96,
+      "mine_first_turn": 352,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 490,
+      "both_games": 87,
+      "both_first_turn": 490
+    },
+    "mine_gains": {
+      "Silver -> Gold": 186,
+      "Copper -> Silver": 149,
+      "Gold -> Gold": 2
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.34375,
+    "paired_ci95": [
+      0.27135148641371465,
+      0.41614851358628535
+    ],
+    "totals": {
+      "wins": 33,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1294,
+      "score": 2747,
+      "opponent_score": 3216,
+      "coffers_generated": 348,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 190,
+      "Copper -> Silver": 174,
+      "Gold -> Gold": 4
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3854166666666667,
+    "paired_ci95": [
+      0.30690606390587466,
+      0.4639272694274587
+    ],
+    "totals": {
+      "wins": 37,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1283,
+      "score": 2783,
+      "opponent_score": 3138,
+      "coffers_generated": 343,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 198,
+      "Copper -> Silver": 163,
+      "Gold -> Gold": 2
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3333333333333333,
+    "paired_ci95": [
+      0.2543160236816735,
+      0.41235064298499313
+    ],
+    "totals": {
+      "wins": 32,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1290,
+      "score": 2680,
+      "opponent_score": 3219,
+      "coffers_generated": 368,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 504,
+      "both_games": 96,
+      "both_first_turn": 504
+    },
+    "mine_gains": {
+      "Silver -> Gold": 199,
+      "Copper -> Silver": 181,
+      "Gold -> Gold": 2
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "silver",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3645833333333333,
+    "paired_ci95": [
+      0.2783218563842493,
+      0.45084481028241735
+    ],
+    "totals": {
+      "wins": 35,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1287,
+      "score": 2745,
+      "opponent_score": 3187,
+      "coffers_generated": 370,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 504,
+      "both_games": 96,
+      "both_first_turn": 504
+    },
+    "mine_gains": {
+      "Silver -> Gold": 219,
+      "Copper -> Silver": 161,
+      "Gold -> Gold": 2
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.28125,
+    "paired_ci95": [
+      0.2103367420042312,
+      0.3521632579957688
+    ],
+    "totals": {
+      "wins": 27,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1294,
+      "score": 2640,
+      "opponent_score": 3250,
+      "coffers_generated": 298,
+      "mine_games": 96,
+      "mine_first_turn": 352,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 490,
+      "both_games": 87,
+      "both_first_turn": 490
+    },
+    "mine_gains": {
+      "Silver -> Gold": 134,
+      "Copper -> Silver": 130,
+      "Gold -> Gold": 74
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3229166666666667,
+    "paired_ci95": [
+      0.2545505019624847,
+      0.3912828313708487
+    ],
+    "totals": {
+      "wins": 31,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1289,
+      "score": 2688,
+      "opponent_score": 3191,
+      "coffers_generated": 294,
+      "mine_games": 96,
+      "mine_first_turn": 352,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 490,
+      "both_games": 87,
+      "both_first_turn": 490
+    },
+    "mine_gains": {
+      "Silver -> Gold": 134,
+      "Copper -> Silver": 121,
+      "Gold -> Gold": 79
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3020833333333333,
+    "paired_ci95": [
+      0.22633238927317834,
+      0.3778342773934883
+    ],
+    "totals": {
+      "wins": 29,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1291,
+      "score": 2630,
+      "opponent_score": 3234,
+      "coffers_generated": 339,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 139,
+      "Copper -> Silver": 133,
+      "Gold -> Gold": 88
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.34375,
+    "paired_ci95": [
+      0.27135148641371465,
+      0.41614851358628535
+    ],
+    "totals": {
+      "wins": 33,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1287,
+      "score": 2673,
+      "opponent_score": 3181,
+      "coffers_generated": 337,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 138,
+      "Copper -> Silver": 127,
+      "Gold -> Gold": 94
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.23739575802179635,
+      0.38760424197820365
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1296,
+      "score": 2576,
+      "opponent_score": 3284,
+      "coffers_generated": 366,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 504,
+      "both_games": 96,
+      "both_first_turn": 504
+    },
+    "mine_gains": {
+      "Silver -> Gold": 147,
+      "Copper -> Silver": 130,
+      "Gold -> Gold": 103
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "gold",
+      "envoys": 1,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.23192664458496914,
+      0.39307335541503086
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1298,
+      "score": 2621,
+      "opponent_score": 3280,
+      "coffers_generated": 365,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 504,
+      "both_games": 96,
+      "both_first_turn": 504
+    },
+    "mine_gains": {
+      "Silver -> Gold": 140,
+      "Copper -> Silver": 123,
+      "Gold -> Gold": 116
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.28125,
+    "paired_ci95": [
+      0.2103367420042312,
+      0.3521632579957688
+    ],
+    "totals": {
+      "wins": 27,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1296,
+      "score": 2687,
+      "opponent_score": 3263,
+      "coffers_generated": 301,
+      "mine_games": 96,
+      "mine_first_turn": 352,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 490,
+      "both_games": 87,
+      "both_first_turn": 490
+    },
+    "mine_gains": {
+      "Silver -> Gold": 135,
+      "Copper -> Silver": 128,
+      "Gold -> Gold": 78
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 3,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.34375,
+    "paired_ci95": [
+      0.27135148641371465,
+      0.41614851358628535
+    ],
+    "totals": {
+      "wins": 33,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1290,
+      "score": 2749,
+      "opponent_score": 3175,
+      "coffers_generated": 300,
+      "mine_games": 96,
+      "mine_first_turn": 352,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 490,
+      "both_games": 87,
+      "both_first_turn": 490
+    },
+    "mine_gains": {
+      "Silver -> Gold": 133,
+      "Copper -> Silver": 120,
+      "Gold -> Gold": 87
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3020833333333333,
+    "paired_ci95": [
+      0.22633238927317834,
+      0.3778342773934883
+    ],
+    "totals": {
+      "wins": 29,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1297,
+      "score": 2704,
+      "opponent_score": 3270,
+      "coffers_generated": 347,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 141,
+      "Copper -> Silver": 132,
+      "Gold -> Gold": 95
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 6,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3645833333333333,
+    "paired_ci95": [
+      0.28883238927317834,
+      0.4403342773934883
+    ],
+    "totals": {
+      "wins": 35,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1290,
+      "score": 2751,
+      "opponent_score": 3186,
+      "coffers_generated": 344,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 136,
+      "Copper -> Silver": 126,
+      "Gold -> Gold": 104
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "early"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3229166666666667,
+    "paired_ci95": [
+      0.2485839624505839,
+      0.3972493708827495
+    ],
+    "totals": {
+      "wins": 31,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1296,
+      "score": 2668,
+      "opponent_score": 3267,
+      "coffers_generated": 370,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 504,
+      "both_games": 96,
+      "both_first_turn": 504
+    },
+    "mine_gains": {
+      "Silver -> Gold": 146,
+      "Copper -> Silver": 131,
+      "Gold -> Gold": 108
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild_tea",
+      "upgrade": "gold",
+      "envoys": 2,
+      "green_turn": 9,
+      "mine_order": "late"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.34375,
+    "paired_ci95": [
+      0.2656925646769005,
+      0.4218074353230995
+    ],
+    "totals": {
+      "wins": 33,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1297,
+      "score": 2731,
+      "opponent_score": 3247,
+      "coffers_generated": 372,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 504,
+      "both_games": 96,
+      "both_first_turn": 504
+    },
+    "mine_gains": {
+      "Silver -> Gold": 137,
+      "Copper -> Silver": 122,
+      "Gold -> Gold": 128
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "copper",
+      "masterminds": 0,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.15625,
+    "paired_ci95": [
+      0.08385148641371465,
+      0.22864851358628535
+    ],
+    "totals": {
+      "wins": 15,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1373,
+      "score": 2448,
+      "opponent_score": 3565,
+      "coffers_generated": 380,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 90,
+      "guildhall_first_turn": 657,
+      "both_games": 90,
+      "both_first_turn": 657
+    },
+    "mine_gains": {
+      "Copper -> Silver": 386,
+      "Silver -> Gold": 94,
+      "Gold -> Gold": 9
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 55,
+      "Mine": 60
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "copper",
+      "masterminds": 0,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.25,
+    "paired_ci95": [
+      0.17279942307201207,
+      0.32720057692798793
+    ],
+    "totals": {
+      "wins": 24,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1339,
+      "score": 2560,
+      "opponent_score": 3417,
+      "coffers_generated": 343,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 90,
+      "guildhall_first_turn": 657,
+      "both_games": 90,
+      "both_first_turn": 657
+    },
+    "mine_gains": {
+      "Copper -> Silver": 411,
+      "Silver -> Gold": 81,
+      "Gold -> Gold": 11
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 62,
+      "Mine": 57,
+      "Tea House": 1
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "copper",
+      "masterminds": 0,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.25,
+    "paired_ci95": [
+      0.17279942307201207,
+      0.32720057692798793
+    ],
+    "totals": {
+      "wins": 24,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1338,
+      "score": 2556,
+      "opponent_score": 3404,
+      "coffers_generated": 339,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 90,
+      "guildhall_first_turn": 657,
+      "both_games": 90,
+      "both_first_turn": 657
+    },
+    "mine_gains": {
+      "Copper -> Silver": 411,
+      "Silver -> Gold": 81,
+      "Gold -> Gold": 11
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 63,
+      "Mine": 57,
+      "Tea House": 1
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "copper",
+      "masterminds": 1,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.15625,
+    "paired_ci95": [
+      0.08385148641371465,
+      0.22864851358628535
+    ],
+    "totals": {
+      "wins": 15,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1373,
+      "score": 2445,
+      "opponent_score": 3565,
+      "coffers_generated": 381,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 91,
+      "guildhall_first_turn": 666,
+      "both_games": 91,
+      "both_first_turn": 666
+    },
+    "mine_gains": {
+      "Copper -> Silver": 386,
+      "Silver -> Gold": 94,
+      "Gold -> Gold": 9
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 56,
+      "Mine": 60
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "copper",
+      "masterminds": 1,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.25,
+    "paired_ci95": [
+      0.17279942307201207,
+      0.32720057692798793
+    ],
+    "totals": {
+      "wins": 24,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1339,
+      "score": 2557,
+      "opponent_score": 3417,
+      "coffers_generated": 344,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 91,
+      "guildhall_first_turn": 666,
+      "both_games": 91,
+      "both_first_turn": 666
+    },
+    "mine_gains": {
+      "Copper -> Silver": 411,
+      "Silver -> Gold": 81,
+      "Gold -> Gold": 11
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 63,
+      "Mine": 57,
+      "Tea House": 1
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "copper",
+      "masterminds": 1,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.25,
+    "paired_ci95": [
+      0.17279942307201207,
+      0.32720057692798793
+    ],
+    "totals": {
+      "wins": 24,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1338,
+      "score": 2553,
+      "opponent_score": 3404,
+      "coffers_generated": 340,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 91,
+      "guildhall_first_turn": 666,
+      "both_games": 91,
+      "both_first_turn": 666
+    },
+    "mine_gains": {
+      "Copper -> Silver": 411,
+      "Silver -> Gold": 81,
+      "Gold -> Gold": 11
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 64,
+      "Mine": 57,
+      "Tea House": 1
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "copper",
+      "masterminds": 2,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.13541666666666666,
+    "paired_ci95": [
+      0.07189211514072431,
+      0.19894121819260902
+    ],
+    "totals": {
+      "wins": 13,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1381,
+      "score": 2332,
+      "opponent_score": 3637,
+      "coffers_generated": 377,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 90,
+      "guildhall_first_turn": 655,
+      "both_games": 90,
+      "both_first_turn": 655
+    },
+    "mine_gains": {
+      "Copper -> Silver": 374,
+      "Silver -> Gold": 101,
+      "Gold -> Gold": 12
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 11,
+      "City Quarter": 72,
+      "Mine": 63,
+      "Imperial Envoy": 1
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "copper",
+      "masterminds": 2,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.15625,
+    "paired_ci95": [
+      0.08999197158240192,
+      0.2225080284175981
+    ],
+    "totals": {
+      "wins": 15,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1353,
+      "score": 2372,
+      "opponent_score": 3544,
+      "coffers_generated": 337,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 90,
+      "guildhall_first_turn": 655,
+      "both_games": 90,
+      "both_first_turn": 655
+    },
+    "mine_gains": {
+      "Copper -> Silver": 389,
+      "Silver -> Gold": 92,
+      "Gold -> Gold": 16
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 88,
+      "Mine": 62,
+      "Tea House": 1
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "copper",
+      "masterminds": 2,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.15625,
+    "paired_ci95": [
+      0.08999197158240192,
+      0.2225080284175981
+    ],
+    "totals": {
+      "wins": 15,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1354,
+      "score": 2378,
+      "opponent_score": 3544,
+      "coffers_generated": 333,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 90,
+      "guildhall_first_turn": 655,
+      "both_games": 90,
+      "both_first_turn": 655
+    },
+    "mine_gains": {
+      "Copper -> Silver": 391,
+      "Silver -> Gold": 90,
+      "Gold -> Gold": 16
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 88,
+      "Mine": 61,
+      "Tea House": 1
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "silver",
+      "masterminds": 0,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.21875,
+    "paired_ci95": [
+      0.14206813383015002,
+      0.29543186616984995
+    ],
+    "totals": {
+      "wins": 21,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1365,
+      "score": 2511,
+      "opponent_score": 3446,
+      "coffers_generated": 379,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 646,
+      "both_games": 88,
+      "both_first_turn": 646
+    },
+    "mine_gains": {
+      "Silver -> Gold": 243,
+      "Copper -> Silver": 212,
+      "Gold -> Gold": 15
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 11,
+      "City Quarter": 62,
+      "Mine": 55
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "silver",
+      "masterminds": 0,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.28125,
+    "paired_ci95": [
+      0.20456813383015002,
+      0.35793186616984995
+    ],
+    "totals": {
+      "wins": 27,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1337,
+      "score": 2601,
+      "opponent_score": 3341,
+      "coffers_generated": 345,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 646,
+      "both_games": 88,
+      "both_first_turn": 646
+    },
+    "mine_gains": {
+      "Silver -> Gold": 255,
+      "Copper -> Silver": 211,
+      "Gold -> Gold": 19
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 62,
+      "Tea House": 4,
+      "Mine": 54
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "silver",
+      "masterminds": 0,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2916666666666667,
+    "paired_ci95": [
+      0.21539068089966312,
+      0.36794265243367025
+    ],
+    "totals": {
+      "wins": 28,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1337,
+      "score": 2613,
+      "opponent_score": 3334,
+      "coffers_generated": 351,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 646,
+      "both_games": 88,
+      "both_first_turn": 646
+    },
+    "mine_gains": {
+      "Silver -> Gold": 258,
+      "Copper -> Silver": 213,
+      "Gold -> Gold": 21
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 63,
+      "Mine": 56,
+      "Tea House": 3
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "silver",
+      "masterminds": 1,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.21875,
+    "paired_ci95": [
+      0.14206813383015002,
+      0.29543186616984995
+    ],
+    "totals": {
+      "wins": 21,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1366,
+      "score": 2511,
+      "opponent_score": 3456,
+      "coffers_generated": 379,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 646,
+      "both_games": 88,
+      "both_first_turn": 646
+    },
+    "mine_gains": {
+      "Silver -> Gold": 244,
+      "Copper -> Silver": 212,
+      "Gold -> Gold": 15
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 11,
+      "City Quarter": 63,
+      "Mine": 55
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "silver",
+      "masterminds": 1,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.28125,
+    "paired_ci95": [
+      0.20456813383015002,
+      0.35793186616984995
+    ],
+    "totals": {
+      "wins": 27,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1338,
+      "score": 2601,
+      "opponent_score": 3351,
+      "coffers_generated": 345,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 646,
+      "both_games": 88,
+      "both_first_turn": 646
+    },
+    "mine_gains": {
+      "Silver -> Gold": 256,
+      "Copper -> Silver": 211,
+      "Gold -> Gold": 19
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 63,
+      "Tea House": 4,
+      "Mine": 54
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "silver",
+      "masterminds": 1,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2916666666666667,
+    "paired_ci95": [
+      0.21539068089966312,
+      0.36794265243367025
+    ],
+    "totals": {
+      "wins": 28,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1338,
+      "score": 2613,
+      "opponent_score": 3344,
+      "coffers_generated": 351,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 646,
+      "both_games": 88,
+      "both_first_turn": 646
+    },
+    "mine_gains": {
+      "Silver -> Gold": 259,
+      "Copper -> Silver": 213,
+      "Gold -> Gold": 21
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 64,
+      "Mine": 56,
+      "Tea House": 3
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "silver",
+      "masterminds": 2,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.19791666666666666,
+    "paired_ci95": [
+      0.12801110833051993,
+      0.2678222250028134
+    ],
+    "totals": {
+      "wins": 19,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1374,
+      "score": 2397,
+      "opponent_score": 3529,
+      "coffers_generated": 380,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 636,
+      "both_games": 87,
+      "both_first_turn": 636
+    },
+    "mine_gains": {
+      "Silver -> Gold": 238,
+      "Copper -> Silver": 215,
+      "Gold -> Gold": 22
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 11,
+      "City Quarter": 73,
+      "Mine": 60
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "silver",
+      "masterminds": 2,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.22916666666666666,
+    "paired_ci95": [
+      0.1579414262670979,
+      0.3003919070662354
+    ],
+    "totals": {
+      "wins": 22,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1350,
+      "score": 2447,
+      "opponent_score": 3431,
+      "coffers_generated": 342,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 636,
+      "both_games": 87,
+      "both_first_turn": 636
+    },
+    "mine_gains": {
+      "Silver -> Gold": 247,
+      "Copper -> Silver": 217,
+      "Gold -> Gold": 22
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 78,
+      "Tea House": 4,
+      "Mine": 57
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "silver",
+      "masterminds": 2,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.22916666666666666,
+    "paired_ci95": [
+      0.1579414262670979,
+      0.3003919070662354
+    ],
+    "totals": {
+      "wins": 22,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1349,
+      "score": 2444,
+      "opponent_score": 3424,
+      "coffers_generated": 347,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 636,
+      "both_games": 87,
+      "both_first_turn": 636
+    },
+    "mine_gains": {
+      "Silver -> Gold": 247,
+      "Copper -> Silver": 220,
+      "Gold -> Gold": 25
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 76,
+      "Mine": 60,
+      "Tea House": 3
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "gold",
+      "masterminds": 0,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.15625,
+    "paired_ci95": [
+      0.08999197158240192,
+      0.2225080284175981
+    ],
+    "totals": {
+      "wins": 15,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1392,
+      "score": 2464,
+      "opponent_score": 3590,
+      "coffers_generated": 399,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 646,
+      "both_games": 88,
+      "both_first_turn": 646
+    },
+    "mine_gains": {
+      "Silver -> Gold": 171,
+      "Copper -> Silver": 144,
+      "Gold -> Gold": 170
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 11,
+      "City Quarter": 65,
+      "Mine": 57
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "gold",
+      "masterminds": 0,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.25,
+    "paired_ci95": [
+      0.17279942307201207,
+      0.32720057692798793
+    ],
+    "totals": {
+      "wins": 24,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1351,
+      "score": 2533,
+      "opponent_score": 3404,
+      "coffers_generated": 357,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 646,
+      "both_games": 88,
+      "both_first_turn": 646
+    },
+    "mine_gains": {
+      "Silver -> Gold": 174,
+      "Copper -> Silver": 142,
+      "Gold -> Gold": 179
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 67,
+      "Tea House": 5,
+      "Mine": 54
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "gold",
+      "masterminds": 0,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.25,
+    "paired_ci95": [
+      0.17279942307201207,
+      0.32720057692798793
+    ],
+    "totals": {
+      "wins": 24,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1351,
+      "score": 2558,
+      "opponent_score": 3407,
+      "coffers_generated": 361,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 646,
+      "both_games": 88,
+      "both_first_turn": 646
+    },
+    "mine_gains": {
+      "Silver -> Gold": 176,
+      "Copper -> Silver": 143,
+      "Gold -> Gold": 183
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 68,
+      "Tea House": 5,
+      "Mine": 55
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "gold",
+      "masterminds": 1,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.15625,
+    "paired_ci95": [
+      0.08999197158240192,
+      0.2225080284175981
+    ],
+    "totals": {
+      "wins": 15,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1393,
+      "score": 2464,
+      "opponent_score": 3600,
+      "coffers_generated": 399,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 646,
+      "both_games": 88,
+      "both_first_turn": 646
+    },
+    "mine_gains": {
+      "Silver -> Gold": 172,
+      "Copper -> Silver": 144,
+      "Gold -> Gold": 170
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 11,
+      "City Quarter": 66,
+      "Mine": 57
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "gold",
+      "masterminds": 1,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.25,
+    "paired_ci95": [
+      0.17279942307201207,
+      0.32720057692798793
+    ],
+    "totals": {
+      "wins": 24,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1352,
+      "score": 2533,
+      "opponent_score": 3414,
+      "coffers_generated": 357,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 646,
+      "both_games": 88,
+      "both_first_turn": 646
+    },
+    "mine_gains": {
+      "Silver -> Gold": 175,
+      "Copper -> Silver": 142,
+      "Gold -> Gold": 179
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 68,
+      "Tea House": 5,
+      "Mine": 54
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "gold",
+      "masterminds": 1,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.25,
+    "paired_ci95": [
+      0.17279942307201207,
+      0.32720057692798793
+    ],
+    "totals": {
+      "wins": 24,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1352,
+      "score": 2558,
+      "opponent_score": 3417,
+      "coffers_generated": 361,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 88,
+      "guildhall_first_turn": 646,
+      "both_games": 88,
+      "both_first_turn": 646
+    },
+    "mine_gains": {
+      "Silver -> Gold": 177,
+      "Copper -> Silver": 143,
+      "Gold -> Gold": 183
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 69,
+      "Tea House": 5,
+      "Mine": 55
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "gold",
+      "masterminds": 2,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.11458333333333333,
+    "paired_ci95": [
+      0.05450289203407232,
+      0.17466377463259433
+    ],
+    "totals": {
+      "wins": 11,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1403,
+      "score": 2361,
+      "opponent_score": 3689,
+      "coffers_generated": 404,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 636,
+      "both_games": 87,
+      "both_first_turn": 636
+    },
+    "mine_gains": {
+      "Silver -> Gold": 174,
+      "Copper -> Silver": 149,
+      "Gold -> Gold": 171
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 11,
+      "City Quarter": 78,
+      "Mine": 65
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "gold",
+      "masterminds": 2,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.16666666666666666,
+    "paired_ci95": [
+      0.09928047857775882,
+      0.2340528547555745
+    ],
+    "totals": {
+      "wins": 16,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1365,
+      "score": 2363,
+      "opponent_score": 3535,
+      "coffers_generated": 354,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 636,
+      "both_games": 87,
+      "both_first_turn": 636
+    },
+    "mine_gains": {
+      "Silver -> Gold": 175,
+      "Copper -> Silver": 146,
+      "Gold -> Gold": 175
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 87,
+      "Tea House": 5,
+      "Mine": 58
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_mastermind_guild",
+      "upgrade": "gold",
+      "masterminds": 2,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.16666666666666666,
+    "paired_ci95": [
+      0.09928047857775882,
+      0.2340528547555745
+    ],
+    "totals": {
+      "wins": 16,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1364,
+      "score": 2369,
+      "opponent_score": 3529,
+      "coffers_generated": 355,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 87,
+      "guildhall_first_turn": 636,
+      "both_games": 87,
+      "both_first_turn": 636
+    },
+    "mine_gains": {
+      "Silver -> Gold": 174,
+      "Copper -> Silver": 147,
+      "Gold -> Gold": 179
+    },
+    "mastermind_targets": {
+      "Fortune Hunter": 10,
+      "City Quarter": 87,
+      "Tea House": 5,
+      "Mine": 59
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "copper",
+      "masterminds": 0,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3229166666666667,
+    "paired_ci95": [
+      0.2378979169963247,
+      0.4079354163370087
+    ],
+    "totals": {
+      "wins": 31,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1365,
+      "score": 2761,
+      "opponent_score": 3320,
+      "coffers_generated": 425,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Copper -> Silver": 312,
+      "Silver -> Gold": 26,
+      "Gold -> Gold": 3
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "copper",
+      "masterminds": 0,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.375,
+    "paired_ci95": [
+      0.2899291075773349,
+      0.4600708924226651
+    ],
+    "totals": {
+      "wins": 36,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1284,
+      "score": 2755,
+      "opponent_score": 3125,
+      "coffers_generated": 337,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Copper -> Silver": 336,
+      "Silver -> Gold": 18
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "copper",
+      "masterminds": 0,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3854166666666667,
+    "paired_ci95": [
+      0.30690606390587466,
+      0.4639272694274587
+    ],
+    "totals": {
+      "wins": 37,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1287,
+      "score": 2782,
+      "opponent_score": 3165,
+      "coffers_generated": 321,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Copper -> Silver": 346,
+      "Silver -> Gold": 15
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "copper",
+      "masterminds": 1,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2708333333333333,
+    "paired_ci95": [
+      0.18349897475021154,
+      0.3581676919164551
+    ],
+    "totals": {
+      "wins": 26,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1371,
+      "score": 2688,
+      "opponent_score": 3393,
+      "coffers_generated": 432,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 519,
+      "both_games": 96,
+      "both_first_turn": 519
+    },
+    "mine_gains": {
+      "Copper -> Silver": 309,
+      "Silver -> Gold": 34,
+      "Gold -> Gold": 4
+    },
+    "mastermind_targets": {
+      "City Quarter": 15,
+      "Mine": 5
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "copper",
+      "masterminds": 1,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3020833333333333,
+    "paired_ci95": [
+      0.23217777499718656,
+      0.37198889166948007
+    ],
+    "totals": {
+      "wins": 29,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1298,
+      "score": 2614,
+      "opponent_score": 3260,
+      "coffers_generated": 362,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 519,
+      "both_games": 96,
+      "both_first_turn": 519
+    },
+    "mine_gains": {
+      "Copper -> Silver": 331,
+      "Silver -> Gold": 40,
+      "Gold -> Gold": 7
+    },
+    "mastermind_targets": {
+      "Mine": 13,
+      "City Quarter": 21
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "copper",
+      "masterminds": 1,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3020833333333333,
+    "paired_ci95": [
+      0.23217777499718656,
+      0.37198889166948007
+    ],
+    "totals": {
+      "wins": 29,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1306,
+      "score": 2625,
+      "opponent_score": 3312,
+      "coffers_generated": 354,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 519,
+      "both_games": 96,
+      "both_first_turn": 519
+    },
+    "mine_gains": {
+      "Copper -> Silver": 348,
+      "Silver -> Gold": 36,
+      "Gold -> Gold": 9
+    },
+    "mastermind_targets": {
+      "Mine": 13,
+      "City Quarter": 23
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "copper",
+      "masterminds": 2,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2604166666666667,
+    "paired_ci95": [
+      0.1729301133263594,
+      0.34790322000697393
+    ],
+    "totals": {
+      "wins": 25,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1375,
+      "score": 2664,
+      "opponent_score": 3419,
+      "coffers_generated": 432,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 519,
+      "both_games": 96,
+      "both_first_turn": 519
+    },
+    "mine_gains": {
+      "Copper -> Silver": 307,
+      "Silver -> Gold": 35,
+      "Gold -> Gold": 5
+    },
+    "mastermind_targets": {
+      "City Quarter": 18,
+      "Mine": 6
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "copper",
+      "masterminds": 2,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2916666666666667,
+    "paired_ci95": [
+      0.2211925042735469,
+      0.3621408290597865
+    ],
+    "totals": {
+      "wins": 28,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1307,
+      "score": 2595,
+      "opponent_score": 3301,
+      "coffers_generated": 365,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 519,
+      "both_games": 96,
+      "both_first_turn": 519
+    },
+    "mine_gains": {
+      "Copper -> Silver": 331,
+      "Silver -> Gold": 42,
+      "Gold -> Gold": 7
+    },
+    "mastermind_targets": {
+      "Mine": 14,
+      "City Quarter": 27
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "copper",
+      "masterminds": 2,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2708333333333333,
+    "paired_ci95": [
+      0.19960809293376458,
+      0.34205857373290205
+    ],
+    "totals": {
+      "wins": 26,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1314,
+      "score": 2605,
+      "opponent_score": 3371,
+      "coffers_generated": 358,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 96,
+      "guildhall_first_turn": 519,
+      "both_games": 96,
+      "both_first_turn": 519
+    },
+    "mine_gains": {
+      "Copper -> Silver": 349,
+      "Silver -> Gold": 40,
+      "Gold -> Gold": 7
+    },
+    "mastermind_targets": {
+      "Mine": 14,
+      "City Quarter": 27
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "silver",
+      "masterminds": 0,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.22197429932737606,
+      0.40302570067262394
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1358,
+      "score": 2764,
+      "opponent_score": 3308,
+      "coffers_generated": 436,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 173,
+      "Copper -> Silver": 158,
+      "Gold -> Gold": 3
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "silver",
+      "masterminds": 0,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3958333333333333,
+    "paired_ci95": [
+      0.31351764983736163,
+      0.478149016829305
+    ],
+    "totals": {
+      "wins": 38,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1280,
+      "score": 2795,
+      "opponent_score": 3075,
+      "coffers_generated": 356,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 194,
+      "Copper -> Silver": 158,
+      "Gold -> Gold": 2
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "silver",
+      "masterminds": 0,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3958333333333333,
+    "paired_ci95": [
+      0.31351764983736163,
+      0.478149016829305
+    ],
+    "totals": {
+      "wins": 38,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1282,
+      "score": 2804,
+      "opponent_score": 3116,
+      "coffers_generated": 341,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 198,
+      "Copper -> Silver": 162,
+      "Gold -> Gold": 2
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "silver",
+      "masterminds": 1,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.28125,
+    "paired_ci95": [
+      0.199204116257992,
+      0.363295883742008
+    ],
+    "totals": {
+      "wins": 27,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1372,
+      "score": 2734,
+      "opponent_score": 3398,
+      "coffers_generated": 444,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 175,
+      "Copper -> Silver": 165,
+      "Gold -> Gold": 4
+    },
+    "mastermind_targets": {
+      "City Quarter": 14,
+      "Mine": 4
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "silver",
+      "masterminds": 1,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3020833333333333,
+    "paired_ci95": [
+      0.22633238927317834,
+      0.3778342773934883
+    ],
+    "totals": {
+      "wins": 29,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1296,
+      "score": 2675,
+      "opponent_score": 3248,
+      "coffers_generated": 371,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 191,
+      "Copper -> Silver": 169,
+      "Gold -> Gold": 9
+    },
+    "mastermind_targets": {
+      "Mine": 9,
+      "City Quarter": 25
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "silver",
+      "masterminds": 1,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.28125,
+    "paired_ci95": [
+      0.2103367420042312,
+      0.3521632579957688
+    ],
+    "totals": {
+      "wins": 27,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1295,
+      "score": 2630,
+      "opponent_score": 3273,
+      "coffers_generated": 356,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 195,
+      "Copper -> Silver": 174,
+      "Gold -> Gold": 8
+    },
+    "mastermind_targets": {
+      "Mine": 8,
+      "City Quarter": 24
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "silver",
+      "masterminds": 2,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2708333333333333,
+    "paired_ci95": [
+      0.18851764983736163,
+      0.353149016829305
+    ],
+    "totals": {
+      "wins": 26,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1377,
+      "score": 2706,
+      "opponent_score": 3426,
+      "coffers_generated": 444,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 172,
+      "Copper -> Silver": 166,
+      "Gold -> Gold": 5
+    },
+    "mastermind_targets": {
+      "City Quarter": 17,
+      "Mine": 5
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "silver",
+      "masterminds": 2,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2604166666666667,
+    "paired_ci95": [
+      0.18327355202943021,
+      0.3375597813039032
+    ],
+    "totals": {
+      "wins": 25,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1302,
+      "score": 2601,
+      "opponent_score": 3291,
+      "coffers_generated": 367,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 185,
+      "Copper -> Silver": 171,
+      "Gold -> Gold": 8
+    },
+    "mastermind_targets": {
+      "Mine": 9,
+      "City Quarter": 30
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "silver",
+      "masterminds": 2,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.22916666666666666,
+    "paired_ci95": [
+      0.1579414262670979,
+      0.3003919070662354
+    ],
+    "totals": {
+      "wins": 22,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1299,
+      "score": 2562,
+      "opponent_score": 3322,
+      "coffers_generated": 354,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 190,
+      "Copper -> Silver": 177,
+      "Gold -> Gold": 7
+    },
+    "mastermind_targets": {
+      "Mine": 8,
+      "City Quarter": 27
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "gold",
+      "masterminds": 0,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.25,
+    "paired_ci95": [
+      0.17279942307201207,
+      0.32720057692798793
+    ],
+    "totals": {
+      "wins": 24,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1376,
+      "score": 2722,
+      "opponent_score": 3408,
+      "coffers_generated": 441,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 117,
+      "Copper -> Silver": 116,
+      "Gold -> Gold": 106
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "gold",
+      "masterminds": 0,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3645833333333333,
+    "paired_ci95": [
+      0.28340683448224313,
+      0.4457598321844235
+    ],
+    "totals": {
+      "wins": 35,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1287,
+      "score": 2773,
+      "opponent_score": 3141,
+      "coffers_generated": 356,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 137,
+      "Copper -> Silver": 126,
+      "Gold -> Gold": 93
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "gold",
+      "masterminds": 0,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.375,
+    "paired_ci95": [
+      0.29508981105095333,
+      0.45491018894904667
+    ],
+    "totals": {
+      "wins": 36,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1289,
+      "score": 2772,
+      "opponent_score": 3163,
+      "coffers_generated": 342,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 134,
+      "Copper -> Silver": 125,
+      "Gold -> Gold": 105
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "gold",
+      "masterminds": 1,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.25,
+    "paired_ci95": [
+      0.17852615416603165,
+      0.3214738458339683
+    ],
+    "totals": {
+      "wins": 24,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1389,
+      "score": 2699,
+      "opponent_score": 3481,
+      "coffers_generated": 454,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 122,
+      "Copper -> Silver": 122,
+      "Gold -> Gold": 110
+    },
+    "mastermind_targets": {
+      "City Quarter": 14,
+      "Mine": 7
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "gold",
+      "masterminds": 1,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.28125,
+    "paired_ci95": [
+      0.20456813383015002,
+      0.35793186616984995
+    ],
+    "totals": {
+      "wins": 27,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1300,
+      "score": 2632,
+      "opponent_score": 3305,
+      "coffers_generated": 375,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 138,
+      "Copper -> Silver": 135,
+      "Gold -> Gold": 103
+    },
+    "mastermind_targets": {
+      "Mine": 12,
+      "City Quarter": 25
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "gold",
+      "masterminds": 1,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2708333333333333,
+    "paired_ci95": [
+      0.19960809293376458,
+      0.34205857373290205
+    ],
+    "totals": {
+      "wins": 26,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1300,
+      "score": 2604,
+      "opponent_score": 3325,
+      "coffers_generated": 361,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 138,
+      "Copper -> Silver": 135,
+      "Gold -> Gold": 112
+    },
+    "mastermind_targets": {
+      "Mine": 11,
+      "City Quarter": 23
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "gold",
+      "masterminds": 2,
+      "teas": 0,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.25,
+    "paired_ci95": [
+      0.17852615416603165,
+      0.3214738458339683
+    ],
+    "totals": {
+      "wins": 24,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1392,
+      "score": 2679,
+      "opponent_score": 3498,
+      "coffers_generated": 453,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 123,
+      "Copper -> Silver": 123,
+      "Gold -> Gold": 106
+    },
+    "mastermind_targets": {
+      "City Quarter": 17,
+      "Mine": 8
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "gold",
+      "masterminds": 2,
+      "teas": 2,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.23958333333333334,
+    "paired_ci95": [
+      0.16244021869609687,
+      0.3167264479705698
+    ],
+    "totals": {
+      "wins": 23,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1308,
+      "score": 2582,
+      "opponent_score": 3349,
+      "coffers_generated": 371,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 139,
+      "Copper -> Silver": 136,
+      "Gold -> Gold": 96
+    },
+    "mastermind_targets": {
+      "Mine": 12,
+      "City Quarter": 30
+    }
+  },
+  {
+    "a": {
+      "setup": "mine_guild",
+      "upgrade": "gold",
+      "masterminds": 2,
+      "teas": 4,
+      "envoys": 2
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.21875,
+    "paired_ci95": [
+      0.1478367420042312,
+      0.2896632579957688
+    ],
+    "totals": {
+      "wins": 21,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1305,
+      "score": 2549,
+      "opponent_score": 3377,
+      "coffers_generated": 359,
+      "mine_games": 96,
+      "mine_first_turn": 299,
+      "guildhall_games": 95,
+      "guildhall_first_turn": 510,
+      "both_games": 95,
+      "both_first_turn": 510
+    },
+    "mine_gains": {
+      "Silver -> Gold": 139,
+      "Copper -> Silver": 137,
+      "Gold -> Gold": 106
+    },
+    "mastermind_targets": {
+      "Mine": 11,
+      "City Quarter": 27
+    }
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "free": "mine_first",
+      "silvers": 0,
+      "buried": 0,
+      "envoys": 2,
+      "upgrade": "silver"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.28125,
+    "paired_ci95": [
+      0.18056633301338126,
+      0.38193366698661874
+    ],
+    "totals": {
+      "wins": 27,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1260,
+      "score": 2690,
+      "opponent_score": 3453,
+      "coffers_generated": 196,
+      "mine_games": 96,
+      "mine_first_turn": 702,
+      "guildhall_games": 76,
+      "guildhall_first_turn": 641,
+      "both_games": 76,
+      "both_first_turn": 641
+    },
+    "mine_gains": {
+      "Copper -> Silver": 184,
+      "Silver -> Gold": 119
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "free": "mine_first",
+      "silvers": 0,
+      "buried": 2,
+      "envoys": 2,
+      "upgrade": "buried"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.21875,
+    "paired_ci95": [
+      0.136704116257992,
+      0.300795883742008
+    ],
+    "totals": {
+      "wins": 21,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1272,
+      "score": 2625,
+      "opponent_score": 3558,
+      "coffers_generated": 213,
+      "mine_games": 96,
+      "mine_first_turn": 702,
+      "guildhall_games": 77,
+      "guildhall_first_turn": 648,
+      "both_games": 77,
+      "both_first_turn": 648
+    },
+    "mine_gains": {
+      "Copper -> Silver": 193,
+      "Silver -> Buried Treasure": 129
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "free": "mine_first",
+      "silvers": 1,
+      "buried": 0,
+      "envoys": 2,
+      "upgrade": "silver"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.4166666666666667,
+    "paired_ci95": [
+      0.3324339315555319,
+      0.5008994017778015
+    ],
+    "totals": {
+      "wins": 40,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1202,
+      "score": 2787,
+      "opponent_score": 3129,
+      "coffers_generated": 196,
+      "mine_games": 96,
+      "mine_first_turn": 639,
+      "guildhall_games": 81,
+      "guildhall_first_turn": 635,
+      "both_games": 81,
+      "both_first_turn": 635
+    },
+    "mine_gains": {
+      "Silver -> Gold": 150,
+      "Copper -> Silver": 123
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "free": "mine_first",
+      "silvers": 1,
+      "buried": 2,
+      "envoys": 2,
+      "upgrade": "buried"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.2268058692642653,
+      0.39819413073573473
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1229,
+      "score": 2793,
+      "opponent_score": 3329,
+      "coffers_generated": 205,
+      "mine_games": 96,
+      "mine_first_turn": 639,
+      "guildhall_games": 78,
+      "guildhall_first_turn": 611,
+      "both_games": 78,
+      "both_first_turn": 611
+    },
+    "mine_gains": {
+      "Silver -> Buried Treasure": 151,
+      "Copper -> Silver": 130,
+      "Silver -> Gold": 9
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "free": "mine_first",
+      "silvers": 3,
+      "buried": 0,
+      "envoys": 2,
+      "upgrade": "silver"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.4479166666666667,
+    "paired_ci95": [
+      0.3641590808276563,
+      0.5316742525056771
+    ],
+    "totals": {
+      "wins": 43,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1208,
+      "score": 2914,
+      "opponent_score": 3114,
+      "coffers_generated": 159,
+      "mine_games": 96,
+      "mine_first_turn": 638,
+      "guildhall_games": 67,
+      "guildhall_first_turn": 521,
+      "both_games": 67,
+      "both_first_turn": 521
+    },
+    "mine_gains": {
+      "Silver -> Gold": 157,
+      "Copper -> Silver": 85
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "free": "mine_first",
+      "silvers": 3,
+      "buried": 2,
+      "envoys": 2,
+      "upgrade": "buried"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.40625,
+    "paired_ci95": [
+      0.31099808270576934,
+      0.5015019172942307
+    ],
+    "totals": {
+      "wins": 39,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1217,
+      "score": 2921,
+      "opponent_score": 3204,
+      "coffers_generated": 177,
+      "mine_games": 96,
+      "mine_first_turn": 638,
+      "guildhall_games": 70,
+      "guildhall_first_turn": 542,
+      "both_games": 70,
+      "both_first_turn": 542
+    },
+    "mine_gains": {
+      "Silver -> Buried Treasure": 156,
+      "Copper -> Silver": 79,
+      "Silver -> Gold": 19
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "free": "draw_first",
+      "silvers": 0,
+      "buried": 0,
+      "envoys": 2,
+      "upgrade": "silver"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.23958333333333334,
+    "paired_ci95": [
+      0.1473590661631208,
+      0.33180760050354585
+    ],
+    "totals": {
+      "wins": 23,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1252,
+      "score": 2677,
+      "opponent_score": 3428,
+      "coffers_generated": 143,
+      "mine_games": 83,
+      "mine_first_turn": 616,
+      "guildhall_games": 53,
+      "guildhall_first_turn": 451,
+      "both_games": 53,
+      "both_first_turn": 451
+    },
+    "mine_gains": {
+      "Copper -> Silver": 137,
+      "Silver -> Gold": 92
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "free": "draw_first",
+      "silvers": 0,
+      "buried": 2,
+      "envoys": 2,
+      "upgrade": "buried"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.1875,
+    "paired_ci95": [
+      0.10692664458496916,
+      0.26807335541503086
+    ],
+    "totals": {
+      "wins": 18,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1261,
+      "score": 2590,
+      "opponent_score": 3497,
+      "coffers_generated": 155,
+      "mine_games": 83,
+      "mine_first_turn": 616,
+      "guildhall_games": 55,
+      "guildhall_first_turn": 469,
+      "both_games": 55,
+      "both_first_turn": 469
+    },
+    "mine_gains": {
+      "Copper -> Silver": 144,
+      "Silver -> Buried Treasure": 98
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "free": "draw_first",
+      "silvers": 1,
+      "buried": 0,
+      "envoys": 2,
+      "upgrade": "silver"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.40625,
+    "paired_ci95": [
+      0.32040076663828426,
+      0.49209923336171574
+    ],
+    "totals": {
+      "wins": 39,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1199,
+      "score": 2792,
+      "opponent_score": 3125,
+      "coffers_generated": 167,
+      "mine_games": 79,
+      "mine_first_turn": 507,
+      "guildhall_games": 64,
+      "guildhall_first_turn": 491,
+      "both_games": 64,
+      "both_first_turn": 491
+    },
+    "mine_gains": {
+      "Silver -> Gold": 122,
+      "Copper -> Silver": 91
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "free": "draw_first",
+      "silvers": 1,
+      "buried": 2,
+      "envoys": 2,
+      "upgrade": "buried"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3541666666666667,
+    "paired_ci95": [
+      0.271850983170695,
+      0.43648235016263837
+    ],
+    "totals": {
+      "wins": 34,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1221,
+      "score": 2821,
+      "opponent_score": 3268,
+      "coffers_generated": 174,
+      "mine_games": 79,
+      "mine_first_turn": 507,
+      "guildhall_games": 64,
+      "guildhall_first_turn": 495,
+      "both_games": 64,
+      "both_first_turn": 495
+    },
+    "mine_gains": {
+      "Silver -> Buried Treasure": 122,
+      "Copper -> Silver": 102,
+      "Silver -> Gold": 6
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "free": "draw_first",
+      "silvers": 3,
+      "buried": 0,
+      "envoys": 2,
+      "upgrade": "silver"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.4270833333333333,
+    "paired_ci95": [
+      0.3348590661631208,
+      0.5193076005035459
+    ],
+    "totals": {
+      "wins": 41,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1204,
+      "score": 2903,
+      "opponent_score": 3105,
+      "coffers_generated": 149,
+      "mine_games": 84,
+      "mine_first_turn": 557,
+      "guildhall_games": 59,
+      "guildhall_first_turn": 465,
+      "both_games": 59,
+      "both_first_turn": 465
+    },
+    "mine_gains": {
+      "Silver -> Gold": 135,
+      "Copper -> Silver": 66
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "two_tea_mine_guild",
+      "free": "draw_first",
+      "silvers": 3,
+      "buried": 2,
+      "envoys": 2,
+      "upgrade": "buried"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.40625,
+    "paired_ci95": [
+      0.31557746111136714,
+      0.49692253888863286
+    ],
+    "totals": {
+      "wins": 39,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1214,
+      "score": 2933,
+      "opponent_score": 3170,
+      "coffers_generated": 164,
+      "mine_games": 84,
+      "mine_first_turn": 557,
+      "guildhall_games": 61,
+      "guildhall_first_turn": 480,
+      "both_games": 61,
+      "both_first_turn": 480
+    },
+    "mine_gains": {
+      "Silver -> Buried Treasure": 133,
+      "Copper -> Silver": 67,
+      "Silver -> Gold": 12
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "free_mine",
+      "free": "mine_first",
+      "silvers": 0,
+      "buried": 0,
+      "envoys": 2,
+      "upgrade": "silver"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2708333333333333,
+    "paired_ci95": [
+      0.18851764983736163,
+      0.353149016829305
+    ],
+    "totals": {
+      "wins": 26,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1244,
+      "score": 2592,
+      "opponent_score": 3393,
+      "coffers_generated": 231,
+      "mine_games": 96,
+      "mine_first_turn": 803,
+      "guildhall_games": 86,
+      "guildhall_first_turn": 633,
+      "both_games": 86,
+      "both_first_turn": 734
+    },
+    "mine_gains": {
+      "Copper -> Silver": 187,
+      "Silver -> Gold": 105
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "free_mine",
+      "free": "mine_first",
+      "silvers": 0,
+      "buried": 2,
+      "envoys": 2,
+      "upgrade": "buried"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.20833333333333334,
+    "paired_ci95": [
+      0.13205734756632975,
+      0.28460931910033693
+    ],
+    "totals": {
+      "wins": 20,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1259,
+      "score": 2565,
+      "opponent_score": 3526,
+      "coffers_generated": 243,
+      "mine_games": 96,
+      "mine_first_turn": 803,
+      "guildhall_games": 86,
+      "guildhall_first_turn": 631,
+      "both_games": 86,
+      "both_first_turn": 732
+    },
+    "mine_gains": {
+      "Copper -> Silver": 194,
+      "Silver -> Buried Treasure": 113,
+      "Silver -> Gold": 1
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "free_mine",
+      "free": "mine_first",
+      "silvers": 1,
+      "buried": 0,
+      "envoys": 2,
+      "upgrade": "silver"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.2268058692642653,
+      0.39819413073573473
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1213,
+      "score": 2702,
+      "opponent_score": 3239,
+      "coffers_generated": 228,
+      "mine_games": 96,
+      "mine_first_turn": 786,
+      "guildhall_games": 90,
+      "guildhall_first_turn": 601,
+      "both_games": 90,
+      "both_first_turn": 748
+    },
+    "mine_gains": {
+      "Copper -> Silver": 137,
+      "Silver -> Gold": 126
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "free_mine",
+      "free": "mine_first",
+      "silvers": 1,
+      "buried": 2,
+      "envoys": 2,
+      "upgrade": "buried"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.28125,
+    "paired_ci95": [
+      0.20456813383015002,
+      0.35793186616984995
+    ],
+    "totals": {
+      "wins": 27,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1220,
+      "score": 2764,
+      "opponent_score": 3274,
+      "coffers_generated": 242,
+      "mine_games": 96,
+      "mine_first_turn": 786,
+      "guildhall_games": 86,
+      "guildhall_first_turn": 563,
+      "both_games": 86,
+      "both_first_turn": 710
+    },
+    "mine_gains": {
+      "Copper -> Silver": 131,
+      "Silver -> Buried Treasure": 129,
+      "Silver -> Gold": 7
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "free_mine",
+      "free": "mine_first",
+      "silvers": 3,
+      "buried": 0,
+      "envoys": 2,
+      "upgrade": "silver"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3645833333333333,
+    "paired_ci95": [
+      0.2735203834296888,
+      0.4556462832369778
+    ],
+    "totals": {
+      "wins": 35,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1215,
+      "score": 2784,
+      "opponent_score": 3176,
+      "coffers_generated": 216,
+      "mine_games": 96,
+      "mine_first_turn": 787,
+      "guildhall_games": 85,
+      "guildhall_first_turn": 551,
+      "both_games": 85,
+      "both_first_turn": 700
+    },
+    "mine_gains": {
+      "Silver -> Gold": 136,
+      "Copper -> Silver": 98
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "free_mine",
+      "free": "mine_first",
+      "silvers": 3,
+      "buried": 2,
+      "envoys": 2,
+      "upgrade": "buried"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3333333333333333,
+    "paired_ci95": [
+      0.2543160236816735,
+      0.41235064298499313
+    ],
+    "totals": {
+      "wins": 32,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1214,
+      "score": 2779,
+      "opponent_score": 3234,
+      "coffers_generated": 248,
+      "mine_games": 96,
+      "mine_first_turn": 787,
+      "guildhall_games": 86,
+      "guildhall_first_turn": 556,
+      "both_games": 86,
+      "both_first_turn": 705
+    },
+    "mine_gains": {
+      "Silver -> Buried Treasure": 139,
+      "Silver -> Gold": 15,
+      "Copper -> Silver": 84
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "free_mine",
+      "free": "draw_first",
+      "silvers": 0,
+      "buried": 0,
+      "envoys": 2,
+      "upgrade": "silver"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.11458333333333333,
+    "paired_ci95": [
+      0.0477920325043312,
+      0.18137463416233546
+    ],
+    "totals": {
+      "wins": 11,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1273,
+      "score": 2444,
+      "opponent_score": 3594,
+      "coffers_generated": 64,
+      "mine_games": 41,
+      "mine_first_turn": 466,
+      "guildhall_games": 78,
+      "guildhall_first_turn": 557,
+      "both_games": 36,
+      "both_first_turn": 407
+    },
+    "mine_gains": {
+      "Copper -> Silver": 45,
+      "Silver -> Gold": 22
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "free_mine",
+      "free": "draw_first",
+      "silvers": 0,
+      "buried": 2,
+      "envoys": 2,
+      "upgrade": "buried"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.10416666666666667,
+    "paired_ci95": [
+      0.03919269933928203,
+      0.16914063399405133
+    ],
+    "totals": {
+      "wins": 10,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1274,
+      "score": 2416,
+      "opponent_score": 3609,
+      "coffers_generated": 64,
+      "mine_games": 41,
+      "mine_first_turn": 466,
+      "guildhall_games": 78,
+      "guildhall_first_turn": 557,
+      "both_games": 36,
+      "both_first_turn": 407
+    },
+    "mine_gains": {
+      "Copper -> Silver": 44,
+      "Silver -> Buried Treasure": 23
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "free_mine",
+      "free": "draw_first",
+      "silvers": 1,
+      "buried": 0,
+      "envoys": 2,
+      "upgrade": "silver"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3125,
+    "paired_ci95": [
+      0.2268058692642653,
+      0.39819413073573473
+    ],
+    "totals": {
+      "wins": 30,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1234,
+      "score": 2782,
+      "opponent_score": 3312,
+      "coffers_generated": 59,
+      "mine_games": 35,
+      "mine_first_turn": 391,
+      "guildhall_games": 79,
+      "guildhall_first_turn": 507,
+      "both_games": 35,
+      "both_first_turn": 391
+    },
+    "mine_gains": {
+      "Silver -> Gold": 32,
+      "Copper -> Silver": 18
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "free_mine",
+      "free": "draw_first",
+      "silvers": 1,
+      "buried": 2,
+      "envoys": 2,
+      "upgrade": "buried"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.2604166666666667,
+    "paired_ci95": [
+      0.1729301133263594,
+      0.34790322000697393
+    ],
+    "totals": {
+      "wins": 25,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1238,
+      "score": 2748,
+      "opponent_score": 3348,
+      "coffers_generated": 59,
+      "mine_games": 35,
+      "mine_first_turn": 391,
+      "guildhall_games": 79,
+      "guildhall_first_turn": 507,
+      "both_games": 35,
+      "both_first_turn": 391
+    },
+    "mine_gains": {
+      "Silver -> Buried Treasure": 30,
+      "Copper -> Silver": 21
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "free_mine",
+      "free": "draw_first",
+      "silvers": 3,
+      "buried": 0,
+      "envoys": 2,
+      "upgrade": "silver"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.3645833333333333,
+    "paired_ci95": [
+      0.2735203834296888,
+      0.4556462832369778
+    ],
+    "totals": {
+      "wins": 35,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1215,
+      "score": 2882,
+      "opponent_score": 3197,
+      "coffers_generated": 72,
+      "mine_games": 23,
+      "mine_first_turn": 266,
+      "guildhall_games": 83,
+      "guildhall_first_turn": 540,
+      "both_games": 22,
+      "both_first_turn": 249
+    },
+    "mine_gains": {
+      "Silver -> Gold": 23,
+      "Copper -> Silver": 7
+    },
+    "mastermind_targets": {}
+  },
+  {
+    "a": {
+      "setup": "free_mine",
+      "free": "draw_first",
+      "silvers": 3,
+      "buried": 2,
+      "envoys": 2,
+      "upgrade": "buried"
+    },
+    "b": {
+      "reference": {
+        "opening": "Fortune Hunter",
+        "green": 1,
+        "envoy": 2
+      }
+    },
+    "games": 96,
+    "seed": 400000,
+    "rate": 0.34375,
+    "paired_ci95": [
+      0.2554561718541297,
+      0.4320438281458703
+    ],
+    "totals": {
+      "wins": 33,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 1216,
+      "score": 2841,
+      "opponent_score": 3208,
+      "coffers_generated": 75,
+      "mine_games": 23,
+      "mine_first_turn": 266,
+      "guildhall_games": 83,
+      "guildhall_first_turn": 540,
+      "both_games": 22,
+      "both_first_turn": 249
+    },
+    "mine_gains": {
+      "Silver -> Buried Treasure": 23,
+      "Copper -> Silver": 8
+    },
+    "mastermind_targets": {}
+  }
+]

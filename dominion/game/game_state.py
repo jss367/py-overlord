@@ -1920,10 +1920,13 @@ class GameState:
                 f"now {coins_after} coins, {actions_after} actions)",
                 context))
 
-            # Move to discard after duration effect resolves unless it stays in play
+            # A resolved Duration stays in play until this turn's cleanup.
             if not getattr(card, "duration_persistent", False):
                 player.duration.remove(card)
-                player.discard.append(card)
+                if not any(card in zone for zone in (
+                    player.in_play, player.hand, player.deck, player.discard, self.trash
+                )):
+                    player.in_play.append(card)
 
         # Process any cards that were multiplied (e.g. by Throne Room)
         for card in player.multiplied_durations[:]:
@@ -1939,7 +1942,10 @@ class GameState:
 
             player.multiplied_durations.remove(card)
             if not getattr(card, "duration_persistent", False):
-                player.discard.append(card)
+                if not any(card in zone for zone in (
+                    player.in_play, player.hand, player.deck, player.discard, self.trash
+                )):
+                    player.in_play.append(card)
 
     def handle_action_phase(self):
         """Handle the action phase of a turn."""
@@ -2557,9 +2563,11 @@ class GameState:
                     f"buys_left={player.buys}, coins={player.coins})"
                 )
             if player.debt > 0:
-                if player.coins > 0:
-                    paid = min(player.debt, player.coins)
-                    player.coins -= paid
+                if player.coins + player.coin_tokens > 0:
+                    paid = min(player.debt, player.coins + player.coin_tokens)
+                    coins_paid = min(max(0, player.coins), paid)
+                    player.coins -= coins_paid
+                    player.coin_tokens -= paid - coins_paid
                     player.coins_spent_this_turn += paid
                     player.debt -= paid
                     context = {
@@ -3124,12 +3132,8 @@ class GameState:
                 return False
             return True
 
-        # Prosperity 2E: Anvil and similar "when you discard this from play"
-        # cards trigger BEFORE the hand is discarded so the player can choose
-        # to discard a Treasure from their actual end-of-turn hand. Only fire
-        # the hook for cards that will actually be discarded from play this
-        # cleanup (filtered above) — otherwise cards like Anvil could grant
-        # their bonus while being set aside by Trickster, etc.
+        # Discard-from-play hooks fire before the hand is discarded, only
+        # for cards that will actually leave play during this cleanup.
         for card in list(player.in_play):
             if (
                 hasattr(card, "on_discard_from_play")

@@ -1796,6 +1796,27 @@ class AI(ABC):
     # Prosperity 2E hooks
     # ------------------------------------------------------------------
 
+    def choose_mastermind_action(self, state, player, choices):
+        return self.choose_action(state, choices + [None])
+
+    def choose_mine_treasure(self, state, player, choices):
+        """Choose the optional Mine trash separately from playing Treasures."""
+        return self.choose_treasure(state, choices)
+
+    def choose_mine_gain(self, state, player, choices):
+        return self.choose_buy(state, choices)
+
+    def choose_kind_emperor_gain(self, state, player, choices):
+        return self.choose_buy(state, choices + [None])
+
+    def choose_courier_card(self, state, player, choices):
+        """Prefer useful Actions, then the strongest available Treasure."""
+        if not choices:
+            return None
+        return max(choices, key=lambda c: (
+            c.stats.cards * 2 + c.stats.actions + c.stats.coins, c.cost.coins
+        ))
+
     def choose_anvil_treasure_to_discard(
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> "Card | None":

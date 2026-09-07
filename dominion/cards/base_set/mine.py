@@ -21,7 +21,7 @@ class Mine(Card):
             return
 
         # Let AI choose a treasure to trash
-        treasure_to_trash = player.ai.choose_treasure(game_state, treasure_cards)
+        treasure_to_trash = player.ai.choose_mine_treasure(game_state, player, treasure_cards)
 
         if treasure_to_trash:
             # Remove from hand and add to trash
@@ -39,7 +39,7 @@ class Mine(Card):
 
             # Let AI choose what to gain
             if possible_gains:
-                chosen_card = player.ai.choose_buy(game_state, possible_gains)
+                chosen_card = player.ai.choose_mine_gain(game_state, player, possible_gains)
 
                 if chosen_card and game_state.supply.get(chosen_card.name, 0) > 0:
                     # Gain the chosen treasure to hand
@@ -48,7 +48,7 @@ class Mine(Card):
                     if gained_card:
                         if gained_card in player.discard:
                             player.discard.remove(gained_card)
+                            player.hand.append(gained_card)
                         elif gained_card in player.deck:
                             player.deck.remove(gained_card)
-                        if gained_card not in player.hand:
                             player.hand.append(gained_card)

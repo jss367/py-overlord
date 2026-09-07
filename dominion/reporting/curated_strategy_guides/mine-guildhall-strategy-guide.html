@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="2,000 confirmation games. The original Tea House engine remains the recommendation.">
+<title>Mine and Guildhall Strategy Investigation</title>
+<style>
+:root { color-scheme: dark; --ink:#f5f0e4; --muted:#b8b1a3; --paper:#151916; --panel:#1d231f; --line:#414940; --gold:#e9c46a; }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; background:radial-gradient(circle at 15% 0%,#263a2b66,transparent 36rem),var(--paper); color:var(--ink); font:16px/1.7 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+a { color:var(--gold); text-underline-offset:3px; }
+a:hover { color:#ffe09a; }
+a:focus-visible { outline:2px solid var(--gold); outline-offset:4px; }
+.page { max-width:1180px; margin:auto; padding:26px clamp(18px,4vw,52px) 60px; }
+.topbar,.contents { display:flex; flex-wrap:wrap; gap:12px 24px; font-size:.9rem; }
+.topbar { justify-content:space-between; margin-bottom:32px; }
+.eyebrow { color:var(--gold); font-size:.76rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+.hero { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(250px,.8fr); align-items:start; gap:40px; padding:30px 0 48px; border-bottom:1px solid var(--line); }
+h1,h2,h3 { font-family:Georgia,"Times New Roman",serif; line-height:1.16; }
+h1 { font-size:clamp(2.7rem,5.5vw,4.8rem); letter-spacing:-.04em; margin:12px 0 24px; max-width:18ch; }
+h2 { font-size:clamp(1.8rem,3vw,2.7rem); margin:0 0 24px; scroll-margin-top:20px; }
+h3 { font-size:1.4rem; }
+p { margin:0 0 18px; }
+.intro p { color:var(--muted); }
+.intro strong { color:var(--ink); }
+.verdict { background:linear-gradient(145deg,#e9c46a22,#e9c46a05); border:1px solid #9d7730; border-radius:18px; padding:26px; }
+.verdict strong { display:block; color:var(--gold); font:700 2.1rem/1.2 Georgia,serif; margin:12px 0 16px; }
+.verdict p:last-child { margin:0; }
+.contents { padding:22px 0; border-bottom:1px solid var(--line); }
+.section { padding:40px 0; border-bottom:1px solid var(--line); }
+.section>p,.section>ul,.section>ol { max-width:88ch; }
+ul,ol { padding-left:26px; }
+li { margin:10px 0; padding-left:5px; }
+.table-wrap { width:100%; overflow-x:auto; margin:24px 0; border:1px solid var(--line); border-radius:12px; }
+table { width:100%; border-collapse:collapse; background:var(--panel); font-size:.94rem; }
+th,td { padding:13px 16px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th { color:var(--gold); font-size:.85rem; }
+tr:last-child td { border-bottom:0; }
+tbody tr:hover { background:#ffffff05; }
+code { font-size:.86em; background:#ffffff09; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; }
+pre { padding:20px; border-radius:12px; border:1px solid var(--line); background:var(--panel); white-space:pre-wrap; overflow-wrap:anywhere; }
+pre code { padding:0; background:none; }
+footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
+@media(max-width:780px) { .hero { grid-template-columns:1fr; gap:24px; } h1 { max-width:none; } .topbar { justify-content:flex-start; } th,td { padding:10px; } }
+@media print { :root { color-scheme:light; --ink:#171717; --muted:#444; --paper:#fff; --panel:#fff; --line:#bbb; --gold:#654a0a; } body { background:white; } .page { max-width:none; padding:0; } .topbar,.contents { display:none; } .hero { padding-top:0; } .verdict { background:white; } .table-wrap { overflow:visible; } tr { break-inside:avoid; } pre { background:#f5f5f5; } }
+</style>
+</head>
+<body>
+<main class="page">
+<nav class="topbar" aria-label="Guide navigation"><a href="index.html">← Strategy catalog</a><a href="../boards/tea-house-kind-emperor.html">View the board</a><a href="mine-and-guildhall-engine.html">Strategy implementation</a></nav>
+<header class="hero">
+<div class="intro"><span class="eyebrow">Dedicated combo investigation</span><h1>Mine and Guildhall</h1><p><strong>The combo is real, but the dedicated search did not find a version that beats the existing Tea House / City Quarter / Imperial Envoy engine.</strong> The strongest confirmed candidate won 43.1% against that engine. A version that acquired both Mine and Guildhall in over 90% of games won 38.3%.</p>
+<p>These results use the same two-player board, Estate starts, and Province supply as the <a href="tea-house-kind-emperor-strategy-guide.html">original strategy guide</a>. They supersede the initial, lightly tested Mine/Guildhall recommendation.</p>
+</div>
+<aside class="verdict" aria-label="Recommendation"><span class="eyebrow">Best combo candidate vs original engine</span><strong>43.1%</strong><p>2,000 confirmation games. The original Tea House engine remains the recommendation.</p><p>Two players · Estate starts · no Colonies</p></aside>
+</header>
+<nav class="contents" aria-label="On this page"><a href="#what-was-explored">What was explored</a><a href="#confirmation-results">Confirmation results</a><a href="#what-removing-the-pieces-showed">What removing the pieces showed</a><a href="#why-it-falls-behind-here">Why it falls behind here</a><a href="#reproduction-and-validation">Reproduction and validation</a></nav>
+<section class="section"><h2 id="what-was-explored">What was explored</h2>
+<p>The follow-up evaluated 634 candidate configurations, including equivalent settings, across <strong>65,792 scored games</strong>:</p>
+<div class="table-wrap" role="region" aria-label="Simulation results" tabindex="0"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Scope</th>
+<th style="text-align: right;">Games</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Initial screen</td>
+<td>448 configurations, 32 games each</td>
+<td style="text-align: right;">14,336</td>
+</tr>
+<tr>
+<td>Recheck</td>
+<td>24 screened finalists, 400 games each</td>
+<td style="text-align: right;">9,600</td>
+</tr>
+<tr>
+<td>Focused refinement</td>
+<td>186 configurations, 96 games each</td>
+<td style="text-align: right;">17,856</td>
+</tr>
+<tr>
+<td>Confirmation and controlled comparisons</td>
+<td>Ten matchups, 2,000 games each</td>
+<td style="text-align: right;">20,000</td>
+</tr>
+<tr>
+<td>Upgrade-order confirmation</td>
+<td>Two additional finalists, 2,000 games each</td>
+<td style="text-align: right;">4,000</td>
+</tr>
+</tbody>
+</table></div>
+<p>Choices included Mine-first and Guildhall-first setups; one to three Mines; zero to two additional Masterminds; Kind Emperor gaining Mine early; Copper-first, Silver-first, and Gold-recycling policies; Mine gains of Buried Treasure; Mine before or after Imperial Envoy; different Province timing; and lighter or heavier Tea House investment. Fixed setup sequences can require a Mastermind even when the subsequent acquisition target is zero.</p>
+<p>The audit records actual ownership of both pieces, acquisition timing, Mine's individual upgrades, Mastermind targets, and Coffers generated. This matters: a strategy that plans to buy Guildhall can end the game before buying it.</p>
+</section>
+<section class="section"><h2 id="confirmation-results">Confirmation results</h2>
+<p>Each result below used 2,000 games against <strong>Tea House and Kind Emperor Engine</strong>, with fresh seeds distinct from search. Intervals treat each pair of seat-swapped games as one observation.</p>
+<div class="table-wrap" role="region" aria-label="Simulation results" tabindex="0"><table>
+<thead>
+<tr>
+<th>Candidate</th>
+<th style="text-align: right;">Win rate</th>
+<th style="text-align: right;">Approximate 95% confidence interval</th>
+<th style="text-align: right;">Games owning both Mine and Guildhall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Two Tea Houses, one Mine, then Guildhall; Silver-first upgrades</td>
+<td style="text-align: right;"><strong>43.1%</strong></td>
+<td style="text-align: right;">41.1–45.1%</td>
+<td style="text-align: right;">76.2%</td>
+</tr>
+<tr>
+<td>Tea House, Mine, Guildhall; draw before playing Mine</td>
+<td style="text-align: right;"><strong>38.3%</strong></td>
+<td style="text-align: right;">36.4–40.2%</td>
+<td style="text-align: right;">91.7%</td>
+</tr>
+<tr>
+<td>Tea House, Mine, Guildhall; play Mine before Imperial Envoy</td>
+<td style="text-align: right;">33.7%</td>
+<td style="text-align: right;">31.8–35.6%</td>
+<td style="text-align: right;">91.8%</td>
+</tr>
+<tr>
+<td>Two Tea Houses, then combo; later Provinces and Copper-first upgrades</td>
+<td style="text-align: right;">32.3%</td>
+<td style="text-align: right;">30.3–34.2%</td>
+<td style="text-align: right;">93.5%</td>
+</tr>
+<tr>
+<td>Mine and Guildhall first, adding Mastermind later</td>
+<td style="text-align: right;">28.6%</td>
+<td style="text-align: right;">26.8–30.4%</td>
+<td style="text-align: right;">99.0%</td>
+</tr>
+<tr>
+<td>Mine, Mastermind, then Guildhall</td>
+<td style="text-align: right;">24.4%</td>
+<td style="text-align: right;">22.7–26.1%</td>
+<td style="text-align: right;">92.1%</td>
+</tr>
+</tbody>
+</table></div>
+<p>The additional Copper-first version of the early-Mine policy won 33.5%. None of these confirmation intervals reaches 50%.</p>
+<p>The 43.1% candidate is saved as <strong>Mine And Guildhall Engine</strong> in the <a href="../../generated_strategies/mine_guildhall.py">strategy module</a>. Its practical plan is:</p>
+<ol>
+<li>Open Fortune Hunter/Silver on $4/$3, or Tea House/skip on $5/$2.</li>
+<li>Prioritize two Tea Houses, one Mine, and Guildhall in that order. Begin prioritizing affordable Provinces from turn six, so some games never reach the Guildhall purchase.</li>
+<li>Use Kind Emperor for the first Mine when missing; thereafter gain City Quarter when absent from hand, then build to two Imperial Envoys and add Tea Houses.</li>
+<li>With Mine, prefer Silver→Gold, then Copper→Silver. Recycle Gold into Gold only with Guildhall.</li>
+<li>Draw with Imperial Envoy before playing Mine. Buy up to four Tea Houses and supplement with Silver as needed; Mine-created Silvers count toward the target.</li>
+</ol>
+<p>This is the strongest confirmed candidate from this investigation, not a claim that all possible Mine/Guildhall policies have been exhausted.</p>
+</section>
+<section class="section"><h2 id="what-removing-the-pieces-showed">What removing the pieces showed</h2>
+<p>A controlled comparison held the Tea House→Mine→Guildhall framework and its early-Mine play order fixed, then removed individual investments. This is the 33.7% candidate above, not the 43.1% candidate.</p>
+<div class="table-wrap" role="region" aria-label="Simulation results" tabindex="0"><table>
+<thead>
+<tr>
+<th>Version</th>
+<th style="text-align: right;">Win rate against the existing champion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mine and Guildhall</td>
+<td style="text-align: right;">33.7%</td>
+</tr>
+<tr>
+<td>Mine, skipping Guildhall</td>
+<td style="text-align: right;">34.3%</td>
+</tr>
+<tr>
+<td>Guildhall, skipping Mine</td>
+<td style="text-align: right;">34.8%</td>
+</tr>
+<tr>
+<td>Skip both</td>
+<td style="text-align: right;"><strong>50.8%</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>There is nevertheless evidence of synergy in a direct matchup: the combo beat the corresponding Mine-without-Guildhall version <strong>52.7%</strong> of the time (95% interval 50.7–54.7%). Against its own version with both pieces removed, the combo won only <strong>35.9%</strong>. Each direct matchup also used 2,000 games and separate seeds.</p>
+<p>These results support a modest benefit from Guildhall in that particular Mine matchup. They do not show that Guildhall improves every Mine deck, or that investing in both pieces is competitive with the faster engine.</p>
+</section>
+<section class="section"><h2 id="why-it-falls-behind-here">Why it falls behind here</h2>
+<p>In the 38.3% dedicated build, Mine arrived around turn 5.2 and Guildhall around turn 6.6, among games acquiring each. Games ended around round 13.0. Across all games, Mine produced about <strong>2.94 treasure gains</strong> and Guildhall generated <strong>2.64 Coffers</strong>. The Project's $5 investment usually had little time to pay back, and both purchases competed with income and draw development.</p>
+<p>Mastermind can genuinely multiply the interaction: Copper→Silver→Gold→Gold produces three Guildhall triggers. The regression tests verify this sequence. The early Mastermind build made about 4.96 Mine gains per game, but won only 24.4%; its additional setup did not catch up with the champion's Province race.</p>
+<p>The interpretation is a timing problem on this board, not an absence of synergy. Mine improves Treasure quality and Guildhall rewards its gains, but Kind Emperor supplies the competing engine's villages for free while Tea House supplies immediate income and draw. The original engine remains the practical recommendation.</p>
+<p>The underlying gain rules are documented in the publisher's <a href="https://www.riograndegames.com/wp-content/uploads/2016/09/Dominion2nd.pdf">base-game rules</a> and <a href="https://www.riograndegames.com/wp-content/uploads/2022/03/Dominion-Rules-Renaissance.pdf">Renaissance rules</a>.</p>
+</section>
+<section class="section"><h2 id="reproduction-and-validation">Reproduction and validation</h2>
+<p>Run from the repository root:</p>
+<pre><code class="language-bash">PYTHONPATH=. .venv/bin/python scripts/search_mine_guildhall.py screen
+PYTHONPATH=. .venv/bin/python scripts/search_mine_guildhall.py recheck
+PYTHONPATH=. .venv/bin/python scripts/search_mine_guildhall.py refine
+PYTHONPATH=. .venv/bin/python scripts/search_mine_guildhall.py confirm
+PYTHONPATH=. .venv/bin/python scripts/search_mine_guildhall.py upgrades
+</code></pre>
+<p>All parameters, seeds, outcomes, ownership counts, upgrade counts, and confidence intervals are preserved in the <a href="../../docs/analysis/mine_guildhall_screen.json">screen</a>, <a href="../../docs/analysis/mine_guildhall_recheck.json">recheck</a>, <a href="../../docs/analysis/mine_guildhall_refine.json">refinement</a>, <a href="../../docs/analysis/mine_guildhall_confirm.json">confirmation</a>, and <a href="../../docs/analysis/mine_guildhall_upgrades.json">upgrade confirmation</a> files. The scripts use six worker processes. Each seed is played in both starting seats. Complete ties earn half a win; equal scores first use the fewer-turns tiebreak.</p>
+<p>The 20,000-game confirmation was repeated after strengthening the end-condition audit, and every recorded outcome matched exactly. This repetition is not counted as additional evidence or included in the 65,792 total. All final confirmation games ended naturally; the maximum length in the main confirmation was 21 rounds.</p>
+<p>Additional simulator work separated Mine's trash/gain decisions from ordinary Treasure play, added a dedicated Mastermind target choice, and allowed Coffers to pay debt before purchases. The old simulator's inability to use Coffers for debt could penalize Guildhall with Imperial Envoy. All comparisons in this follow-up use the correction on both sides. The full test suite passed: <strong>2,119 passed, one skipped</strong>; focused regressions cover debt payment and the triple-Mine sequence.</p></section>
+<footer>Repository simulations and official card rules. Best policies found within the tested search; not a proof of optimal play. <a href="index.html">Return to the strategy catalog</a>.</footer>
+</main>
+</body>
+</html>

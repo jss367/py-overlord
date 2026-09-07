@@ -41,7 +41,7 @@ class KindEmperor(Prophecy):
             candidates.append(card)
         if not candidates:
             return
-        chosen = player.ai.choose_buy(game_state, candidates + [None])
+        chosen = player.ai.choose_kind_emperor_gain(game_state, player, candidates)
         if chosen is None:
             chosen = max(candidates, key=lambda c: (c.cost.coins, c.name))
         if game_state.supply.get(chosen.name, 0) <= 0:

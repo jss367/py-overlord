@@ -125,6 +125,8 @@ def test_render_strategy_pages_writes_index_and_strategy_page(tmp_path):
         "index.html",
         "big-money.html",
         "cursed-band-biding-time-strategy-guide.html",
+        "tea-house-kind-emperor-strategy-guide.html",
+        "mine-guildhall-strategy-guide.html",
     }
 
     index = (tmp_path / "index.html").read_text(encoding="utf-8")
@@ -158,6 +160,8 @@ def test_render_strategy_pages_resolves_alias_names(tmp_path):
         "index.html",
         "big-money.html",
         "cursed-band-biding-time-strategy-guide.html",
+        "tea-house-kind-emperor-strategy-guide.html",
+        "mine-guildhall-strategy-guide.html",
     }
 
     page = (tmp_path / "big-money.html").read_text(encoding="utf-8")

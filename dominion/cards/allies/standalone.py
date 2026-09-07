@@ -292,10 +292,7 @@ class Carpenter(Card):
 
 
 class Courier(Card):
-    """$4 Action. +$1. Look at top of deck; trash, discard, or play.
-
-    Note: 'play' only fires if it's an Action.
-    """
+    """$4 Action: +$1; discard top card, then play from the discard pile."""
 
     def __init__(self):
         super().__init__(
@@ -309,19 +306,21 @@ class Courier(Card):
         player = game_state.current_player
         if not player.deck and player.discard:
             player.shuffle_discard_into_deck()
-        if not player.deck:
+        if player.deck:
+            game_state.discard_card(player, player.deck.pop())
+        choices = [c for c in player.discard if c.is_action or c.is_treasure]
+        chosen = player.ai.choose_courier_card(game_state, player, choices)
+        if chosen is None or chosen not in choices or chosen not in player.discard:
             return
-        top = player.deck.pop()
-        if top.is_action:
-            # Play it.
-            player.in_play.append(top)
+        player.discard.remove(chosen)
+        player.in_play.append(chosen)
+        if chosen.is_action:
             game_state.play_action_indirectly(
-                player, top, blocked_return_zone=player.discard
+                player, chosen, blocked_return_zone=player.discard
             )
-        elif top.name in {"Curse", "Estate", "Copper"}:
-            game_state.trash_card(player, top)
         else:
-            game_state.discard_card(player, top)
+            chosen.on_play(game_state)
+            game_state.fire_ally_play_hooks(player, chosen)
 
 
 class Innkeeper(Card):
