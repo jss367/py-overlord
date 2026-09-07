@@ -78,7 +78,7 @@ def match(task):
         )
         while not s.is_game_over() and s.turn_number < 160:
             s.play_turn()
-        truncated += s.turn_number >= 160
+        truncated += not s._normal_game_end_reached()
         players = s.players if i % 2 == 0 else list(reversed(s.players))
         keys = [(p.get_victory_points(), -p.turns_taken) for p in players]
         win = 1 if keys[0] > keys[1] else 0.5 if keys[0] == keys[1] else 0
