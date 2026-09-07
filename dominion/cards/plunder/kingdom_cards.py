@@ -681,6 +681,7 @@ class BuriedTreasure(Card):
             player.duration.append(self)
 
     def on_gain(self, game_state, player):
+        super().on_gain(game_state, player)
         for zone in (player.discard, player.deck, player.hand):
             if self in zone:
                 zone.remove(self)

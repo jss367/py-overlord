@@ -61,3 +61,20 @@ def test_taskmaster_persists_across_consecutive_five_cost_gains():
     assert taskmaster not in player.duration
     assert taskmaster in player.in_play
     assert player.discard == []
+
+
+def test_buried_treasure_gain_keeps_taskmaster_active_next_turn():
+    state, player, taskmaster = make_state_with_taskmaster()
+    state.setup_supply([get_card("Buried Treasure"), get_card("Taskmaster")])
+    state.supply["Buried Treasure"] -= 1
+    state.gain_card(player, get_card("Buried Treasure"))
+    assert player.gained_five_this_turn
+
+    state.handle_cleanup_phase()
+    actions, coins = player.actions, player.coins
+    state.handle_start_phase()
+
+    assert player.actions == actions + 1
+    assert player.coins == coins + 4  # Taskmaster plus Buried Treasure.
+    assert taskmaster in player.duration
+    assert taskmaster.duration_persistent
