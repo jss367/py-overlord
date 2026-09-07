@@ -561,3 +561,110 @@ def test_enlightened_courier_treasure_keeps_corsair_trigger_in_buy_phase():
     assert player.actions_played == 2
     assert gold in state.trash
     assert gold not in player.in_play
+
+
+def test_courier_offers_inherited_estate_and_restores_its_identity():
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [PriorityRule("Estate")]
+    state, player = make_state(strategy)
+    player.inherited_action_name = "Village"
+    player.actions = 0
+    estate, gold = get_card("Estate"), get_card("Gold")
+    player.discard = [estate, gold]
+    player.deck = [get_card("Copper") for _ in range(5)]
+    play_courier(state, player)
+    assert estate in player.in_play
+    assert gold in player.discard
+    assert player.actions == 2
+    assert len(player.hand) == 1
+    assert estate.name == "Estate"
+    assert estate.is_victory and not estate.is_action
+    assert estate.stats.actions == 0
+
+
+def test_courier_inheritance_overlay_is_restored_after_failed_play():
+    class FailOnVillage(EnhancedStrategy):
+        def choose_way(self, state, player, card, ways):
+            if card.name == "Village":
+                raise RuntimeError("test play failed")
+            return None
+
+    from dominion.ways.registry import get_way
+
+    state, player = make_state(FailOnVillage())
+    player.ai.strategy.action_priority = [PriorityRule("Estate")]
+    player.inherited_action_name = "Village"
+    estate = get_card("Estate")
+    player.discard = [estate]
+    player.deck = [get_card("Copper")]
+    state.ways = [get_way("Way of the Ox")]
+    with pytest.raises(RuntimeError, match="test play failed"):
+        play_courier(state, player)
+    assert estate.name == "Estate"
+    assert estate.is_victory and not estate.is_action
+
+
+@pytest.mark.parametrize("target", ["Gold", "Crown"])
+def test_highwayman_suppression_preserves_prophecy_and_ally_play_triggers(target):
+    from dominion.prophecies.good_harvest import GoodHarvest
+
+    state, player = make_state()
+    state.phase = "buy"
+    state.prophecy = GoodHarvest()
+    state.prophecy.is_active = True
+    player.highwayman_attacks = 1
+    card = get_card(target)
+    player.discard = [card]
+    seen = []
+    state.fire_ally_play_hooks = lambda owner, played: seen.append(played)
+    courier = play_courier(state, player)
+    assert player.highwayman_blocked_this_turn
+    assert player.coins == 2  # Courier and Good Harvest, no Treasure payload.
+    assert player.buys == 2
+    assert seen == [card, courier]
+
+
+def test_highwayman_suppression_still_allows_tiara_replay():
+    state, player = make_state()
+    gold = get_card("Gold")
+    player.in_play = [get_card("Tiara")]
+    player.discard = [gold]
+    player.highwayman_attacks = 1
+    plays = []
+    state.fire_ally_play_hooks = lambda owner, card: plays.append(card)
+    play_courier(state, player)
+    assert player.coins == 4  # First Gold suppressed; Tiara replay produces $3.
+    assert plays.count(gold) == 2
+    assert player.tiara_replay_used
+
+
+def test_highwayman_suppression_still_triggers_corsair():
+    state, player = make_state()
+    opponent = PlayerState(DummyAI())
+    state.players.append(opponent)
+    state.current_player_index = 1
+    get_card("Corsair").on_play(state)
+    state.current_player_index = 0
+    gold = get_card("Gold")
+    player.discard = [gold]
+    player.highwayman_attacks = 1
+    play_courier(state, player)
+    assert player.coins == 1
+    assert gold in state.trash
+    assert gold not in player.in_play
+
+
+def test_highwayman_suppression_still_triggers_inspiring():
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [PriorityRule("Village")]
+    state, player = make_state(strategy)
+    state.pile_traits = {"Gold": "Inspiring"}
+    village = get_card("Village")
+    player.hand = [village]
+    player.discard = [get_card("Gold")]
+    player.highwayman_attacks = 1
+    player.actions = 0
+    play_courier(state, player)
+    assert village in player.in_play
+    assert player.actions == 2
+    assert player.coins == 1

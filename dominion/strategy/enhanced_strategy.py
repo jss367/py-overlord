@@ -607,7 +607,10 @@ class EnhancedStrategy:
         Failed conditional rules exclude their cards from the fallback. A
         dedicated override may select any offered card or return None to pass.
         """
-        actions = [c for c in choices if c.is_action]
+        actions = [
+            c for c in choices
+            if c.is_action or state.is_inherited_estate(player, c)
+        ]
         choice = self.choose_action(state, player, actions + [None])
         if choice is not None:
             return choice

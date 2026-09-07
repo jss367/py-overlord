@@ -315,6 +315,7 @@ class Courier(Card):
         choices = [
             c for c in player.discard
             if c.is_action or game_state.is_treasure(c)
+            or game_state.is_inherited_estate(player, c)
         ]
         if not choices:
             return
@@ -325,12 +326,19 @@ class Courier(Card):
             return
         if not any(choice is c for c in player.discard):
             return
-        if choice.is_action and not game_state.is_treasure(choice):
-            game_state.play_action_from_zone_indirectly(player, choice, player.discard)
-        else:
-            player.discard.remove(choice)
-            player.in_play.append(choice)
-            game_state.play_treasure_indirectly(player, choice)
+        overlay = (
+            game_state._begin_inherited_estate_overlay(player, choice)
+            if game_state.is_inherited_estate(player, choice) else None
+        )
+        try:
+            if choice.is_action and not game_state.is_treasure(choice):
+                game_state.play_action_from_zone_indirectly(player, choice, player.discard)
+            else:
+                player.discard.remove(choice)
+                player.in_play.append(choice)
+                game_state.play_treasure_indirectly(player, choice)
+        finally:
+            game_state._end_inherited_estate_overlay(choice, overlay)
 
 
 class Innkeeper(Card):
