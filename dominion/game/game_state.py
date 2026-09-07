@@ -421,6 +421,7 @@ class GameState:
             return False
         player.actions_this_turn += 1
         player.actions_played += 1
+        self._maybe_kiln_gain(player, card)
         if (
             apply_enchantress
             and card.is_action
@@ -456,7 +457,6 @@ class GameState:
         training_pile = getattr(player, "training_pile", None)
         if training_pile and card.name == training_pile:
             player.coins += 1
-        self._maybe_kiln_gain(player, card)
         self.fire_prophecy_action_hooks(player, card)
         self.fire_ally_play_hooks(player, card)
         self._call_tavern_triggers(player, "action_played", card)
@@ -502,6 +502,7 @@ class GameState:
                 if not player.ignore_action_bonuses:
                     player.actions += 1
                 self._apply_external_play_bonuses(player, card)
+                self._fire_urchin_reaction(player, card)
             else:
                 card.on_play(self)
         finally:
@@ -1791,11 +1792,11 @@ class GameState:
             else None
         )
         try:
+            self._maybe_kiln_gain(player, card)
             self._resolve_action_text(player, card)
             training_pile = getattr(player, "training_pile", None)
             if training_pile and card.name == training_pile:
                 player.coins += 1
-            self._maybe_kiln_gain(player, card)
             # Active Prophecies (Great Leader, Approaching Army, etc.)
             # react to every Action play, including this replay.
             self.fire_prophecy_action_hooks(player, card)
@@ -2067,11 +2068,10 @@ class GameState:
                 # Same Way protocol as the shared helper: proxy flag for
                 # Chameleon/Mouse, then the pile-token/Champion bonuses and
                 # Urchin reaction for the card actually played.
+                self._maybe_kiln_gain(player, choice)
                 self._apply_way_text(player, choice, way)
                 if training_pile and choice.name == training_pile:
                     player.coins += 1
-                # Menagerie: Kiln triggers on Way-played card too.
-                self._maybe_kiln_gain(player, choice)
                 # Allies that react to plays still fire when an Action is
                 # played using a Way: the card itself was played, just with
                 # different text. Match the non-Way branch's behaviour.
@@ -2152,6 +2152,7 @@ class GameState:
                         if inheriting
                         else None
                     )
+                    self._maybe_kiln_gain(player, choice)
                     if enlightened and choice.is_treasure and not choice.is_action:
                         # Treasure played in Action phase under Enlightenment:
                         # +1 Card, +1 Action (instead of its normal text).
@@ -2201,8 +2202,6 @@ class GameState:
                     if training_pile and choice.name == training_pile:
                         player.coins += 1
 
-                    # Menagerie: Kiln — next card played, gain a copy of it.
-                    self._maybe_kiln_gain(player, choice)
                     # NOTE: Adventures pile-token bonuses (+1 Card / +1 Action
                     # / +1 Buy / +$1) and Champion's "+1 Action per Action
                     # play" are now applied inside ``Card.on_play`` so they
@@ -2416,15 +2415,18 @@ class GameState:
             if hook is not None:
                 hook(self, player)
 
-    def _enlightenment_replaces_treasure(self, card: Card) -> bool:
-        """Whether this play uses Enlightenment's Action-phase instructions."""
+    def _is_enlightened_treasure(self, card: Card) -> bool:
+        """Whether Enlightenment currently gives this Treasure the Action type."""
         return (
-            self.phase == "action"
-            and self.prophecy is not None
+            self.prophecy is not None
             and self.prophecy.is_active
             and self.prophecy.name == "Enlightenment"
             and self.is_treasure(card)
         )
+
+    def _enlightenment_replaces_treasure(self, card: Card) -> bool:
+        """Whether this play uses Enlightenment's Action-phase instructions."""
+        return self.phase == "action" and self._is_enlightened_treasure(card)
 
     def play_treasure_indirectly(self, player: PlayerState, card: Card) -> None:
         """Resolve a Treasure already moved into play, without spending an Action.
@@ -2438,6 +2440,7 @@ class GameState:
             # replacement instructions (Rising Sun rulebook, Enlightenment).
             self.play_action_indirectly(player, card)
             return
+        self._maybe_kiln_gain(player, card)
         coins_before = player.coins
         blocked = (
             getattr(player, "highwayman_attacks", 0) > 0
@@ -2459,8 +2462,6 @@ class GameState:
                 if card in player.in_play:
                     card.on_play(self)
             self._maybe_corsair_trash(player, card)
-            # Menagerie: Kiln — gain a copy of the next card played.
-            self._maybe_kiln_gain(player, card)
             coins_after = player.coins
             if (
                 player.envious_effect_active
@@ -5092,27 +5093,23 @@ class GameState:
         pending = getattr(player, "kiln_pending", 0)
         if pending <= 0:
             return
-        # Don't trigger on Kiln itself when it would re-trigger on its own play.
-        if played_card.name == "Kiln":
-            return
-
-        # The trigger fires on this play regardless of whether a copy can be
-        # gained — consume the pending charge up-front.
-        player.kiln_pending = pending - 1
-
-        if self.supply.get(played_card.name, 0) <= 0:
-            return
-        if not player.ai.should_gain_copy_with_kiln(self, player, played_card):
-            return
-
+        # Reserve every pending trigger for this play before any gain
+        # reaction or card instructions can initiate a nested play. A second
+        # Kiln can be copied too; its own new charge is armed afterwards.
+        player.kiln_pending = 0
         from ..cards.registry import get_card
 
-        try:
-            copy = get_card(played_card.name)
-        except ValueError:
-            return
-        self.supply[played_card.name] -= 1
-        self.gain_card(player, copy)
+        for _ in range(pending):
+            if self.supply.get(played_card.name, 0) <= 0:
+                break
+            if not player.ai.should_gain_copy_with_kiln(self, player, played_card):
+                continue
+            try:
+                copy = get_card(played_card.name)
+            except ValueError:
+                break
+            self.supply[played_card.name] -= 1
+            self.gain_card(player, copy)
 
     def _handle_livery_gain(self, player: PlayerState, gained_card: Card) -> None:
         """Each Livery in play: gain a Horse when a card costing $4+ is gained."""
@@ -5433,7 +5430,10 @@ class GameState:
         and Champion's +1 Action per Action play.
         """
         self._apply_pile_token_play_bonuses(player, card)
-        if card.is_action and getattr(player, "champions_in_play", 0) > 0:
+        if (
+            (card.is_action or self._is_enlightened_treasure(card))
+            and getattr(player, "champions_in_play", 0) > 0
+        ):
             player.actions += player.champions_in_play
 
     def _apply_pile_token_play_bonuses(

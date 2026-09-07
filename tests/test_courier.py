@@ -330,3 +330,83 @@ def test_enlightened_courier_treasure_can_use_a_way():
     assert player.coins == 1
     assert player.hand == []
     assert player.actions_played == 2
+
+
+@pytest.mark.parametrize("indirect", [False, True])
+@pytest.mark.parametrize("copies", [0, 2])
+def test_kiln_copies_courier_before_its_nested_treasure(indirect, copies):
+    class SelectGold(EnhancedStrategy):
+        def choose_courier_target(self, state, player, choices):
+            return next(c for c in choices if c.name == "Gold")
+
+    state, player = make_state(SelectGold())
+    state.supply = {"Courier": copies, "Gold": 10}
+    player.kiln_pending = 2
+    player.discard = [get_card("Gold")]
+    if indirect:
+        play_courier(state, player)
+    else:
+        player.hand = [get_card("Courier")]
+        player.ai.strategy.action_priority = [PriorityRule("Courier")]
+        player.actions = 1
+        state.phase = "action"
+        state.handle_action_phase()
+    assert state.supply["Courier"] == 0
+    assert state.supply["Gold"] == 10
+    assert player.kiln_pending == 0
+    assert sum(c.name == "Courier" for c in player.discard) == copies
+    assert player.coins == 4
+
+
+def test_kiln_play_copies_previous_charge_and_arms_next_charge():
+    state, player = make_state()
+    state.supply = {"Kiln": 1, "Gold": 1}
+    player.kiln_pending = 1
+    kiln, gold = get_card("Kiln"), get_card("Gold")
+    player.in_play = [kiln]
+    state.play_treasure_indirectly(player, kiln)
+    assert state.supply["Kiln"] == 0
+    assert player.kiln_pending == 1
+    player.in_play.append(gold)
+    state.play_treasure_indirectly(player, gold)
+    assert state.supply["Gold"] == 0
+    assert player.kiln_pending == 0
+
+
+@pytest.mark.parametrize("target", ["Gold", "Crown", "Curse"])
+def test_champion_rewards_enlightened_courier_targets(target):
+    from dominion.prophecies.enlightenment import Enlightenment
+
+    state, player = make_state()
+    state.prophecy = Enlightenment()
+    state.prophecy.is_active = True
+    state.phase = "action"
+    if target == "Curse":
+        state.supply = {"Charlatan": 10}
+    player.champions_in_play = 1
+    player.actions = 0
+    player.discard = [get_card(target)]
+    play_courier(state, player)
+    # +1 Action from Enlightenment, plus Champion for both Courier and target.
+    assert player.actions == 3
+    assert player.coins == 1
+
+
+def test_urchin_reacts_to_enlightened_treasure_attack_play():
+    from dominion.prophecies.enlightenment import Enlightenment
+
+    state, player = make_state()
+    state.prophecy = Enlightenment()
+    state.prophecy.is_active = True
+    state.phase = "action"
+    state.supply = {"Mercenary": 10}
+    urchin, idol = get_card("Urchin"), get_card("Idol")
+    player.in_play = [urchin]
+    player.discard = [idol]
+    play_courier(state, player)
+    assert idol in player.in_play
+    assert urchin in state.trash
+    assert urchin not in player.in_play
+    assert state.supply["Mercenary"] == 9
+    assert any(c.name == "Mercenary" for c in player.discard)
+    assert player.coins == 1
