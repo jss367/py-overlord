@@ -117,21 +117,26 @@ def test_courier_consumes_highwayman_block_before_normal_treasure_play():
     assert player.coins == 4
 
 
-def test_courier_gold_is_trashed_by_corsair_after_producing_coins():
+@pytest.mark.parametrize("highwayman", [False, True])
+@pytest.mark.parametrize("off_turn", [False, True])
+def test_courier_gold_respects_corsair_and_highwayman_turn_scope(highwayman, off_turn):
     state, player = setup("Courier", "Corsair")
     attacker = PlayerState(DummyAI())
     state.players.append(attacker)
     state.current_player_index = 1
     get_card("Corsair").on_play(state)
     state.current_player_index = 0
+    state.reaction_turn_player_index = 1 if off_turn else None
+    player.highwayman_attacks = int(highwayman)
     gold = get_card("Gold")
     player.deck = [gold]
 
     get_card("Courier").on_play(state)
 
-    assert player.coins == 4
-    assert gold in state.trash and gold not in player.in_play
-    assert player.corsair_trashed_this_turn
+    assert player.coins == (1 if highwayman and not off_turn else 4)
+    assert (gold in state.trash) != off_turn
+    assert (gold in player.in_play) == off_turn
+    assert player.corsair_trashed_this_turn != off_turn
 
 
 @pytest.mark.parametrize("effect, expected_coins", [("Reckless", 7), ("Envious", 2), ("Tiara", 7)])
@@ -156,7 +161,8 @@ def test_courier_gold_applies_treasure_modifiers(effect, expected_coins):
         assert player.tiara_replay_used
 
 
-def test_courier_treasure_consumes_pending_kiln_gain():
+@pytest.mark.parametrize("highwayman", [False, True])
+def test_courier_treasure_consumes_pending_kiln_gain(highwayman):
     class GainCopyAI(DummyAI):
         def should_gain_copy_with_kiln(self, state, player, card):
             return True
@@ -164,6 +170,7 @@ def test_courier_treasure_consumes_pending_kiln_gain():
     state, player = setup("Courier", ai=GainCopyAI())
     player.deck = [get_card("Gold")]
     player.kiln_pending = 1
+    player.highwayman_attacks = int(highwayman)
     supply = state.supply["Gold"]
 
     get_card("Courier").on_play(state)
@@ -171,6 +178,73 @@ def test_courier_treasure_consumes_pending_kiln_gain():
     assert player.kiln_pending == 0
     assert state.supply["Gold"] == supply - 1
     assert any(c.name == "Gold" for c in player.discard)
+
+
+@pytest.mark.parametrize("source", ["treasure_phase", "courier", "gain"])
+@pytest.mark.parametrize("prophecy_name", ["Good Harvest", "Panic"])
+def test_highwayman_blocked_treasure_still_fires_prophecy(source, prophecy_name):
+    class PlayTreasureAI(DummyAI):
+        def choose_treasure(self, state, choices):
+            return next((c for c in choices if c is not None), None)
+
+    state, player = setup("Courier", "Buried Treasure", ai=PlayTreasureAI())
+    card = get_card("Buried Treasure" if source == "gain" else "Gold")
+    state.prophecy = get_prophecy(prophecy_name)
+    state.prophecy.is_active = True
+    player.highwayman_attacks = 1
+    buys = player.buys
+
+    if source == "gain":
+        state.supply[card.name] -= 1
+        state.gain_card(player, card)
+    elif source == "courier":
+        player.deck = [card]
+        get_card("Courier").on_play(state)
+    else:
+        player.hand = [card]
+        state.handle_treasure_phase()
+
+    assert player.buys == buys + (1 if prophecy_name == "Good Harvest" else 2)
+    assert player.coins == int(source == "courier") + int(prophecy_name == "Good Harvest")
+    assert card not in player.duration
+    assert player.highwayman_blocked_this_turn
+
+
+def test_highwayman_blocked_contract_still_fires_ally_hook():
+    from dominion.allies.league_of_shopkeepers import LeagueOfShopkeepers
+
+    state, player = setup("Courier", "Contract")
+    state.allies = [LeagueOfShopkeepers()]
+    player.favors = 4
+    player.highwayman_attacks = 1
+    player.deck = [get_card("Contract")]
+    buys = player.buys
+
+    get_card("Courier").on_play(state)
+
+    assert player.favors == 5
+    assert player.coins == 2  # Courier and the Ally; Contract's $2 is blocked.
+    assert player.buys == buys + 1
+
+
+@pytest.mark.parametrize("replay", ["Tiara", "Reckless"])
+def test_highwayman_blocks_only_first_play_of_replayed_treasure(replay):
+    class ReplayAI(DummyAI):
+        def should_replay_treasure_with_tiara(self, state, player, card):
+            return True
+
+    state, player = setup("Courier", ai=ReplayAI())
+    player.highwayman_attacks = 1
+    player.deck = [get_card("Gold")]
+    if replay == "Tiara":
+        player.in_play = [get_card("Tiara")]
+    else:
+        state.pile_traits["Gold"] = "Reckless"
+
+    get_card("Courier").on_play(state)
+
+    assert player.coins == 4
+    assert player.highwayman_blocked_this_turn
 
 
 @pytest.mark.parametrize("source", ["treasure_phase", "courier", "gain"])

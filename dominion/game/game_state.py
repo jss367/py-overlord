@@ -2447,64 +2447,65 @@ class GameState:
             # ``Curse.play_effect``, so it fires automatically here and
             # on any replay (Reckless, Tiara) below.
             choice.on_play(self)
-            # Plunder Reckless trait: Treasures from Reckless pile play twice.
-            if self.pile_traits.get(choice.name) == "Reckless":
-                if choice in player.in_play:
-                    choice.on_play(self)
-                    if self.prophecy is not None and self.prophecy.is_active:
-                        self.prophecy.on_play_treasure(self, player, choice)
-                    self.fire_ally_play_hooks(player, choice)
+        # Plunder Reckless trait: Treasures from Reckless pile play twice.
+        if self.pile_traits.get(choice.name) == "Reckless":
+            if choice in player.in_play:
+                choice.on_play(self)
+                if self.prophecy is not None and self.prophecy.is_active:
+                    self.prophecy.on_play_treasure(self, player, choice)
+                self.fire_ally_play_hooks(player, choice)
+        if self.turn_player is player:
             self._maybe_corsair_trash(player, choice)
-            # Menagerie: Kiln — gain a copy of the next card played.
-            self._maybe_kiln_gain(player, choice)
+        # Menagerie: Kiln — gain a copy of the next card played.
+        self._maybe_kiln_gain(player, choice)
+        coins_after = player.coins
+        if (
+            player.envious_effect_active
+            and choice.name in {"Silver", "Gold"}
+            and coins_after > coins_before + 1
+        ):
+            player.coins = coins_before + 1
             coins_after = player.coins
-            if (
-                player.envious_effect_active
-                and choice.name in {"Silver", "Gold"}
-                and coins_after > coins_before + 1
+
+        # Rising Sun: Prophecy hooks fire after each treasure plays
+        if self.prophecy is not None and self.prophecy.is_active:
+            self.prophecy.on_play_treasure(self, player, choice)
+
+        # Allies hook: City-state, League of Shopkeepers,
+        # Fellowship of Scribes can react to treasures played.
+        self.fire_ally_play_hooks(player, choice)
+
+        # Renaissance Citadel: if Capitalism makes an Action card
+        # playable in the Buy/Treasure phase, that play still
+        # counts as the first Action played this turn and Citadel
+        # replays it. The helper's is_action gate filters regular
+        # Treasures out automatically.
+        self._maybe_citadel_replay(player, choice)
+
+        # Prosperity 2E: Tiara — once per turn, when you play a
+        # Treasure, you may play it again. Tiara may target itself
+        # (the once-per-turn limit is enforced by ``tiara_replay_used``).
+        if (
+            not getattr(player, "tiara_replay_used", False)
+            and any(card.name == "Tiara" for card in player.in_play)
+            and choice in player.in_play
+        ):
+            if player.ai.should_replay_treasure_with_tiara(
+                self, player, choice
             ):
-                player.coins = coins_before + 1
-                coins_after = player.coins
+                player.tiara_replay_used = True
+                choice.on_play(self)
+                if self.prophecy is not None and self.prophecy.is_active:
+                    self.prophecy.on_play_treasure(self, player, choice)
+                # Tiara's bonus replay is another play of the
+                # treasure, so Allies that react to plays should
+                # fire again here.
+                self.fire_ally_play_hooks(player, choice)
 
-            # Rising Sun: Prophecy hooks fire after each treasure plays
-            if self.prophecy is not None and self.prophecy.is_active:
-                self.prophecy.on_play_treasure(self, player, choice)
-
-            # Allies hook: City-state, League of Shopkeepers,
-            # Fellowship of Scribes can react to treasures played.
-            self.fire_ally_play_hooks(player, choice)
-
-            # Renaissance Citadel: if Capitalism makes an Action card
-            # playable in the Buy/Treasure phase, that play still
-            # counts as the first Action played this turn and Citadel
-            # replays it. The helper's is_action gate filters regular
-            # Treasures out automatically.
-            self._maybe_citadel_replay(player, choice)
-
-            # Prosperity 2E: Tiara — once per turn, when you play a
-            # Treasure, you may play it again. Tiara may target itself
-            # (the once-per-turn limit is enforced by ``tiara_replay_used``).
-            if (
-                not getattr(player, "tiara_replay_used", False)
-                and any(card.name == "Tiara" for card in player.in_play)
-                and choice in player.in_play
-            ):
-                if player.ai.should_replay_treasure_with_tiara(
-                    self, player, choice
-                ):
-                    player.tiara_replay_used = True
-                    choice.on_play(self)
-                    if self.prophecy is not None and self.prophecy.is_active:
-                        self.prophecy.on_play_treasure(self, player, choice)
-                    # Tiara's bonus replay is another play of the
-                    # treasure, so Allies that react to plays should
-                    # fire again here.
-                    self.fire_ally_play_hooks(player, choice)
-
-            # Plunder Inspiring trait: applies to any pile, including
-            # Treasures. After playing this Treasure, the player may play
-            # an Action from hand they don't already have in play.
-            self._maybe_inspiring_extra_play(player, choice)
+        # Plunder Inspiring trait: applies to any pile, including
+        # Treasures. After playing this Treasure, the player may play
+        # an Action from hand they don't already have in play.
+        self._maybe_inspiring_extra_play(player, choice)
 
         return coins_after
 
