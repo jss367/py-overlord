@@ -601,6 +601,28 @@ class EnhancedStrategy:
         """Cards covered by the action or gain rules consulted this decision."""
         return {rule.card for rule in getattr(self, f"{kind}_priority")}
 
+    def choose_courier_target(self, state, player, choices: list[Card]) -> Optional[Card]:
+        """Try Action preferences, then explicit Treasure preferences and tactics.
+
+        Failed conditional rules exclude their cards from the fallback. A
+        dedicated override may select any offered card or return None to pass.
+        """
+        actions = [c for c in choices if c.is_action]
+        choice = self.choose_action(state, player, actions + [None])
+        if choice is not None:
+            return choice
+        treasures = [c for c in choices if state.is_treasure(c)]
+        choice = self._choose_from_priority(
+            self.treasure_priority, treasures, state, player, "treasure"
+        )
+        if choice is not None:
+            return choice
+        specified = self._tactical_priority_names(state, player, "action")
+        specified |= {rule.card for rule in self.treasure_priority}
+        return tactical_defaults.choose_courier_target(
+            player, [c for c in choices if c.name not in specified]
+        )
+
     def choose_overlord_target(self, state, player, choices: list[Card]) -> Optional[Card]:
         """Reuse action preferences, then rank supply targets independently.
 

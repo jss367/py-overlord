@@ -2410,6 +2410,83 @@ class GameState:
             if hook is not None:
                 hook(self, player)
 
+    def play_treasure_indirectly(self, player: PlayerState, card: Card) -> None:
+        """Resolve a Treasure already moved into play, without spending an Action.
+
+        Shared by the Treasure phase and Courier so attacks, replays, and
+        on-play triggers also apply to Treasures played from the discard pile.
+        """
+        coins_before = player.coins
+        blocked = (
+            getattr(player, "highwayman_attacks", 0) > 0
+            and not getattr(player, "highwayman_blocked_this_turn", False)
+        )
+
+        if blocked:
+            player.highwayman_blocked_this_turn = True
+        else:
+            # Corsair trashes AFTER on_play: the treasure is fully played
+            # (so its +$ applies and any "while in play" counters tick),
+            # then Corsair removes it from in-play to the trash. The
+            # Charlatan +$1 for a Curse-as-Treasure is applied inside
+            # ``Curse.play_effect``, so it fires automatically here and
+            # on any replay (Reckless, Tiara) below.
+            card.on_play(self)
+            # Plunder Reckless trait: Treasures from Reckless pile play twice.
+            if self.pile_traits.get(card.name) == "Reckless":
+                if card in player.in_play:
+                    card.on_play(self)
+            self._maybe_corsair_trash(player, card)
+            # Menagerie: Kiln — gain a copy of the next card played.
+            self._maybe_kiln_gain(player, card)
+            coins_after = player.coins
+            if (
+                player.envious_effect_active
+                and card.name in {"Silver", "Gold"}
+                and coins_after > coins_before + 1
+            ):
+                player.coins = coins_before + 1
+
+            # Rising Sun: Prophecy hooks fire after each treasure plays
+            if self.prophecy is not None and self.prophecy.is_active:
+                self.prophecy.on_play_treasure(self, player, card)
+
+            # Allies hook: City-state, League of Shopkeepers,
+            # Fellowship of Scribes can react to treasures played.
+            self.fire_ally_play_hooks(player, card)
+
+            # Renaissance Citadel: if Capitalism makes an Action card
+            # playable in the Buy/Treasure phase, that play still
+            # counts as the first Action played this turn and Citadel
+            # replays it. The helper's is_action gate filters regular
+            # Treasures out automatically.
+            self._maybe_citadel_replay(player, card)
+
+            # Prosperity 2E: Tiara — once per turn, when you play a
+            # Treasure, you may play it again. Tiara may target itself
+            # (the once-per-turn limit is enforced by ``tiara_replay_used``).
+            if (
+                not getattr(player, "tiara_replay_used", False)
+                and any(card.name == "Tiara" for card in player.in_play)
+                and card in player.in_play
+            ):
+                if player.ai.should_replay_treasure_with_tiara(
+                    self, player, card
+                ):
+                    player.tiara_replay_used = True
+                    card.on_play(self)
+                    if self.prophecy is not None and self.prophecy.is_active:
+                        self.prophecy.on_play_treasure(self, player, card)
+                    # Tiara's bonus replay is another play of the
+                    # treasure, so Allies that react to plays should
+                    # fire again here.
+                    self.fire_ally_play_hooks(player, card)
+
+            # Plunder Inspiring trait: applies to any pile, including
+            # Treasures. After playing this Treasure, the player may play
+            # an Action from hand they don't already have in play.
+            self._maybe_inspiring_extra_play(player, card)
+
     def handle_treasure_phase(self):
         """Handle the treasure phase of a turn."""
         player = self.current_player
@@ -2460,77 +2537,8 @@ class GameState:
             if not self.move_card_from_hand_to_play(player, choice):
                 break
 
-            blocked = (
-                getattr(player, "highwayman_attacks", 0) > 0
-                and not getattr(player, "highwayman_blocked_this_turn", False)
-            )
-
-            if blocked:
-                player.highwayman_blocked_this_turn = True
-                coins_after = player.coins
-            else:
-                # Corsair trashes AFTER on_play: the treasure is fully played
-                # (so its +$ applies and any "while in play" counters tick),
-                # then Corsair removes it from in-play to the trash. The
-                # Charlatan +$1 for a Curse-as-Treasure is applied inside
-                # ``Curse.play_effect``, so it fires automatically here and
-                # on any replay (Reckless, Tiara) below.
-                choice.on_play(self)
-                # Plunder Reckless trait: Treasures from Reckless pile play twice.
-                if self.pile_traits.get(choice.name) == "Reckless":
-                    if choice in player.in_play:
-                        choice.on_play(self)
-                self._maybe_corsair_trash(player, choice)
-                # Menagerie: Kiln — gain a copy of the next card played.
-                self._maybe_kiln_gain(player, choice)
-                coins_after = player.coins
-                if (
-                    player.envious_effect_active
-                    and choice.name in {"Silver", "Gold"}
-                    and coins_after > coins_before + 1
-                ):
-                    player.coins = coins_before + 1
-                    coins_after = player.coins
-
-                # Rising Sun: Prophecy hooks fire after each treasure plays
-                if self.prophecy is not None and self.prophecy.is_active:
-                    self.prophecy.on_play_treasure(self, player, choice)
-
-                # Allies hook: City-state, League of Shopkeepers,
-                # Fellowship of Scribes can react to treasures played.
-                self.fire_ally_play_hooks(player, choice)
-
-                # Renaissance Citadel: if Capitalism makes an Action card
-                # playable in the Buy/Treasure phase, that play still
-                # counts as the first Action played this turn and Citadel
-                # replays it. The helper's is_action gate filters regular
-                # Treasures out automatically.
-                self._maybe_citadel_replay(player, choice)
-
-                # Prosperity 2E: Tiara — once per turn, when you play a
-                # Treasure, you may play it again. Tiara may target itself
-                # (the once-per-turn limit is enforced by ``tiara_replay_used``).
-                if (
-                    not getattr(player, "tiara_replay_used", False)
-                    and any(card.name == "Tiara" for card in player.in_play)
-                    and choice in player.in_play
-                ):
-                    if player.ai.should_replay_treasure_with_tiara(
-                        self, player, choice
-                    ):
-                        player.tiara_replay_used = True
-                        choice.on_play(self)
-                        if self.prophecy is not None and self.prophecy.is_active:
-                            self.prophecy.on_play_treasure(self, player, choice)
-                        # Tiara's bonus replay is another play of the
-                        # treasure, so Allies that react to plays should
-                        # fire again here.
-                        self.fire_ally_play_hooks(player, choice)
-
-                # Plunder Inspiring trait: applies to any pile, including
-                # Treasures. After playing this Treasure, the player may play
-                # an Action from hand they don't already have in play.
-                self._maybe_inspiring_extra_play(player, choice)
+            self.play_treasure_indirectly(player, choice)
+            coins_after = player.coins
 
             remaining = [c.name for c in player.hand if c.is_treasure]
             context = {

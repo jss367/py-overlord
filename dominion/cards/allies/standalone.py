@@ -292,10 +292,8 @@ class Carpenter(Card):
 
 
 class Courier(Card):
-    """$4 Action. +$1. Look at top of deck; trash, discard, or play.
-
-    Note: 'play' only fires if it's an Action.
-    """
+    """$4 Action. +$1. Discard the top card of your deck, then you may
+    play an Action or Treasure from your discard pile."""
 
     def __init__(self):
         super().__init__(
@@ -309,19 +307,30 @@ class Courier(Card):
         player = game_state.current_player
         if not player.deck and player.discard:
             player.shuffle_discard_into_deck()
-        if not player.deck:
+        if player.deck:
+            game_state.discard_card(player, player.deck.pop())
+
+        # Discard reactions may gain cards, play cards, or cause a shuffle.
+        # Build the menu only after those effects have completely resolved.
+        choices = [
+            c for c in player.discard
+            if c.is_action or game_state.is_treasure(c)
+        ]
+        if not choices:
             return
-        top = player.deck.pop()
-        if top.is_action:
-            # Play it.
-            player.in_play.append(top)
-            game_state.play_action_indirectly(
-                player, top, blocked_return_zone=player.discard
-            )
-        elif top.name in {"Curse", "Estate", "Copper"}:
-            game_state.trash_card(player, top)
+        choice = player.ai.choose_courier_target(game_state, player, choices)
+        # None explicitly declines. Reject unavailable cards without moving
+        # a different physical copy with the same name.
+        if choice is None or not any(choice is c for c in choices):
+            return
+        if not any(choice is c for c in player.discard):
+            return
+        if choice.is_action:
+            game_state.play_action_from_zone_indirectly(player, choice, player.discard)
         else:
-            game_state.discard_card(player, top)
+            player.discard.remove(choice)
+            player.in_play.append(choice)
+            game_state.play_treasure_indirectly(player, choice)
 
 
 class Innkeeper(Card):
