@@ -484,7 +484,8 @@ class GameState:
         self._way_proxy_play_active = False
         try:
             way = None
-            if self.ways and card.is_action:
+            enlightened = self._enlightenment_replaces_treasure(card)
+            if self.ways and (card.is_action or enlightened):
                 way = player.ai.choose_way(self, card, self.ways + [None])
             if way:
                 self.log_callback(
@@ -496,6 +497,11 @@ class GameState:
                     )
                 )
                 self._apply_way_text(player, card, way)
+            elif enlightened:
+                self.draw_cards(player, 1)
+                if not player.ignore_action_bonuses:
+                    player.actions += 1
+                self._apply_external_play_bonuses(player, card)
             else:
                 card.on_play(self)
         finally:
@@ -2410,12 +2416,28 @@ class GameState:
             if hook is not None:
                 hook(self, player)
 
+    def _enlightenment_replaces_treasure(self, card: Card) -> bool:
+        """Whether this play uses Enlightenment's Action-phase instructions."""
+        return (
+            self.phase == "action"
+            and self.prophecy is not None
+            and self.prophecy.is_active
+            and self.prophecy.name == "Enlightenment"
+            and self.is_treasure(card)
+        )
+
     def play_treasure_indirectly(self, player: PlayerState, card: Card) -> None:
         """Resolve a Treasure already moved into play, without spending an Action.
 
         Shared by the Treasure phase and Courier so attacks, replays, and
         on-play triggers also apply to Treasures played from the discard pile.
         """
+        if self._enlightenment_replaces_treasure(card):
+            # Enlightenment turns this into an Action play, including its
+            # bookkeeping and Way offer. Highwayman cannot suppress the
+            # replacement instructions (Rising Sun rulebook, Enlightenment).
+            self.play_action_indirectly(player, card)
+            return
         coins_before = player.coins
         blocked = (
             getattr(player, "highwayman_attacks", 0) > 0

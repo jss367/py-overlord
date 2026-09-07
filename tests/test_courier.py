@@ -267,3 +267,66 @@ def test_charlatan_curse_is_a_legal_treasure():
     assert curse in player.in_play
     assert player.coins == 2
     assert state.trash == []
+
+
+@pytest.mark.parametrize("target", ["Gold", "Crown", "Curse"])
+def test_enlightenment_replaces_courier_treasure_play_in_action_phase(target):
+    from dominion.prophecies.enlightenment import Enlightenment
+
+    state, player = make_state()
+    state.prophecy = Enlightenment()
+    state.prophecy.is_active = True
+    state.phase = "action"
+    if target == "Curse":
+        state.supply = {"Charlatan": 10}
+    player.actions = 0
+    player.highwayman_attacks = 1
+    drawn = get_card("Estate")
+    player.deck = [drawn, get_card("Estate")]
+    chosen = get_card(target)
+    player.discard = [chosen]
+    play_courier(state, player)
+    assert chosen in player.in_play
+    assert player.hand == [drawn]
+    assert player.coins == 1  # Only Courier's coin, never Gold's payload.
+    assert player.actions == 1
+    assert player.actions_played == 2
+    assert not player.highwayman_blocked_this_turn
+
+
+@pytest.mark.parametrize("phase, active", [("buy", True), ("action", False)])
+def test_enlightenment_does_not_replace_treasure_outside_its_condition(phase, active):
+    from dominion.prophecies.enlightenment import Enlightenment
+
+    state, player = make_state()
+    state.prophecy = Enlightenment()
+    state.prophecy.is_active = active
+    state.phase = phase
+    player.actions = 0
+    player.discard = [get_card("Gold")]
+    play_courier(state, player)
+    assert player.coins == 4
+    assert player.actions == 0
+    assert player.hand == []
+
+
+def test_enlightened_courier_treasure_can_use_a_way():
+    from dominion.prophecies.enlightenment import Enlightenment
+    from dominion.ways.registry import get_way
+
+    class UseOx(EnhancedStrategy):
+        def choose_way(self, state, player, card, ways):
+            return next((w for w in ways if w is not None), None) if card.name == "Gold" else None
+
+    state, player = make_state(UseOx())
+    state.prophecy = Enlightenment()
+    state.prophecy.is_active = True
+    state.phase = "action"
+    state.ways = [get_way("Way of the Ox")]
+    player.actions = 0
+    player.discard = [get_card("Gold")]
+    play_courier(state, player)
+    assert player.actions == 2
+    assert player.coins == 1
+    assert player.hand == []
+    assert player.actions_played == 2
