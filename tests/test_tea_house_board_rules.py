@@ -52,6 +52,19 @@ def test_courier_plays_previously_discarded_treasure_without_trashing():
     assert not state.trash
 
 
+@pytest.mark.parametrize("charlatan", [False, True])
+def test_courier_uses_current_treasure_type_for_curses(charlatan):
+    state, player = setup("Courier", *(["Charlatan"] if charlatan else []))
+    curse = get_card("Curse")
+    player.deck = [curse]
+
+    get_card("Courier").on_play(state)
+
+    assert player.coins == 1 + int(charlatan)
+    assert (curse in player.in_play) == charlatan
+    assert (curse in player.discard) != charlatan
+
+
 def test_courier_may_decline_to_play_the_discarded_card():
     class DeclineAI(DummyAI):
         def choose_courier_card(self, state, player, choices):

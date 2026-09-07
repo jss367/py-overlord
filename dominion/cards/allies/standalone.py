@@ -308,7 +308,7 @@ class Courier(Card):
             player.shuffle_discard_into_deck()
         if player.deck:
             game_state.discard_card(player, player.deck.pop())
-        choices = [c for c in player.discard if c.is_action or c.is_treasure]
+        choices = [c for c in player.discard if c.is_action or game_state.is_treasure(c)]
         chosen = player.ai.choose_courier_card(game_state, player, choices)
         if chosen is None or chosen not in choices or chosen not in player.discard:
             return
