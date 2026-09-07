@@ -319,10 +319,7 @@ class Courier(Card):
                 player, chosen, blocked_return_zone=player.discard
             )
         else:
-            chosen.on_play(game_state)
-            if game_state.prophecy is not None and game_state.prophecy.is_active:
-                game_state.prophecy.on_play_treasure(game_state, player, chosen)
-            game_state.fire_ally_play_hooks(player, chosen)
+            game_state.play_treasure_indirectly(player, chosen)
 
 
 class Innkeeper(Card):

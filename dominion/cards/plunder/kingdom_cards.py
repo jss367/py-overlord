@@ -693,10 +693,7 @@ class BuriedTreasure(Card):
                         if original_turn_index is None:
                             game_state.reaction_turn_player_index = original_index
                         game_state.current_player_index = game_state.players.index(player)
-                    self.on_play(game_state)
-                    if game_state.prophecy is not None and game_state.prophecy.is_active:
-                        game_state.prophecy.on_play_treasure(game_state, player, self)
-                    game_state.fire_ally_play_hooks(player, self)
+                    game_state.play_treasure_indirectly(player, self)
                 finally:
                     game_state.current_player_index = original_index
                     game_state.reaction_turn_player_index = original_turn_index

@@ -87,6 +87,98 @@ def test_courier_treasure_plays_trigger_active_prophecy(prophecy_name, active):
         assert player.panic_active
 
 
+def test_courier_consumes_highwayman_block_before_normal_treasure_play():
+    class PlayGoldAI(DummyAI):
+        def choose_treasure(self, state, choices):
+            return next((c for c in choices if c is not None), None)
+
+    state, player = setup("Courier", ai=PlayGoldAI())
+    player.highwayman_attacks = 1
+    player.deck = [get_card("Gold")]
+    get_card("Courier").on_play(state)
+    assert player.coins == 1
+    assert player.highwayman_blocked_this_turn
+
+    player.hand = [get_card("Gold")]
+    state.handle_treasure_phase()
+    assert player.coins == 4
+
+
+def test_courier_gold_is_trashed_by_corsair_after_producing_coins():
+    state, player = setup("Courier", "Corsair")
+    attacker = PlayerState(DummyAI())
+    state.players.append(attacker)
+    state.current_player_index = 1
+    get_card("Corsair").on_play(state)
+    state.current_player_index = 0
+    gold = get_card("Gold")
+    player.deck = [gold]
+
+    get_card("Courier").on_play(state)
+
+    assert player.coins == 4
+    assert gold in state.trash and gold not in player.in_play
+    assert player.corsair_trashed_this_turn
+
+
+@pytest.mark.parametrize("effect, expected_coins", [("Reckless", 7), ("Envious", 2), ("Tiara", 7)])
+def test_courier_gold_applies_treasure_modifiers(effect, expected_coins):
+    class ReplayAI(DummyAI):
+        def should_replay_treasure_with_tiara(self, state, player, treasure):
+            return True
+
+    state, player = setup("Courier", ai=ReplayAI())
+    player.deck = [get_card("Gold")]
+    if effect == "Reckless":
+        state.pile_traits["Gold"] = "Reckless"
+    elif effect == "Envious":
+        player.envious_effect_active = True
+    else:
+        player.in_play = [get_card("Tiara")]
+
+    get_card("Courier").on_play(state)
+
+    assert player.coins == expected_coins
+    if effect == "Tiara":
+        assert player.tiara_replay_used
+
+
+def test_courier_treasure_consumes_pending_kiln_gain():
+    class GainCopyAI(DummyAI):
+        def should_gain_copy_with_kiln(self, state, player, card):
+            return True
+
+    state, player = setup("Courier", ai=GainCopyAI())
+    player.deck = [get_card("Gold")]
+    player.kiln_pending = 1
+    supply = state.supply["Gold"]
+
+    get_card("Courier").on_play(state)
+
+    assert player.kiln_pending == 0
+    assert state.supply["Gold"] == supply - 1
+    assert any(c.name == "Gold" for c in player.discard)
+
+
+def test_courier_inspiring_treasure_plays_action_from_hand():
+    class PlayVillageAI(DummyAI):
+        def choose_action(self, state, choices):
+            return next((c for c in choices if c and c.name == "Village"), None)
+
+    state, player = setup("Courier", "Village", ai=PlayVillageAI())
+    state.pile_traits["Gold"] = "Inspiring"
+    village = get_card("Village")
+    player.hand = [village]
+    player.deck = [get_card("Estate"), get_card("Gold")]
+    actions = player.actions
+
+    get_card("Courier").on_play(state)
+
+    assert village in player.in_play and village not in player.hand
+    assert player.actions == actions + 2
+    assert [c.name for c in player.hand] == ["Estate"]
+
+
 def test_fortune_hunter_keeps_existing_top_card_out_of_reshuffle():
     state, player = setup("Fortune Hunter")
     gold = get_card("Gold")
@@ -125,6 +217,20 @@ def test_buried_treasure_off_turn_gain_preserves_current_player():
     assert state.current_player is current
     assert state.turn_player is current
     assert card in other.duration and card not in current.duration
+
+
+def test_buried_treasure_gain_can_be_blocked_by_highwayman():
+    state, player = setup("Buried Treasure")
+    player.highwayman_attacks = 1
+    card = get_card("Buried Treasure")
+    state.supply[card.name] -= 1
+
+    state.gain_card(player, card)
+
+    assert player.highwayman_blocked_this_turn
+    assert card in player.in_play
+    assert card not in player.duration
+    assert player.gained_five_this_turn
 
 
 @pytest.mark.parametrize("prophecy_name", ["Good Harvest", "Panic"])
