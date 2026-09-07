@@ -314,12 +314,12 @@ class Courier(Card):
             return
         player.discard.remove(chosen)
         player.in_play.append(chosen)
-        if chosen.is_action:
+        if game_state.is_treasure(chosen):
+            game_state.play_treasure_indirectly(player, chosen)
+        else:
             game_state.play_action_indirectly(
                 player, chosen, blocked_return_zone=player.discard
             )
-        else:
-            game_state.play_treasure_indirectly(player, chosen)
 
 
 class Innkeeper(Card):

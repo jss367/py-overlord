@@ -65,6 +65,42 @@ def test_courier_uses_current_treasure_type_for_curses(charlatan):
     assert (curse in player.discard) != charlatan
 
 
+@pytest.mark.parametrize("highwayman", [False, True])
+def test_courier_crown_gets_action_and_treasure_bookkeeping(highwayman):
+    from collections import Counter
+
+    class ObservePlays:
+        def __init__(self):
+            self.plays = Counter()
+
+        def on_play_card(self, state, player, card):
+            self.plays[card.name] += 1
+
+    state, player = setup("Courier", "Crown", "Smithy")
+    observer = ObservePlays()
+    state.allies = [observer]
+    state.prophecy = get_prophecy("Panic")
+    state.prophecy.is_active = True
+    state.phase = "action"
+    player.highwayman_attacks = int(highwayman)
+    crown, smithy = get_card("Crown"), get_card("Smithy")
+    player.deck = [get_card("Copper") for _ in range(6)] + [crown]
+    player.hand = [smithy]
+    buys = player.buys
+
+    get_card("Courier").on_play(state)
+
+    assert crown in player.in_play
+    assert player.buys == buys + 2  # Panic sees Crown even if its text is blocked.
+    assert observer.plays["Crown"] == 1
+    assert player.actions_this_turn == (1 if highwayman else 3)
+    assert observer.plays["Smithy"] == (0 if highwayman else 2)
+    if highwayman:
+        assert player.hand == [smithy]
+    else:
+        assert [c.name for c in player.hand] == ["Copper"] * 6
+
+
 def test_courier_may_decline_to_play_the_discarded_card():
     class DeclineAI(DummyAI):
         def choose_courier_card(self, state, player, choices):

@@ -368,6 +368,8 @@ class GameState:
         *,
         blocked_return_zone: list[Card] | None = None,
         apply_enchantress: bool | None = None,
+        suppress_instructions: bool = False,
+        shared_play_hooks: bool = True,
     ) -> bool:
         """Resolve a single Action play that originates outside the main
         action-phase loop, applying the bookkeeping that loop would.
@@ -393,7 +395,9 @@ class GameState:
         freshly moved card, ``blocked_return_zone`` lets the caller preserve
         that card's source-zone semantics. ``apply_enchantress`` defaults to
         whether this is the player's own turn; off-turn Reaction plays are not
-        covered by Enchantress.
+        covered by Enchantress. For dual-type plays, the Treasure helper
+        owns shared observers and can suppress instructions under Highwayman
+        while retaining Action counters and Action-specific observers.
         """
         if apply_enchantress is None:
             apply_enchantress = self.current_player is player
@@ -421,51 +425,55 @@ class GameState:
             return False
         player.actions_this_turn += 1
         player.actions_played += 1
-        if (
-            apply_enchantress
-            and card.is_action
-            and getattr(player, "enchantress_active", False)
-            and not getattr(player, "enchantress_used_this_turn", False)
-        ):
-            player.enchantress_used_this_turn = True
-            self.draw_cards(player, 1)
-            player.actions += 1
-            self.log_callback(
-                (
-                    "action",
-                    player.ai.name,
-                    f"is enchanted while playing {card} (gets +1 Card +1 Action instead)",
-                    {},
+        if not suppress_instructions:
+            if (
+                apply_enchantress
+                and card.is_action
+                and getattr(player, "enchantress_active", False)
+                and not getattr(player, "enchantress_used_this_turn", False)
+            ):
+                player.enchantress_used_this_turn = True
+                self.draw_cards(player, 1)
+                player.actions += 1
+                self.log_callback(
+                    (
+                        "action",
+                        player.ai.name,
+                        f"is enchanted while playing {card} (gets +1 Card +1 Action instead)",
+                        {},
+                    )
                 )
-            )
-            self._fire_urchin_reaction(player, card)
-        else:
-            # Menagerie Ways: "when you play an Action card, you may instead
-            # follow the Way's instructions" applies to every play, so each
-            # Throne Room replay, Vassal play and off-turn Reaction play gets
-            # its own independent offer, mirroring the action-phase loop.
-            # That includes plays of a card that is not in play: virtual
-            # plays (Riverboat's set-aside card, Necromancer's trashed card,
-            # Captain's Supply proxy) and Throne Room replays after a Way
-            # already moved the card. The offer is not gated on the zone;
-            # instead the Ways that move the played card (Turtle, Horse,
-            # Butterfly, Worm) no-op the move when it is not in play, per the
-            # rulebook ("it stays set aside, even if it has instructions on
-            # it that would move it").
-            self._resolve_action_text(player, card)
+                self._fire_urchin_reaction(player, card)
+            else:
+                # Menagerie Ways: "when you play an Action card, you may instead
+                # follow the Way's instructions" applies to every play, so each
+                # Throne Room replay, Vassal play and off-turn Reaction play gets
+                # its own independent offer, mirroring the action-phase loop.
+                # That includes plays of a card that is not in play: virtual
+                # plays (Riverboat's set-aside card, Necromancer's trashed card,
+                # Captain's Supply proxy) and Throne Room replays after a Way
+                # already moved the card. The offer is not gated on the zone;
+                # instead the Ways that move the played card (Turtle, Horse,
+                # Butterfly, Worm) no-op the move when it is not in play, per the
+                # rulebook ("it stays set aside, even if it has instructions on
+                # it that would move it").
+                self._resolve_action_text(player, card)
         training_pile = getattr(player, "training_pile", None)
         if training_pile and card.name == training_pile:
             player.coins += 1
-        self._maybe_kiln_gain(player, card)
+        if shared_play_hooks:
+            self._maybe_kiln_gain(player, card)
         self.fire_prophecy_action_hooks(player, card)
-        self.fire_ally_play_hooks(player, card)
+        if shared_play_hooks:
+            self.fire_ally_play_hooks(player, card)
         self._call_tavern_triggers(player, "action_played", card)
         # Renaissance Citadel: if this is the turn's first Action play
         # (the helper checks citadel_used + project ownership), replay
         # the card. Centralised here so every indirect-play caller —
         # Captain, Ghost, Riverboat, Royal Carriage, Throne Room et al
         # — funnels through the same Citadel trigger.
-        self._maybe_citadel_replay(player, card)
+        if shared_play_hooks:
+            self._maybe_citadel_replay(player, card)
         return True
 
     def _resolve_action_text(self, player: PlayerState, card: Card) -> None:
@@ -2436,21 +2444,25 @@ class GameState:
             and not getattr(player, "highwayman_blocked_this_turn", False)
         )
 
+        def play_instructions(suppressed=False):
+            if choice.is_action:
+                self.play_action_indirectly(
+                    player,
+                    choice,
+                    apply_enchantress=self.turn_player is player,
+                    suppress_instructions=suppressed,
+                    shared_play_hooks=False,
+                )
+            elif not suppressed:
+                choice.on_play(self)
+
         if blocked:
             player.highwayman_blocked_this_turn = True
-            coins_after = player.coins
-        else:
-            # Corsair trashes AFTER on_play: the treasure is fully played
-            # (so its +$ applies and any "while in play" counters tick),
-            # then Corsair removes it from in-play to the trash. The
-            # Charlatan +$1 for a Curse-as-Treasure is applied inside
-            # ``Curse.play_effect``, so it fires automatically here and
-            # on any replay (Reckless, Tiara) below.
-            choice.on_play(self)
+        play_instructions(suppressed=blocked)
         # Plunder Reckless trait: Treasures from Reckless pile play twice.
         if self.pile_traits.get(choice.name) == "Reckless":
             if choice in player.in_play:
-                choice.on_play(self)
+                play_instructions()
                 if self.prophecy is not None and self.prophecy.is_active:
                     self.prophecy.on_play_treasure(self, player, choice)
                 self.fire_ally_play_hooks(player, choice)
@@ -2494,7 +2506,7 @@ class GameState:
                 self, player, choice
             ):
                 player.tiara_replay_used = True
-                choice.on_play(self)
+                play_instructions()
                 if self.prophecy is not None and self.prophecy.is_active:
                     self.prophecy.on_play_treasure(self, player, choice)
                 # Tiara's bonus replay is another play of the
