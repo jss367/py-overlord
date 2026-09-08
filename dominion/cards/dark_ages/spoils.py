@@ -19,4 +19,4 @@ class Spoils(Card):
         player = game_state.current_player
         if self in player.in_play:
             player.in_play.remove(self)
-        game_state.supply["Spoils"] = game_state.supply.get("Spoils", 0) + 1
+            game_state._restore_to_supply_pile(self)
