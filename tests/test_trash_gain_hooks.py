@@ -97,17 +97,16 @@ def test_lurker_trash_gain_increments_actions_gained_this_turn():
 
 
 def test_lich_trash_gain_increments_cards_gained_this_turn():
-    """Lich's '+ gain a cheaper Action from trash' clause must also route through gain_card."""
+    """Lich's on-trash gain clause must also route through gain_card."""
     state, player = _setup()
     # Put a cheaper Action in trash (Village costs $3, less than Lich's $6).
     village = get_card("Village")
     state.trash.append(village)
-    # Lich draws +6 / +2A then asks the AI to discard 2 — give the player a hand.
     player.hand = [get_card("Copper") for _ in range(3)]
 
     before_cards = player.cards_gained_this_turn
     before_actions = player.actions_gained_this_turn
-    Lich().play_effect(state)
+    state.trash_card(player, Lich())
 
     assert player.cards_gained_this_turn == before_cards + 1
     assert player.actions_gained_this_turn == before_actions + 1

@@ -12,7 +12,7 @@ class CoastalHaven(Ally):
     def __init__(self):
         super().__init__("Coastal Haven")
 
-    def on_turn_end(self, game_state, player) -> None:
+    def on_cleanup_start(self, game_state, player) -> None:
         if player.favors <= 0 or not player.hand:
             return
         choices = list(player.hand)

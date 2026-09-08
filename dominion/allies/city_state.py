@@ -1,38 +1,24 @@
 from .base_ally import Ally
+from ..cards.allies._rules import decide
 
 
 class CityState(Ally):
-    """When you play a Treasure, you may spend 2 Favors to play an Action
-    from hand.
-    """
-
     def __init__(self):
         super().__init__("City-state")
 
-    def on_play_card(self, game_state, player, card) -> None:
-        if not card.is_treasure:
+    def on_owner_gain(self, game_state, player, gained_card):
+        if (
+            player is not game_state.turn_player
+            or not gained_card.is_action
+            or player.favors < 2
+        ):
             return
-        if player.favors < 2:
+        # Only the original gain destination is tracked; a reaction moving the
+        # card elsewhere makes this play unavailable.
+        zone = game_state.gain_destination(gained_card)
+        if zone is None or gained_card not in zone:
             return
-        # Only fire during Treasure phase to avoid recursing on
-        # in-Action-phase Treasure plays.
-        if game_state.phase != "buy" and game_state.phase != "treasure":
-            return
-        actions = [c for c in player.hand if c.is_action]
-        if not actions:
-            return
-        choice = player.ai.choose_action(game_state, actions + [None])
-        if choice is None or choice not in player.hand:
+        if not decide(game_state, player, "city_state", [False, True], True):
             return
         player.favors -= 2
-        player.hand.remove(choice)
-        player.in_play.append(choice)
-        game_state.log_callback(
-            (
-                "action",
-                player.ai.name,
-                f"spends 2 Favors on City-state to play {choice}",
-                {"favors_remaining": player.favors},
-            )
-        )
-        choice.on_play(game_state)
+        game_state.play_action_from_zone_indirectly(player, gained_card, zone)

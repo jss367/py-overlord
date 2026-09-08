@@ -16,8 +16,10 @@ class Coronet(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
         playable = [
-            c for c in player.hand
-            if (c.is_action and not c.is_duration) or (c.is_treasure and not c.is_duration)
+            c
+            for c in player.hand
+            if (c.is_action and not c.is_duration)
+            or (c.is_treasure and not c.is_duration)
         ]
         if not playable:
             return
@@ -57,6 +59,7 @@ class Demesne(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
         from ..registry import get_card
+
         if game_state.supply.get("Gold", 0) > 0:
             game_state.supply["Gold"] -= 1
             game_state.gain_card(player, get_card("Gold"))
@@ -144,6 +147,17 @@ class Courser(Card):
                 if len(chosen) == 2:
                     break
                 chosen.add(opt)
+
+        from ..allies._rules import select_modes
+
+        chosen = select_modes(
+            game_state,
+            player,
+            self,
+            list(self.OPTIONS),
+            [opt for opt in self.OPTIONS if opt in chosen],
+            2,
+        )
 
         # Resolve in printed order regardless of AI selection order.
         for opt in self.OPTIONS:

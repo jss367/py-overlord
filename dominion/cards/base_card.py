@@ -45,12 +45,20 @@ class CardType(Enum):
     DOOM = "doom"
     ZOMBIE = "zombie"
     LIAISON = "liaison"
+    AUGUR = "augur"
+    CLASH = "clash"
+    FORT = "fort"
+    ODYSSEY = "odyssey"
+    TOWNSFOLK = "townsfolk"
+    WIZARD = "wizard"
     RESERVE = "reserve"
     TRAVELLER = "traveller"
 
 
 class Card:
-    def __init__(self, name: str, cost: CardCost, stats: CardStats, types: list[CardType]):
+    def __init__(
+        self, name: str, cost: CardCost, stats: CardStats, types: list[CardType]
+    ):
         self.name = name
         self.cost = cost
         self.stats = stats
@@ -63,7 +71,9 @@ class Card:
 
         # Debug validation
         if not isinstance(types, list):
-            raise ValueError(f"Card {name} initialized with types that's not a list: {types}")
+            raise ValueError(
+                f"Card {name} initialized with types that's not a list: {types}"
+            )
         for t in types:
             if not isinstance(t, CardType):
                 raise ValueError(f"Card {name} initialized with invalid type: {t}")
@@ -246,8 +256,7 @@ class Card:
         # Mouse following a set-aside Militia's text is not an Attack play.
         if self.is_attack and self.name != "Urchin" and not way_proxy_run:
             urchins = [
-                c for c in list(player.in_play)
-                if c.name == "Urchin" and c is not self
+                c for c in list(player.in_play) if c.name == "Urchin" and c is not self
             ]
             for urchin in urchins:
                 react = getattr(urchin, "react_to_attack_played", None)

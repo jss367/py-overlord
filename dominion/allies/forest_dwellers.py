@@ -1,44 +1,45 @@
 from .base_ally import Ally
+from ..cards.allies._rules import decide
 
 
 class ForestDwellers(Ally):
-    """At start of turn, spend 1 Favor: look at top 3 cards, choose order.
-
-    Implementation: pull top 3 cards, sort them by Patrol-style priority
-    (most useful first to be drawn), and put them back on top. The AI
-    then draws them in that order on subsequent draws.
-    """
-
     def __init__(self):
         super().__init__("Forest Dwellers")
 
-    def on_turn_start(self, game_state, player) -> None:
-        if player.favors <= 0:
+    def on_turn_start(self, game_state, player):
+        if player.favors < 1 or not decide(
+            game_state,
+            player,
+            "forest_dwellers",
+            [False, True],
+            bool(player.deck or player.discard),
+        ):
             return
-        # Need to actually draw soon; otherwise the order doesn't matter.
-        if not (player.deck or player.discard):
-            return
-        cards = []
+        player.favors -= 1
+        revealed = []
         for _ in range(3):
             if not player.deck and player.discard:
                 player.shuffle_discard_into_deck()
             if not player.deck:
                 break
-            cards.append(player.deck.pop())
-        if not cards:
-            return
-        # Order so that the highest-priority card is drawn first
-        # (deck.pop() reads from the end, so put best at end).
-        ordered = player.ai.order_cards_for_topdeck(game_state, player, list(cards))
-        # Reverse: best at top of deck.
-        for card in reversed(ordered):
-            player.deck.append(card)
-        player.favors -= 1
-        game_state.log_callback(
-            (
-                "action",
-                player.ai.name,
-                "spends a Favor on Forest Dwellers (reorder top 3)",
-                {"favors_remaining": player.favors},
-            )
-        )
+            revealed.append(player.deck.pop())
+        kept = []
+        for card in revealed:
+            if decide(
+                game_state,
+                player,
+                "forest_dwellers_discard",
+                [False, True],
+                card.name in {"Curse", "Estate", "Copper"},
+            ):
+                game_state.discard_card(player, card)
+            else:
+                kept.append(card)
+        ordered = player.ai.order_cards_for_topdeck(game_state, player, kept)
+        remaining = list(kept)
+        valid = []
+        for card in list(ordered or []) + kept:
+            if card in remaining:
+                remaining.remove(card)
+                valid.append(card)
+        player.deck.extend(reversed(valid))

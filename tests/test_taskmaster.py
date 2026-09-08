@@ -26,7 +26,7 @@ def test_taskmaster_leaves_without_five_cost_gain():
     assert player.actions == 0
     assert player.coins == 0
     assert taskmaster not in player.duration
-    assert taskmaster in player.discard
+    assert taskmaster in player.in_play
 
 
 def test_taskmaster_persists_across_consecutive_five_cost_gains():
@@ -58,4 +58,4 @@ def test_taskmaster_persists_across_consecutive_five_cost_gains():
     assert player.actions == 2
     assert player.coins == 2
     assert taskmaster not in player.duration
-    assert player.discard == [taskmaster]
+    assert player.in_play == [taskmaster]

@@ -439,6 +439,20 @@ class PlayerState:
         Cards at index 0 are the bottom of the deck (drawn last); cards at
         the end are the top (drawn first via ``deck.pop()``).
         """
+        if self.discard:
+            self.shuffle_count = getattr(self, "shuffle_count", 0) + 1
+        ally_top, ally_discard = [], []
+        game_state = getattr(self, "game_state", None)
+        if game_state is not None and self.discard:
+            for ally in game_state.allies:
+                hook = getattr(ally, "on_shuffle", None)
+                if hook is not None:
+                    top, omitted = hook(game_state, self, list(self.discard))
+                    for card in top + omitted:
+                        if card in self.discard:
+                            self.discard.remove(card)
+                    ally_top.extend(reversed(top))
+                    ally_discard.extend(omitted)
         avoid_set_aside: list = []
         if self.avoid_pending > 0 and self.discard:
             n = min(3, len(self.discard))
@@ -494,8 +508,9 @@ class PlayerState:
             + avoid_set_aside
             + bury_top
             + project_top
+            + ally_top
         )
-        self.discard = []
+        self.discard = ally_discard
 
     def count_in_deck(self, card_name: str) -> int:
         """Count total copies of named card across all piles."""
@@ -555,12 +570,10 @@ class PlayerState:
             self.summon_set_aside,
             self.farmhands_set_aside,
         ]
-        # Cards set aside on a Quartermaster are still the player's at game
-        # end (they count for scoring and for Fountain's Copper count). Each
-        # Quartermaster keeps its own pile and stays in play for the game.
-        for card in self.duration:
-            if card.name == "Quartermaster" and getattr(card, "set_aside", None):
-                zones.append(card.set_aside)
+        for card in dict.fromkeys(self.in_play + self.duration + self.multiplied_durations):
+            set_aside = getattr(card, "set_aside", None)
+            if isinstance(set_aside, list):
+                zones.append(set_aside)
 
         cards: list[Card] = []
         seen_ids: set[int] = set()

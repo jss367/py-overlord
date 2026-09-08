@@ -1,5 +1,6 @@
 from ..base_card import Card, CardCost, CardStats, CardType
 
+
 class Governor(Card):
     """Flexible payload that benefits everyone."""
 
@@ -16,14 +17,20 @@ class Governor(Card):
         options = ["cards", "gold", "upgrade"]
         choice = player.ai.choose_governor_option(game_state, player, options)
 
-        if choice == "cards":
-            self._do_cards_option(game_state, player)
-        elif choice == "gold":
-            self._do_gold_option(game_state, player)
-        else:
-            handled = self._do_upgrade_option(game_state, player)
-            if not handled:
+        from ..allies._rules import select_modes
+
+        def resolve(choice):
+            if choice == "cards":
                 self._do_cards_option(game_state, player)
+            elif choice == "gold":
+                self._do_gold_option(game_state, player)
+            else:
+                handled = self._do_upgrade_option(game_state, player)
+                if not handled:
+                    self._do_cards_option(game_state, player)
+
+        for choice in select_modes(game_state, player, self, options, [choice]):
+            resolve(choice)
 
     def _do_cards_option(self, game_state, player):
         game_state.draw_cards(player, 3)
@@ -67,7 +74,11 @@ class Governor(Card):
         ]
         if affordable:
             gain = player.ai.choose_buy(game_state, affordable + [None])
-            if gain is None or gain.name not in game_state.supply or game_state.supply[gain.name] <= 0:
+            if (
+                gain is None
+                or gain.name not in game_state.supply
+                or game_state.supply[gain.name] <= 0
+            ):
                 gain = affordable[0]
             game_state.supply[gain.name] -= 1
             game_state.gain_card(player, get_card(gain.name))
@@ -90,7 +101,11 @@ class Governor(Card):
             ]
             if gains:
                 selection = other.ai.choose_buy(game_state, gains + [None])
-                if selection is None or selection.name not in game_state.supply or game_state.supply[selection.name] <= 0:
+                if (
+                    selection is None
+                    or selection.name not in game_state.supply
+                    or game_state.supply[selection.name] <= 0
+                ):
                     selection = gains[0]
                 game_state.supply[selection.name] -= 1
                 game_state.gain_card(other, get_card(selection.name))

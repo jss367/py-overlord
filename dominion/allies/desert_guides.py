@@ -11,20 +11,21 @@ class DesertGuides(Ally):
 
     def on_turn_start(self, game_state, player) -> None:
         # Repeat while hand looks bad and Favors are available.
-        while player.favors > 0 and player.hand:
+        while player.favors > 0:
             junk = sum(
-                1 for c in player.hand
+                1
+                for c in player.hand
                 if c.name in {"Curse", "Copper", "Estate", "Hovel", "Overgrown Estate"}
                 or (c.is_victory and not c.is_action and c.cost.coins <= 2)
             )
             if junk < 3 and len(player.hand) >= 4:
                 return
+            player.favors -= 1
             old_hand = list(player.hand)
             player.hand = []
             for card in old_hand:
                 game_state.discard_card(player, card)
             game_state.draw_cards(player, 5)
-            player.favors -= 1
             game_state.log_callback(
                 (
                     "action",

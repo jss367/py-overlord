@@ -90,6 +90,7 @@ EXPECTED_TREASURE_CARDS = {
     "Tools",
     "Bauble",
     "Contract",
+    "Sunken Treasure",
     # Adventures
     "Coin of the Realm",
     "Relic",
@@ -100,6 +101,7 @@ EXPECTED_TREASURE_CARDS = {
 }
 
 MULTI_TYPE_TREASURES = {
+    "Sunken Treasure": {CardType.TREASURE, CardType.ODYSSEY},
     "Amphora": {CardType.TREASURE, CardType.DURATION},
     "Astrolabe": {CardType.TREASURE, CardType.DURATION},
     "Cauldron": {CardType.TREASURE, CardType.ATTACK},
@@ -139,9 +141,7 @@ MULTI_TYPE_TREASURES = {
 
 def test_registered_treasures_match_expected():
     actual = {
-        name
-        for name, cls in CARD_TYPES.items()
-        if CardType.TREASURE in cls().types
+        name for name, cls in CARD_TYPES.items() if CardType.TREASURE in cls().types
     }
     assert actual == EXPECTED_TREASURE_CARDS
 

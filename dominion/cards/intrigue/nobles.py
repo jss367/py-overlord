@@ -19,7 +19,14 @@ class Nobles(Card):
         # +3 Cards is strictly better (cards may be Actions themselves, but
         # that's already covered by the "actions in hand" check).
         action_cards_in_hand = any(card.is_action for card in player.hand)
-        if player.actions == 0 and action_cards_in_hand:
-            player.actions += 2
-        else:
-            game_state.draw_cards(player, 3)
+        draw = not (player.actions == 0 and action_cards_in_hand)
+        from ..allies._rules import select_modes
+
+        def resolve(draw):
+            if draw:
+                game_state.draw_cards(player, 3)
+            else:
+                player.actions += 2
+
+        for draw in select_modes(game_state, player, self, [True, False], [draw]):
+            resolve(draw)

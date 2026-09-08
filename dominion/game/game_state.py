@@ -34,6 +34,7 @@ class PhaseStepLimitExceeded(RuntimeError):
 class GameState:
     players: list[PlayerState]
     supply: dict[str, int] = field(default_factory=dict)
+    ordered_supply_piles: dict[tuple, list[str]] = field(default_factory=dict)
     black_market_deck: list[str] = field(default_factory=list)
     trash: list[Card] = field(default_factory=list)
     events: list = field(default_factory=list)
@@ -170,6 +171,59 @@ class GameState:
             else:
                 new.__dict__[key] = copy.deepcopy(value, memo)
         return new
+
+    def gain_destination(self, card):
+        return getattr(self, "_gain_destinations", {}).get(card)
+
+    def opponents_in_order(self, player):
+        index = self.players.index(player)
+        return self.players[index + 1 :] + self.players[:index]
+
+    def register_allies_gain_effect(self, card, kind, targets=None):
+        player = self.current_player
+        if not hasattr(player, "allies_gain_effects"):
+            player.allies_gain_effects = []
+        player.allies_gain_effects.append((kind, card, list(targets or [])))
+
+    def _resolve_allies_gain_effects(self, player, gained):
+        from ..cards.allies._rules import discard, effective_cost
+
+        for kind, card, targets in list(getattr(player, "allies_gain_effects", [])):
+            if kind == "guildmaster":
+                player.favors += 1
+            elif kind == "galleria":
+                cost = effective_cost(self, gained)
+                if cost.coins in (3, 4) and not cost.potions and not cost.debt:
+                    player.buys += 1
+            elif kind == "skirmisher" and gained.is_attack:
+                for target in targets:
+                    discard(self, target, max(0, len(target.hand) - 3), "skirmisher")
+
+    def top_supply_card(self, name):
+        from .supply_piles import stack
+
+        cards = stack(self, name)
+        return cards[-1] if cards else None
+
+    def supply_pile_key(self, name):
+        from .supply_piles import pile_members
+
+        return pile_members(self, name)[0]
+
+    def rotatable_supply_piles(self):
+        return list(
+            dict.fromkeys(
+                self.supply_pile_key(n)
+                for n in self.supply
+                if n not in self.non_supply_pile_names
+            )
+        )
+
+    def rotate_supply_pile(self, name):
+        from .supply_piles import rotate
+
+        if name in self.supply and name not in self.non_supply_pile_names:
+            rotate(self, name)
 
     def set_logger(self, logger):
         """Set the game logger instance."""
@@ -781,7 +835,10 @@ class GameState:
         # not already specify an Ally, choose a random one. Without an Ally,
         # Liaison cards still grant Favors but those Favors have nothing
         # to spend on.
-        if not self.allies and any(c.is_liaison for c in kingdom_cards):
+        if not self.allies and any(
+            get_card(name).is_liaison for name in self.supply
+            if name not in self.non_supply_pile_names
+        ):
             from dominion.allies.registry import ALLY_TYPES
             if ALLY_TYPES:
                 ally_class = random.choice(list(ALLY_TYPES.values()))
@@ -897,6 +954,7 @@ class GameState:
         # ``setup_supply`` directly — e.g. tests rebuilding a kingdom on the
         # same ``GameState`` — don't leak the prior setup's Charlatan flag.
         self._charlatan_seen = False
+        self.ordered_supply_piles = {}
         self.non_supply_pile_names = set()
         self.ferryman_card_name = ""
         self.ferryman_pile_order = []
@@ -1379,6 +1437,29 @@ class GameState:
     def handle_start_phase(self):
         """Handle the start of turn phase."""
         player = self.current_player
+        if getattr(player, "turns_to_skip", 0):
+            player.turns_to_skip -= 1
+            player.turns_taken += 1
+            player.voyage_extra_turn_pending = False
+            player.mission_extra_turn_pending = False
+            player.mission_no_buy_turn = False
+            player.journey_extra_turn_pending = False
+            player.outpost_pending = False
+            player.voyage_cards_from_hand_remaining = None
+            player.outpost_taken_last_turn = False
+            player.took_extra_turn_last_turn = False
+            if self.fleet_extra_round_active:
+                if self.fleet_extra_players and self.fleet_extra_players[0] is player:
+                    self.fleet_extra_players.pop(0)
+                if self.fleet_extra_players:
+                    self.current_player_index = self.players.index(self.fleet_extra_players[0])
+            else:
+                self.current_player_index = (self.current_player_index + 1) % len(self.players)
+                if self.current_player_index == 0:
+                    self.turn_number += 1
+            self.extra_turn = False
+            return
+        self._start_duration_snapshot = (list(player.duration), list(player.multiplied_durations))
         # Menagerie "next turn" Ways: take what was banked by LAST turn's
         # plays before any start-of-turn play (Ghost, Clerk, Hasty, Patient,
         # Turtle itself) can bank new values; anything scheduled during this
@@ -1922,49 +2003,41 @@ class GameState:
             )
 
     def do_duration_phase(self):
-        """Handle effects of duration cards from previous turn."""
+        """Resolve pending instructions; completed cards stay until cleanup."""
         player = self.current_player
-
-        # Process duration cards that were played last turn
-        for card in player.duration[:]:
-            # Log duration card effect
-            coins_before = player.coins
-            actions_before = player.actions
+        snapshot = getattr(self, "_start_duration_snapshot", None)
+        if snapshot is None:
+            snapshot = (list(player.duration), list(player.multiplied_durations))
+        self._start_duration_snapshot = None
+        for zone, cards in zip((player.duration, player.multiplied_durations), snapshot):
+            for card in cards:
+                if card in zone:
+                    zone.remove(card)
+        for card in dict.fromkeys(snapshot[0] + snapshot[1]):
+            if card not in player.in_play:
+                player.in_play.append(card)
+        for card in snapshot[0] + snapshot[1]:
+            coins_before, actions_before = player.coins, player.actions
             card.on_duration(self)
-            coins_after = player.coins
-            actions_after = player.actions
-            context = {
-                "coins_before": coins_before,
-                "coins_after": coins_after,
-                "actions_before": actions_before,
-                "actions_after": actions_after,
-            }
-            self.log_callback(("action", player.ai.name,
-                f"resolves duration effect of {card} "
-                f"(+{coins_after - coins_before} coins, +{actions_after - actions_before} actions; "
-                f"now {coins_after} coins, {actions_after} actions)",
-                context))
-
-            # Move to discard after duration effect resolves unless it stays in play
-            if not getattr(card, "duration_persistent", False):
-                player.duration.remove(card)
-                player.discard.append(card)
-
-        # Process any cards that were multiplied (e.g. by Throne Room)
-        for card in player.multiplied_durations[:]:
             self.log_callback(
                 (
                     "action",
                     player.ai.name,
-                    f"resolves multiplied duration effect of {card}",
-                    {},
+                    f"resolves duration effect of {card}",
+                    {
+                        "coins_before": coins_before,
+                        "coins_after": player.coins,
+                        "actions_before": actions_before,
+                        "actions_after": player.actions,
+                    },
                 )
             )
-            card.on_duration(self)
-
-            player.multiplied_durations.remove(card)
-            if not getattr(card, "duration_persistent", False):
-                player.discard.append(card)
+            if (
+                getattr(card, "duration_persistent", False)
+                and card in player.in_play
+                and card not in player.duration
+            ):
+                player.duration.append(card)
 
     def handle_action_phase(self):
         """Handle the action phase of a turn."""
@@ -2910,9 +2983,9 @@ class GameState:
         if self.pile_traits.get(card.name) == "Cheap":
             cost -= 1
         # Allies "Family of Inventors": -$1 cost tokens on Supply piles.
-        tokens = getattr(self, "family_inventor_tokens", {}).get(card.name, 0)
-        if tokens:
-            cost -= tokens
+        inventor_tokens = getattr(self, "family_inventor_tokens", {})
+        if inventor_tokens:
+            cost -= inventor_tokens.get(self.supply_pile_key(card.name), 0)
 
         # Adventures Ferry: -$2 cost token on a pile makes that pile cost $2
         # less for the token's owner.
@@ -3105,10 +3178,9 @@ class GameState:
         player.deliver_pending_count = 0
 
         # Allies: end-of-turn / cleanup hook.
-        # Used by Coastal Haven, Family of Inventors, Island Folk,
-        # Order of Masons.
+        # Coastal Haven keeps selected cards through the cleanup redraw.
         for ally in self.allies:
-            hook = getattr(ally, "on_turn_end", None)
+            hook = getattr(ally, "on_cleanup_start", None)
             if hook is not None:
                 hook(self, player)
 
@@ -3141,6 +3213,13 @@ class GameState:
 
         # Duration cards remain in play until their lingering effects finish.
         durations_to_keep = set(player.duration + player.multiplied_durations)
+        changed = True
+        while changed:
+            changed = False
+            for card in player.in_play:
+                if card not in durations_to_keep and any(t in durations_to_keep for t in getattr(card, "duration_targets", [])):
+                    durations_to_keep.add(card)
+                    changed = True
 
         # Plunder Journey event: "Don't discard your Action cards from play
         # this turn." Keep every Action card from in_play in the same set so
@@ -3180,6 +3259,14 @@ class GameState:
                         0, player.trickster_uses_remaining - len(trickster_selected)
                     )
 
+        from ..cards.allies._rules import decide
+        allies_topdecks = {
+            card for card in player.in_play
+            if card.name in {"Merchant Camp", "Tent"}
+            and card not in durations_to_keep
+            and decide(self, player, "topdeck_from_play", [False, True], True)
+        }
+
         def _will_be_discarded_from_play(card) -> bool:
             """Return True if ``card`` will actually be discarded from play
             during this cleanup (i.e. won't stay as a duration, get topdecked,
@@ -3192,7 +3279,7 @@ class GameState:
                 return False
             if getattr(card, "_frog_topdeck", None) == (id(player), player.turns_taken):
                 return False
-            if card.name == "Merchant Camp":
+            if card in allies_topdecks:
                 return False
             if (
                 card.name == "Walled Village"
@@ -3257,15 +3344,8 @@ class GameState:
                 # player whose turn counter happens to match -- does not fire.
                 card._frog_topdeck = None
                 player.deck.append(card)
-            elif card.name == "Merchant Camp":
-                # Allies Merchant Camp: "When you discard this card from
-                # play, you may put it on top of your deck." We always take
-                # the option (this is a cantrip-village whose only payoff
-                # is cycling). Honoured by name so it fires regardless of
-                # how the card was played — including via a Way or under
-                # Enchantress, both of which bypass ``play_effect``.
-                # ``deck.append`` puts the card on top (``deck.pop()`` draws
-                # from the end).
+            elif card in allies_topdecks:
+                # These discard-from-play options also apply after a Way.
                 player.deck.append(card)
             elif (
                 card.name == "Walled Village"
@@ -3341,13 +3421,6 @@ class GameState:
             if b == "The River's Gift"
         )
         cards_to_draw += rivers_count
-        # Allies "Order of Masons" bonus: +1 Card per 2 Favors spent
-        # this turn end (banked above before cleanup runs).
-        bonus = getattr(player, "order_of_masons_bonus", 0)
-        if bonus:
-            cards_to_draw += bonus
-            player.order_of_masons_bonus = 0
-
         # Adventures Expedition: +2 cards at end-of-turn redraw.
         cards_to_draw += getattr(player, "expedition_extra_draws", 0)
         player.expedition_extra_draws = 0
@@ -3392,6 +3465,11 @@ class GameState:
                 self._resolve_donate(player)
             player.donate_pending = 0
 
+        for ally in self.allies:
+            hook = getattr(ally, "on_turn_end", None)
+            if hook is not None:
+                hook(self, player)
+
         # Reset resources for every player, not just the turn player. Off-turn
         # Reaction plays (Sheepdog, Trail, Falconer...) resolve with the reactor
         # as current player, so a Way (Ox, Sheep, Monkey, Mule...) or the card
@@ -3399,7 +3477,10 @@ class GameState:
         # and expire with this turn; only the cards drawn persist. Coffers,
         # Villagers and pending_* fields are banked and deliberately untouched.
         # Seal's "this turn" flag likewise ends with the turn player's turn.
+        self._gain_destinations = {}
         for other in self.players:
+            other.allies_gain_effects = []
+            other.elder_choices = {}
             other.actions = 1
             other.buys = 1
             other.coins = 0
@@ -4003,6 +4084,7 @@ class GameState:
         card: Card,
         to_deck: bool = False,
         from_supply: bool = True,
+        to_hand: bool = False,
     ) -> "Card | None":
         """Add a card to a player's discard or deck, honoring topdeck effects.
 
@@ -4029,6 +4111,10 @@ class GameState:
             self._restore_to_supply_pile(card)
             return None
 
+        # Reconcile a caller's Supply decrement before on-gain effects can
+        # return another member of the same physical pile.
+        if from_supply and card.name in self.supply:
+            self.top_supply_card(card.name)
         actual_card = card
         destination_is_deck = to_deck
 
@@ -4073,8 +4159,14 @@ class GameState:
             # PlayerState.draw_cards() draws with deck.pop(), so the end of
             # the list is the top of the deck.
             player.deck.append(actual_card)
+        elif to_hand:
+            player.hand.append(actual_card)
         else:
             player.discard.append(actual_card)
+
+        if not hasattr(self, "_gain_destinations"):
+            self._gain_destinations = {}
+        self._gain_destinations[actual_card] = player.deck if destination_is_deck else player.hand if to_hand else player.discard
 
         # Record the Buy-phase gain before any on-gain hook runs: hooks can
         # nest further gains (Falconer reacting to a 2-type card, Border
@@ -4203,12 +4295,14 @@ class GameState:
         # but the trigger is still spent.
         self._handle_deliver_gain(player, actual_card)
         # Generic "while this is in play, when you gain a card ..." hook used
-        # by Allies cards like Galleria and Skirmisher. In-play cards may
+        # by cards like Garrison. In-play cards may
         # implement on_owner_gain(game_state, player, gained_card).
         for card in list(player.in_play) + list(player.duration):
             hook = getattr(card, "on_owner_gain", None)
             if hook is not None:
                 hook(self, player, actual_card)
+
+        self._resolve_allies_gain_effects(player, actual_card)
 
         # Allies hook: the chosen Ally may react to the active player's gains
         # (Architects' Guild, Band of Nomads, Trappers' Lodge).
@@ -4513,6 +4607,8 @@ class GameState:
             player.deck.remove(card)
         elif card in player.discard:
             player.discard.remove(card)
+        elif card in player.hand:
+            player.hand.remove(card)
         else:
             return
         player.exile.append(card)
@@ -4966,6 +5062,16 @@ class GameState:
         if hasattr(card, "_frog_topdeck"):
             card._frog_topdeck = None
         self.trash.append(card)
+        self._resolve_trash_effects(player, card)
+
+    def trash_cards_together(self, player, cards):
+        for card in cards:
+            card._frog_topdeck = None
+            self.trash.append(card)
+        for card in cards:
+            self._resolve_trash_effects(player, card)
+
+    def _resolve_trash_effects(self, player, card):
         card.on_trash(self, player)
 
         # Resolve project triggers for trashing

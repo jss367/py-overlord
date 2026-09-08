@@ -2,53 +2,43 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Modify(Card):
+    """Trash, then cycle or gain up to $2 more."""
+
     def __init__(self):
         super().__init__(
             name="Modify",
             cost=CardCost(coins=5),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.LIAISON],
+            types=[CardType.ACTION],
         )
 
     def play_effect(self, game_state):
-        from ..registry import get_card
+        from ._rules import (
+            candidates,
+            effective_cost,
+            gain,
+            plus_cards,
+            select_modes,
+            trash_from_hand,
+        )
 
-        player = game_state.current_player
-        # Liaison: +1 Favor when played.
-        player.favors += 1
-        if not player.hand:
-            return
-        to_trash = player.ai.choose_card_to_trash(game_state, player.hand)
-        if to_trash is None or to_trash not in player.hand:
-            to_trash = min(player.hand, key=lambda card: (card.cost.coins, card.name))
-
-        if to_trash not in player.hand:
-            return
-
-        player.hand.remove(to_trash)
-        game_state.trash_card(player, to_trash)
-
-        max_cost = to_trash.cost.coins + 2
-        gainable_cards = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            candidate = get_card(name)
-            if candidate.cost.coins <= max_cost:
-                gainable_cards.append(candidate)
-
-        chosen_gain = None
-        if gainable_cards:
-            choice = player.ai.choose_buy(game_state, gainable_cards + [None])
-            if choice is not None:
-                chosen_gain = choice
-
-        if chosen_gain is None:
-            if not player.ignore_action_bonuses:
-                player.actions += 1
-            game_state.draw_cards(player, 1)
-        else:
-            if game_state.supply.get(chosen_gain.name, 0) <= 0:
-                return
-            game_state.supply[chosen_gain.name] -= 1
-            game_state.gain_card(player, chosen_gain)
+        p = game_state.current_player
+        card = trash_from_hand(game_state, p)
+        limit = effective_cost(game_state, card) if card else None
+        if limit is not None:
+            limit.coins += 2
+        choices = candidates(game_state, limit) if limit else []
+        preferred = p.ai.choose_buy(game_state, choices + [None]) if choices else None
+        for mode in select_modes(
+            game_state,
+            p,
+            self,
+            ["cycle", "gain"],
+            ["gain" if preferred in choices and preferred else "cycle"],
+        ):
+            if mode == "cycle":
+                plus_cards(game_state, p, 1)
+                if not p.ignore_action_bonuses:
+                    p.actions += 1
+            elif limit is not None:
+                gain(game_state, p, candidates(game_state, limit))

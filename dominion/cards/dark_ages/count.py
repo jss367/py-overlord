@@ -22,24 +22,40 @@ class Count(Card):
     def _resolve_first_choice(self, game_state, player):
         choice = self._choose_first_mode(game_state, player)
 
-        if choice == "discard":
-            self._discard_two(game_state, player)
-        elif choice == "topdeck":
-            self._topdeck_from_hand(game_state, player)
-        elif choice == "copper":
-            self._gain_from_supply(game_state, player, "Copper")
+        from ..allies._rules import select_modes
+
+        def resolve(choice):
+            if choice == "discard":
+                self._discard_two(game_state, player)
+            elif choice == "topdeck":
+                self._topdeck_from_hand(game_state, player)
+            elif choice == "copper":
+                self._gain_from_supply(game_state, player, "Copper")
+
+        for choice in select_modes(
+            game_state, player, self, ["discard", "topdeck", "copper"], [choice]
+        ):
+            resolve(choice)
 
     def _resolve_second_choice(self, game_state, player):
         choice = self._choose_second_mode(game_state, player)
 
-        if choice == "coins":
-            player.coins += 3
-        elif choice == "trash":
-            for card in list(player.hand):
-                player.hand.remove(card)
-                game_state.trash_card(player, card)
-        elif choice == "duchy":
-            self._gain_from_supply(game_state, player, "Duchy")
+        from ..allies._rules import select_modes
+
+        def resolve(choice):
+            if choice == "coins":
+                player.coins += 3
+            elif choice == "trash":
+                for card in list(player.hand):
+                    player.hand.remove(card)
+                    game_state.trash_card(player, card)
+            elif choice == "duchy":
+                self._gain_from_supply(game_state, player, "Duchy")
+
+        for choice in select_modes(
+            game_state, player, self, ["coins", "trash", "duchy"], [choice]
+        ):
+            resolve(choice)
 
     def _choose_first_mode(self, game_state, player):
         options = ["discard", "topdeck"]

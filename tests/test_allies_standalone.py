@@ -84,7 +84,7 @@ def test_sycophant_does_not_grant_favor_on_play():
     assert player.favors == favors_before
 
 
-def test_sycophant_discards_without_coins_when_fewer_than_three_cards():
+def test_sycophant_gives_coins_when_discarding_fewer_than_three_cards():
     state, player = _state()
     sycophant = get_card("Sycophant")
     player.in_play.append(sycophant)
@@ -96,7 +96,7 @@ def test_sycophant_discards_without_coins_when_fewer_than_three_cards():
 
     sycophant.on_play(state)
 
-    assert player.coins == coins_before
+    assert player.coins == coins_before + 3
     assert player.hand == []
     assert len(player.discard) == 2
 
@@ -132,7 +132,7 @@ def test_underling_cantrips_with_favor():
     assert any(c.name == "Gold" for c in player.hand)
 
 
-def test_galleria_grants_buy_on_3_to_5_gain():
+def test_galleria_grants_buy_on_3_to_4_gain():
     state, player = _state()
     galleria = get_card("Galleria")
     player.in_play.append(galleria)
@@ -166,11 +166,11 @@ def test_galleria_does_not_grant_favor_on_play():
     assert player.favors == favors_before
 
 
-def test_skirmisher_attacks_on_action_gain():
+def test_skirmisher_attacks_on_attack_gain():
     p1 = PlayerState(DummyAI())
     p2 = PlayerState(DummyAI())
     state = GameState(players=[p1, p2])
-    state.supply = {"Smithy": 5}
+    state.supply = {"Militia": 5}
     state.current_player_index = 0
 
     skirmisher = get_card("Skirmisher")
@@ -185,10 +185,9 @@ def test_skirmisher_attacks_on_action_gain():
         get_card("Copper"),
         get_card("Estate"),
     ]
-    smithy = get_card("Smithy")
-    state.gain_card(p1, smithy)
-    # P2 should have discarded one card (the Estate as worst).
-    assert len(p2.hand) == 4
+    militia = get_card("Militia")
+    state.gain_card(p1, militia)
+    assert len(p2.hand) == 3
 
 
 def test_carpenter_no_empty_piles_gives_action_and_gains_4():
@@ -363,7 +362,7 @@ def test_swap_returns_action_for_better():
     swap.on_play(state)
     # Village returned; Smithy gained.
     assert state.supply["Village"] >= 5
-    assert any(c.name == "Smithy" for c in player.discard)
+    assert any(c.name == "Smithy" for c in player.hand)
 
 
 def test_broker_trash_options():
@@ -483,7 +482,7 @@ def test_hunter_picks_one_per_type():
 
 
 def test_hunter_does_not_grant_favor():
-    """Hunter is a Liaison but its printed text does not include +1 Favor."""
+    """Hunter is not a Liaison and does not grant Favors."""
     state, player = _state()
     player.deck = [get_card("Copper"), get_card("Estate"), get_card("Smithy")]
     hunter = get_card("Hunter")
@@ -507,15 +506,15 @@ def test_importer_does_not_grant_favor_on_play():
     assert player.favors == favors_before
 
 
-def test_contract_does_not_grant_favor_on_play():
-    """Contract's printed text: +$2 + set-aside Action. No on-play Favor."""
+def test_contract_grants_favor_on_play():
+    """Contract gives $2 and a Favor even without setting aside an Action."""
     state, player = _state()
     contract = get_card("Contract")
     player.in_play.append(contract)
     player.hand = []
     favors_before = player.favors
     contract.on_play(state)
-    assert player.favors == favors_before
+    assert player.favors == favors_before + 1
 
 
 def test_specialist_does_not_grant_favor_on_play():
@@ -611,7 +610,7 @@ def test_guildmaster_grants_favor_per_gain():
     # Terminal +$3. Guildmaster does NOT give +1 Action.
     assert player.actions == actions_before
     assert player.coins == coins_before + 3
-    # While in play, every gain produces +1 Favor.
+    # This turn, every gain produces +1 Favor.
     state.gain_card(player, get_card("Silver"))
     state.gain_card(player, get_card("Estate"))
     assert player.favors == favors_before + 2
@@ -804,7 +803,7 @@ def test_royal_galley_sets_aside_action_for_next_turn_replay():
 
     assert player.actions == actions_before + 4
     assert village in player.in_play
-    assert galley in player.discard
+    assert galley in player.in_play
     assert galley not in player.duration
 
 

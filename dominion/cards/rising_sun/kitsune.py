@@ -25,7 +25,9 @@ class Kitsune(Card):
 
         player = game_state.current_player
 
-        chosen = player.ai.choose_kitsune_options(game_state, player, list(self.OPTIONS))
+        chosen = player.ai.choose_kitsune_options(
+            game_state, player, list(self.OPTIONS)
+        )
         # Always pick at most two distinct options
         seen = []
         for option in chosen:
@@ -33,6 +35,10 @@ class Kitsune(Card):
                 seen.append(option)
             if len(seen) == 2:
                 break
+
+        from ..allies._rules import select_modes
+
+        seen = select_modes(game_state, player, self, self.OPTIONS, seen, 2)
 
         # Resolve in the listed order, regardless of pick order
         for option in self.OPTIONS:

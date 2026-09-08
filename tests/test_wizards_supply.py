@@ -1,8 +1,7 @@
 """Wizards split pile supply sizing across player counts.
 
 The four-card Wizards pile (Student → Conjurer → Sorcerer → Lich) must use
-the same player-count-aware supply size for every partner pile, mirroring
-how ``SplitPileMixin`` already handles two-card splits.
+four copies of each card regardless of player count.
 """
 
 from dominion.cards.allies.wizards import WIZARDS_PILE_ORDER
@@ -46,4 +45,4 @@ def test_wizards_pile_uses_two_player_supply():
 def test_wizards_pile_uses_higher_player_supply():
     state = _setup(3)
     for name in WIZARDS_PILE_ORDER:
-        assert state.supply[name] == 5, f"{name} should have 5 copies in 3-player"
+        assert state.supply[name] == 4, f"{name} should have 4 copies in 3-player"

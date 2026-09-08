@@ -52,7 +52,7 @@ class Scrap(Card):
         player.hand.remove(choice)
         game_state.trash_card(player, choice)
 
-        if cost <= 0:
+        if cost <= 0 and not getattr(player, "elder_choices", {}).get(self, 0):
             return
 
         n = min(cost, len(self.OPTIONS))
@@ -61,13 +61,11 @@ class Scrap(Card):
         if not chosen_options:
             chosen_options = self.OPTIONS[:n]
 
-        seen = set()
-        for opt in chosen_options:
-            if opt in seen or opt not in self.OPTIONS:
-                continue
-            seen.add(opt)
-            if len(seen) > n:
-                break
+        from ..allies._rules import select_modes
+
+        for opt in select_modes(
+            game_state, player, self, self.OPTIONS, chosen_options, n
+        ):
             if opt == "card":
                 game_state.draw_cards(player, 1)
             elif opt == "action":

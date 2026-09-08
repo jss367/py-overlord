@@ -10,7 +10,7 @@ class FellowshipOfScribes(Ally):
         super().__init__("Fellowship of Scribes")
 
     def on_play_card(self, game_state, player, card) -> None:
-        if player.favors <= 0:
+        if not card.is_action or player.favors <= 0:
             return
         if len(player.hand) > 4:
             return

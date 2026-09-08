@@ -55,6 +55,12 @@ class Courtier(Card):
                 ordered.append(opt)
                 seen.add(opt)
 
+        from ..allies._rules import select_modes
+
+        ordered = select_modes(
+            game_state, player, self, options, ordered, min(num_types, len(options))
+        )
+
         for choice in ordered:
             if choice == "action":
                 player.actions += 1

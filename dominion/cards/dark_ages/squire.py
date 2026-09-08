@@ -26,17 +26,23 @@ class Squire(Card):
         if choice not in options:
             choice = "actions"
 
-        if choice == "actions":
-            player.actions += 2
-        elif choice == "buys":
-            player.buys += 2
-        elif choice == "silver":
-            if game_state.supply.get("Silver", 0) > 0:
-                game_state.supply["Silver"] -= 1
-                game_state.gain_card(player, get_card("Silver"))
+        from ..allies._rules import select_modes
+
+        def resolve(choice):
+            if choice == "actions":
+                player.actions += 2
+            elif choice == "buys":
+                player.buys += 2
+            elif choice == "silver":
+                if game_state.supply.get("Silver", 0) > 0:
+                    game_state.supply["Silver"] -= 1
+                    game_state.gain_card(player, get_card("Silver"))
+
+        for choice in select_modes(game_state, player, self, options, [choice]):
+            resolve(choice)
 
     def on_trash(self, game_state, player):
-        from ..registry import get_card, get_all_card_names
+        from ..registry import get_card
 
         candidates: list[Card] = []
         for name, count in game_state.supply.items():
@@ -75,7 +81,11 @@ class Squire(Card):
             return
 
         # Resolve the supply pile (Knights → "Knights"; otherwise card name).
-        pile_name = "Knights" if choice.is_knight and "Knights" in game_state.pile_order else choice.name
+        pile_name = (
+            "Knights"
+            if choice.is_knight and "Knights" in game_state.pile_order
+            else choice.name
+        )
         if game_state.supply.get(pile_name, 0) <= 0:
             return
         if pile_name == "Knights":

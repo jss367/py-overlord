@@ -14,10 +14,14 @@ class CaveDwellers(Ally):
 
     def on_turn_start(self, game_state, player) -> None:
         ai = player.ai
-        while player.favors > 0 and player.hand:
+        while player.favors > 0:
             if not ai.should_spend_favor_on_cave_dwellers(game_state, player):
                 return
 
+            if not player.hand:
+                player.favors -= 1
+                game_state.draw_cards(player, 1)
+                continue
             choice = ai.choose_card_to_discard_for_cave_dwellers(
                 game_state, player, list(player.hand)
             )

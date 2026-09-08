@@ -535,7 +535,7 @@ def test_way_of_the_chameleon_runs_full_on_play_for_contract():
     Played as Way of the Chameleon, the set-aside should still happen;
     the +$2 swaps to +2 Cards.
 
-    Per official Allies rules, Contract does NOT grant +1 Favor on play.
+    Contract also gives +1 Favor on play.
 
     See ``test_way_of_the_chameleon_runs_full_on_play_for_bauble`` for
     why we apply the Way directly rather than going through the action
@@ -555,8 +555,8 @@ def test_way_of_the_chameleon_runs_full_on_play_for_contract():
     coins_before = p1.coins
     way = get_way("Way of the Chameleon")
     way.apply(state, contract)
-    # No on-play +Favor.
-    assert p1.favors == favors_before
+    # Contract gives its Favor independently of the Chameleon swap.
+    assert p1.favors == favors_before + 1
     # +$2 swapped to +2 Cards: no extra coins, two cards drawn.
     assert p1.coins == coins_before
     estates_in_hand = sum(1 for c in p1.hand if c.name == "Estate")

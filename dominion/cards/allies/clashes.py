@@ -1,12 +1,13 @@
-"""Clashes split pile (Allies expansion). All four are Liaisons.
+"""Clashes split pile (Allies expansion).
 
 Top to bottom: Battle Plan, Archer, Warlord, Territory.
 """
 
 from typing import ClassVar
 
-from ..base_card import Card, CardCost, CardStats, CardType
-from ._split_base import AlliesSplitCard, grant_favor
+from ..base_card import CardCost, CardStats, CardType
+from ._rules import decide, plus_cards, rotate
+from ._split_base import AlliesSplitCard
 
 CLASHES_PILE_ORDER = ("Battle Plan", "Archer", "Warlord", "Territory")
 
@@ -16,97 +17,71 @@ class _Clashes(AlliesSplitCard):
 
 
 class BattlePlan(_Clashes):
-    """+1 Card +1 Action +1 Favor. You may reveal an Attack from hand to gain another."""
-
-    upper_partners: ClassVar[tuple[str, ...]] = ()
-
     def __init__(self):
         super().__init__(
             name="Battle Plan",
             cost=CardCost(coins=3),
-            stats=CardStats(actions=1, cards=1),
-            types=[CardType.ACTION, CardType.LIAISON],
+            stats=CardStats(cards=1, actions=1),
+            types=[CardType.ACTION],
         )
 
     def play_effect(self, game_state):
-        from ..registry import get_card
-
-        player = game_state.current_player
-        grant_favor(player)
-
-        attacks = [c for c in player.hand if c.is_attack]
-        if not attacks:
-            return
-        # Gain another copy of one of the revealed Attacks (typically the
-        # most expensive Attack).
-        target = max(attacks, key=lambda c: (c.cost.coins, c.name))
-        if game_state.supply.get(target.name, 0) <= 0:
-            return
-        game_state.supply[target.name] -= 1
-        game_state.gain_card(player, get_card(target.name))
+        p = game_state.current_player
+        attacks = [c for c in p.hand if c.is_attack]
+        if attacks and decide(game_state, p, "battle_plan_reveal", [False, True], True):
+            plus_cards(game_state, p, 1)
+        rotate(game_state, p, None)
 
 
 class Archer(_Clashes):
-    """+1 Favor +$2. Each other player with 5+ cards reveals all but one
-    and discards a chosen one."""
-
-    upper_partners: ClassVar[tuple[str, ...]] = ("Battle Plan",)
-
     def __init__(self):
         super().__init__(
             name="Archer",
             cost=CardCost(coins=4),
             stats=CardStats(coins=2),
-            types=[CardType.ACTION, CardType.ATTACK, CardType.LIAISON],
+            types=[CardType.ACTION, CardType.ATTACK],
         )
 
     def play_effect(self, game_state):
-        player = game_state.current_player
-        grant_favor(player)
+        p = game_state.current_player
 
-        for opponent in game_state.players:
-            if opponent is player:
-                continue
+        def attack(target):
+            if len(target.hand) < 5:
+                return
+            safe = decide(
+                game_state,
+                target,
+                "archer_protect",
+                list(target.hand),
+                max(target.hand, key=lambda c: (c.cost.coins, c.name)),
+            )
+            revealed = [c for c in target.hand if c is not safe]
+            chosen = decide(
+                game_state,
+                p,
+                "archer_discard",
+                revealed,
+                max(revealed, key=lambda c: (c.cost.coins, c.name)),
+            )
+            target.hand.remove(chosen)
+            game_state.discard_card(target, chosen)
 
-            def attack(target):
-                if len(target.hand) < 5:
-                    return
-                # Active player picks a card to discard from the
-                # opponent's hand; default to the worst card from the
-                # active player's perspective (highest cost).
-                hand = list(target.hand)
-                pick = max(hand, key=lambda c: (c.cost.coins, c.is_action, c.name))
-                if pick in target.hand:
-                    target.hand.remove(pick)
-                    game_state.discard_card(target, pick)
-
-            game_state.attack_player(opponent, attack)
+        for target in game_state.opponents_in_order(p):
+            game_state.attack_player(target, attack, attacker=p, attack_card=self)
 
 
 class Warlord(_Clashes):
-    """+1 Favor +1 Action +2 Cards. Until your next turn, no opponent
-    may play any Action cards more than 2 of which are in their play area.
-    """
-
-    upper_partners: ClassVar[tuple[str, ...]] = ("Battle Plan", "Archer")
-
     def __init__(self):
         super().__init__(
             name="Warlord",
             cost=CardCost(coins=5),
-            stats=CardStats(actions=1, cards=2),
-            types=[
-                CardType.ACTION,
-                CardType.ATTACK,
-                CardType.DURATION,
-                CardType.LIAISON,
-            ],
+            stats=CardStats(actions=1),
+            types=[CardType.ACTION, CardType.ATTACK, CardType.DURATION],
         )
         self._warlord_targets = []
 
     def play_effect(self, game_state):
-        player = game_state.current_player
-        grant_favor(player)
+        p = game_state.current_player
 
         def attack(target):
             target.warlord_restriction_count = (
@@ -114,32 +89,17 @@ class Warlord(_Clashes):
             )
             self._warlord_targets.append(target)
 
-        for opponent in game_state.players:
-            if opponent is player:
-                continue
-            game_state.attack_player(
-                opponent,
-                attack,
-                attacker=player,
-                attack_card=self,
-            )
-
-        # Stay in play through next turn (Duration). No on_duration effect.
-        self.duration_persistent = False
-        if self not in player.duration:
-            player.duration.append(self)
+        for target in game_state.opponents_in_order(p):
+            game_state.attack_player(target, attack, attacker=p, attack_card=self)
+        p.duration.append(self)
 
     def on_duration(self, game_state):
         for target in self._warlord_targets:
-            count = getattr(target, "warlord_restriction_count", 0)
-            if count <= 1:
-                target.warlord_restriction_count = 0
-            else:
-                target.warlord_restriction_count = count - 1
+            target.warlord_restriction_count = max(
+                0, target.warlord_restriction_count - 1
+            )
         self._warlord_targets = []
-        # Lingering presence ends; Duration cards naturally move to
-        # discard via cleanup.
-        self.duration_persistent = False
+        game_state.draw_cards(game_state.current_player, 2)
 
 
 class Territory(_Clashes):
@@ -157,7 +117,7 @@ class Territory(_Clashes):
             name="Territory",
             cost=CardCost(coins=6),
             stats=CardStats(),
-            types=[CardType.VICTORY, CardType.LIAISON],
+            types=[CardType.VICTORY],
         )
 
     def get_victory_points(self, player) -> int:

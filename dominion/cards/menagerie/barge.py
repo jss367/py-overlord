@@ -24,16 +24,24 @@ class Barge(Card):
 
         player = game_state.current_player
         choose_now = player.ai.should_resolve_barge_now(game_state, player)
-        if choose_now:
-            # "+3 Cards" instruction — Way of the Chameleon swaps to +$3.
-            chameleon_plus_cards(game_state, player, 3)
-            player.buys += 1
-            # Not a duration this turn; remove from in_play normally during
-            # cleanup. Default behaviour does this.
-        else:
-            self._fire_now = True
-            player.duration.append(self)
-            self.duration_persistent = True
+        from ..allies._rules import select_modes
+
+        def resolve(choose_now):
+            if choose_now:
+                # "+3 Cards" instruction — Way of the Chameleon swaps to +$3.
+                chameleon_plus_cards(game_state, player, 3)
+                player.buys += 1
+                # Not a duration this turn; remove from in_play normally during
+                # cleanup. Default behaviour does this.
+            else:
+                self._fire_now = True
+                player.duration.append(self)
+                self.duration_persistent = True
+
+        for choose_now in select_modes(
+            game_state, player, self, [True, False], [choose_now]
+        ):
+            resolve(choose_now)
 
     def on_duration(self, game_state):
         player = game_state.current_player

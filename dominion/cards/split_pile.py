@@ -12,7 +12,7 @@ class SplitPileMixin(Card):
         return 5 if len(game_state.players) <= 2 else 8
 
     def may_be_bought(self, game_state) -> bool:
-        if self.bottom and game_state.supply.get(self.partner_card_name, 0) > 0:
+        if game_state.top_supply_card(self.name) not in (None, self.name):
             return False
         return super().may_be_bought(game_state)
 

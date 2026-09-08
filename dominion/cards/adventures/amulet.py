@@ -22,16 +22,26 @@ class Amulet(Card):
         if game_state.supply.get("Silver", 0) > 0:
             options.append("silver")
         mode = player.ai.choose_amulet_mode(game_state, player, options)
-        if mode == "coin":
-            player.coins += 1
-        elif mode == "trash" and player.hand:
-            target = player.ai.choose_card_to_trash(game_state, list(player.hand) + [None])
-            if target and target in player.hand:
-                player.hand.remove(target)
-                game_state.trash_card(player, target)
-        elif mode == "silver" and game_state.supply.get("Silver", 0) > 0:
-            game_state.supply["Silver"] -= 1
-            game_state.gain_card(player, get_card("Silver"))
+        from ..allies._rules import select_modes
+
+        def resolve(mode):
+            if mode == "coin":
+                player.coins += 1
+            elif mode == "trash" and player.hand:
+                target = player.ai.choose_card_to_trash(
+                    game_state, list(player.hand) + [None]
+                )
+                if target and target in player.hand:
+                    player.hand.remove(target)
+                    game_state.trash_card(player, target)
+            elif mode == "silver" and game_state.supply.get("Silver", 0) > 0:
+                game_state.supply["Silver"] -= 1
+                game_state.gain_card(player, get_card("Silver"))
+
+        for mode in select_modes(
+            game_state, player, self, ["coin", "trash", "silver"], [mode]
+        ):
+            resolve(mode)
 
     def play_effect(self, game_state):
         player = game_state.current_player

@@ -6,16 +6,16 @@ from dominion.cards.registry import CARD_TYPES, get_card
 
 EXPECTED_LIAISONS = {
     # Wizards
-    "Student", "Conjurer", "Sorcerer", "Lich",
-    # Townsfolk
-    "Town Crier", "Blacksmith", "Miller", "Elder",
-    # Clashes
-    "Battle Plan", "Archer", "Warlord", "Territory",
+    "Student",
     # Standalone
-    "Bauble", "Sycophant", "Importer", "Underling",
-    "Broker", "Contract", "Emissary", "Galleria",
-    "Guildmaster", "Hunter", "Modify", "Skirmisher",
-    "Specialist", "Swap",
+    "Bauble",
+    "Sycophant",
+    "Importer",
+    "Underling",
+    "Broker",
+    "Contract",
+    "Emissary",
+    "Guildmaster",
 }
 
 
@@ -32,8 +32,7 @@ def test_expected_liaisons_have_liaison_type():
 
 def test_no_unexpected_liaisons():
     actual = {
-        name for name, cls in CARD_TYPES.items()
-        if CardType.LIAISON in cls().types
+        name for name, cls in CARD_TYPES.items() if CardType.LIAISON in cls().types
     }
     assert actual == EXPECTED_LIAISONS
 
@@ -54,7 +53,7 @@ def test_underling_grants_favor_when_played():
     assert player.favors == favors_before + 1
 
 
-def test_modify_grants_favor():
+def test_modify_does_not_grant_favor():
     from dominion.game.game_state import GameState
     from dominion.game.player_state import PlayerState
     from tests.utils import DummyAI
@@ -68,7 +67,7 @@ def test_modify_grants_favor():
     player.in_play.append(modify)
     favors_before = player.favors
     modify.on_play(state)
-    assert player.favors == favors_before + 1
+    assert player.favors == favors_before
 
 
 def test_importer_setup_gives_each_player_five_favors():
@@ -84,9 +83,7 @@ def test_importer_setup_gives_each_player_five_favors():
         [get_card("Importer"), get_card("Smithy")],
     )
     for p in state.players:
-        assert p.favors == 5, (
-            f"Importer setup should grant 5 Favors (got {p.favors})"
-        )
+        assert p.favors == 5, f"Importer setup should grant 5 Favors (got {p.favors})"
 
 
 def test_non_importer_liaison_setup_gives_one_favor():
@@ -98,7 +95,7 @@ def test_non_importer_liaison_setup_gives_one_favor():
     state = GameState(players=[])
     state.initialize_game(
         [GeneticAI(create_big_money()), GeneticAI(create_big_money())],
-        [get_card("Hunter"), get_card("Smithy")],
+        [get_card("Underling"), get_card("Smithy")],
     )
     for p in state.players:
         assert p.favors == 1
