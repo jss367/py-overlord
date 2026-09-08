@@ -393,3 +393,15 @@ def test_gain_followup_does_not_retrieve_card_trashed_by_watchtower(gainer, ally
     assert [c.name for c in s.trash] == ["Village"]
     assert all(c.name != "Village" for c in p.all_cards())
     assert p.favors == 2
+
+
+@pytest.mark.parametrize("hand_size,spend", [(0, 1), (2, 5)])
+def test_peaceful_cult_can_spend_more_favors_than_cards_to_trash(hand_size, spend):
+    s, p, _ = state("Peaceful Cult")
+    p.ai = ChoiceAI({"peaceful_cult_favors": spend})
+    p.hand = cards("Copper", hand_size)
+    p.favors = spend
+    s.allies[0].on_buy_phase_start(s, p)
+    assert p.favors == 0
+    assert p.hand == []
+    assert len(s.trash) == hand_size

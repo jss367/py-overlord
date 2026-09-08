@@ -12,6 +12,9 @@ class PeacefulCult(Ally):
             for c in player.hand
             if c.name in {"Curse", "Estate", "Copper", "Hovel", "Overgrown Estate"}
         ]
+        # Spending is chosen first and is not capped by hand size; the later
+        # mandatory trash instruction does as much as possible. The default
+        # policy never spends more than the number of junk cards in hand.
         count = decide(
             game_state,
             player,
