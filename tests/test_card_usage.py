@@ -106,3 +106,15 @@ def test_tournament_with_registered_aliases_still_writes_usage(tmp_path):
     assert 'href="card-strategy-usage.html"' in output.read_text()
     html = (tmp_path / "card-strategy-usage.html").read_text()
     assert 'data-sort="1">1</td>' in html
+
+
+def test_tournament_generated_filename_has_usage_and_correct_rank(tmp_path):
+    output = tmp_path / "generated-tournament.html"
+    results = {"strategy_20260212_094841": {"win_rate": 100}}
+    generate_leaderboard_html(results, output)
+    assert "Card strategy usage" in output.read_text()
+    companion = tmp_path / "generated-tournament-card-strategy-usage.html"
+    assert companion.exists()
+    items = collect_rendered_strategies(names=["strategy_20260212_094841"])
+    rows = collect_card_usage(items, results)
+    assert all(row.median_rank == 1 for row in rows if row.strategies)
