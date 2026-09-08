@@ -7,6 +7,32 @@ They are intentionally modest heuristics, not claims of optimal card play.
 from dominion.cards.base_card import Card
 
 
+def choose_courier_target(player, choices: list[Card]) -> Card | None:
+    """Rank free discard plays by chaining, needed Actions, draw, and money.
+
+    Chain another Courier while a deck remains: it adds money and can still
+    select the original target. With no deck it would shuffle that target
+    away, so compare its printed resources normally. Complex card effects
+    are deliberately left to strategy overrides.
+    """
+    terminals = sum(c.is_action and c.stats.actions == 0 for c in player.hand)
+    missing_actions = max(0, terminals - player.actions)
+
+    def score(card: Card) -> tuple:
+        drawable = len(player.deck) + sum(c is not card for c in player.discard)
+        draw = min(card.stats.cards, drawable)
+        return (
+            card.name == "Courier" and bool(player.deck),
+            min(card.stats.actions, missing_actions),
+            draw * 2 + card.stats.coins,
+            card.stats.buys,
+            card.cost.coins,
+            card.name,
+        )
+
+    return max(choices, key=score, default=None)
+
+
 def choose_overlord_target(player, choices: list[Card]) -> Card | None:
     """Prefer action support when needed, otherwise immediate draw and money."""
     terminals = sum(c.is_action and c.stats.actions == 0 for c in player.hand)

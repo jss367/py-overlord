@@ -44,6 +44,10 @@ class AI(ABC):
             return "coins"
         return options[0] if options else "coins"
 
+    def choose_courier_target(self, state, player, choices: list[Card]) -> Optional[Card]:
+        """Choose a free discard play; return None to decline."""
+        return tactical_defaults.choose_courier_target(player, choices)
+
     def choose_overlord_target(self, state, player, choices: list[Card]) -> Optional[Card]:
         choice = self.choose_action(state, choices + [None])
         if choice is not None and choice.name in {card.name for card in choices}:
