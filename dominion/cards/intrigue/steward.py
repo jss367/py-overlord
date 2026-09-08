@@ -16,12 +16,20 @@ class Steward(Card):
         player = game_state.current_player
         choice = player.ai.choose_steward_mode(game_state, player)
 
-        if choice == "cards":
-            game_state.draw_cards(player, 2)
-        elif choice == "trash":
-            self._trash_up_to_two_cards(game_state, player)
-        else:  # "coins" (and any unrecognised value) → safe default
-            player.coins += 2
+        from ..allies._rules import select_modes
+
+        def resolve(choice):
+            if choice == "cards":
+                game_state.draw_cards(player, 2)
+            elif choice == "trash":
+                self._trash_up_to_two_cards(game_state, player)
+            else:  # "coins" (and any unrecognised value) → safe default
+                player.coins += 2
+
+        for choice in select_modes(
+            game_state, player, self, ["cards", "coins", "trash"], [choice]
+        ):
+            resolve(choice)
 
     def _trash_up_to_two_cards(self, game_state, player):
         if not player.hand:

@@ -37,11 +37,8 @@ class _CastleBase(Card):
         return 1 if len(game_state.players) <= 2 else 2
 
     def may_be_bought(self, game_state) -> bool:
-        # Top-of-pile gating: only buyable if every earlier-order Castle is
-        # fully exhausted in the supply.
-        for earlier_name in CASTLE_ORDER[: self.castle_position]:
-            if game_state.supply.get(earlier_name, 0) > 0:
-                return False
+        if game_state.top_supply_card(self.name) not in (None, self.name):
+            return False
         return super().may_be_bought(game_state)
 
 

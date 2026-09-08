@@ -439,6 +439,20 @@ class PlayerState:
         Cards at index 0 are the bottom of the deck (drawn last); cards at
         the end are the top (drawn first via ``deck.pop()``).
         """
+        if self.discard:
+            self.shuffle_count = getattr(self, "shuffle_count", 0) + 1
+        ally_top, ally_discard = [], []
+        game_state = getattr(self, "game_state", None)
+        if game_state is not None and self.discard:
+            for ally in game_state.allies:
+                hook = getattr(ally, "on_shuffle", None)
+                if hook is not None:
+                    top, omitted = hook(game_state, self, list(self.discard))
+                    for card in top + omitted:
+                        if card in self.discard:
+                            self.discard.remove(card)
+                    ally_top.extend(reversed(top))
+                    ally_discard.extend(omitted)
         avoid_set_aside: list = []
         if self.avoid_pending > 0 and self.discard:
             n = min(3, len(self.discard))
@@ -449,7 +463,8 @@ class PlayerState:
         if self.fated_pile:
             others_kept = []
             for card in self.discard:
-                if card.name == self.fated_pile:
+                pile = game_state.supply_pile_key(card.name) if game_state else card.name
+                if pile == self.fated_pile:
                     fated_top.append(card)
                 else:
                     others_kept.append(card)
@@ -488,14 +503,30 @@ class PlayerState:
         if self.bury_mat:
             bury_top = list(self.bury_mat)
             self.bury_mat = []
-        self.deck = (
-            self.discard
-            + fated_top
-            + avoid_set_aside
-            + bury_top
-            + project_top
-        )
-        self.discard = []
+        top_groups = {
+            name: cards
+            for name, cards in (
+                ("Fated", fated_top),
+                ("Avoid", avoid_set_aside),
+                ("Bury", bury_top),
+                ("Star Chart", project_top),
+                ("Order of Astrologers", ally_top),
+            )
+            if cards
+        }
+        self.deck = self.discard
+        # These effects can put cards on top in either order. Choose placement
+        # order from bottom to top, preserving each effect's internal order.
+        while top_groups:
+            name = next(iter(top_groups))
+            if game_state is not None and len(top_groups) > 1:
+                from dominion.cards.allies._rules import decide
+
+                name = decide(
+                    game_state, self, "shuffle_topdeck_next", list(top_groups), name
+                )
+            self.deck.extend(top_groups.pop(name))
+        self.discard = ally_discard
 
     def count_in_deck(self, card_name: str) -> int:
         """Count total copies of named card across all piles."""
@@ -533,15 +564,12 @@ class PlayerState:
                     total += hook(_game_state, self)
         return total
 
-    def all_cards(self) -> list[Card]:
-        """Return a list of all cards the player possesses."""
+    def _physical_card_zones(self) -> list[list[Card]]:
         zones = [
             self.hand,
             self.deck,
             self.discard,
             self.in_play,
-            self.duration,
-            self.multiplied_durations,
             self.exile,
             self.invested_exile,
             self.native_village_mat,
@@ -554,20 +582,40 @@ class PlayerState:
             self.save_set_aside,
             self.summon_set_aside,
             self.farmhands_set_aside,
+            self.deliver_set_aside,
         ]
-        # Cards set aside on a Quartermaster are still the player's at game
-        # end (they count for scoring and for Fountain's Copper count). Each
-        # Quartermaster keeps its own pile and stays in play for the game.
-        for card in self.duration:
-            if card.name == "Quartermaster" and getattr(card, "set_aside", None):
-                zones.append(card.set_aside)
+        game_state = getattr(self, "game_state", None)
+        if game_state is not None:
+            zones.extend([
+                game_state.hasty_set_aside.get(id(self), []),
+                game_state.patient_mat.get(id(self), []),
+            ])
+        for card in dict.fromkeys(self.in_play + self.duration + self.multiplied_durations):
+            set_aside = getattr(card, "set_aside", None)
+            if isinstance(set_aside, list):
+                zones.append(set_aside)
 
+        return zones
+
+    def all_cards(self) -> list[Card]:
+        """Return owned cards, without counting moved Duration queue entries."""
+        zones = self._physical_card_zones()
+        # Some older Duration implementations use the pending queue as their
+        # only zone. Keep those cards unless another physical location owns them.
+        game_state = getattr(self, "game_state", None)
+        elsewhere = {id(card) for card in getattr(game_state, "trash", [])}
+        for other in getattr(game_state, "players", []):
+            if other is not None and other is not self:
+                elsewhere.update(
+                    id(card) for zone in other._physical_card_zones() for card in zone
+                )
+        zones += [self.duration, self.multiplied_durations]
         cards: list[Card] = []
-        seen_ids: set[int] = set()
+        seen_ids: set[int] = elsewhere
         for zone in zones:
             for card in zone:
                 card_id = id(card)
-                if card_id in seen_ids:
+                if card_id in seen_ids or getattr(card, "returned_to_supply", False):
                     continue
                 seen_ids.add(card_id)
                 cards.append(card)

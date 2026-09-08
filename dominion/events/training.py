@@ -22,9 +22,7 @@ class Training(Event):
         best_pile = None
         best_score = -1
 
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
+        for name in game_state.rotatable_supply_piles():
             try:
                 card = get_card(name)
             except ValueError:
@@ -41,6 +39,7 @@ class Training(Event):
                 best_pile = name
 
         if best_pile:
-            if not hasattr(player, "training_pile"):
-                player.training_pile = None
-            player.training_pile = best_pile
+            # Use the shared token path so Treasures in mixed piles (such as
+            # Sunken Treasure in Odysseys) also receive the per-play bonus.
+            player.training_pile = None
+            game_state.move_player_token(player, "+$1", best_pile)

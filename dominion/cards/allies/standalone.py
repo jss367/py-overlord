@@ -6,14 +6,25 @@ Courier, Guildmaster, Innkeeper, Marquis, Merchant Camp, Royal Galley,
 Sentinel, Town.
 """
 
-from typing import Optional
-
 from ..base_card import Card, CardCost, CardStats, CardType
-
+from ._rules import (
+    candidates,
+    decide,
+    discard,
+    effective_cost,
+    gain,
+    play_from_hand,
+    plus_cards,
+    plus_coins,
+    retain_multiplier,
+    select_modes,
+    trash_from_hand,
+)
 
 # ---------------------------------------------------------------------------
 # $2 Liaisons
 # ---------------------------------------------------------------------------
+
 
 class Bauble(Card):
     """$2 Treasure-Liaison. Choose two different options: +1 Buy; +$1;
@@ -65,8 +76,8 @@ class Bauble(Card):
 
 
 class Sycophant(Card):
-    """$2 Action-Liaison. +1 Action. Discard 3 cards. When you gain or
-    trash this, +2 Favors.
+    """$2 Action-Liaison. +1 Action. Discard 3 cards; if any were discarded,
+    +$3. When you gain or trash this, +2 Favors.
     """
 
     def __init__(self):
@@ -105,7 +116,7 @@ class Sycophant(Card):
                 player.hand.remove(card)
                 game_state.discard_card(player, card)
                 discarded += 1
-        if discarded == 3:
+        if discarded >= 1:
             chameleon_plus_coins(player, 3)
 
     def on_gain(self, game_state, player):
@@ -121,10 +132,9 @@ class Sycophant(Card):
 # $3 Liaisons
 # ---------------------------------------------------------------------------
 
+
 class Importer(Card):
-    """$3 Action-Duration-Liaison. At start of next turn, gain a card
-    costing up to $5. Setup: each player starts with 5 Favors instead of
-    1; Importer does not grant any Favors on play."""
+    """Gain up to $5 next turn; setup provides four additional Favors."""
 
     def __init__(self):
         super().__init__(
@@ -135,33 +145,14 @@ class Importer(Card):
         )
 
     def play_effect(self, game_state):
-        player = game_state.current_player
-        self.duration_persistent = False
-        player.duration.append(self)
+        game_state.current_player.duration.append(self)
 
     def on_duration(self, game_state):
-        from ..registry import get_card
-
-        player = game_state.current_player
-        candidates = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            card = get_card(name)
-            if card.cost.potions > 0 or card.cost.coins > 5:
-                continue
-            if not card.may_be_bought(game_state):
-                continue
-            candidates.append(card)
-        if not candidates:
-            return
-        chosen = player.ai.choose_buy(game_state, candidates + [None])
-        if chosen is None:
-            return
-        if game_state.supply.get(chosen.name, 0) <= 0:
-            return
-        game_state.supply[chosen.name] -= 1
-        game_state.gain_card(player, chosen)
+        gain(
+            game_state,
+            game_state.current_player,
+            candidates(game_state, CardCost(coins=5)),
+        )
 
 
 class Underling(Card):
@@ -184,9 +175,9 @@ class Underling(Card):
 # $4 cards
 # ---------------------------------------------------------------------------
 
+
 class Broker(Card):
-    """$4 Action-Liaison. Trash a card. Choose: +1 Card per cost; or
-    +$1 per cost; or +1 Action per cost; or +1 Favor per cost."""
+    """Mandatory trash, then one resource per coin of its current cost."""
 
     def __init__(self):
         super().__init__(
@@ -197,33 +188,31 @@ class Broker(Card):
         )
 
     def play_effect(self, game_state):
-        player = game_state.current_player
-        if not player.hand:
-            return
-        target = player.ai.choose_card_to_trash(game_state, player.hand)
-        if target is None or target not in player.hand:
-            return
-        cost = target.cost.coins
-        player.hand.remove(target)
-        game_state.trash_card(player, target)
-        if cost <= 0:
-            return
-        # Heuristic: prefer cards if we still have actions; coins
-        # otherwise; favors if Ally is starved; +Actions if low.
-        if player.actions == 0 and cost >= 2:
-            player.actions += cost
-        elif cost <= 2 and game_state.allies and player.favors < 3:
-            player.favors += cost
-        elif player.actions > 0 and cost >= 3:
-            game_state.draw_cards(player, cost)
-        else:
-            player.coins += cost
+        p = game_state.current_player
+        card = trash_from_hand(game_state, p)
+        cost = effective_cost(game_state, card).coins if card else 0
+        default = (
+            "actions"
+            if p.actions == 0 and cost >= 2
+            else "cards"
+            if p.actions and cost >= 3
+            else "coins"
+        )
+        for mode in select_modes(
+            game_state, p, self, ["cards", "actions", "coins", "favors"], [default]
+        ):
+            if mode == "cards":
+                plus_cards(game_state, p, cost)
+            elif mode == "actions" and not p.ignore_action_bonuses:
+                p.actions += cost
+            elif mode == "coins":
+                plus_coins(p, cost)
+            elif mode == "favors":
+                p.favors += cost
 
 
 class Carpenter(Card):
-    """$4 Action. If no Supply piles are empty, +1 Action and gain a card
-    costing up to $4. Otherwise, trash a card from your hand and gain a card
-    costing up to $2 more than it."""
+    """Workshop while every pile is stocked, otherwise Remodel."""
 
     def __init__(self):
         super().__init__(
@@ -234,61 +223,18 @@ class Carpenter(Card):
         )
 
     def play_effect(self, game_state):
-        from ..registry import get_card
-
-        player = game_state.current_player
+        p = game_state.current_player
         if game_state.empty_piles == 0:
-            player.actions += 1
-            max_cost = CardCost(coins=4)
+            if not p.ignore_action_bonuses:
+                p.actions += 1
+            limit = CardCost(coins=4)
         else:
-            if not player.hand:
+            card = trash_from_hand(game_state, p)
+            if card is None:
                 return
-            target = player.ai.choose_card_to_trash(game_state, player.hand)
-            if target is None or target not in player.hand:
-                # Mandatory trash: junk first, then the cheapest card.
-                target = min(
-                    player.hand,
-                    key=lambda c: (
-                        0 if c.name == "Curse" else 1 if c.is_victory else 2,
-                        c.cost.coins,
-                        c.name,
-                    ),
-                )
-            player.hand.remove(target)
-            game_state.trash_card(player, target)
-            # "Costing up to $2 more" compares every component: +$2 on
-            # coins, no more Debt or Potion than the trashed card had.
-            max_cost = CardCost(
-                coins=target.cost.coins + 2,
-                potions=target.cost.potions,
-                debt=target.cost.debt,
-            )
-
-        candidates = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            if name in game_state.non_supply_pile_names:
-                continue
-            card = get_card(name)
-            if (
-                card.cost.coins > max_cost.coins
-                or card.cost.potions > max_cost.potions
-                or card.cost.debt > max_cost.debt
-            ):
-                continue
-            if not card.may_be_gained(game_state):
-                continue
-            candidates.append(card)
-        if not candidates:
-            return
-        chosen = player.ai.choose_buy(game_state, candidates + [None])
-        if chosen is None or chosen not in candidates:
-            chosen = max(candidates, key=lambda c: (c.cost.coins, c.name))
-        if game_state.supply.get(chosen.name, 0) <= 0:
-            return
-        game_state.supply[chosen.name] -= 1
-        game_state.gain_card(player, chosen)
+            limit = effective_cost(game_state, card)
+            limit.coins += 2
+        gain(game_state, p, candidates(game_state, limit))
 
 
 class Courier(Card):
@@ -313,8 +259,10 @@ class Courier(Card):
         # Discard reactions may gain cards, play cards, or cause a shuffle.
         # Build the menu only after those effects have completely resolved.
         choices = [
-            c for c in player.discard
-            if c.is_action or game_state.is_treasure(c)
+            c
+            for c in player.discard
+            if c.is_action
+            or game_state.is_treasure(c)
             or game_state.is_inherited_estate(player, c)
         ]
         if not choices:
@@ -328,11 +276,14 @@ class Courier(Card):
             return
         overlay = (
             game_state._begin_inherited_estate_overlay(player, choice)
-            if game_state.is_inherited_estate(player, choice) else None
+            if game_state.is_inherited_estate(player, choice)
+            else None
         )
         try:
             if choice.is_action and not game_state.is_treasure(choice):
-                game_state.play_action_from_zone_indirectly(player, choice, player.discard)
+                game_state.play_action_from_zone_indirectly(
+                    player, choice, player.discard
+                )
             else:
                 player.discard.remove(choice)
                 player.in_play.append(choice)
@@ -342,7 +293,7 @@ class Courier(Card):
 
 
 class Innkeeper(Card):
-    """$4 Action. +1 Action. Choose: +1 Card; or +3 Cards, discard 3."""
+    """Choose a draw, a three-card sift, or a five-card sift."""
 
     def __init__(self):
         super().__init__(
@@ -353,23 +304,18 @@ class Innkeeper(Card):
         )
 
     def play_effect(self, game_state):
-        player = game_state.current_player
-        # Heuristic: take +3/-3 if hand has clutter, otherwise +1.
+        p = game_state.current_player
         clutter = sum(
-            1 for c in player.hand
-            if c.name in {"Curse", "Copper", "Estate", "Hovel", "Overgrown Estate"}
+            c.name in {"Curse", "Copper", "Estate", "Hovel", "Overgrown Estate"}
+            for c in p.hand
         )
-        if clutter >= 2 or len(player.hand) <= 2:
-            game_state.draw_cards(player, 3)
-            picks = player.ai.choose_cards_to_discard(
-                game_state, player, list(player.hand), 3, reason="innkeeper"
-            )
-            for card in picks:
-                if card in player.hand:
-                    player.hand.remove(card)
-                    game_state.discard_card(player, card)
-        else:
-            game_state.draw_cards(player, 1)
+        default = "sift3" if clutter >= 2 or len(p.hand) <= 2 else "card"
+        for mode in select_modes(
+            game_state, p, self, ["card", "sift3", "sift5"], [default]
+        ):
+            plus_cards(game_state, p, {"card": 1, "sift3": 3, "sift5": 5}[mode])
+            if mode != "card":
+                discard(game_state, p, 3 if mode == "sift3" else 6, "innkeeper")
 
 
 class RoyalGalley(Card):
@@ -387,16 +333,17 @@ class RoyalGalley(Card):
         )
         self._set_aside: list[Card] = []
 
+    @property
+    def set_aside(self):
+        return self._set_aside
+
     def play_effect(self, game_state):
         player = game_state.current_player
-        actions = [
-            c for c in player.hand
-            if c.is_action and not c.is_duration
-        ]
+        actions = [c for c in player.hand if c.is_action and not c.is_duration]
         if not actions:
             return
         choice = player.ai.choose_action(game_state, actions + [None])
-        if choice is None or choice not in player.hand:
+        if choice is None or choice not in actions:
             return
         if not game_state.move_card_from_hand_to_play(player, choice):
             return
@@ -413,8 +360,6 @@ class RoyalGalley(Card):
 
     def on_duration(self, game_state):
         player = game_state.current_player
-        if self in player.in_play:
-            player.in_play.remove(self)
         if not self._set_aside:
             return
         cards = list(self._set_aside)
@@ -440,27 +385,30 @@ class Town(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        action_cards = [c for c in player.hand if c.is_action]
-        if action_cards or player.actions == 0:
-            # Use as a Village.
-            if not player.ignore_action_bonuses:
-                player.actions += 2
-            game_state.draw_cards(player, 1)
-        else:
-            player.buys += 1
-            player.coins += 2
+        default = (
+            "village"
+            if any(c.is_action for c in player.hand) or player.actions == 0
+            else "coins"
+        )
+        for mode in select_modes(
+            game_state, player, self, ["village", "coins"], [default]
+        ):
+            if mode == "village":
+                plus_cards(game_state, player, 1)
+                if not player.ignore_action_bonuses:
+                    player.actions += 2
+            else:
+                player.buys += 1
+                plus_coins(player, 2)
 
 
 # ---------------------------------------------------------------------------
-# $5 Liaisons
+# $5 cards
 # ---------------------------------------------------------------------------
+
 
 class Contract(Card):
-    """$5 Treasure-Duration-Liaison. +$2. You may set aside an Action from
-    your hand; if you do, play it at the start of your next turn.
-
-    Per official Allies rules, Contract does not grant +1 Favor on play.
-    """
+    """Treasure giving $2, a Favor, and an optional delayed Action play."""
 
     def __init__(self):
         super().__init__(
@@ -469,33 +417,31 @@ class Contract(Card):
             stats=CardStats(),
             types=[CardType.TREASURE, CardType.DURATION, CardType.LIAISON],
         )
-        self._set_aside: Optional[Card] = None
+        self.set_aside = []
+
+    @property
+    def _set_aside(self):
+        return self.set_aside[0] if self.set_aside else None
 
     def on_play(self, game_state):
-        from dominion.ways.chameleon import chameleon_plus_coins
-
-        player = game_state.current_player
-        chameleon_plus_coins(player, 2)
-
-        actions = [c for c in player.hand if c.is_action and not c.is_duration]
-        if actions:
-            choice = player.ai.choose_action(game_state, actions + [None])
-            if choice is not None and choice in player.hand:
-                player.hand.remove(choice)
-                self._set_aside = choice
-
-        if self._set_aside is not None:
-            self.duration_persistent = False
-            player.duration.append(self)
+        p = game_state.current_player
+        plus_coins(p, 2)
+        p.favors += 1
+        actions = [c for c in p.hand if c.is_action]
+        choice = p.ai.choose_action(game_state, actions + [None])
+        if choice not in actions:
+            return
+        p.hand.remove(choice)
+        self.set_aside.append(choice)
+        if self not in p.duration:
+            p.duration.append(self)
 
     def on_duration(self, game_state):
-        player = game_state.current_player
-        if self._set_aside is None:
-            return
-        card = self._set_aside
-        self._set_aside = None
-        player.in_play.append(card)
-        game_state.play_action_indirectly(player, card, blocked_return_zone=player.discard)
+        p = game_state.current_player
+        pending, self.set_aside = self.set_aside, []
+        for card in pending:
+            p.in_play.append(card)
+            game_state.play_action_indirectly(p, card)
 
 
 class Emissary(Card):
@@ -516,36 +462,31 @@ class Emissary(Card):
         from dominion.ways.chameleon import chameleon_plus_cards
 
         player = game_state.current_player
-        will_shuffle = len(player.deck) < 3 and bool(player.discard)
+        shuffles = getattr(player, "shuffle_count", 0)
         chameleon_plus_cards(game_state, player, 3)
-        if will_shuffle and not getattr(self, "_chameleon_active", False):
+        if getattr(player, "shuffle_count", 0) > shuffles:
             if not player.ignore_action_bonuses:
                 player.actions += 1
             player.favors += 2
 
 
 class Galleria(Card):
-    """$5 Action-Liaison. +$3. This turn, when you gain a card costing $3
-    or more, +1 Buy.
-
-    Per official Allies rules, Galleria does not grant +1 Favor on play.
-    """
+    """$3 and a turn-scoped Buy reward for gains costing exactly $3/$4."""
 
     def __init__(self):
         super().__init__(
             name="Galleria",
             cost=CardCost(coins=5),
             stats=CardStats(coins=3),
-            types=[CardType.ACTION, CardType.LIAISON],
+            types=[CardType.ACTION],
         )
 
-    def on_owner_gain(self, game_state, player, gained_card: Card) -> None:
-        if gained_card.cost.coins >= 3:
-            player.buys += 1
+    def play_effect(self, game_state):
+        game_state.register_allies_gain_effect(self, "galleria")
 
 
 class Hunter(Card):
-    """$5 Action-Liaison. +1 Action. Reveal top 3 cards; put one Action,
+    """$5 Action. +1 Action. Reveal top 3 cards; put one Action,
     one Treasure, one Victory into hand; discard the rest."""
 
     def __init__(self):
@@ -553,7 +494,7 @@ class Hunter(Card):
             name="Hunter",
             cost=CardCost(coins=5),
             stats=CardStats(actions=1),
-            types=[CardType.ACTION, CardType.LIAISON],
+            types=[CardType.ACTION],
         )
 
     def play_effect(self, game_state):
@@ -568,9 +509,11 @@ class Hunter(Card):
             revealed.append(player.deck.pop())
 
         # Put one Action, one Treasure, one Victory into hand.
-        for predicate in (lambda c: c.is_action,
-                          lambda c: c.is_treasure,
-                          lambda c: c.is_victory):
+        for predicate in (
+            lambda c: c.is_action,
+            lambda c: c.is_treasure,
+            lambda c: c.is_victory,
+        ):
             matches = [c for c in revealed if predicate(c)]
             if matches:
                 pick = max(matches, key=lambda c: (c.cost.coins, c.name))
@@ -581,168 +524,123 @@ class Hunter(Card):
 
 
 class Skirmisher(Card):
-    """$5 Action-Attack-Liaison. +1 Card +1 Action +$1. Until end of turn,
-    when you gain an Action, each other player with 5+ cards in hand
-    discards one. +1 Favor."""
+    """Attack gains this turn make unprotected opponents discard to three."""
 
     def __init__(self):
         super().__init__(
             name="Skirmisher",
             cost=CardCost(coins=5),
-            stats=CardStats(actions=1, cards=1, coins=1),
-            types=[CardType.ACTION, CardType.ATTACK, CardType.LIAISON],
+            stats=CardStats(cards=1, actions=1, coins=1),
+            types=[CardType.ACTION, CardType.ATTACK],
         )
 
     def play_effect(self, game_state):
-        player = game_state.current_player
-        player.favors += 1
-
-    def on_owner_gain(self, game_state, player, gained_card: Card) -> None:
-        if not gained_card.is_action:
-            return
-        for opponent in game_state.players:
-            if opponent is player:
-                continue
-
-            def attack(target):
-                if len(target.hand) < 5:
-                    return
-                hand = list(target.hand)
-                pick = max(hand, key=lambda c: (c.cost.coins, c.is_action, c.name))
-                if pick in target.hand:
-                    target.hand.remove(pick)
-                    game_state.discard_card(target, pick)
-
-            game_state.attack_player(opponent, attack)
+        p = game_state.current_player
+        targets = []
+        for opponent in game_state.opponents_in_order(p):
+            game_state.attack_player(
+                opponent, targets.append, attacker=p, attack_card=self
+            )
+        game_state.register_allies_gain_effect(self, "skirmisher", targets)
 
 
 class Specialist(Card):
-    """$5 Action-Liaison. You may play an Action or Treasure card from your
-    hand. If you did, choose: play it again; or gain a copy of it.
-
-    Per official Allies rules, Specialist does not grant +1 Favor on play.
-    """
+    """Play an Action/Treasure, then replay it or gain a copy."""
 
     def __init__(self):
         super().__init__(
             name="Specialist",
             cost=CardCost(coins=5),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.LIAISON],
+            types=[CardType.ACTION],
         )
 
     def play_effect(self, game_state):
-        from ..registry import get_card
-
-        player = game_state.current_player
-
-        actions = [c for c in player.hand if c.is_action]
-        if not actions:
+        p = game_state.current_player
+        card = play_from_hand(game_state, p, treasures=True)
+        if card is None:
             return
-        choice = player.ai.choose_action(game_state, actions + [None])
-        if choice is None or choice not in player.hand:
-            return
-        if not game_state.move_card_from_hand_to_play(player, choice):
-            return
-        if not game_state.play_action_indirectly(
-            player, choice, blocked_return_zone=player.hand
-        ):
-            return
-
-        # Choose: play again, or gain a copy.
-        # Heuristic: gain a copy of cheap cantrips ($3-$5); replay otherwise.
-        if (
-            choice.cost.coins <= 5
-            and game_state.supply.get(choice.name, 0) > 0
-        ):
-            try:
-                copy = get_card(choice.name)
-            except ValueError:
-                copy = None
-            if copy is not None:
-                game_state.supply[choice.name] -= 1
-                game_state.gain_card(player, copy)
-                return
-        game_state.play_action_indirectly(player, choice)
+        copies = candidates(game_state, predicate=lambda c: c.name == card.name)
+        default = (
+            "gain"
+            if effective_cost(game_state, card).coins <= 5 and copies
+            else "replay"
+        )
+        for mode in select_modes(game_state, p, self, ["replay", "gain"], [default]):
+            if mode == "gain":
+                gain(
+                    game_state,
+                    p,
+                    candidates(game_state, predicate=lambda c: c.name == card.name),
+                )
+            else:
+                if card.is_action:
+                    game_state.play_action_indirectly(p, card)
+                else:
+                    game_state.play_treasure_indirectly(p, card)
+                retain_multiplier(p, self, card)
 
 
 class Swap(Card):
-    """$5 Action-Liaison. +1 Card, +1 Action. You may return an Action card
-    from your hand to its pile; if you do, gain an Action card from the
-    Supply costing up to $5 (not the same name as the returned card), and
-    put it into your hand.
-
-    Per official Allies rules, Swap does not grant +1 Favor on play.
-    """
+    """Return an Action to its pile and gain a different Action to hand."""
 
     def __init__(self):
         super().__init__(
             name="Swap",
             cost=CardCost(coins=5),
-            stats=CardStats(actions=1, cards=1),
-            types=[CardType.ACTION, CardType.LIAISON],
+            stats=CardStats(cards=1, actions=1),
+            types=[CardType.ACTION],
         )
 
     def play_effect(self, game_state):
-        from ..registry import get_card
-
-        player = game_state.current_player
-
-        actions_in_hand = [
-            c for c in player.hand
-            if c.is_action and game_state.supply.get(c.name, 0) is not None
+        p = game_state.current_player
+        sources = [
+            c
+            for c in p.hand
+            if c.is_action and game_state._resolve_changeling_pile_name(c) is not None
         ]
-        if not actions_in_hand:
+        if not sources:
             return
-        # Choose to return the worst Action with a useful upgrade target.
-        candidates: list[tuple[Card, Card]] = []
-        for src in actions_in_hand:
-            target_cost = src.cost.coins + 1
-            for name, count in game_state.supply.items():
-                if count <= 0 or name == src.name:
-                    continue
-                try:
-                    target = get_card(name)
-                except ValueError:
-                    continue
-                if not target.is_action:
-                    continue
-                if target.cost.coins != target_cost:
-                    continue
-                if target.cost.potions > 0:
-                    continue
-                if not target.may_be_bought(game_state):
-                    continue
-                candidates.append((src, target))
-                break
-        if not candidates:
+        source = min(
+            sources, key=lambda c: (effective_cost(game_state, c).coins, c.name)
+        )
+        useful = candidates(
+            game_state,
+            CardCost(coins=5),
+            lambda c: c.is_action and c.name != source.name,
+        )
+        source = decide(
+            game_state, p, "swap_return", [None] + sources, source if useful else None
+        )
+        if source is None:
             return
-        # Pick the trade with the cheapest source that yields a target.
-        src, target = min(candidates, key=lambda pair: (pair[0].cost.coins, pair[0].name))
-        if src not in player.hand:
-            return
-        player.hand.remove(src)
-        # Return src to its pile.
-        if src.name in game_state.supply:
-            game_state.supply[src.name] = game_state.supply.get(src.name, 0) + 1
-        # Gain target.
-        if game_state.supply.get(target.name, 0) <= 0:
-            return
-        game_state.supply[target.name] -= 1
-        game_state.gain_card(player, target)
+        # Synchronize the pile before adding a returning card on top.
+        game_state.top_supply_card(source.name)
+        p.hand.remove(source)
+        game_state._restore_to_supply_pile(source)
+        gain(
+            game_state,
+            p,
+            candidates(
+                game_state,
+                CardCost(coins=5),
+                lambda c: c.is_action and c.name != source.name,
+            ),
+            to_hand=True,
+        )
 
 
 # ---------------------------------------------------------------------------
 # $3 standalone
 # ---------------------------------------------------------------------------
 
+
 class MerchantCamp(Card):
     """$3 Action. +2 Actions +$1. When you discard this card from play, you
     may put it onto your deck.
 
-    Implementation: always topdeck. Merchant Camp is a non-drawing village,
-    so saving it for next turn (or the next draw) dominates leaving it in
-    the discard. The "when you discard from play" trigger is independent of
+    The default policy topdecks, with an overridable choice at cleanup.
+    The "when you discard from play" trigger is independent of
     how the card was played, so cleanup honours it by name (like Walled
     Village) — this matters when Merchant Camp is played via a Way (which
     bypasses ``play_effect``) or under Enchantress (whose effect replaces
@@ -813,6 +711,7 @@ class Sentinel(Card):
 # $5 standalone
 # ---------------------------------------------------------------------------
 
+
 class CapitalCity(Card):
     """$5 Action. +1 Card +2 Actions. You may discard 2 cards for +$2. You
     may pay $2 for +2 Cards."""
@@ -832,9 +731,17 @@ class CapitalCity(Card):
         # Option 1: discard 2 for +$2. Take it when there are at least two
         # low-value cards we'd rather not see this turn.
         junk_names = {
-            "Curse", "Estate", "Copper", "Hovel", "Overgrown Estate",
-            "Ruined Village", "Ruined Market", "Ruined Library",
-            "Survivors", "Abandoned Mine", "Necropolis",
+            "Curse",
+            "Estate",
+            "Copper",
+            "Hovel",
+            "Overgrown Estate",
+            "Ruined Village",
+            "Ruined Market",
+            "Ruined Library",
+            "Survivors",
+            "Abandoned Mine",
+            "Necropolis",
         }
         junk = [c for c in player.hand if c.name in junk_names]
         if len(junk) >= 2:
@@ -860,10 +767,7 @@ class CapitalCity(Card):
 
 
 class Guildmaster(Card):
-    """$5 Action-Liaison. +$3. This turn, when you gain a card, +1 Favor.
-
-    Terminal — Guildmaster does not give +1 Action despite being a Liaison.
-    """
+    """$3 and one Favor per gain this turn, per play."""
 
     def __init__(self):
         super().__init__(
@@ -873,13 +777,14 @@ class Guildmaster(Card):
             types=[CardType.ACTION, CardType.LIAISON],
         )
 
-    def on_owner_gain(self, game_state, player, gained_card: Card) -> None:
-        player.favors += 1
+    def play_effect(self, game_state):
+        game_state.register_allies_gain_effect(self, "guildmaster")
 
 
 # ---------------------------------------------------------------------------
 # $6 standalone
 # ---------------------------------------------------------------------------
+
 
 class Marquis(Card):
     """$6 Action. +1 Buy. +1 Card per card in your hand. Then discard down

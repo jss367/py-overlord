@@ -19,17 +19,23 @@ class WildHunt(Card):
         if choice not in options:
             choice = "draw"
 
-        if choice == "draw":
-            game_state.draw_cards(player, 3)
-            game_state.wild_hunt_pile_tokens += 1
-            return
+        from ..allies._rules import select_modes
 
-        if game_state.supply.get("Estate", 0) <= 0:
-            return
+        def resolve(choice):
+            if choice == "draw":
+                game_state.draw_cards(player, 3)
+                game_state.wild_hunt_pile_tokens += 1
+                return
 
-        game_state.supply["Estate"] -= 1
-        gained = game_state.gain_card(player, get_card("Estate"))
+            if game_state.supply.get("Estate", 0) <= 0:
+                return
 
-        if gained and gained.name == "Estate":
-            player.vp_tokens += game_state.wild_hunt_pile_tokens
-            game_state.wild_hunt_pile_tokens = 0
+            game_state.supply["Estate"] -= 1
+            gained = game_state.gain_card(player, get_card("Estate"))
+
+            if gained and gained.name == "Estate":
+                player.vp_tokens += game_state.wild_hunt_pile_tokens
+                game_state.wild_hunt_pile_tokens = 0
+
+        for choice in select_modes(game_state, player, self, options, [choice]):
+            resolve(choice)

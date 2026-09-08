@@ -122,7 +122,7 @@ class Tax(Event):
         if not candidates:
             return
         candidates.sort(key=lambda n: (get_card(n).cost.coins, n), reverse=True)
-        target = candidates[0]
+        target = game_state.supply_pile_key(candidates[0])
         game_state.tax_tokens[target] = game_state.tax_tokens.get(target, 0) + 1
 
 

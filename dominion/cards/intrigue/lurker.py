@@ -13,65 +13,39 @@ class Lurker(Card):
         )
 
     def play_effect(self, game_state):
-        from ..registry import get_card
+        from ..allies._rules import candidates, select_modes
 
         player = game_state.current_player
-
-        trashable_actions: list[Card] = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            try:
-                card = get_card(name)
-            except ValueError:
-                continue
-            if not card.is_action:
-                continue
-            if not card.may_be_bought(game_state):
-                continue
-            trashable_actions.append(card)
-
-        gainable_actions: list[Card] = [
-            c for c in game_state.trash if c.is_action
-        ]
-
-        can_trash = bool(trashable_actions)
-        can_gain = bool(gainable_actions)
-        if not can_trash and not can_gain:
-            return
-
-        mode = player.ai.choose_lurker_mode(
-            game_state, player, can_trash=can_trash, can_gain=can_gain
+        trashable = candidates(game_state, predicate=lambda c: c.is_action)
+        gainable = [c for c in game_state.trash if c.is_action]
+        default = player.ai.choose_lurker_mode(
+            game_state, player, can_trash=bool(trashable), can_gain=bool(gainable)
         )
-        if mode == "gain" and not can_gain:
-            mode = "trash"
-        elif mode == "trash" and not can_trash:
-            mode = "gain"
-
-        if mode == "trash":
-            chosen = player.ai.choose_action_to_trash_from_supply(
-                game_state, player, trashable_actions
-            )
-            if chosen is None or game_state.supply.get(chosen.name, 0) <= 0:
-                return
-            game_state.supply[chosen.name] -= 1
-            game_state.log_callback(
-                ("supply_change", chosen.name, -1, game_state.supply[chosen.name])
-            )
-            game_state.trash_card(player, chosen)
-            return
-
-        # mode == "gain"
-        chosen = player.ai.choose_action_to_gain_from_trash(
-            game_state, player, gainable_actions
-        )
-        if chosen is None or chosen not in game_state.trash:
-            return
-        game_state.trash.remove(chosen)
-        # Route through gain_card so the gain participates in shared
-        # bookkeeping (cards_gained_this_turn, actions_gained_this_turn,
-        # Cauldron's third-Action-gain trigger, project on_gain hooks,
-        # Watchtower / Royal Seal / Insignia reactions, …). Pass
-        # from_supply=False since the card came from trash — without that,
-        # Trader's reaction would inflate the original card's supply pile.
-        game_state.gain_card(player, chosen, from_supply=False)
+        for mode in select_modes(
+            game_state, player, self, ["trash", "gain"], [default]
+        ):
+            if mode == "trash":
+                if not trashable:
+                    continue
+                choice = player.ai.choose_action_to_trash_from_supply(
+                    game_state, player, trashable
+                )
+                if choice not in trashable:
+                    choice = trashable[0]
+                pile = game_state._resolve_changeling_pile_name(choice)
+                game_state.supply[pile] -= 1
+                if pile in game_state.pile_order:
+                    game_state.pile_order[pile].pop()
+                game_state.trash_card(player, choice)
+            else:
+                # The first mode may have just added the desired card to the trash.
+                gainable = [c for c in game_state.trash if c.is_action]
+                if not gainable:
+                    continue
+                choice = player.ai.choose_action_to_gain_from_trash(
+                    game_state, player, gainable
+                )
+                if choice not in gainable:
+                    choice = gainable[0]
+                game_state.trash.remove(choice)
+                game_state.gain_card(player, choice, from_supply=False)

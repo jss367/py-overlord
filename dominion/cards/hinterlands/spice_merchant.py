@@ -27,12 +27,19 @@ class SpiceMerchant(Card):
         player.hand.remove(to_trash)
         game_state.trash_card(player, to_trash)
 
-        if self._prefer_draw_option(player):
-            game_state.draw_cards(player, 2)
-            player.actions += 1
-        else:
-            player.coins += 2
-            player.buys += 1
+        draw = self._prefer_draw_option(player)
+        from ..allies._rules import select_modes
+
+        def resolve(draw):
+            if draw:
+                game_state.draw_cards(player, 2)
+                player.actions += 1
+            else:
+                player.coins += 2
+                player.buys += 1
+
+        for draw in select_modes(game_state, player, self, [True, False], [draw]):
+            resolve(draw)
 
     @staticmethod
     def _choose_trash(treasures):

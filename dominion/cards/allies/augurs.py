@@ -6,7 +6,8 @@ card with copies remaining may be bought.
 
 from typing import ClassVar
 
-from ..base_card import Card, CardCost, CardStats, CardType
+from ..base_card import CardCost, CardStats, CardType
+from ._rules import candidates, decide, effective_cost, gain, rotate
 from ._split_base import AlliesSplitCard
 
 AUGURS_PILE_ORDER = ("Herb Gatherer", "Acolyte", "Sorceress", "Sibyl")
@@ -17,10 +18,6 @@ class _Augurs(AlliesSplitCard):
 
 
 class HerbGatherer(_Augurs):
-    """+1 Buy. You may put your discard into your deck."""
-
-    upper_partners: ClassVar[tuple[str, ...]] = ()
-
     def __init__(self):
         super().__init__(
             name="Herb Gatherer",
@@ -30,22 +27,22 @@ class HerbGatherer(_Augurs):
         )
 
     def play_effect(self, game_state):
-        player = game_state.current_player
-        if not player.discard:
-            return
-        # Always opt in: putting the discard onto the deck is a soft draw
-        # boost; the AI then plays through it next.
-        player.deck.extend(player.discard)
-        player.discard = []
+        p = game_state.current_player
+        p.discard.extend(p.deck)
+        p.deck = []
+        choices = [c for c in p.discard if game_state.is_treasure(c)]
+        default = p.ai.choose_treasure(game_state, choices + [None])
+        choice = decide(
+            game_state, p, "herb_gatherer_treasure", [None] + choices, default
+        )
+        if choice in choices:
+            p.discard.remove(choice)
+            p.in_play.append(choice)
+            game_state.play_treasure_indirectly(p, choice)
+        rotate(game_state, p, "Herb Gatherer")
 
 
 class Acolyte(_Augurs):
-    """You may trash a Victory card from hand for a Gold.
-    Once per turn, when you trash an Acolyte, gain an Augurs card.
-    """
-
-    upper_partners: ClassVar[tuple[str, ...]] = ("Herb Gatherer",)
-
     def __init__(self):
         super().__init__(
             name="Acolyte",
@@ -55,53 +52,32 @@ class Acolyte(_Augurs):
         )
 
     def play_effect(self, game_state):
-        from ..registry import get_card
-
-        player = game_state.current_player
-        victories = [c for c in player.hand if c.is_victory]
-        if not victories:
-            return
-        target = min(victories, key=lambda c: (c.cost.coins, c.name))
-        player.hand.remove(target)
-        game_state.trash_card(player, target)
-        if game_state.supply.get("Gold", 0) > 0:
-            game_state.supply["Gold"] -= 1
-            game_state.gain_card(player, get_card("Gold"))
-
-    def on_trash(self, game_state, player) -> None:
-        from ..registry import get_card
-
-        # Once per turn: gain an Augurs card.
-        if getattr(player, "acolyte_trashed_this_turn", False):
-            return
-        player.acolyte_trashed_this_turn = True
-        candidates = [
-            name for name in AUGURS_PILE_ORDER
-            if game_state.supply.get(name, 0) > 0
-        ]
-        if not candidates:
-            return
-        # Pick the most expensive Augurs card available.
-        best = max(candidates, key=lambda n: AUGURS_PILE_ORDER.index(n))
-        try:
-            card = get_card(best)
-        except ValueError:
-            return
-        if not card.may_be_bought(game_state):
-            # Drain order means only the topmost is buyable; pick the
-            # earliest one available instead.
-            for name in AUGURS_PILE_ORDER:
-                if game_state.supply.get(name, 0) > 0:
-                    candidate = get_card(name)
-                    if candidate.may_be_bought(game_state):
-                        card = candidate
-                        break
-            else:
-                return
-        if game_state.supply.get(card.name, 0) <= 0:
-            return
-        game_state.supply[card.name] -= 1
-        game_state.gain_card(player, card)
+        p = game_state.current_player
+        eligible = [c for c in p.hand if c.is_action or c.is_victory]
+        default = (
+            min(eligible, key=lambda c: effective_cost(game_state, c).coins)
+            if eligible
+            else None
+        )
+        target = decide(game_state, p, "acolyte_trash", [None] + eligible, default)
+        if target is not None:
+            p.hand.remove(target)
+            game_state.trash_card(p, target)
+            gain(
+                game_state,
+                p,
+                candidates(game_state, predicate=lambda c: c.name == "Gold"),
+            )
+        if self in p.in_play and decide(
+            game_state, p, "acolyte_trash_self", [False, True], False
+        ):
+            p.in_play.remove(self)
+            game_state.trash_card(p, self)
+            gain(
+                game_state,
+                p,
+                candidates(game_state, predicate=lambda c: c.name in AUGURS_PILE_ORDER),
+            )
 
 
 class Sorceress(_Augurs):
@@ -148,7 +124,7 @@ class Sorceress(_Augurs):
 
 
 class Sibyl(_Augurs):
-    """+4 Cards. Put a card from your hand on top of deck, and one on bottom."""
+    """+4 Cards, +1 Action. Topdeck a card from hand, then bottomdeck one."""
 
     upper_partners: ClassVar[tuple[str, ...]] = (
         "Herb Gatherer",
@@ -160,7 +136,7 @@ class Sibyl(_Augurs):
         super().__init__(
             name="Sibyl",
             cost=CardCost(coins=6),
-            stats=CardStats(cards=4),
+            stats=CardStats(cards=4, actions=1),
             types=[CardType.ACTION],
         )
 
@@ -173,7 +149,9 @@ class Sibyl(_Augurs):
         topdeck = player.ai.choose_card_to_topdeck_from_hand(
             game_state, player, list(player.hand), reason="sibyl"
         )
-        if topdeck is not None and topdeck in player.hand:
+        if topdeck not in player.hand:
+            topdeck = player.hand[0]
+        if topdeck in player.hand:
             player.hand.remove(topdeck)
             player.deck.append(topdeck)
 
@@ -183,6 +161,8 @@ class Sibyl(_Augurs):
         picks = player.ai.choose_cards_to_discard(
             game_state, player, list(player.hand), 1, reason="sibyl_bottom"
         )
+        if not picks or picks[0] not in player.hand:
+            picks = [player.hand[0]]
         if picks:
             bottom = picks[0]
             if bottom in player.hand:

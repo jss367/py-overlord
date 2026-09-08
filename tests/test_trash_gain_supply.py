@@ -81,7 +81,9 @@ def test_lurker_trash_gain_with_trader_does_not_inflate_supply():
     assert state.supply["Silver"] == silver_supply_before - 1, (
         f"Silver supply should decrement by 1; before={silver_supply_before}, after={state.supply['Silver']}"
     )
-    assert any(c.name == "Silver" for c in player.discard), "Player should end up with Silver"
+    assert any(c.name == "Silver" for c in player.discard), (
+        "Player should end up with Silver"
+    )
 
 
 def test_lich_trash_gain_with_trader_does_not_inflate_supply():
@@ -92,7 +94,7 @@ def test_lich_trash_gain_with_trader_does_not_inflate_supply():
     state.trash.append(get_card("Village"))
     player.hand = [get_card("Trader"), get_card("Copper"), get_card("Copper")]
 
-    Lich().play_effect(state)
+    state.trash_card(player, Lich())
 
     assert state.supply["Village"] == village_supply_before, (
         f"Village supply should be unchanged; before={village_supply_before}, after={state.supply['Village']}"

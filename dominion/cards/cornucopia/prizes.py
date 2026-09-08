@@ -177,6 +177,10 @@ class TrustySteed(_PrizeCard):
             # Default: +2 Cards and +2 Actions (a generic "Lab + Village").
             chosen = ["cards", "actions"]
 
+        from ..allies._rules import select_modes
+
+        chosen = select_modes(game_state, player, self, options, chosen, 2)
+
         for opt in chosen:
             if opt == "cards":
                 game_state.draw_cards(player, 2)

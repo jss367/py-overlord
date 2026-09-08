@@ -16,6 +16,12 @@ class Pawn(Card):
         player = game_state.current_player
         choices = self._select_bonuses(player)
 
+        from ..allies._rules import select_modes
+
+        choices = select_modes(
+            game_state, player, self, ["card", "action", "buy", "coin"], choices, 2
+        )
+
         for choice in choices:
             if choice == "card":
                 game_state.draw_cards(player, 1)

@@ -4,8 +4,8 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Catacombs(Card):
-    """Look at the top 3 cards of your deck. Choose one: discard them and
-    +3 Cards; or put them into your hand.
+    """Look at the top 3 cards of your deck. Choose one: put them into your hand;
+    or discard them and +3 Cards.
 
     When you trash this, gain a cheaper card.
     """
@@ -19,26 +19,36 @@ class Catacombs(Card):
         )
 
     def play_effect(self, game_state):
-        player = game_state.current_player
+        from ..allies._rules import select_modes, plus_cards
 
-        revealed: list[Card] = []
+        player = game_state.current_player
+        looked_at = []
         for _ in range(3):
             if not player.deck and player.discard:
                 player.shuffle_discard_into_deck()
             if not player.deck:
                 break
-            revealed.append(player.deck.pop())
-
-        if not revealed:
-            return
-
-        if player.ai.should_catacombs_discard_three(game_state, player, list(revealed)):
-            for card in revealed:
-                game_state.discard_card(player, card)
-            game_state.draw_cards(player, 3)
-        else:
-            for card in revealed:
-                player.hand.append(card)
+            looked_at.append(player.deck.pop())
+        default = (
+            "discard"
+            if player.ai.should_catacombs_discard_three(
+                game_state, player, list(looked_at)
+            )
+            else "hand"
+        )
+        for mode in select_modes(
+            game_state, player, self, ["hand", "discard"], [default]
+        ):
+            if mode == "hand":
+                player.hand.extend(looked_at)
+            else:
+                for card in looked_at:
+                    # Catacombs itself moved these cards into hand, so its
+                    # second chosen ability can still discard those same cards.
+                    if card in player.hand:
+                        player.hand.remove(card)
+                    game_state.discard_card(player, card)
+                plus_cards(game_state, player, 3)
 
     def on_trash(self, game_state, player):
         from ..registry import get_card

@@ -16,7 +16,7 @@ class Crew(Card):
         player = game_state.current_player
         game_state.draw_cards(player, 3)
         # Stay in play until the start-of-next-turn duration trigger fires.
-        self.duration_persistent = True
+        self.duration_persistent = False
         # Guard against duplicate listings when Crew is replayed in the same
         # turn (Flagship, Throne Room, etc. operate on the same instance).
         # Each replay still draws +3 above, but the duration list may only
@@ -26,14 +26,13 @@ class Crew(Card):
 
     def on_duration(self, game_state):
         player = game_state.current_player
-        # Move Crew from duration *and* in_play onto the top of the deck.
-        # Without removing from in_play, cleanup later this turn would also
-        # discard the same card object, leaving Crew duplicated across deck
-        # and discard. Marking duration_persistent suppresses the engine's
-        # default move-to-discard since we've handled it ourselves.
+        # This effect finishes now. If Crew already left play, it cannot move
+        # itself again; pending instructions do not restore physical ownership.
+        self.duration_persistent = False
+        if self not in player.in_play and self not in player.duration:
+            return
         if self in player.duration:
             player.duration.remove(self)
         if self in player.in_play:
             player.in_play.remove(self)
         player.deck.append(self)
-        self.duration_persistent = True

@@ -22,15 +22,16 @@ def _state_with_sorcerer(opponent_ai):
     return state, attacker, opponent
 
 
-def test_sorcerer_wrong_name_gains_curse_onto_deck():
+def test_sorcerer_wrong_name_gains_curse_to_discard():
     state, attacker, opponent = _state_with_sorcerer(NamedCardAI("Copper"))
     opponent.deck = [get_card("Estate")]
 
     get_card("Sorcerer").play_effect(state)
 
-    assert attacker.favors == 1
+    assert attacker.favors == 0
     assert state.supply["Curse"] == 9
-    assert [card.name for card in opponent.deck] == ["Estate", "Curse"]
+    assert [card.name for card in opponent.deck] == ["Estate"]
+    assert [card.name for card in opponent.discard] == ["Curse"]
 
 
 def test_sorcerer_correct_name_avoids_curse_and_keeps_revealed_card():
@@ -39,7 +40,7 @@ def test_sorcerer_correct_name_avoids_curse_and_keeps_revealed_card():
 
     get_card("Sorcerer").play_effect(state)
 
-    assert attacker.favors == 1
+    assert attacker.favors == 0
     assert state.supply["Curse"] == 10
     assert [card.name for card in opponent.deck] == ["Estate"]
 
@@ -51,7 +52,7 @@ def test_sorcerer_no_revealed_card_does_not_gain_curse():
 
     get_card("Sorcerer").play_effect(state)
 
-    assert attacker.favors == 1
+    assert attacker.favors == 0
     assert state.supply["Curse"] == 10
     assert opponent.deck == []
     assert opponent.discard == []

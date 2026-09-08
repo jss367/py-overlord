@@ -37,3 +37,7 @@ class KingsCourt(Card):
                 player, choice, blocked_return_zone=player.hand
             ):
                 break
+
+        from ..allies._rules import retain_multiplier
+
+        retain_multiplier(player, self, choice)

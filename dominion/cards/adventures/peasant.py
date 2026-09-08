@@ -217,7 +217,7 @@ class Teacher(Card):
             if not card.is_action:
                 continue
             idx = game_state.players.index(player)
-            existing = game_state.pile_tokens.get((idx, name), set())
+            existing = game_state.pile_tokens.get((idx, game_state.supply_pile_key(name)), set())
             if existing:
                 continue
             candidate_piles.append(card)

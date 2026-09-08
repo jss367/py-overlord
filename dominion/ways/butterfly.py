@@ -29,9 +29,7 @@ class WayOfTheButterfly(Way):
         player.in_play.remove(card)
         # Leaving play ends any Frog marker from an earlier play this turn.
         card._frog_topdeck = None
-        game_state.supply[pile_name] = game_state.supply.get(pile_name, 0) + 1
-        if pile_name in game_state.pile_order:
-            game_state.pile_order[pile_name].append(card.name)
+        game_state._restore_to_supply_pile(card)
 
         target_cost = card.cost.coins + 1
 

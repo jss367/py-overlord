@@ -4,6 +4,7 @@ Stronghold."""
 from typing import ClassVar
 
 from ..base_card import Card, CardCost, CardStats, CardType
+from ._rules import candidates, gain, plus_cards, plus_coins, rotate, select_modes
 from ._split_base import AlliesSplitCard
 
 FORTS_PILE_ORDER = ("Tent", "Garrison", "Hill Fort", "Stronghold")
@@ -14,10 +15,6 @@ class _Forts(AlliesSplitCard):
 
 
 class Tent(_Forts):
-    """+$2. You may put this on your deck."""
-
-    upper_partners: ClassVar[tuple[str, ...]] = ()
-
     def __init__(self):
         super().__init__(
             name="Tent",
@@ -27,15 +24,12 @@ class Tent(_Forts):
         )
 
     def play_effect(self, game_state):
-        player = game_state.current_player
-        # Always topdeck Tent so it cycles back next turn.
-        if self in player.in_play:
-            player.in_play.remove(self)
-            player.deck.append(self)
+        p = game_state.current_player
+        rotate(game_state, p, "Tent")
 
 
 class Garrison(_Forts):
-    """+1 Action +1 Buy. This turn, when you gain a card, add a token here.
+    """+$2. This turn, when you gain a card, add a token here.
     At the start of your next turn, remove them for +1 Card each.
     """
 
@@ -45,7 +39,7 @@ class Garrison(_Forts):
         super().__init__(
             name="Garrison",
             cost=CardCost(coins=4),
-            stats=CardStats(actions=1, buys=1),
+            stats=CardStats(coins=2),
             types=[CardType.ACTION, CardType.DURATION],
         )
         self.tokens = 0
@@ -55,7 +49,7 @@ class Garrison(_Forts):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        turn_marker = (id(player), player.turns_taken)
+        turn_marker = (game_state.players.index(player), player.turns_taken)
         if self._garrison_turn_marker != turn_marker:
             self.tokens = 0
             self._garrison_gain_triggers = 0
@@ -67,13 +61,16 @@ class Garrison(_Forts):
     def on_owner_gain(self, game_state, player, gained_card: Card) -> None:
         if self not in player.in_play or self._garrison_gain_triggers <= 0:
             return
-        if self._garrison_turn_marker != (id(player), player.turns_taken):
+        if self._garrison_turn_marker != (
+            game_state.players.index(player),
+            player.turns_taken,
+        ):
             return
 
         gain_marker = (
-            id(player),
+            game_state.players.index(player),
             getattr(player, "cards_gained_this_turn", 0),
-            id(gained_card),
+            gained_card,
         )
         if self._garrison_last_gain_marker == gain_marker:
             return
@@ -96,10 +93,6 @@ class Garrison(_Forts):
 
 
 class HillFort(_Forts):
-    """Gain a card costing up to $4. Choose: put it in your hand; or +1 Card."""
-
-    upper_partners: ClassVar[tuple[str, ...]] = ("Tent", "Garrison")
-
     def __init__(self):
         super().__init__(
             name="Hill Fort",
@@ -109,57 +102,43 @@ class HillFort(_Forts):
         )
 
     def play_effect(self, game_state):
-        from ..registry import get_card
-
-        player = game_state.current_player
-        # Gain a card up to $4.
-        candidates = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            candidate = get_card(name)
-            if candidate.cost.potions > 0 or candidate.cost.coins > 4:
-                continue
-            if not candidate.may_be_bought(game_state):
-                continue
-            candidates.append(candidate)
-        if not candidates:
-            return
-        chosen = player.ai.choose_buy(game_state, candidates + [None])
-        if chosen is None:
-            return
-        if game_state.supply.get(chosen.name, 0) <= 0:
-            return
-        game_state.supply[chosen.name] -= 1
-        gained = game_state.gain_card(player, chosen)
-        # Choose: put in hand, or +1 Card. Prefer hand (almost always better).
-        if gained in player.discard:
-            player.discard.remove(gained)
-            player.hand.append(gained)
-        else:
-            # Already routed elsewhere by reactions; fall back to +1 Card.
-            game_state.draw_cards(player, 1)
+        p = game_state.current_player
+        gained = gain(game_state, p, candidates(game_state, CardCost(coins=4)))
+        destination = game_state.gain_destination(gained)
+        default = (
+            "hand" if destination is not None and gained in destination else "cycle"
+        )
+        for mode in select_modes(game_state, p, self, ["hand", "cycle"], [default]):
+            if mode == "hand":
+                for zone in [game_state.gain_destination(gained)]:
+                    if zone is not None and gained in zone:
+                        zone.remove(gained)
+                        p.hand.append(gained)
+                        break
+            else:
+                plus_cards(game_state, p, 1)
+                if not p.ignore_action_bonuses:
+                    p.actions += 1
 
 
 class Stronghold(_Forts):
-    """3 VP. Choose: +3 Cards; or +3 VP."""
-
-    upper_partners: ClassVar[tuple[str, ...]] = ("Tent", "Garrison", "Hill Fort")
-
     def __init__(self):
         super().__init__(
             name="Stronghold",
             cost=CardCost(coins=6),
-            stats=CardStats(vp=3),
-            types=[CardType.ACTION, CardType.VICTORY],
+            stats=CardStats(vp=2),
+            types=[CardType.ACTION, CardType.DURATION, CardType.VICTORY],
         )
 
     def play_effect(self, game_state):
-        player = game_state.current_player
-        # +3 Cards is more useful in most positions; choose it by default.
-        # If endgame is near (Provinces low), take +3 VP.
-        provinces_left = game_state.supply.get("Province", 0)
-        if provinces_left <= 2:
-            player.vp_tokens += 3
-        else:
-            game_state.draw_cards(player, 3)
+        p = game_state.current_player
+        for mode in select_modes(
+            game_state, p, self, ["coins", "cards_next_turn"], ["cards_next_turn"]
+        ):
+            if mode == "coins":
+                plus_coins(p, 3)
+            else:
+                p.duration.append(self)
+
+    def on_duration(self, game_state):
+        game_state.draw_cards(game_state.current_player, 3)

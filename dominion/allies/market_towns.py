@@ -2,30 +2,23 @@ from .base_ally import Ally
 
 
 class MarketTowns(Ally):
-    """At start of Buy phase, spend 1+ Favors: play an Action from hand
-    once per Favor.
-    """
-
     def __init__(self):
         super().__init__("Market Towns")
 
-    def on_buy_phase_start(self, game_state, player) -> None:
-        while player.favors > 0:
-            actions = [c for c in player.hand if c.is_action]
-            if not actions:
+    def on_buy_phase_start(self, game_state, player):
+        from ..game.game_state import PHASE_STEP_LIMIT, PhaseStepLimitExceeded
+
+        for _ in range(PHASE_STEP_LIMIT):
+            if not player.favors or not game_state._voyage_can_play_from_hand(player):
                 return
-            choice = player.ai.choose_action(game_state, actions + [None])
-            if choice is None or choice not in player.hand:
+            choices = [
+                c
+                for c in player.hand
+                if c.is_action and not game_state._warlord_blocks_action_play(player, c)
+            ]
+            choice = player.ai.choose_action(game_state, choices + [None])
+            if choice not in choices:
                 return
             player.favors -= 1
-            player.hand.remove(choice)
-            player.in_play.append(choice)
-            game_state.log_callback(
-                (
-                    "action",
-                    player.ai.name,
-                    f"spends a Favor on Market Towns to play {choice}",
-                    {"favors_remaining": player.favors},
-                )
-            )
-            choice.on_play(game_state)
+            game_state.play_action_from_hand_indirectly(player, choice)
+        raise PhaseStepLimitExceeded("Market Towns exceeded play limit")

@@ -30,4 +30,5 @@ class Embargo(Card):
         if choice not in game_state.supply:
             return
 
+        choice = game_state.supply_pile_key(choice)
         game_state.embargo_tokens[choice] = game_state.embargo_tokens.get(choice, 0) + 1

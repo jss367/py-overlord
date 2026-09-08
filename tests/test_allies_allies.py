@@ -32,14 +32,29 @@ def _state(ally_name: str) -> tuple[GameState, PlayerState]:
 
 def test_all_allies_registered():
     expected = {
-        "Architects' Guild", "Band of Nomads", "Cave Dwellers",
-        "Circle of Witches", "City-state", "Coastal Haven",
-        "Crafters' Guild", "Desert Guides", "Family of Inventors",
-        "Fellowship of Scribes", "Forest Dwellers", "Gang of Pickpockets",
-        "Island Folk", "League of Bankers", "League of Shopkeepers",
-        "Market Towns", "Mountain Folk", "Order of Astrologers",
-        "Order of Masons", "Peaceful Cult", "Plateau Shepherds",
-        "Trappers' Lodge", "Woodworkers' Guild",
+        "Architects' Guild",
+        "Band of Nomads",
+        "Cave Dwellers",
+        "Circle of Witches",
+        "City-state",
+        "Coastal Haven",
+        "Crafters' Guild",
+        "Desert Guides",
+        "Family of Inventors",
+        "Fellowship of Scribes",
+        "Forest Dwellers",
+        "Gang of Pickpockets",
+        "Island Folk",
+        "League of Bankers",
+        "League of Shopkeepers",
+        "Market Towns",
+        "Mountain Folk",
+        "Order of Astrologers",
+        "Order of Masons",
+        "Peaceful Cult",
+        "Plateau Shepherds",
+        "Trappers' Lodge",
+        "Woodworkers' Guild",
     }
     assert set(ALLY_TYPES.keys()) == expected
     assert len(ALLY_TYPES) == 23
@@ -74,9 +89,7 @@ def test_no_ally_when_no_liaison():
             return "p1"
 
     state = GameState(players=[])
-    state.initialize_game(
-        [_AI(), _AI()], [get_card("Village"), get_card("Smithy")]
-    )
+    state.initialize_game([_AI(), _AI()], [get_card("Village"), get_card("Smithy")])
     assert state.allies == []
 
 
@@ -142,7 +155,7 @@ def test_circle_of_witches_curses_opponents():
     state.supply = {"Curse": 5}
     state.allies = [get_ally("Circle of Witches")]
     p1.favors = 3
-    witch = get_card("Witch")
+    witch = get_card("Underling")
     p1.in_play.append(witch)
     state.current_player_index = 0
     state.allies[0].on_play_card(state, p1, witch)
@@ -182,7 +195,7 @@ def test_plateau_shepherds_score_bonus():
     # Three $2 cards (e.g. Estate at $2 cost).
     player.deck = [get_card("Estate") for _ in range(3)]
     bonus = state.allies[0].score_bonus(state, player)
-    assert bonus == 4 * 3
+    assert bonus == 2 * 3
 
 
 def test_island_folk_schedules_extra_turn():
@@ -190,14 +203,14 @@ def test_island_folk_schedules_extra_turn():
     player.favors = 5
     state.allies[0].on_turn_end(state, player)
     assert player.favors == 0
-    assert player.outpost_pending
+    assert state.extra_turn
 
 
 def test_league_of_bankers_grants_coin_per_4_favors():
     state, player = _state("League of Bankers")
     player.favors = 9
-    state.allies[0].on_buy_phase_end(state, player)
-    assert player.coin_tokens == 2  # 9 // 4 = 2
+    state.allies[0].on_buy_phase_start(state, player)
+    assert player.coins == 2  # 9 // 4 = 2
 
 
 def test_trappers_lodge_topdecks_gain():
@@ -212,36 +225,37 @@ def test_trappers_lodge_topdecks_gain():
     assert silver not in player.discard
 
 
-def test_woodworkers_guild_trashes_action_and_gains_better():
+def test_woodworkers_guild_has_no_gain_cost_limit():
     state, player = _state("Woodworkers' Guild")
-    state.supply["Smithy"] = 5
-    state.supply["Village"] = 5
+    state.supply = {"King's Court": 5}
     player.favors = 1
     village = get_card("Village")
     player.hand = [village]
-    state.allies[0].on_turn_start(state, player)
+    state.allies[0].on_buy_phase_start(state, player)
     assert player.favors == 0
-    # Village trashed, an Action up to $5 gained.
     assert village in state.trash
-    assert player.discard or any(c.name == "Smithy" for c in player.discard)
+    assert [c.name for c in player.discard] == ["King's Court"]
 
 
-def test_crafters_guild_gains_card_to_hand():
+def test_crafters_guild_gains_card_onto_deck():
     state, player = _state("Crafters' Guild")
     state.supply["Silver"] = 5
     state.supply["Smithy"] = 5
     player.favors = 2
     state.allies[0].on_turn_start(state, player)
     assert player.favors == 0
-    assert any(c.name in {"Smithy", "Silver"} for c in player.hand)
+    assert any(c.name in {"Smithy", "Silver"} for c in player.deck)
 
 
 def test_desert_guides_redraws_junk_hand():
     state, player = _state("Desert Guides")
     player.favors = 1
     player.hand = [
-        get_card("Curse"), get_card("Curse"), get_card("Curse"),
-        get_card("Copper"), get_card("Copper"),
+        get_card("Curse"),
+        get_card("Curse"),
+        get_card("Curse"),
+        get_card("Copper"),
+        get_card("Copper"),
     ]
     player.deck = [get_card("Gold") for _ in range(5)]
     state.allies[0].on_turn_start(state, player)
@@ -264,62 +278,59 @@ def test_fellowship_of_scribes_draws_when_hand_low():
 def test_gang_of_pickpockets_spends_favor_first():
     state, player = _state("Gang of Pickpockets")
     player.favors = 1
-    player.hand = [get_card("Copper")]
+    player.hand = [get_card("Copper") for _ in range(5)]
     state.allies[0].on_turn_start(state, player)
     assert player.favors == 0
-    # No discard since the Favor was spent.
-    assert any(c.name == "Copper" for c in player.hand)
+    assert len(player.hand) == 5
+    assert player.discard == []
 
 
 def test_gang_of_pickpockets_discards_when_no_favors():
     state, player = _state("Gang of Pickpockets")
-    player.favors = 0
-    player.hand = [get_card("Estate")]
+    player.hand = [get_card("Estate") for _ in range(5)]
     state.allies[0].on_turn_start(state, player)
-    assert any(c.name == "Estate" for c in player.discard)
+    assert len(player.hand) == 4
+    assert len(player.discard) == 1
 
 
 def test_family_of_inventors_marks_pile_with_minus_1():
     state, player = _state("Family of Inventors")
-    state.supply["Silver"] = 5
-    state.supply["Smithy"] = 5
+    state.supply = {"Silver": 5, "Smithy": 5}
     player.favors = 1
-    state.allies[0].on_turn_end(state, player)
+    state.allies[0].on_buy_phase_start(state, player)
     assert player.favors == 0
-    assert getattr(state, "family_inventor_tokens", {})
+    assert state.family_inventor_tokens
 
 
-def test_order_of_masons_banks_bonus_draws():
+def test_order_of_masons_leaves_up_to_two_cards_per_favor_out_of_shuffle():
     state, player = _state("Order of Masons")
-    player.favors = 4
-    state.allies[0].on_turn_end(state, player)
-    # 4 favors -> 2 pairs -> +2 cards next turn.
+    player.favors = 2
+    junk = [get_card("Curse") for _ in range(4)]
+    gold = get_card("Gold")
+    player.discard = junk + [gold]
+    player.shuffle_discard_into_deck()
     assert player.favors == 0
-    assert getattr(player, "order_of_masons_bonus", 0) == 2
+    assert player.discard == junk
+    assert player.deck == [gold]
 
 
-def test_league_of_shopkeepers_grants_bonus_favor_on_liaison_play():
+def test_league_of_shopkeepers_does_not_grant_favors():
     state, player = _state("League of Shopkeepers")
     underling = get_card("Underling")
     player.in_play.append(underling)
     favors_before = player.favors
     state.allies[0].on_play_card(state, player, underling)
-    # Ally grants +1 Favor on top of Underling's own Favor (which fires
-    # via on_play not via this hook).
-    assert player.favors == favors_before + 1
+    assert player.favors == favors_before
 
 
 def test_city_state_plays_action_for_two_favors():
     state, player = _state("City-state")
-    state.phase = "treasure"
-    player.ai = ChooseFirstActionAI()
     player.favors = 2
     village = get_card("Village")
-    player.hand = [village]
-    silver = get_card("Silver")
-    state.allies[0].on_play_card(state, player, silver)
+    state.gain_card(player, village)
     assert player.favors == 0
     assert village in player.in_play
+    assert player.actions == 3
 
 
 def test_coastal_haven_keeps_actions_for_next_turn():
@@ -327,7 +338,7 @@ def test_coastal_haven_keeps_actions_for_next_turn():
     player.favors = 2
     village = get_card("Village")
     player.hand = [village, get_card("Copper")]
-    state.allies[0].on_turn_end(state, player)
+    state.allies[0].on_cleanup_start(state, player)
     assert player.favors == 1  # One Action kept; one Favor spent
     assert village in player.foresight_set_aside
 
@@ -341,7 +352,7 @@ def test_coastal_haven_can_keep_any_chosen_card():
     village = get_card("Village")
     player.hand = [estate, copper, village]
 
-    state.allies[0].on_turn_end(state, player)
+    state.allies[0].on_cleanup_start(state, player)
 
     assert player.favors == 0
     assert player.foresight_set_aside == [estate, copper]
@@ -352,20 +363,24 @@ def test_forest_dwellers_reorders_top_3():
     state, player = _state("Forest Dwellers")
     player.favors = 1
     player.deck = [
-        get_card("Copper"), get_card("Estate"), get_card("Smithy"),
+        get_card("Copper"),
+        get_card("Estate"),
+        get_card("Smithy"),
     ]
     state.allies[0].on_turn_start(state, player)
     assert player.favors == 0
 
 
-def test_order_of_astrologers_topdecks_from_discard_when_shuffle_imminent():
+def test_order_of_astrologers_topdecks_during_shuffle():
     state, player = _state("Order of Astrologers")
     player.favors = 1
-    player.deck = []
-    player.discard = [get_card("Smithy"), get_card("Curse")]
-    state.allies[0].on_turn_start(state, player)
+    smithy = get_card("Smithy")
+    player.discard = [smithy, get_card("Curse")]
+    player.shuffle_discard_into_deck()
     assert player.favors == 0
-    assert any(c.name == "Smithy" for c in player.deck)
+    assert player.deck[-1] is smithy
+    assert len(player.deck) == 2
+    assert player.discard == []
 
 
 # ---------------------------------------------------------------------------
@@ -380,17 +395,17 @@ def test_league_of_shopkeepers_uses_favors_not_liaisons_in_play():
     underling = get_card("Underling")
     player.in_play.append(underling)
     # Player has many Favors and only a single Liaison in play.
-    player.favors = 4
+    player.favors = 10
     coins_before = player.coins
     buys_before = player.buys
     state.allies[0].on_play_card(state, player, underling)
-    # 1 Liaison in play: favors becomes 5, granting +$1 (>=3) and +1 Buy (>=5).
+    # The 5- and 10-Favor thresholds apply without spending Favors.
     assert player.coins == coins_before + 1
     assert player.buys == buys_before + 1
 
 
-def test_circle_of_witches_fires_on_throne_room_attack():
-    """Throne Room playing an Attack twice should trigger Circle of Witches
+def test_circle_of_witches_fires_on_each_liaison_replay():
+    """Throne Room playing a Liaison twice should trigger Circle of Witches
     each time, not just once."""
     p1 = PlayerState(DummyAI())
     p2 = PlayerState(DummyAI())
@@ -399,14 +414,14 @@ def test_circle_of_witches_fires_on_throne_room_attack():
     state.allies = [get_ally("Circle of Witches")]
     p1.favors = 6  # Enough for two attacks (3 each).
     state.current_player_index = 0
-    militia = get_card("Militia")
+    militia = get_card("Importer")
     p1.in_play.append(militia)
     # Simulate Throne Room's two nested plays via the new helper.
     militia.on_play(state)
     state.fire_ally_play_hooks(p1, militia)
     militia.on_play(state)
     state.fire_ally_play_hooks(p1, militia)
-    # Each attack should have spent 3 Favors (6 → 0) and given 2 Curses.
+    # Each Liaison play spends 3 Favors and gives one Curse to the opponent.
     assert p1.favors == 0
     assert sum(1 for c in p2.discard if c.name == "Curse") == 2
 
@@ -420,26 +435,16 @@ def test_get_victory_points_no_arg_includes_plateau_shepherds():
     state.allies = [get_ally("Plateau Shepherds")]
     p.favors = 2
     p.deck = [get_card("Estate"), get_card("Estate")]  # $2 cost cards
-    # 2 favors paired with 2 $2 cards = 2 pairs * 4 VP = 8 VP from Ally,
-    # plus 1 VP per Estate (2 estates = 2 VP) = 10 total.
-    assert p.get_victory_points() == 10
+    # Two pairs give 4 VP; the Estates themselves give another 2 VP.
+    assert p.get_victory_points() == 6
 
 
-def test_circle_of_witches_fires_on_night_attack():
-    """Night-phase Attack plays must dispatch the Ally on_play_card hook
-    (for cards like Werewolf in Night mode, etc.)."""
-    p1 = PlayerState(DummyAI())
-    p2 = PlayerState(DummyAI())
-    state = GameState(players=[p1, p2])
+def test_circle_of_witches_ignores_non_liaison_attacks():
+    state, player = _state("Circle of Witches")
+    opponent = PlayerState(DummyAI())
+    state.players.append(opponent)
     state.supply = {"Curse": 5}
-    state.allies = [get_ally("Circle of Witches")]
-    p1.favors = 3
-    state.current_player_index = 0
-    # Use Witch as a stand-in attack card to simulate the firing path. The
-    # important property under test is that fire_ally_play_hooks routes to
-    # CircleOfWitches.on_play_card.
-    witch = get_card("Witch")
-    p1.in_play.append(witch)
-    state.fire_ally_play_hooks(p1, witch)
-    assert p1.favors == 0
-    assert sum(1 for c in p2.discard if c.name == "Curse") == 1
+    player.favors = 3
+    state.fire_ally_play_hooks(player, get_card("Witch"))
+    assert player.favors == 3
+    assert opponent.discard == []

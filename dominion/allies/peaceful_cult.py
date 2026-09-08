@@ -1,47 +1,39 @@
 from .base_ally import Ally
+from ..cards.allies._rules import decide
 
 
 class PeacefulCult(Ally):
-    """At start of Buy phase, may spend any number of Favors to trash
-    that many cards from hand.
-    """
-
     def __init__(self):
         super().__init__("Peaceful Cult")
 
-    def on_buy_phase_start(self, game_state, player) -> None:
-        # Spend per junk card; cap by available Favors.
-        if player.favors <= 0 or not player.hand:
-            return
-        # Identify trash-worthy cards.
-        worthy = [
-            c for c in player.hand
-            if c.name in {"Curse", "Copper", "Estate", "Hovel", "Overgrown Estate"}
-            or (c.is_victory and not c.is_action and c.cost.coins <= 2)
+    def on_buy_phase_start(self, game_state, player):
+        junk = [
+            c
+            for c in player.hand
+            if c.name in {"Curse", "Estate", "Copper", "Hovel", "Overgrown Estate"}
         ]
-        if not worthy:
-            return
-        spend = min(player.favors, len(worthy))
-        # Trash from worst to best.
-        worthy_sorted = sorted(
-            worthy,
-            key=lambda c: (c.name == "Curse", c.name == "Copper", c.cost.coins),
-            reverse=True,
+        # Spending is chosen first and is not capped by hand size; the later
+        # mandatory trash instruction does as much as possible. The default
+        # policy never spends more than the number of junk cards in hand.
+        count = decide(
+            game_state,
+            player,
+            "peaceful_cult_favors",
+            list(range(player.favors + 1)),
+            min(player.favors, len(junk)),
         )
-        trashed = 0
-        for card in worthy_sorted[:spend]:
-            if card in player.hand:
-                player.hand.remove(card)
-                game_state.trash_card(player, card)
-                trashed += 1
-        if trashed <= 0:
+        if not count:
             return
-        player.favors -= trashed
-        game_state.log_callback(
-            (
-                "action",
-                player.ai.name,
-                f"spends {trashed} Favors on Peaceful Cult (trash {trashed} cards)",
-                {"favors_remaining": player.favors},
+        player.favors -= count
+        remaining = list(player.hand)
+        selected = []
+        for _ in range(min(count, len(remaining))):
+            default = next((c for c in junk if c in remaining), remaining[0])
+            chosen = decide(
+                game_state, player, "peaceful_cult_trash", remaining, default
             )
-        )
+            remaining.remove(chosen)
+            selected.append(chosen)
+        for card in selected:
+            player.hand.remove(card)
+        game_state.trash_cards_together(player, selected)

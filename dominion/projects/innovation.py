@@ -21,6 +21,8 @@ class Innovation(Project):
             player.deck.remove(card)
         elif card in player.hand:
             player.hand.remove(card)
+        else:
+            return
 
         player.in_play.append(card)
         card.on_play(game_state)

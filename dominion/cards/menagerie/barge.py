@@ -4,9 +4,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Barge(Card):
-    """Choose one: +3 Cards +1 Buy now; or +3 Cards +1 Buy at start of your
-    next turn.
-    """
+    """Either now or at the start of your next turn, +3 Cards and +1 Buy."""
 
     def __init__(self):
         super().__init__(
@@ -24,16 +22,20 @@ class Barge(Card):
 
         player = game_state.current_player
         choose_now = player.ai.should_resolve_barge_now(game_state, player)
-        if choose_now:
-            # "+3 Cards" instruction — Way of the Chameleon swaps to +$3.
-            chameleon_plus_cards(game_state, player, 3)
-            player.buys += 1
-            # Not a duration this turn; remove from in_play normally during
-            # cleanup. Default behaviour does this.
-        else:
-            self._fire_now = True
-            player.duration.append(self)
-            self.duration_persistent = True
+        def resolve(choose_now):
+            if choose_now:
+                # "+3 Cards" instruction — Way of the Chameleon swaps to +$3.
+                chameleon_plus_cards(game_state, player, 3)
+                player.buys += 1
+                # Not a duration this turn; remove from in_play normally during
+                # cleanup. Default behaviour does this.
+            else:
+                self._fire_now = True
+                player.duration.append(self)
+                self.duration_persistent = True
+
+        # Barge has an "either" timing choice, not a "choose" ability.
+        resolve(choose_now)
 
     def on_duration(self, game_state):
         player = game_state.current_player

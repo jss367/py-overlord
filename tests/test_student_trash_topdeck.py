@@ -1,9 +1,7 @@
 """Student top-decks itself when its trashed card is a Treasure.
 
-Per Allies rules, Student says: "+1 Action. +1 Favor. Trash a card from your
-hand. If it's a Treasure, put this onto your deck." The previous implementation
-only granted the +1 Favor and left Student in the normal play→discard flow,
-which silently dropped the recycle effect on Treasure-trash turns.
+Student gives +1 Action, optionally rotates Wizards, and trashes a card.
+Only trashing a Treasure grants +1 Favor and topdecks Student.
 """
 
 from dominion.cards.registry import get_card
@@ -66,8 +64,8 @@ def test_student_top_decks_itself_after_trashing_a_treasure():
         "Student should be moved to the top of the deck after trashing a Treasure"
     )
     assert student not in player.in_play
-    # And +1 Favor was awarded for the Treasure trash (on top of the Liaison +1).
-    assert player.favors == 2
+    # +1 Favor is conditional on trashing a Treasure.
+    assert player.favors == 1
 
 
 def test_student_stays_in_play_when_trashing_a_non_treasure():
@@ -82,5 +80,5 @@ def test_student_stays_in_play_when_trashing_a_non_treasure():
         "Student should stay in play when the trashed card was not a Treasure"
     )
     assert student not in player.deck
-    # Only the Liaison favor was awarded.
-    assert player.favors == 1
+    # No Favor for trashing a non-Treasure.
+    assert player.favors == 0

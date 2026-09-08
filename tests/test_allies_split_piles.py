@@ -1,4 +1,4 @@
-"""Tests for the five Allies split piles."""
+"""Tests for the six Allies split piles."""
 
 from dominion.cards.allies.augurs import AUGURS_PILE_ORDER
 from dominion.cards.allies.clashes import CLASHES_PILE_ORDER
@@ -97,7 +97,7 @@ def test_top_drained_exposes_next():
     assert blacksmith.may_be_bought(state)
 
 
-def test_townsfolk_grant_favor():
+def test_townsfolk_do_not_grant_favors():
     for name in TOWNSFOLK_PILE_ORDER:
         state, player = _setup_state("Town Crier")
         card = get_card(name)
@@ -108,7 +108,7 @@ def test_townsfolk_grant_favor():
             card.play_effect(state)
         else:
             card.on_play(state)
-        assert player.favors >= before + 1
+        assert player.favors == before
 
 
 def test_elder_gives_townsfolk_choice_card_one_extra_mode():
@@ -136,8 +136,8 @@ def test_elder_gives_townsfolk_choice_card_one_extra_mode():
     player.in_play.append(elder)
     elder.on_play(state)
 
-    assert player.favors == 2
-    assert player.actions == 2
+    assert player.favors == 0
+    assert player.actions == 1
     assert len(player.hand) == 7
     assert not hasattr(state, "_elder_extra_townsfolk_choices")
 
@@ -168,15 +168,15 @@ def test_elder_extra_mode_does_not_apply_to_nested_action_play():
     player.in_play.append(elder)
     elder.on_play(state)
 
-    assert player.favors == 3
-    assert player.coins == 4
-    assert player.actions == 2
+    assert player.favors == 0
+    assert player.coins == 6
+    assert player.actions == 1
     assert len(player.hand) == 0
     assert not hasattr(state, "_elder_extra_townsfolk_choices")
     assert not hasattr(state, "_elder_extra_townsfolk_target")
 
 
-def test_clashes_grant_favor():
+def test_clashes_do_not_grant_favors():
     for name in CLASHES_PILE_ORDER:
         state, player = _setup_state("Battle Plan")
         card = get_card(name)
@@ -190,7 +190,7 @@ def test_clashes_grant_favor():
             card.play_effect(state)
         else:
             card.play_effect(state)
-        assert player.favors >= before + 1
+        assert player.favors == before
 
 
 def test_garrison_tokens_each_card_gained_and_draws_next_turn():
@@ -204,8 +204,9 @@ def test_garrison_tokens_each_card_gained_and_draws_next_turn():
 
     assert garrison.tokens == 2
     assert garrison in player.duration
-    assert player.actions == 2
-    assert player.buys == 2
+    assert player.actions == 1
+    assert player.buys == 1
+    assert player.coins == 2
 
     player.deck = [get_card("Copper") for _ in range(5)]
     player.hand = []
@@ -561,13 +562,16 @@ def test_sorceress_mismatched_reveal_does_not_curse():
     assert all(card.name != "Curse" for card in defender.discard)
 
 
-def test_distant_shore_gains_two_estates_on_gain():
+def test_distant_shore_gains_one_estate_on_play_only():
     state, player = _setup_state("Old Map")
     state.supply["Estate"] = 8
     distant = get_card("Distant Shore")
     state.gain_card(player, distant)
-    estates_in_discard = sum(1 for c in player.discard if c.name == "Estate")
-    assert estates_in_discard == 2
+    assert not any(c.name == "Estate" for c in player.discard)
+    player.discard.remove(distant)
+    player.in_play.append(distant)
+    distant.on_play(state)
+    assert sum(c.name == "Estate" for c in player.discard) == 1
 
 
 def test_territory_gains_gold_per_empty_pile():

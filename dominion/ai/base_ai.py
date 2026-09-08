@@ -10,6 +10,18 @@ from dominion.game.player_state import PlayerState
 class AI(ABC):
     """Base class for all AIs."""
 
+    def choose_allies_option(self, state, player, reason, options, default):
+        hook = getattr(getattr(self, "strategy", None), "choose_allies_option", None)
+        return hook(state, player, reason, options, default) if hook else default
+
+    def choose_card_modes(self, state, player, card, options, minimum, maximum, defaults):
+        hook = getattr(getattr(self, "strategy", None), "choose_card_modes", None)
+        return (
+            hook(state, player, card, options, minimum, maximum, defaults)
+            if hook
+            else defaults
+        )
+
     @property
     @abstractmethod
     def name(self) -> str:
