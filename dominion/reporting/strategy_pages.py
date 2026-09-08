@@ -1,7 +1,5 @@
 """Render registered strategies as static HTML pages."""
 
-from __future__ import annotations
-
 import ast
 from dataclasses import dataclass, field
 from html import escape

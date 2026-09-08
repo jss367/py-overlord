@@ -1,5 +1,7 @@
 # py-overlord
 
+Requires Python 3.14 or newer.
+
 To battle strategies:
 
 ```

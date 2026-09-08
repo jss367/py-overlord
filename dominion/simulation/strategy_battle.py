@@ -156,7 +156,7 @@ class StrategyBattle:
             self._pool.close()
             self._pool = None
 
-    def __enter__(self) -> "StrategyBattle":
+    def __enter__(self) -> StrategyBattle:
         return self
 
     def __exit__(self, *exc_info) -> None:

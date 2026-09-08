@@ -1,7 +1,5 @@
 """Flag artifact: holder draws +1 Card at the start of their turn."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from .base_artifact import Artifact

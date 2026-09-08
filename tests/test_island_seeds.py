@@ -1,7 +1,5 @@
 """Tests for board-derived island seeds (dominion.analysis.island_seeds)."""
 
-from __future__ import annotations
-
 from dataclasses import asdict
 
 import pytest

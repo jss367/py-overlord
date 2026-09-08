@@ -8,8 +8,6 @@ unheld). Artifact effects fire only for the current holder and are
 implemented as hook methods invoked by ``GameState`` and the cards.
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
@@ -28,7 +26,7 @@ class Artifact:
     name: str = ""
 
     def __init__(self) -> None:
-        self.holder: Optional["PlayerState"] = None
+        self.holder: Optional[PlayerState] = None
 
     # ------------------------------------------------------------------
     # Ownership lifecycle

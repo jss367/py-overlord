@@ -1,7 +1,5 @@
 """Registry of Renaissance Artifacts."""
 
-from __future__ import annotations
-
 from typing import Type
 
 from .base_artifact import Artifact

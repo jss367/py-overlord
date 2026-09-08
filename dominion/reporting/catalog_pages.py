@@ -1,7 +1,5 @@
 """Build linked static pages for all registered strategies and boards."""
 
-from __future__ import annotations
-
 from dataclasses import replace
 import os
 from pathlib import Path

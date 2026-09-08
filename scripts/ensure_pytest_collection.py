@@ -7,8 +7,6 @@ It fails with a clear message if any test function is missing from the
 collection so the CI logs explicitly show gaps in discovery.
 """
 
-from __future__ import annotations
-
 import ast
 import re
 import subprocess

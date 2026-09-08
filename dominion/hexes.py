@@ -1,7 +1,5 @@
 """Definitions of Dominion Hex effects used by Doom cards."""
 
-from __future__ import annotations
-
 import random
 from typing import Callable, TYPE_CHECKING
 

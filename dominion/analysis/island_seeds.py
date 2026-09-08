@@ -26,8 +26,6 @@ serialized across that boundary. Workers rebuild the actual seed strategy
 from the spec via :func:`resolve_island_seed`.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Optional
 

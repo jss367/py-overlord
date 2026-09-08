@@ -1,7 +1,5 @@
 """Tests for board-derived engine archetypes (dominion.analysis.engine_archetypes)."""
 
-from __future__ import annotations
-
 import pytest
 
 from dominion.analysis.engine_archetypes import (

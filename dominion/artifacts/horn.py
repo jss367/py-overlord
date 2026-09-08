@@ -1,8 +1,6 @@
 """Horn artifact: when its holder discards a Border Guard from play, they
 may put it onto their deck instead."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from .base_artifact import Artifact

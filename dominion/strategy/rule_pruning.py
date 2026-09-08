@@ -30,8 +30,6 @@ priority list below a safe minimum even when all rules happen to be
 unfired (e.g., during the very first generation of a fresh population).
 """
 
-from __future__ import annotations
-
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 

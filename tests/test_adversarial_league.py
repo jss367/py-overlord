@@ -12,8 +12,6 @@ Each is covered below, plus the trainer wiring that makes the pool the panel
 the population actually faces.
 """
 
-from __future__ import annotations
-
 import pytest
 
 from dominion.simulation.adversarial_league import (

@@ -43,8 +43,6 @@ Usage
     python scripts/island_evolve.py --board boards/lisbon.txt --only "Big Money Island"
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import logging

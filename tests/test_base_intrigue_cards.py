@@ -1,7 +1,5 @@
 """Tests for newly implemented Base and Intrigue cards."""
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from dominion.cards.registry import get_card

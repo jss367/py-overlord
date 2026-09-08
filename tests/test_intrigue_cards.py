@@ -1,8 +1,6 @@
 """Tests for the missing-Intrigue cards plus the Nobles / Wishing Well /
 Ironworks bug fixes."""
 
-from __future__ import annotations
-
 from dominion.cards.base_card import CardType
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState

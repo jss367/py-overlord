@@ -5,8 +5,6 @@ Usage:
     PYTHONPATH=. python scripts/render_strategies.py --strategy "Big Money"
 """
 
-from __future__ import annotations
-
 import argparse
 from pathlib import Path
 

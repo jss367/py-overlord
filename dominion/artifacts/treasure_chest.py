@@ -1,7 +1,5 @@
 """Treasure Chest artifact: holder gains a Gold at the start of Buy phase."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from .base_artifact import Artifact
