@@ -579,3 +579,28 @@ def test_trait_pile_effects_take_the_current_top_card(trait):
         assert [c.name for c in p.deck] == ["Blacksmith"]
     assert s.supply["Town Crier"] == 4
     assert s.supply["Blacksmith"] == 3
+
+
+def test_elder_allows_an_extra_option_in_each_of_counts_two_clauses():
+    s, p, _ = state()
+    s.supply = {"Copper": 5, "Duchy": 5}
+    p.ai = ChoiceAI(modes=lambda card, options: (
+        ["discard", "copper"] if "copper" in options else ["coins", "duchy"]
+    ))
+    p.hand = [get_card("Count")] + cards("Copper", 2)
+    play(s, p, "Elder")
+    assert p.hand == []
+    assert [c.name for c in p.discard] == ["Copper", "Copper", "Copper", "Duchy"]
+    assert p.coins == 5
+
+
+def test_elder_pirate_ship_resolves_printed_coin_option_before_attack():
+    # Seaside rulebook: coins are the first option, attack is the second.
+    s, p, q = state()
+    p.ai = ChoiceAI(modes=lambda card, options: ["attack", "coins"])
+    p.hand = [get_card("Pirate Ship")]
+    q.deck = cards("Silver", 2)
+    play(s, p, "Elder")
+    assert p.coins == 2  # Elder's $2; Pirate Ship had no tokens at its coin step.
+    assert p.pirate_ship_tokens == 1
+    assert [c.name for c in s.trash] == ["Silver"]

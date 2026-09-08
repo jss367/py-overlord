@@ -13,6 +13,8 @@ def decide(state, player, reason, options, default):
 
 def select_modes(state, player, card, options, defaults, count=1):
     """Choose distinct printed modes, including Elder's optional extra choices."""
+    # Elder applies whenever this card offers abilities this turn, including
+    # both separate choose clauses on Count; it is not a consumable allowance.
     extra = getattr(player, "elder_choices", {}).get(card, 0)
     maximum = min(len(options), count + extra)
     defaults = list(dict.fromkeys([o for o in defaults if o in options] + options))[

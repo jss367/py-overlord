@@ -3,10 +3,10 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 class PirateShip(Card):
     """Action-Attack ($4): Choose one:
-      (1) Each other player reveals the top 2 cards of their deck, trashes a
+      (1) +$1 per Coin token on this Pirate Ship mat.
+      (2) Each other player reveals the top 2 cards of their deck, trashes a
           revealed Treasure that you choose, discards the rest, and if anyone
           had a Treasure trashed this way, you take a Coin token.
-      (2) +$1 per Coin token on this Pirate Ship mat.
 
     Note: in this codebase the "mat" is modeled as a per-player counter on the
     PlayerState (`pirate_ship_tokens`) so all of the player's Pirate Ships share
