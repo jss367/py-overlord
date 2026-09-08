@@ -193,10 +193,10 @@ class GameState:
             player.allies_gain_effects = []
         player.allies_gain_effects.append((kind, card, list(targets or [])))
 
-    def _resolve_allies_gain_effects(self, player, gained):
+    def _resolve_allies_gain_effects(self, player, gained, effects):
         from ..cards.allies._rules import discard, effective_cost
 
-        for kind, card, targets in list(getattr(player, "allies_gain_effects", [])):
+        for kind, card, targets in effects:
             if kind == "guildmaster":
                 player.favors += 1
             elif kind == "galleria":
@@ -4171,6 +4171,12 @@ class GameState:
 
         actual_card.returned_to_supply = False
 
+        # Only abilities already active when this gain happens can react to
+        # it. Playing a gained card can register effects for later (including
+        # nested) gains, but cannot add triggers to this gain in progress.
+        owner_gain_cards = list(player.in_play) + list(player.duration)
+        allies_gain_effects = tuple(getattr(player, "allies_gain_effects", []))
+
         # Menagerie Exile rule: gaining a card lets the player discard ALL
         # copies of it from Exile — in addition to the gain, never instead
         # of it. Capture whether a copy was exiled before resolving, for
@@ -4312,9 +4318,6 @@ class GameState:
         # Plunder Trait gain hooks (Cursed / Rich / Hasty / Fawning).
         # The gainer may resolve a competing Ally first, before a Trait moves
         # the gained card. Do not offer that Ally a second time for this gain.
-        # A card played by that Ally (e.g. Garrison) cannot react to the gain
-        # that happened before it entered play.
-        owner_gain_cards = list(player.in_play) + list(player.duration)
         resolved_allies = []
         for ally in self.allies:
             hook = getattr(ally, "on_owner_gain_before_trait", None)
@@ -4361,7 +4364,7 @@ class GameState:
             if hook is not None:
                 hook(self, player, actual_card)
 
-        self._resolve_allies_gain_effects(player, actual_card)
+        self._resolve_allies_gain_effects(player, actual_card, allies_gain_effects)
 
         # Allies hook: the chosen Ally may react to the active player's gains
         # (Architects' Guild, Band of Nomads, Trappers' Lodge).

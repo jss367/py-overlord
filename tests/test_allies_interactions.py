@@ -1019,12 +1019,18 @@ def test_hasty_gain_does_not_bypass_city_state_eligibility(off_turn, favors):
     assert village not in owner.in_play
 
 
-def test_city_state_played_hasty_garrison_does_not_count_its_own_gain():
+@pytest.mark.parametrize("method", ["Hasty City-state", "Innovation"])
+def test_played_garrison_does_not_count_its_own_gain(method):
     from dominion.traits import apply_trait
 
-    s, p, _ = state("City-state")
+    s, p, _ = state("City-state" if method == "Hasty City-state" else None)
     s.setup_supply([get_card("Tent")])
-    apply_trait(s, "Hasty", "Tent")
+    if method == "Hasty City-state":
+        apply_trait(s, "Hasty", "Tent")
+    else:
+        from dominion.projects.innovation import Innovation
+
+        p.projects = [Innovation()]
     s.rotate_supply_pile("Tent")
     p.favors = 2
     garrison = s.take_top_supply_card("Tent")
