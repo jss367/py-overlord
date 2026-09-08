@@ -377,11 +377,8 @@ def test_citadel_only_fires_once_per_turn():
     assert p.actions == 5
 
 
-def test_citadel_does_not_trigger_on_treasure_under_enlightenment():
-    """Under Rising Sun's Enlightenment, Treasures may be played in the
-    Action phase. Citadel must only trigger on Action cards, not Treasures —
-    the Treasure should not be replayed nor consume citadel_used.
-    """
+def test_citadel_triggers_on_treasure_under_enlightenment():
+    """Enlightened Treasures are Actions for all purposes, including Citadel."""
     from dominion.prophecies.enlightenment import Enlightenment
 
     class TreasureFirstAI(ChooseFirstActionAI):
@@ -411,12 +408,10 @@ def test_citadel_does_not_trigger_on_treasure_under_enlightenment():
     p.actions = 1
     state.phase = "action"
     state.handle_action_phase()
-    # Silver played as the only "action" under Enlightenment: +1 Card,
-    # +1 Action, no replay. citadel_used must remain False so a future
-    # Action this turn would still trigger Citadel.
-    assert p.citadel_used is False
-    # Started with 1 action, -1 to play Silver, +1 from Enlightenment text.
-    assert p.actions == 1
+    # Silver is the first Action under Enlightenment, so Citadel replays it.
+    assert p.citadel_used is True
+    # Started with 1 action, -1 to play, +1 per Enlightenment substitution.
+    assert p.actions == 2
 
 
 def test_citadel_replays_first_action_played_via_way():

@@ -804,7 +804,8 @@ def test_royal_galley_sets_aside_action_for_next_turn_replay():
 
     assert player.actions == actions_before + 4
     assert village in player.in_play
-    assert galley in player.discard
+    assert galley in player.in_play
+    assert galley not in player.discard
     assert galley not in player.duration
 
 

@@ -220,7 +220,8 @@ def test_garrison_tokens_each_card_gained_and_draws_next_turn():
     assert len(player.hand) == cards_before_duration + 2
     assert garrison.tokens == 0
     assert garrison not in player.duration
-    assert garrison in player.discard
+    assert garrison in player.in_play
+    assert garrison not in player.discard
     assert garrison.duration_persistent is False
 
 

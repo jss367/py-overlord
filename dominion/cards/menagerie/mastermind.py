@@ -23,7 +23,7 @@ class Mastermind(Card):
             self.duration_persistent = False
             return
 
-        choice = player.ai.choose_action(game_state, actions + [None])
+        choice = player.ai.choose_mastermind_action(game_state, player, actions)
         if choice is None:
             self.duration_persistent = False
             return

@@ -41,6 +41,26 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="tea-house-kind-emperor-strategy-guide.html",
+        display_name="Tea House and Kind Emperor Strategy Guide",
+        description=(
+            "Opening and play guide for Tea House income, free City Quarters, "
+            "Imperial Envoy draw, and early Provinces, with simulation results."
+        ),
+        kingdom_cards=("Tea House", "City Quarter", "Imperial Envoy", "Fortune Hunter"),
+        source_label="Repository simulation and official card rules",
+    ),
+    CuratedStrategyGuide(
+        filename="mine-guildhall-strategy-guide.html",
+        display_name="Mine and Guildhall Strategy Investigation",
+        description=(
+            "Dedicated combo search: treasure upgrades, Mastermind, free Mines, "
+            "and confirmed comparisons against the Tea House engine."
+        ),
+        kingdom_cards=("Mine", "Mastermind", "Tea House", "City Quarter", "Imperial Envoy"),
+        source_label="Dedicated simulation search and controlled comparisons",
+    ),
+    CuratedStrategyGuide(
         filename="cursed-band-biding-time-strategy-guide.html",
         display_name="Cursed Band and Biding Time Strategy Guide",
         description=(

@@ -1,0 +1,653 @@
+[
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 2
+    },
+    "games": 400,
+    "wins": 195,
+    "ties": 0,
+    "rate": 0.4875,
+    "turns": 12.4025,
+    "scores": [
+      31.2325,
+      31.1025
+    ],
+    "truncated": 0,
+    "seed": 30000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 2,
+      "buried": 1
+    },
+    "games": 400,
+    "wins": 196,
+    "ties": 0,
+    "rate": 0.49,
+    "turns": 12.575,
+    "scores": [
+      31.8625,
+      31.165
+    ],
+    "truncated": 0,
+    "seed": 31000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 1,
+      "envoy": 2
+    },
+    "games": 400,
+    "wins": 205,
+    "ties": 0,
+    "rate": 0.5125,
+    "turns": 12.5675,
+    "scores": [
+      32.03,
+      31.7675
+    ],
+    "truncated": 0,
+    "seed": 32000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 1
+    },
+    "games": 400,
+    "wins": 216,
+    "ties": 0,
+    "rate": 0.54,
+    "turns": 12.3575,
+    "scores": [
+      31.13,
+      29.8525
+    ],
+    "truncated": 0,
+    "seed": 33000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Courier",
+      "green": 2,
+      "envoy": 2
+    },
+    "games": 400,
+    "wins": 241,
+    "ties": 0,
+    "rate": 0.6025,
+    "turns": 12.4,
+    "scores": [
+      33.1575,
+      30.3625
+    ],
+    "truncated": 0,
+    "seed": 34000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "mastermind": 2
+    },
+    "games": 400,
+    "wins": 212,
+    "ties": 0,
+    "rate": 0.53,
+    "turns": 12.4075,
+    "scores": [
+      31.9125,
+      30.5375
+    ],
+    "truncated": 0,
+    "seed": 35000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "free": "city"
+    },
+    "games": 400,
+    "wins": 280,
+    "ties": 0,
+    "rate": 0.7,
+    "turns": 12.665,
+    "scores": [
+      33.3475,
+      28.0625
+    ],
+    "truncated": 0,
+    "seed": 36000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 2,
+      "buried": 1
+    },
+    "games": 400,
+    "wins": 200,
+    "ties": 0,
+    "rate": 0.5,
+    "turns": 12.6425,
+    "scores": [
+      31.7,
+      31.2875
+    ],
+    "truncated": 0,
+    "seed": 37000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 1,
+      "envoy": 2
+    },
+    "games": 400,
+    "wins": 205,
+    "ties": 0,
+    "rate": 0.5125,
+    "turns": 12.375,
+    "scores": [
+      31.135,
+      31.39
+    ],
+    "truncated": 0,
+    "seed": 38000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 1
+    },
+    "games": 400,
+    "wins": 193,
+    "ties": 0,
+    "rate": 0.4825,
+    "turns": 12.515,
+    "scores": [
+      30.5625,
+      30.33
+    ],
+    "truncated": 0,
+    "seed": 39000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Courier",
+      "green": 2,
+      "envoy": 2
+    },
+    "games": 400,
+    "wins": 227,
+    "ties": 0,
+    "rate": 0.5675,
+    "turns": 12.52,
+    "scores": [
+      32.3525,
+      30.2225
+    ],
+    "truncated": 0,
+    "seed": 40000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "mastermind": 2
+    },
+    "games": 400,
+    "wins": 217,
+    "ties": 0,
+    "rate": 0.5425,
+    "turns": 12.51,
+    "scores": [
+      31.44,
+      30.7125
+    ],
+    "truncated": 0,
+    "seed": 41000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "free": "city"
+    },
+    "games": 400,
+    "wins": 263,
+    "ties": 0,
+    "rate": 0.6575,
+    "turns": 12.6775,
+    "scores": [
+      32.8675,
+      28.6825
+    ],
+    "truncated": 0,
+    "seed": 42000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 2,
+      "buried": 1
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 1,
+      "envoy": 2
+    },
+    "games": 400,
+    "wins": 198,
+    "ties": 0,
+    "rate": 0.495,
+    "turns": 12.735,
+    "scores": [
+      31.2975,
+      32.1075
+    ],
+    "truncated": 0,
+    "seed": 43000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 2,
+      "buried": 1
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 1
+    },
+    "games": 400,
+    "wins": 201,
+    "ties": 0,
+    "rate": 0.5025,
+    "turns": 12.48,
+    "scores": [
+      30.905,
+      30.58
+    ],
+    "truncated": 0,
+    "seed": 44000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 2,
+      "buried": 1
+    },
+    "b": {
+      "opening": "Courier",
+      "green": 2,
+      "envoy": 2
+    },
+    "games": 400,
+    "wins": 216,
+    "ties": 0,
+    "rate": 0.54,
+    "turns": 12.4525,
+    "scores": [
+      31.37,
+      30.885
+    ],
+    "truncated": 0,
+    "seed": 45000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 2,
+      "buried": 1
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "mastermind": 2
+    },
+    "games": 400,
+    "wins": 222,
+    "ties": 0,
+    "rate": 0.555,
+    "turns": 12.4325,
+    "scores": [
+      31.39,
+      30.3925
+    ],
+    "truncated": 0,
+    "seed": 46000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 2,
+      "buried": 1
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "free": "city"
+    },
+    "games": 400,
+    "wins": 270,
+    "ties": 0,
+    "rate": 0.675,
+    "turns": 12.7,
+    "scores": [
+      33.4075,
+      28.5675
+    ],
+    "truncated": 0,
+    "seed": 47000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 1,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 1
+    },
+    "games": 400,
+    "wins": 210,
+    "ties": 0,
+    "rate": 0.525,
+    "turns": 12.4925,
+    "scores": [
+      31.1175,
+      30.4975
+    ],
+    "truncated": 0,
+    "seed": 48000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 1,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Courier",
+      "green": 2,
+      "envoy": 2
+    },
+    "games": 400,
+    "wins": 238,
+    "ties": 0,
+    "rate": 0.595,
+    "turns": 12.385,
+    "scores": [
+      32.6925,
+      29.985
+    ],
+    "truncated": 0,
+    "seed": 49000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 1,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "mastermind": 2
+    },
+    "games": 400,
+    "wins": 224,
+    "ties": 0,
+    "rate": 0.56,
+    "turns": 12.61,
+    "scores": [
+      31.9475,
+      30.275
+    ],
+    "truncated": 0,
+    "seed": 50000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 1,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "free": "city"
+    },
+    "games": 400,
+    "wins": 283,
+    "ties": 0,
+    "rate": 0.7075,
+    "turns": 12.6825,
+    "scores": [
+      33.675,
+      28.155
+    ],
+    "truncated": 0,
+    "seed": 51000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 1
+    },
+    "b": {
+      "opening": "Courier",
+      "green": 2,
+      "envoy": 2
+    },
+    "games": 400,
+    "wins": 214,
+    "ties": 0,
+    "rate": 0.535,
+    "turns": 12.445,
+    "scores": [
+      31.195,
+      30.355
+    ],
+    "truncated": 0,
+    "seed": 52000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 1
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "mastermind": 2
+    },
+    "games": 400,
+    "wins": 219,
+    "ties": 0,
+    "rate": 0.5475,
+    "turns": 12.5025,
+    "scores": [
+      30.8625,
+      30.0925
+    ],
+    "truncated": 0,
+    "seed": 53000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 3,
+      "envoy": 1
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "free": "city"
+    },
+    "games": 400,
+    "wins": 268,
+    "ties": 0,
+    "rate": 0.67,
+    "turns": 12.525,
+    "scores": [
+      32.135,
+      28.265
+    ],
+    "truncated": 0,
+    "seed": 54000
+  },
+  {
+    "a": {
+      "opening": "Courier",
+      "green": 2,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "mastermind": 2
+    },
+    "games": 400,
+    "wins": 198,
+    "ties": 0,
+    "rate": 0.495,
+    "turns": 12.5575,
+    "scores": [
+      30.9725,
+      31.2575
+    ],
+    "truncated": 0,
+    "seed": 55000
+  },
+  {
+    "a": {
+      "opening": "Courier",
+      "green": 2,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "free": "city"
+    },
+    "games": 400,
+    "wins": 244,
+    "ties": 0,
+    "rate": 0.61,
+    "turns": 12.68,
+    "scores": [
+      32.4125,
+      29.61
+    ],
+    "truncated": 0,
+    "seed": 56000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "mastermind": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "free": "city"
+    },
+    "games": 400,
+    "wins": 256,
+    "ties": 0,
+    "rate": 0.64,
+    "turns": 12.74,
+    "scores": [
+      32.56,
+      28.64
+    ],
+    "truncated": 0,
+    "seed": 57000
+  }
+]

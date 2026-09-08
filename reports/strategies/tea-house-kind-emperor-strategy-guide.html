@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Build Tea House income, gain City Quarters with Kind Emperor, and buy Provinces early.">
+<title>Tea House and Kind Emperor Strategy Guide</title>
+<style>
+:root { color-scheme: dark; --ink:#f5f0e4; --muted:#b8b1a3; --paper:#151916; --panel:#1d231f; --line:#414940; --gold:#e9c46a; }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; background:radial-gradient(circle at 15% 0%,#263a2b66,transparent 36rem),var(--paper); color:var(--ink); font:16px/1.7 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+a { color:var(--gold); text-underline-offset:3px; }
+a:hover { color:#ffe09a; }
+a:focus-visible { outline:2px solid var(--gold); outline-offset:4px; }
+.page { max-width:1180px; margin:auto; padding:26px clamp(18px,4vw,52px) 60px; }
+.topbar,.contents { display:flex; flex-wrap:wrap; gap:12px 24px; font-size:.9rem; }
+.topbar { justify-content:space-between; margin-bottom:32px; }
+.eyebrow { color:var(--gold); font-size:.76rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+.hero { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(250px,.8fr); align-items:start; gap:40px; padding:30px 0 48px; border-bottom:1px solid var(--line); }
+h1,h2,h3 { font-family:Georgia,"Times New Roman",serif; line-height:1.16; }
+h1 { font-size:clamp(2.7rem,5.5vw,4.8rem); letter-spacing:-.04em; margin:12px 0 24px; max-width:18ch; }
+h2 { font-size:clamp(1.8rem,3vw,2.7rem); margin:0 0 24px; scroll-margin-top:20px; }
+h3 { font-size:1.4rem; }
+p { margin:0 0 18px; }
+.intro p { color:var(--muted); }
+.intro strong { color:var(--ink); }
+.verdict { background:linear-gradient(145deg,#e9c46a22,#e9c46a05); border:1px solid #9d7730; border-radius:18px; padding:26px; }
+.verdict strong { display:block; color:var(--gold); font:700 2.1rem/1.2 Georgia,serif; margin:12px 0 16px; }
+.verdict p:last-child { margin:0; }
+.contents { padding:22px 0; border-bottom:1px solid var(--line); }
+.section { padding:40px 0; border-bottom:1px solid var(--line); }
+.section>p,.section>ul,.section>ol { max-width:88ch; }
+ul,ol { padding-left:26px; }
+li { margin:10px 0; padding-left:5px; }
+.table-wrap { width:100%; overflow-x:auto; margin:24px 0; border:1px solid var(--line); border-radius:12px; }
+table { width:100%; border-collapse:collapse; background:var(--panel); font-size:.94rem; }
+th,td { padding:13px 16px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th { color:var(--gold); font-size:.85rem; }
+tr:last-child td { border-bottom:0; }
+tbody tr:hover { background:#ffffff05; }
+code { font-size:.86em; background:#ffffff09; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; }
+pre { padding:20px; border-radius:12px; border:1px solid var(--line); background:var(--panel); white-space:pre-wrap; overflow-wrap:anywhere; }
+pre code { padding:0; background:none; }
+footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
+@media(max-width:780px) { .hero { grid-template-columns:1fr; gap:24px; } h1 { max-width:none; } .topbar { justify-content:flex-start; } th,td { padding:10px; } }
+@media print { :root { color-scheme:light; --ink:#171717; --muted:#444; --paper:#fff; --panel:#fff; --line:#bbb; --gold:#654a0a; } body { background:white; } .page { max-width:none; padding:0; } .topbar,.contents { display:none; } .hero { padding-top:0; } .verdict { background:white; } .table-wrap { overflow:visible; } tr { break-inside:avoid; } pre { background:#f5f5f5; } }
+</style>
+</head>
+<body>
+<main class="page">
+<nav class="topbar" aria-label="Guide navigation"><a href="index.html">← Strategy catalog</a><a href="../boards/tea-house-kind-emperor.html">View the board</a><a href="tea-house-kind-emperor.html">Strategy implementation</a></nav>
+<header class="hero">
+<div class="intro"><span class="eyebrow">Board strategy guide</span><h1>Tea House and Kind Emperor</h1><p>The strongest strategy family found is <strong>Fortune Hunter/Silver into Tea House, free City Quarters, Imperial Envoy, and early Provinces</strong>. Two nearly identical versions finished effectively tied. This is a simulation recommendation, not a proof of optimal play.</p>
+<p>A subsequent <a href="mine-guildhall-strategy-guide.html">dedicated Mine and Guildhall search</a> tested 634 candidate configurations. Its strongest confirmed candidate won 43.1% against the published engine over 2,000 games. That follow-up supports keeping this recommendation and gives much stronger evidence about Mine/Guildhall than the initial screen below.</p>
+<p>Assumptions: two players, seven Coppers and three Estates to start, ordinary Province supply, no Platinum or Colony. Kind Emperor is the Prophecy; Guildhall is a Project, not a Kingdom pile. The ten Kingdom cards are recorded in <a href="../../boards/tea_house_kind_emperor.txt">the board file</a>.</p>
+</div>
+<aside class="verdict" aria-label="Recommendation"><span class="eyebrow">The recommended opening</span><strong>Fortune Hunter / Silver</strong><p>Build Tea House income, gain City Quarters with Kind Emperor, and buy Provinces early.</p><p>Two players · Estate starts · no Colonies</p></aside>
+</header>
+<nav class="contents" aria-label="On this page"><a href="#how-to-play-it">How to play it</a><a href="#what-the-simulations-established">What the simulations established</a><a href="#reproduction-and-simulator-corrections">Reproduction and simulator corrections</a></nav>
+<section class="section"><h2 id="how-to-play-it">How to play it</h2>
+<ol>
+<li><strong>Open Fortune Hunter/Silver on $4/$3.</strong> Buy Tea House on a $5/$2 opening and skip the $2 purchase. Courier/Silver is playable but was weaker in the confirmation games.</li>
+<li><strong>Prioritize your first two Tea Houses.</strong> They cycle and provide money while advancing Kind Emperor. There is no general-purpose thinning here: Courier does not trash cards, and Mine only exchanges Treasures.</li>
+<li><strong>Use Kind Emperor to supply City Quarters without buying them.</strong> When you lack a City Quarter in hand, gain one directly to hand. When you already have one, take an Imperial Envoy until you own two, then prefer Tea House. If a desired pile is empty, choose the next useful Action. The free gain is mandatory.</li>
+<li><strong>Buy Provinces early.</strong> Do not wait to assemble a large engine. The published version takes an affordable Province once it owns one Tea House; waiting for two was statistically indistinguishable. Between Province purchases, fill out Tea House income and up to two Imperial Envoys. The policy buys at most four Tea Houses, although free gains can increase that number.</li>
+<li><strong>Play City Quarter before other Actions to maximize its draw and supply Actions for Imperial Envoy.</strong> Tea Houses then provide income; Imperial Envoy provides draw and another Buy at the expense of two debt. Fortune Hunter adds money. Plan purchases using money left after paying debt.</li>
+<li><strong>Track the Province race and empty piles.</strong> The tested policy starts favoring Duchies when three Provinces remain. In human play, count points before ending the game; forced Action gains can empty a third pile.</li>
+</ol>
+<p>The key rules interaction is that Kind Emperor can gain any Action, regardless of cost. Gaining City Quarter does <strong>not</strong> incur its eight-debt purchase cost. This makes it possible to add draw and Actions while spending money on income and points. See the publisher's <a href="https://www.riograndegames.com/wp-content/uploads/2024/04/DomRisingSunRules.pdf">Rising Sun rules</a> and <a href="https://www.riograndegames.com/wp-content/uploads/2022/03/Dominion-Rules-Empires.pdf">Empires rules</a>.</p>
+</section>
+<section class="section"><h2 id="what-the-simulations-established">What the simulations established</h2>
+<p>The search played 37,760 games: 7,080 in an initial screen, 12,480 in a combination search, 11,200 in an eight-finalist tournament, and 7,000 in independent confirmation. Initial screening was exploratory; a Fortune Hunter shuffle correction preceded the combination search and both confirmation stages.</p>
+<p>Each finalist matchup used 400 games. The one-Tea-House Province threshold scored 55.25% across its seven opponents; the two-Tea-House threshold scored 55.18%. Those results do not separate the two policies. Both beat the slower variants on average.</p>
+<p>Fresh-seed confirmation of the published one-Tea-House version used <strong>1,000 games per opponent</strong>:</p>
+<div class="table-wrap" role="region" aria-label="Simulation results" tabindex="0"><table>
+<thead>
+<tr>
+<th>Opponent</th>
+<th style="text-align: right;">Published strategy's win rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Same engine, waiting for two Tea Houses before Provinces</td>
+<td style="text-align: right;">48.6%</td>
+</tr>
+<tr>
+<td>Courier opening with two Imperial Envoys</td>
+<td style="text-align: right;">54.7%</td>
+</tr>
+<tr>
+<td>Fortune Hunter engine adding two Masterminds</td>
+<td style="text-align: right;">53.6%</td>
+</tr>
+<tr>
+<td>Fortune Hunter engine prioritizing Duchies and Dukes</td>
+<td style="text-align: right;">84.0%</td>
+</tr>
+<tr>
+<td>Tea House engine investing in Guildhall and four Buried Treasures</td>
+<td style="text-align: right;">65.3%</td>
+</tr>
+<tr>
+<td>Imperial Envoy treasure strategy</td>
+<td style="text-align: right;">74.2%</td>
+</tr>
+<tr>
+<td>Basic treasure strategy</td>
+<td style="text-align: right;">93.6%</td>
+</tr>
+</tbody>
+</table></div>
+<p>Seats alternate; each shuffle seed is used in both seats. Equal scores use the official fewer-turns tiebreak; complete ties count as half a win. No confirmation games reached the turn limit. Approximate sampling uncertainty for a 1,000-game result near 50% is three percentage points, before allowing for dependence between paired games. The small differences among the best engine variants should therefore be treated cautiously.</p>
+<p><strong>Practical takeaway:</strong> prioritize the engine's basic components and timely Provinces. Mastermind and Buried Treasure are optional additions, not prerequisites. Guildhall and a committed Duchy–Duke plan lost clearly in these tested implementations. Always taking City Quarter with the Prophecy was also substantially weaker than choosing according to the current hand.</p>
+</section>
+<section class="section"><h2 id="reproduction-and-simulator-corrections">Reproduction and simulator corrections</h2>
+<p>The registered <a href="../../generated_strategies/tea_house_kind_emperor.py">strategy implementation</a> is named <strong>Tea House and Kind Emperor Engine</strong>. Its decision hooks implement the policy; its static gain list records referenced cards and is not a literal unconditional purchase order. The class parameters preserve the alternatives used in the search.</p>
+<p>Run from the repository root:</p>
+<pre><code class="language-bash">PYTHONPATH=. .venv/bin/python scripts/search_tea_house_kind_emperor.py tournament
+PYTHONPATH=. .venv/bin/python scripts/search_tea_house_kind_emperor.py validation
+</code></pre>
+<p>The script uses six game worker processes. Raw results, candidate parameters, and shuffle seed blocks are saved in <a href="../../docs/analysis/tea_house_kind_emperor_tournament.json">the finalist tournament</a> and <a href="../../docs/analysis/tea_house_kind_emperor_validation.json">independent validation</a>. The screening scripts and results remain in the workspace's <code>.context</code> directory.</p>
+<p>Corrections needed before relying on this board:</p>
+<ul>
+<li>Anvil's optional discard and gain resolve when played; it cannot gain a card with debt in its cost. After choosing to discard, the gain is mandatory. See <a href="https://www.riograndegames.com/wp-content/uploads/2022/05/Prosperity2nd.pdf">Prosperity rules</a>.</li>
+<li>Courier discards the top card and may play an Action or Treasure from anywhere in the discard pile. It does not trash the revealed card. See <a href="https://www.riograndegames.com/wp-content/uploads/2021/09/Dominion-Allies-Rules.pdf">Allies rules</a>.</li>
+<li>Buried Treasure plays itself when gained; both its extra Buy and $3 arrive next turn. Resolved Durations stay in play until cleanup. Mine must not move an already-played Buried Treasure back into hand. Fortune Hunter must preserve existing top cards when shuffling to look at three cards. See <a href="https://www.riograndegames.com/wp-content/uploads/2022/08/DomPlunder.pdf">Plunder rules</a>.</li>
+</ul>
+<p>Validation on September 7, 2026, at revision <code>adca386</code>: <strong>2,170 passed, one skipped</strong> in the full suite. Focused regressions cover the card interactions described above. An intermittent callable-signature failure was also reproduced on the unchanged checkout and passed on subsequent full runs.</p>
+<p>The search compares implemented buying and tactical policies. It does not exhaust every opening, optional card decision, Duration combination, or endgame plan, and it does not establish the best strategy for different player counts or Colony games.</p></section>
+<footer>Repository simulations and official card rules. Best policies found within the tested search; not a proof of optimal play. <a href="index.html">Return to the strategy catalog</a>.</footer>
+</main>
+</body>
+</html>

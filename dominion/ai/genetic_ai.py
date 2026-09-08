@@ -44,6 +44,36 @@ class GeneticAI(AI):
 
         return self.strategy.choose_gain(state, state.current_player, choices)
 
+    def choose_mastermind_action(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_mastermind_action", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_mastermind_action(state, player, choices)
+
+    def choose_coffers_for_debt(self, state, player, maximum):
+        hook = getattr(self.strategy, "choose_coffers_for_debt", None)
+        if hook is not None:
+            return hook(state, player, maximum)
+        return super().choose_coffers_for_debt(state, player, maximum)
+
+    def choose_mine_treasure(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_mine_treasure", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_mine_treasure(state, player, choices)
+
+    def choose_mine_gain(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_mine_gain", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_mine_gain(state, player, choices)
+
+    def choose_kind_emperor_gain(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_kind_emperor_gain", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_kind_emperor_gain(state, player, choices)
+
     def choose_anvil_gain(
         self, state: "GameState", player, choices: list[Card]
     ) -> Optional[Card]:

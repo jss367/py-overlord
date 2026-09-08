@@ -100,6 +100,49 @@ checkout. Regenerate it after changing a board or strategy. Continuous
 integration regenerates the catalog in a temporary directory and fails if the
 committed pages are stale.
 
+## Documentation formats and migration status
+
+Publish strategy recommendations, board guides, and strategy search findings as
+HTML in the [strategy catalog](reports/strategies/index.html). Hand-authored
+sources live in `dominion/reporting/curated_strategy_guides/`; the catalog renderer
+copies registered guides into `reports/strategies/` and links them from the index.
+See the [publishing workflow](AGENTS.md#publish-strategy-guides-as-html).
+Runnable strategies remain Python. Repository instructions, developer references,
+and design plans may remain Markdown.
+
+The migration is incomplete as of September 7, 2026. The
+[Tea House and Kind Emperor guide](reports/strategies/tea-house-kind-emperor-strategy-guide.html)
+and [Mine and Guildhall investigation](reports/strategies/mine-guildhall-strategy-guide.html)
+are published as HTML, and their Markdown duplicates have been removed. These
+older strategy research narratives still remain in Markdown:
+
+| Legacy writeup | Migration status |
+| --- | --- |
+| [Hyderabad strategy search](docs/hyderabad_best_strategy.md) | Markdown narrative remains; registered strategies also have generated HTML detail pages. |
+| [Lisbon strategy search](docs/lisbon_best_strategy.md) | Markdown narrative remains; registered strategies also have generated HTML detail pages. |
+| [Oslo strategy search](docs/oslo_best_strategy.md) | Markdown narrative remains alongside HTML comparison reports and generated strategy pages. |
+| [Port Moresby strategy search](docs/port_moresby_best_strategy.md) | Markdown narrative remains; registered strategies also have generated HTML detail pages. |
+
+A generated strategy detail page describes the runnable strategy; it does not
+automatically migrate a separate narrative's experiments and conclusions. The
+catalog renderer does not convert arbitrary Markdown files to HTML.
+
+Other retained Markdown includes the developer-facing
+[Iron Barbarian implementation assessment](reports/iron_barbarian_analysis.md),
+three tracked calibration reports in `reports/calibration/`, and the repository's
+readmes, architecture references, and design plans. The calibration and league
+scripts still emit Markdown analysis reports. These intermediate artifacts can
+remain Markdown; strategy recommendations drawn from them should be published
+as HTML guides.
+
+The Tea House and Mine/Guildhall session initially created Markdown guides and
+converted them after a user correction. Before the publishing rule above was
+added, the agent notes required HTML catalog regeneration but did not explicitly
+specify the format for hand-authored guides. That gap and the older Markdown
+examples plausibly contributed to the mistake; the session transcript does not
+establish the agent's reasoning. Use the explicit publishing workflow for future
+guides, and update this inventory as legacy writeups are migrated.
+
 ## Adversarial league training
 
 Evolving against a fixed panel rewards specialising against its weakest
