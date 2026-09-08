@@ -49,7 +49,7 @@ class Ambassador(Card):
                 if c.name == choice.name:
                     player.hand.remove(c)
                     break
-            game_state.supply[choice.name] = game_state.supply.get(choice.name, 0) + 1
+            game_state._restore_to_supply_pile(c)
 
         # Each other player gains a copy
         def attack_target(target):

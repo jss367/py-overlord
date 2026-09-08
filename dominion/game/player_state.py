@@ -593,7 +593,7 @@ class PlayerState:
         for zone in zones:
             for card in zone:
                 card_id = id(card)
-                if card_id in seen_ids:
+                if card_id in seen_ids or getattr(card, "returned_to_supply", False):
                     continue
                 seen_ids.add(card_id)
                 cards.append(card)

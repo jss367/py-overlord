@@ -2045,11 +2045,15 @@ class GameState:
         for card in dict.fromkeys(snapshot[0] + snapshot[1]):
             # The queue records pending instructions, not physical ownership.
             # A Duration trashed or otherwise moved still resolves where it is.
-            if card not in self.trash and not any(
-                card in owner.all_cards() for owner in self.players
+            if (
+                not getattr(card, "returned_to_supply", False)
+                and card not in self.trash
+                and not any(card in owner.all_cards() for owner in self.players)
             ):
                 player.in_play.append(card)
+        rescheduled = []
         for card in snapshot[0] + snapshot[1]:
+            pending_before = player.duration.count(card)
             coins_before, actions_before = player.coins, player.actions
             card.on_duration(self)
             self.log_callback(
@@ -2067,10 +2071,18 @@ class GameState:
             )
             if (
                 getattr(card, "duration_persistent", False)
-                and card in player.in_play
-                and card not in player.duration
+                and player.duration.count(card) == pending_before
             ):
+                # Retain one entry per recurring play, including instructions
+                # whose physical card has left play. Some legacy cards enqueue
+                # themselves, in which case this invocation already has an entry.
                 player.duration.append(card)
+                rescheduled.append(card)
+        # Shared set-aside storage (such as a repeated Archive) can be exhausted
+        # by a later invocation in this same batch. Release earlier renewals too.
+        for card in rescheduled:
+            if not getattr(card, "duration_persistent", False) and card in player.duration:
+                player.duration.remove(card)
 
     def handle_action_phase(self):
         """Handle the action phase of a turn."""
@@ -3229,7 +3241,15 @@ class GameState:
                 player.coins += len(distinct_treasures)
 
         # Duration cards remain in play until their lingering effects finish.
-        durations_to_keep = set(player.duration + player.multiplied_durations)
+        owned = set(player.all_cards())
+        moved_from_play = {
+            card for zone in player._physical_card_zones()
+            if zone is not player.in_play for card in zone
+        }
+        durations_to_keep = {
+            card for card in player.duration + player.multiplied_durations
+            if card in owned and card not in moved_from_play
+        }
         changed = True
         while changed:
             changed = False
@@ -3388,7 +3408,7 @@ class GameState:
             ):
                 # Rising Sun Panic: discarded Treasures return to their pile
                 # (essentially a one-shot Treasure under Panic).
-                self.supply[card.name] = self.supply.get(card.name, 0) + 1
+                self._restore_to_supply_pile(card)
             else:
                 if card.name == "Capital":
                     player.debt += 6
@@ -3412,7 +3432,7 @@ class GameState:
                         self.supply[next_name] -= 1
                         replacement = get_card(next_name)
                         # Return the original to its pile (per Traveller rules).
-                        self.supply[card.name] = self.supply.get(card.name, 0) + 1
+                        self._restore_to_supply_pile(card)
                         # Discard the replacement (Travellers go to discard
                         # like a normal gain after exchange).
                         self.gain_card(player, replacement, from_supply=False)
@@ -4141,6 +4161,8 @@ class GameState:
             player, card, actual_card, destination_is_deck, from_supply=from_supply
         )
 
+        actual_card.returned_to_supply = False
+
         # Menagerie Exile rule: gaining a card lets the player discard ALL
         # copies of it from Exile — in addition to the gain, never instead
         # of it. Capture whether a copy was exiled before resolving, for
@@ -4402,9 +4424,7 @@ class GameState:
         # (Knights, Ruins) push the card name back onto the top of
         # pile_order so it's the next card to come off; for normal piles
         # just bump the count.
-        if pile_name in self.pile_order:
-            self.pile_order[pile_name].append(gained_card.name)
-        self.supply[pile_name] = self.supply.get(pile_name, 0) + 1
+        self._restore_to_supply_pile(gained_card)
         # Take a Changeling from the Changeling pile.
         self.supply["Changeling"] -= 1
         changeling = get_card("Changeling")
@@ -4453,6 +4473,9 @@ class GameState:
         self.supply[pile_name] = self.supply.get(pile_name, 0) + 1
         if pile_name in self.pile_order:
             self.pile_order[pile_name].append(card.name)
+        # Supply stores counts/names, so retain a tombstone on references still
+        # needed for delayed instructions instead of counting them as owned.
+        card.returned_to_supply = True
         return True
 
     def _handle_sailor_gain(self, player: PlayerState, gained_card: Card) -> None:

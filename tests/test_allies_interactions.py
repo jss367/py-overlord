@@ -775,3 +775,105 @@ def test_fellowship_of_scribes_favor_spend_is_optional(spend):
     play(s, p, "Village")
     assert p.favors == (0 if spend else 1)
     assert len(p.hand) == (2 if spend else 1)
+
+
+@pytest.mark.parametrize("name", ["Importer", "Crew"])
+@pytest.mark.parametrize("way_name", ["Way of the Horse", "Way of the Butterfly"])
+def test_returned_pending_duration_stays_in_supply_and_releases_multiplier(name, way_name):
+    from dominion.ways.registry import get_way
+
+    s, p, _ = state()
+    s.setup_supply([get_card(name), get_card("Smithy")])
+    initial_count = s.supply[name]
+    s.supply[name] -= 1
+    duration = get_card(name)
+    p.hand = [duration]
+    p.deck = cards("Copper", 30)
+    way = get_way(way_name)
+    s.ways = [way]
+    plays = 0
+
+    def choose_way(state, card, choices):
+        nonlocal plays
+        if card is duration:
+            plays += 1
+            return way if plays == 2 else None
+        return None
+
+    p.ai.choose_way = choose_way
+    throne = play(s, p, "Throne Room")
+    assert duration not in p.all_cards()
+    assert s.supply[name] == initial_count
+    s.handle_cleanup_phase()
+    assert throne in p.discard and throne not in p.in_play
+    s.current_player_index = 0
+    gains_before = p.cards_gained_this_turn
+    s.do_duration_phase()
+    assert p.cards_gained_this_turn == gains_before + (1 if name == "Importer" else 0)
+    assert duration not in p.all_cards()
+    assert duration not in p.in_play
+    assert s.supply[name] == initial_count
+    assert not p.duration
+
+
+@pytest.mark.parametrize("name", ["Taskmaster", "Samurai", "Hireling"])
+@pytest.mark.parametrize("trashed", [False, True])
+def test_repeated_persistent_durations_keep_every_pending_instruction(name, trashed):
+    s, p, _ = state()
+    duration = get_card(name)
+    p.hand = [duration]
+    p.deck = cards("Copper", 30)
+    play(s, p, "Throne Room")
+    assert p.duration.count(duration) == 2
+    if trashed:
+        p.in_play.remove(duration)
+        s.trash_card(p, duration)
+    for _ in range(3):
+        p.gained_five_last_turn = True
+        before = len(p.hand) if name == "Hireling" else p.coins
+        if name == "Hireling":
+            s.handle_start_phase()
+            assert len(p.hand) == before + 2
+        else:
+            s.do_duration_phase()
+            assert p.coins == before + 2
+        assert p.duration.count(duration) == 2
+        assert (duration in p.all_cards()) is not trashed
+
+
+def test_family_of_inventors_tokens_are_cumulative_global_and_persistent():
+    s, p, q = state("Family of Inventors")
+    s.setup_supply([get_card("Town Crier")])
+    p.ai = ChoiceAI({"family_of_inventors_pile": "Town Crier"})
+    p.favors = 2
+    ally = s.allies[0]
+    ally.on_buy_phase_start(s, p)
+    for player in [p, q]:
+        assert s.get_card_cost(player, get_card("Town Crier")) == 1
+    p.deck = cards("Copper", 10)
+    s.handle_cleanup_phase()
+    assert s.get_card_cost(q, get_card("Town Crier")) == 1
+    s.current_player_index = 0
+    ally.on_buy_phase_start(s, p)
+    s.rotate_supply_pile("Town Crier")
+    for player in [p, q]:
+        assert s.get_card_cost(player, get_card("Town Crier")) == 0
+        assert s.get_card_cost(player, get_card("Blacksmith")) == 1
+
+
+def test_repeated_archive_releases_all_renewals_when_its_set_aside_cards_run_out():
+    s, p, _ = state()
+    archive = get_card("Archive")
+    p.hand = [archive]
+    p.deck = cards("Copper", 30)
+    throne = play(s, p, "Throne Room")
+    assert archive.set_aside
+    assert p.duration.count(archive) == 2
+    for _ in range(3):
+        if not archive.set_aside:
+            break
+        s.do_duration_phase()
+    assert archive.set_aside == []
+    assert p.duration == []
+    s.handle_cleanup_phase()
+    assert archive in p.discard and throne in p.discard
