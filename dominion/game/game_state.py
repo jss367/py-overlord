@@ -2147,13 +2147,12 @@ class GameState:
 
                 # Renaissance Citadel: first Action played each turn is
                 # replayed afterwards. Implemented as an extra iteration of
-                # the play loop (matches Daimyo / Reckless / Rush). Gated
-                # on is_action so Enlightenment-played Treasures in the
-                # Action phase don't consume / trigger Citadel. Inherited
-                # Estates count as Action plays here.
+                # the play loop (matches Daimyo / Reckless / Rush). Live
+                # Action types include enlightened Treasures; inherited
+                # Estates also count as Action plays here.
                 citadel_extra = 0
                 if (
-                    (choice.is_action or inheriting)
+                    (self.is_action(choice) or inheriting)
                     and not player.citadel_used
                     and any(p.name == "Citadel" for p in player.projects)
                 ):
@@ -2174,11 +2173,12 @@ class GameState:
                         if inheriting
                         else None
                     )
-                    if enlightened and choice.is_treasure and not choice.is_action:
+                    if enlightened and self.is_treasure(choice):
                         # Treasure played in Action phase under Enlightenment:
                         # +1 Card, +1 Action (instead of its normal text).
                         self.draw_cards(player, 1)
                         player.actions += 1
+                        self._apply_external_play_bonuses(player, choice)
                     elif (
                         choice.is_action
                         and getattr(player, "enchantress_active", False)

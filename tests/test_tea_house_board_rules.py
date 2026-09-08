@@ -149,6 +149,54 @@ def test_courier_gold_uses_enlightenment_action_phase_instructions(active, phase
     assert player.actions_this_turn == int(active)
 
 
+@pytest.mark.parametrize("name", ["Crown", "Market", "Gold"])
+@pytest.mark.parametrize("citadel", [False, True])
+def test_main_action_phase_enlightenment_substitutes_all_treasure_types(name, citadel):
+    class PlayOnce(DummyAI):
+        def choose_action(self, state, choices):
+            return None if state.current_player.in_play else next(c for c in choices if c and c.name == name)
+
+    state, player = setup(name, "Smithy", ai=PlayOnce())
+    state.prophecy = get_prophecy("Enlightenment")
+    state.prophecy.is_active = True
+    state.phase = "action"
+    player.projects = [get_project("Capitalism")]
+    if citadel:
+        player.projects.append(get_project("Citadel"))
+    card, smithy = get_card(name), get_card("Smithy")
+    player.hand = [card, smithy]
+    player.deck = [get_card("Estate") for _ in range(6)]
+    player.champions_in_play = 1
+    actions, buys = player.actions, player.buys
+
+    state.handle_action_phase()
+
+    plays = 1 + int(citadel)
+    assert player.in_play == [card]
+    assert smithy in player.hand  # Crown never runs its normal multiplier text.
+    assert len(player.hand) == 1 + plays
+    assert player.coins == 0
+    assert player.buys == buys  # Capitalism Market never runs its normal text.
+    assert player.actions == actions - 1 + 2 * plays  # Substitution + Champion.
+    assert player.citadel_used == citadel
+
+
+@pytest.mark.parametrize("active", [False, True])
+def test_citadel_replays_enlightened_treasure_in_treasure_phase(active):
+    state, player = setup("Gold")
+    state.prophecy = get_prophecy("Enlightenment")
+    state.prophecy.is_active = active
+    state.phase = "treasure"
+    player.projects = [get_project("Citadel")]
+    gold = get_card("Gold")
+    player.in_play = [gold]
+
+    state.play_treasure_indirectly(player, gold)
+
+    assert player.coins == (6 if active else 3)
+    assert player.citadel_used == active
+
+
 def test_enlightened_buried_treasure_gain_draws_instead_of_scheduling_duration():
     state, player = setup("Buried Treasure")
     state.prophecy = get_prophecy("Enlightenment")
