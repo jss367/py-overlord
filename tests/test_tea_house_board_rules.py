@@ -922,3 +922,29 @@ def test_citadel_enlightened_treasure_counts_toward_conspirator_bonus(indirect):
     assert len(player.hand) == 3  # Two Gold plays, then Conspirator's bonus draw.
     assert player.actions == (3 if indirect else 2)
     assert player.coins == 2
+
+
+@pytest.mark.parametrize("indirect", [False, True])
+def test_enlightenment_respects_snowy_village_action_restriction(indirect):
+    class PlayGold(DummyAI):
+        def choose_action(self, state, choices):
+            return next((c for c in choices if c and c.name == "Gold"), None)
+
+    state, player = setup("Snowy Village", ai=PlayGold())
+    state.phase = "action"
+    state.prophecy = get_prophecy("Enlightenment")
+    state.prophecy.is_active = True
+    player.ignore_action_bonuses = True  # Snowy Village has already resolved.
+    player.actions = 1
+    player.deck = [get_card("Estate")]
+    gold = get_card("Gold")
+    if indirect:
+        player.in_play = [gold]
+        state.play_treasure_indirectly(player, gold)
+    else:
+        player.hand = [gold]
+        state.handle_action_phase()
+
+    assert player.actions == int(indirect)  # Main play spends an Action.
+    assert [c.name for c in player.hand] == ["Estate"]
+    assert player.coins == 0

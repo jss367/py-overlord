@@ -2187,7 +2187,8 @@ class GameState:
                         # Treasure played in Action phase under Enlightenment:
                         # +1 Card, +1 Action (instead of its normal text).
                         self.draw_cards(player, 1)
-                        player.actions += 1
+                        if not player.ignore_action_bonuses:
+                            player.actions += 1
                         self._apply_external_play_bonuses(player, choice)
                         self._fire_urchin_reaction(player, choice)
                     elif (
