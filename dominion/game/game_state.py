@@ -4483,19 +4483,21 @@ class GameState:
     def _restore_to_supply_pile(self, card: Card) -> bool:
         """Restore one copy of ``card`` to its Supply pile.
 
-        Handles ordered piles (Knights, Ruins) where the supply key is the
-        pile placeholder, not the specific card name — bumps the placeholder
-        count AND pushes the card name back onto the top of ``pile_order``
-        so the next gain hands out the same card. Returns True if a pile
-        was actually restored, False otherwise.
+        Update both counts and physical order immediately, including named
+        split piles and placeholder piles (Knights, Ruins). Returns True if
+        a pile was actually restored, False otherwise.
         """
 
         pile_name = self._resolve_changeling_pile_name(card)
         if pile_name is None:
             return False
+        from .supply_piles import stack
+
+        # Reconcile earlier removals before recording this return. Counts
+        # alone cannot reconstruct the order of differently named returns.
+        pile = stack(self, pile_name)
         self.supply[pile_name] = self.supply.get(pile_name, 0) + 1
-        if pile_name in self.pile_order:
-            self.pile_order[pile_name].append(card.name)
+        pile.append(card.name)
         # Supply stores counts/names, so retain a tombstone on references still
         # needed for delayed instructions instead of counting them as owned.
         card.returned_to_supply = True

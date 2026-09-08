@@ -1076,3 +1076,49 @@ def test_sunken_treasure_only_excludes_durations_physically_in_play(way_name):
     else:
         assert p.discard == []
         assert s.supply["Importer"] == before
+
+
+@pytest.mark.parametrize("return_order", [
+    ("Blacksmith", "Town Crier"), ("Town Crier", "Blacksmith")
+])
+def test_consecutive_way_of_the_horse_returns_preserve_mixed_pile_order(return_order):
+    from dominion.ways.registry import get_way
+
+    s, p, _ = state()
+    s.setup_supply([get_card("Town Crier")])
+    held = {"Town Crier": s.take_top_supply_card("Town Crier")}
+    s.rotate_supply_pile("Town Crier")
+    held["Blacksmith"] = s.take_top_supply_card("Town Crier")
+    before = s.supply.copy()
+    way = get_way("Way of the Horse")
+    s.ways = [way]
+    p.ai.choose_way = lambda state, card, choices: way
+    p.hand = list(held.values())
+    p.deck = cards("Copper", 10)
+    for name in return_order:
+        s.play_action_from_hand_indirectly(p, held[name])
+    assert s.top_supply_card("Town Crier") == return_order[-1]
+    assert all(s.supply[n] == before[n] + 1 for n in return_order)
+    assert s.take_top_supply_card("Town Crier").name == return_order[-1]
+    assert s.take_top_supply_card("Town Crier").name == return_order[0]
+    assert all(s.supply[n] == before[n] for n in return_order)
+    assert all(c not in p.all_cards() for c in held.values())
+
+
+@pytest.mark.parametrize("members", [
+    ("Town Crier", "Blacksmith"), ("Catapult", "Rocks")
+])
+@pytest.mark.parametrize("reverse", [False, True])
+def test_split_pile_return_sequence_survives_copy_and_rotation(members, reverse):
+    s, p, _ = state()
+    s.setup_supply([get_card(members[0])])
+    first = s.take_top_supply_card(members[0])
+    s.rotate_supply_pile(members[0])
+    second = s.take_top_supply_card(members[0])
+    returned = [second, first] if reverse else [first, second]
+    for card in returned:
+        s._restore_to_supply_pile(card)
+    s = deepcopy(s)
+    assert s.top_supply_card(members[0]) == returned[-1].name
+    s.rotate_supply_pile(members[0])
+    assert s.top_supply_card(members[0]) == returned[0].name

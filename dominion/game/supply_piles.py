@@ -1,8 +1,9 @@
 """Physical order for named split piles, compatible with Supply counts.
 
 Legacy gainers decrement counts before calling gain_card. Reconcile those
-changes at each pile access: a removal takes the topmost matching card and
-a return adds a card on top. Rotation never changes the counts.
+changes at each pile access: a removal takes the topmost matching card.
+Engine returns update the stack immediately to preserve chronological order;
+positive legacy count changes are added on top. Rotation never changes counts.
 """
 
 from collections import Counter
