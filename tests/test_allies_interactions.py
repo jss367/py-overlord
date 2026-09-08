@@ -494,8 +494,10 @@ def test_rotated_reckless_treasure_plays_twice():
     assert [c.name for c in p.discard] == ["Village", "Village"]
 
 
-@pytest.mark.parametrize("trait", ["Cursed", "Rich", "Hasty"])
-def test_rotated_pile_gain_traits(trait):
+@pytest.mark.parametrize(
+    "trait,loot", [("Cursed", "Doubloons"), ("Cursed", "Hammer"), ("Rich", None), ("Hasty", None)]
+)
+def test_rotated_pile_gain_traits(trait, loot, monkeypatch):
     from dominion.traits import apply_trait
 
     s, p, _ = state()
@@ -503,11 +505,16 @@ def test_rotated_pile_gain_traits(trait):
     apply_trait(s, trait, "Town Crier")
     s.rotate_supply_pile("Town Crier")
     gained = s.take_top_supply_card("Town Crier")
+    if loot is not None:
+        monkeypatch.setattr("random.choice", lambda choices: loot)
     s.gain_card(p, gained)
     assert gained.name == "Blacksmith"
     if trait == "Cursed":
         assert any(c.name == "Curse" for c in p.discard)
-        assert len(p.discard) == 3  # Blacksmith, Loot, Curse
+        expected = ["Blacksmith", loot, "Curse"]
+        if loot == "Doubloons":
+            expected.append("Gold")
+        assert sorted(c.name for c in p.discard) == sorted(expected)
     elif trait == "Rich":
         assert [c.name for c in p.discard] == ["Blacksmith", "Silver"]
     else:
