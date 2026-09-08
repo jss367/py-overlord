@@ -104,7 +104,10 @@ class HillFort(_Forts):
     def play_effect(self, game_state):
         p = game_state.current_player
         gained = gain(game_state, p, candidates(game_state, CardCost(coins=4)))
-        default = "hand" if gained is not None else "cycle"
+        destination = game_state.gain_destination(gained)
+        default = (
+            "hand" if destination is not None and gained in destination else "cycle"
+        )
         for mode in select_modes(game_state, p, self, ["hand", "cycle"], [default]):
             if mode == "hand":
                 for zone in [game_state.gain_destination(gained)]:
