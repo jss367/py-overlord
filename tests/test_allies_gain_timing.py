@@ -46,3 +46,29 @@ def test_new_gain_effect_applies_to_nested_gains_but_not_the_outer_gain():
     assert guildmaster in p.in_play
     assert [c.name for c in p.discard] == ["Silver"]
     assert p.favors == 1  # Only Rich's nested Silver gain earns a Favor.
+
+
+@pytest.mark.parametrize("method", ["Innovation", "City-state"])
+@pytest.mark.parametrize("reduction", [0, 1, 2])
+def test_galleria_uses_cost_before_gained_highway_is_played(method, reduction):
+    from tests.test_allies_interactions import ChoiceAI
+    from tests.test_allies_printed_rules import play
+
+    s, p, _ = state("City-state" if method == "City-state" else None)
+    s.setup_supply([get_card("Highway")])
+    p.ai = ChoiceAI({"city_state_before_gain_effects": True})
+    p.favors = 2
+    p.deck = cards("Copper", 5)
+    if method == "Innovation":
+        p.projects = [Innovation()]
+    play(s, p, "Galleria")
+    p.cost_reduction = reduction
+    before = p.buys
+    highway = s.take_top_supply_card("Highway")
+    s.gain_card(p, highway)
+    assert highway in p.in_play
+    assert s.get_card_cost(p, highway) == 4 - reduction
+    assert p.buys == before + int(reduction > 0)
+    # A subsequent gain uses the new cost, without changing the outer trigger.
+    s.gain_card(p, s.take_top_supply_card("Silver"))
+    assert p.buys == before + int(reduction > 0)

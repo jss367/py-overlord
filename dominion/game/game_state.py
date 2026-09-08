@@ -193,14 +193,14 @@ class GameState:
             player.allies_gain_effects = []
         player.allies_gain_effects.append((kind, card, list(targets or [])))
 
-    def _resolve_allies_gain_effects(self, player, gained, effects):
-        from ..cards.allies._rules import discard, effective_cost
+    def _resolve_allies_gain_effects(self, player, gained, effects, gained_cost):
+        from ..cards.allies._rules import discard
 
         for kind, card, targets in effects:
             if kind == "guildmaster":
                 player.favors += 1
             elif kind == "galleria":
-                cost = effective_cost(self, gained)
+                cost = gained_cost
                 if cost.coins in (3, 4) and not cost.potions and not cost.debt:
                     player.buys += 1
             elif kind == "skirmisher" and gained.is_attack:
@@ -4231,6 +4231,12 @@ class GameState:
             self._gain_destinations = {}
         self._gain_destinations[actual_card] = player.deck if destination_is_deck else player.hand if to_hand else player.discard
 
+        # Galleria qualifies on the gain event's cost, before gain effects
+        # can play Highway or another card that changes prices.
+        from ..cards.allies._rules import effective_cost
+
+        gained_cost = effective_cost(self, actual_card)
+
         # Record the Buy-phase gain before any on-gain hook runs: hooks can
         # nest further gains (Falconer reacting to a 2-type card, Border
         # Village, Messenger's own distribution), and "first card you gain
@@ -4373,7 +4379,7 @@ class GameState:
             if hook is not None:
                 hook(self, player, actual_card)
 
-        self._resolve_allies_gain_effects(player, actual_card, allies_gain_effects)
+        self._resolve_allies_gain_effects(player, actual_card, allies_gain_effects, gained_cost)
 
         # Allies hook: the chosen Ally may react to the active player's gains
         # (Architects' Guild, Band of Nomads, Trappers' Lodge).
