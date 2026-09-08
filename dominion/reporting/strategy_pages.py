@@ -797,12 +797,20 @@ def _decision_priority_section(strategy, kind, title, icon, references=None) -> 
             'For purchases, the option must also be affordable. '
             if kind == "gain" else ""
         )
+        gain_note = (
+            '<p class="section-note">Shared gain logic can change the list choice: '
+            'after playing Collection, it can favor an available Action over '
+            'Silver or Copper; with Trail and Way of the Butterfly, it can '
+            'choose Trail to gain a higher-priority card.</p>'
+            if kind == "gain" else ""
+        )
         content = (
             '<p class="section-note">Read from the top for each choice. '
-            'Use the first available option whose condition passes. '
+            'The list selects the first available option whose condition passes. '
             f'{purchase_note}'
             '“Always” means no additional condition on that row; '
-            'earlier eligible rows still take precedence.</p>'
+            'earlier eligible rows still take precedence within the list.</p>'
+            f'{gain_note}'
             f'{table}'
         )
         if not rules:

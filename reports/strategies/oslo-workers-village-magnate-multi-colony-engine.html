@@ -353,7 +353,7 @@
 
 <section class="section section-gain">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>
-  <p class="section-note">Read from the top for each choice. Use the first available option whose condition passes. For purchases, the option must also be affordable. “Always” means no additional condition on that row; earlier eligible rows still take precedence.</p>
+  <p class="section-note">Read from the top for each choice. The list selects the first available option whose condition passes. For purchases, the option must also be affordable. “Always” means no additional condition on that row; earlier eligible rows still take precedence within the list.</p><p class="section-note">Shared gain logic can change the list choice: after playing Collection, it can favor an available Action over Silver or Copper; with Trail and Way of the Butterfly, it can choose Trail to gain a higher-priority card.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
     <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Anvil, Treasure card"><span>Anvil</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 2 copies of Anvil and Cards gained this turn: exactly 0 and Turn number: at most 7</span></summary><pre><code>PriorityRule.and_(PriorityRule.max_in_deck(&#x27;Anvil&#x27;, 2), PriorityRule.cards_gained_this_turn(&#x27;==&#x27;, 0), PriorityRule.turn_number(&#x27;&lt;=&#x27;, 7))</code></pre></details></td></tr>
@@ -399,7 +399,7 @@ Configured values: fallback_turn = 20, min_colonies = 4</code></pre></details></
 </section>
 <section class="section section-treasure">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">$</span><h2>Treasure Priority</h2></div>
-  <p class="section-note">Read from the top for each choice. Use the first available option whose condition passes. “Always” means no additional condition on that row; earlier eligible rows still take precedence.</p>
+  <p class="section-note">Read from the top for each choice. The list selects the first available option whose condition passes. “Always” means no additional condition on that row; earlier eligible rows still take precedence within the list.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
     <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure card-platinum" aria-label="Platinum, Treasure card"><span>Platinum</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
