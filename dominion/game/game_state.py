@@ -4182,7 +4182,7 @@ class GameState:
         # it. Playing a gained card can register effects for later (including
         # nested) gains, but cannot add triggers to this gain in progress.
         in_play_at_gain = list(player.in_play)
-        owner_gain_cards = in_play_at_gain + list(player.duration)
+        owner_gain_cards = list(dict.fromkeys(in_play_at_gain + list(player.duration)))
         allies_gain_effects = tuple(getattr(player, "allies_gain_effects", []))
 
         # Menagerie Exile rule: gaining a card lets the player discard ALL
