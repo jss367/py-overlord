@@ -76,15 +76,6 @@ class GeneticAI(AI):
             return hook(state, player, choices)
         return super().choose_kind_emperor_gain(state, player, choices)
 
-    def choose_courier_card(self, state, player, choices):
-        hook = getattr(self.strategy, "choose_courier_card", None)
-        if hook is not None:
-            return hook(state, player, choices)
-        action = self.choose_action(state, [c for c in choices if c.is_action] + [None])
-        if action is not None:
-            return action
-        return super().choose_courier_card(state, player, choices)
-
     def choose_anvil_gain(
         self, state: GameState, player, choices: list[Card]
     ) -> Optional[Card]:
@@ -105,6 +96,12 @@ class GeneticAI(AI):
         if hook is not None:
             return hook(state, player, mat, candidates)
         return super().choose_quartermaster_option(state, player, mat, candidates)
+
+    def choose_courier_target(self, state, player, choices: list[Card]) -> Optional[Card]:
+        hook = getattr(self.strategy, "choose_courier_target", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_courier_target(state, player, choices)
 
     def choose_overlord_target(self, state, player, choices: list[Card]) -> Optional[Card]:
         hook = getattr(self.strategy, "choose_overlord_target", None)

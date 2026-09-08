@@ -173,7 +173,7 @@ class MineGuildhall(TeaHouseEmperor):
         ]
         return self.pick(choices, order)
 
-    def choose_courier_card(self, state, player, choices):
+    def choose_courier_target(self, state, player, choices):
         names = [
             "City Quarter",
             "Tea House",

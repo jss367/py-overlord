@@ -44,6 +44,10 @@ class AI(ABC):
             return "coins"
         return options[0] if options else "coins"
 
+    def choose_courier_target(self, state, player, choices: list[Card]) -> Optional[Card]:
+        """Choose a free discard play; return None to decline."""
+        return tactical_defaults.choose_courier_target(player, choices)
+
     def choose_overlord_target(self, state, player, choices: list[Card]) -> Optional[Card]:
         choice = self.choose_action(state, choices + [None])
         if choice is not None and choice.name in {card.name for card in choices}:
@@ -1812,14 +1816,6 @@ class AI(ABC):
 
     def choose_kind_emperor_gain(self, state, player, choices):
         return self.choose_buy(state, choices + [None])
-
-    def choose_courier_card(self, state, player, choices):
-        """Prefer useful Actions, then the strongest available Treasure."""
-        if not choices:
-            return None
-        return max(choices, key=lambda c: (
-            c.stats.cards * 2 + c.stats.actions + c.stats.coins, c.cost.coins
-        ))
 
     def choose_anvil_treasure_to_discard(
         self, state: GameState, player: PlayerState, choices: list[Card]

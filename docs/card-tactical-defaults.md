@@ -57,6 +57,7 @@ tested, then expand coverage by expansion.
 | Card | Expansion | Decision | Current status and next work |
 | --- | --- | --- | --- |
 | Overlord | Empires | Select a supply Action | Connected and tested; evaluate attacks, trashing, duration targets, and action support beyond printed resources. |
+| Courier | Allies | Select an Action or Treasure from discard | Connected and tested: discard reactions resolve before selection; supports strategy overrides and declining. Default considers Courier chains, needed Actions, printed draw, and money. Strength comparisons remain unevaluated. |
 | Quartermaster | Plunder | Select a gain and collection timing | Connected and tested; each copy keeps its own pile and collects one card per turn per the printed rules. Strategies may also override `choose_quartermaster_option` for a single hand-aware take/gain decision. |
 | Captain | Promo | Select a supply Action | Needs context: reuses hand action priorities and falls back to the first candidate. |
 | Band of Misfits | Dark Ages | Select a supply Action | Needs forwarding: its dedicated base-AI hook is not forwarded to the strategy. |
@@ -91,14 +92,32 @@ validate menus; `GeneticAI` forwards the following strategy hooks:
 | Strategy hook | Baseline behavior |
 | --- | --- |
 | `choose_overlord_target(state, player, choices)` | Try the strategy's action preferences. Otherwise prefer action support when terminal Actions exceed remaining Actions, then printed draw and money, with deterministic tie-breaking. |
+| `choose_courier_target(state, player, choices)` | Try Action preferences, then explicit Treasure preferences. Otherwise chain Courier while a deck remains, supply needed Actions, then compare available printed draw and money. Returning `None` declines the optional play. |
 | `choose_quartermaster_gain(state, player, choices)` | Try the strategy's gain preferences. Otherwise prefer non-junk, non-Victory gains, then printed cost and resources. |
 | `quartermaster_take_all(state, player, mat)` | Decide whether this Quartermaster collects this turn (the card puts *one* stored card into hand; the engine takes the priciest). Baseline: collect when at least two cards are stored. |
 
-Conditional rules that fail are deprioritized in favor of unspecified cards.
+For Overlord and Quartermaster, conditional rules that fail are deprioritized
+in favor of unspecified cards.
 When every candidate is covered by a failed rule, the baseline still chooses
 from the legal menu. A card-selection override returning `None` or an unavailable
 card requests the engine fallback. An empty menu produces no selection.
 Collection returns a boolean and can explicitly keep accumulating with `False`.
+
+Courier differs from those mandatory target fallbacks: `None` or an invalid
+selection skips its optional play. Its menu contains physical cards currently
+in the discard pile, after the top card has been discarded and all discard
+reactions have resolved. Both Actions and Treasures use the engine's play
+handling; Courier never trashes the top card. Strategies can override
+`choose_courier_target` independently of hand play order. Failed conditional
+Action or Treasure rules exclude those cards from Courier's default fallback,
+including active phase Action rules; it may decline when none remain.
+
+Courier's baseline avoids chaining when an empty deck would shuffle away the
+other targets. It does not evaluate every card's special effects or guarantee
+that a play is beneficial; use a conditional preference or a dedicated override
+to decline unwanted plays. Rules, selection, and interaction coverage live in
+[`test_courier.py`](../tests/test_courier.py). No seeded strength comparison has
+been performed for this baseline.
 
 For example, a strategy can define `choose_overlord_target` to select an attack
 without moving that attack ahead of its Villages in normal hand play, or define

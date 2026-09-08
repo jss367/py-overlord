@@ -347,7 +347,7 @@
         return self.pick(choices, order)
     return super().choose_action(state, player, choices)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose courier card</span></td><td data-label="What it does">Recover an Action that keeps the turn going before taking money.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_courier_card(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose courier target</span></td><td data-label="What it does">Recover an Action that keeps the turn going before taking money.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_courier_target(self, state, player, choices):
     &quot;&quot;&quot;Recover an Action that keeps the turn going before taking money.&quot;&quot;&quot;
     actions = sum(c.is_action for c in player.hand)
     names = [&quot;City Quarter&quot;] if player.actions &lt; 1 or actions &gt;= 2 else []

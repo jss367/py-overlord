@@ -123,7 +123,7 @@ class TeaHouseEmperor(EnhancedStrategy):
             return self.pick(choices, order)
         return super().choose_action(state, player, choices)
 
-    def choose_courier_card(self, state, player, choices):
+    def choose_courier_target(self, state, player, choices):
         """Recover an Action that keeps the turn going before taking money."""
         actions = sum(c.is_action for c in player.hand)
         names = ["City Quarter"] if player.actions < 1 or actions >= 2 else []

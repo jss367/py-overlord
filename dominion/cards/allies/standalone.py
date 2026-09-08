@@ -292,7 +292,8 @@ class Carpenter(Card):
 
 
 class Courier(Card):
-    """$4 Action: +$1; discard top card, then play from the discard pile."""
+    """$4 Action. +$1. Discard the top card of your deck, then you may
+    play an Action or Treasure from your discard pile."""
 
     def __init__(self):
         super().__init__(
@@ -308,18 +309,36 @@ class Courier(Card):
             player.shuffle_discard_into_deck()
         if player.deck:
             game_state.discard_card(player, player.deck.pop())
-        choices = [c for c in player.discard if c.is_action or game_state.is_treasure(c)]
-        chosen = player.ai.choose_courier_card(game_state, player, choices)
-        if chosen is None or chosen not in choices or chosen not in player.discard:
+
+        # Discard reactions may gain cards, play cards, or cause a shuffle.
+        # Build the menu only after those effects have completely resolved.
+        choices = [
+            c for c in player.discard
+            if c.is_action or game_state.is_treasure(c)
+            or game_state.is_inherited_estate(player, c)
+        ]
+        if not choices:
             return
-        player.discard.remove(chosen)
-        player.in_play.append(chosen)
-        if game_state.is_treasure(chosen):
-            game_state.play_treasure_indirectly(player, chosen)
-        else:
-            game_state.play_action_indirectly(
-                player, chosen, blocked_return_zone=player.discard
-            )
+        choice = player.ai.choose_courier_target(game_state, player, choices)
+        # None explicitly declines. Reject unavailable cards without moving
+        # a different physical copy with the same name.
+        if choice is None or not any(choice is c for c in choices):
+            return
+        if not any(choice is c for c in player.discard):
+            return
+        overlay = (
+            game_state._begin_inherited_estate_overlay(player, choice)
+            if game_state.is_inherited_estate(player, choice) else None
+        )
+        try:
+            if choice.is_action and not game_state.is_treasure(choice):
+                game_state.play_action_from_zone_indirectly(player, choice, player.discard)
+            else:
+                player.discard.remove(choice)
+                player.in_play.append(choice)
+                game_state.play_treasure_indirectly(player, choice)
+        finally:
+            game_state._end_inherited_estate_overlay(choice, overlay)
 
 
 class Innkeeper(Card):
