@@ -32,5 +32,6 @@ design plans, and intermediate machine-generated analysis. When presenting that
 analysis as a strategy recommendation, publish an HTML guide in the catalog.
 
 See [documentation formats and migration status](README.md#documentation-formats-and-migration-status)
-for the remaining legacy documents. Generated strategy detail pages do not
-automatically include or replace separately written research narratives.
+for the converted guides and retained developer documentation. Generated strategy
+detail pages do not automatically include or replace separately written research
+narratives.
