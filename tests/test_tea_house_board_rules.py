@@ -783,3 +783,56 @@ def test_mine_upgrade_selection_does_not_change_treasure_play_order():
     assert copper in state.trash
     assert gold in player.hand
     assert any(c.name == "Silver" for c in player.hand)
+
+
+@pytest.mark.parametrize("name", ["Buried Treasure", "Gold"])
+@pytest.mark.parametrize("gatekeeper", [False, True])
+def test_rapid_expansion_does_not_set_aside_a_gain_that_already_moved(name, gatekeeper):
+    state, player = setup(name)
+    state.prophecy = get_prophecy("Rapid Expansion")
+    state.prophecy.is_active = True
+    player.gatekeeper_attacks = int(gatekeeper)
+    card = get_card(name)
+    state.supply[name] -= 1
+
+    state.gain_card(player, card)
+
+    if gatekeeper:
+        assert player.exile == [card]
+        assert not player.in_play and not player.duration
+        assert not player.rapid_expansion_set_aside
+    elif name == "Buried Treasure":
+        assert player.in_play == [card]
+        assert player.duration == [card]
+        assert not player.rapid_expansion_set_aside
+        state.prophecy.on_turn_start(state, player)
+        state.do_duration_phase()
+        assert player.coins == 3
+        assert player.buys == 2
+        assert player.in_play == [card]
+    else:
+        assert player.rapid_expansion_set_aside == [card]
+        assert not player.discard
+        state.prophecy.on_turn_start(state, player)
+        assert player.coins == 3
+        assert player.in_play == [card]
+
+
+@pytest.mark.parametrize("had_exiled_copy", [False, True])
+def test_buried_treasure_respects_prior_gatekeeper_movement(had_exiled_copy):
+    state, player = setup("Buried Treasure")
+    player.gatekeeper_attacks = 1
+    if had_exiled_copy:
+        player.exile = [get_card("Buried Treasure")]
+    card = get_card("Buried Treasure")
+    state.supply[card.name] -= 1
+
+    state.gain_card(player, card)
+
+    if had_exiled_copy:
+        assert card in player.in_play and card in player.duration
+    else:
+        # The engine resolves Gatekeeper first. Once exiled, the gained card
+        # cannot move again to satisfy its mandatory on-gain play trigger.
+        assert player.exile == [card]
+        assert not player.in_play and not player.duration
