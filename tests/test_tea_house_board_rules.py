@@ -408,14 +408,14 @@ def test_highwayman_blocked_contract_still_fires_ally_hook():
 
     state, player = setup("Courier", "Contract")
     state.allies = [LeagueOfShopkeepers()]
-    player.favors = 4
+    player.favors = 10
     player.highwayman_attacks = 1
     player.deck = [get_card("Contract")]
     buys = player.buys
 
     get_card("Courier").on_play(state)
 
-    assert player.favors == 5
+    assert player.favors == 10  # Highwayman blocks Contract's Favor, too.
     assert player.coins == 2  # Courier and the Ally; Contract's $2 is blocked.
     assert player.buys == buys + 1
 
@@ -469,21 +469,28 @@ def test_reckless_treasure_replay_fires_prophecy_hooks(source, prophecy_name):
         assert player.good_harvest_treasures_played == {card.name}
 
 
-def test_reckless_courier_contract_fires_league_of_shopkeepers_twice():
+@pytest.mark.parametrize(
+    "starting_favors,coins,extra_buys",
+    [(3, 6, 0), (4, 7, 0), (8, 7, 1), (9, 7, 2)],
+)
+def test_reckless_contract_checks_shopkeepers_threshold_after_each_play(
+    starting_favors, coins, extra_buys
+):
     from dominion.allies.league_of_shopkeepers import LeagueOfShopkeepers
 
     state, player = setup("Courier", "Contract")
     state.allies = [LeagueOfShopkeepers()]
     state.pile_traits["Contract"] = "Reckless"
-    player.favors = 3
+    player.favors = starting_favors
     player.deck = [get_card("Contract")]
-    buys = player.buys
+    buys, actions = player.buys, player.actions
 
     get_card("Courier").on_play(state)
 
-    assert player.favors == 5
-    assert player.coins == 7  # Courier + two Contracts + two Ally bonuses.
-    assert player.buys == buys + 1
+    assert player.favors == starting_favors + 2
+    assert player.coins == coins
+    assert player.buys == buys + extra_buys
+    assert player.actions == actions + extra_buys
 
 
 def test_courier_inspiring_treasure_plays_action_from_hand():

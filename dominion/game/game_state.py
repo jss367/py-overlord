@@ -2573,6 +2573,8 @@ class GameState:
                 self._fire_urchin_reaction(player, choice)
 
         play_instructions(suppressed=blocked)
+        # Resolve this play's Ally hook before a replay can change Favors.
+        self.fire_ally_play_hooks(player, choice)
         # Plunder Reckless trait: Treasures from Reckless pile play twice.
         if self.pile_traits.get(choice.name) == "Reckless":
             if choice in player.in_play:
@@ -2594,10 +2596,6 @@ class GameState:
         # Rising Sun: Prophecy hooks fire after each treasure plays
         if self.prophecy is not None and self.prophecy.is_active:
             self.prophecy.on_play_treasure(self, player, choice)
-
-        # Allies hook: City-state, League of Shopkeepers,
-        # Fellowship of Scribes can react to treasures played.
-        self.fire_ally_play_hooks(player, choice)
 
         # Renaissance Citadel: if Capitalism makes an Action card
         # playable in the Buy/Treasure phase, that play still
