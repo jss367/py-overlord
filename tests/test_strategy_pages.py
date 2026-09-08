@@ -255,6 +255,62 @@ def test_strategy_page_lists_overridden_decision_hooks(tmp_path):
     assert "Custom Behaviors" not in plain_page
 
 
+def test_custom_gain_policy_is_not_presented_as_unconditional_buy_order():
+    from generated_strategies.tea_house_kind_emperor import TeaHouseEmperor
+
+    # Inherited overrides also control decisions.
+    class InheritedEngine(TeaHouseEmperor):
+        pass
+
+    item = RenderedStrategy(
+        display_name="Tea House and Kind Emperor",
+        slug="tea-house-kind-emperor",
+        strategy=InheritedEngine(),
+        source_path="generated_strategies/tea_house_kind_emperor.py",
+        factory_name="create_tea_house_kind_emperor",
+        references={},
+    )
+    page = render_strategy_page(item)
+    gain = page.split('class="section section-gain"', 1)[1].split('</section>', 1)[0]
+
+    assert "Gain Decisions" in gain
+    assert "Gain Priority" not in gain
+    assert "Custom decision logic controls these choices" in gain
+    assert '<details class="technical-details"><summary>Static list' in gain
+    assert "No list condition" in gain
+    assert "Always" not in gain
+    assert 'href="tea-house-kind-emperor-strategy-guide.html"' in page
+    # The treasure policy is not overridden and still uses its priority list.
+    assert "Treasure Priority" in page
+    assert "earlier eligible rows still take precedence" in page
+
+
+def test_base_gain_policy_discloses_collection_and_butterfly_rewrites():
+    from dominion.cards.registry import get_card
+    from dominion.game.game_state import GameState
+    from dominion.game.player_state import PlayerState
+
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Silver"), PriorityRule("Village")]
+    player = PlayerState(ai=None, collection_played=1)
+    state = GameState(players=[player], supply={"Silver": 40, "Village": 10})
+    choices = [get_card("Silver"), get_card("Village")]
+    # The shared gain policy can choose a later row, even with no override.
+    assert strategy.choose_gain(state, player, choices).name == "Village"
+
+    page = render_strategy_page(RenderedStrategy(
+        display_name="Collection Action Gains", slug="collection-action-gains",
+        strategy=strategy, source_path="example.py", factory_name="create_example",
+        references={},
+    ))
+    gain = page.split('class="section section-gain"', 1)[1].split('</section>', 1)[0]
+    assert "Gain Priority" in gain
+    assert "Shared gain logic can change the list choice" in gain
+    assert "Collection" in gain
+    assert "Way of the Butterfly" in gain
+    assert "within the list" in gain
+
+
 def test_strategy_page_shows_custom_function_source_and_configured_values(tmp_path):
     render_strategy_pages(
         tmp_path,

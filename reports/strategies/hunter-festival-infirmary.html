@@ -375,16 +375,17 @@
 </section>
 
 <section class="section section-gain">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Decisions</h2></div>
+  <p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
-    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Colony, Victory card"><span>Colony</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Colony, Victory card"><span>Colony</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Province, Victory card"><span>Province</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Colonies remaining: at most 3</span></summary><pre><code>cmp(state.supply.get(&#x27;Colony&#x27;, 0), amount)
 
 Configured values: amount = 3</code></pre></details></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="landscape-chip landscape-event">Triumph</span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Cards gained this turn: at least 1</span></summary><pre><code>PriorityRule.cards_gained_this_turn(&#x27;&gt;=&#x27;, 1)</code></pre></details></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-treasure card-platinum" aria-label="Platinum, Treasure card"><span>Platinum</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-treasure card-platinum" aria-label="Platinum, Treasure card"><span>Platinum</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">6</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Hunter, Action, Liaison card"><span>Hunter</span><span class="type-marker marker-liaison" title="Liaison" aria-hidden="true"></span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 4 copies of Hunter</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Hunter&#x27;, 4)</code></pre></details></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">7</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Festival, Action card"><span>Festival</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You do not own Festival</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Festival&#x27;, 1)</code></pre></details></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">8</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Council Room, Action card"><span>Council Room</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 2 copies of Council Room</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Council Room&#x27;, 2)</code></pre></details></td></tr>
@@ -394,12 +395,12 @@ Configured values: amount = 3</code></pre></details></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">12</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Duchy, Victory card"><span>Duchy</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Colonies remaining: at most 2</span></summary><pre><code>cmp(state.supply.get(&#x27;Colony&#x27;, 0), amount)
 
 Configured values: amount = 2</code></pre></details></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">13</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
-  </table>
+<tr><td data-label="Priority"><span class="priority-number">13</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr></tbody>
+  </table></details>
 </section>
-
 <section class="section section-action">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">A</span><h2>Action Priority</h2></div>
+  <p class="section-note">Read from the top for each choice. The list selects the first available option whose condition passes. “Always” means no additional condition on that row; earlier eligible rows still take precedence within the list.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
     <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Festival, Action card"><span>Festival</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
@@ -415,9 +416,9 @@ Configured values: amount = 2</code></pre></details></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">11</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Change, Action card"><span>Change</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
   </table>
 </section>
-
 <section class="section section-trash">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">×</span><h2>Trash Priority</h2></div>
+  <p class="section-note">Read from the top for each choice. The list selects the first available option whose condition passes. “Always” means no additional condition on that row; earlier eligible rows still take precedence within the list.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
     <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-other" aria-label="Hovel, Reaction card"><span>Hovel</span><span class="type-marker marker-reaction" title="Reaction" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
@@ -427,9 +428,9 @@ Configured values: amount = 2</code></pre></details></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
   </table>
 </section>
-
 <section class="section section-treasure">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">$</span><h2>Treasure Priority</h2></div>
+  <p class="section-note">Read from the top for each choice. The list selects the first available option whose condition passes. “Always” means no additional condition on that row; earlier eligible rows still take precedence within the list.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
     <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure card-platinum" aria-label="Platinum, Treasure card"><span>Platinum</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
