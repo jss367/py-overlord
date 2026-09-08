@@ -868,10 +868,19 @@ class GameState:
         # not already specify an Ally, choose a random one. Without an Ally,
         # Liaison cards still grant Favors but those Favors have nothing
         # to spend on.
-        if not self.allies and any(
-            get_card(name).is_liaison for name in self.supply
-            if name not in self.non_supply_pile_names
-        ):
+        has_liaison = any(card.is_liaison for card in kingdom_cards)
+        if not self.allies and not has_liaison:
+            for name in self.supply:
+                if name in self.non_supply_pile_names:
+                    continue
+                try:
+                    card = get_card(name)
+                except ValueError:
+                    continue  # Custom Kingdom cards need not be registered.
+                if card.is_liaison:
+                    has_liaison = True
+                    break
+        if not self.allies and has_liaison:
             from dominion.allies.registry import ALLY_TYPES
             if ALLY_TYPES:
                 ally_class = random.choice(list(ALLY_TYPES.values()))
