@@ -764,3 +764,14 @@ def test_rotated_inspiring_plays_use_ways_tokens_allies_and_nested_triggers(extr
     assert p.coins == 3 * len(extra_names)
     assert p.favors == 0  # Underling used a Way instead of its printed text.
     assert p.hand == []
+
+
+@pytest.mark.parametrize("spend", [False, True])
+def test_fellowship_of_scribes_favor_spend_is_optional(spend):
+    s, p, _ = state("Fellowship of Scribes")
+    p.ai = ChoiceAI({"fellowship_of_scribes": spend})
+    p.favors = 1
+    p.deck = cards("Copper", 5)
+    play(s, p, "Village")
+    assert p.favors == (0 if spend else 1)
+    assert len(p.hand) == (2 if spend else 1)
