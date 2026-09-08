@@ -255,6 +255,36 @@ def test_strategy_page_lists_overridden_decision_hooks(tmp_path):
     assert "Custom Behaviors" not in plain_page
 
 
+def test_custom_gain_policy_is_not_presented_as_unconditional_buy_order():
+    from generated_strategies.tea_house_kind_emperor import TeaHouseEmperor
+
+    # Inherited overrides also control decisions.
+    class InheritedEngine(TeaHouseEmperor):
+        pass
+
+    item = RenderedStrategy(
+        display_name="Tea House and Kind Emperor",
+        slug="tea-house-kind-emperor",
+        strategy=InheritedEngine(),
+        source_path="generated_strategies/tea_house_kind_emperor.py",
+        factory_name="create_tea_house_kind_emperor",
+        references={},
+    )
+    page = render_strategy_page(item)
+    gain = page.split('class="section section-gain"', 1)[1].split('</section>', 1)[0]
+
+    assert "Gain Decisions" in gain
+    assert "Gain Priority" not in gain
+    assert "Custom decision logic controls these choices" in gain
+    assert '<details class="technical-details"><summary>Static list' in gain
+    assert "No list condition" in gain
+    assert "Always" not in gain
+    assert 'href="tea-house-kind-emperor-strategy-guide.html"' in page
+    # The treasure policy is not overridden and still uses its priority list.
+    assert "Treasure Priority" in page
+    assert "earlier eligible rows still take precedence" in page
+
+
 def test_strategy_page_shows_custom_function_source_and_configured_values(tmp_path):
     render_strategy_pages(
         tmp_path,

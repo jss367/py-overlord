@@ -356,21 +356,21 @@
 </section>
 
 <section class="section section-gain">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Decisions</h2></div>
+  <p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
     <tbody><tr><td colspan="3" class="empty">None</td></tr></tbody>
-  </table>
+  </table></details>
 </section>
-
 <section class="section section-action">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">A</span><h2>Action Priority</h2></div>
+  <p class="section-note">Read from the top for each choice. Use the first available option whose condition passes. “Always” means no additional condition on that row; earlier eligible rows still take precedence.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
     <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Smithy, Action card"><span>Smithy</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
   </table>
 </section>
-
 <section class="section section-trash">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">×</span><h2>Trash Priority</h2></div>
   <table class="priority-table">
@@ -378,9 +378,9 @@
     <tbody><tr><td colspan="3" class="empty">None</td></tr></tbody>
   </table>
 </section>
-
 <section class="section section-treasure">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">$</span><h2>Treasure Priority</h2></div>
+  <p class="section-note">Read from the top for each choice. Use the first available option whose condition passes. “Always” means no additional condition on that row; earlier eligible rows still take precedence.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
     <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>

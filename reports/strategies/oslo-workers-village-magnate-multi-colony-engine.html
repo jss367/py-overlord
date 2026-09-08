@@ -353,6 +353,7 @@
 
 <section class="section section-gain">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>
+  <p class="section-note">Read from the top for each choice. Use the first available option whose condition passes. For purchases, the option must also be affordable. “Always” means no additional condition on that row; earlier eligible rows still take precedence.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
     <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Anvil, Treasure card"><span>Anvil</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 2 copies of Anvil and Cards gained this turn: exactly 0 and Turn number: at most 7</span></summary><pre><code>PriorityRule.and_(PriorityRule.max_in_deck(&#x27;Anvil&#x27;, 2), PriorityRule.cards_gained_this_turn(&#x27;==&#x27;, 0), PriorityRule.turn_number(&#x27;&lt;=&#x27;, 7))</code></pre></details></td></tr>
@@ -378,18 +379,17 @@ Configured values: fallback_turn = 20, min_colonies = 4</code></pre></details></
 <tr><td data-label="Priority"><span class="priority-number">13</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
   </table>
 </section>
-
 <section class="section section-action">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">A</span><h2>Action Priority</h2></div>
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">A</span><h2>Action Decisions</h2></div>
+  <p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
-    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Workers&#x27; Village, Action card"><span>Workers&#x27; Village</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Grand Market, Action card"><span>Grand Market</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="King&#x27;s Court, Action card"><span>King&#x27;s Court</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Magnate, Action card"><span>Magnate</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
-  </table>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Workers&#x27; Village, Action card"><span>Workers&#x27; Village</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Grand Market, Action card"><span>Grand Market</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="King&#x27;s Court, Action card"><span>King&#x27;s Court</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Magnate, Action card"><span>Magnate</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr></tbody>
+  </table></details>
 </section>
-
 <section class="section section-trash">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">×</span><h2>Trash Priority</h2></div>
   <table class="priority-table">
@@ -397,9 +397,9 @@ Configured values: fallback_turn = 20, min_colonies = 4</code></pre></details></
     <tbody><tr><td colspan="3" class="empty">None</td></tr></tbody>
   </table>
 </section>
-
 <section class="section section-treasure">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">$</span><h2>Treasure Priority</h2></div>
+  <p class="section-note">Read from the top for each choice. Use the first available option whose condition passes. “Always” means no additional condition on that row; earlier eligible rows still take precedence.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
     <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure card-platinum" aria-label="Platinum, Treasure card"><span>Platinum</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>

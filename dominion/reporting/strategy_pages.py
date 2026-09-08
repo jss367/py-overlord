@@ -739,6 +739,7 @@ def _priority_rows(
     rules: Iterable[PriorityRule],
     *,
     landscape_references: dict[str, list[str]] | None = None,
+    custom_policy: bool = False,
 ) -> str:
     rows = []
     for index, rule in enumerate(rules, 1):
@@ -746,12 +747,70 @@ def _priority_rows(
             "<tr>"
             f'<td data-label="Priority"><span class="priority-number">{index}</span></td>'
             f'<td data-label="Card">{_priority_target_chip(rule.card_name, landscape_references)}</td>'
-            f'<td data-label="Condition">{_condition_markup(rule.condition)}</td>'
+            '<td data-label="Condition">'
+            + (
+                '<span class="condition">No list condition</span>'
+                if custom_policy and rule.condition is None
+                else _condition_markup(rule.condition)
+            )
+            + '</td>'
             "</tr>"
         )
     if not rows:
         return '<tr><td colspan="3" class="empty">None</td></tr>'
     return "\n".join(rows)
+
+
+def _decision_priority_section(strategy, kind, title, icon, references=None) -> str:
+    """Keep static lists subordinate to any Python decision override."""
+    method = getattr(strategy, f"choose_{kind}")
+    custom = getattr(method, "__func__", method) is not getattr(
+        EnhancedStrategy, f"choose_{kind}"
+    )
+    rules = getattr(strategy, f"{kind}_priority", [])
+    rows = _priority_rows(
+        rules,
+        landscape_references=references,
+        custom_policy=custom,
+    )
+    card_heading = "Card or Event" if kind == "gain" else "Card"
+    table = f"""
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>{card_heading}</th><th>Condition</th></tr></thead>
+    <tbody>{rows}</tbody>
+  </table>"""
+    if custom:
+        title = f"{title} Decisions"
+        content = (
+            '<p class="section-note">Custom decision logic controls these choices. '
+            'The static list alone does not describe the order or conditions used '
+            'during play; it may supply references or fallback choices. '
+            'See Custom Behaviors for the decision logic.</p>'
+            '<details class="technical-details"><summary>Static list for implementation reference</summary>'
+            '<p>A missing list condition does not mean this card is always chosen. '
+            'The custom logic may limit, reorder, or skip it.</p>'
+            f'{table}</details>'
+        )
+    else:
+        title = f"{title} Priority"
+        purchase_note = (
+            'For purchases, the option must also be affordable. '
+            if kind == "gain" else ""
+        )
+        content = (
+            '<p class="section-note">Read from the top for each choice. '
+            'Use the first available option whose condition passes. '
+            f'{purchase_note}'
+            '“Always” means no additional condition on that row; '
+            'earlier eligible rows still take precedence.</p>'
+            f'{table}'
+        )
+        if not rules:
+            content = table.lstrip()
+    return f"""<section class="section section-{kind}">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">{icon}</span><h2>{title}</h2></div>
+  {content}
+</section>"""
 
 
 def _way_rows(rules: Iterable[WayRule]) -> str:
@@ -1397,8 +1456,13 @@ def render_strategy_page(
         if leaderboard_href
         else ""
     )
+    guide_nav = "".join(
+        f'<a href="{escape(guide.filename)}">Read the strategy guide</a>'
+        for guide in CURATED_STRATEGY_GUIDES
+        if guide.filename == f"{item.slug}-strategy-guide.html"
+    )
     body = f"""
-<nav><a href="{escape(index_href)}">Strategy index</a>{leaderboard_nav}</nav>
+<nav><a href="{escape(index_href)}">Strategy index</a>{leaderboard_nav}{guide_nav}</nav>
 <header class="hero">
   <p class="eyebrow">Dominion strategy</p>
   <h1>{escape(item.display_name)}</h1>
@@ -1417,37 +1481,10 @@ def render_strategy_page(
   </details>
 </header>
 {custom_section}
-<section class="section section-gain">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>
-  <table class="priority-table">
-    <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
-    <tbody>{_priority_rows(getattr(strategy, "gain_priority", []), landscape_references=item.references)}</tbody>
-  </table>
-</section>
-
-<section class="section section-action">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">A</span><h2>Action Priority</h2></div>
-  <table class="priority-table">
-    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
-    <tbody>{_priority_rows(getattr(strategy, "action_priority", []))}</tbody>
-  </table>
-</section>{bounty_hunter_exile_section}
-
-<section class="section section-trash">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">×</span><h2>Trash Priority</h2></div>
-  <table class="priority-table">
-    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
-    <tbody>{_priority_rows(getattr(strategy, "trash_priority", []))}</tbody>
-  </table>
-</section>
-
-<section class="section section-treasure">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">$</span><h2>Treasure Priority</h2></div>
-  <table class="priority-table">
-    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
-    <tbody>{_priority_rows(getattr(strategy, "treasure_priority", []))}</tbody>
-  </table>
-</section>
+{_decision_priority_section(strategy, "gain", "Gain", "↓", item.references)}
+{_decision_priority_section(strategy, "action", "Action", "A")}{bounty_hunter_exile_section}
+{_decision_priority_section(strategy, "trash", "Trash", "×")}
+{_decision_priority_section(strategy, "treasure", "Treasure", "$")}
 
 <section class="section section-way">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">W</span><h2>Way Policy</h2></div>
