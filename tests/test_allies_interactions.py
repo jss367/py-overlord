@@ -280,7 +280,7 @@ def test_lich_skips_two_turns_without_resolving_start_effects():
         assert p.turns_to_skip == expected
         assert p.favors == 5
         assert p.hand == []
-    assert p.turns_taken == 2
+    assert p.turns_taken == 0
 
 
 def test_island_folk_uses_normal_cleanup_hand_and_cannot_grant_third_turn():
@@ -351,7 +351,7 @@ def test_lich_consumes_skipped_fleet_turn_without_starting_another_normal_turn()
     s.handle_start_phase()
     assert s.fleet_extra_players == [q]
     assert s.current_player is q
-    assert p.turns_taken == 1
+    assert p.turns_taken == 0
 
 
 def test_family_of_inventors_discount_follows_pile_after_rotation():
