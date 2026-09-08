@@ -24,6 +24,7 @@ def _ensure_state(game_state) -> None:
 
 def _register(game_state, trait_name: str, pile_name: str) -> None:
     _ensure_state(game_state)
+    pile_name = game_state.supply_pile_key(pile_name)
     game_state.trait_piles[trait_name] = pile_name
     game_state.pile_traits[pile_name] = trait_name
 
@@ -51,7 +52,7 @@ class FatedTrait(Trait):
     def apply(self, game_state, target_pile_name: str) -> None:
         _register(game_state, "Fated", target_pile_name)
         for player in game_state.players:
-            player.fated_pile = target_pile_name
+            player.fated_pile = game_state.supply_pile_key(target_pile_name)
 
 
 class FriendlyTrait(Trait):
@@ -76,23 +77,16 @@ class InheritedTrait(Trait):
 
     def apply(self, game_state, target_pile_name: str) -> None:
         _register(game_state, "Inherited", target_pile_name)
-        from dominion.cards.registry import get_card
-
         for player in game_state.players:
             estates = [c for c in player.deck if c.name == "Estate"]
             if not estates:
                 continue
             estate = estates[0]
             player.deck.remove(estate)
-            try:
-                replacement = get_card(target_pile_name)
-            except ValueError:
+            replacement = game_state.take_top_supply_card(target_pile_name)
+            if replacement is None:
                 player.deck.append(estate)
                 continue
-            if game_state.supply.get(target_pile_name, 0) <= 0:
-                player.deck.append(estate)
-                continue
-            game_state.supply[target_pile_name] -= 1
             player.deck.append(replacement)
 
 
@@ -158,7 +152,7 @@ class TirelessTrait(Trait):
 
     def apply(self, game_state, target_pile_name: str) -> None:
         _register(game_state, "Tireless", target_pile_name)
-        game_state.tireless_piles.add(target_pile_name)
+        game_state.tireless_piles.add(game_state.supply_pile_key(target_pile_name))
 
 
 class FawningTrait(Trait):

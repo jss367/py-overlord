@@ -463,7 +463,8 @@ class PlayerState:
         if self.fated_pile:
             others_kept = []
             for card in self.discard:
-                if card.name == self.fated_pile:
+                pile = game_state.supply_pile_key(card.name) if game_state else card.name
+                if pile == self.fated_pile:
                     fated_top.append(card)
                 else:
                     others_kept.append(card)

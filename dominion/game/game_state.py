@@ -208,7 +208,34 @@ class GameState:
     def supply_pile_key(self, name):
         from .supply_piles import pile_members
 
+        try:
+            card = get_card(name)
+        except ValueError:
+            return name  # Custom/test cards need no registered pile metadata.
+        if card.is_knight and "Knights" in self.supply:
+            return "Knights"
+        if card.is_ruins and "Ruins" in self.supply:
+            return "Ruins"
         return pile_members(self, name)[0]
+
+    def pile_trait(self, name):
+        if not self.pile_traits:
+            return None
+        return self.pile_traits.get(self.supply_pile_key(name))
+
+    def take_top_supply_card(self, pile):
+        """Remove and return the exposed card of a physical pile, without gaining."""
+        name = self.top_supply_card(pile)
+        if name is None:
+            return None
+        card = get_card(name)
+        count_key = self._resolve_changeling_pile_name(card)
+        if count_key is None or self.supply.get(count_key, 0) <= 0:
+            return None
+        self.supply[count_key] -= 1
+        if count_key in self.pile_order:
+            self.pile_order[count_key].pop()
+        return card
 
     def rotatable_supply_piles(self):
         return list(
@@ -519,7 +546,7 @@ class GameState:
                 # it that would move it").
                 self._resolve_action_text(player, card)
         training_pile = getattr(player, "training_pile", None)
-        if training_pile and card.name == training_pile:
+        if training_pile and self.supply_pile_key(card.name) == self.supply_pile_key(training_pile):
             player.coins += 1
         self.fire_prophecy_action_hooks(player, card)
         if shared_play_hooks:
@@ -1837,7 +1864,7 @@ class GameState:
         shy_pile = self.trait_piles.get("Shy")
         if not shy_pile:
             return
-        shy_cards = [c for c in player.hand if c.name == shy_pile]
+        shy_cards = [c for c in player.hand if self.supply_pile_key(c.name) == shy_pile]
         for card in shy_cards:
             should_use = True
             if hasattr(player.ai, "should_use_shy"):
@@ -1895,7 +1922,7 @@ class GameState:
             self._maybe_kiln_gain(player, card)
             self._resolve_action_text(player, card)
             training_pile = getattr(player, "training_pile", None)
-            if training_pile and card.name == training_pile:
+            if training_pile and self.supply_pile_key(card.name) == self.supply_pile_key(training_pile):
                 player.coins += 1
             # Active Prophecies (Great Leader, Approaching Army, etc.)
             # react to every Action play, including this replay.
@@ -2166,7 +2193,7 @@ class GameState:
                 # Urchin reaction for the card actually played.
                 self._maybe_kiln_gain(player, choice)
                 self._apply_way_text(player, choice, way)
-                if training_pile and choice.name == training_pile:
+                if training_pile and self.supply_pile_key(choice.name) == self.supply_pile_key(training_pile):
                     player.coins += 1
                 # Allies that react to plays still fire when an Action is
                 # played using a Way: the card itself was played, just with
@@ -2194,7 +2221,7 @@ class GameState:
                     player.daimyo_pending = 0
 
                 # Plunder Reckless trait: cards from the Reckless pile play twice.
-                reckless_extra = 1 if self.pile_traits.get(choice.name) == "Reckless" else 0
+                reckless_extra = 1 if self.pile_trait(choice.name) == "Reckless" else 0
 
                 # Plunder Rush event: next Action plays twice.
                 rush_extra = 0
@@ -2300,7 +2327,7 @@ class GameState:
                         choice.on_play(self)
                     else:
                         choice.on_play(self)
-                    if training_pile and choice.name == training_pile:
+                    if training_pile and self.supply_pile_key(choice.name) == self.supply_pile_key(training_pile):
                         player.coins += 1
 
                     # NOTE: Adventures pile-token bonuses (+1 Card / +1 Action
@@ -2376,7 +2403,7 @@ class GameState:
                 pass
 
     def _maybe_inspiring_extra_play(self, player: PlayerState, just_played: Card) -> None:
-        if self.pile_traits.get(just_played.name) != "Inspiring":
+        if self.pile_trait(just_played.name) != "Inspiring":
             return
         in_play_names = {c.name for c in player.in_play}
         candidates = [
@@ -2580,7 +2607,7 @@ class GameState:
         # Resolve this play's Ally hook before a replay can change Favors.
         self.fire_ally_play_hooks(player, choice)
         # Plunder Reckless trait: Treasures from Reckless pile play twice.
-        if self.pile_traits.get(choice.name) == "Reckless":
+        if self.pile_trait(choice.name) == "Reckless":
             if choice in player.in_play:
                 play_instructions()
                 if self.prophecy is not None and self.prophecy.is_active:
@@ -2812,10 +2839,10 @@ class GameState:
             for landmark in self.landmarks:
                 landmark.on_buy(self, player, card)
 
-            if self.pile_traits.get(card.name) == "Nearby":
+            if self.pile_trait(card.name) == "Nearby":
                 player.buys += 1
             self._apply_adventures_attack_on_buy(player, card)
-            if card.name in getattr(player, "plan_trash_piles", set()) and player.hand:
+            if getattr(player, "plan_trash_piles", set()) and self.supply_pile_key(card.name) in player.plan_trash_piles and player.hand:
                 trashable = list(player.hand)
                 selected = player.ai.choose_card_to_trash(self, trashable + [None])
                 if selected and selected in player.hand:
@@ -2969,7 +2996,7 @@ class GameState:
             cost += self.prophecy.cost_modifier(self, player, card)
 
         # Plunder Cheap trait: cards from the Cheap pile cost $1 less.
-        if self.pile_traits.get(card.name) == "Cheap":
+        if self.pile_trait(card.name) == "Cheap":
             cost -= 1
         # Allies "Family of Inventors": -$1 cost tokens on Supply piles.
         inventor_tokens = getattr(self, "family_inventor_tokens", {})
@@ -3294,7 +3321,7 @@ class GameState:
                 and card.name in self.supply
             ):
                 return False
-            if card.name in self.tireless_piles:
+            if self.tireless_piles and self.supply_pile_key(card.name) in self.tireless_piles:
                 return False
             return True
 
@@ -3310,7 +3337,7 @@ class GameState:
         # Plunder Patient trait: at end of turn, mat cards from Patient pile.
         patient_pile = self.trait_piles.get("Patient")
         if patient_pile:
-            patient_cards = [c for c in player.hand if c.name == patient_pile]
+            patient_cards = [c for c in player.hand if self.supply_pile_key(c.name) == patient_pile]
             if patient_cards:
                 self.patient_mat.setdefault(id(player), []).extend(patient_cards)
                 for card in patient_cards:
@@ -3390,7 +3417,7 @@ class GameState:
                         self.gain_card(player, replacement, from_supply=False)
                         continue
                 # Tireless trait: set aside instead of discarding
-                if card.name in self.tireless_piles:
+                if self.tireless_piles and self.supply_pile_key(card.name) in self.tireless_piles:
                     tireless_set_aside.append(card)
                 else:
                     self.discard_card(player, card, from_cleanup=True)
@@ -3875,18 +3902,15 @@ class GameState:
 
     def _handle_friendly_discard(self, player: PlayerState, card: Card) -> None:
         """Friendly: gain a copy from this pile when a Friendly card is discarded."""
-        if self.pile_traits.get(card.name) != "Friendly":
-            return
-        if self.supply.get(card.name, 0) <= 0:
+        if self.pile_trait(card.name) != "Friendly":
             return
         if getattr(self, "_friendly_processing", False):
             return
         self._friendly_processing = True
         try:
-            from ..cards.registry import get_card
-
-            self.supply[card.name] -= 1
-            self.gain_card(player, get_card(card.name))
+            gained = self.take_top_supply_card(self.supply_pile_key(card.name))
+            if gained is not None:
+                self.gain_card(player, gained)
         finally:
             self._friendly_processing = False
 
@@ -4443,7 +4467,7 @@ class GameState:
         """Resolve Plunder Trait reactions to a gain."""
         from ..cards.registry import get_card
 
-        trait = self.pile_traits.get(gained_card.name)
+        trait = self.pile_trait(gained_card.name)
         if trait == "Cursed":
             self._gain_random_loot(player)
             self.give_curse_to_player(player)
@@ -4471,9 +4495,10 @@ class GameState:
 
         if gained_card.name == "Province":
             fawning_pile = self.trait_piles.get("Fawning")
-            if fawning_pile and self.supply.get(fawning_pile, 0) > 0:
-                self.supply[fawning_pile] -= 1
-                self.gain_card(player, get_card(fawning_pile))
+            if fawning_pile:
+                card = self.take_top_supply_card(fawning_pile)
+                if card is not None:
+                    self.gain_card(player, card)
 
     def _gain_random_loot(self, player: PlayerState):
         """Gain a random face-up Loot."""
@@ -5109,14 +5134,11 @@ class GameState:
         pious_pile = self.trait_piles.get("Pious")
         if not pious_pile:
             return
-        if self.supply.get(pious_pile, 0) <= 0:
-            return
         self._pious_processing = True
         try:
-            from ..cards.registry import get_card
-
-            self.supply[pious_pile] -= 1
-            self.trash_card(trasher, get_card(pious_pile))
+            card = self.take_top_supply_card(pious_pile)
+            if card is not None:
+                self.trash_card(trasher, card)
         finally:
             self._pious_processing = False
 
@@ -5536,14 +5558,14 @@ class GameState:
     ) -> None:
         """Place ``token_kind`` on ``pile_name`` for ``player``."""
         idx = self.players.index(player)
-        key = (idx, pile_name)
+        key = (idx, self.supply_pile_key(pile_name))
         self.pile_tokens.setdefault(key, set()).add(token_kind)
 
     def remove_pile_token(
         self, player: PlayerState, pile_name: str, token_kind: str
     ) -> None:
         idx = self.players.index(player)
-        key = (idx, pile_name)
+        key = (idx, self.supply_pile_key(pile_name))
         if key in self.pile_tokens and token_kind in self.pile_tokens[key]:
             self.pile_tokens[key].discard(token_kind)
             if not self.pile_tokens[key]:
@@ -5552,8 +5574,10 @@ class GameState:
     def has_pile_token(
         self, player: PlayerState, pile_name: str, token_kind: str
     ) -> bool:
+        if not self.pile_tokens:
+            return False
         idx = self.players.index(player)
-        return token_kind in self.pile_tokens.get((idx, pile_name), set())
+        return token_kind in self.pile_tokens.get((idx, self.supply_pile_key(pile_name)), set())
 
     def player_token_pile(
         self, player: PlayerState, token_kind: str
@@ -5572,6 +5596,7 @@ class GameState:
         player has only one of each token, so placing it removes any prior
         placement).
         """
+        new_pile = self.supply_pile_key(new_pile)
         existing = self.player_token_pile(player, token_kind)
         if existing == new_pile:
             return
@@ -5599,8 +5624,10 @@ class GameState:
         Tokens "+1 Card", "+1 Action", "+1 Buy", and "+$1" provide the matching
         bonus when their pile's card is played.
         """
+        if not self.pile_tokens:
+            return
         idx = self.players.index(player)
-        tokens = self.pile_tokens.get((idx, card.name))
+        tokens = self.pile_tokens.get((idx, self.supply_pile_key(card.name)))
         if not tokens:
             return
         if "+1 Action" in tokens:

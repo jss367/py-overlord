@@ -453,3 +453,129 @@ def test_completed_multiplier_does_not_follow_old_duration_on_a_later_turn():
     assert importer in p.in_play
     assert throne in p.discard
     assert throne not in p.in_play
+
+
+def test_rotated_pile_keeps_cheap_and_player_tokens():
+    from dominion.traits import apply_trait
+
+    s, p, _ = state()
+    s.setup_supply([get_card("Town Crier")])
+    apply_trait(s, "Cheap", "Town Crier")
+    s.add_pile_token(p, "Town Crier", "+$1")
+    s.add_pile_token(p, "Town Crier", "-$2 cost")
+    s.rotate_supply_pile("Town Crier")
+    blacksmith = get_card("Blacksmith")
+    assert s.get_card_cost(p, blacksmith) == 0
+    assert s.has_pile_token(p, "Blacksmith", "+$1")
+    before = p.coins
+    play(s, p, "Blacksmith")
+    assert p.coins == before + 1
+    s.move_player_token(p, "+$1", "Elder")
+    assert s.player_token_pile(p, "+$1") == "Town Crier"
+    s.remove_pile_token(p, "Blacksmith", "+$1")
+    assert not s.has_pile_token(p, "Town Crier", "+$1")
+
+
+def test_rotated_reckless_treasure_plays_twice():
+    from dominion.traits import apply_trait
+
+    s, p, _ = state()
+    s.setup_supply([get_card("Old Map"), get_card("Village")])
+    apply_trait(s, "Reckless", "Old Map")
+    s.rotate_supply_pile("Old Map")
+    s.rotate_supply_pile("Old Map")
+    assert s.top_supply_card("Old Map") == "Sunken Treasure"
+    treasure = get_card("Sunken Treasure")
+    p.in_play.append(treasure)
+    s.play_treasure_indirectly(p, treasure)
+    assert [c.name for c in p.discard] == ["Village", "Village"]
+
+
+@pytest.mark.parametrize("trait", ["Cursed", "Rich", "Hasty"])
+def test_rotated_pile_gain_traits(trait):
+    from dominion.traits import apply_trait
+
+    s, p, _ = state()
+    s.setup_supply([get_card("Town Crier")])
+    apply_trait(s, trait, "Town Crier")
+    s.rotate_supply_pile("Town Crier")
+    gained = s.take_top_supply_card("Town Crier")
+    s.gain_card(p, gained)
+    assert gained.name == "Blacksmith"
+    if trait == "Cursed":
+        assert any(c.name == "Curse" for c in p.discard)
+        assert len(p.discard) == 3  # Blacksmith, Loot, Curse
+    elif trait == "Rich":
+        assert [c.name for c in p.discard] == ["Blacksmith", "Silver"]
+    else:
+        assert gained in s.hasty_set_aside[id(p)]
+        assert gained not in p.discard
+
+
+@pytest.mark.parametrize("empty_original", [False, True])
+def test_fawning_gains_exposed_card_even_when_original_group_is_empty(empty_original):
+    from dominion.traits import apply_trait
+
+    s, p, _ = state()
+    s.setup_supply([get_card("Town Crier")])
+    apply_trait(s, "Fawning", "Town Crier")
+    if empty_original:
+        s.supply["Town Crier"] = 0
+    else:
+        s.rotate_supply_pile("Town Crier")
+    s.gain_card(p, get_card("Province"))
+    assert [c.name for c in p.discard] == ["Province", "Blacksmith"]
+    assert s.supply["Town Crier"] == (0 if empty_original else 4)
+    assert s.supply["Blacksmith"] == 3
+
+
+@pytest.mark.parametrize("trait", ["Patient", "Tireless", "Shy", "Fated"])
+def test_rotated_pile_traits_follow_cards_through_player_zones(trait):
+    from dominion.traits import apply_trait
+
+    s, p, _ = state()
+    s.setup_supply([get_card("Town Crier")])
+    apply_trait(s, trait, "Blacksmith")  # Registration also uses physical keys.
+    s.rotate_supply_pile("Town Crier")
+    blacksmith = get_card("Blacksmith")
+    p.deck = cards("Copper", 20)
+    if trait == "Patient":
+        p.hand = [blacksmith]
+        s.handle_cleanup_phase()
+        assert blacksmith in s.patient_mat[id(p)]
+    elif trait == "Tireless":
+        p.in_play = [blacksmith]
+        s.handle_cleanup_phase()
+        assert blacksmith in p.deck
+        assert blacksmith not in p.discard
+    elif trait == "Shy":
+        p.hand = [blacksmith]
+        s._handle_shy_start_of_turn(p)
+        assert blacksmith in p.discard
+        assert len(p.hand) == 2
+    else:
+        p.deck = []
+        p.discard = [blacksmith] + cards("Copper", 10)
+        p.shuffle_discard_into_deck()
+        assert p.deck[-1] is blacksmith
+
+
+@pytest.mark.parametrize("trait", ["Friendly", "Pious", "Inherited"])
+def test_trait_pile_effects_take_the_current_top_card(trait):
+    from dominion.traits import apply_trait
+
+    s, p, _ = state()
+    s.setup_supply([get_card("Town Crier")])
+    s.rotate_supply_pile("Town Crier")
+    p.deck = [get_card("Estate")]
+    apply_trait(s, trait, "Town Crier")
+    if trait == "Friendly":
+        s.discard_card(p, get_card("Town Crier"))
+        assert [c.name for c in p.discard] == ["Town Crier", "Blacksmith"]
+    elif trait == "Pious":
+        s.trash_card(p, get_card("Copper"))
+        assert [c.name for c in s.trash] == ["Copper", "Blacksmith"]
+    else:
+        assert [c.name for c in p.deck] == ["Blacksmith"]
+    assert s.supply["Town Crier"] == 4
+    assert s.supply["Blacksmith"] == 3
