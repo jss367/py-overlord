@@ -582,6 +582,7 @@ class PlayerState:
             self.save_set_aside,
             self.summon_set_aside,
             self.farmhands_set_aside,
+            self.deliver_set_aside,
         ]
         game_state = getattr(self, "game_state", None)
         if game_state is not None:
