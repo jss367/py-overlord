@@ -955,3 +955,82 @@ def test_trait_set_aside_cards_remain_owned_and_scored_in_copied_games(trait, co
     assert sum(c.name == "Distant Shore" for c in p.all_cards()) == 1
     assert p.get_victory_points() == 2
     assert all(c.name != "Distant Shore" for c in p.hand + p.deck + p.discard)
+
+
+@pytest.mark.parametrize("destination", ["discard", "hand", "deck"])
+@pytest.mark.parametrize("city_first", [False, True])
+def test_city_state_and_hasty_gain_triggers_can_resolve_in_either_order(destination, city_first):
+    from dominion.traits import apply_trait
+
+    s, p, _ = state("City-state")
+    s.setup_supply([get_card("Town Crier")])
+    apply_trait(s, "Hasty", "Town Crier")
+    s.rotate_supply_pile("Town Crier")
+    p.ai = ChoiceAI({"city_state_before_hasty": city_first})
+    p.favors = 2
+    p.deck = cards("Copper", 10)
+    blacksmith = s.take_top_supply_card("Town Crier")
+    s.gain_card(p, blacksmith, to_hand=destination == "hand", to_deck=destination == "deck")
+    assert p.favors == (0 if city_first else 2)
+    assert (blacksmith in p.in_play) is city_first
+    assert (blacksmith in s.hasty_set_aside.get(id(p), [])) is not city_first
+    assert p.all_cards().count(blacksmith) == 1
+    assert len(p.hand) == (6 if city_first else 0)
+
+
+def test_declining_city_state_before_hasty_does_not_offer_it_twice():
+    from dominion.traits import apply_trait
+
+    class DeclineAI(ChoiceAI):
+        offers = 0
+
+        def choose_allies_option(self, state, player, reason, options, default):
+            if reason == "city_state":
+                self.offers += 1
+                return False
+            return super().choose_allies_option(state, player, reason, options, default)
+
+    s, p, _ = state("City-state")
+    s.setup_supply([get_card("Village")])
+    apply_trait(s, "Hasty", "Village")
+    p.ai = DeclineAI()
+    p.favors = 2
+    village = s.take_top_supply_card("Village")
+    s.gain_card(p, village)
+    assert p.ai.offers == 1
+    assert p.favors == 2
+    assert village in s.hasty_set_aside[id(p)]
+    assert village not in p.in_play
+
+
+@pytest.mark.parametrize("off_turn,favors", [(True, 2), (False, 1)])
+def test_hasty_gain_does_not_bypass_city_state_eligibility(off_turn, favors):
+    from dominion.traits import apply_trait
+
+    s, p, q = state("City-state")
+    s.setup_supply([get_card("Village")])
+    apply_trait(s, "Hasty", "Village")
+    owner = q if off_turn else p
+    owner.favors = favors
+    village = s.take_top_supply_card("Village")
+    s.gain_card(owner, village)
+    assert owner.favors == favors
+    assert village in s.hasty_set_aside[id(owner)]
+    assert village not in owner.in_play
+
+
+def test_city_state_played_hasty_garrison_does_not_count_its_own_gain():
+    from dominion.traits import apply_trait
+
+    s, p, _ = state("City-state")
+    s.setup_supply([get_card("Tent")])
+    apply_trait(s, "Hasty", "Tent")
+    s.rotate_supply_pile("Tent")
+    p.favors = 2
+    garrison = s.take_top_supply_card("Tent")
+    s.gain_card(p, garrison)
+    assert garrison in p.in_play
+    assert garrison.tokens == 0
+    silver = s.take_top_supply_card("Silver")
+    s.gain_card(p, silver)
+    assert garrison.tokens == 1

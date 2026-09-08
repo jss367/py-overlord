@@ -4310,6 +4310,16 @@ class GameState:
         self._handle_sailor_gain(player, actual_card)
 
         # Plunder Trait gain hooks (Cursed / Rich / Hasty / Fawning).
+        # The gainer may resolve a competing Ally first, before a Trait moves
+        # the gained card. Do not offer that Ally a second time for this gain.
+        # A card played by that Ally (e.g. Garrison) cannot react to the gain
+        # that happened before it entered play.
+        owner_gain_cards = list(player.in_play) + list(player.duration)
+        resolved_allies = []
+        for ally in self.allies:
+            hook = getattr(ally, "on_owner_gain_before_trait", None)
+            if hook is not None and hook(self, player, actual_card):
+                resolved_allies.append(ally)
         self._handle_trait_on_gain(player, actual_card)
 
         # Plunder Mirror event: gain another copy of a gained Action.
@@ -4346,7 +4356,7 @@ class GameState:
         # Generic "while this is in play, when you gain a card ..." hook used
         # by cards like Garrison. In-play cards may
         # implement on_owner_gain(game_state, player, gained_card).
-        for card in list(player.in_play) + list(player.duration):
+        for card in owner_gain_cards:
             hook = getattr(card, "on_owner_gain", None)
             if hook is not None:
                 hook(self, player, actual_card)
@@ -4356,6 +4366,8 @@ class GameState:
         # Allies hook: the chosen Ally may react to the active player's gains
         # (Architects' Guild, Band of Nomads, Trappers' Lodge).
         for ally in self.allies:
+            if ally in resolved_allies:
+                continue
             hook = getattr(ally, "on_owner_gain", None)
             if hook is not None:
                 hook(self, player, actual_card)
