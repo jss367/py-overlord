@@ -966,7 +966,7 @@ def test_city_state_and_hasty_gain_triggers_can_resolve_in_either_order(destinat
     s.setup_supply([get_card("Town Crier")])
     apply_trait(s, "Hasty", "Town Crier")
     s.rotate_supply_pile("Town Crier")
-    p.ai = ChoiceAI({"city_state_before_hasty": city_first})
+    p.ai = ChoiceAI({"city_state_before_gain_effects": city_first})
     p.favors = 2
     p.deck = cards("Copper", 10)
     blacksmith = s.take_top_supply_card("Town Crier")
@@ -978,7 +978,7 @@ def test_city_state_and_hasty_gain_triggers_can_resolve_in_either_order(destinat
     assert len(p.hand) == (6 if city_first else 0)
 
 
-def test_declining_city_state_before_hasty_does_not_offer_it_twice():
+def test_declining_city_state_before_gain_effects_does_not_offer_it_twice():
     from dominion.traits import apply_trait
 
     class DeclineAI(ChoiceAI):

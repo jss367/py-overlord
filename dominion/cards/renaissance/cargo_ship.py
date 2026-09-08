@@ -27,11 +27,15 @@ class CargoShip(Card):
             return False
         if not player.ai.should_set_aside_cargo_ship(game_state, player, gained_card):
             return False
-        self.waiting_for_gain = False
         if gained_card in player.discard:
             player.discard.remove(gained_card)
         elif gained_card in player.deck:
             player.deck.remove(gained_card)
+        elif gained_card in player.hand:
+            player.hand.remove(gained_card)
+        else:
+            return False
+        self.waiting_for_gain = False
         self.set_aside = gained_card
         player.duration.append(self)
         self.duration_persistent = True

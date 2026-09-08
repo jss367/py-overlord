@@ -20,13 +20,13 @@ class CityState(Ally):
             return None
         return zone
 
-    def on_owner_gain_before_trait(self, game_state, player, gained_card):
-        """Let the owner resolve City-state before Hasty moves the gain."""
+    def on_owner_gain_first(self, game_state, player, gained_card):
+        """Let the owner resolve City-state before other gain effects."""
         if (
-            game_state.pile_trait(gained_card.name) != "Hasty"
-            or self._gain_zone(game_state, player, gained_card) is None
+            self._gain_zone(game_state, player, gained_card) is None
             or not decide(
-                game_state, player, "city_state_before_hasty", [False, True], True
+                game_state, player, "city_state_before_gain_effects", [False, True],
+                game_state.pile_trait(gained_card.name) == "Hasty",
             )
         ):
             return False

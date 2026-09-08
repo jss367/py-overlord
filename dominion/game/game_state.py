@@ -4174,7 +4174,8 @@ class GameState:
         # Only abilities already active when this gain happens can react to
         # it. Playing a gained card can register effects for later (including
         # nested) gains, but cannot add triggers to this gain in progress.
-        owner_gain_cards = list(player.in_play) + list(player.duration)
+        in_play_at_gain = list(player.in_play)
+        owner_gain_cards = in_play_at_gain + list(player.duration)
         allies_gain_effects = tuple(getattr(player, "allies_gain_effects", []))
 
         # Menagerie Exile rule: gaining a card lets the player discard ALL
@@ -4236,6 +4237,14 @@ class GameState:
             if actual_card.is_victory:
                 player.gained_victory_this_buy_phase = True
 
+        # Let the owner order City-state before any simultaneous gain mover,
+        # including Gatekeeper, on-gain card abilities, Watchtower and Traits.
+        resolved_allies = []
+        for ally in self.allies:
+            hook = getattr(ally, "on_owner_gain_first", None)
+            if hook is not None and hook(self, player, actual_card):
+                resolved_allies.append(ally)
+
         self._handle_gatekeeper_exile(player, actual_card, destination_is_deck, had_exiled_copy)
 
         # "When you gain a card, you may discard all copies of it from
@@ -4284,10 +4293,10 @@ class GameState:
         self._trigger_invest_draw(actual_card.name, player)
         self._handle_fools_gold_reactions(player, actual_card)
         self._track_action_gain(player, actual_card)
-        self._handle_cargo_ship_gain(player, actual_card)
+        self._handle_cargo_ship_gain(player, actual_card, in_play_at_gain)
         self._handle_menagerie_gain_reactions(player, actual_card)
         self._handle_opponent_gain_hooks(player, actual_card)
-        self._handle_livery_gain(player, actual_card)
+        self._handle_livery_gain(player, actual_card, in_play_at_gain)
         self._handle_secluded_shrine_gain(player, actual_card)
         self._handle_falconer_reactions(player, actual_card)
 
@@ -4316,13 +4325,6 @@ class GameState:
         self._handle_sailor_gain(player, actual_card)
 
         # Plunder Trait gain hooks (Cursed / Rich / Hasty / Fawning).
-        # The gainer may resolve a competing Ally first, before a Trait moves
-        # the gained card. Do not offer that Ally a second time for this gain.
-        resolved_allies = []
-        for ally in self.allies:
-            hook = getattr(ally, "on_owner_gain_before_trait", None)
-            if hook is not None and hook(self, player, actual_card):
-                resolved_allies.append(ally)
         self._handle_trait_on_gain(player, actual_card)
 
         # Plunder Mirror event: gain another copy of a gained Action.
@@ -5212,9 +5214,9 @@ class GameState:
             self.supply["Gold"] -= 1
             self.gain_card(player, get_card("Gold"))
 
-    def _handle_cargo_ship_gain(self, player: PlayerState, gained_card: Card) -> None:
+    def _handle_cargo_ship_gain(self, player: PlayerState, gained_card: Card, in_play_at_gain) -> None:
         """Check if a Cargo Ship in play wants to set aside the gained card."""
-        for card in list(player.in_play):
+        for card in in_play_at_gain:
             if hasattr(card, "on_cargo_ship_gain"):
                 if card.on_cargo_ship_gain(self, player, gained_card):
                     break
@@ -5296,10 +5298,8 @@ class GameState:
             if card.name == "Sleigh" and hasattr(card, "react_to_own_gain"):
                 decision = card.react_to_own_gain(self, player, gained_card)
                 if decision in {"hand", "deck"}:
-                    if gained_card in player.discard:
-                        player.discard.remove(gained_card)
-                    elif gained_card in player.deck:
-                        player.deck.remove(gained_card)
+                    if not self._remove_gained_card_from_zones(player, gained_card):
+                        break
                     if decision == "hand":
                         player.hand.append(gained_card)
                     else:
@@ -5341,13 +5341,13 @@ class GameState:
             self.supply[played_card.name] -= 1
             self.gain_card(player, copy)
 
-    def _handle_livery_gain(self, player: PlayerState, gained_card: Card) -> None:
+    def _handle_livery_gain(self, player: PlayerState, gained_card: Card, in_play_at_gain) -> None:
         """Each Livery in play: gain a Horse when a card costing $4+ is gained."""
         if gained_card.name == "Horse":
             return
         if self.get_card_cost(player, gained_card) < 4:
             return
-        livery_count = sum(1 for c in player.in_play if c.name == "Livery")
+        livery_count = sum(1 for c in in_play_at_gain if c.name == "Livery")
         if livery_count <= 0:
             return
         from ..cards.registry import get_card
