@@ -2015,7 +2015,11 @@ class GameState:
                 if card in zone:
                     zone.remove(card)
         for card in dict.fromkeys(snapshot[0] + snapshot[1]):
-            if card not in player.in_play:
+            # The queue records pending instructions, not physical ownership.
+            # A Duration trashed or otherwise moved still resolves where it is.
+            if card not in self.trash and not any(
+                card in owner.all_cards() for owner in self.players
+            ):
                 player.in_play.append(card)
         for card in snapshot[0] + snapshot[1]:
             coins_before, actions_before = player.coins, player.actions
@@ -3205,6 +3209,15 @@ class GameState:
                 if card not in durations_to_keep and any(t in durations_to_keep for t in getattr(card, "duration_targets", [])):
                     durations_to_keep.add(card)
                     changed = True
+
+        # A physical multiplier may be shuffled and played again. Completed
+        # targets must not retain it during an unrelated later Duration play.
+        for card in player.all_cards() + self.trash:
+            if hasattr(card, "duration_targets"):
+                card.duration_targets = [
+                    target for target in card.duration_targets
+                    if target in durations_to_keep
+                ]
 
         # Plunder Journey event: "Don't discard your Action cards from play
         # this turn." Keep every Action card from in_play in the same set so

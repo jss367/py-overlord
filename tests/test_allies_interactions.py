@@ -405,3 +405,51 @@ def test_peaceful_cult_can_spend_more_favors_than_cards_to_trash(hand_size, spen
     assert p.favors == 0
     assert p.hand == []
     assert len(s.trash) == hand_size
+
+
+@pytest.mark.parametrize("name", ["Importer", "Contract"])
+def test_trashed_duration_resolves_without_restoring_ownership(name):
+    from dominion.events.adventures_events import Bonfire
+
+    s, p, _ = state()
+    s.supply = {"Silver": 5}
+    p.hand = [get_card("Village")] if name == "Contract" else []
+    duration = play(s, p, name)
+    p.ai.choose_cards_to_trash = lambda state, choices, count: choices[:count]
+    Bonfire().on_buy(s, p)
+    assert duration in s.trash
+    p.deck = cards("Copper", 20)
+    s.do_duration_phase()
+    if name == "Importer":
+        assert s.supply["Silver"] == 4
+    else:
+        assert any(c.name == "Village" for c in p.in_play)
+    assert duration not in p.in_play
+    s.handle_cleanup_phase()
+    assert duration not in p.all_cards()
+    assert s.trash.count(duration) == 1
+
+
+def test_completed_multiplier_does_not_follow_old_duration_on_a_later_turn():
+    s, p, _ = state()
+    importer = get_card("Importer")
+    p.hand = [importer]
+    throne = play(s, p, "Throne Room")
+    p.deck = cards("Copper", 30)
+    s.handle_cleanup_phase()
+    s.current_player_index = 0
+    s.do_duration_phase()
+    s.handle_cleanup_phase()
+    assert throne in p.discard and importer in p.discard
+    s.current_player_index = 0
+    p.discard.remove(throne)
+    p.discard.remove(importer)
+    p.in_play.append(importer)
+    s.play_action_indirectly(p, importer)
+    p.in_play.append(throne)
+    p.hand = [get_card("Village")]
+    s.play_action_indirectly(p, throne)
+    s.handle_cleanup_phase()
+    assert importer in p.in_play
+    assert throne in p.discard
+    assert throne not in p.in_play
