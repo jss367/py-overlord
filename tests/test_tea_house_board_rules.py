@@ -863,6 +863,9 @@ def test_main_enlightenment_substitution_preserves_urchin_attack_reaction():
 @pytest.mark.parametrize("tiara", [False, True])
 def test_treasure_log_includes_observer_and_replay_coins(good_harvest, tiara):
     class ReplayGold(DummyAI):
+        def choose_treasure(self, state, choices):
+            return next((c for c in choices if c and c.name == "Gold"), None)
+
         def should_replay_treasure_with_tiara(self, state, player, card):
             return True
 
