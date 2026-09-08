@@ -831,3 +831,29 @@ def test_buried_treasure_respects_prior_gatekeeper_movement(had_exiled_copy):
         # cannot move again to satisfy its mandatory on-gain play trigger.
         assert player.exile == [card]
         assert not player.in_play and not player.duration
+
+
+def test_main_enlightenment_substitution_preserves_urchin_attack_reaction():
+    class PlayMilitia(DummyAI):
+        def choose_action(self, state, choices):
+            return next((c for c in choices if c and c.name == "Militia"), None)
+
+    state, player = setup("Militia", "Urchin", "Mercenary", ai=PlayMilitia())
+    state.prophecy = get_prophecy("Enlightenment")
+    state.prophecy.is_active = True
+    state.phase = "action"
+    player.projects = [get_project("Capitalism")]
+    urchin, militia = get_card("Urchin"), get_card("Militia")
+    player.in_play = [urchin]
+    player.hand = [militia]
+    player.deck = [get_card("Estate")]
+    state.supply["Mercenary"] = mercenaries = 10
+
+    state.handle_action_phase()
+
+    assert player.in_play == [militia]
+    assert urchin in state.trash
+    assert state.supply["Mercenary"] == mercenaries - 1
+    assert any(c.name == "Mercenary" for c in player.discard)
+    assert [c.name for c in player.hand] == ["Estate"]
+    assert player.coins == 0
