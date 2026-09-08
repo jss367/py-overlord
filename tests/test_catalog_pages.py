@@ -1,6 +1,8 @@
 from pathlib import Path
 from dataclasses import replace
 
+import pytest
+
 from dominion.boards.loader import BoardConfig
 from dominion.reporting.board_pages import RenderedBoard
 from dominion.reporting.catalog_pages import (
@@ -113,6 +115,10 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "strategies/cursed-band-biding-time-strategy-guide.html",
         "strategies/tea-house-kind-emperor-strategy-guide.html",
         "strategies/mine-guildhall-strategy-guide.html",
+        "strategies/hyderabad-strategy-guide.html",
+        "strategies/lisbon-strategy-guide.html",
+        "strategies/oslo-strategy-guide.html",
+        "strategies/port-moresby-strategy-guide.html",
         "strategies/index.html",
         "strategies/card-strategy-usage.html",
         "strategies/leaderboard.html",
@@ -181,11 +187,21 @@ def test_catalog_replaces_a_stale_leaderboard_placeholder(tmp_path):
     assert leaderboard in written
 
 
-def test_catalog_writes_curated_strategy_guide_to_clean_output(tmp_path):
+@pytest.mark.parametrize(
+    ("filename", "title"),
+    [
+        ("cursed-band-biding-time-strategy-guide.html", "Cursed Band and Biding Time Strategy Guide"),
+        ("hyderabad-strategy-guide.html", "Hyderabad Strategy Search Guide"),
+        ("lisbon-strategy-guide.html", "Lisbon Strategy Search Guide"),
+        ("oslo-strategy-guide.html", "Discounted Oslo Strategy Search Guide"),
+        ("port-moresby-strategy-guide.html", "Port Moresby Strategy Search Guide"),
+    ],
+)
+def test_catalog_writes_curated_strategy_guide_to_clean_output(tmp_path, filename, title):
     boards_root = tmp_path / "boards"
     board = _write_board(boards_root / "simple.txt", "Village\n")
     output = tmp_path / "site"
-    guide = output / "strategies" / "cursed-band-biding-time-strategy-guide.html"
+    guide = output / "strategies" / filename
 
     written = render_catalog_pages(
         output,
@@ -195,8 +211,12 @@ def test_catalog_writes_curated_strategy_guide_to_clean_output(tmp_path):
     )
 
     assert guide in written
-    assert "<title>Cursed Band and Biding Time Strategy Guide</title>" in guide.read_text(
-        encoding="utf-8"
+    assert f"<title>{title}</title>" in guide.read_text(encoding="utf-8")
+    source = (
+        Path(__file__).resolve().parents[1]
+        / "dominion/reporting/curated_strategy_guides"
+        / filename
     )
+    assert guide.read_bytes() == source.read_bytes()
     strategy_index = (output / "strategies" / "index.html").read_text()
-    assert 'href="cursed-band-biding-time-strategy-guide.html"' in strategy_index
+    assert f'href="{filename}"' in strategy_index

@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Lisbon Strategy Search Guide: recommendations, experiments, and recorded simulation results.">
+<title>Lisbon Strategy Search Guide</title>
+<style>
+:root { color-scheme: dark; --ink:#f5f0e4; --muted:#b8b1a3; --paper:#151916; --panel:#1d231f; --line:#414940; --gold:#e9c46a; }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; background:radial-gradient(circle at 15% 0%,#263a2b66,transparent 36rem),var(--paper); color:var(--ink); font:16px/1.7 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+a { color:var(--gold); text-underline-offset:3px; }
+a:hover { color:#ffe09a; }
+a:focus-visible { outline:2px solid var(--gold); outline-offset:4px; }
+.page { max-width:1180px; margin:auto; padding:26px clamp(18px,4vw,52px) 60px; }
+.topbar,.contents { display:flex; flex-wrap:wrap; gap:12px 24px; font-size:.9rem; }
+.topbar { justify-content:space-between; margin-bottom:32px; }
+.eyebrow { color:var(--gold); font-size:.76rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+.hero { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(250px,.8fr); align-items:start; gap:40px; padding:30px 0 48px; border-bottom:1px solid var(--line); }
+h1,h2,h3 { font-family:Georgia,"Times New Roman",serif; line-height:1.16; }
+h1 { font-size:clamp(2.7rem,5.5vw,4.8rem); letter-spacing:-.04em; margin:12px 0 24px; max-width:18ch; }
+h2 { font-size:clamp(1.8rem,3vw,2.7rem); margin:0 0 24px; scroll-margin-top:20px; }
+h3 { font-size:1.4rem; }
+p { margin:0 0 18px; }
+.intro p { color:var(--muted); }
+.intro strong { color:var(--ink); }
+.verdict { background:linear-gradient(145deg,#e9c46a22,#e9c46a05); border:1px solid #9d7730; border-radius:18px; padding:26px; }
+.verdict strong { display:block; color:var(--gold); font:700 2.1rem/1.2 Georgia,serif; margin:12px 0 16px; }
+.verdict p:last-child { margin:0; }
+.contents { padding:22px 0; border-bottom:1px solid var(--line); }
+.section { padding:40px 0; border-bottom:1px solid var(--line); }
+.section>p,.section>ul,.section>ol { max-width:88ch; }
+ul,ol { padding-left:26px; }
+li { margin:10px 0; padding-left:5px; }
+.table-wrap { width:100%; overflow-x:auto; margin:24px 0; border:1px solid var(--line); border-radius:12px; }
+table { width:100%; border-collapse:collapse; background:var(--panel); font-size:.94rem; }
+th,td { padding:13px 16px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th { color:var(--gold); font-size:.85rem; }
+tr:last-child td { border-bottom:0; }
+tbody tr:hover { background:#ffffff05; }
+code { font-size:.86em; background:#ffffff09; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; }
+pre { padding:20px; border-radius:12px; border:1px solid var(--line); background:var(--panel); white-space:pre-wrap; overflow-wrap:anywhere; }
+pre code { padding:0; background:none; }
+footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
+@media(max-width:780px) { .hero { grid-template-columns:1fr; gap:24px; } h1 { max-width:none; } .topbar { justify-content:flex-start; } th,td { padding:10px; } }
+@media print { :root { color-scheme:light; --ink:#171717; --muted:#444; --paper:#fff; --panel:#fff; --line:#bbb; --gold:#654a0a; } body { background:white; } .page { max-width:none; padding:0; } .topbar,.contents { display:none; } .hero { padding-top:0; } .verdict { background:white; } .table-wrap { overflow:visible; } tr { break-inside:avoid; } pre { background:#f5f5f5; } }
+
+.hero { display:block; } h1 { max-width:24ch; }
+</style>
+</head>
+<body>
+<main class="page">
+<nav class="topbar" aria-label="Guide navigation"><a href="index.html">← Strategy catalog</a><a href="../boards/lisbon.html">View the board</a><a href="lisbon-best-found.html">Strategy implementation</a></nav>
+<header class="hero"><span class="eyebrow">Board strategy research</span><h1>Lisbon Strategy Search Guide</h1><p>Lisbon Board Strategy Search</p></header>
+<nav class="contents" aria-label="On this page"><a href="#recommendation">Recommendation</a><a href="#why-this-strategy-wins">Why This Strategy Wins</a><a href="#validation">Validation</a><a href="#failed-finalist">Failed Finalist</a></nav>
+<article>
+<section class="section">
+<p>Board: <a href="../../boards/lisbon.txt"><code>boards/lisbon.txt</code></a></p>
+<p>Kingdom:</p>
+<ul>
+<li>Watchtower</li>
+<li>Clerk</li>
+<li>Gardens</li>
+<li>Investment</li>
+<li>Workers' Village</li>
+<li>City</li>
+<li>Collection</li>
+<li>Festival</li>
+<li>Expand</li>
+<li>Peddler</li>
+<li>Colony</li>
+<li>Platinum</li>
+</ul>
+</section>
+<section class="section"><h2 id="recommendation">Recommendation</h2>
+<p>The best strategy found for this board is published as <code>Lisbon Best Found</code>,
+defined in <a href="../../generated_strategies/lisbon_best_found.py"><code>generated_strategies/lisbon_best_found.py</code></a>.</p>
+<p>That strategy intentionally mirrors the existing <code>Lisbon City Crusher</code> gain
+policy from <a href="../../generated_strategies/lisbon_city_crusher.py"><code>generated_strategies/lisbon_city_crusher.py</code></a>. The published file
+omits Crusher's dead Watchtower action rule because this strategy does not buy
+Watchtower; in normal games, that rule is not part of the plan.</p>
+<p>This is not a formal proof of optimal play. It is the best strategy found by
+the current simulator, existing strategy library, and focused local search.</p>
+</section>
+<section class="section"><h2 id="why-this-strategy-wins">Why This Strategy Wins</h2>
+<p><code>Lisbon Best Found</code> leans into the board's fastest shared pressure point:
+emptying City, then forcing Clerk depletion while pivoting into points. The
+gain order is:</p>
+<ol>
+<li>City</li>
+<li>Colony</li>
+<li>Clerk</li>
+<li>Province</li>
+<li>Duchy</li>
+<li>Gardens</li>
+<li>Peddler</li>
+<li>Silver</li>
+</ol>
+<p>The important idea is that City is not just an engine piece here. It is also a
+pile-pressure tool. Once City and Clerk are low or empty, the game can end
+before slower payload engines convert their extra components into enough Colony
+points.</p>
+</section>
+<section class="section"><h2 id="validation">Validation</h2>
+<p>The search compared the known Lisbon strategies, then tested focused variants
+around the two strongest families:</p>
+<ul>
+<li>City/Clerk pile pressure, represented by <code>Lisbon City Crusher</code></li>
+<li>Clerk/Collection/Colony engine, represented by <code>Clerk Collection Colony</code></li>
+</ul>
+<p>The higher-confidence confirmation tournament used 1,000 games per matchup
+with alternating first player. Top-table result:</p>
+<div aria-label="Simulation results" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">Strategy</th>
+<th scope="col" style="text-align: right;">Average win rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lisbon City Crusher</td>
+<td style="text-align: right;">67.0%</td>
+</tr>
+<tr>
+<td>Clerk Collection Colony</td>
+<td style="text-align: right;">66.2%</td>
+</tr>
+<tr>
+<td>Lisbon City Engine</td>
+<td style="text-align: right;">52.3%</td>
+</tr>
+<tr>
+<td>City Pile Engine</td>
+<td style="text-align: right;">47.9%</td>
+</tr>
+<tr>
+<td>Big Money</td>
+<td style="text-align: right;">2.2%</td>
+</tr>
+</tbody>
+</table></div>
+<p>Key head-to-heads from that run:</p>
+<div aria-label="Simulation results" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">Matchup</th>
+<th scope="col" style="text-align: right;">Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lisbon City Crusher vs Clerk Collection Colony</td>
+<td style="text-align: right;">48.4%</td>
+</tr>
+<tr>
+<td>Lisbon City Crusher vs Lisbon City Engine</td>
+<td style="text-align: right;">64.7%</td>
+</tr>
+<tr>
+<td>Lisbon City Crusher vs City Pile Engine</td>
+<td style="text-align: right;">71.0%</td>
+</tr>
+<tr>
+<td>Lisbon City Crusher vs Big Money</td>
+<td style="text-align: right;">98.7%</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>Clerk Collection Colony</code> is slightly favored in the direct matchup, but
+<code>Lisbon City Crusher</code> has the better average result across the top table.
+That makes Crusher the most robust recommendation found in this search.</p>
+</section>
+<section class="section"><h2 id="failed-finalist">Failed Finalist</h2>
+<p>A finalist variant that kept the same gain order but changed action ordering
+looked promising in a smaller local round-robin. It did not survive the
+1,000-game confirmation run:</p>
+<div aria-label="Simulation results" class="table-wrap" role="region" tabindex="0"><table>
+<thead>
+<tr>
+<th scope="col">Strategy</th>
+<th scope="col" style="text-align: right;">Average win rate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lisbon City Crusher</td>
+<td style="text-align: right;">67.0%</td>
+</tr>
+<tr>
+<td>Clerk Collection Colony</td>
+<td style="text-align: right;">66.2%</td>
+</tr>
+<tr>
+<td>Peddler-before-Clerk variant</td>
+<td style="text-align: right;">64.4%</td>
+</tr>
+</tbody>
+</table></div>
+<p>The variant was discarded rather than added as a generated strategy.</p></section>
+</article>
+<footer>Converted to HTML on September 7, 2026, preserving the recorded search findings and results. Simulations were not rerun for this format conversion. <a href="index.html">Return to the strategy catalog</a>.</footer>
+</main>
+</body>
+</html>
