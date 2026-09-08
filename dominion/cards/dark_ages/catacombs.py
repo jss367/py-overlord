@@ -43,10 +43,12 @@ class Catacombs(Card):
                 player.hand.extend(looked_at)
             else:
                 for card in looked_at:
+                    # Catacombs itself moved these cards into hand, so its
+                    # second chosen ability can still discard those same cards.
+                    if card in player.hand:
+                        player.hand.remove(card)
                     game_state.discard_card(player, card)
                 plus_cards(game_state, player, 3)
-            # Once moved, these cards cannot be moved again by the other choice.
-            looked_at = []
 
     def on_trash(self, game_state, player):
         from ..registry import get_card

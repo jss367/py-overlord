@@ -242,13 +242,13 @@ def test_elder_lurker_trashes_then_gains_same_card():
     assert p.cards_gained_this_turn == 1
 
 
-def test_elder_catacombs_takes_looked_at_cards_then_draws_three_more():
+def test_elder_catacombs_discards_the_same_cards_it_put_into_hand():
     s, p, _ = state()
     p.hand = [get_card("Catacombs")]
-    p.deck = cards("Copper", 6)
+    p.deck = cards("Gold", 3) + cards("Copper", 3)
     play(s, p, "Elder")
-    assert len(p.hand) == 6
-    assert p.discard == []
+    assert [c.name for c in p.hand] == ["Gold"] * 3
+    assert [c.name for c in p.discard] == ["Copper"] * 3
 
 
 def test_elder_choice_target_survives_simulation_copy_and_expires_at_cleanup():
@@ -692,3 +692,75 @@ def test_duration_gained_from_trash_has_one_owner_but_keeps_original_effect():
     assert [c.name for c in p.discard] == ["Silver"]
     assert q.discard == [importer]
     assert importer not in p.in_play
+
+
+@pytest.mark.parametrize("force_spend", [False, True])
+def test_desert_guides_preserves_favors_by_default_when_no_cards_exist(force_spend):
+    s, p, _ = state("Desert Guides")
+    p.favors = 3
+    if force_spend:
+        p.ai = ChoiceAI({"desert_guides_redraw": True})
+    s.allies[0].on_turn_start(s, p)
+    assert p.favors == (0 if force_spend else 3)
+    assert p.hand == []
+
+
+@pytest.mark.parametrize("now", [False, True])
+def test_elder_does_not_add_an_option_to_barges_either_timing_choice(now):
+    s, p, _ = state()
+    p.ai = ChoiceAI(modes=lambda card, options: [True, False])
+    p.ai.should_resolve_barge_now = lambda state, player: now
+    barge = get_card("Barge")
+    p.hand = [barge]
+    p.deck = cards("Copper", 10)
+    play(s, p, "Elder")
+    assert len(p.hand) == (3 if now else 0)
+    assert p.buys == (2 if now else 1)
+    assert (barge in p.duration) is not now
+    if not now:
+        s.do_duration_phase()
+        assert len(p.hand) == 3
+        assert p.buys == 2
+
+
+def test_elder_can_select_counts_printed_gain_modes_even_with_empty_piles():
+    s, p, _ = state()
+    s.supply = {"Copper": 0, "Duchy": 0}
+    p.ai = ChoiceAI(modes=lambda card, options: (
+        ["copper"] if "copper" in options else ["duchy"]
+    ))
+    p.hand = [get_card("Count"), get_card("Estate")]
+    play(s, p, "Elder")
+    assert [c.name for c in p.hand] == ["Estate"]
+    assert p.discard == []
+    assert p.coins == 2
+
+
+@pytest.mark.parametrize("extra_names", [["Underling"], ["Miller", "Elder"]])
+def test_rotated_inspiring_plays_use_ways_tokens_allies_and_nested_triggers(extra_names):
+    from dominion.traits import apply_trait
+    from dominion.ways.sheep import WayOfTheSheep
+
+    s, p, _ = state()
+    s.setup_supply([get_card("Town Crier"), get_card("Underling")])
+    apply_trait(s, "Inspiring", "Town Crier")
+    s.rotate_supply_pile("Town Crier")
+    blacksmith = get_card("Blacksmith")
+    p.in_play = [blacksmith]
+    p.hand = [get_card(name) for name in extra_names]
+    s.ways = [WayOfTheSheep()]
+    p.ai.choose_way = lambda state, card, options: options[0]
+    s.add_pile_token(p, extra_names[0], "+$1")
+    played = []
+
+    class Observer:
+        def on_play_card(self, state, player, card):
+            played.append(card.name)
+
+    s.allies = [Observer()]
+    s._maybe_inspiring_extra_play(p, blacksmith)
+    assert played == extra_names
+    assert p.actions_played == len(extra_names)
+    assert p.coins == 3 * len(extra_names)
+    assert p.favors == 0  # Underling used a Way instead of its printed text.
+    assert p.hand == []

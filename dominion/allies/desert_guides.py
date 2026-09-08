@@ -10,6 +10,8 @@ class DesertGuides(Ally):
         super().__init__("Desert Guides")
 
     def on_turn_start(self, game_state, player) -> None:
+        from ..cards.allies._rules import decide
+
         # Repeat while hand looks bad and Favors are available.
         while player.favors > 0:
             junk = sum(
@@ -18,7 +20,12 @@ class DesertGuides(Ally):
                 if c.name in {"Curse", "Copper", "Estate", "Hovel", "Overgrown Estate"}
                 or (c.is_victory and not c.is_action and c.cost.coins <= 2)
             )
-            if junk < 3 and len(player.hand) >= 4:
+            default = bool(player.hand or player.deck or player.discard) and (
+                junk >= 3 or len(player.hand) < 4
+            )
+            if not decide(
+                game_state, player, "desert_guides_redraw", [False, True], default
+            ):
                 return
             player.favors -= 1
             old_hand = list(player.hand)

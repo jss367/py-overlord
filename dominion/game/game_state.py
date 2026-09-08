@@ -2419,12 +2419,12 @@ class GameState:
         if not candidates:
             return
         choice = player.ai.choose_action(self, candidates + [None])
-        if choice is None:
+        if choice not in candidates:
             return
         if not self.move_card_from_hand_to_play(player, choice):
             return
-        player.actions_this_turn += 1
-        choice.on_play(self)
+        if self.play_action_indirectly(player, choice, blocked_return_zone=player.hand):
+            self._maybe_inspiring_extra_play(player, choice)
 
     def charlatan_curse_active(self) -> bool:
         """Whether Charlatan's "Curses are Treasures worth $1" rule is active.
