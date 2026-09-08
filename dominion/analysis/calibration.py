@@ -335,7 +335,7 @@ def evolve_and_evaluate(
     log_folder: str = "battle_logs/calibration",
     seed: Optional[int] = None,
     **trainer_kwargs,
-) -> tuple[MatchOutcome, dict, EnhancedStrategy]:
+) -> tuple[MatchOutcome, dict, "EnhancedStrategy"]:
     """Evolve a champion for the entry's board and battle it vs known-best.
 
     ``trainer_kwargs`` are forwarded to :class:`GeneticTrainer` (population

@@ -12,5 +12,5 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 class Flag(Artifact):
     name = "Flag"
 
-    def on_holder_turn_start(self, state: GameState, player: PlayerState) -> None:
+    def on_holder_turn_start(self, state: "GameState", player: "PlayerState") -> None:
         state.draw_cards(player, 1)

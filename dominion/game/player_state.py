@@ -8,7 +8,7 @@ from dominion.cards.registry import get_card
 
 @dataclass
 class PlayerState:
-    ai: AI  # Imported only for type checking to avoid a circular import.
+    ai: "AI"  # Keep quoted for introspection; AI is only imported for type checking.
 
     # Resources
     actions: int = 1

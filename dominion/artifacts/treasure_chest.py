@@ -13,7 +13,7 @@ class TreasureChest(Artifact):
     name = "Treasure Chest"
 
     def on_holder_buy_phase_start(
-        self, state: GameState, player: PlayerState
+        self, state: "GameState", player: "PlayerState"
     ) -> None:
         if state.supply.get("Gold", 0) <= 0:
             return
