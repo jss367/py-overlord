@@ -299,14 +299,21 @@ def test_island_folk_uses_normal_cleanup_hand_and_cannot_grant_third_turn():
 
 @pytest.mark.parametrize("name", ["Merchant Camp", "Tent"])
 @pytest.mark.parametrize("topdeck", [False, True])
-def test_cleanup_topdeck_is_optional_and_happens_before_new_hand(name, topdeck):
+@pytest.mark.parametrize("tireless", [False, True])
+def test_cleanup_topdeck_is_optional_and_happens_before_new_hand(name, topdeck, tireless):
+    from dominion.traits import apply_trait
+
     s, p, _ = state()
+    if tireless:
+        s.setup_supply([get_card(name)])
+        apply_trait(s, "Tireless", name)
     p.ai = ChoiceAI({"topdeck_from_play": topdeck})
     card = play(s, p, name)
     p.deck = cards("Copper", 10)
     s.handle_cleanup_phase()
     assert (card in p.hand) is topdeck
-    assert (card in p.discard) is not topdeck
+    assert (card in p.discard) is (not topdeck and not tireless)
+    assert (card in p.deck) is (not topdeck and tireless)
 
 
 def test_elder_treasurer_can_trash_and_gain_same_treasure_to_hand():
