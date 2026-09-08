@@ -838,7 +838,7 @@ class GameState:
         # Empires Tax setup: when Tax is among the events, place 1 debt token
         # on each Supply pile at game start.
         if any(getattr(ev, "name", None) == "Tax" for ev in (self.events or [])):
-            for pile_name in self.supply:
+            for pile_name in self.rotatable_supply_piles():
                 self.tax_tokens[pile_name] = self.tax_tokens.get(pile_name, 0) + 1
 
         # Renaissance: create the relevant Artifacts when their anchoring
@@ -1025,7 +1025,8 @@ class GameState:
         if any(card.name == "Trade Route" for card in kingdom_cards):
             self.trade_route_tokens_on_piles = {}
             self.trade_route_mat_tokens = 0
-            for name in self.supply:
+            # Pile types come from the randomizer, not buried cards.
+            for name in self.rotatable_supply_piles():
                 card = get_card(name)
                 if card.is_victory:
                     self.trade_route_tokens_on_piles[name] = True
@@ -4719,8 +4720,9 @@ class GameState:
         if not self.trade_route_tokens_on_piles:
             return
 
-        if self.trade_route_tokens_on_piles.get(gained_card.name):
-            self.trade_route_tokens_on_piles[gained_card.name] = False
+        pile = self.supply_pile_key(gained_card.name)
+        if self.trade_route_tokens_on_piles.get(pile):
+            self.trade_route_tokens_on_piles[pile] = False
             self.trade_route_mat_tokens += 1
 
     def _handle_watchtower_reaction(self, player: PlayerState, gained_card: Card) -> None:
@@ -5326,6 +5328,9 @@ class GameState:
 
     def _apply_tax_tokens(self, buyer: PlayerState, card_name: str) -> None:
         """Empires Tax: buyer takes any debt tokens from the pile, then the pile resets."""
+        if not self.tax_tokens:
+            return
+        card_name = self.supply_pile_key(card_name)
         tokens = self.tax_tokens.get(card_name, 0)
         if tokens > 0:
             buyer.debt += tokens
@@ -5384,6 +5389,9 @@ class GameState:
         """Give the buyer a Curse for each Embargo token on the bought pile."""
         from ..cards.registry import get_card
 
+        if not self.embargo_tokens:
+            return
+        card_name = self.supply_pile_key(card_name)
         tokens = self.embargo_tokens.get(card_name, 0)
         for _ in range(tokens):
             if self.supply.get("Curse", 0) <= 0:

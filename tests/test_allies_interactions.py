@@ -604,3 +604,72 @@ def test_elder_pirate_ship_resolves_printed_coin_option_before_attack():
     assert p.coins == 2  # Elder's $2; Pirate Ship had no tokens at its coin step.
     assert p.pirate_ship_tokens == 1
     assert [c.name for c in s.trash] == ["Silver"]
+
+
+def test_buying_rotated_pile_applies_embargo_and_tax_tokens():
+    s, p, _ = state()
+    s.setup_supply([get_card("Town Crier")])
+    s.embargo_tokens["Town Crier"] = 1
+    s.tax_tokens["Town Crier"] = 2
+    s.rotate_supply_pile("Town Crier")
+    p.coins = 3
+    s._commit_buy(p, get_card("Blacksmith"))
+    assert p.debt == 2
+    assert s.tax_tokens["Town Crier"] == 0
+    assert s.embargo_tokens["Town Crier"] == 1
+    assert sorted(c.name for c in p.discard) == ["Blacksmith", "Curse"]
+    assert s.supply["Town Crier"] == 4
+    assert s.supply["Blacksmith"] == 3
+
+
+def test_legacy_token_placement_uses_physical_pile_key():
+    from dominion.events.empires_events import Tax
+
+    s, p, _ = state()
+    s.supply = {name: 4 for name in SPLITS[4]}
+    s.rotate_supply_pile("Town Crier")
+    p.ai.choose_pile_to_embargo = lambda state, player: "Blacksmith"
+    play(s, p, "Embargo")
+    Tax().on_buy(s, p)  # Its highest-cost choice is Elder from the same pile.
+    assert s.embargo_tokens == {"Town Crier": 1}
+    assert s.tax_tokens == {"Town Crier": 1}
+
+
+def test_tax_setup_places_one_token_per_physical_split_pile():
+    from dominion.events.empires_events import Tax
+
+    s = GameState(players=[])
+    s.log_callback = lambda *args: None
+    s.initialize_game([ProbeAI(), ProbeAI()], [get_card("Town Crier")], events=[Tax()])
+    assert s.tax_tokens["Town Crier"] == 1
+    assert all(name not in s.tax_tokens for name in SPLITS[4][1:])
+
+
+def test_trade_route_uses_randomizer_type_and_single_token_for_rotated_castles():
+    s, p, _ = state()
+    s.setup_supply([get_card("Trade Route"), get_card("Humble Castle"), get_card("Battle Plan")])
+    assert s.trade_route_tokens_on_piles["Humble Castle"] is True
+    assert "Crumbling Castle" not in s.trade_route_tokens_on_piles
+    assert "Territory" not in s.trade_route_tokens_on_piles
+    assert "Battle Plan" not in s.trade_route_tokens_on_piles
+    s.rotate_supply_pile("Humble Castle")
+    s.gain_card(p, s.take_top_supply_card("Humble Castle"))
+    assert s.trade_route_mat_tokens == 1
+    assert s.trade_route_tokens_on_piles["Humble Castle"] is False
+    s.gain_card(p, s.take_top_supply_card("Humble Castle"))
+    assert s.trade_route_mat_tokens == 1
+
+
+def test_training_event_bonuses_sunken_treasure_from_the_odyssey_pile():
+    from dominion.events.training import Training
+
+    s, p, _ = state()
+    s.supply = {name: 4 for name in SPLITS[3]}
+    Training().on_buy(s, p)
+    assert s.player_token_pile(p, "+$1") == "Old Map"
+    s.rotate_supply_pile("Old Map")
+    s.rotate_supply_pile("Old Map")
+    treasure = s.take_top_supply_card("Old Map")
+    p.in_play.append(treasure)
+    s.play_treasure_indirectly(p, treasure)
+    assert p.coins == 1
