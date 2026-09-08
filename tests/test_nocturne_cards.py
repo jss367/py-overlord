@@ -138,13 +138,12 @@ def test_conclave_plays_action_not_already_in_play():
     assert player.actions >= 1
 
 
-def test_conclave_skips_plus_action_when_warlord_blocks_extra_play():
+def test_conclave_does_not_play_a_third_copy_under_warlord():
     state, player = _setup()
     player.warlord_restriction_count = 1
     conclave = get_card("Conclave")
     blocked_village = get_card("Village")
-    player.in_play = [conclave]
-    player.duration = [get_card("Village"), get_card("Village")]
+    player.in_play = [conclave, get_card("Village"), get_card("Village")]
     player.hand = [blocked_village]
     player.actions = 0
     player.deck = [get_card("Copper")]
