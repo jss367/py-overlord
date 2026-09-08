@@ -503,14 +503,29 @@ class PlayerState:
         if self.bury_mat:
             bury_top = list(self.bury_mat)
             self.bury_mat = []
-        self.deck = (
-            self.discard
-            + fated_top
-            + avoid_set_aside
-            + bury_top
-            + project_top
-            + ally_top
-        )
+        top_groups = {
+            name: cards
+            for name, cards in (
+                ("Fated", fated_top),
+                ("Avoid", avoid_set_aside),
+                ("Bury", bury_top),
+                ("Star Chart", project_top),
+                ("Order of Astrologers", ally_top),
+            )
+            if cards
+        }
+        self.deck = self.discard
+        # These effects can put cards on top in either order. Choose placement
+        # order from bottom to top, preserving each effect's internal order.
+        while top_groups:
+            name = next(iter(top_groups))
+            if game_state is not None and len(top_groups) > 1:
+                from dominion.cards.allies._rules import decide
+
+                name = decide(
+                    game_state, self, "shuffle_topdeck_next", list(top_groups), name
+                )
+            self.deck.extend(top_groups.pop(name))
         self.discard = ally_discard
 
     def count_in_deck(self, card_name: str) -> int:
