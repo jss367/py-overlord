@@ -889,3 +889,36 @@ def test_treasure_log_includes_observer_and_replay_coins(good_harvest, tiara):
     assert context["coins_before"] == 5
     assert context["coins_added"] == added
     assert context["coins_after"] == player.coins
+
+
+@pytest.mark.parametrize("indirect", [False, True])
+def test_citadel_enlightened_treasure_counts_toward_conspirator_bonus(indirect):
+    class GoldThenConspirator(DummyAI):
+        def choose_action(self, state, choices):
+            for name in ("Gold", "Conspirator"):
+                card = next((c for c in choices if c and c.name == name), None)
+                if card:
+                    return card
+            return None
+
+    state, player = setup("Conspirator", ai=GoldThenConspirator())
+    state.phase = "action"
+    state.prophecy = get_prophecy("Enlightenment")
+    state.prophecy.is_active = True
+    player.projects = [get_project("Citadel")]
+    gold, conspirator = get_card("Gold"), get_card("Conspirator")
+    player.deck = [get_card("Estate") for _ in range(4)]
+    player.hand = [conspirator]
+    if indirect:
+        player.in_play = [gold]
+        state.play_treasure_indirectly(player, gold)
+    else:
+        player.hand.insert(0, gold)
+
+    state.handle_action_phase()
+
+    assert player.actions_this_turn == 3
+    assert player.actions_played == 3
+    assert len(player.hand) == 3  # Two Gold plays, then Conspirator's bonus draw.
+    assert player.actions == (3 if indirect else 2)
+    assert player.coins == 2

@@ -1800,6 +1800,8 @@ class GameState:
         if not any(p.name == "Citadel" for p in player.projects):
             return False
         player.citadel_used = True
+        player.actions_this_turn += 1
+        player.actions_played += 1
         # Hold the Inheritance overlay through the post-play hooks so
         # name-gated effects (training token, Kiln, ally play hooks) see
         # the inherited card's identity, matching the action-phase loop.
@@ -2171,7 +2173,10 @@ class GameState:
                     + rush_extra
                     + citadel_extra
                 )
-                for _ in range(plays):
+                for play_index in range(plays):
+                    if play_index:
+                        player.actions_this_turn += 1
+                        player.actions_played += 1
                     inheritance_overlay = (
                         self._begin_inherited_estate_overlay(player, choice)
                         if inheriting
