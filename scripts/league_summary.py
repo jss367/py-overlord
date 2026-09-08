@@ -15,8 +15,6 @@ Runs are grouped by their ``arm`` field, so league and control reports can be
 passed together.
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import math

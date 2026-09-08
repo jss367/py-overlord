@@ -27,8 +27,6 @@ intentionally **not** done here, because removing such a condition can
 subtly change behavior when Coffer tokens bridge the affordability gap.
 """
 
-from __future__ import annotations
-
 from copy import deepcopy
 from typing import Iterable, Optional
 

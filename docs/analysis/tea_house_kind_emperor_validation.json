@@ -1,0 +1,159 @@
+[
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 1,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "envoy": 2
+    },
+    "games": 1000,
+    "wins": 486,
+    "ties": 0,
+    "rate": 0.486,
+    "turns": 12.535,
+    "scores": [
+      31.187,
+      31.335
+    ],
+    "truncated": 0,
+    "seed": 100000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 1,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Courier",
+      "green": 2,
+      "envoy": 2
+    },
+    "games": 1000,
+    "wins": 547,
+    "ties": 0,
+    "rate": 0.547,
+    "turns": 12.397,
+    "scores": [
+      32.256,
+      30.725
+    ],
+    "truncated": 0,
+    "seed": 102000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 1,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "mastermind": 2
+    },
+    "games": 1000,
+    "wins": 536,
+    "ties": 0,
+    "rate": 0.536,
+    "turns": 12.6,
+    "scores": [
+      31.917,
+      30.531
+    ],
+    "truncated": 0,
+    "seed": 104000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 1,
+      "envoy": 2
+    },
+    "b": {
+      "opening": "Fortune Hunter",
+      "green": 2,
+      "envoy": 2,
+      "scoring": "Duke"
+    },
+    "games": 1000,
+    "wins": 840,
+    "ties": 0,
+    "rate": 0.84,
+    "turns": 15.628,
+    "scores": [
+      54.382,
+      42.88
+    ],
+    "truncated": 0,
+    "seed": 106000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 1,
+      "envoy": 2
+    },
+    "b": {
+      "guildhall": true,
+      "buried": 4
+    },
+    "games": 1000,
+    "wins": 653,
+    "ties": 0,
+    "rate": 0.653,
+    "turns": 12.853,
+    "scores": [
+      35.042,
+      28.096
+    ],
+    "truncated": 0,
+    "seed": 108000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 1,
+      "envoy": 2
+    },
+    "b": {
+      "money": "Imperial Envoy"
+    },
+    "games": 1000,
+    "wins": 742,
+    "ties": 0,
+    "rate": 0.742,
+    "turns": 14.322,
+    "scores": [
+      35.934,
+      29.124
+    ],
+    "truncated": 0,
+    "seed": 110000
+  },
+  {
+    "a": {
+      "opening": "Fortune Hunter",
+      "green": 1,
+      "envoy": 2
+    },
+    "b": {
+      "money": "Big Money"
+    },
+    "games": 1000,
+    "wins": 936,
+    "ties": 0,
+    "rate": 0.936,
+    "turns": 14.98,
+    "scores": [
+      40.872,
+      25.125
+    ],
+    "truncated": 0,
+    "seed": 112000
+  }
+]

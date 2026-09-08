@@ -6,8 +6,6 @@ The acceptance test from issue #232 — running the seed builder on
 Butterfly on Flag Bearer — is covered explicitly.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 from dominion.analysis.seed_genomes import (

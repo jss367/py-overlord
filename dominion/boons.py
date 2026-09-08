@@ -5,8 +5,6 @@ Hexes deck). A handful of Boons stay with the player until the start of
 their next turn (Field's, Forest's, River's). The rest fire-and-discard.
 """
 
-from __future__ import annotations
-
 import random
 from typing import Callable, TYPE_CHECKING
 

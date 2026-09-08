@@ -17,8 +17,6 @@ play* for dynamic cards — coarse estimates are fine; they only need to
 put the card in the right role bucket, not price it exactly.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from typing import Optional
 

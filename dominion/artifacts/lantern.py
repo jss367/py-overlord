@@ -1,7 +1,5 @@
 """Lantern artifact: holder's Border Guards reveal 3 cards, not 2."""
 
-from __future__ import annotations
-
 from .base_artifact import Artifact
 
 

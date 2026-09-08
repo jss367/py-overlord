@@ -289,7 +289,7 @@ class Card:
         return False
 
     def on_overpay(
-        self, game_state, player, amount: int, gained_card: "Card | None" = None
+        self, game_state, player, amount: int, gained_card: Card | None = None
     ) -> None:
         """Effects when this card is bought with overpay. Override in
         subclasses.
@@ -317,7 +317,7 @@ class Card:
     # Adventures: Travellers expose ``next_traveller`` (a card name) to be
     # exchanged into when the card is discarded from play. Default ``None`` so
     # non-Traveller cards never trigger exchange logic.
-    next_traveller: "str | None" = None
+    next_traveller: str | None = None
 
     def on_call_from_tavern(
         self, game_state, player, trigger: str, *args, **kwargs

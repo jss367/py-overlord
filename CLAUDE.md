@@ -1,5 +1,14 @@
 # Notes for agents working in this repo
 
+## Publish written strategy guides as HTML
+
+Follow the [strategy publishing instructions in AGENTS.md](AGENTS.md#publish-strategy-guides-as-html).
+User-facing strategy recommendations and search findings must be HTML guides,
+with sources in `dominion/reporting/curated_strategy_guides/`, registered in
+`CURATED_STRATEGY_GUIDES`, and published in `reports/strategies/` by catalog
+regeneration. Existing Markdown strategy writeups are legacy material, not the
+format to use for new guides. Developer documentation may remain Markdown.
+
 ## There is no strategy registry to update
 
 `StrategyLoader` (`dominion/strategy/strategy_loader.py`) is the single index of

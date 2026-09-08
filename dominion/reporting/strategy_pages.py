@@ -1,7 +1,5 @@
 """Render registered strategies as static HTML pages."""
 
-from __future__ import annotations
-
 import ast
 from dataclasses import dataclass, field
 from html import escape
@@ -42,6 +40,26 @@ class CuratedStrategyGuide:
 
 
 CURATED_STRATEGY_GUIDES = (
+    CuratedStrategyGuide(
+        filename="tea-house-kind-emperor-strategy-guide.html",
+        display_name="Tea House and Kind Emperor Strategy Guide",
+        description=(
+            "Opening and play guide for Tea House income, free City Quarters, "
+            "Imperial Envoy draw, and early Provinces, with simulation results."
+        ),
+        kingdom_cards=("Tea House", "City Quarter", "Imperial Envoy", "Fortune Hunter"),
+        source_label="Repository simulation and official card rules",
+    ),
+    CuratedStrategyGuide(
+        filename="mine-guildhall-strategy-guide.html",
+        display_name="Mine and Guildhall Strategy Investigation",
+        description=(
+            "Dedicated combo search: treasure upgrades, Mastermind, free Mines, "
+            "and confirmed comparisons against the Tea House engine."
+        ),
+        kingdom_cards=("Mine", "Mastermind", "Tea House", "City Quarter", "Imperial Envoy"),
+        source_label="Dedicated simulation search and controlled comparisons",
+    ),
     CuratedStrategyGuide(
         filename="cursed-band-biding-time-strategy-guide.html",
         display_name="Cursed Band and Biding Time Strategy Guide",
@@ -775,6 +793,7 @@ def render_strategy_leaderboard(
     index_href: str = "index.html",
     board_index_href: str | None = None,
     context_label: str = "a cross-board round robin",
+    card_usage_href: str | None = None,
     loader: StrategyLoader | None = None,
 ) -> str:
     """Render tournament results as part of the strategy catalog experience."""
@@ -840,8 +859,9 @@ def render_strategy_leaderboard(
         if board_index_href
         else ""
     )
+    card_nav = f'<a href="{escape(card_usage_href)}">Card strategy usage</a>' if card_usage_href else ""
     body = f"""
-<nav><a href="{escape(index_href)}">Strategy index</a>{board_nav}</nav>
+<nav><a href="{escape(index_href)}">Strategy index</a>{board_nav}{card_nav}</nav>
 <header class="hero leaderboard-hero">
   <p class="eyebrow">Tournament standings</p>
   <h1>Strategy Leaderboard</h1>
@@ -1404,6 +1424,7 @@ def render_strategy_index(
     items: list[RenderedStrategy],
     *,
     curated_guides: Iterable[CuratedStrategyGuide] = (),
+    card_usage_href: str | None = None,
     board_index_href: str | None = None,
     leaderboard_href: str | None = None,
 ) -> str:
@@ -1448,9 +1469,10 @@ def render_strategy_index(
         if leaderboard_href
         else ""
     )
+    card_nav = f'<a href="{escape(card_usage_href)}">Card strategy usage</a>' if card_usage_href else ""
     navigation = (
-        f"<nav>{board_nav}{leaderboard_nav}</nav>"
-        if board_nav or leaderboard_nav
+        f"<nav>{board_nav}{leaderboard_nav}{card_nav}</nav>"
+        if board_nav or leaderboard_nav or card_nav
         else ""
     )
     body = f"""
@@ -1507,15 +1529,20 @@ def render_strategy_pages(
     """Write strategy HTML pages and return created paths."""
 
     output_dir.mkdir(parents=True, exist_ok=True)
+    from dominion.reporting.card_usage import render_card_usage
+
     items = collect_rendered_strategies(loader, names=names)
     written = write_curated_strategy_guides(output_dir)
 
     index_path = output_dir / "index.html"
     index_path.write_text(
-        render_strategy_index(items, curated_guides=CURATED_STRATEGY_GUIDES),
+        render_strategy_index(items, curated_guides=CURATED_STRATEGY_GUIDES, card_usage_href="card-strategy-usage.html"),
         encoding="utf-8",
     )
     written.append(index_path)
+    usage_path = output_dir / "card-strategy-usage.html"
+    usage_path.write_text(render_card_usage(items, leaderboard_href=None), encoding="utf-8")
+    written.append(usage_path)
 
     for item in items:
         path = output_dir / f"{item.slug}.html"

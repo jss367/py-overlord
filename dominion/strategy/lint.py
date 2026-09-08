@@ -7,8 +7,6 @@ after an unconditional rule for the same card, old ``has_cards(..., 0)``
 conditions, and unconditional early greening.
 """
 
-from __future__ import annotations
-
 import re
 from dataclasses import dataclass
 from typing import Iterable, Literal, Optional

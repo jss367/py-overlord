@@ -29,8 +29,6 @@ core gains via a deck-count-difference gate.
 Public API: :func:`build_engine_seeds`.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 
 from dominion.analysis.card_capabilities import (

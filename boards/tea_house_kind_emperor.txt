@@ -1,0 +1,14 @@
+# Two players; standard Estate starts; no Platinum or Colony.
+City Quarter
+Anvil
+Courier
+Fortune Hunter
+Buried Treasure
+Duke
+Imperial Envoy
+Mastermind
+Mine
+Tea House
+
+Prophecy: Kind Emperor
+Project: Guildhall

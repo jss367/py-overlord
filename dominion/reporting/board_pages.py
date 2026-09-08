@@ -1,7 +1,5 @@
 """Render Dominion board definitions as static HTML pages."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from html import escape
 from pathlib import Path

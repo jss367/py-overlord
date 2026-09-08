@@ -4,8 +4,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 class Anvil(Card):
     """Treasure ($3): $1.
 
-    When you discard this from play, you may discard a Treasure from your
-    hand to gain a card costing up to $4.
+    You may discard a Treasure from your hand to gain a card costing up to $4.
     """
 
     def __init__(self):
@@ -16,13 +15,14 @@ class Anvil(Card):
             types=[CardType.TREASURE],
         )
 
-    def on_discard_from_play(self, game_state, player):
-        """Resolve Anvil's clean-up trigger.
+    def play_effect(self, game_state):
+        """Resolve the optional gain when Anvil is played.
 
         Asks the AI which Treasure (if any) to discard from hand. If a
         Treasure is offered, discard it and gain a card costing up to $4.
         """
 
+        player = game_state.current_player
         treasures = [card for card in player.hand if game_state.is_treasure(card)]
         if not treasures:
             return
@@ -51,6 +51,7 @@ class Anvil(Card):
             if (
                 game_state.get_card_cost(player, card) <= 4
                 and card.cost.potions == 0
+                and card.cost.debt == 0
             ):
                 gainable.append(card)
 
@@ -58,8 +59,9 @@ class Anvil(Card):
             return
 
         target = player.ai.choose_anvil_gain(game_state, player, gainable)
-        if target is None:
-            return
+        if target not in gainable:
+            # The discard is optional; after discarding, the gain is mandatory.
+            target = max(gainable, key=lambda c: (c.cost.coins, c.name))
 
         if game_state.supply.get(target.name, 0) <= 0:
             return

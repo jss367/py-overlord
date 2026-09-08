@@ -84,7 +84,7 @@ class GeneticTrainer:
         hall_of_fame_size: int = 3,
         hall_of_fame_interval: int = 10,
         structured_genome: bool = True,
-        league: Optional["AdversarialLeague"] = None,
+        league: Optional[AdversarialLeague] = None,
         worst_case_weight: float = 0.0,
         workers: int = 1,
         games_per_task: int = DEFAULT_GAMES_PER_TASK,
@@ -277,7 +277,7 @@ class GeneticTrainer:
     # sampled inner condition in ``and_(card_in_play(X), inner)``. Tunable.
     _COMPOUND_CONDITION_PROB = 0.15
 
-    def _random_condition_with_compound(self) -> "Callable | None":
+    def _random_condition_with_compound(self) -> Callable | None:
         """Return a random callable condition, with ~15% probability returning
         a compound ``and_(card_in_play(X), inner)`` where ``X`` is drawn from
         the kingdom's action cards and ``inner`` is a normally-sampled
@@ -301,7 +301,7 @@ class GeneticTrainer:
             return PriorityRule.and_(PriorityRule.card_in_play(card), inner)
         return self._random_condition()
 
-    def _random_condition(self) -> "Callable | None":
+    def _random_condition(self) -> Callable | None:
         """Return a random callable condition from a diverse vocabulary.
 
         card_in_play requires a real kingdom action card name, so this is

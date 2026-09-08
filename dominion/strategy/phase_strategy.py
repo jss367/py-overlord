@@ -7,8 +7,6 @@ payload, and greening are different jobs. ``PhaseAwareStrategy`` keeps the old
 priority lists that override the global fallback lists.
 """
 
-from __future__ import annotations
-
 from enum import StrEnum
 
 from dominion.game.game_state import GameState

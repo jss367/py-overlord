@@ -27,7 +27,8 @@ def test_strategy_report_href_resolves_aliases_to_rendered_pages():
         == "strategies/chapel-witch.html"
     )
     assert (
-        _strategy_report_href("strategy_20260212_094841", prefix="strategies") is None
+        _strategy_report_href("strategy_20260212_094841", prefix="strategies")
+        == "strategies/strategy20260212-094841.html"
     )
 
 
@@ -65,7 +66,7 @@ def test_leaderboard_html_does_not_link_unresolved_strategy_names(tmp_path):
                 "description": "",
                 "cards": [],
             },
-            "strategy_20260212_094841": {
+            "unregistered_strategy": {
                 "wins": 0,
                 "losses": 1,
                 "win_rate": 0.0,
@@ -78,8 +79,8 @@ def test_leaderboard_html_does_not_link_unresolved_strategy_names(tmp_path):
 
     html = output.read_text(encoding="utf-8")
     assert "big-money.html" in html
-    assert "strategy_20260212_094841.html" not in html
-    assert "<td>strategy_20260212_094841</td>" in html
+    assert "unregistered_strategy.html" not in html
+    assert "<td>unregistered_strategy</td>" in html
 
 
 def test_strategy_leaderboard_ranks_results_and_links_registered_strategies():
@@ -123,8 +124,11 @@ def test_render_strategy_pages_writes_index_and_strategy_page(tmp_path):
     paths = {path.name for path in written}
     assert paths == {
         "index.html",
+        "card-strategy-usage.html",
         "big-money.html",
         "cursed-band-biding-time-strategy-guide.html",
+        "tea-house-kind-emperor-strategy-guide.html",
+        "mine-guildhall-strategy-guide.html",
     }
 
     index = (tmp_path / "index.html").read_text(encoding="utf-8")
@@ -156,8 +160,11 @@ def test_render_strategy_pages_resolves_alias_names(tmp_path):
     paths = {path.name for path in written}
     assert paths == {
         "index.html",
+        "card-strategy-usage.html",
         "big-money.html",
         "cursed-band-biding-time-strategy-guide.html",
+        "tea-house-kind-emperor-strategy-guide.html",
+        "mine-guildhall-strategy-guide.html",
     }
 
     page = (tmp_path / "big-money.html").read_text(encoding="utf-8")

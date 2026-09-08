@@ -5,8 +5,6 @@ trick name, ``Random Island 1``) and a separate resolvable ``seed_ref``. The
 tournament's ``--include-seeds`` must collect ``seed_ref`` (skipping None) and
 NOT try to resolve the display ``seed_name`` (PR #296 regression)."""
 
-from __future__ import annotations
-
 import sys
 from pathlib import Path
 

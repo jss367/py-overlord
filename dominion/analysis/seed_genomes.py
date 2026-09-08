@@ -19,8 +19,6 @@ tricks should be pruned by selection.
 Public API: :func:`build_seed_genomes`.
 """
 
-from __future__ import annotations
-
 from typing import Callable, Optional
 
 from dominion.analysis.trick_scanner import Interaction, scan

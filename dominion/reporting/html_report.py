@@ -1,7 +1,5 @@
 """Utility functions for generating HTML reports."""
 
-from __future__ import annotations
-
 import base64
 from functools import lru_cache
 from html import escape
@@ -415,7 +413,8 @@ def generate_leaderboard_html(
     context_label: str = "a cross-board round robin",
 ) -> None:
     """Create a catalog-styled HTML leaderboard report for many strategies."""
-    from dominion.reporting.strategy_pages import render_strategy_leaderboard
+    from dominion.reporting.card_usage import render_card_usage
+    from dominion.reporting.strategy_pages import collect_rendered_strategies, render_strategy_leaderboard
 
     strategy_link_prefix = _strategy_link_prefix(output_path)
     index_href = f"{strategy_link_prefix}/index.html"
@@ -423,12 +422,32 @@ def generate_leaderboard_html(
         Path("reports") / "boards" / "index.html",
         output_path.parent,
     )
+    loader = StrategyLoader()
+    usage_filename = None
+    # Evolution tournaments can contain in-memory entrants with no catalog
+    # factory. Without their instances, a catalog report would omit their usage.
+    if all(loader.get_display_name(name) is not None for name in results):
+        usage_filename = (
+            "card-strategy-usage.html" if output_path.name == "leaderboard.html"
+            else f"{output_path.stem}-card-strategy-usage.html"
+        )
+        usage = render_card_usage(
+            collect_rendered_strategies(loader), results,
+            index_href=index_href,
+            leaderboard_href=output_path.name,
+            strategy_link_prefix=strategy_link_prefix,
+            context_label=context_label,
+            loader=loader,
+        )
+        output_path.with_name(usage_filename).write_text(usage, encoding="utf-8")
     html = render_strategy_leaderboard(
         results,
         strategy_link_prefix=strategy_link_prefix,
         index_href=index_href,
+        card_usage_href=usage_filename,
         board_index_href=board_index_href,
         context_label=context_label,
+        loader=loader,
     )
     output_path.write_text(html)
     if verbose:

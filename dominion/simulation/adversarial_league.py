@@ -29,8 +29,6 @@ Public API: :class:`AdversarialLeague`, :func:`aggregate_fitness`,
 :func:`build_seeded_league`.
 """
 
-from __future__ import annotations
-
 import hashlib
 import logging
 from copy import deepcopy

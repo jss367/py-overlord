@@ -13,8 +13,6 @@ Example:
         --games 500
 """
 
-from __future__ import annotations
-
 import argparse
 import random
 from dataclasses import dataclass

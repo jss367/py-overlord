@@ -29,8 +29,6 @@ The ``--compare`` strategies are the gate: a league champion should hold its
 own against reference strategies the old pipeline drifted away from.
 """
 
-from __future__ import annotations
-
 import argparse
 import json
 import logging

@@ -492,14 +492,11 @@ def test_anvil_discard_treasure_to_gain_card_up_to_4():
     player.in_play = []
     player.coins = 0
 
-    # Play through treasure phase so cleanup triggers Anvil's discard hook.
+    # Anvil discards and gains during the treasure play, before buying.
     state.phase = "treasure"
     state.handle_treasure_phase()
-    # Now move into a manual cleanup so on_discard_from_play fires.
-    state.handle_cleanup_phase()
-
     # Copper was discarded from hand, Silver gained from supply
-    assert any(card.name == "Silver" for card in player.discard + player.deck + player.hand)
+    assert any(card.name == "Silver" for card in player.discard)
 
 
 def test_anvil_gain_limit_uses_reduced_cost():

@@ -111,7 +111,10 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "boards/sample-board.html",
         "strategies/big-money.html",
         "strategies/cursed-band-biding-time-strategy-guide.html",
+        "strategies/tea-house-kind-emperor-strategy-guide.html",
+        "strategies/mine-guildhall-strategy-guide.html",
         "strategies/index.html",
+        "strategies/card-strategy-usage.html",
         "strategies/leaderboard.html",
         "strategies/village-smithy-lab.html",
     }

@@ -15,8 +15,6 @@ CLI::
     python -m dominion.analysis.trick_scanner --board boards/<file>.txt
 """
 
-from __future__ import annotations
-
 import argparse
 import inspect
 from dataclasses import dataclass, field
@@ -58,10 +56,10 @@ EMPTY_DECK_DISCARD_EVENTS = frozenset({"Windfall"})
 # Per-Command-card target filters. Each entry takes a candidate Card and
 # returns True iff this Command card can legally play / replay / copy it.
 # Commands whose only filter is "non-Command Action" use the default below.
-_DEFAULT_COMMAND_FILTER: Callable[["Card"], bool] = (
+_DEFAULT_COMMAND_FILTER: Callable[[Card], bool] = (
     lambda c: c.is_action and not c.is_command
 )
-COMMAND_TARGET_FILTERS: dict[str, Callable[["Card"], bool]] = {
+COMMAND_TARGET_FILTERS: dict[str, Callable[[Card], bool]] = {
     # Captain (promo): plays a non-Command non-Duration Action from supply
     # costing up to $4, with no potion / debt cost.
     "Captain": lambda c: (

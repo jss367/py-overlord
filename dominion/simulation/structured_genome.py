@@ -20,8 +20,6 @@ seeds, serialization, pruning, and simplification all keep working; only
 how the GA *moves through* strategy space changes.
 """
 
-from __future__ import annotations
-
 import random as _random_module
 import re
 from dataclasses import dataclass, field
@@ -57,7 +55,7 @@ class KingdomInfo:
     has_platinum: bool = False
 
     @classmethod
-    def from_kingdom(cls, kingdom_cards: list[str]) -> "KingdomInfo":
+    def from_kingdom(cls, kingdom_cards: list[str]) -> KingdomInfo:
         from dominion.analysis.card_capabilities import capabilities_for
 
         info = cls(kingdom_cards=list(kingdom_cards))

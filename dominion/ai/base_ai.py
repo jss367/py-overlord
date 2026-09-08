@@ -1791,7 +1791,7 @@ class AI(ABC):
 
     def choose_riverboat_set_aside(
         self, state: GameState, player: PlayerState, candidates: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Pick which $5 non-Duration Action card Riverboat sets aside.
 
         Default: prefer cards that produce extra cards/actions and survive
@@ -1812,9 +1812,26 @@ class AI(ABC):
     # Prosperity 2E hooks
     # ------------------------------------------------------------------
 
+    def choose_mastermind_action(self, state, player, choices):
+        return self.choose_action(state, choices + [None])
+
+    def choose_coffers_for_debt(self, state, player, maximum):
+        """Choose 0..maximum Coffers to spend on debt; default pays it down."""
+        return maximum
+
+    def choose_mine_treasure(self, state, player, choices):
+        """Choose the optional Mine trash separately from playing Treasures."""
+        return self.choose_treasure(state, choices)
+
+    def choose_mine_gain(self, state, player, choices):
+        return self.choose_buy(state, choices)
+
+    def choose_kind_emperor_gain(self, state, player, choices):
+        return self.choose_buy(state, choices + [None])
+
     def choose_anvil_treasure_to_discard(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Anvil: pick a Treasure to discard from hand to gain a card up to $4.
 
         Default: discard the cheapest Treasure (Copper preferred) to fuel a
@@ -1829,7 +1846,7 @@ class AI(ABC):
 
     def choose_anvil_gain(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Anvil: pick which $0-$4 card to gain after discarding a Treasure."""
         if not choices:
             return None
@@ -1840,7 +1857,7 @@ class AI(ABC):
 
     def choose_card_to_topdeck_for_clerk(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Clerk attack: opponent picks a card from hand to topdeck."""
         return self.choose_card_to_topdeck_from_hand(
             state, player, choices, reason="clerk"
@@ -1872,7 +1889,7 @@ class AI(ABC):
 
     def choose_treasure_to_trash_for_investment(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Legacy hook for the old Investment implementation.
 
         Official Investment no longer trashes a Treasure from hand; card code
@@ -1913,7 +1930,7 @@ class AI(ABC):
 
     def choose_card_for_war_chest(
         self, state: GameState, opponent: PlayerState, supply_choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Player to the left of War Chest's owner names a card.
 
         Default heuristic: name a strong $5 card the opponent might want next
@@ -1943,7 +1960,7 @@ class AI(ABC):
 
     def choose_war_chest_gain(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """War Chest: gain a $0-$5 card not previously named this turn."""
         if not choices:
             return None
@@ -2084,7 +2101,7 @@ class AI(ABC):
 
     def choose_pile_for_token(
         self, state: GameState, player: PlayerState, token_kind: str
-    ) -> "str | None":
+    ) -> str | None:
         """Pick an Action Supply pile to place the given token on."""
         from ..cards.registry import get_card
 
@@ -2110,7 +2127,7 @@ class AI(ABC):
 
     def choose_quest_mode(
         self, state: GameState, player: PlayerState, options: list[str]
-    ) -> "str | None":
+    ) -> str | None:
         """Pick which Quest cost to pay (attack / two_curses / six_cards)."""
         if "attack" in options:
             return "attack"
@@ -2122,7 +2139,7 @@ class AI(ABC):
 
     def choose_card_to_save(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Pick a card from hand to set aside for the Save event.
 
         Default: prefer to save the most expensive Action so it survives
@@ -2141,7 +2158,7 @@ class AI(ABC):
 
     def choose_card_to_inherit(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Pick which non-Victory Action ($0-$4) to set aside via Inheritance."""
         if not choices:
             return None
@@ -2149,7 +2166,7 @@ class AI(ABC):
 
     def choose_card_to_raze(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Pick a card to trash with Raze."""
         if not choices:
             return None
@@ -2163,7 +2180,7 @@ class AI(ABC):
 
     def choose_card_to_keep_from_raze(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Among the cards Raze peeked, choose one to add to hand."""
         if not choices:
             return None
@@ -2207,7 +2224,7 @@ class AI(ABC):
 
     def choose_gain_for_alms(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Pick a card to gain via Alms ($0-$4)."""
         if not choices:
             return None
@@ -2218,18 +2235,18 @@ class AI(ABC):
 
     def choose_gain_for_ball(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Pick one of two Ball gains ($0-$4)."""
         return self.choose_gain_for_alms(state, player, choices)
 
     def choose_gain_for_bargain(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         return self.choose_gain_for_alms(state, player, choices)
 
     def choose_gain_for_seaway(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Pick which $0-$4 Action to gain (and place +1 Buy token on its pile)."""
         if not choices:
             return None
@@ -2237,7 +2254,7 @@ class AI(ABC):
 
     def choose_gain_for_summon(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Pick which $0-$4 Action to gain via Summon (played at start of next turn)."""
         if not choices:
             return None
@@ -2252,7 +2269,7 @@ class AI(ABC):
 
     def choose_card_to_transmogrify(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Pick a card to trash for Transmogrify."""
         priorities = ["Curse", "Estate", "Copper"]
         for name in priorities:
@@ -2265,28 +2282,28 @@ class AI(ABC):
 
     def choose_gain_for_transmogrify(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         if not choices:
             return None
         return max(choices, key=lambda c: (c.cost.coins, c.is_action, c.name))
 
     def choose_disciple_action_to_replay(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         if not choices:
             return None
         return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
 
     def choose_treasure_for_hero(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         if not choices:
             return None
         return max(choices, key=lambda c: (c.cost.coins, c.name))
 
     def choose_card_to_set_aside_for_ratcatcher(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         priorities = ["Curse", "Estate", "Copper"]
         for name in priorities:
             for c in choices:
@@ -2362,7 +2379,7 @@ class AI(ABC):
 
     def choose_attack_to_gain_from_squire(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """When Squire is trashed, pick an Attack card to gain."""
         if not choices:
             return None
@@ -2370,7 +2387,7 @@ class AI(ABC):
 
     def should_trash_with_hermit(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Hermit: optionally trash a non-Treasure from discard or hand."""
         if not choices:
             return None
@@ -2385,7 +2402,7 @@ class AI(ABC):
 
     def choose_card_to_gain_with_hermit(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Hermit: pick a $0-$3 card to gain."""
         if not choices:
             return None
@@ -2410,7 +2427,7 @@ class AI(ABC):
 
     def should_trash_action_for_death_cart(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Death Cart: pick an Action to trash for +$5, or None to skip."""
         if not choices:
             return None
@@ -2422,7 +2439,7 @@ class AI(ABC):
 
     def choose_band_of_misfits_target(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Band of Misfits: select a non-Command Action in supply costing < $5."""
         if not choices:
             return None
@@ -2447,7 +2464,7 @@ class AI(ABC):
 
     def choose_card_to_gain_with_catacombs(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Catacombs: when trashed, pick a cheaper card to gain."""
         if not choices:
             return None
@@ -2455,7 +2472,7 @@ class AI(ABC):
 
     def should_replay_treasure_with_counterfeit(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Counterfeit: pick a Treasure to play twice and trash, or None."""
         if not choices:
             return None
@@ -2490,7 +2507,7 @@ class AI(ABC):
     def choose_card_to_discard_for_pillage(
         self, state: GameState, attacker: PlayerState, target: PlayerState,
         hand: list[Card],
-    ) -> "Card | None":
+    ) -> Card | None:
         """Pillage: attacker chooses a card from target's hand to discard."""
         if not hand:
             return None
@@ -2498,7 +2515,7 @@ class AI(ABC):
 
     def should_gain_from_trash_with_rogue(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Rogue: pick a $3-$6 card from trash to gain when none in deck-tops."""
         if not choices:
             return None
@@ -2506,7 +2523,7 @@ class AI(ABC):
 
     def choose_card_to_trash_for_altar(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Altar: trash a card from hand."""
         if not choices:
             return None
@@ -2521,7 +2538,7 @@ class AI(ABC):
 
     def choose_card_to_gain_with_altar(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Altar: gain a card costing up to $5."""
         if not choices:
             return None
@@ -2548,7 +2565,7 @@ class AI(ABC):
 
     def choose_card_to_trash_with_junk_dealer(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Junk Dealer: trash a card from hand."""
         if not choices:
             return None
@@ -2569,7 +2586,7 @@ class AI(ABC):
 
     def choose_card_to_topdeck_with_scavenger(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Scavenger: optionally pick a card from discard to topdeck."""
         if not choices:
             return None
@@ -2599,7 +2616,7 @@ class AI(ABC):
 
     def choose_card_to_gain_with_dame_natalie(
         self, state: GameState, player: PlayerState, choices: list[Card]
-    ) -> "Card | None":
+    ) -> Card | None:
         """Dame Natalie: optionally gain a $0-$3 card."""
         if not choices:
             return None
@@ -2611,7 +2628,7 @@ class AI(ABC):
     def choose_knight_to_trash(
         self, state: GameState, attacker: PlayerState, target: PlayerState,
         choices: list[Card],
-    ) -> "Card | None":
+    ) -> Card | None:
         """Knight attack: attacker picks one revealed $3-$6 card to trash."""
         if not choices:
             return None

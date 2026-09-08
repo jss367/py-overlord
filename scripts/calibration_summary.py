@@ -11,8 +11,6 @@ resolve a per-board test and the verdict says so.
         --baseline reports/calibration/evolve.json --output reports/calibration/new/compare.md
 """
 
-from __future__ import annotations
-
 import argparse
 from pathlib import Path
 

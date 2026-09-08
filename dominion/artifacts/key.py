@@ -1,7 +1,5 @@
 """Key artifact: holder gets +$1 at the start of their turn."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from .base_artifact import Artifact

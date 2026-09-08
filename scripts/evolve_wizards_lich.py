@@ -1,8 +1,6 @@
 """Evolve a strategy for the Wizards/Lich kingdom and battle it against the
 hand-written WizardsLichEngine and Big Money."""
 
-from __future__ import annotations
-
 import argparse
 import logging
 from datetime import datetime

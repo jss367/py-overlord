@@ -14,8 +14,6 @@ with well-established answers:
    separates "search failure" from "policy ceiling" board by board.
 """
 
-from __future__ import annotations
-
 import json
 import math
 import random
@@ -179,7 +177,7 @@ class MatchOutcome:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "MatchOutcome":
+    def from_dict(cls, data: dict) -> MatchOutcome:
         return cls(
             board=data["board"],
             strategy_a=data["strategy_a"],
@@ -337,7 +335,7 @@ def evolve_and_evaluate(
     log_folder: str = "battle_logs/calibration",
     seed: Optional[int] = None,
     **trainer_kwargs,
-) -> tuple[MatchOutcome, dict, EnhancedStrategy]:
+) -> tuple[MatchOutcome, dict, "EnhancedStrategy"]:
     """Evolve a champion for the entry's board and battle it vs known-best.
 
     ``trainer_kwargs`` are forwarded to :class:`GeneticTrainer` (population

@@ -1,7 +1,7 @@
 import copy
 import random
 from dataclasses import dataclass, field
-from typing import Callable, Optional
+from typing import Optional
 
 from dominion.cards.base_card import Card
 from dominion.ai import tactical_defaults
@@ -422,7 +422,8 @@ class GameState:
         *,
         blocked_return_zone: list[Card] | None = None,
         apply_enchantress: bool | None = None,
-        resolve_effect: Callable[[bool], None] | None = None,
+        suppress_instructions: bool = False,
+        shared_play_hooks: bool = True,
     ) -> bool:
         """Resolve a single Action play that originates outside the main
         action-phase loop, applying the bookkeeping that loop would.
@@ -448,9 +449,9 @@ class GameState:
         freshly moved card, ``blocked_return_zone`` lets the caller preserve
         that card's source-zone semantics. ``apply_enchantress`` defaults to
         whether this is the player's own turn; off-turn Reaction plays are not
-        covered by Enchantress. ``resolve_effect`` lets Treasure resolution
-        retain its own triggers inside the same Action-play bookkeeping;
-        it receives whether the card's instructions were suppressed.
+        covered by Enchantress. For dual-type plays, the Treasure helper
+        owns shared observers and can suppress instructions under Highwayman
+        while retaining Action counters and Action-specific observers.
         """
         if apply_enchantress is None:
             apply_enchantress = self.current_player is player
@@ -478,66 +479,59 @@ class GameState:
             return False
         player.actions_this_turn += 1
         player.actions_played += 1
-        self._maybe_kiln_gain(player, card)
-        if self._highwayman_blocks_treasure(player, card):
-            # Action-Treasures remain Treasures when played by Courier or
-            # another Action. Suppress their instructions, but retain the
-            # Action play, external bonuses, and Attack reactions.
-            if resolve_effect is not None:
-                resolve_effect(True)
-            else:
-                self._apply_external_play_bonuses(player, card)
-                self._fire_urchin_reaction(player, card)
-        elif (
-            apply_enchantress
-            and (card.is_action or self._is_enlightened_treasure(card))
-            and getattr(player, "enchantress_active", False)
-            and not getattr(player, "enchantress_used_this_turn", False)
-        ):
-            player.enchantress_used_this_turn = True
-            self.draw_cards(player, 1)
-            player.actions += 1
-            self.log_callback(
-                (
-                    "action",
-                    player.ai.name,
-                    f"is enchanted while playing {card} (gets +1 Card +1 Action instead)",
-                    {},
-                )
-            )
-            if resolve_effect is not None:
-                resolve_effect(True)
-            else:
-                self._fire_urchin_reaction(player, card)
+        if shared_play_hooks:
+            self._maybe_kiln_gain(player, card)
+            suppress_instructions = suppress_instructions or self._highwayman_blocks_treasure(player, card)
+        if suppress_instructions:
+            self._apply_external_play_bonuses(player, card)
+            self._fire_urchin_reaction(player, card)
         else:
-            # Menagerie Ways: "when you play an Action card, you may instead
-            # follow the Way's instructions" applies to every play, so each
-            # Throne Room replay, Vassal play and off-turn Reaction play gets
-            # its own independent offer, mirroring the action-phase loop.
-            # That includes plays of a card that is not in play: virtual
-            # plays (Riverboat's set-aside card, Necromancer's trashed card,
-            # Captain's Supply proxy) and Throne Room replays after a Way
-            # already moved the card. The offer is not gated on the zone;
-            # instead the Ways that move the played card (Turtle, Horse,
-            # Butterfly, Worm) no-op the move when it is not in play, per the
-            # rulebook ("it stays set aside, even if it has instructions on
-            # it that would move it").
-            if resolve_effect is None:
-                self._resolve_action_text(player, card)
+            if (
+                apply_enchantress
+                and self.is_action(card)
+                and getattr(player, "enchantress_active", False)
+                and not getattr(player, "enchantress_used_this_turn", False)
+            ):
+                player.enchantress_used_this_turn = True
+                self.draw_cards(player, 1)
+                player.actions += 1
+                self.log_callback(
+                    (
+                        "action",
+                        player.ai.name,
+                        f"is enchanted while playing {card} (gets +1 Card +1 Action instead)",
+                        {},
+                    )
+                )
+                self._fire_urchin_reaction(player, card)
             else:
-                resolve_effect(False)
+                # Menagerie Ways: "when you play an Action card, you may instead
+                # follow the Way's instructions" applies to every play, so each
+                # Throne Room replay, Vassal play and off-turn Reaction play gets
+                # its own independent offer, mirroring the action-phase loop.
+                # That includes plays of a card that is not in play: virtual
+                # plays (Riverboat's set-aside card, Necromancer's trashed card,
+                # Captain's Supply proxy) and Throne Room replays after a Way
+                # already moved the card. The offer is not gated on the zone;
+                # instead the Ways that move the played card (Turtle, Horse,
+                # Butterfly, Worm) no-op the move when it is not in play, per the
+                # rulebook ("it stays set aside, even if it has instructions on
+                # it that would move it").
+                self._resolve_action_text(player, card)
         training_pile = getattr(player, "training_pile", None)
         if training_pile and card.name == training_pile:
             player.coins += 1
         self.fire_prophecy_action_hooks(player, card)
-        self.fire_ally_play_hooks(player, card)
+        if shared_play_hooks:
+            self.fire_ally_play_hooks(player, card)
         self._call_tavern_triggers(player, "action_played", card)
         # Renaissance Citadel: if this is the turn's first Action play
         # (the helper checks citadel_used + project ownership), replay
         # the card. Centralised here so every indirect-play caller —
         # Captain, Ghost, Riverboat, Royal Carriage, Throne Room et al
         # — funnels through the same Citadel trigger.
-        self._maybe_citadel_replay(player, card)
+        if shared_play_hooks:
+            self._maybe_citadel_replay(player, card)
         return True
 
     def _resolve_action_text(self, player: PlayerState, card: Card) -> None:
@@ -556,8 +550,7 @@ class GameState:
         self._way_proxy_play_active = False
         try:
             way = None
-            enlightened = self._enlightenment_replaces_treasure(card)
-            if self.ways and (card.is_action or self._is_enlightened_treasure(card)):
+            if self.ways and self.is_action(card):
                 way = player.ai.choose_way(self, card, self.ways + [None])
             if way:
                 self.log_callback(
@@ -569,7 +562,13 @@ class GameState:
                     )
                 )
                 self._apply_way_text(player, card, way)
-            elif enlightened:
+            elif (
+                self.prophecy is not None
+                and self.prophecy.is_active
+                and self.prophecy.name == "Enlightenment"
+                and self.phase == "action"
+                and self.is_treasure(card)
+            ):
                 self.draw_cards(player, 1)
                 if not player.ignore_action_bonuses:
                     player.actions += 1
@@ -869,7 +868,7 @@ class GameState:
         self.log_callback("Game initialized with players: " + ", ".join(player_descriptions))
         self.log_callback("Kingdom cards: " + ", ".join(c.name for c in kingdom_cards))
 
-    def _pick_riverboat_set_aside(self, kingdom_cards: list[Card]) -> "Card | None":
+    def _pick_riverboat_set_aside(self, kingdom_cards: list[Card]) -> Card | None:
         """Choose a non-Duration Action card costing exactly $5 not in the supply.
 
         Used at game setup when Riverboat is in the kingdom and the caller
@@ -1311,7 +1310,7 @@ class GameState:
         if "Charlatan" in self.supply or "Charlatan" in self.black_market_deck:
             self._charlatan_seen = True
 
-    def gain_ruins(self, target) -> "Card | None":
+    def gain_ruins(self, target) -> Card | None:
         """Resolve a "gain a Ruins" by handing over the top of the Ruins pile."""
         order = self.pile_order.get("Ruins")
         if not order:
@@ -1326,7 +1325,7 @@ class GameState:
         self.supply["Ruins"] = max(0, self.supply.get("Ruins", 0) - 1)
         return self.gain_card(target, get_card(top_name))
 
-    def top_of_pile(self, pile_name: str) -> "Card | None":
+    def top_of_pile(self, pile_name: str) -> Card | None:
         """Return a card object representing the top of an ordered pile, or None."""
         order = self.pile_order.get(pile_name)
         if not order:
@@ -1870,7 +1869,7 @@ class GameState:
             card.name == "Estate"
             and getattr(player, "inherited_action_name", None)
         )
-        if not (card.is_action or inherited_action_play):
+        if not (self.is_action(card) or inherited_action_play):
             return False
         # "When you play an Action card during your turn": off-turn plays
         # (Sheepdog, Trail, Weaver reacting on another player's turn) do
@@ -1882,6 +1881,8 @@ class GameState:
         if not any(p.name == "Citadel" for p in player.projects):
             return False
         player.citadel_used = True
+        player.actions_this_turn += 1
+        player.actions_played += 1
         # Hold the Inheritance overlay through the post-play hooks so
         # name-gated effects (training token, Kiln, ally play hooks) see
         # the inherited card's identity, matching the action-phase loop.
@@ -2216,13 +2217,12 @@ class GameState:
 
                 # Renaissance Citadel: first Action played each turn is
                 # replayed afterwards. Implemented as an extra iteration of
-                # the play loop (matches Daimyo / Reckless / Rush). Gated
-                # on is_action so Enlightenment-played Treasures in the
-                # Action phase don't consume / trigger Citadel. Inherited
-                # Estates count as Action plays here.
+                # the play loop (matches Daimyo / Reckless / Rush). Live
+                # Action types include enlightened Treasures; inherited
+                # Estates also count as Action plays here.
                 citadel_extra = 0
                 if (
-                    (choice.is_action or inheriting)
+                    (self.is_action(choice) or inheriting)
                     and not player.citadel_used
                     and any(p.name == "Citadel" for p in player.projects)
                 ):
@@ -2237,18 +2237,24 @@ class GameState:
                     + rush_extra
                     + citadel_extra
                 )
-                for _ in range(plays):
+                for play_index in range(plays):
+                    if play_index:
+                        player.actions_this_turn += 1
+                        player.actions_played += 1
                     inheritance_overlay = (
                         self._begin_inherited_estate_overlay(player, choice)
                         if inheriting
                         else None
                     )
                     self._maybe_kiln_gain(player, choice)
-                    if enlightened and choice.is_treasure and not choice.is_action:
+                    if enlightened and self.is_treasure(choice):
                         # Treasure played in Action phase under Enlightenment:
                         # +1 Card, +1 Action (instead of its normal text).
                         self.draw_cards(player, 1)
-                        player.actions += 1
+                        if not player.ignore_action_bonuses:
+                            player.actions += 1
+                        self._apply_external_play_bonuses(player, choice)
+                        self._fire_urchin_reaction(player, choice)
                     elif (
                         choice.is_action
                         and getattr(player, "enchantress_active", False)
@@ -2431,17 +2437,6 @@ class GameState:
             and not card.is_action
         ):
             count += 1
-        # Renaissance Capitalism: during its owner's turns, Actions with +$
-        # are also Treasures.
-        turn_player = getattr(self, "turn_player", None)
-        if (
-            turn_player is not None
-            and card.is_action
-            and not self.is_treasure(card)
-            and card.stats.coins > 0
-            and any(getattr(p, "name", "") == "Capitalism" for p in turn_player.projects)
-        ):
-            count += 1
         return count
 
     def is_inherited_estate(self, player: PlayerState, card: Card) -> bool:
@@ -2452,25 +2447,30 @@ class GameState:
             and bool(player.inherited_action_name)
         )
 
+    def is_action(self, card: Card) -> bool:
+        """Action type including Treasures made Actions by Enlightenment."""
+        return card.is_action or (
+            self.prophecy is not None
+            and self.prophecy.is_active
+            and self.prophecy.name == "Enlightenment"
+            and self.is_treasure(card)
+        )
+
     def is_treasure(self, card: Card) -> bool:
         """Treasure check that respects game-level type modifiers.
 
         While ``card.is_treasure`` is a static type query, the live game
-        may add the Treasure type to a card (notably Charlatan does so for
-        Curse). Use this method whenever a card's effect needs to ask
+        may add the Treasure type to a card (Charlatan for Curse, Capitalism
+        for coin-producing Actions during its owner's turn). Use this when asking
         "is this a Treasure right now?".
         """
         if card.is_treasure:
             return True
         if card.name == "Curse" and self.charlatan_curse_active():
             return True
-        if (
-            self.players
-            and card.is_action
-            and card.stats.coins > 0
-            and any(p.name == "Capitalism" for p in self.turn_player.projects)
-        ):
-            return True
+        turn_player = self.turn_player if self.players else None
+        if card.is_action and card.stats.coins > 0 and turn_player is not None:
+            return any(p.name == "Capitalism" for p in turn_player.projects)
         return False
 
     def _handle_start_of_buy_phase_effects(self) -> None:
@@ -2521,24 +2521,18 @@ class GameState:
             if hook is not None:
                 hook(self, player)
 
-    def _is_enlightened_treasure(self, card: Card) -> bool:
-        """Whether Enlightenment currently gives this Treasure the Action type."""
-        return (
-            self.prophecy is not None
+    def _highwayman_blocks_treasure(self, player: PlayerState, card: Card) -> bool:
+        """Consume the owner's first-Treasure block unless Enlightenment replaces it."""
+        enlightened_action_phase = (
+            self.phase == "action"
+            and self.prophecy is not None
             and self.prophecy.is_active
             and self.prophecy.name == "Enlightenment"
-            and self.is_treasure(card)
         )
-
-    def _enlightenment_replaces_treasure(self, card: Card) -> bool:
-        """Whether this play uses Enlightenment's Action-phase instructions."""
-        return self.phase == "action" and self._is_enlightened_treasure(card)
-
-    def _highwayman_blocks_treasure(self, player: PlayerState, card: Card) -> bool:
-        """Consume Highwayman's first-Treasure block, including dual types."""
         if (
-            self.is_treasure(card)
-            and not self._enlightenment_replaces_treasure(card)
+            self.turn_player is player
+            and self.is_treasure(card)
+            and not enlightened_action_phase
             and getattr(player, "highwayman_attacks", 0) > 0
             and not getattr(player, "highwayman_blocked_this_turn", False)
         ):
@@ -2546,71 +2540,71 @@ class GameState:
             return True
         return False
 
-    def play_treasure_indirectly(
-        self, player: PlayerState, card: Card, *, _action_wrapped: bool = False,
-        _instructions_blocked: bool = False,
-    ) -> None:
-        """Resolve a Treasure already moved into play, without spending an Action.
+    def play_treasure_indirectly(self, player: PlayerState, choice: Card) -> int:
+        """Resolve a Treasure already in play, including attacks and play hooks.
 
-        Shared by the Treasure phase and Courier so attacks, replays, and
-        on-play triggers also apply to Treasures played from the discard pile.
+        The caller establishes the player's execution context and moves the
+        card into play. This does not enter the Buy phase or spend an Action.
+        Return the coin total used by the normal Treasure-phase play log.
         """
-        if not _action_wrapped and (card.is_action or self._is_enlightened_treasure(card)):
-            # Wrap Treasure effects in Action bookkeeping in every phase.
-            # The resolver still applies Treasure triggers and replays, while
-            # _resolve_action_text handles Ways and Enlightenment's text.
-            self.play_action_indirectly(
-                player, card,
-                resolve_effect=lambda blocked: self.play_treasure_indirectly(
-                    player, card, _action_wrapped=True, _instructions_blocked=blocked
-                ),
+        # Update metrics for treasures played
+        if self.logger:
+            self.logger.current_metrics.cards_played[choice.name] = (
+                self.logger.current_metrics.cards_played.get(choice.name, 0) + 1
             )
-            return
-        if not _action_wrapped:
-            self._maybe_kiln_gain(player, card)
+
+        self._maybe_kiln_gain(player, choice)
         coins_before = player.coins
-        blocked = _instructions_blocked or (
-            not _action_wrapped and self._highwayman_blocks_treasure(player, card)
-        )
-        if blocked:
-            self._apply_external_play_bonuses(player, card)
-            self._fire_urchin_reaction(player, card)
-        elif _action_wrapped:
-            self._resolve_action_text(player, card)
-        else:
-            card.on_play(self)
+        blocked = self._highwayman_blocks_treasure(player, choice)
+
+        def play_instructions(suppressed=False):
+            if self.is_action(choice):
+                self.play_action_indirectly(
+                    player,
+                    choice,
+                    apply_enchantress=self.turn_player is player,
+                    suppress_instructions=suppressed,
+                    shared_play_hooks=False,
+                )
+            elif not suppressed:
+                choice.on_play(self)
+            else:
+                self._apply_external_play_bonuses(player, choice)
+                self._fire_urchin_reaction(player, choice)
+
+        play_instructions(suppressed=blocked)
         # Plunder Reckless trait: Treasures from Reckless pile play twice.
-        if self.pile_traits.get(card.name) == "Reckless":
-            if card in player.in_play:
-                if _action_wrapped:
-                    self.play_action_indirectly(player, card)
-                else:
-                    card.on_play(self)
-        self._maybe_corsair_trash(player, card)
+        if self.pile_traits.get(choice.name) == "Reckless":
+            if choice in player.in_play:
+                play_instructions()
+                if self.prophecy is not None and self.prophecy.is_active:
+                    self.prophecy.on_play_treasure(self, player, choice)
+                self.fire_ally_play_hooks(player, choice)
+        if self.turn_player is player:
+            self._maybe_corsair_trash(player, choice)
         coins_after = player.coins
         if (
             player.envious_effect_active
-            and card.name in {"Silver", "Gold"}
+            and choice.name in {"Silver", "Gold"}
             and coins_after > coins_before + 1
         ):
             player.coins = coins_before + 1
+            coins_after = player.coins
 
         # Rising Sun: Prophecy hooks fire after each treasure plays
         if self.prophecy is not None and self.prophecy.is_active:
-            self.prophecy.on_play_treasure(self, player, card)
+            self.prophecy.on_play_treasure(self, player, choice)
 
         # Allies hook: City-state, League of Shopkeepers,
         # Fellowship of Scribes can react to treasures played.
-        if not _action_wrapped:
-            self.fire_ally_play_hooks(player, card)
+        self.fire_ally_play_hooks(player, choice)
 
         # Renaissance Citadel: if Capitalism makes an Action card
         # playable in the Buy/Treasure phase, that play still
         # counts as the first Action played this turn and Citadel
         # replays it. The helper's is_action gate filters regular
         # Treasures out automatically.
-        if not _action_wrapped:
-            self._maybe_citadel_replay(player, card)
+        self._maybe_citadel_replay(player, choice)
 
         # Prosperity 2E: Tiara — once per turn, when you play a
         # Treasure, you may play it again. Tiara may target itself
@@ -2618,38 +2612,32 @@ class GameState:
         if (
             not getattr(player, "tiara_replay_used", False)
             and any(card.name == "Tiara" for card in player.in_play)
-            and card in player.in_play
+            and choice in player.in_play
         ):
             if player.ai.should_replay_treasure_with_tiara(
-                self, player, card
+                self, player, choice
             ):
                 player.tiara_replay_used = True
-                if _action_wrapped:
-                    self.play_action_indirectly(player, card)
-                else:
-                    card.on_play(self)
+                play_instructions()
                 if self.prophecy is not None and self.prophecy.is_active:
-                    self.prophecy.on_play_treasure(self, player, card)
+                    self.prophecy.on_play_treasure(self, player, choice)
                 # Tiara's bonus replay is another play of the
                 # treasure, so Allies that react to plays should
                 # fire again here.
-                if not _action_wrapped:
-                    self.fire_ally_play_hooks(player, card)
+                self.fire_ally_play_hooks(player, choice)
 
         # Plunder Inspiring trait: applies to any pile, including
         # Treasures. After playing this Treasure, the player may play
         # an Action from hand they don't already have in play.
-        self._maybe_inspiring_extra_play(player, card)
+        self._maybe_inspiring_extra_play(player, choice)
+
+        return player.coins
 
     def handle_treasure_phase(self):
         """Handle the treasure phase of a turn."""
         player = self.current_player
 
         self._handle_start_of_buy_phase_effects()
-
-        capitalism = any(
-            getattr(p, "name", "") == "Capitalism" for p in player.projects
-        )
 
         steps = 0
         while True:
@@ -2665,15 +2653,6 @@ class GameState:
                 treasures = [card for card in player.hand if self.is_treasure(card)]
             else:
                 treasures = []
-            if capitalism:
-                treasures += [
-                    card
-                    for card in player.hand
-                    if card.is_action
-                    and not self.is_treasure(card)
-                    and card.stats.coins > 0
-                    and self._voyage_can_play_from_hand(player)
-                ]
             if not treasures:
                 break
 
@@ -2681,18 +2660,11 @@ class GameState:
             if choice is None:
                 break
 
-            # Update metrics for treasures played
-            if self.logger:
-                self.logger.current_metrics.cards_played[choice.name] = (
-                    self.logger.current_metrics.cards_played.get(choice.name, 0) + 1
-                )
-
             coins_before = player.coins
             if not self.move_card_from_hand_to_play(player, choice):
                 break
 
-            self.play_treasure_indirectly(player, choice)
-            coins_after = player.coins
+            coins_after = self.play_treasure_indirectly(player, choice)
 
             remaining = [c.name for c in player.hand if c.is_treasure]
             context = {
@@ -2719,9 +2691,20 @@ class GameState:
                     f"buys_left={player.buys}, coins={player.coins})"
                 )
             if player.debt > 0:
-                if player.coins > 0:
-                    paid = min(player.debt, player.coins)
-                    player.coins -= paid
+                if player.coins + player.coin_tokens > 0:
+                    paid = min(player.debt, player.coins + player.coin_tokens)
+                    coins_paid = min(max(0, player.coins), paid)
+                    maximum = paid - coins_paid
+                    coffers_paid = 0
+                    if maximum > 0:
+                        chosen = player.ai.choose_coffers_for_debt(self, player, maximum)
+                        if isinstance(chosen, int):
+                            coffers_paid = max(0, min(chosen, maximum))
+                    paid = coins_paid + coffers_paid
+                    if paid == 0:
+                        break
+                    player.coins -= coins_paid
+                    player.coin_tokens -= coffers_paid
                     player.coins_spent_this_turn += paid
                     player.debt -= paid
                     context = {
@@ -2732,6 +2715,10 @@ class GameState:
                     self.log_callback(
                         ("action", player.ai.name, f"pays {paid} Debt", context)
                     )
+                    if player.debt > 0:
+                        # A partial payment ends this decision; do not ask
+                        # repeatedly and drain Coffers the AI chose to keep.
+                        break
                     continue
                 break
 
@@ -2760,7 +2747,7 @@ class GameState:
         self._handle_buy_phase_end(player)
         self.phase = "night"
 
-    def _commit_buy(self, player: PlayerState, card: "Card") -> None:
+    def _commit_buy(self, player: PlayerState, card: Card) -> None:
         """Execute exactly one buy for ``player``.
 
         This is the shared source of truth for real buy-phase commits and
@@ -3300,12 +3287,8 @@ class GameState:
                 return False
             return True
 
-        # Prosperity 2E: Anvil and similar "when you discard this from play"
-        # cards trigger BEFORE the hand is discarded so the player can choose
-        # to discard a Treasure from their actual end-of-turn hand. Only fire
-        # the hook for cards that will actually be discarded from play this
-        # cleanup (filtered above) — otherwise cards like Anvil could grant
-        # their bonus while being set aside by Trickster, etc.
+        # Discard-from-play hooks fire before the hand is discarded, only
+        # for cards that will actually leave play during this cleanup.
         for card in list(player.in_play):
             if (
                 hasattr(card, "on_discard_from_play")
@@ -3612,7 +3595,7 @@ class GameState:
         colony_depleted = "Colony" in self.supply and self.supply["Colony"] == 0
         return province_depleted or colony_depleted or self.empty_piles >= 3
 
-    def _buy_could_end_game(self, player: PlayerState, card: "Card") -> bool:
+    def _buy_could_end_game(self, player: PlayerState, card: Card) -> bool:
         """Loose, cheap pre-check for whether a buy could end the game.
 
         Triggers when the *next* buy could plausibly trip the standard
@@ -3648,7 +3631,7 @@ class GameState:
             for player in self.players
         )
 
-    def _supply_pile_name(self, card: "Card") -> str:
+    def _supply_pile_name(self, card: Card) -> str:
         """Return the supply key whose count a buy/gain of ``card`` decrements.
 
         Knights resolve against the shared ``Knights`` pile rather than a
@@ -3671,7 +3654,7 @@ class GameState:
         strategy = getattr(ai, "strategy", None)
         return bool(getattr(strategy, "allow_losing_pileout", False))
 
-    def gain_would_lose_game(self, player: PlayerState, card: "Card") -> bool:
+    def gain_would_lose_game(self, player: PlayerState, card: Card) -> bool:
         """True if a real buy of ``card`` would end the game while not ahead."""
         if self._losing_pileout_allowed(player):
             return False
@@ -3716,8 +3699,8 @@ class GameState:
             random.setstate(rng_state)
 
     def _choose_safe_buy(
-        self, player: PlayerState, affordable: list["Card"]
-    ) -> "Card | None":
+        self, player: PlayerState, affordable: list[Card]
+    ) -> Card | None:
         """Ask the AI for a buy, vetoing choices that would lose the game.
 
         When a chosen card would end the game while the player is not
@@ -4037,7 +4020,7 @@ class GameState:
         if boon_name:
             self.boons_discard.append(boon_name)
 
-    def resolve_boon(self, player: "PlayerState", boon_name: str) -> None:
+    def resolve_boon(self, player: PlayerState, boon_name: str) -> None:
         """Apply Boon ``boon_name`` to ``player`` and log it."""
 
         if not boon_name:
@@ -4056,7 +4039,7 @@ class GameState:
         else:
             self.discard_boon(boon_name)
 
-    def receive_boon(self, player: "PlayerState") -> Optional[str]:
+    def receive_boon(self, player: PlayerState) -> Optional[str]:
         """Draw and resolve a Boon for ``player``."""
 
         boon = self.draw_boon()
@@ -4085,7 +4068,7 @@ class GameState:
         to_deck: bool = False,
         from_supply: bool = True,
         to_hand: bool = False,
-    ) -> "Card | None":
+    ) -> Card | None:
         """Add a card to a player's discard or deck, honoring topdeck effects.
 
         ``from_supply`` controls supply-restoration semantics. The default
@@ -4395,7 +4378,7 @@ class GameState:
         )
         return changeling
 
-    def _resolve_changeling_pile_name(self, gained_card: Card) -> "str | None":
+    def _resolve_changeling_pile_name(self, gained_card: Card) -> str | None:
         """Find the Supply pile key that owns ``gained_card``, or None.
 
         Direct supply name first; then is_knight/is_ruins for the
@@ -5447,7 +5430,7 @@ class GameState:
 
     def _begin_inherited_estate_overlay(
         self, player: PlayerState, estate: Card
-    ) -> "dict | None":
+    ) -> dict | None:
         """Apply Inheritance overlay to ``estate`` and return a restore handle.
 
         Binds the inherited card's name, stats, types, play_effect, and
@@ -5514,7 +5497,7 @@ class GameState:
         return saved
 
     def _end_inherited_estate_overlay(
-        self, estate: Card, saved: "dict | None"
+        self, estate: Card, saved: dict | None
     ) -> None:
         if not saved:
             return
@@ -5563,7 +5546,7 @@ class GameState:
 
     def player_token_pile(
         self, player: PlayerState, token_kind: str
-    ) -> "str | None":
+    ) -> str | None:
         """Return the pile name where ``player`` has placed ``token_kind``, if any."""
         idx = self.players.index(player)
         for (p_idx, pile), tokens in self.pile_tokens.items():
@@ -5594,10 +5577,7 @@ class GameState:
         and Champion's +1 Action per Action play.
         """
         self._apply_pile_token_play_bonuses(player, card)
-        if (
-            (card.is_action or self._is_enlightened_treasure(card))
-            and getattr(player, "champions_in_play", 0) > 0
-        ):
+        if self.is_action(card) and getattr(player, "champions_in_play", 0) > 0:
             player.actions += player.champions_in_play
 
     def _apply_pile_token_play_bonuses(

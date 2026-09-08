@@ -6,8 +6,6 @@ real ``boards/victoria_kingdom.txt`` and ``boards/iron_barbarian.txt`` files ref
 in issue #230.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
 
 import pytest

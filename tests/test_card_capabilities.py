@@ -1,7 +1,5 @@
 """Tests for declarative card capabilities (dominion.analysis.card_capabilities)."""
 
-from __future__ import annotations
-
 from dominion.analysis.card_capabilities import capabilities_for, kingdom_capabilities
 
 
