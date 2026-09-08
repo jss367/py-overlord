@@ -24,7 +24,11 @@ class Duplicate(Card):
         gained_card = args[0]
         if gained_card is None or gained_card.cost.coins > 6:
             return False
-        if game_state.supply.get(gained_card.name, 0) <= 0:
+        pile = game_state.supply_pile_key(gained_card.name)
+        if (
+            pile in game_state.non_supply_pile_names
+            or game_state.top_supply_card(pile) != gained_card.name
+        ):
             return False
         if not player.ai.should_call_from_tavern(
             game_state, player, self, trigger, *args
@@ -32,9 +36,8 @@ class Duplicate(Card):
             return False
         # Move from tavern mat to discard FIRST, before gaining, to prevent
         # the resulting gain trigger from re-entering this card.
-        from ..registry import get_card
-
         game_state.call_from_tavern(player, self)
-        game_state.supply[gained_card.name] -= 1
-        game_state.gain_card(player, get_card(gained_card.name))
+        copy = game_state.take_top_supply_card(pile)
+        if copy is not None:
+            game_state.gain_card(player, copy)
         return True

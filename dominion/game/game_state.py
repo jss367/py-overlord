@@ -4575,12 +4575,15 @@ class GameState:
         if pending <= 0:
             return
         self.mirror_pending[id(player)] = 0
-        if self.supply.get(gained_card.name, 0) <= 0:
+        pile = self.supply_pile_key(gained_card.name)
+        if (
+            pile in self.non_supply_pile_names
+            or self.top_supply_card(pile) != gained_card.name
+        ):
             return
-        from ..cards.registry import get_card
-
-        self.supply[gained_card.name] -= 1
-        self.gain_card(player, get_card(gained_card.name))
+        copy = self.take_top_supply_card(pile)
+        if copy is not None:
+            self.gain_card(player, copy)
 
     def _handle_landing_party_gain(self, player: PlayerState, gained_card: Card) -> None:
         if not gained_card.is_treasure:
