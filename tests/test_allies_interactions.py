@@ -1040,3 +1040,39 @@ def test_played_garrison_does_not_count_its_own_gain(method):
     silver = s.take_top_supply_card("Silver")
     s.gain_card(p, silver)
     assert garrison.tokens == 1
+
+
+@pytest.mark.parametrize("way_name", [None, "Way of the Horse", "Way of the Butterfly"])
+def test_sunken_treasure_only_excludes_durations_physically_in_play(way_name):
+    from dominion.ways.registry import get_way
+
+    s, p, _ = state()
+    s.setup_supply([get_card("Importer")])
+    importer = s.take_top_supply_card("Importer")
+    p.hand = [importer]
+    p.deck = cards("Copper", 10)
+    plays = 0
+    if way_name:
+        way = get_way(way_name)
+        s.ways = [way]
+
+        def choose_way(state, card, choices):
+            nonlocal plays
+            if card is importer:
+                plays += 1
+                return way if plays == 2 else None
+            return None
+
+        p.ai.choose_way = choose_way
+    play(s, p, "Throne Room")
+    assert importer in p.duration
+    assert (importer in p.in_play) is (way_name is None)
+    before = s.supply["Importer"]
+    play(s, p, "Sunken Treasure")
+    if way_name:
+        assert [c.name for c in p.discard] == ["Importer"]
+        assert p.discard[0] is not importer
+        assert s.supply["Importer"] == before - 1
+    else:
+        assert p.discard == []
+        assert s.supply["Importer"] == before

@@ -71,7 +71,7 @@ class SunkenTreasure(_Odysseys):
 
     def play_effect(self, game_state):
         p = game_state.current_player
-        names = {c.name for c in p.in_play + p.duration}
+        names = {c.name for c in p.in_play}
         gain(
             game_state,
             p,
