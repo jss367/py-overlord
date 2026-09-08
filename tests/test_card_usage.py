@@ -1,0 +1,82 @@
+from dominion.reporting.card_usage import collect_card_usage, render_card_usage
+from dominion.reporting.html_report import generate_leaderboard_html
+from dominion.reporting.strategy_pages import RenderedStrategy, collect_rendered_strategies
+from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
+
+
+def _strategy(name, cards):
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule(card) for card in cards]
+    return RenderedStrategy(name, name.lower(), strategy, "example.py", "create_example", {})
+
+
+def test_usage_deduplicates_cards_aliases_and_strategy_entries():
+    item = _strategy("Example", ["Council room", "Council Room", "Village", "Village", "Silver", "Treasure", "Invest"])
+    item.strategy.action_priority = [PriorityRule("Village")]
+    item.strategy.way_policy = [WayRule(card_name="Smithy", way_name="Way of the Ox")]
+    rows = {row.name: row for row in collect_card_usage([item, item])}
+
+    assert len(rows["Council Room"].strategies) == 1
+    assert len(rows["Village"].strategies) == 1
+    assert len(rows["Silver"].strategies) == 1
+    assert len(rows["Smithy"].strategies) == 1
+    assert rows["Witch"].strategies == ()
+    assert "Invest" not in rows
+    assert "Treasure" not in rows
+    assert rows["Village"].median_rank is None
+
+
+def test_usage_median_matches_leaderboard_order_and_excludes_unranked():
+    strategies = [
+        _strategy("Alpha", ["Village", "Smithy"]),
+        _strategy("Beta", ["Village"]),
+        _strategy("Gamma", ["Village"]),
+        _strategy("Unranked", ["Village"]),
+    ]
+    results = {
+        "Gamma": {"win_rate": 50, "wins": 2, "losses": 2},
+        "Beta": {"win_rate": 50, "wins": 2, "losses": 1},
+        "Alpha": {"win_rate": 50, "wins": 2, "losses": 1},
+        "Unknown strategy": {"win_rate": 100},
+    }
+    rows = {row.name: row for row in collect_card_usage(strategies, results)}
+    assert rows["Village"].ranks == (2, 3, 4)
+    assert rows["Village"].median_rank == 3
+    assert len(rows["Village"].strategies) == 4
+    assert rows["Smithy"].median_rank == 2
+    assert rows["Witch"].median_rank is None
+
+    strategies[2].strategy.gain_priority = []
+    rows = {row.name: row for row in collect_card_usage(strategies, results)}
+    assert rows["Village"].median_rank == 2.5
+
+
+def test_usage_resolves_result_strategy_aliases():
+    strategies = collect_rendered_strategies(names=["Big Money"])
+    rows = {row.name: row for row in collect_card_usage(strategies, {"BigMoney": {"win_rate": 100}})}
+    assert rows["Gold"].median_rank == 1
+
+
+def test_usage_empty_catalog_and_escaped_content():
+    html = render_card_usage([])
+    assert "No tournament results yet" in html
+    assert 'data-sort="0.0">0.0%' in html or 'data-sort="0">0.0%' in html
+    assert "nan" not in html.lower()
+    item = _strategy("<Example>", ["Village"])
+    html = render_card_usage([item], {"<Example>": {"win_rate": 100}}, context_label="<board>")
+    assert "&lt;Example&gt;" in html
+    assert "&lt;board&gt;" in html
+    assert "<Example>" not in html
+
+
+def test_tournament_writes_linked_usage_companion(tmp_path):
+    output = tmp_path / "sample-tournament.html"
+    generate_leaderboard_html({"Chapel Witch": {"win_rate": 100}}, output, context_label="the sample board")
+    companion = tmp_path / "sample-tournament-card-strategy-usage.html"
+    assert companion.exists()
+    assert 'href="sample-tournament-card-strategy-usage.html"' in output.read_text()
+    html = companion.read_text()
+    assert 'href="sample-tournament.html"' in html
+    assert "the sample board" in html
+    assert 'data-sort="1">1</td>' in html
+    assert "No tournament results yet" not in html

@@ -123,6 +123,7 @@ def test_render_strategy_pages_writes_index_and_strategy_page(tmp_path):
     paths = {path.name for path in written}
     assert paths == {
         "index.html",
+        "card-strategy-usage.html",
         "big-money.html",
         "cursed-band-biding-time-strategy-guide.html",
     }
@@ -156,6 +157,7 @@ def test_render_strategy_pages_resolves_alias_names(tmp_path):
     paths = {path.name for path in written}
     assert paths == {
         "index.html",
+        "card-strategy-usage.html",
         "big-money.html",
         "cursed-band-biding-time-strategy-guide.html",
     }

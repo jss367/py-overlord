@@ -415,7 +415,8 @@ def generate_leaderboard_html(
     context_label: str = "a cross-board round robin",
 ) -> None:
     """Create a catalog-styled HTML leaderboard report for many strategies."""
-    from dominion.reporting.strategy_pages import render_strategy_leaderboard
+    from dominion.reporting.card_usage import render_card_usage
+    from dominion.reporting.strategy_pages import collect_rendered_strategies, render_strategy_leaderboard
 
     strategy_link_prefix = _strategy_link_prefix(output_path)
     index_href = f"{strategy_link_prefix}/index.html"
@@ -423,10 +424,23 @@ def generate_leaderboard_html(
         Path("reports") / "boards" / "index.html",
         output_path.parent,
     )
+    usage_filename = (
+        "card-strategy-usage.html" if output_path.name == "leaderboard.html"
+        else f"{output_path.stem}-card-strategy-usage.html"
+    )
+    usage = render_card_usage(
+        collect_rendered_strategies(), results,
+        index_href=index_href,
+        leaderboard_href=output_path.name,
+        strategy_link_prefix=strategy_link_prefix,
+        context_label=context_label,
+    )
+    output_path.with_name(usage_filename).write_text(usage, encoding="utf-8")
     html = render_strategy_leaderboard(
         results,
         strategy_link_prefix=strategy_link_prefix,
         index_href=index_href,
+        card_usage_href=usage_filename,
         board_index_href=board_index_href,
         context_label=context_label,
     )
