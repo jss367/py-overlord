@@ -41,6 +41,46 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="hyderabad-strategy-guide.html",
+        display_name="Hyderabad Strategy Search Guide",
+        description=(
+            "Stockpile and Scholar money with Progress: simulator corrections, "
+            "search methods, confirmation results, and score-aware closing."
+        ),
+        kingdom_cards=("Stockpile", "Scholar", "River Shrine", "Village Green"),
+        source_label="Repository strategy search and recorded simulation results",
+    ),
+    CuratedStrategyGuide(
+        filename="lisbon-strategy-guide.html",
+        display_name="Lisbon Strategy Search Guide",
+        description=(
+            "City and Clerk pile pressure: gain priorities, comparisons against "
+            "Colony engines, and the rejected action-order finalist."
+        ),
+        kingdom_cards=("City", "Clerk", "Colony", "Collection", "Peddler"),
+        source_label="Repository strategy search and recorded simulation results",
+    ),
+    CuratedStrategyGuide(
+        filename="oslo-strategy-guide.html",
+        display_name="Discounted Oslo Strategy Search Guide",
+        description=(
+            "Workers' Village and Magnate engine: King's Court targets, "
+            "four-Colony scoring turns, and comparison with earlier policies."
+        ),
+        kingdom_cards=("Workers' Village", "Magnate", "King's Court", "Bank", "Anvil"),
+        source_label="Repository strategy search and recorded simulation results",
+    ),
+    CuratedStrategyGuide(
+        filename="port-moresby-strategy-guide.html",
+        display_name="Port Moresby Strategy Search Guide",
+        description=(
+            "Quartermaster money and Fountain scoring: board rules audit, "
+            "search results, and confirmation after simulator corrections."
+        ),
+        kingdom_cards=("Quartermaster", "Barbarian", "Messenger", "Trail", "Sculptor"),
+        source_label="Repository strategy search and recorded simulation results",
+    ),
+    CuratedStrategyGuide(
         filename="tea-house-kind-emperor-strategy-guide.html",
         display_name="Tea House and Kind Emperor Strategy Guide",
         description=(

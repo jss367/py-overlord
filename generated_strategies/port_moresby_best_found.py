@@ -1,6 +1,6 @@
 """Best strategy found for the Port Moresby board (``boards/port_moresby.txt``).
 
-See ``docs/port_moresby_best_strategy.md`` for the search and validation.
+See ``reports/strategies/port-moresby-strategy-guide.html`` for the search and validation.
 
 Chassis: the island-model champion evolved from the Double Quartermaster
 Money seed (Messenger/Trail opener, up to three Quartermasters while the

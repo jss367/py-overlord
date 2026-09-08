@@ -110,18 +110,20 @@ See the [publishing workflow](AGENTS.md#publish-strategy-guides-as-html).
 Runnable strategies remain Python. Repository instructions, developer references,
 and design plans may remain Markdown.
 
-The migration is incomplete as of September 7, 2026. The
+The strategy writeup migration is complete as of September 7, 2026. The
 [Tea House and Kind Emperor guide](reports/strategies/tea-house-kind-emperor-strategy-guide.html)
 and [Mine and Guildhall investigation](reports/strategies/mine-guildhall-strategy-guide.html)
 are published as HTML, and their Markdown duplicates have been removed. These
-older strategy research narratives still remain in Markdown:
+older strategy research narratives have also been converted, preserving their
+findings, experiment tables, caveats, and source references. Their Markdown
+duplicates have been removed:
 
-| Legacy writeup | Migration status |
+| Strategy research guide | Format |
 | --- | --- |
-| [Hyderabad strategy search](docs/hyderabad_best_strategy.md) | Markdown narrative remains; registered strategies also have generated HTML detail pages. |
-| [Lisbon strategy search](docs/lisbon_best_strategy.md) | Markdown narrative remains; registered strategies also have generated HTML detail pages. |
-| [Oslo strategy search](docs/oslo_best_strategy.md) | Markdown narrative remains alongside HTML comparison reports and generated strategy pages. |
-| [Port Moresby strategy search](docs/port_moresby_best_strategy.md) | Markdown narrative remains; registered strategies also have generated HTML detail pages. |
+| [Hyderabad strategy search](reports/strategies/hyderabad-strategy-guide.html) | HTML guide in the strategy catalog. |
+| [Lisbon strategy search](reports/strategies/lisbon-strategy-guide.html) | HTML guide in the strategy catalog. |
+| [Discounted Oslo strategy search](reports/strategies/oslo-strategy-guide.html) | HTML guide with links to the existing comparison reports. |
+| [Port Moresby strategy search](reports/strategies/port-moresby-strategy-guide.html) | HTML guide including results after simulator corrections. |
 
 A generated strategy detail page describes the runnable strategy; it does not
 automatically migrate a separate narrative's experiments and conclusions. The
@@ -141,7 +143,7 @@ added, the agent notes required HTML catalog regeneration but did not explicitly
 specify the format for hand-authored guides. That gap and the older Markdown
 examples plausibly contributed to the mistake; the session transcript does not
 establish the agent's reasoning. Use the explicit publishing workflow for future
-guides, and update this inventory as legacy writeups are migrated.
+guides, and keep this inventory current when adding or moving documentation.
 
 ## Adversarial league training
 
