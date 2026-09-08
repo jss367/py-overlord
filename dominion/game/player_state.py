@@ -568,6 +568,12 @@ class PlayerState:
             self.summon_set_aside,
             self.farmhands_set_aside,
         ]
+        game_state = getattr(self, "game_state", None)
+        if game_state is not None:
+            zones.extend([
+                game_state.hasty_set_aside.get(id(self), []),
+                game_state.patient_mat.get(id(self), []),
+            ])
         for card in dict.fromkeys(self.in_play + self.duration + self.multiplied_durations):
             set_aside = getattr(card, "set_aside", None)
             if isinstance(set_aside, list):

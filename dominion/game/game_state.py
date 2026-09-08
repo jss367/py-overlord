@@ -170,6 +170,14 @@ class GameState:
                 new.log_callback = lambda *_: None
             else:
                 new.__dict__[key] = copy.deepcopy(value, memo)
+        # These ownership maps use object IDs rather than player indices.
+        # Rebind their keys to the copied players for scoring and simulation.
+        player_ids = {id(old): id(clone) for old, clone in zip(self.players, new.players)}
+        for name in ("hasty_set_aside", "patient_mat"):
+            new.__dict__[name] = {
+                player_ids.get(key, key): cards
+                for key, cards in new.__dict__[name].items()
+            }
         return new
 
     def gain_destination(self, card):

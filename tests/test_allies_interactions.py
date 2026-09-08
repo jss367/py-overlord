@@ -930,3 +930,28 @@ def test_ambassador_does_not_return_or_gain_non_supply_horses():
     assert p.hand == [horse]
     assert q.discard == []
     assert s.supply["Horse"] == 10
+
+
+@pytest.mark.parametrize("trait", ["Hasty", "Patient"])
+@pytest.mark.parametrize("copied", [False, True])
+def test_trait_set_aside_cards_remain_owned_and_scored_in_copied_games(trait, copied):
+    from dominion.traits import apply_trait
+
+    s, p, _ = state()
+    s.setup_supply([get_card("Old Map")])
+    apply_trait(s, trait, "Old Map")
+    for _ in range(3):
+        s.rotate_supply_pile("Old Map")
+    shore = s.take_top_supply_card("Old Map")
+    s.gain_card(p, shore)
+    if trait == "Patient":
+        p.discard.remove(shore)
+        p.hand.append(shore)
+        p.deck = cards("Copper", 10)
+        s.handle_cleanup_phase()
+    if copied:
+        s = deepcopy(s)
+        p = s.players[0]
+    assert sum(c.name == "Distant Shore" for c in p.all_cards()) == 1
+    assert p.get_victory_points() == 2
+    assert all(c.name != "Distant Shore" for c in p.hand + p.deck + p.discard)
