@@ -8,8 +8,6 @@ seeds is part of the result. These helpers are shared by the calibration
 suite and the league summary so both report the same intervals and tests.
 """
 
-from __future__ import annotations
-
 import math
 import statistics
 from typing import Sequence

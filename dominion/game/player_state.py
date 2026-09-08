@@ -8,7 +8,7 @@ from dominion.cards.registry import get_card
 
 @dataclass
 class PlayerState:
-    ai: "AI"  # Type annotation as string to avoid circular import
+    ai: AI  # Imported only for type checking to avoid a circular import.
 
     # Resources
     actions: int = 1
@@ -201,7 +201,7 @@ class PlayerState:
     # Adventures Plan event: pile names where Plan placed the trash token.
     plan_trash_piles: set = field(default_factory=set)
     # Adventures Inheritance.
-    inherited_action_name: "str | None" = None
+    inherited_action_name: str | None = None
     inheritance_used: bool = False
     # Adventures Borrow / Alms once-per-turn locks.
     borrow_used_this_turn: bool = False

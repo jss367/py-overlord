@@ -28,7 +28,7 @@ class PriorityRule:
 
     card: str
     # Condition is an optional callable that receives (state, player) and returns a bool.
-    condition: Optional[Callable[["GameState", "PlayerState"], bool]] = None
+    condition: Optional[Callable[[GameState, PlayerState], bool]] = None
 
     @property
     def card_name(self) -> str:
@@ -53,13 +53,13 @@ class PriorityRule:
         return fn
 
     @staticmethod
-    def provinces_left(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def provinces_left(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         cmp = PriorityRule._OP_MAP[op]
         fn = lambda s, _me, _amount=amount, _cmp=cmp: _cmp(s.supply.get("Province", 0), _amount)
         return PriorityRule._tag_source(fn, f"PriorityRule.provinces_left({op!r}, {amount!r})")
 
     @staticmethod
-    def colonies_left(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def colonies_left(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         cmp = PriorityRule._OP_MAP[op]
         fn = lambda s, _me, _amount=amount, _cmp=cmp: "Colony" in s.supply and _cmp(
             s.supply.get("Colony", 0), _amount
@@ -67,13 +67,13 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.colonies_left({op!r}, {amount!r})")
 
     @staticmethod
-    def turn_number(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def turn_number(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         cmp = PriorityRule._OP_MAP[op]
         fn = lambda s, _me, _amount=amount, _cmp=cmp: _cmp(s.turn_number, _amount)
         return PriorityRule._tag_source(fn, f"PriorityRule.turn_number({op!r}, {amount!r})")
 
     @staticmethod
-    def resources(res: str, op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def resources(res: str, op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         cmp = PriorityRule._OP_MAP[op]
 
         def _get(me, res_name: str):
@@ -85,7 +85,7 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.resources({res!r}, {op!r}, {amount!r})")
 
     @staticmethod
-    def has_cards(cards: Iterable[str], amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def has_cards(cards: Iterable[str], amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when the player has at least ``amount`` matching cards.
 
         ``amount=0`` is treated as "has none" rather than the mathematically
@@ -102,20 +102,20 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.has_cards({card_list!r}, {amount!r})")
 
     @staticmethod
-    def has_no_cards(cards: Iterable[str]) -> Callable[["GameState", "PlayerState"], bool]:
+    def has_no_cards(cards: Iterable[str]) -> Callable[[GameState, PlayerState], bool]:
         """Explicit spelling for "none of these cards are in the deck"."""
         card_list = list(cards)
         fn = lambda _s, me, _cards=card_list: sum(me.count_in_deck(c) for c in _cards) == 0
         return PriorityRule._tag_source(fn, f"PriorityRule.has_no_cards({card_list!r})")
 
     @staticmethod
-    def max_in_deck(card_name: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def max_in_deck(card_name: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when the player has strictly fewer than ``amount`` copies of ``card_name``."""
         fn = lambda _s, me, _amount=amount, _card=card_name: me.count_in_deck(_card) < _amount
         return PriorityRule._tag_source(fn, f"PriorityRule.max_in_deck({card_name!r}, {amount!r})")
 
     @staticmethod
-    def actions_in_play(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def actions_in_play(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when the number of action cards in play satisfies the comparison."""
         cmp = PriorityRule._OP_MAP[op]
         fn = lambda _s, me, _amount=amount, _cmp=cmp: _cmp(
@@ -124,7 +124,7 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.actions_in_play({op!r}, {amount!r})")
 
     @staticmethod
-    def actions_gained_this_turn(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def actions_gained_this_turn(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when the number of actions gained this turn satisfies the comparison.
 
         Useful for Cauldron-style triggers ("when this is the Nth action gained
@@ -135,7 +135,7 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.actions_gained_this_turn({op!r}, {amount!r})")
 
     @staticmethod
-    def cards_gained_this_turn(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def cards_gained_this_turn(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when the number of cards gained this turn satisfies the comparison.
 
         Reads ``player.cards_gained_this_turn``, which is reset to 0 at the start
@@ -145,13 +145,13 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.cards_gained_this_turn({op!r}, {amount!r})")
 
     @staticmethod
-    def card_in_play(card_name: str) -> Callable[["GameState", "PlayerState"], bool]:
+    def card_in_play(card_name: str) -> Callable[[GameState, PlayerState], bool]:
         """True when the named card is currently in play."""
         fn = lambda _s, me, _card=card_name: any(c.name == _card for c in me.in_play)
         return PriorityRule._tag_source(fn, f"PriorityRule.card_in_play({card_name!r})")
 
     @staticmethod
-    def card_in_hand(card_name: str) -> Callable[["GameState", "PlayerState"], bool]:
+    def card_in_hand(card_name: str) -> Callable[[GameState, PlayerState], bool]:
         """True when the named card is currently in hand.
 
         Useful for synergy rules such as "play Village only if a terminal is in
@@ -161,7 +161,7 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.card_in_hand({card_name!r})")
 
     @staticmethod
-    def actions_in_hand(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def actions_in_hand(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when the number of action cards currently in hand satisfies the comparison."""
         cmp = PriorityRule._OP_MAP[op]
         fn = lambda _s, me, _amount=amount, _cmp=cmp: _cmp(
@@ -170,7 +170,7 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.actions_in_hand({op!r}, {amount!r})")
 
     @staticmethod
-    def terminals_in_hand(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def terminals_in_hand(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when the number of terminal action cards in hand satisfies the comparison.
 
         A terminal is an action that grants no ``+Action`` (``stats.actions == 0``)."""
@@ -181,7 +181,7 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.terminals_in_hand({op!r}, {amount!r})")
 
     @staticmethod
-    def treasures_in_hand(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def treasures_in_hand(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when the number of treasure cards currently in hand satisfies the comparison."""
         cmp = PriorityRule._OP_MAP[op]
         fn = lambda _s, me, _amount=amount, _cmp=cmp: _cmp(
@@ -190,7 +190,7 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.treasures_in_hand({op!r}, {amount!r})")
 
     @staticmethod
-    def excess_actions(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def excess_actions(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when remaining actions minus terminals waiting in hand satisfies the comparison.
 
         ``excess_actions(">=", 1)`` answers "do I have headroom to play another terminal?"
@@ -205,7 +205,7 @@ class PriorityRule:
         return PriorityRule._tag_source(_eval, f"PriorityRule.excess_actions({op!r}, {amount!r})")
 
     @staticmethod
-    def deck_count_diff(card_a: str, card_b: str, op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def deck_count_diff(card_a: str, card_b: str, op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when (count of card_a in deck) minus (count of card_b in deck) satisfies the comparison."""
         cmp = PriorityRule._OP_MAP[op]
         fn = lambda _s, me, _a=card_a, _b=card_b, _amount=amount, _cmp=cmp: _cmp(
@@ -214,14 +214,14 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.deck_count_diff({card_a!r}, {card_b!r}, {op!r}, {amount!r})")
 
     @staticmethod
-    def empty_piles(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def empty_piles(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when the number of emptied supply piles satisfies the comparison."""
         cmp = PriorityRule._OP_MAP[op]
         fn = lambda s, _me, _amount=amount, _cmp=cmp: _cmp(s.empty_piles, _amount)
         return PriorityRule._tag_source(fn, f"PriorityRule.empty_piles({op!r}, {amount!r})")
 
     @staticmethod
-    def pile_count(card_name: str, op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def pile_count(card_name: str, op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when a named Supply pile's remaining count matches ``op``.
 
         Unlike ``provinces_left`` this is usable for any pile, which makes
@@ -238,14 +238,14 @@ class PriorityRule:
         )
 
     @staticmethod
-    def deck_size(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def deck_size(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when the player's total deck size (all zones) satisfies the comparison."""
         cmp = PriorityRule._OP_MAP[op]
         fn = lambda _s, me, _amount=amount, _cmp=cmp: _cmp(len(me.all_cards()), _amount)
         return PriorityRule._tag_source(fn, f"PriorityRule.deck_size({op!r}, {amount!r})")
 
     @staticmethod
-    def action_density(op: str, percent: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def action_density(op: str, percent: int) -> Callable[[GameState, PlayerState], bool]:
         """True when the percentage of action cards in the deck satisfies the comparison.
         Empty decks are treated as 0% density."""
         cmp = PriorityRule._OP_MAP[op]
@@ -260,7 +260,7 @@ class PriorityRule:
         return PriorityRule._tag_source(_eval, f"PriorityRule.action_density({op!r}, {percent!r})")
 
     @staticmethod
-    def score_diff(op: str, amount: int) -> Callable[["GameState", "PlayerState"], bool]:
+    def score_diff(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when (my VP - max opponent VP) satisfies the comparison.
         Useful for endgame decisions (e.g. trigger pile-out when ahead)."""
         cmp = PriorityRule._OP_MAP[op]
@@ -276,13 +276,13 @@ class PriorityRule:
         return PriorityRule._tag_source(_eval, f"PriorityRule.score_diff({op!r}, {amount!r})")
 
     @staticmethod
-    def always_true() -> Callable[["GameState", "PlayerState"], bool]:
+    def always_true() -> Callable[[GameState, PlayerState], bool]:
         fn = lambda *_: True
         return PriorityRule._tag_source(fn, "PriorityRule.always_true()")
 
     # Logical combinators -------------------------------------------------
     @staticmethod
-    def and_(*conds: Optional[Callable[["GameState", "PlayerState"], bool]]):
+    def and_(*conds: Optional[Callable[[GameState, PlayerState], bool]]):
         conds = [c for c in conds if c]
 
         if not conds:
@@ -293,7 +293,7 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.and_({sources})")
 
     @staticmethod
-    def or_(*conds: Optional[Callable[["GameState", "PlayerState"], bool]]):
+    def or_(*conds: Optional[Callable[[GameState, PlayerState], bool]]):
         conds = [c for c in conds if c]
 
         if not conds:
@@ -316,7 +316,7 @@ class WayRule:
 
     card_name: str
     way_name: str
-    condition: Optional[Callable[["GameState", "PlayerState"], bool]] = None
+    condition: Optional[Callable[[GameState, PlayerState], bool]] = None
 
 
 class EnhancedStrategy:

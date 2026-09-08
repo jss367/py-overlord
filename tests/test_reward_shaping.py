@@ -5,8 +5,6 @@ a smoother fitness gradient. When ``shape_rewards=False``, fitness must
 remain exactly the per-opponent win-rate mean (existing behavior preserved).
 """
 
-from __future__ import annotations
-
 import types
 
 import pytest

@@ -19,8 +19,6 @@ Usage
     python scripts/island_tournament.py --strategies "Big Money" "Lisbon City Engine" generated_strategies/island_champions/.../lisbon_investment_rush_champion.py --games 200
 """
 
-from __future__ import annotations
-
 import argparse
 import importlib
 import importlib.util

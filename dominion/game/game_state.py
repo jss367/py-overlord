@@ -787,7 +787,7 @@ class GameState:
         self.log_callback("Game initialized with players: " + ", ".join(player_descriptions))
         self.log_callback("Kingdom cards: " + ", ".join(c.name for c in kingdom_cards))
 
-    def _pick_riverboat_set_aside(self, kingdom_cards: list[Card]) -> "Card | None":
+    def _pick_riverboat_set_aside(self, kingdom_cards: list[Card]) -> Card | None:
         """Choose a non-Duration Action card costing exactly $5 not in the supply.
 
         Used at game setup when Riverboat is in the kingdom and the caller
@@ -1228,7 +1228,7 @@ class GameState:
         if "Charlatan" in self.supply or "Charlatan" in self.black_market_deck:
             self._charlatan_seen = True
 
-    def gain_ruins(self, target) -> "Card | None":
+    def gain_ruins(self, target) -> Card | None:
         """Resolve a "gain a Ruins" by handing over the top of the Ruins pile."""
         order = self.pile_order.get("Ruins")
         if not order:
@@ -1243,7 +1243,7 @@ class GameState:
         self.supply["Ruins"] = max(0, self.supply.get("Ruins", 0) - 1)
         return self.gain_card(target, get_card(top_name))
 
-    def top_of_pile(self, pile_name: str) -> "Card | None":
+    def top_of_pile(self, pile_name: str) -> Card | None:
         """Return a card object representing the top of an ordered pile, or None."""
         order = self.pile_order.get(pile_name)
         if not order:
@@ -2598,7 +2598,7 @@ class GameState:
         self._handle_buy_phase_end(player)
         self.phase = "night"
 
-    def _commit_buy(self, player: PlayerState, card: "Card") -> None:
+    def _commit_buy(self, player: PlayerState, card: Card) -> None:
         """Execute exactly one buy for ``player``.
 
         This is the shared source of truth for real buy-phase commits and
@@ -3442,7 +3442,7 @@ class GameState:
         colony_depleted = "Colony" in self.supply and self.supply["Colony"] == 0
         return province_depleted or colony_depleted or self.empty_piles >= 3
 
-    def _buy_could_end_game(self, player: PlayerState, card: "Card") -> bool:
+    def _buy_could_end_game(self, player: PlayerState, card: Card) -> bool:
         """Loose, cheap pre-check for whether a buy could end the game.
 
         Triggers when the *next* buy could plausibly trip the standard
@@ -3478,7 +3478,7 @@ class GameState:
             for player in self.players
         )
 
-    def _supply_pile_name(self, card: "Card") -> str:
+    def _supply_pile_name(self, card: Card) -> str:
         """Return the supply key whose count a buy/gain of ``card`` decrements.
 
         Knights resolve against the shared ``Knights`` pile rather than a
@@ -3501,7 +3501,7 @@ class GameState:
         strategy = getattr(ai, "strategy", None)
         return bool(getattr(strategy, "allow_losing_pileout", False))
 
-    def gain_would_lose_game(self, player: PlayerState, card: "Card") -> bool:
+    def gain_would_lose_game(self, player: PlayerState, card: Card) -> bool:
         """True if a real buy of ``card`` would end the game while not ahead."""
         if self._losing_pileout_allowed(player):
             return False
@@ -3546,8 +3546,8 @@ class GameState:
             random.setstate(rng_state)
 
     def _choose_safe_buy(
-        self, player: PlayerState, affordable: list["Card"]
-    ) -> "Card | None":
+        self, player: PlayerState, affordable: list[Card]
+    ) -> Card | None:
         """Ask the AI for a buy, vetoing choices that would lose the game.
 
         When a chosen card would end the game while the player is not
@@ -3867,7 +3867,7 @@ class GameState:
         if boon_name:
             self.boons_discard.append(boon_name)
 
-    def resolve_boon(self, player: "PlayerState", boon_name: str) -> None:
+    def resolve_boon(self, player: PlayerState, boon_name: str) -> None:
         """Apply Boon ``boon_name`` to ``player`` and log it."""
 
         if not boon_name:
@@ -3886,7 +3886,7 @@ class GameState:
         else:
             self.discard_boon(boon_name)
 
-    def receive_boon(self, player: "PlayerState") -> Optional[str]:
+    def receive_boon(self, player: PlayerState) -> Optional[str]:
         """Draw and resolve a Boon for ``player``."""
 
         boon = self.draw_boon()
@@ -3914,7 +3914,7 @@ class GameState:
         card: Card,
         to_deck: bool = False,
         from_supply: bool = True,
-    ) -> "Card | None":
+    ) -> Card | None:
         """Add a card to a player's discard or deck, honoring topdeck effects.
 
         ``from_supply`` controls supply-restoration semantics. The default
@@ -4212,7 +4212,7 @@ class GameState:
         )
         return changeling
 
-    def _resolve_changeling_pile_name(self, gained_card: Card) -> "str | None":
+    def _resolve_changeling_pile_name(self, gained_card: Card) -> str | None:
         """Find the Supply pile key that owns ``gained_card``, or None.
 
         Direct supply name first; then is_knight/is_ruins for the
@@ -5256,7 +5256,7 @@ class GameState:
 
     def _begin_inherited_estate_overlay(
         self, player: PlayerState, estate: Card
-    ) -> "dict | None":
+    ) -> dict | None:
         """Apply Inheritance overlay to ``estate`` and return a restore handle.
 
         Binds the inherited card's name, stats, types, play_effect, and
@@ -5323,7 +5323,7 @@ class GameState:
         return saved
 
     def _end_inherited_estate_overlay(
-        self, estate: Card, saved: "dict | None"
+        self, estate: Card, saved: dict | None
     ) -> None:
         if not saved:
             return
@@ -5372,7 +5372,7 @@ class GameState:
 
     def player_token_pile(
         self, player: PlayerState, token_kind: str
-    ) -> "str | None":
+    ) -> str | None:
         """Return the pile name where ``player`` has placed ``token_kind``, if any."""
         idx = self.players.index(player)
         for (p_idx, pile), tokens in self.pile_tokens.items():

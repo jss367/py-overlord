@@ -14,8 +14,6 @@ Covers the three mechanisms added to make fitness trustworthy:
 Plus the official-rules tie-break in StrategyBattle (fewer turns wins ties).
 """
 
-from __future__ import annotations
-
 import random
 import types
 

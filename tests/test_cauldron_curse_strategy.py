@@ -14,8 +14,6 @@ These tests verify three things:
    gain a Curse, since this board has no other curse-giving card).
 """
 
-from __future__ import annotations
-
 import contextlib
 import io
 import random

@@ -6,8 +6,6 @@ seed builders a shared vocabulary ("village", "terminal_draw", "payload",
 manual metadata table.
 """
 
-from __future__ import annotations
-
 import inspect
 from dataclasses import dataclass
 from functools import lru_cache

@@ -23,8 +23,6 @@ Usage
         --generations 30 --population 40 --games-per-eval 30
 """
 
-from __future__ import annotations
-
 import argparse
 import importlib.util
 import inspect

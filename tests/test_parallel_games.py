@@ -1,7 +1,5 @@
 """Worker-process game evaluation must be a drop-in for the serial path."""
 
-from __future__ import annotations
-
 import random
 import threading
 from copy import deepcopy

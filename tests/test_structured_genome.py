@@ -6,8 +6,6 @@ backbone), mutations are menu edits from a curated gate vocabulary, and
 normalization enforces the invariants every viable strategy needs.
 """
 
-from __future__ import annotations
-
 import random
 import types
 

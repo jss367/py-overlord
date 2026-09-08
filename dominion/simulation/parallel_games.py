@@ -17,8 +17,6 @@ Workers are started with the ``spawn`` context, each building one
 :class:`BattleSpec` and reusing it for every task.
 """
 
-from __future__ import annotations
-
 import logging
 import multiprocessing as mp
 import os
@@ -233,7 +231,7 @@ class GamePool:
             self._executor.shutdown(wait=True, cancel_futures=True)
             self._executor = None
 
-    def __enter__(self) -> "GamePool":
+    def __enter__(self) -> GamePool:
         return self
 
     def __exit__(self, *exc_info) -> None:

@@ -1,7 +1,5 @@
 """Definitions of Dominion Hex effects used by Doom cards."""
 
-from __future__ import annotations
-
 import random
 from typing import Callable, TYPE_CHECKING
 
@@ -14,7 +12,7 @@ if TYPE_CHECKING:  # pragma: no cover - import for type checking only
 HexEffect = Callable[["GameState", "PlayerState"], None]
 
 
-def bad_omens(game_state: "GameState", player: "PlayerState") -> None:
+def bad_omens(game_state: GameState, player: PlayerState) -> None:
     """Move the deck to the discard and topdeck up to two Coppers."""
 
     if player.deck:
@@ -29,21 +27,21 @@ def bad_omens(game_state: "GameState", player: "PlayerState") -> None:
         player.deck.append(copper)
 
 
-def delusion(game_state: "GameState", player: "PlayerState") -> None:
+def delusion(game_state: GameState, player: PlayerState) -> None:
     """Give the player the Deluded state if possible."""
 
     if not player.deluded and not player.envious:
         player.deluded = True
 
 
-def envy(game_state: "GameState", player: "PlayerState") -> None:
+def envy(game_state: GameState, player: PlayerState) -> None:
     """Give the player the Envious state if possible."""
 
     if not player.deluded and not player.envious:
         player.envious = True
 
 
-def famine(game_state: "GameState", player: "PlayerState") -> None:
+def famine(game_state: GameState, player: PlayerState) -> None:
     """Reveal three cards, discarding Actions and shuffling the rest back."""
 
     revealed = []
@@ -65,7 +63,7 @@ def famine(game_state: "GameState", player: "PlayerState") -> None:
     player.deck.extend(to_keep)
 
 
-def fear(game_state: "GameState", player: "PlayerState") -> None:
+def fear(game_state: GameState, player: PlayerState) -> None:
     """Force the player to discard an Action or Treasure if possible."""
 
     if len(player.hand) < 5:
@@ -82,7 +80,7 @@ def fear(game_state: "GameState", player: "PlayerState") -> None:
         game_state.discard_card(player, card)
 
 
-def greed(game_state: "GameState", player: "PlayerState") -> None:
+def greed(game_state: GameState, player: PlayerState) -> None:
     """Gain a Copper to the top of the player's deck."""
 
     if game_state.supply.get("Copper", 0) <= 0:
@@ -93,7 +91,7 @@ def greed(game_state: "GameState", player: "PlayerState") -> None:
     game_state.gain_card(player, copper, to_deck=True)
 
 
-def haunting(game_state: "GameState", player: "PlayerState") -> None:
+def haunting(game_state: GameState, player: PlayerState) -> None:
     """Topdeck a card if the player has at least four in hand."""
 
     if len(player.hand) < 4:
@@ -107,7 +105,7 @@ def haunting(game_state: "GameState", player: "PlayerState") -> None:
         player.deck.append(card)
 
 
-def locusts(game_state: "GameState", player: "PlayerState") -> None:
+def locusts(game_state: GameState, player: PlayerState) -> None:
     """Trash the top deck card and gain an appropriate replacement."""
 
     if not player.deck:
@@ -138,19 +136,19 @@ def locusts(game_state: "GameState", player: "PlayerState") -> None:
         game_state.gain_card(player, gain)
 
 
-def misery(game_state: "GameState", player: "PlayerState") -> None:
+def misery(game_state: GameState, player: PlayerState) -> None:
     """Increase the player's Misery penalty."""
 
     player.misery = min(2, player.misery + 1)
 
 
-def plague(game_state: "GameState", player: "PlayerState") -> None:
+def plague(game_state: GameState, player: PlayerState) -> None:
     """Give the player a Curse directly to hand."""
 
     game_state.give_curse_to_player(player, to_hand=True)
 
 
-def poverty(game_state: "GameState", player: "PlayerState") -> None:
+def poverty(game_state: GameState, player: PlayerState) -> None:
     """Force the player to discard down to three cards."""
 
     discard_target = max(0, len(player.hand) - 3)
@@ -169,7 +167,7 @@ def poverty(game_state: "GameState", player: "PlayerState") -> None:
             game_state.discard_card(player, card)
 
 
-def war(game_state: "GameState", player: "PlayerState") -> None:
+def war(game_state: GameState, player: PlayerState) -> None:
     """Reveal until a card costing $3 or $4 is trashed."""
 
     revealed = []
@@ -220,7 +218,7 @@ def create_hex_deck() -> list[str]:
     return names
 
 
-def resolve_hex(name: str, game_state: "GameState", player: "PlayerState") -> None:
+def resolve_hex(name: str, game_state: GameState, player: PlayerState) -> None:
     """Execute the Hex ``name`` for ``player`` if it exists."""
 
     effect = HEX_EFFECTS.get(name)

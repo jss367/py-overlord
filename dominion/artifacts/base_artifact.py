@@ -8,8 +8,6 @@ unheld). Artifact effects fire only for the current holder and are
 implemented as hook methods invoked by ``GameState`` and the cards.
 """
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
@@ -28,30 +26,30 @@ class Artifact:
     name: str = ""
 
     def __init__(self) -> None:
-        self.holder: Optional["PlayerState"] = None
+        self.holder: Optional[PlayerState] = None
 
     # ------------------------------------------------------------------
     # Ownership lifecycle
     # ------------------------------------------------------------------
-    def on_take(self, state: "GameState", player: "PlayerState") -> None:
+    def on_take(self, state: GameState, player: PlayerState) -> None:
         """Called when ``player`` takes this Artifact."""
 
-    def on_lose(self, state: "GameState", player: "PlayerState") -> None:
+    def on_lose(self, state: GameState, player: PlayerState) -> None:
         """Called when ``player`` loses this Artifact (someone else took it)."""
 
     # ------------------------------------------------------------------
     # Effect hooks – overridden by individual artifacts
     # ------------------------------------------------------------------
-    def on_holder_turn_start(self, state: "GameState", player: "PlayerState") -> None:
+    def on_holder_turn_start(self, state: GameState, player: PlayerState) -> None:
         """Fire at the start of the holder's turn (Flag, Key)."""
 
     def on_holder_buy_phase_start(
-        self, state: "GameState", player: "PlayerState"
+        self, state: GameState, player: PlayerState
     ) -> None:
         """Fire at the start of the holder's Buy phase (Treasure Chest)."""
 
     def on_holder_play_border_guard(
-        self, state: "GameState", player: "PlayerState", border_guard
+        self, state: GameState, player: PlayerState, border_guard
     ) -> None:
         """Fire when the holder plays a Border Guard (Horn, Lantern)."""
 

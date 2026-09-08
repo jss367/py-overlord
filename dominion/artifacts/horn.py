@@ -1,8 +1,6 @@
 """Horn artifact: when its holder discards a Border Guard from play, they
 may put it onto their deck instead."""
 
-from __future__ import annotations
-
 from typing import TYPE_CHECKING
 
 from .base_artifact import Artifact
@@ -16,7 +14,7 @@ class Horn(Artifact):
     name = "Horn"
 
     def on_holder_play_border_guard(
-        self, state: "GameState", player: "PlayerState", border_guard
+        self, state: GameState, player: PlayerState, border_guard
     ) -> None:
         # Per Renaissance rules, the Horn lets the holder topdeck the
         # Border Guard once it would be discarded (i.e. at end of play

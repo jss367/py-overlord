@@ -1,7 +1,5 @@
 """Utility functions for generating HTML reports."""
 
-from __future__ import annotations
-
 import base64
 from functools import lru_cache
 from html import escape

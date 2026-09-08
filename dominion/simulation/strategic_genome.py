@@ -13,8 +13,6 @@ mutation/crossover whenever both parents carry ``_strategic_genome`` and fall
 back to the legacy structured operators for older seeds.
 """
 
-from __future__ import annotations
-
 from copy import deepcopy
 from dataclasses import dataclass, field
 import random as _random_module

@@ -1,7 +1,5 @@
 """Tests for the newly implemented Dominion Base Set cards (and Moat reaction)."""
 
-from __future__ import annotations
-
 from typing import Optional
 
 from dominion.cards.base_card import Card

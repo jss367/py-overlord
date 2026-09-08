@@ -14,8 +14,6 @@ with well-established answers:
    separates "search failure" from "policy ceiling" board by board.
 """
 
-from __future__ import annotations
-
 import json
 import math
 import random
@@ -179,7 +177,7 @@ class MatchOutcome:
         }
 
     @classmethod
-    def from_dict(cls, data: dict) -> "MatchOutcome":
+    def from_dict(cls, data: dict) -> MatchOutcome:
         return cls(
             board=data["board"],
             strategy_a=data["strategy_a"],

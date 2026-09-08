@@ -1,7 +1,5 @@
 """Shared links for generated board and strategy pages."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from pathlib import Path
 import re

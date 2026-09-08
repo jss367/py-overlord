@@ -181,7 +181,7 @@ class GameLogger:
         winner: str,
         scores: dict[str, int],
         supply_state: dict[str, int],
-        players: List["PlayerState"],
+        players: List[PlayerState],
     ) -> Optional[str]:
         """End the current game with enhanced final state logging.
 

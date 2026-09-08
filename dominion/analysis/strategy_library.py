@@ -7,8 +7,6 @@ board. A compatible old strategy is only a hypothesis; training still has to
 mutate it and prove it against the fitness panel.
 """
 
-from __future__ import annotations
-
 import importlib
 import inspect
 import logging

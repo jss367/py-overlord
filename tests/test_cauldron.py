@@ -9,8 +9,6 @@ runs the curse-out through ``attack_player`` so any Reaction
 card / Lighthouse / Shield blocks it.
 """
 
-from __future__ import annotations
-
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState

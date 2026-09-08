@@ -5,8 +5,6 @@ Hexes deck). A handful of Boons stay with the player until the start of
 their next turn (Field's, Forest's, River's). The rest fire-and-discard.
 """
 
-from __future__ import annotations
-
 import random
 from typing import Callable, TYPE_CHECKING
 
@@ -31,7 +29,7 @@ PERSISTENT_BOONS = {
 # ----- Individual Boon effects -----
 
 
-def the_earths_gift(game_state: "GameState", player: "PlayerState") -> None:
+def the_earths_gift(game_state: GameState, player: PlayerState) -> None:
     """Discard a Treasure to gain a card costing up to $4."""
 
     treasures = [card for card in player.hand if card.is_treasure]
@@ -74,7 +72,7 @@ def the_earths_gift(game_state: "GameState", player: "PlayerState") -> None:
     game_state.gain_card(player, choice)
 
 
-def the_fields_gift(game_state: "GameState", player: "PlayerState") -> None:
+def the_fields_gift(game_state: GameState, player: PlayerState) -> None:
     """+1 Action +$1 (persistent — applied immediately and at start of next turn)."""
 
     if not player.ignore_action_bonuses:
@@ -82,7 +80,7 @@ def the_fields_gift(game_state: "GameState", player: "PlayerState") -> None:
     player.coins += 1
 
 
-def the_flames_gift(game_state: "GameState", player: "PlayerState") -> None:
+def the_flames_gift(game_state: GameState, player: PlayerState) -> None:
     """Trash a card from your hand."""
 
     if not player.hand:
@@ -94,14 +92,14 @@ def the_flames_gift(game_state: "GameState", player: "PlayerState") -> None:
     game_state.trash_card(player, choice)
 
 
-def the_forests_gift(game_state: "GameState", player: "PlayerState") -> None:
+def the_forests_gift(game_state: GameState, player: PlayerState) -> None:
     """+1 Buy +$1 (persistent — also next turn)."""
 
     player.buys += 1
     player.coins += 1
 
 
-def the_moons_gift(game_state: "GameState", player: "PlayerState") -> None:
+def the_moons_gift(game_state: GameState, player: PlayerState) -> None:
     """Look through your discard, may put a card on top of deck."""
 
     if not player.discard:
@@ -115,7 +113,7 @@ def the_moons_gift(game_state: "GameState", player: "PlayerState") -> None:
     player.deck.append(choice)
 
 
-def the_mountains_gift(game_state: "GameState", player: "PlayerState") -> None:
+def the_mountains_gift(game_state: GameState, player: PlayerState) -> None:
     """Gain a Silver."""
 
     if game_state.supply.get("Silver", 0) <= 0:
@@ -124,7 +122,7 @@ def the_mountains_gift(game_state: "GameState", player: "PlayerState") -> None:
     game_state.gain_card(player, get_card("Silver"))
 
 
-def the_rivers_gift(game_state: "GameState", player: "PlayerState") -> None:
+def the_rivers_gift(game_state: GameState, player: PlayerState) -> None:
     """+1 Card at end of turn (persistent — fires during cleanup, before redraw)."""
 
     # No immediate effect; the +1 Card is delivered by the cleanup hook in
@@ -132,13 +130,13 @@ def the_rivers_gift(game_state: "GameState", player: "PlayerState") -> None:
     # cleanup draw count by one per River's Gift active.
 
 
-def the_seas_gift(game_state: "GameState", player: "PlayerState") -> None:
+def the_seas_gift(game_state: GameState, player: PlayerState) -> None:
     """+1 Card."""
 
     game_state.draw_cards(player, 1)
 
 
-def the_skys_gift(game_state: "GameState", player: "PlayerState") -> None:
+def the_skys_gift(game_state: GameState, player: PlayerState) -> None:
     """Discard 3 cards. If you do, gain a Gold."""
 
     if len(player.hand) < 3:
@@ -158,7 +156,7 @@ def the_skys_gift(game_state: "GameState", player: "PlayerState") -> None:
         game_state.gain_card(player, get_card("Gold"))
 
 
-def the_suns_gift(game_state: "GameState", player: "PlayerState") -> None:
+def the_suns_gift(game_state: GameState, player: PlayerState) -> None:
     """Look at top 4 cards. Discard or put back any."""
 
     revealed: list = []
@@ -193,7 +191,7 @@ def the_suns_gift(game_state: "GameState", player: "PlayerState") -> None:
         player.deck.append(card)
 
 
-def the_swamps_gift(game_state: "GameState", player: "PlayerState") -> None:
+def the_swamps_gift(game_state: GameState, player: PlayerState) -> None:
     """Gain a Will-o'-Wisp from its pile."""
 
     if game_state.supply.get("Will-o'-Wisp", 0) <= 0:
@@ -202,7 +200,7 @@ def the_swamps_gift(game_state: "GameState", player: "PlayerState") -> None:
     game_state.gain_card(player, get_card("Will-o'-Wisp"))
 
 
-def the_winds_gift(game_state: "GameState", player: "PlayerState") -> None:
+def the_winds_gift(game_state: GameState, player: PlayerState) -> None:
     """+2 Cards. Discard 2 cards."""
 
     game_state.draw_cards(player, 2)
@@ -242,7 +240,7 @@ def create_boons_deck() -> list[str]:
     return names
 
 
-def resolve_boon(name: str, game_state: "GameState", player: "PlayerState") -> None:
+def resolve_boon(name: str, game_state: GameState, player: PlayerState) -> None:
     """Execute the Boon ``name`` for ``player`` if it exists."""
 
     effect = BOON_EFFECTS.get(name)
