@@ -4,7 +4,7 @@ from dataclasses import replace
 import pytest
 
 from dominion.boards.loader import BoardConfig
-from dominion.reporting.board_pages import RenderedBoard
+from dominion.reporting.board_pages import RenderedBoard, render_board_page, render_board_index
 from dominion.reporting.catalog_pages import (
     render_catalog_pages,
     strategy_is_compatible,
@@ -24,6 +24,59 @@ def test_board_names_expand_big_money_shorthand():
 
     assert board_display_name(path) == "Smithy Big Money"
     assert board_page_path(path) == Path("calibration/smithy-big-money.html")
+
+
+def test_board_tiles_keep_printed_costs_and_separate_basic_piles():
+    board = RenderedBoard(
+        display_name="Discounted Kingdom",
+        page_path=Path("discounted.html"),
+        source_path=Path("boards/discounted.txt"),
+        config=BoardConfig(
+            ["Village", "City Quarter", "Alchemist", "Colony", "Platinum"],
+            card_cost_reduction=1,
+        ),
+    )
+
+    html = render_board_page(board, index_href="index.html")
+    assert '<strong>3</strong> Kingdom cards' in html
+    assert "Additional basic piles" in html
+    assert 'aria-label="3 coins">3</span>' in html
+    assert "8 debt" in html
+    assert "1 potion" in html
+    assert "Card cost reduction: 1 coin." in html
+    assert "Tiles show printed costs" in html
+    assert "No landscapes specified" in html
+    assert "No compatible strategies" in html
+
+
+def test_board_landscapes_are_visible_searchable_and_escaped():
+    board = RenderedBoard(
+        display_name='A <special> Kingdom',
+        page_path=Path("special.html"),
+        source_path=Path("boards/special.txt"),
+        config=BoardConfig(
+            ["Village"],
+            events=["Continue"],
+            projects=["Guildhall"],
+            ways=["Way of the Mouse (Native Village)"],
+            landmarks=["Obelisk (Village)"],
+            allies=["League of Shopkeepers"],
+            traits={"Village": 'Friendly <script>alert("trait")</script>'},
+            prophecy="Kind Emperor",
+        ),
+    )
+
+    html = render_board_page(board, index_href="index.html")
+    index = render_board_index([board], strategy_index_href="../strategies/index.html")
+    for page in (html, index):
+        for name in ("Continue", "Guildhall", "Native Village", "Obelisk", "League of Shopkeepers", "Kind Emperor"):
+            assert name in page
+        assert "A &lt;special&gt; Kingdom" in page
+        assert "Friendly &lt;script&gt;" in page
+        assert '<script>alert("trait")</script>' not in page
+    # Setup is readable without opening a disclosure or running JavaScript.
+    assert html.index('<article class="landscape-panel">') < html.index('<details class="board-source">')
+    assert 'id="board-results" role="status"' in index
 
 
 def test_compatibility_requires_referenced_landscapes():

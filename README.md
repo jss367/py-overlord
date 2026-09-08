@@ -71,8 +71,15 @@ Generate linked HTML pages for every board and registered strategy:
 PYTHONPATH=. python scripts/render_catalog.py
 ```
 
-The indexes are written to `reports/boards/index.html` and
-`reports/strategies/index.html`. Each strategy links to every board that
+Open the [board library](reports/boards/index.html) or
+[strategy catalog](reports/strategies/index.html) directly in your browser; no
+server or internet connection is needed. Board pages show a responsive grid of
+cards with printed coin, debt, and potion costs, card types, landscape setup,
+trait assignments, and any board-wide discount. Explicit basic piles such as
+Colony and Platinum appear separately from the Kingdom. Search the board library
+by board, card, or landscape name.
+
+Each strategy links to every board that
 contains all of its referenced cards and landscapes, and each board links
 back to those compatible strategies.
 
