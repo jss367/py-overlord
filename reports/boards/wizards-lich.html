@@ -280,36 +280,89 @@
       .search, script { display: none; }
       .condition-detail code { color: #000; background: #eee; }
     }
+
+    .card-chip, .landscape-chip, .strategy-link-chip { white-space: normal; max-width: 100%; overflow-wrap: anywhere; }
+    .card-chip > span { min-width: 0; }
+    .board-hero { background: #183f42; color: #fffdf8; }
+    .board-hero .eyebrow { color: #c8dcae; }
+    .board-hero .hero-description { color: #dde6df; }
+    .board-stats { display: flex; flex-wrap: wrap; gap: 12px 28px; margin-top: 26px; }
+    .board-stats span { color: #dde6df; font-size: .85rem; }
+    .board-stats strong { color: white; font-size: 1.35rem; margin-right: 5px; }
+    .kingdom-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+    .pile-card { background: var(--surface); border: 1px solid var(--border); border-top: 5px solid var(--pile-color, #b7aa91); border-radius: 12px; box-shadow: 0 5px 16px rgb(64 48 28 / 5%); padding: 18px 14px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+    .pile-action { --pile-color: #b7aa91; }
+    .pile-treasure { --pile-color: #c59c3b; }
+    .pile-victory { --pile-color: #6f9959; }
+    .pile-night { --pile-color: #635c79; }
+    .pile-curse { --pile-color: #9270ac; }
+    .pile-card h3 { font: 700 1.12rem Georgia, serif; line-height: 1.3; margin: 0; overflow-wrap: anywhere; }
+    .pile-card h3 .card-chip { background: transparent; color: inherit; border: 0; border-radius: 0; box-shadow: none; padding: 0; font: inherit; min-height: 0; }
+    .pile-card .type-marker { display: none; }
+    .pile-types { color: #625a50; font-size: .75rem; margin: 0; }
+    .pile-cost { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: auto; font-size: .75rem; }
+    .pile-cost .coin-badge { flex-shrink: 0; }
+    .cost-extra { background: #eee8df; border-radius: 5px; padding: 3px 6px; }
+    .landscape-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 12px; }
+    .landscape-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+    .landscape-panel h3 { margin: 0 0 12px; font-size: .78rem; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+    .setup-note { border-left: 4px solid #bb943f; background: #fff6dc; padding: 14px 18px; border-radius: 4px 10px 10px 4px; margin: 18px 0; }
+    .board-source { margin-top: 30px; color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; }
+    .board-source summary { cursor: pointer; }
+    .board-toolbar { margin: 24px 0; }
+    .board-toolbar label { display: block; }
+    .board-toolbar .search { margin: 8px 0; }
+    .board-results { margin: 0; color: var(--muted); font-size: .85rem; }
+    .board-card .board-preview-landscapes { border-top: 1px solid var(--border); padding-top: 12px; }
+    .board-preview-landscapes .landscape-chip { font-size: .72rem; }
+    .board-footer { margin-top: 40px; border-top: 1px solid var(--border); padding-top: 18px; color: var(--muted); font-size: .8rem; }
+    a:focus-visible, summary:focus-visible { outline: 3px solid #a77f21; outline-offset: 4px; }
+    @media (max-width: 1000px) { .kingdom-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 600px) { .kingdom-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .pile-card { padding: 14px 12px; } }
+    @media (prefers-reduced-motion: reduce) { .board-card { transition: none; } .board-card:hover { transform: none; } }
+    @media print {
+      .board-hero { background: white; color: black; }
+      .board-hero .eyebrow, .board-hero .hero-description, .board-stats span, .board-stats strong { color: black; }
+      .kingdom-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      .pile-card, .landscape-panel { break-inside: avoid; box-shadow: none; }
+      .board-toolbar { display: none; }
+    }
+
   </style>
 </head>
 <body>
 
-<nav><a href="index.html">Board index</a></nav>
-<header class="hero">
-  <p class="eyebrow">Dominion board</p>
+<nav aria-label="Catalog navigation"><a href="index.html">Board index</a></nav>
+<main>
+<header class="hero board-hero">
+  <p class="eyebrow">Dominion · Kingdom setup</p>
   <h1>Wizards Lich</h1>
-  <p class="hero-description">A 10-card Kingdom with 3 compatible registered strategies.</p>
-  <div class="hero-links"><strong>Compatible strategies</strong><span class="chip-list"><a class="strategy-link-chip" href="../strategies/big-money.html">Big Money</a><a class="strategy-link-chip" href="../strategies/wizards-lich-engine.html">Wizards Lich Engine</a><a class="strategy-link-chip" href="../strategies/wizardslichevolved.html">Wizardslichevolved</a></span></div>
-  <details class="technical-details">
-    <summary>Setup details</summary>
-    <dl class="meta">
-      <dt>Source</dt><dd>boards/wizards_lich.txt</dd>
-      <dt>Events</dt><dd><span class="chip-list"><span class="landscape-chip landscape-event">Continue</span></span></dd>
-      <dt>Projects</dt><dd><span class="empty">None</span></dd>
-      <dt>Ways</dt><dd><span class="empty">None</span></dd>
-      <dt>Landmarks</dt><dd><span class="empty">None</span></dd>
-      <dt>Allies</dt><dd><span class="chip-list"><span class="landscape-chip landscape-ally">Cave Dwellers</span></span></dd>
-      <dt>Traits</dt><dd><span class="empty">None</span></dd>
-      <dt>Prophecy</dt><dd><span class="empty">None</span></dd>
-      <dt>Card cost reduction</dt><dd><span class="coin-badge" aria-label="Coin cost reduction">0</span></dd>
-    </dl>
-  </details>
+  <p class="hero-description">Your table at a glance. Explore the Kingdom, check the setup, and find a strategy to play.</p>
+  <div class="board-stats">
+    <span><strong>10</strong> Kingdom cards</span>
+    <span><strong>2</strong> landscapes</span>
+    <span><strong>3</strong> compatible strategies</span>
+  </div>
 </header>
 
-<section class="section section-action">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">K</span><h2>Kingdom Cards</h2></div>
-  <div class="chip-list"><span class="card-chip type-action" aria-label="Beggar, Action card"><span>Beggar</span></span><span class="card-chip type-action" aria-label="Lurker, Action card"><span>Lurker</span></span><span class="card-chip type-action" aria-label="Settlers, Action card"><span>Settlers</span></span><span class="card-chip type-action" aria-label="Wishing Well, Action card"><span>Wishing Well</span></span><span class="card-chip type-action" aria-label="Student, Action, Liaison card"><span>Student</span><span class="type-marker marker-liaison" title="Liaison" aria-hidden="true"></span></span><span class="card-chip type-victory" aria-label="Mill, Action, Victory card"><span>Mill</span><span class="type-marker marker-action" title="Action" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Baker, Action card"><span>Baker</span></span><span class="card-chip type-treasure" aria-label="Cauldron, Treasure, Attack card"><span>Cauldron</span><span class="type-marker marker-attack" title="Attack" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Crew, Action, Duration card"><span>Crew</span><span class="type-marker marker-duration" title="Duration" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Pilgrim, Action card"><span>Pilgrim</span></span></div>
+<section class="section" aria-labelledby="kingdom-heading">
+  <div class="section-heading"><h2 id="kingdom-heading">Kingdom Cards</h2></div>
+  <p class="section-note">Printed costs and card types. In-game effects may change costs.</p>
+  <div class="kingdom-grid"><article class="pile-card pile-action"><h3><span class="card-chip type-action" aria-label="Beggar, Action card"><span>Beggar</span></span></h3><p class="pile-types">Action</p><div class="pile-cost"><span class="coin-badge" aria-label="2 coins">2</span></div></article><article class="pile-card pile-action"><h3><span class="card-chip type-action" aria-label="Lurker, Action card"><span>Lurker</span></span></h3><p class="pile-types">Action</p><div class="pile-cost"><span class="coin-badge" aria-label="2 coins">2</span></div></article><article class="pile-card pile-action"><h3><span class="card-chip type-action" aria-label="Settlers, Action card"><span>Settlers</span></span></h3><p class="pile-types">Action</p><div class="pile-cost"><span class="coin-badge" aria-label="2 coins">2</span></div></article><article class="pile-card pile-action"><h3><span class="card-chip type-action" aria-label="Wishing Well, Action card"><span>Wishing Well</span></span></h3><p class="pile-types">Action</p><div class="pile-cost"><span class="coin-badge" aria-label="3 coins">3</span></div></article><article class="pile-card pile-action"><h3><span class="card-chip type-action" aria-label="Student, Action, Liaison card"><span>Student</span><span class="type-marker marker-liaison" title="Liaison" aria-hidden="true"></span></span></h3><p class="pile-types">Action · Liaison</p><div class="pile-cost"><span class="coin-badge" aria-label="3 coins">3</span></div></article><article class="pile-card pile-victory"><h3><span class="card-chip type-victory" aria-label="Mill, Action, Victory card"><span>Mill</span><span class="type-marker marker-action" title="Action" aria-hidden="true"></span></span></h3><p class="pile-types">Action · Victory</p><div class="pile-cost"><span class="coin-badge" aria-label="4 coins">4</span></div></article><article class="pile-card pile-action"><h3><span class="card-chip type-action" aria-label="Baker, Action card"><span>Baker</span></span></h3><p class="pile-types">Action</p><div class="pile-cost"><span class="coin-badge" aria-label="5 coins">5</span></div></article><article class="pile-card pile-treasure"><h3><span class="card-chip type-treasure" aria-label="Cauldron, Treasure, Attack card"><span>Cauldron</span><span class="type-marker marker-attack" title="Attack" aria-hidden="true"></span></span></h3><p class="pile-types">Treasure · Attack</p><div class="pile-cost"><span class="coin-badge" aria-label="5 coins">5</span></div></article><article class="pile-card pile-action"><h3><span class="card-chip type-action" aria-label="Crew, Action, Duration card"><span>Crew</span><span class="type-marker marker-duration" title="Duration" aria-hidden="true"></span></span></h3><p class="pile-types">Action · Duration</p><div class="pile-cost"><span class="coin-badge" aria-label="5 coins">5</span></div></article><article class="pile-card pile-action"><h3><span class="card-chip type-action" aria-label="Pilgrim, Action card"><span>Pilgrim</span></span></h3><p class="pile-types">Action</p><div class="pile-cost"><span class="coin-badge" aria-label="5 coins">5</span></div></article></div>
 </section>
+
+<section class="section" aria-labelledby="landscapes-heading">
+  <div class="section-heading"><h2 id="landscapes-heading">Landscapes &amp; setup</h2></div>
+  <div class="landscape-grid"><article class="landscape-panel"><h3>Events</h3><span class="chip-list"><span class="landscape-chip landscape-event">Continue</span></span></article><article class="landscape-panel"><h3>Allies</h3><span class="chip-list"><span class="landscape-chip landscape-ally">Cave Dwellers</span></span></article></div>
+</section>
+<section class="section" aria-labelledby="strategies-heading">
+  <div class="section-heading"><h2 id="strategies-heading">Compatible strategies</h2></div>
+  <p class="section-note">These strategies reference cards and landscapes available on this board.</p>
+  <span class="chip-list"><a class="strategy-link-chip" href="../strategies/big-money.html">Big Money</a><a class="strategy-link-chip" href="../strategies/wizards-lich-engine.html">Wizards Lich Engine</a><a class="strategy-link-chip" href="../strategies/wizardslichevolved.html">Wizardslichevolved</a></span>
+</section>
+<details class="board-source"><summary>Setup details</summary><p>Source: <code>boards/wizards_lich.txt</code></p></details>
+</main>
+<footer class="board-footer">Dominion board library · <a href="index.html">Browse all boards</a></footer>
 
 </body>
 </html>
