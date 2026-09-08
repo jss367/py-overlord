@@ -2363,17 +2363,6 @@ class GameState:
             and not card.is_action
         ):
             count += 1
-        # Renaissance Capitalism: during its owner's turns, Actions with +$
-        # are also Treasures.
-        turn_player = getattr(self, "turn_player", None)
-        if (
-            turn_player is not None
-            and card.is_action
-            and not self.is_treasure(card)
-            and card.stats.coins > 0
-            and any(getattr(p, "name", "") == "Capitalism" for p in turn_player.projects)
-        ):
-            count += 1
         return count
 
     def is_action(self, card: Card) -> bool:
@@ -2389,14 +2378,17 @@ class GameState:
         """Treasure check that respects game-level type modifiers.
 
         While ``card.is_treasure`` is a static type query, the live game
-        may add the Treasure type to a card (notably Charlatan does so for
-        Curse). Use this method whenever a card's effect needs to ask
+        may add the Treasure type to a card (Charlatan for Curse, Capitalism
+        for coin-producing Actions during its owner's turn). Use this when asking
         "is this a Treasure right now?".
         """
         if card.is_treasure:
             return True
         if card.name == "Curse" and self.charlatan_curse_active():
             return True
+        turn_player = self.turn_player if self.players else None
+        if card.is_action and card.stats.coins > 0 and turn_player is not None:
+            return any(p.name == "Capitalism" for p in turn_player.projects)
         return False
 
     def _handle_start_of_buy_phase_effects(self) -> None:
@@ -2550,10 +2542,6 @@ class GameState:
 
         self._handle_start_of_buy_phase_effects()
 
-        capitalism = any(
-            getattr(p, "name", "") == "Capitalism" for p in player.projects
-        )
-
         steps = 0
         while True:
             steps += 1
@@ -2568,15 +2556,6 @@ class GameState:
                 treasures = [card for card in player.hand if self.is_treasure(card)]
             else:
                 treasures = []
-            if capitalism:
-                treasures += [
-                    card
-                    for card in player.hand
-                    if card.is_action
-                    and not self.is_treasure(card)
-                    and card.stats.coins > 0
-                    and self._voyage_can_play_from_hand(player)
-                ]
             if not treasures:
                 break
 

@@ -101,6 +101,35 @@ def test_courier_crown_gets_action_and_treasure_bookkeeping(highwayman):
         assert [c.name for c in player.hand] == ["Copper"] * 6
 
 
+@pytest.mark.parametrize("capitalism", [False, True])
+@pytest.mark.parametrize("off_turn", [False, True])
+@pytest.mark.parametrize("highwayman", [False, True])
+def test_courier_market_uses_capitalism_treasure_type(capitalism, off_turn, highwayman):
+    state, player = setup("Courier", "Market")
+    if capitalism:
+        player.projects = [get_project("Capitalism")]
+    if off_turn:
+        state.players.append(PlayerState(DummyAI()))
+        state.reaction_turn_player_index = 1
+    state.prophecy = get_prophecy("Panic")
+    state.prophecy.is_active = True
+    state.phase = "action"
+    player.highwayman_attacks = int(highwayman)
+    market = get_card("Market")
+    player.deck = [get_card("Estate"), market]
+    buys = player.buys
+
+    get_card("Courier").on_play(state)
+
+    treasure = capitalism and not off_turn
+    blocked = treasure and highwayman
+    assert state.is_treasure(market) == treasure
+    assert player.coins == (1 if blocked else 2)
+    assert player.buys == buys + int(not blocked) + (2 if treasure else 0)
+    assert len(player.hand) == int(not blocked)
+    assert player.actions_this_turn == 1
+
+
 @pytest.mark.parametrize("active", [False, True])
 @pytest.mark.parametrize("phase", ["action", "treasure"])
 def test_courier_gold_uses_enlightenment_action_phase_instructions(active, phase):
