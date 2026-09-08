@@ -18,6 +18,7 @@ from dominion.reporting.board_pages import (
     render_board_index,
     render_board_page,
 )
+from dominion.reporting.card_usage import render_card_usage
 from dominion.reporting.strategy_links import PageLink
 from dominion.reporting.strategy_pages import (
     CURATED_STRATEGY_GUIDES,
@@ -170,6 +171,7 @@ def render_catalog_pages(
         render_strategy_index(
             strategies,
             curated_guides=CURATED_STRATEGY_GUIDES,
+            card_usage_href="card-strategy-usage.html",
             board_index_href="../boards/index.html",
             leaderboard_href="leaderboard.html",
         ),
@@ -187,10 +189,15 @@ def render_catalog_pages(
         )
         written.append(path)
 
+    usage = strategy_dir / "card-strategy-usage.html"
+    usage.write_text(render_card_usage(strategies), encoding="utf-8")
+    written.append(usage)
+
     leaderboard = strategy_dir / "leaderboard.html"
     leaderboard.write_text(
         render_strategy_leaderboard(
             {},
+            card_usage_href="card-strategy-usage.html",
             index_href="index.html",
             board_index_href="../boards/index.html",
         ),

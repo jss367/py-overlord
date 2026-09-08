@@ -20,6 +20,7 @@ def main() -> None:
     print(f"Wrote {len(written)} files to {args.output_dir}")
     print(f"Board index: {args.output_dir / 'boards' / 'index.html'}")
     print(f"Strategy index: {args.output_dir / 'strategies' / 'index.html'}")
+    print(f"Card strategy usage: {args.output_dir / 'strategies' / 'card-strategy-usage.html'}")
     print(f"Strategy leaderboard: {args.output_dir / 'strategies' / 'leaderboard.html'}")
 
 

@@ -76,6 +76,24 @@ The indexes are written to `reports/boards/index.html` and
 contains all of its referenced cards and landscapes, and each board links
 back to those compatible strategies.
 
+The [Card Strategy Usage report](reports/strategies/card-strategy-usage.html)
+lists every registered card, including unused cards, with sortable strategy
+counts, percentage of strategies, median leaderboard rank, and ranked-strategy
+counts. Search by card or strategy, expand a row for strategy links, or filter to
+unused cards. Basic supply and starting cards are hidden by default and can be included.
+Counts cover explicit priority and Way-rule references, once per strategy;
+they do not measure cards actually played or purchased.
+
+Running a tournament whose entrants all resolve to registered strategies also
+writes a companion card usage report with median ranks from that tournament
+(linked from its leaderboard). Tournaments containing unregistered, in-memory
+entrants omit the companion because their card usage cannot be reconstructed
+from the catalog. Unranked strategies
+are excluded from medians but still count toward catalog usage. The default
+cross-board tournament updates the catalog's card usage page; board-specific
+or custom output files get a separate companion beside their leaderboard.
+Regenerating the catalog resets both the leaderboard and card usage ranks.
+
 The generated board and strategy catalog under `reports/boards/` and
 `reports/strategies/` is committed so it can be browsed directly from a
 checkout. Regenerate it after changing a board or strategy. Continuous

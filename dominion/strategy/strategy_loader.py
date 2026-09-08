@@ -75,6 +75,9 @@ class StrategyLoader:
                         # Remove 'create_' prefix and convert to title case with spaces
                         strategy_name = name[7:].replace('_', ' ').title()
                         self.register_strategy(strategy_name, obj)
+                        # Board tournaments label generated entrants by filename.
+                        if module_prefix == "generated_strategies":
+                            self.strategies.setdefault(file_path.stem, obj)
 
                         # Also register the strategy's internal name (strategy.name)
                         # as additional aliases so users can pass e.g. "TorturerEngine2".
