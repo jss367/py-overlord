@@ -857,3 +857,32 @@ def test_main_enlightenment_substitution_preserves_urchin_attack_reaction():
     assert any(c.name == "Mercenary" for c in player.discard)
     assert [c.name for c in player.hand] == ["Estate"]
     assert player.coins == 0
+
+
+@pytest.mark.parametrize("good_harvest", [False, True])
+@pytest.mark.parametrize("tiara", [False, True])
+def test_treasure_log_includes_observer_and_replay_coins(good_harvest, tiara):
+    class ReplayGold(DummyAI):
+        def should_replay_treasure_with_tiara(self, state, player, card):
+            return True
+
+    state, player = setup("Gold", "Tiara", ai=ReplayGold())
+    state.phase = "treasure"
+    if good_harvest:
+        state.prophecy = get_prophecy("Good Harvest")
+        state.prophecy.is_active = True
+    if tiara:
+        player.in_play = [get_card("Tiara")]
+    player.hand = [get_card("Gold")]
+    player.coins = 5
+    logs = []
+    state.log_callback = logs.append
+
+    state.handle_treasure_phase()
+
+    added = 3 * (1 + int(tiara)) + int(good_harvest)
+    context = next(entry[3] for entry in logs if entry[2] == "plays Gold")
+    assert player.coins == 5 + added
+    assert context["coins_before"] == 5
+    assert context["coins_added"] == added
+    assert context["coins_after"] == player.coins

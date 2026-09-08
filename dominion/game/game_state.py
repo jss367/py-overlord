@@ -2561,7 +2561,7 @@ class GameState:
         # an Action from hand they don't already have in play.
         self._maybe_inspiring_extra_play(player, choice)
 
-        return coins_after
+        return player.coins
 
     def handle_treasure_phase(self):
         """Handle the treasure phase of a turn."""
