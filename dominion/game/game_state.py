@@ -331,17 +331,16 @@ class GameState:
     def _cards_in_play_named(self, player: PlayerState, name: str) -> int:
         seen: set[int] = set()
         count = 0
-        for zone in (player.in_play, player.duration, player.multiplied_durations):
-            for card in zone:
-                marker = id(card)
-                if marker in seen:
-                    continue
-                seen.add(marker)
-                if card.name == name or (
-                    card.name == "Estate"
-                    and getattr(player, "inherited_action_name", None) == name
-                ):
-                    count += 1
+        for card in player.in_play:
+            marker = id(card)
+            if marker in seen:
+                continue
+            seen.add(marker)
+            if card.name == name or (
+                card.name == "Estate"
+                and getattr(player, "inherited_action_name", None) == name
+            ):
+                count += 1
         return count
 
     def _warlord_blocks_action_play(
