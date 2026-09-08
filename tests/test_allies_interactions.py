@@ -418,6 +418,9 @@ def test_trashed_duration_resolves_without_restoring_ownership(name):
     p.ai.choose_cards_to_trash = lambda state, choices, count: choices[:count]
     Bonfire().on_buy(s, p)
     assert duration in s.trash
+    assert duration not in p.all_cards()
+    if name == "Contract":
+        assert any(c.name == "Village" for c in p.all_cards())
     p.deck = cards("Copper", 20)
     s.do_duration_phase()
     if name == "Importer":
@@ -673,3 +676,19 @@ def test_training_event_bonuses_sunken_treasure_from_the_odyssey_pile():
     p.in_play.append(treasure)
     s.play_treasure_indirectly(p, treasure)
     assert p.coins == 1
+
+
+def test_duration_gained_from_trash_has_one_owner_but_keeps_original_effect():
+    s, p, q = state()
+    s.supply = {"Silver": 5}
+    importer = play(s, p, "Importer")
+    p.in_play.remove(importer)
+    s.trash_card(p, importer)
+    s.trash.remove(importer)
+    s.gain_card(q, importer, from_supply=False)
+    assert importer not in p.all_cards()
+    assert importer in q.all_cards()
+    s.do_duration_phase()
+    assert [c.name for c in p.discard] == ["Silver"]
+    assert q.discard == [importer]
+    assert importer not in p.in_play

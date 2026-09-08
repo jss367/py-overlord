@@ -549,15 +549,12 @@ class PlayerState:
                     total += hook(_game_state, self)
         return total
 
-    def all_cards(self) -> list[Card]:
-        """Return a list of all cards the player possesses."""
+    def _physical_card_zones(self) -> list[list[Card]]:
         zones = [
             self.hand,
             self.deck,
             self.discard,
             self.in_play,
-            self.duration,
-            self.multiplied_durations,
             self.exile,
             self.invested_exile,
             self.native_village_mat,
@@ -576,8 +573,23 @@ class PlayerState:
             if isinstance(set_aside, list):
                 zones.append(set_aside)
 
+        return zones
+
+    def all_cards(self) -> list[Card]:
+        """Return owned cards, without counting moved Duration queue entries."""
+        zones = self._physical_card_zones()
+        # Some older Duration implementations use the pending queue as their
+        # only zone. Keep those cards unless another physical location owns them.
+        game_state = getattr(self, "game_state", None)
+        elsewhere = {id(card) for card in getattr(game_state, "trash", [])}
+        for other in getattr(game_state, "players", []):
+            if other is not None and other is not self:
+                elsewhere.update(
+                    id(card) for zone in other._physical_card_zones() for card in zone
+                )
+        zones += [self.duration, self.multiplied_durations]
         cards: list[Card] = []
-        seen_ids: set[int] = set()
+        seen_ids: set[int] = elsewhere
         for zone in zones:
             for card in zone:
                 card_id = id(card)
