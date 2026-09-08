@@ -19,6 +19,11 @@ from dominion.simulation.strategy_battle import BASIC_CARDS, StrategyBattle
 from dominion.strategy.strategy_loader import StrategyLoader
 
 
+# Board extraction treats conditional base piles as references; the report's
+# visibility filter groups them with the other basic and starting cards.
+REPORT_BASIC_CARDS = BASIC_CARDS | {"Colony", "Platinum", "Potion"}
+
+
 @dataclass(frozen=True)
 class CardUsage:
     name: str
@@ -99,7 +104,7 @@ def render_card_usage(
             if count else '<span class="muted">No strategies</span>'
         )
         markup.append(
-            f'<tr data-basic="{str(row.name in BASIC_CARDS).lower()}">'
+            f'<tr data-basic="{str(row.name in REPORT_BASIC_CARDS).lower()}">'
             f'<td data-sort="{escape(row.name)}">{_card_chip(row.name)}</td>'
             f'<td data-sort="{count}"><strong>{count}</strong></td>'
             f'<td data-sort="{share}">{share:.1f}%</td>'
