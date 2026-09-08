@@ -82,8 +82,11 @@ unused cards. Basic supply and starting cards are hidden by default and can be i
 Counts cover explicit priority and Way-rule references, once per strategy;
 they do not measure cards actually played or purchased.
 
-Running a tournament also writes a companion card usage report with median
-ranks from that tournament (linked from its leaderboard). Unranked strategies
+Running a tournament whose entrants all resolve to registered strategies also
+writes a companion card usage report with median ranks from that tournament
+(linked from its leaderboard). Tournaments containing unregistered, in-memory
+entrants omit the companion because their card usage cannot be reconstructed
+from the catalog. Unranked strategies
 are excluded from medians but still count toward catalog usage. The default
 cross-board tournament updates the catalog's card usage page; board-specific
 or custom output files get a separate companion beside their leaderboard.

@@ -80,3 +80,29 @@ def test_tournament_writes_linked_usage_companion(tmp_path):
     assert "the sample board" in html
     assert 'data-sort="1">1</td>' in html
     assert "No tournament results yet" not in html
+
+
+def test_tournament_with_unregistered_entrants_omits_usage_companion(tmp_path):
+    output = tmp_path / "evolution-tournament.html"
+    results = {
+        "Big Money": {"win_rate": 20},
+        "Evolved Big Money": {"win_rate": 80},
+        "Trick Smithy": {"win_rate": 60},
+        "Reuse Previous Champion": {"win_rate": 40},
+    }
+    generate_leaderboard_html(results, output)
+
+    html = output.read_text()
+    for name in results:
+        assert name in html
+    assert "Card strategy usage" not in html
+    assert not (tmp_path / "evolution-tournament-card-strategy-usage.html").exists()
+
+
+def test_tournament_with_registered_aliases_still_writes_usage(tmp_path):
+    output = tmp_path / "leaderboard.html"
+    generate_leaderboard_html({"BigMoney": {"win_rate": 100}}, output)
+
+    assert 'href="card-strategy-usage.html"' in output.read_text()
+    html = (tmp_path / "card-strategy-usage.html").read_text()
+    assert 'data-sort="1">1</td>' in html

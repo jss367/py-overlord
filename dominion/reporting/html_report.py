@@ -424,18 +424,24 @@ def generate_leaderboard_html(
         Path("reports") / "boards" / "index.html",
         output_path.parent,
     )
-    usage_filename = (
-        "card-strategy-usage.html" if output_path.name == "leaderboard.html"
-        else f"{output_path.stem}-card-strategy-usage.html"
-    )
-    usage = render_card_usage(
-        collect_rendered_strategies(), results,
-        index_href=index_href,
-        leaderboard_href=output_path.name,
-        strategy_link_prefix=strategy_link_prefix,
-        context_label=context_label,
-    )
-    output_path.with_name(usage_filename).write_text(usage, encoding="utf-8")
+    loader = StrategyLoader()
+    usage_filename = None
+    # Evolution tournaments can contain in-memory entrants with no catalog
+    # factory. Without their instances, a catalog report would omit their usage.
+    if all(loader.get_display_name(name) is not None for name in results):
+        usage_filename = (
+            "card-strategy-usage.html" if output_path.name == "leaderboard.html"
+            else f"{output_path.stem}-card-strategy-usage.html"
+        )
+        usage = render_card_usage(
+            collect_rendered_strategies(loader), results,
+            index_href=index_href,
+            leaderboard_href=output_path.name,
+            strategy_link_prefix=strategy_link_prefix,
+            context_label=context_label,
+            loader=loader,
+        )
+        output_path.with_name(usage_filename).write_text(usage, encoding="utf-8")
     html = render_strategy_leaderboard(
         results,
         strategy_link_prefix=strategy_link_prefix,
@@ -443,6 +449,7 @@ def generate_leaderboard_html(
         card_usage_href=usage_filename,
         board_index_href=board_index_href,
         context_label=context_label,
+        loader=loader,
     )
     output_path.write_text(html)
     if verbose:
