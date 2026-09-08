@@ -15,8 +15,6 @@ class Ambassador(Card):
         )
 
     def play_effect(self, game_state):
-        from ..registry import get_card
-
         player = game_state.current_player
 
         if not player.hand:
@@ -31,6 +29,10 @@ class Ambassador(Card):
                 player.hand,
                 key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
             )
+
+        pile = game_state.supply_pile_key(choice.name)
+        if pile not in game_state.supply or pile in game_state.non_supply_pile_names:
+            return
 
         # Find copies in hand of the same name.
         copies = [c for c in player.hand if c.name == choice.name]
@@ -53,10 +55,13 @@ class Ambassador(Card):
 
         # Each other player gains a copy
         def attack_target(target):
-            if game_state.supply.get(choice.name, 0) <= 0:
+            # Each gain checks the current top: an earlier opponent may have
+            # taken the last exposed copy and uncovered a different card.
+            if game_state.top_supply_card(pile) != choice.name:
                 return
-            game_state.supply[choice.name] -= 1
-            game_state.gain_card(target, get_card(choice.name))
+            gained = game_state.take_top_supply_card(pile)
+            if gained is not None:
+                game_state.gain_card(target, gained)
 
         for other in game_state.players:
             if other is player:

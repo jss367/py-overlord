@@ -884,3 +884,49 @@ def test_repeated_archive_releases_all_renewals_when_its_set_aside_cards_run_out
     assert p.duration == []
     s.handle_cleanup_phase()
     assert archive in p.discard and throne in p.discard
+
+
+@pytest.mark.parametrize("kind", ["Townsfolk", "Knights", "Ruins"])
+def test_ambassador_only_gains_exposed_copies_for_each_opponent(kind):
+    from dominion.game.player_state import PlayerState
+
+    s, p, q = state()
+    r = PlayerState(ProbeAI())
+    r.game_state = s
+    s.players.append(r)
+    if kind == "Townsfolk":
+        s.setup_supply([get_card("Town Crier")])
+        returned = s.take_top_supply_card("Town Crier")
+        s.rotate_supply_pile("Town Crier")
+        pile, next_card = "Town Crier", "Blacksmith"
+        count_before_return = s.supply[pile]
+    else:
+        name, next_card = (
+            ("Dame Josephine", "Sir Martin") if kind == "Knights"
+            else ("Ruined Library", "Ruined Village")
+        )
+        pile = kind
+        s.supply = {pile: 1}
+        s.pile_order = {pile: [next_card]}
+        returned = get_card(name)
+        count_before_return = 1
+    p.hand = [returned]
+    play(s, p, "Ambassador")
+    assert [c.name for c in q.discard] == [returned.name]
+    assert r.discard == []
+    assert p.hand == []
+    assert s.top_supply_card(pile) == next_card
+    assert s.supply[pile] == count_before_return
+    assert returned not in p.all_cards()
+
+
+def test_ambassador_does_not_return_or_gain_non_supply_horses():
+    s, p, q = state()
+    s.supply = {"Horse": 10}
+    s.non_supply_pile_names = {"Horse"}
+    horse = get_card("Horse")
+    p.hand = [horse]
+    play(s, p, "Ambassador")
+    assert p.hand == [horse]
+    assert q.discard == []
+    assert s.supply["Horse"] == 10
