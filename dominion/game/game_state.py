@@ -1482,6 +1482,8 @@ class GameState:
         player = self.current_player
         if getattr(player, "turns_to_skip", 0):
             player.turns_to_skip -= 1
+            # Allies FAQ: skipped turns count for the tiebreak as if taken.
+            player.turns_taken += 1
             player.voyage_extra_turn_pending = False
             player.mission_extra_turn_pending = False
             player.mission_no_buy_turn = False

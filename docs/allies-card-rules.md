@@ -20,6 +20,8 @@ An AI or strategy can implement `choose_allies_option(state, player, reason, opt
 
 These defaults implement legal decisions; they are not claims of optimal play. Previously measured strategy results may change because the game rules have changed.
 
+The [Allies rulebook, page 7](https://www.riograndegames.com/wp-content/uploads/2021/09/DomAllies.pdf) explicitly makes Lich's cheaper-card gain mandatory when possible, including when only a Curse is available. It also counts skipped turns for the tiebreaker as if those turns were taken, while skipping their phases and start-of-turn abilities.
+
 ## Tests
 
 [Printed-rule regressions](../tests/test_allies_printed_rules.py) cover metadata and the effects identified in the review. [Interaction regressions](../tests/test_allies_interactions.py) cover rotations and returns, repeated Durations, ownership, gain triggers, attack protection, actual shuffles, Elder choices, and skipped or extra turns. Existing tests that asserted incorrect rules have been corrected as well.
