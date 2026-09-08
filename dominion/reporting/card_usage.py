@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from html import escape
+import re
 from statistics import median
 from typing import Any, Mapping
 
@@ -102,9 +103,9 @@ def render_card_usage(
             f'<td data-sort="{escape(row.name)}">{_card_chip(row.name)}</td>'
             f'<td data-sort="{count}"><strong>{count}</strong></td>'
             f'<td data-sort="{share}">{share:.1f}%</td>'
-            f'<td data-sort="{rank_value if rank_value is not None else ""}">'
+            f'<td data-label="Median strategy rank" data-sort="{rank_value if rank_value is not None else ""}">'
             f'{format(rank_value, "g") if rank_value is not None else "—"}</td>'
-            f'<td data-sort="{len(row.ranks)}">{len(row.ranks)}</td>'
+            f'<td data-label="Ranked strategies" data-sort="{len(row.ranks)}">{len(row.ranks)}</td>'
             f'<td>{details}</td></tr>'
         )
     leaderboard_nav = (
@@ -136,7 +137,7 @@ def render_card_usage(
   <p>Each card counts once per strategy that explicitly names it in a gain, action, trash, exile,
   treasure priority, or Way rule. References in conditions and custom decision code, automatic gains,
   and curated guides are excluded. A reference does not mean the card was bought or helped win.</p>
-  <p>{rank_note} The ranked-strategy count shows the sample behind each median.</p>
+  <p id="card-rank-note">{rank_note} The ranked-strategy count shows the sample behind each median.</p>
   <div class="usage-controls">
     <div><label for="card-search">Find a card or strategy</label><br>
     <input class="search" id="card-search" type="search" placeholder="Search cards or strategies"></div>
@@ -157,6 +158,17 @@ def render_card_usage(
 {_SCRIPT}
 """
     return _page_shell("Card Strategy Usage", body, extra_styles=_STYLES)
+
+
+def normalize_card_usage_for_comparison(html: str) -> str:
+    """Remove only tournament-specific fields from our generated markup."""
+    html = re.sub(
+        r'(<p id="card-rank-note">).*?(</p>)', r'\1\2', html, flags=re.DOTALL,
+    )
+    return re.sub(
+        r'<td data-label="(Median strategy rank|Ranked strategies)" data-sort="[^"]*">.*?</td>',
+        r'<td data-label="\1"></td>', html, flags=re.DOTALL,
+    )
 
 
 _STYLES = """
