@@ -658,7 +658,17 @@ _EXPANSION_LABELS = {
 # wrong package, and moving their modules would churn imports across the
 # codebase, so the true expansion is pinned here instead.
 _CARD_EXPANSION_OVERRIDES = {
+    "Astrolabe": "Seaside",  # lives in dominion.cards.plunder
+    "Collection": "Prosperity",  # lives in dominion.cards.allies
+    "Fisherman": "Menagerie",  # lives in dominion.cards.plunder
+    "Highwayman": "Allies",  # lives in dominion.cards.plunder
     "Mill": "Intrigue",  # lives in dominion.cards.hinterlands
+    "Pilgrim": "Plunder",  # lives in dominion.cards.allies
+    "Snowy Village": "Menagerie",  # lives in dominion.cards.promo
+    "Taskmaster": "Plunder",  # lives in dominion.cards.allies
+    "Trading Post": "Intrigue",  # lives in dominion.cards.seaside
+    "Wandering Minstrel": "Dark Ages",  # lives in dominion.cards.hinterlands
+    "Wealthy Village": "Plunder",  # lives in dominion.cards.allies
 }
 
 

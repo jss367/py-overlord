@@ -335,10 +335,45 @@ def test_card_expansion_comes_from_the_defining_card_package():
     assert card_expansion("Torturer") == "Intrigue"
     assert card_expansion("Gold") == "Base"
     assert card_expansion("Province") == "Base"
-    # Mill is implemented under dominion.cards.hinterlands but is an Intrigue
-    # card; the override must win over the defining package.
-    assert card_expansion("Mill") == "Intrigue"
     assert card_expansion("Not A Real Card") is None
+
+
+def test_card_expansion_overrides_win_over_the_defining_package():
+    # These cards are implemented under a different expansion's package than
+    # the set they belong to; the override table must win over the package.
+    from dominion.reporting.strategy_pages import card_expansion
+
+    assert card_expansion("Astrolabe") == "Seaside"
+    assert card_expansion("Collection") == "Prosperity"
+    assert card_expansion("Fisherman") == "Menagerie"
+    assert card_expansion("Highwayman") == "Allies"
+    assert card_expansion("Mill") == "Intrigue"
+    assert card_expansion("Pilgrim") == "Plunder"
+    assert card_expansion("Snowy Village") == "Menagerie"
+    assert card_expansion("Taskmaster") == "Plunder"
+    assert card_expansion("Trading Post") == "Intrigue"
+    assert card_expansion("Wandering Minstrel") == "Dark Ages"
+    assert card_expansion("Wealthy Village") == "Plunder"
+
+
+def test_card_expansion_overrides_only_name_registered_misfiled_cards():
+    from dominion.cards.registry import get_card
+    from dominion.reporting.strategy_pages import (
+        _CARD_EXPANSION_OVERRIDES,
+        _EXPANSION_LABELS,
+    )
+
+    for name, expansion in _CARD_EXPANSION_OVERRIDES.items():
+        # A typo in the key would silently make the override dead code.
+        card = get_card(name)
+        assert card.name == name
+        # An override that agrees with the defining package is redundant and
+        # suggests the card module was moved without pruning the table.
+        package = type(card).__module__.split(".")[2]
+        package_label = _EXPANSION_LABELS.get(
+            package, package.replace("_", " ").title()
+        )
+        assert expansion != package_label, name
 
 
 def test_strategy_leaderboard_rows_carry_card_and_expansion_filter_data():
