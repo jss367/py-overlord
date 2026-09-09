@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Big Money Strategy</title>
+  <title>Bilbao Best Found Strategy</title>
   <style>
     :root {
       color-scheme: light;
@@ -287,31 +287,71 @@
 <nav><a href="index.html">Strategy index</a><a href="leaderboard.html">Leaderboard</a></nav>
 <header class="hero">
   <p class="eyebrow">Dominion strategy</p>
-  <h1>Big Money</h1>
-  <p class="hero-description">Basic Big Money strategy</p>
-<span class="tags"><span class="tag">Big Money</span></span>
-  <div class="hero-links"><strong>Compatible boards</strong><span class="chip-list"><a class="board-chip" href="../boards/astrolabe-treasury.html">Astrolabe Treasury</a><a class="board-chip" href="../boards/bazaar-council.html">Bazaar Council</a><a class="board-chip" href="../boards/big-cards.html">Big Cards</a><a class="board-chip" href="../boards/bilbao.html">Bilbao</a><a class="board-chip" href="../boards/black-cat-and-livery.html">Black Cat And Livery</a><a class="board-chip" href="../boards/calibration/chapel-witch.html">Chapel Witch</a><a class="board-chip" href="../boards/calibration/courtyard-big-money.html">Courtyard Big Money</a><a class="board-chip" href="../boards/calibration/first-game.html">First Game</a><a class="board-chip" href="../boards/calibration/gardens-workshop.html">Gardens Workshop</a><a class="board-chip" href="../boards/calibration/jack-big-money.html">Jack Big Money</a><a class="board-chip" href="../boards/calibration/mountebank-big-money.html">Mountebank Big Money</a><a class="board-chip" href="../boards/calibration/rebuild-duchy.html">Rebuild Duchy</a><a class="board-chip" href="../boards/calibration/smithy-big-money.html">Smithy Big Money</a><a class="board-chip" href="../boards/calibration/wharf-big-money.html">Wharf Big Money</a><a class="board-chip" href="../boards/calibration/witch-big-money.html">Witch Big Money</a><a class="board-chip" href="../boards/cauldron-curse.html">Cauldron Curse</a><a class="board-chip" href="../boards/festival-laboratory.html">Festival Laboratory</a><a class="board-chip" href="../boards/green-gardens.html">Green Gardens</a><a class="board-chip" href="../boards/hyderabad.html">Hyderabad</a><a class="board-chip" href="../boards/inspiring-supplies.html">Inspiring Supplies</a><a class="board-chip" href="../boards/iron-barbarian.html">Iron Barbarian</a><a class="board-chip" href="../boards/lisbon.html">Lisbon</a><a class="board-chip" href="../boards/oslo.html">Oslo</a><a class="board-chip" href="../boards/port-moresby.html">Port Moresby</a><a class="board-chip" href="../boards/siege-engine.html">Siege Engine</a><a class="board-chip" href="../boards/taskmaster-workforce.html">Taskmaster Workforce</a><a class="board-chip" href="../boards/tea-house-kind-emperor.html">Tea House Kind Emperor</a><a class="board-chip" href="../boards/torture-campaign.html">Torture Campaign</a><a class="board-chip" href="../boards/victoria-kingdom.html">Victoria Kingdom</a><a class="board-chip" href="../boards/wealthy-cities.html">Wealthy Cities</a><a class="board-chip" href="../boards/wharf-kingdom.html">Wharf Kingdom</a><a class="board-chip" href="../boards/wizards-lich.html">Wizards Lich</a></span></div>
+  <h1>Bilbao Best Found</h1>
+  <p class="hero-description">Three Anvils turn Coppers into Fool&#x27;s Gold+Silver and Feodums; Fool&#x27;s Gold over Silver, Feodum from three Silvers, Duchies from six Provinces left.</p>
+
+  <div class="hero-links"><strong>Compatible boards</strong><span class="chip-list"><a class="board-chip" href="../boards/bilbao.html">Bilbao</a></span></div>
   <details class="technical-details">
     <summary>Implementation details and referenced components</summary>
     <dl class="meta">
-      <dt>Internal name</dt><dd>BigMoney</dd>
+      <dt>Internal name</dt><dd>Bilbao Best Found</dd>
       <dt>Version</dt><dd>1.0</dd>
-      <dt>Source</dt><dd>dominion/strategy/strategies/big_money.py</dd>
-      <dt>Factory</dt><dd>create_big_money</dd>
-      <dt>Kingdom Cards</dt><dd><span class="empty">None</span></dd><dt>Events</dt><dd><span class="empty">None</span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
+      <dt>Source</dt><dd>generated_strategies/bilbao_best_found.py</dd>
+      <dt>Factory</dt><dd>create_bilbao_best_found</dd>
+      <dt>Kingdom Cards</dt><dd><span class="chip-list"><span class="card-chip type-treasure" aria-label="Anvil, Treasure card"><span>Anvil</span></span><span class="card-chip type-victory" aria-label="Feodum, Victory card"><span>Feodum</span></span><span class="card-chip type-treasure" aria-label="Fool&#x27;s Gold, Treasure, Reaction card"><span>Fool&#x27;s Gold</span><span class="type-marker marker-reaction" title="Reaction" aria-hidden="true"></span></span></span></dd><dt>Events</dt><dd><span class="empty">None</span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
     </dl>
   </details>
 </header>
+
+<section class="section section-custom">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">ƒ</span><h2>Custom Behaviors</h2></div>
+  <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
+  <table class="priority-table">
+    <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose anvil gain</span></td><td data-label="What it does">Gain through the ordinary gain list, unless the discarded Copper would cost this hand a Province.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_gain(self, state, player, choices):
+    &quot;&quot;&quot;Gain through the ordinary gain list, unless the discarded Copper
+    would cost this hand a Province.&quot;&quot;&quot;
+    money = _hand_money(player)
+    if money &gt;= 8 and money - 1 &lt; 8:
+        return None
+    return self.choose_gain(state, player, choices)
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose anvil treasure to discard</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_treasure_to_discard(self, state, player, choices):
+    for card in choices:
+        if card.name == &quot;Copper&quot;:
+            return card
+    fg_in_hand = [c for c in choices if c.name == &quot;Fool&#x27;s Gold&quot;]
+    if (
+        len(fg_in_hand) == 1
+        and getattr(player, &quot;fools_gold_played&quot;, 0) == 0
+        and not any(c.name == &quot;Fool&#x27;s Gold&quot; for c in player.in_play)
+    ):
+        return fg_in_hand[0]
+    for card in choices:
+        if card.name == &quot;Silver&quot;:
+            return card
+    return None
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Should trash fools gold for gold</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def should_trash_fools_gold_for_gold(self, state, player):
+    # Free under Shaman&#x27;s setup rule: the Fool&#x27;s Gold comes straight back.
+    return True
+</code></pre></details></td></tr></tbody>
+  </table>
+</section>
 
 <section class="section section-gain">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>
   <p class="section-note">Read from the top for each choice. The list selects the first available option whose condition passes. For purchases, the option must also be affordable. “Always” means no additional condition on that row; earlier eligible rows still take precedence within the list.</p><p class="section-note">Shared gain logic can change the list choice: after playing Collection, it can favor an available Action over Silver or Copper; with Trail and Way of the Butterfly, it can choose Trail to gain a higher-priority card.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
-    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Province, Victory card"><span>Province</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Province, Victory card"><span>Province</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Coins available: at least 8</span></summary><pre><code>PriorityRule.resources(&#x27;coins&#x27;, &#x27;&gt;=&#x27;, 8)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Duchy, Victory card"><span>Duchy</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Provinces remaining: at most 6</span></summary><pre><code>PriorityRule.provinces_left(&#x27;&lt;=&#x27;, 6)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Anvil, Treasure card"><span>Anvil</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 3 copies of Anvil and Turn number: at most 10</span></summary><pre><code>PriorityRule.and_(PriorityRule.max_in_deck(&#x27;Anvil&#x27;, 3), PriorityRule.turn_number(&#x27;&lt;=&#x27;, 10))</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Feodum, Victory card"><span>Feodum</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own at least 3 total copies of Silver and You own fewer than 8 copies of Feodum</span></summary><pre><code>PriorityRule.and_(PriorityRule.has_cards([&#x27;Silver&#x27;], 3), PriorityRule.max_in_deck(&#x27;Feodum&#x27;, 8))</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Coins available: at least 7</span></summary><pre><code>PriorityRule.resources(&#x27;coins&#x27;, &#x27;&gt;=&#x27;, 7)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">6</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Fool&#x27;s Gold, Treasure, Reaction card"><span>Fool&#x27;s Gold</span><span class="type-marker marker-reaction" title="Reaction" aria-hidden="true"></span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 8 copies of Fool&#x27;s Gold</span></summary><pre><code>PriorityRule.max_in_deck(&quot;Fool&#x27;s Gold&quot;, 8)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">7</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Feodum, Victory card"><span>Feodum</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Provinces remaining: at most 4</span></summary><pre><code>PriorityRule.provinces_left(&#x27;&lt;=&#x27;, 4)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">8</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
   </table>
 </section>
 <section class="section section-action">
@@ -323,9 +363,10 @@
 </section>
 <section class="section section-trash">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">×</span><h2>Trash Priority</h2></div>
+  <p class="section-note">Read from the top for each choice. The list selects the first available option whose condition passes. “Always” means no additional condition on that row; earlier eligible rows still take precedence within the list.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
-    <tbody><tr><td colspan="3" class="empty">None</td></tr></tbody>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-curse" aria-label="Curse, Curse card"><span>Curse</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
   </table>
 </section>
 <section class="section section-treasure">
@@ -333,9 +374,11 @@
   <p class="section-note">Read from the top for each choice. The list selects the first available option whose condition passes. “Always” means no additional condition on that row; earlier eligible rows still take precedence within the list.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
-    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Anvil, Treasure card"><span>Anvil</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Fool&#x27;s Gold, Treasure, Reaction card"><span>Fool&#x27;s Gold</span><span class="type-marker marker-reaction" title="Reaction" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
   </table>
 </section>
 

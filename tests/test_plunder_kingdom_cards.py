@@ -426,13 +426,20 @@ def test_secluded_shrine_waits_across_turns():
 
 
 def test_shaman_gains_from_trash():
+    """Shaman's gain is a game-wide start-of-turn rule, not a Duration effect."""
     state = _make_state()
+    state.supply["Shaman"] = 10
     player = state.current_player
     state.trash.append(get_card("Gold"))
     sh = get_card("Shaman")
-    player.duration.append(sh)
-    sh.on_duration(state)
-    # Gold should be in discard (or hand).
+    assert not sh.is_duration
+    player.in_play.append(sh)
+    sh.on_play(state)
+    assert sh not in player.duration
+    assert player.coins == 1
+    # Nothing is gained on play; the gain happens at the start of a turn.
+    assert not any(c.name == "Gold" for c in player.discard + player.hand)
+    state._handle_shaman_start_of_turn(player)
     assert any(c.name == "Gold" for c in player.discard + player.hand)
     assert not any(c.name == "Gold" for c in state.trash)
 
@@ -543,15 +550,32 @@ def test_rope_pays_one_now_and_one_next_turn():
 def test_grotto_sets_aside_then_redraws():
     state = _make_state()
     player = state.current_player
-    player.hand = [get_card("Copper") for _ in range(4)]
+    # Default policy sets aside dead cards only; Coppers stay as money.
+    player.hand = [get_card("Estate") for _ in range(4)] + [get_card("Copper")]
     player.deck = [get_card("Silver") for _ in range(4)]
     grotto = get_card("Grotto")
+    player.in_play.append(grotto)
     grotto.on_play(state)
     assert len(grotto.set_aside) == 4
-    assert len(player.hand) == 0
+    assert [c.name for c in player.hand] == ["Copper"]
+    assert grotto in player.duration
     grotto.on_duration(state)
-    # Drew 4 from deck.
-    assert len(player.hand) == 4
+    # Set-aside cards were discarded and 4 fresh cards drawn.
+    assert sum(1 for c in player.discard if c.name == "Estate") == 4
+    assert len(player.hand) == 5
+    assert not grotto.duration_persistent
+
+
+def test_grotto_with_nothing_to_set_aside_does_not_stay_in_play():
+    state = _make_state()
+    player = state.current_player
+    player.hand = [get_card("Copper"), get_card("Silver")]
+    grotto = get_card("Grotto")
+    player.in_play.append(grotto)
+    grotto.on_play(state)
+    assert grotto.set_aside == []
+    assert grotto not in player.duration
+    assert player.actions >= 1
 
 
 def test_tools_takes_gained_card_to_hand():

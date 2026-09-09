@@ -487,20 +487,28 @@ def test_bat_is_typed_as_night_only():
     assert not bat.is_shadow
 
 
-def test_raider_attack_works_against_small_hand():
-    """Raider must force a discard whenever the target has a matching card,
-    regardless of hand size; previous code immunized hands of <5 cards."""
+def test_raider_attack_skips_hands_below_five_cards():
+    """Card text: "Each other player with 5 or more cards in hand discards a
+    copy of a card you have in play." Smaller hands are immune."""
 
     state, player = _setup(players=2)
     raider = get_card("Raider")
     other = state.players[1]
-    # Make sure Raider's in-play set will match a card in the target's small
-    # hand. Use Copper (always in the supply) as the matched card.
     player.in_play = [raider, get_card("Copper")]
     other.hand = [get_card("Copper"), get_card("Estate")]
     raider.play_effect(state)
-    # The matching Copper should have been discarded.
-    assert any(c.name == "Copper" for c in other.discard)
+    assert not other.discard
+    assert sum(1 for c in other.hand if c.name == "Copper") == 1
+
+
+def test_raider_attack_forces_discard_from_five_card_hand():
+    state, player = _setup(players=2)
+    raider = get_card("Raider")
+    other = state.players[1]
+    player.in_play = [raider, get_card("Copper")]
+    other.hand = [get_card("Copper")] + [get_card("Estate") for _ in range(4)]
+    raider.play_effect(state)
+    assert [c.name for c in other.discard] == ["Copper"]
     assert not any(c.name == "Copper" for c in other.hand)
 
 

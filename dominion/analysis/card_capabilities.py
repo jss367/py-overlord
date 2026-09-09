@@ -80,6 +80,13 @@ _OVERRIDES: dict[str, dict] = {
     "Messenger": {"is_gainer": True},       # on-gain: everyone gains a <=$4 card
     "Quartermaster": {"is_gainer": True},   # banks a <=$4 card every turn
     "Secluded Shrine": {"is_trasher": True},  # next Treasure gain: trash 2
+    # Bilbao board (Fool's Gold / Grotto / Shaman / Hermit / Wheelwright / Raider).
+    "Fool's Gold": {"coins": 2.5},          # $1 first, $4 for each further copy
+    "Raider": {"coins": 3.0},               # +$3 at the start of next turn
+    "Shaman": {"is_trasher": True},         # cantrip +$1, may trash from hand
+    "Hermit": {"is_gainer": True, "is_trasher": True},  # trash junk, gain <=$3
+    "Wheelwright": {"is_gainer": True},     # discard to gain an Action
+    "Grotto": {"draw": 2.0},                # sift: set aside up to 4, redraw next turn
 }
 
 

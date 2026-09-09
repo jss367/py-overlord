@@ -81,6 +81,16 @@ CURATED_STRATEGY_GUIDES = (
         source_label="Repository strategy search and recorded simulation results",
     ),
     CuratedStrategyGuide(
+        filename="bilbao-strategy-guide.html",
+        display_name="Bilbao Strategy Search Guide",
+        description=(
+            "Anvil, Rich Fool's Gold and Feodum money: board rules audit, "
+            "hand local search, island evolution, and confirmation results."
+        ),
+        kingdom_cards=("Anvil", "Fool's Gold", "Feodum", "Shaman", "Hermit"),
+        source_label="Repository strategy search and recorded simulation results",
+    ),
+    CuratedStrategyGuide(
         filename="tea-house-kind-emperor-strategy-guide.html",
         display_name="Tea House and Kind Emperor Strategy Guide",
         description=(

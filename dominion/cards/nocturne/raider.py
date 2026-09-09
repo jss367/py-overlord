@@ -1,7 +1,7 @@
 """Raider — $6 Action-Attack-Duration.
 
-Each other player reveals their hand and discards a card you have in play
-(of their choice). At the start of your next turn, +$3.
+Each other player with 5 or more cards in hand discards a copy of a card you
+have in play (or reveals they can't). At the start of your next turn, +$3.
 """
 
 from ..base_card import Card, CardCost, CardStats, CardType
@@ -24,13 +24,12 @@ class Raider(Card):
                 continue
 
             def attack(target):
-                # Target reveals their hand and discards a card matching the
-                # names in attacker's play (attacker chooses if multiple, but
-                # we let the target's AI pick from the matches). Per Dominion
-                # rules, the rest of the attack (revealing the hand and the
-                # forced discard) applies regardless of hand size; hand-size
-                # immunity (5+) only applies to the *initial* reveal step in
-                # Pirate Ship-style attacks, not to Raider.
+                # Card text: "Each other player with 5 or more cards in hand
+                # discards a copy of a card you have in play (or reveals they
+                # can't)." Targets holding 4 or fewer cards are unaffected.
+                if len(target.hand) < 5:
+                    return
+                # The target chooses which matching card to discard.
                 matches = [c for c in target.hand if c.name in in_play_names]
                 if not matches:
                     return

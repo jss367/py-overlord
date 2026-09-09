@@ -63,7 +63,14 @@ class Hermit(Card):
         # Hermit's reactive trigger lives on the card while it's in play.
 
     def on_buy_phase_end(self, game_state):
-        """At end of buy phase: if no cards were gained, trash self -> Madman."""
+        """At end of buy phase: if no cards were gained, exchange self for a Madman.
+
+        Current card text (2022 errata) says *exchange*, not trash: the Hermit
+        goes back onto its Supply pile and a Madman comes out of the Madman
+        pile. It never touches the trash, so Shaman-style "gain from the
+        trash" effects cannot recover it. If the Madman pile is empty the
+        exchange fails and the Hermit stays in play.
+        """
         from ..registry import get_card
 
         player = game_state.current_player
@@ -72,12 +79,20 @@ class Hermit(Card):
             return
         if getattr(player, "cards_gained_this_buy_phase", 0) > 0:
             return
+        if game_state.supply.get("Madman", 0) <= 0:
+            return
 
-        # Trash this Hermit
+        # Return this Hermit to its Supply pile.
         player.in_play.remove(self)
-        game_state.trash_card(player, self)
+        if not game_state._restore_to_supply_pile(self):
+            # No pile to return to (should not happen for a Supply Hermit);
+            # put it back in play rather than letting the card vanish.
+            player.in_play.append(self)
+            return
+        game_state.log_callback(
+            ("action", player.ai.name, "exchanges Hermit for a Madman", {})
+        )
 
         # Gain a Madman from the Madman pile (non-supply pile).
-        if game_state.supply.get("Madman", 0) > 0:
-            game_state.supply["Madman"] -= 1
-            game_state.gain_card(player, get_card("Madman"))
+        game_state.supply["Madman"] -= 1
+        game_state.gain_card(player, get_card("Madman"))
