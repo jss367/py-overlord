@@ -12,6 +12,7 @@ from pathlib import Path
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--rev", required=True, help="Short git revision the validation ran at")
+parser.add_argument("--search-rev", default="ff0d398", help="Short git revision the recorded search results were produced at")
 parser.add_argument("--tests", required=True, help="HTML fragment describing the validation run")
 parser.add_argument("--date", default="September 9, 2026")
 args = parser.parse_args()
@@ -147,7 +148,7 @@ PYTHONPATH=. python scripts/search_kimberley.py final
 <li>The Colony Big Money baselines with Hoard and Bank originally ranked Gold above their support card, so they never bought it. They now buy Hoard or Bank ahead of Gold until the cap.</li>
 </ul>
 <p>The implementations of Mine, Throne Room, King's Court, Priest, Mining Village, Market Square, Hoard, Bank, and Tomb were also read against the card rules. Mine gains to hand and limits the gain to $3 above the trashed Treasure's cost; Tomb, Priest, Sewers, and Market Square all resolve from the shared trash hook.</p>
-<p>Validation on {args.date}, at revision <code>{args.rev}</code>: {args.tests}.</p>
+<p>The rerun search results were recorded at revision <code>{args.search_rev}</code>, the first commit containing the Sewers correction and its tests; later commits changed only the Sewers guard's scope (which does not affect this board), the strategy description, and this guide's text. Validation on {args.date}, at revision <code>{args.rev}</code>: {args.tests}. The commit that regenerates this guide follows that revision and changes only this file and its published copy.</p>
 <p>The search compares implemented buying and tactical policies for two players. It does not exhaust every opening or Bank and Hoard line, and the no-Mine reference is the best of 120 random configurations of the same policy family, not a proof that no better Mine-free plan exists.</p></section>
 <footer>Repository simulations and official card rules. Best policies found within the tested search; not a proof of optimal play. <a href="index.html">Return to the strategy catalog</a>.</footer>
 </main>
