@@ -75,7 +75,7 @@ tested, then expand coverage by expansion.
 | Clerk | Prosperity | Reaction play and attack topdeck | Existing connected defaults and tests; evaluate exceptions. |
 | Investment | Prosperity | Take money or trash a Treasure for points | Existing connected defaults and tests; evaluate point-versus-economy tradeoffs. |
 | Bounty Hunter | Menagerie | Choose a card to exile | Existing strategy priority override and base fallback; evaluate reuse and exceptions. |
-| Knights / Rogue | Dark Ages | Attacked player picks which revealed $3-$6 card to trash | Connected and tested (`choose_card_to_trash_for_knight_attack`): default gives up a revealed Knight (which also trashes the attacker's), else the cheapest card. |
+| Knights / Rogue | Dark Ages | Attacked player picks which revealed $3-$6 card to trash | Connected and tested (`choose_card_to_trash_for_knight_attack`, `choose_card_to_trash_for_rogue_attack`): against a Knight the default gives up a revealed Knight (which also trashes the attacker's), else the cheapest card; against Rogue it is simply the cheapest card. |
 | Stables | Hinterlands | Discard a Treasure for +3 Cards +1 Action, or decline | Connected and tested (`choose_treasure_to_discard_for_stables`): default Copper, then Spoils, then Silver; strategies may decline. |
 | Spice Merchant | Hinterlands | Optional Treasure trash and mode | Connected and tested (`choose_treasure_to_trash_for_spice_merchant`, `choose_spice_merchant_mode`): default only trashes Copper, draws unless the hand is short of money with no Actions left. |
 | Armory | Dark Ages | Select a free $4 gain onto the deck | Connected and tested (`choose_armory_gain`): default runs the gain priorities over the exposed piles (the top Knight included). |

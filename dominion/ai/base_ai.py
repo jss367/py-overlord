@@ -2644,6 +2644,18 @@ class AI(ABC):
             key=lambda c: (not c.is_knight, c.cost.coins, c.is_action, c.name),
         )
 
+    def choose_card_to_trash_for_rogue_attack(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Card | None:
+        """Rogue attack: the attacked player picks which revealed $3-$6 card to trash.
+
+        Unlike a Knight attack, trashing a Knight here does not take the
+        attacker's card with it, so the default is simply the cheapest card.
+        """
+        if not choices:
+            return None
+        return min(choices, key=lambda c: (c.cost.coins, c.is_action, c.name))
+
     def choose_treasure_to_discard_for_stables(
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Card | None:

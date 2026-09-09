@@ -142,6 +142,24 @@ def test_knight_attack_victim_hook_is_forwarded_to_the_strategy():
     assert chosen is gold
 
 
+def test_rogue_victim_default_does_not_sacrifice_a_knight():
+    state = _setup(["Rogue", "Knights"])
+    attacker, victim = state.players
+    rogue = get_card("Rogue")
+    attacker.in_play.append(rogue)
+    attacker.deck = [get_card("Copper"), get_card("Copper")]
+    bailey = get_card("Sir Bailey")
+    silver = get_card("Silver")
+    victim.deck = [bailey, silver]
+    state.trash = []
+
+    rogue.play_effect(state)
+
+    assert silver in state.trash
+    assert bailey in victim.discard
+    assert rogue in attacker.in_play
+
+
 # -------------------------------------------------------------- Artificer
 
 
@@ -179,6 +197,27 @@ def test_artificer_default_only_spends_junk_and_skips_free_gains():
 
     assert len(player.hand) == before
     assert player.deck == [player.deck[0]] and player.deck[0].name == "Silver"
+
+
+def test_artificer_ignores_discard_picks_outside_the_offered_pool():
+    state = _setup(["Artificer", "Scheme"], wants=["Scheme"])
+    player = state.current_player
+    silver = get_card("Silver")
+    copper = get_card("Copper")
+    estate = get_card("Estate")
+    gold = get_card("Gold")
+    player.hand = [silver, copper, estate, gold]
+    player.deck = []
+    # A misbehaving override answers the junk pass with a useful card.
+    player.ai.choose_cards_to_discard = lambda s, p, choices, n, reason=None: [silver, gold]
+
+    artificer = get_card("Artificer")
+    player.in_play.append(artificer)
+    artificer.play_effect(state)
+
+    assert player.deck and player.deck[-1].name == "Scheme"
+    assert silver in player.hand and gold in player.hand
+    assert copper in player.discard and estate in player.discard
 
 
 def test_artificer_can_gain_the_top_knight():

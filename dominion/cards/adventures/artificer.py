@@ -56,6 +56,8 @@ class Artificer(Card):
                     game_state, player, pool, needed, reason="artificer",
                 )
                 for card in discard_order:
+                    if card not in pool:
+                        continue  # only cards from the offered pool count
                     if card in remaining_hand and len(cards_to_discard) < target_cost:
                         cards_to_discard.append(card)
                         remaining_hand.remove(card)

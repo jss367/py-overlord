@@ -58,7 +58,7 @@ class Rogue(Card):
                     chosen = trashable[0]
                 else:
                     # "trashes one of them": the attacked player chooses.
-                    chosen = target.ai.choose_card_to_trash_for_knight_attack(
+                    chosen = target.ai.choose_card_to_trash_for_rogue_attack(
                         game_state, target, list(trashable)
                     )
                     if chosen not in trashable:

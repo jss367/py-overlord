@@ -20,7 +20,8 @@ Board texture
 - Gainers: Armory (a $4 onto the deck), Artificer (discard N cards, gain a
   $N card onto the deck), Dame Natalie ($3).
 - Scheme topdecks one Action at Clean-up: a Knight attacks every turn.
-- Bard is +$2 and a Boon. Buys come from Spice Merchant and Sir Martin.
+- Bard is +$2 and a Boon. Extra Buys come from Spice Merchant, Sir Martin,
+  and Bard's Boon when it is The Forest's Gift (+1 Buy +$1).
 
 Each seed below is a distinct theory of the kingdom for the island model.
 ``"Knights"`` in a rule matches whichever Knight is on top of the pile.
