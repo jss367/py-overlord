@@ -220,7 +220,13 @@ def render_board_page(item: RenderedBoard, *, index_href: str) -> str:
     return _page_shell(f"{item.display_name} Board", body, extra_styles=_BOARD_STYLES)
 
 
-def render_board_index(items: list[RenderedBoard], *, strategy_index_href: str) -> str:
+def render_board_index(
+    items: list[RenderedBoard],
+    *,
+    strategy_index_href: str,
+    home_href: str | None = None,
+) -> str:
+    home_nav = f'<a href="{escape(home_href)}">Home</a>' if home_href else ""
     rows = []
     for item in items:
         landscapes = "".join(
@@ -245,7 +251,7 @@ def render_board_index(items: list[RenderedBoard], *, strategy_index_href: str) 
         )
 
     body = f"""
-<nav aria-label="Catalog navigation"><a href="{escape(strategy_index_href)}">Strategy index</a></nav>
+<nav aria-label="Catalog navigation">{home_nav}<a href="{escape(strategy_index_href)}">Strategy index</a></nav>
 <main>
 <header class="hero board-hero">
   <p class="eyebrow">Dominion · Board library</p>

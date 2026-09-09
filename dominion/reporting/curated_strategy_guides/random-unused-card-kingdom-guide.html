@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Random Unused Card Kingdom: Board and Strategy Guide</title>
+<meta name="description" content="Ten randomly selected previously unused Dominion kingdom piles, a tested strategy, and reproducible comparison results.">
+<style>
+:root{color-scheme:light;--paper:#f5f2e9;--ink:#263b32;--muted:#58675d;--line:#d5dbcf;--accent:#895b21}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.65 system-ui,-apple-system,sans-serif}
+main{max-width:1100px;margin:auto;padding:28px clamp(20px,5vw,64px) 70px}nav{display:flex;gap:22px;flex-wrap:wrap;font-size:14px}
+a{color:var(--accent)}header{padding:55px 0 30px;border-bottom:1px solid var(--line)}.eyebrow{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1,h2,h3{font-family:Georgia,serif;line-height:1.15}h1{font-size:clamp(38px,6vw,64px);max-width:800px;margin:15px 0 24px}h2{font-size:31px;margin-top:40px}h3{font-size:23px}.lead{font-size:21px;max-width:780px}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.card{background:#fffdf7;border:1px solid var(--line);border-radius:10px;padding:17px 14px}.card strong{display:block}.card small{display:block;color:var(--muted);margin-top:8px}
+.callout{background:#e5ecdf;border-left:4px solid #638353;padding:20px 25px;border-radius:4px;margin:25px 0}.muted{color:var(--muted);font-size:15px}.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:15px}th,td{text-align:left;padding:13px 12px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#e8ecdf}code{font-size:.87em}pre{overflow:auto;padding:20px;background:#263b32;color:#f5f2e9;border-radius:8px;line-height:1.65}li{margin:9px 0}footer{border-top:1px solid var(--line);margin-top:40px;padding-top:20px;font-size:14px}
+@media(max-width:800px){.cards{grid-template-columns:repeat(2,1fr)}}@media print{body{background:white}main{padding:0}nav{display:none}h2{break-after:avoid}.card,tr{break-inside:avoid}}
+</style>
+</head>
+<body><main>
+<nav><a href="index.html">Strategy catalog</a><a href="../boards/random-unused-card-kingdom.html">View the board</a><a href="card-strategy-usage.html">Card usage report</a></nav>
+<header>
+<p class="eyebrow">A random draw from the unused cards · September 8, 2026</p>
+<h1>Ten overlooked piles.<br>A new kingdom to solve.</h1>
+<p class="lead">The board was drawn before strategy testing: ten distinct piles from 359 eligible, previously unreferenced kingdom pile tops. The cards were kept fixed throughout the search.</p>
+</header>
+<section aria-labelledby="board"><h2 id="board">The kingdom</h2>
+<div class="cards">
+<div class="card"><strong>Bauble</strong><small>$2 · Treasure–Liaison</small></div>
+<div class="card"><strong>Fishmonger</strong><small>$2 · Action–Shadow</small></div>
+<div class="card"><strong>Embassy</strong><small>$5 · Action</small></div>
+<div class="card"><strong>Catacombs</strong><small>$5 · Action</small></div>
+<div class="card"><strong>University</strong><small>$2 + Potion · Action</small></div>
+<div class="card"><strong>Forts</strong><small>Tent on top · $3 / $4 / $5 / $6</small></div>
+<div class="card"><strong>Cursed Village</strong><small>$5 · Action–Doom</small></div>
+<div class="card"><strong>Counting House</strong><small>$5 · Action</small></div>
+<div class="card"><strong>Shepherd</strong><small>$4 · Action</small></div>
+<div class="card"><strong>Fairgrounds</strong><small>$6 · Victory</small></div>
+</div>
+<p><strong>Ally: Woodworkers’ Guild.</strong> Bauble requires an Ally; this one was selected using the next random choice after the ten piles.</p>
+<p>Use two players, the normal basic supply, and a Potion pile. Each player starts with six Coppers, one Pasture, and three Estates. Forts is one pile with four copies each of Tent, Garrison, Hill Fort, and Stronghold, in that order. Fairgrounds has eight cards. There are no Shelters, Colonies, Platinum, or additional landscapes.</p>
+<p class="muted">Shepherd’s Heirloom setup follows the <a href="https://www.riograndegames.com/wp-content/uploads/2017/08/Dominion-Nocturne-Rules.pdf">Nocturne rules</a>; Ally and rotating-pile setup follows the <a href="https://www.riograndegames.com/wp-content/uploads/2021/09/Dominion-Allies-Rules.pdf">Allies rules</a>.</p>
+</section>
+<section aria-labelledby="strategy"><h2 id="strategy">The recommendation: Shepherd and Embassy money</h2>
+<div class="callout"><strong>Buy one Shepherd and one Embassy, with up to one Bauble; use them to support Gold and Province buying.</strong> This policy placed first in the eight-strategy finalist round robin, scoring 54.4% with ties counted as half a win across 1,400 games. The closest rival scored 53.5%, so this is a competitive recommendation, not a uniquely established optimum.</div>
+<p><a href="random-kingdom-shepherd-embassy-money.html">Open the runnable strategy</a>.</p>
+<h3>Opening and buying</h3>
+<ol>
+<li><strong>On a $4/$3 opening, buy Shepherd and Silver.</strong> On $5/$2, buy Embassy and Bauble. The same choices apply when the two hands arrive in the opposite order.</li>
+<li><strong>Complete the small action package.</strong> Buy the first Embassy at $5 and the first Shepherd at $4. Keep one of each; one Bauble is a useful $2 purchase when you cannot afford Silver.</li>
+<li><strong>Take Provinces whenever you reach $8.</strong> Otherwise favor Gold at $6–$7 and Silver at $3–$5 once the two action cards are acquired. Spend remaining money with Bauble’s extra buy when a worthwhile purchase is available.</li>
+<li><strong>Switch to endgame points.</strong> With three or fewer Provinces left, Duchy takes priority over further deck building. With one Province left, Estate also takes priority over treasure. Pasture gives every Estate an additional point while you retain it.</li>
+</ol>
+<h3>Playing the deck</h3>
+<p>Play Shepherd before Embassy, discarding Victory cards to draw replacements. Shepherd preserves your action, so you can then play Embassy. Embassy draws five cards and discards three; the simulator discards Curses, non-action Victory cards, and Coppers before more useful treasure or actions.</p>
+<p>Bauble normally supplies a coin and another buy. The policy requests a Favor only if its supply of Favors has run out. Woodworkers’ Guild can exchange an unplayed terminal action at the start of the Buy phase, but this small deck rarely needs that option.</p>
+<p>The strategy buys no additional engine components. The large University, Counting House, Fairgrounds-diversity, and Forts plans tested did not displace the winning money policy. The result applies to these implemented policies on this fixed two-player kingdom.</p>
+</section>
+<section aria-labelledby="results"><h2 id="results">Evidence from the games</h2>
+<p>The broad screen played <strong>20,000 games</strong> across 125 candidate entries (124 distinct parameter sets) against four opponents. A focused screen played <strong>3,600 games</strong> across 50 entries against three money opponents. The final round robin played <strong>5,600 games</strong>: 200 per pairing, with both seats equally represented. Six finalists came from the focused screen; two additional variants tested earlier core-card purchases.</p>
+<div class="scroll"><table><caption>Finalist round robin: 1,400 games per strategy; ties count as half a win.</caption><thead><tr><th>Place</th><th>Policy</th><th>Score</th></tr></thead><tbody><tr><td>1</td><td>Shepherd + Embassy, early core opening</td><td>54.4%</td></tr><tr><td>2</td><td>One Embassy, early Embassy opening</td><td>53.5%</td></tr><tr><td>3</td><td>One Embassy + Bauble</td><td>51.9%</td></tr><tr><td>4</td><td>One Embassy, Silver opening</td><td>51.1%</td></tr><tr><td>5</td><td>Shepherd + Embassy, Silver opening</td><td>48.4%</td></tr><tr><td>6</td><td>Shepherd and Forts engine</td><td>48.2%</td></tr><tr><td>7</td><td>Shepherd + Catacombs</td><td>46.7%</td></tr><tr><td>8</td><td>One Catacombs</td><td>45.7%</td></tr></tbody></table></div>
+<h3>Independent validation</h3>
+<p>The round-robin winner was frozen before playing <strong>2,400 additional games</strong> on fresh shuffle seeds: 400 against each opponent, split equally between starting seats.</p>
+<div class="scroll"><table><caption>Shepherd–Embassy money against each opponent; no ties occurred in these games.</caption><thead><tr><th>Opponent</th><th>Wins / games</th><th>Win rate</th></tr></thead><tbody><tr><td>One Embassy, early Embassy opening</td><td>195 / 400</td><td>48.8%</td></tr><tr><td>One Embassy + Bauble</td><td>203 / 400</td><td>50.7%</td></tr><tr><td>One Embassy, Silver opening</td><td>224 / 400</td><td>56.0%</td></tr><tr><td>Shepherd + Embassy, Silver opening</td><td>234 / 400</td><td>58.5%</td></tr><tr><td>Treasure-only Province buying</td><td>298 / 400</td><td>74.5%</td></tr><tr><td>Two Catacombs</td><td>243 / 400</td><td>60.8%</td></tr></tbody></table></div>
+<p><strong>The clearest advantage is against treasure-only and two-Catacombs money.</strong> The closest Embassy-only rival won 205 of 400 games against the recommendation, so the evidence does not establish that adding Shepherd and Bauble is superior to that alternative. The recommended policy still led the complete finalist round robin.</p>
+<p>Across all four stages, <strong>31,600 games</strong> completed without reaching the turn-limit safeguard. Against treasure-only money, the winning policy’s games averaged 18.1 rounds and 42.3 points, compared with 35.4 points for the opponent.</p>
+<p>Records: <a href="../../scripts/data/unused_cards_shepherd_search_summary.json">broad-screen summary</a>, <a href="../../scripts/data/unused_cards_shepherd_refinement_summary.json">focused-screen summary</a>, <a href="../../scripts/data/unused_cards_shepherd_tournament.json">full finalist results</a>, and <a href="../../scripts/data/unused_cards_shepherd_validation.json">full independent validation results</a>.</p>
+<p class="muted">These are simulator comparisons, not a proof of optimal Dominion play. Opponent selection, the policies’ tactical defaults, and finite samples limit the conclusion.</p>
+</section>
+<section aria-labelledby="method"><h2 id="method">How the board and strategy were selected</h2>
+<p>The starting catalog contained 95 registered strategies and 453 cards without explicit strategy-priority or Way-rule references. The draw excluded basic cards, Loot, Heirlooms, non-buyable special cards, and lower members of split piles. The resulting pool contained 359 names, sorted before sampling.</p>
+<p>The recorded seed is <code>3496985294</code>. The <a href="../../scripts/data/unused_cards_shepherd_draw.json">draw record</a> preserves the eligible list, selected cards, Ally, and baseline commit. Re-running the same ten-card sample against this frozen list reproduces the board even though the live usage report has changed.</p>
+<p>“Unused” means no explicit references in the catalog before this work. It does not establish that a card was absent from custom decision code, automatic gains, or written guides.</p>
+<h3>Rules corrected before testing</h3>
+<p>Cursed Village previously gave a Hex whenever played. It now gives the gainer a Hex when gained; playing it only grants actions and draws to six. This matches the <a href="https://www.riograndegames.com/wp-content/uploads/2017/08/Dominion-Nocturne-Rules.pdf">official Nocturne rules</a>. Fairgrounds previously used a ten-card pile; it now uses eight with two players and twelve with three or more, matching the <a href="https://www.riograndegames.com/wp-content/uploads/2024/02/CornucopiaGuilds.pdf">official Cornucopia &amp; Guilds rules</a>.</p>
+<p>Bauble’s existing choices now support a strategy hook, allowing the policy to choose a Favor when it wants to replenish Woodworkers’ Guild access. Strategies without a hook retain the existing coin-and-buy default.</p>
+</section>
+<section aria-labelledby="reproduction"><h2 id="reproduction">Reproduce the experiments</h2>
+<p>Run these commands from the repository root. The search script records full strategy parameters and per-match seeds. Every shuffle seed is played with both starting seats; ties count as half a win.</p>
+<pre><code>PYTHONPATH=. python scripts/search_unused_cards_shepherd.py search --output .context/unused-cards-search.json
+PYTHONPATH=. python scripts/search_unused_cards_shepherd.py refine --input .context/unused-cards-search.json --output .context/unused-cards-refine.json
+PYTHONPATH=. python scripts/search_unused_cards_shepherd.py tournament --input .context/unused-cards-refine.json --output .context/unused-cards-tournament.json
+PYTHONPATH=. python scripts/search_unused_cards_shepherd.py validation --input .context/unused-cards-tournament.json --output .context/unused-cards-validation.json
+PYTHONPATH=. python -m dominion.simulation.strategy_battle "Random Kingdom Shepherd Embassy Money" "Big Money" --board boards/random_unused_card_kingdom.txt --games 400 --workers 6</code></pre>
+<p class="muted">Commands above should each be entered on one line. The scripts use six worker processes by default; set <code>--workers 1</code> for serial execution.</p>
+</section>
+<footer>Repository artifacts: <a href="../../boards/random_unused_card_kingdom.txt">board definition</a> · <a href="../../dominion/strategy/strategies/unused_cards_shepherd.py">runnable strategy source</a> · <a href="../../scripts/search_unused_cards_shepherd.py">search and validation script</a>.</footer>
+</main></body></html>
