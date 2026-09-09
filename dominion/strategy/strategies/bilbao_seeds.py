@@ -788,7 +788,15 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
 
     def _pair_available(self, state, player, via_hermit: bool) -> bool:
         """Can a second Feodum go to the trash this turn, so that the
-        opponent takes one and this player gets the other back?"""
+        opponent takes one and this player gets the other back?
+
+        Only a two-player game gives that guarantee: with more players every
+        intervening opponent takes a mandatory Shaman gain before this
+        player's next turn, so both Feodums can be gone. Pair mode therefore
+        never trashes outside two-player games.
+        """
+        if len(state.players) != 2:
+            return False
         if any(c.name == "Feodum" for c in state.trash):
             return True
         if via_hermit:

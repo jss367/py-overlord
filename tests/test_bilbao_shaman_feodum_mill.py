@@ -21,10 +21,11 @@ BILBAO = [
 ]
 
 
-def _game(strategy):
+def _game(strategy, opponents=1):
     state = GameState(players=[])
     state.log_callback = lambda *_: None
-    state.initialize_game([GeneticAI(strategy), DummyAI()], [get_card(n) for n in BILBAO])
+    ais = [GeneticAI(strategy)] + [DummyAI() for _ in range(opponents)]
+    state.initialize_game(ais, [get_card(n) for n in BILBAO])
     for p in state.players:
         p.hand, p.deck, p.discard, p.in_play, p.duration = [], [], [], [], []
         p.actions, p.buys, p.coins = 1, 1, 0
@@ -181,3 +182,19 @@ def test_fodder_feodum_honours_the_feodum_pile_stop():
     state.supply["Feodum"] = 4
     pick = mill.choose_gain(state, p0, choices)
     assert pick is not None and pick.name == "Feodum"
+
+
+def test_pair_mode_never_trashes_outside_two_player_games():
+    mill = BilbaoShamanFeodumMill(trash_mode="pair")
+    state = _game(mill, opponents=2)
+    p0 = state.players[0]
+    first, second = get_card("Feodum"), get_card("Feodum")
+    p0.hand = [first, second, get_card("Shaman")]
+    state.supply["Silver"] = 10
+    _play(state, "Shaman")
+    assert first in p0.hand and second in p0.hand
+    assert not state.trash
+    # Even a Feodum already in the trash is no guarantee with two opponents.
+    state.trash = [get_card("Feodum")]
+    _play(state, "Shaman")
+    assert first in p0.hand and second in p0.hand
