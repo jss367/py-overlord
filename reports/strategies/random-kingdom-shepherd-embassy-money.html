@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Big Money Strategy</title>
+  <title>Random Kingdom Shepherd Embassy Money Strategy</title>
   <style>
     :root {
       color-scheme: light;
@@ -287,39 +287,175 @@
 <nav><a href="index.html">Strategy index</a><a href="leaderboard.html">Leaderboard</a></nav>
 <header class="hero">
   <p class="eyebrow">Dominion strategy</p>
-  <h1>Big Money</h1>
-  <p class="hero-description">Basic Big Money strategy</p>
-<span class="tags"><span class="tag">Big Money</span></span>
-  <div class="hero-links"><strong>Compatible boards</strong><span class="chip-list"><a class="board-chip" href="../boards/astrolabe-treasury.html">Astrolabe Treasury</a><a class="board-chip" href="../boards/bazaar-council.html">Bazaar Council</a><a class="board-chip" href="../boards/big-cards.html">Big Cards</a><a class="board-chip" href="../boards/bilbao.html">Bilbao</a><a class="board-chip" href="../boards/black-cat-and-livery.html">Black Cat And Livery</a><a class="board-chip" href="../boards/calibration/chapel-witch.html">Chapel Witch</a><a class="board-chip" href="../boards/calibration/courtyard-big-money.html">Courtyard Big Money</a><a class="board-chip" href="../boards/calibration/first-game.html">First Game</a><a class="board-chip" href="../boards/calibration/gardens-workshop.html">Gardens Workshop</a><a class="board-chip" href="../boards/calibration/jack-big-money.html">Jack Big Money</a><a class="board-chip" href="../boards/calibration/mountebank-big-money.html">Mountebank Big Money</a><a class="board-chip" href="../boards/calibration/rebuild-duchy.html">Rebuild Duchy</a><a class="board-chip" href="../boards/calibration/smithy-big-money.html">Smithy Big Money</a><a class="board-chip" href="../boards/calibration/wharf-big-money.html">Wharf Big Money</a><a class="board-chip" href="../boards/calibration/witch-big-money.html">Witch Big Money</a><a class="board-chip" href="../boards/cauldron-curse.html">Cauldron Curse</a><a class="board-chip" href="../boards/festival-laboratory.html">Festival Laboratory</a><a class="board-chip" href="../boards/green-gardens.html">Green Gardens</a><a class="board-chip" href="../boards/hyderabad.html">Hyderabad</a><a class="board-chip" href="../boards/inspiring-supplies.html">Inspiring Supplies</a><a class="board-chip" href="../boards/iron-barbarian.html">Iron Barbarian</a><a class="board-chip" href="../boards/lisbon.html">Lisbon</a><a class="board-chip" href="../boards/oslo.html">Oslo</a><a class="board-chip" href="../boards/port-moresby.html">Port Moresby</a><a class="board-chip" href="../boards/random-unused-card-kingdom.html">Random Unused Card Kingdom</a><a class="board-chip" href="../boards/siege-engine.html">Siege Engine</a><a class="board-chip" href="../boards/taskmaster-workforce.html">Taskmaster Workforce</a><a class="board-chip" href="../boards/tea-house-kind-emperor.html">Tea House Kind Emperor</a><a class="board-chip" href="../boards/torture-campaign.html">Torture Campaign</a><a class="board-chip" href="../boards/victoria-kingdom.html">Victoria Kingdom</a><a class="board-chip" href="../boards/wealthy-cities.html">Wealthy Cities</a><a class="board-chip" href="../boards/wharf-kingdom.html">Wharf Kingdom</a><a class="board-chip" href="../boards/wizards-lich.html">Wizards Lich</a></span></div>
+  <h1>Random Kingdom Shepherd Embassy Money</h1>
+  <p class="hero-description">One Shepherd and one Embassy support Gold and Province buying, with one Bauble for spare buys. See the Random Unused Card Kingdom guide.</p>
+
+  <div class="hero-links"><strong>Compatible boards</strong><span class="chip-list"><a class="board-chip" href="../boards/random-unused-card-kingdom.html">Random Unused Card Kingdom</a></span></div>
   <details class="technical-details">
     <summary>Implementation details and referenced components</summary>
     <dl class="meta">
-      <dt>Internal name</dt><dd>BigMoney</dd>
+      <dt>Internal name</dt><dd>Random Kingdom Shepherd Embassy Money</dd>
       <dt>Version</dt><dd>1.0</dd>
-      <dt>Source</dt><dd>dominion/strategy/strategies/big_money.py</dd>
-      <dt>Factory</dt><dd>create_big_money</dd>
-      <dt>Kingdom Cards</dt><dd><span class="empty">None</span></dd><dt>Events</dt><dd><span class="empty">None</span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
+      <dt>Source</dt><dd>dominion/strategy/strategies/unused_cards_shepherd.py</dd>
+      <dt>Factory</dt><dd>create_random_kingdom_shepherd_embassy_money</dd>
+      <dt>Kingdom Cards</dt><dd><span class="chip-list"><span class="card-chip type-treasure" aria-label="Bauble, Treasure, Liaison card"><span>Bauble</span><span class="type-marker marker-liaison" title="Liaison" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Embassy, Action card"><span>Embassy</span></span><span class="card-chip type-victory" aria-label="Pasture, Treasure, Victory, Heirloom card"><span>Pasture</span><span class="type-marker marker-treasure" title="Treasure" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Shepherd, Action card"><span>Shepherd</span></span></span></dd><dt>Events</dt><dd><span class="empty">None</span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="chip-list"><span class="landscape-chip landscape-ally">Woodworkers&#x27; Guild</span></span></dd>
     </dl>
   </details>
 </header>
 
-<section class="section section-gain">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>
-  <p class="section-note">Read from the top for each choice. The list selects the first available option whose condition passes. For purchases, the option must also be affordable. “Always” means no additional condition on that row; earlier eligible rows still take precedence within the list.</p><p class="section-note">Shared gain logic can change the list choice: after playing Collection, it can favor an available Action over Silver or Copper; with Trail and Way of the Butterfly, it can choose Trail to gain a higher-priority card.</p>
+<section class="section section-custom">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">ƒ</span><h2>Custom Behaviors</h2></div>
+  <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
   <table class="priority-table">
-    <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
-    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Province, Victory card"><span>Province</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
+    <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+    available = {c.name for c in choices if c is not None}
+    names = [&quot;University&quot;]
+    if any(c.is_victory for c in player.hand):
+        names.append(&quot;Shepherd&quot;)
+    # Draw-to-six after spending cards when there are actions to spare.
+    if player.actions &lt;= 1 or len(player.hand) &lt;= 5:
+        names.append(&quot;Cursed Village&quot;)
+    names += [&quot;Shepherd&quot;, &quot;Garrison&quot;, &quot;Catacombs&quot;, &quot;Embassy&quot;, &quot;Cursed Village&quot;]
+    if (
+        &quot;Counting House&quot; in available
+        and sum(c.name == &quot;Copper&quot; for c in player.discard) &gt;= 3
+    ):
+        names.insert(1 if player.actions &gt; 1 else len(names), &quot;Counting House&quot;)
+    names += [&quot;Hill Fort&quot;, &quot;Stronghold&quot;, &quot;Counting House&quot;, &quot;Tent&quot;, &quot;Fishmonger&quot;]
+    return self.pick(choices, names)
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose bauble options</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_bauble_options(self, state, player, options, count):
+    if self.params[&quot;guild&quot;] and player.favors &lt; 1:
+        return [&quot;coin&quot;, &quot;favor&quot;]
+    return [&quot;coin&quot;, &quot;buy&quot;]
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose allies option</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_allies_option(self, state, player, reason, options, default):
+    if reason == &quot;rotate_pile&quot;:
+        return (
+            &quot;Tent&quot;
+            if self.params[&quot;forts&quot;]
+            and state.top_supply_card(&quot;Tent&quot;) != &quot;Stronghold&quot;
+            else None
+        )
+    if reason == &quot;woodworkers_trash&quot;:
+        if not self.params[&quot;guild&quot;]:
+            return None
+        # Trade a terminal left unplayed for a draw card or a village.
+        return self.pick(
+            options, [&quot;Fishmonger&quot;, &quot;Tent&quot;, &quot;Counting House&quot;, &quot;Embassy&quot;]
+        )
+    return default
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
+    p = self.params
+    cards = list(player.all_cards())
+    c = Counter(card.name for card in cards)
+    available = {card.name: card for card in choices if card is not None}
+    if not available:
+        return None
+    free_action = all(card.is_action for card in available.values())
+    provinces = state.supply.get(&quot;Province&quot;, 8)
+    names = []
+    if not free_action:
+        ready = player.turns_taken &gt;= p[&quot;green&quot;] or provinces &lt;= 4
+        if ready:
+            names.append(&quot;Province&quot;)
+        if provinces &lt;= p[&quot;duchy&quot;]:
+            names.append(&quot;Duchy&quot;)
+        if provinces &lt;= 1:
+            names.append(&quot;Estate&quot;)
+        if p[&quot;fairgrounds&quot;] and len(c) &gt;= 14 and player.turns_taken &gt;= 10:
+            names.insert(0, &quot;Fairgrounds&quot;)
+        if p[&quot;university&quot;] and c[&quot;Potion&quot;] == 0 and player.turns_taken &lt;= 6:
+            names.append(&quot;Potion&quot;)
+        if player.turns_taken &lt;= 2 and not c[p[&quot;opening&quot;]]:
+            names.append(p[&quot;opening&quot;])
+    if c[&quot;University&quot;] &lt; p[&quot;university&quot;]:
+        names.append(&quot;University&quot;)
+    if p[&quot;forts&quot;] and c[&quot;Stronghold&quot;] &lt; 3:
+        names.append(&quot;Stronghold&quot;)
+    if c[&quot;Cursed Village&quot;] &lt; p[&quot;village&quot;] and (
+        c[&quot;Cursed Village&quot;] == 0
+        or c[&quot;Catacombs&quot;] + c[&quot;Embassy&quot;] &gt;= c[&quot;Cursed Village&quot;]
+    ):
+        names.append(&quot;Cursed Village&quot;)
+    if c[&quot;Shepherd&quot;] &lt; p[&quot;shepherd&quot;] and (
+        c[&quot;Shepherd&quot;] == 0 or sum(x.is_victory for x in cards) &gt;= 2 * c[&quot;Shepherd&quot;]
+    ):
+        names.append(&quot;Shepherd&quot;)
+    for name, cap in [
+        (&quot;Catacombs&quot;, p[&quot;draw&quot;]),
+        (&quot;Embassy&quot;, p[&quot;embassy&quot;]),
+        (&quot;Counting House&quot;, p[&quot;counting&quot;]),
+    ]:
+        if c[name] &lt; cap:
+            names.append(name)
+    if c[&quot;Gold&quot;] &lt; p[&quot;golds&quot;]:
+        names.append(&quot;Gold&quot;)
+    if c[&quot;Silver&quot;] &lt; p[&quot;silvers&quot;]:
+        names.append(&quot;Silver&quot;)
+    if p[&quot;forts&quot;] and c[&quot;Tent&quot;] == 0:
+        names.append(&quot;Tent&quot;)
+    if c[&quot;Bauble&quot;] &lt; p[&quot;bauble&quot;]:
+        names.append(&quot;Bauble&quot;)
+    if c[&quot;Fishmonger&quot;] &lt; p[&quot;fish&quot;]:
+        names.append(&quot;Fishmonger&quot;)
+    if c[&quot;Estate&quot;] &lt; p[&quot;estates&quot;] and c[&quot;Shepherd&quot;] &gt;= 2:
+        names.append(&quot;Estate&quot;)
+    if p[&quot;fairgrounds&quot;] and player.turns_taken &gt;= 8:
+        names += [
+            n
+            for n in (
+                &quot;Fairgrounds&quot;,
+                &quot;Duchy&quot;,
+                &quot;Tent&quot;,
+                &quot;Garrison&quot;,
+                &quot;Hill Fort&quot;,
+                &quot;Stronghold&quot;,
+                &quot;Fishmonger&quot;,
+                &quot;Bauble&quot;,
+                &quot;Embassy&quot;,
+                &quot;Counting House&quot;,
+                &quot;Potion&quot;,
+            )
+            if c[n] == 0
+        ]
+    if p[&quot;counting&quot;] &gt;= 2 and player.turns_taken &gt;= 5 and c[&quot;Copper&quot;] &lt; 24:
+        names.append(&quot;Copper&quot;)
+    names += [&quot;Gold&quot;, &quot;Silver&quot;]
+    if free_action:
+        names += [&quot;Catacombs&quot;, &quot;Shepherd&quot;, &quot;Cursed Village&quot;]
+    return self.pick(choices, names)
+</code></pre></details></td></tr></tbody>
   </table>
 </section>
+
+<section class="section section-gain">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Decisions</h2></div>
+  <p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Province, Victory card"><span>Province</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Duchy, Victory card"><span>Duchy</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Estate, Victory card"><span>Estate</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">6</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">7</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Bauble, Treasure, Liaison card"><span>Bauble</span><span class="type-marker marker-liaison" title="Liaison" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">8</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Shepherd, Action card"><span>Shepherd</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">9</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Embassy, Action card"><span>Embassy</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">10</span></td><td data-label="Card"><span class="landscape-chip landscape-ally">Woodworkers&#x27; Guild</span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr></tbody>
+  </table></details>
+</section>
 <section class="section section-action">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">A</span><h2>Action Priority</h2></div>
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">A</span><h2>Action Decisions</h2></div>
+  <p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
-    <tbody><tr><td colspan="3" class="empty">None</td></tr></tbody>
-  </table>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Shepherd, Action card"><span>Shepherd</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Embassy, Action card"><span>Embassy</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr></tbody>
+  </table></details>
 </section>
 <section class="section section-trash">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">×</span><h2>Trash Priority</h2></div>
@@ -335,7 +471,9 @@
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
     <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
 <tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Pasture, Treasure, Victory, Heirloom card"><span>Pasture</span><span class="type-marker marker-treasure" title="Treasure" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Bauble, Treasure, Liaison card"><span>Bauble</span><span class="type-marker marker-liaison" title="Liaison" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
   </table>
 </section>
 

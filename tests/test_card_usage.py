@@ -1,3 +1,6 @@
+from html import escape
+import re
+
 from dominion.reporting.card_usage import collect_card_usage, render_card_usage
 from dominion.reporting.html_report import generate_leaderboard_html
 from dominion.reporting.strategy_pages import RenderedStrategy, collect_rendered_strategies
@@ -67,6 +70,42 @@ def test_usage_empty_catalog_and_escaped_content():
     assert "&lt;Example&gt;" in html
     assert "&lt;board&gt;" in html
     assert "<Example>" not in html
+
+
+def test_usage_expansions_follow_printed_sets_including_misfiled_cards():
+    html = render_card_usage([])
+    expected = {
+        "Village": "Base", "Copper": "Base", "Province": "Base",
+        "Colony": "Prosperity", "Potion": "Alchemy", "Hovel": "Dark Ages",
+        "Advisor": "Cornucopia & Guilds", "Joust": "Cornucopia & Guilds",
+        "Sauna": "Promo", "Astrolabe": "Seaside", "Collection": "Prosperity",
+        "Fisherman": "Menagerie", "Snowy Village": "Menagerie",
+        "Mill": "Intrigue", "Trading Post": "Intrigue", "Pilgrim": "Plunder",
+        "Taskmaster": "Plunder", "Wealthy Village": "Plunder",
+        "Tea House": "Rising Sun", "Plunder": "Empires",
+    }
+    for name, expansion in expected.items():
+        assert f'data-expansion="{escape(expansion)}"><td data-sort="{name}">' in html
+        assert f'<option value="{escape(expansion)}">{escape(expansion)}</option>' in html
+    assert '<label for="card-expansion">Expansion</label>' in html
+    assert '<option value="">All expansions</option>' in html
+
+
+def test_usage_marks_retired_cards_but_keeps_retained_and_renamed_cards():
+    html = render_card_usage([])
+    retired = dict(re.findall(
+        r'data-removed-second-edition="true" data-expansion="([^"]*)"><td data-sort="([^"]*)">',
+        html,
+    ))
+    assert set(retired) == {
+        "Base", "Intrigue", "Seaside", "Prosperity", "Hinterlands", "Cornucopia &amp; Guilds",
+    }
+    retired_names = set(re.findall(
+        r'data-removed-second-edition="true"[^>]*><td data-sort="([^"]*)">', html,
+    ))
+    assert len(retired_names) == 51
+    assert {"Adventurer", "Scout", "Sea Hag", "Goons", "Cache", "Doctor", "Tournament", "Princess"} <= retired_names
+    assert not {"Farm", "Fairgrounds", "Joust", "Coronet", "Village", "Colony"} & retired_names
 
 
 def test_tournament_writes_linked_usage_companion(tmp_path):

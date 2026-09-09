@@ -1,0 +1,2374 @@
+{
+  "games": 20000,
+  "truncated": 0,
+  "candidate_entries": 125,
+  "distinct_parameter_sets": 124,
+  "ranking": [
+    {
+      "rate": 0.7687499999999999,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 0,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.725,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 1,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.703125,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 2,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.7,
+      "params": {
+        "shepherd": 6,
+        "village": 4,
+        "draw": 1,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 3,
+        "golds": 2,
+        "green": 10,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.675,
+      "params": {
+        "shepherd": 2,
+        "village": 1,
+        "draw": 1,
+        "estates": 0
+      }
+    },
+    {
+      "rate": 0.6499999999999999,
+      "params": {
+        "shepherd": 3,
+        "village": 3,
+        "draw": 1,
+        "embassy": 2,
+        "university": 0,
+        "counting": 1,
+        "bauble": 0,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 4,
+        "green": 10,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.64375,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 0,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 2
+      }
+    },
+    {
+      "rate": 0.6375,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 2,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 4,
+        "green": 0,
+        "estates": 6,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.625,
+      "params": {
+        "shepherd": 2,
+        "village": 1,
+        "draw": 1,
+        "estates": 6
+      }
+    },
+    {
+      "rate": 0.6125,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 1,
+        "embassy": 1,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 4,
+        "green": 8,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.6,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 0,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 3
+      }
+    },
+    {
+      "rate": 0.6,
+      "params": {
+        "shepherd": 2,
+        "village": 2,
+        "draw": 5,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 1,
+        "silvers": 3,
+        "golds": 1,
+        "green": 8,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Tent",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.6,
+      "params": {
+        "shepherd": 1,
+        "village": 2,
+        "draw": 0,
+        "embassy": 1,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 1,
+        "green": 12,
+        "estates": 0,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.5875,
+      "params": {
+        "shepherd": 1,
+        "village": 4,
+        "draw": 0,
+        "embassy": 1,
+        "university": 0,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 1,
+        "silvers": 3,
+        "golds": 4,
+        "green": 10,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.58125,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 0,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.58125,
+      "params": {
+        "shepherd": 2,
+        "village": 1,
+        "draw": 1,
+        "estates": 10
+      }
+    },
+    {
+      "rate": 0.5812499999999999,
+      "params": {
+        "shepherd": 6,
+        "village": 3,
+        "draw": 1,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 4,
+        "green": 10,
+        "estates": 0,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.575,
+      "params": {
+        "shepherd": 4,
+        "village": 1,
+        "draw": 1,
+        "estates": 10
+      }
+    },
+    {
+      "rate": 0.5625,
+      "params": {
+        "shepherd": 6,
+        "village": 1,
+        "draw": 1,
+        "estates": 6
+      }
+    },
+    {
+      "rate": 0.5625,
+      "params": {
+        "shepherd": 1,
+        "village": 2,
+        "draw": 0,
+        "embassy": 2,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 1,
+        "green": 8,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Tent",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.5437500000000001,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 3,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.5375000000000001,
+      "params": {
+        "shepherd": 4,
+        "village": 1,
+        "draw": 1,
+        "estates": 6
+      }
+    },
+    {
+      "rate": 0.5375,
+      "params": {
+        "shepherd": 2,
+        "village": 0,
+        "draw": 2,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 1,
+        "green": 12,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.5375,
+      "params": {
+        "shepherd": 0,
+        "village": 1,
+        "draw": 0,
+        "embassy": 1,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 1,
+        "green": 12,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.53125,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 0,
+        "bauble": 2,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "counting": 1
+      }
+    },
+    {
+      "rate": 0.5125,
+      "params": {
+        "shepherd": 6,
+        "village": 1,
+        "draw": 1,
+        "estates": 10
+      }
+    },
+    {
+      "rate": 0.50625,
+      "params": {
+        "shepherd": 0,
+        "village": 3,
+        "draw": 0,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 4,
+        "green": 6,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.49374999999999997,
+      "params": {
+        "shepherd": 4,
+        "village": 1,
+        "draw": 1,
+        "estates": 0
+      }
+    },
+    {
+      "rate": 0.4875,
+      "params": {
+        "shepherd": 6,
+        "village": 1,
+        "draw": 0,
+        "embassy": 1,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 0,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.48125,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 1,
+        "embassy": 1,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 2,
+        "golds": 1,
+        "green": 8,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.48125,
+      "params": {
+        "shepherd": 0,
+        "village": 2,
+        "draw": 2,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 1,
+        "green": 0,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.48125,
+      "params": {
+        "shepherd": 4,
+        "village": 1,
+        "draw": 1,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 3,
+        "green": 0,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.47500000000000003,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 2,
+        "embassy": 0,
+        "university": 0,
+        "counting": 1,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 2,
+        "green": 10,
+        "estates": 0,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.47500000000000003,
+      "params": {
+        "shepherd": 6,
+        "village": 0,
+        "draw": 0,
+        "embassy": 1,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 4,
+        "green": 8,
+        "estates": 0,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.46875,
+      "params": {
+        "shepherd": 2,
+        "village": 0,
+        "draw": 0,
+        "embassy": 2,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 2,
+        "green": 0,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.4625,
+      "params": {
+        "shepherd": 0,
+        "village": 2,
+        "draw": 0,
+        "embassy": 0,
+        "university": 0,
+        "counting": 1,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 2,
+        "golds": 2,
+        "green": 12,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.45625,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 3,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 1,
+        "green": 10,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Shepherd",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.45000000000000007,
+      "params": {
+        "shepherd": 6,
+        "village": 1,
+        "draw": 1,
+        "estates": 0
+      }
+    },
+    {
+      "rate": 0.44999999999999996,
+      "params": {
+        "shepherd": 2,
+        "village": 2,
+        "draw": 3,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 1,
+        "silvers": 3,
+        "golds": 2,
+        "green": 12,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.44375,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 0,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 3,
+        "green": 12,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.44375,
+      "params": {
+        "shepherd": 1,
+        "village": 3,
+        "draw": 2,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 3,
+        "golds": 3,
+        "green": 6,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.44375,
+      "params": {
+        "shepherd": 4,
+        "village": 2,
+        "draw": 0,
+        "embassy": 0,
+        "university": 1,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 3,
+        "green": 8,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.4375,
+      "params": {
+        "shepherd": 0,
+        "village": 2,
+        "draw": 0,
+        "bauble": 2,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "counting": 1
+      }
+    },
+    {
+      "rate": 0.4375,
+      "params": {
+        "shepherd": 2,
+        "village": 2,
+        "draw": 2,
+        "embassy": 1,
+        "university": 0,
+        "counting": 1,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 3,
+        "green": 10,
+        "estates": 0,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.4375,
+      "params": {
+        "shepherd": 6,
+        "village": 3,
+        "draw": 2,
+        "embassy": 0,
+        "university": 1,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 2,
+        "green": 8,
+        "estates": 0,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.43125,
+      "params": {
+        "shepherd": 3,
+        "village": 0,
+        "draw": 1,
+        "embassy": 0,
+        "university": 1,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 1,
+        "green": 0,
+        "estates": 0,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Tent",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.42500000000000004,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 0,
+        "bauble": 2,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "counting": 2
+      }
+    },
+    {
+      "rate": 0.4125,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 4,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 4,
+        "green": 0,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.40625,
+      "params": {
+        "shepherd": 0,
+        "village": 2,
+        "draw": 2,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 0,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.40625,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 0,
+        "embassy": 0,
+        "university": 2,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 4,
+        "green": 10,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.4,
+      "params": {
+        "shepherd": 4,
+        "village": 0,
+        "draw": 1,
+        "embassy": 0,
+        "university": 1,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 4,
+        "green": 0,
+        "estates": 0,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.4,
+      "params": {
+        "shepherd": 4,
+        "village": 3,
+        "draw": 2,
+        "embassy": 0,
+        "university": 0,
+        "counting": 1,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 2,
+        "golds": 3,
+        "green": 0,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.39375,
+      "params": {
+        "shepherd": 0,
+        "village": 2,
+        "draw": 0,
+        "bauble": 2,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "counting": 2
+      }
+    },
+    {
+      "rate": 0.3875,
+      "params": {
+        "shepherd": 2,
+        "village": 4,
+        "draw": 5,
+        "embassy": 1,
+        "university": 0,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 1,
+        "silvers": 3,
+        "golds": 4,
+        "green": 8,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.3875,
+      "params": {
+        "shepherd": 0,
+        "village": 3,
+        "draw": 1,
+        "embassy": 0,
+        "university": 0,
+        "counting": 1,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 2,
+        "golds": 1,
+        "green": 10,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.38749999999999996,
+      "params": {
+        "shepherd": 3,
+        "village": 1,
+        "draw": 3,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 2,
+        "green": 6,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.38125,
+      "params": {
+        "shepherd": 1,
+        "village": 4,
+        "draw": 3,
+        "embassy": 2,
+        "university": 2,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 2,
+        "golds": 1,
+        "green": 12,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.38125,
+      "params": {
+        "shepherd": 3,
+        "village": 1,
+        "draw": 3,
+        "embassy": 0,
+        "university": 1,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 2,
+        "green": 8,
+        "estates": 0,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.375,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 2,
+        "embassy": 1,
+        "university": 0,
+        "counting": 1,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 3,
+        "green": 10,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Tent",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.375,
+      "params": {
+        "shepherd": 1,
+        "village": 3,
+        "draw": 2,
+        "embassy": 0,
+        "university": 2,
+        "counting": 1,
+        "bauble": 0,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 3,
+        "green": 0,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.35625,
+      "params": {
+        "shepherd": 1,
+        "village": 2,
+        "draw": 3,
+        "embassy": 0,
+        "university": 2,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 2,
+        "green": 6,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.35,
+      "params": {
+        "shepherd": 2,
+        "village": 4,
+        "draw": 3,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 4,
+        "green": 8,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.35,
+      "params": {
+        "shepherd": 2,
+        "village": 0,
+        "draw": 1,
+        "embassy": 0,
+        "university": 0,
+        "counting": 1,
+        "bauble": 1,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 2,
+        "green": 10,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.34375,
+      "params": {
+        "shepherd": 0,
+        "village": 4,
+        "draw": 2,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 2,
+        "green": 0,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.34375,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 0,
+        "embassy": 2,
+        "university": 2,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 3,
+        "golds": 4,
+        "green": 12,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.3375,
+      "params": {
+        "shepherd": 0,
+        "village": 2,
+        "draw": 1,
+        "embassy": 2,
+        "university": 1,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 1,
+        "silvers": 3,
+        "golds": 1,
+        "green": 12,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.3375,
+      "params": {
+        "shepherd": 2,
+        "village": 3,
+        "draw": 1,
+        "embassy": 2,
+        "university": 1,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 1,
+        "green": 12,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.33125,
+      "params": {
+        "shepherd": 4,
+        "village": 2,
+        "draw": 3,
+        "green": 8,
+        "estates": 6
+      }
+    },
+    {
+      "rate": 0.325,
+      "params": {
+        "shepherd": 1,
+        "village": 3,
+        "draw": 1,
+        "embassy": 1,
+        "university": 0,
+        "counting": 1,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 2,
+        "green": 0,
+        "estates": 6,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.325,
+      "params": {
+        "shepherd": 6,
+        "village": 4,
+        "draw": 5,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 8,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Shepherd",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.31875,
+      "params": {
+        "shepherd": 2,
+        "village": 2,
+        "draw": 3,
+        "university": 2,
+        "green": 8
+      }
+    },
+    {
+      "rate": 0.31875,
+      "params": {
+        "shepherd": 2,
+        "village": 4,
+        "draw": 2,
+        "embassy": 2,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 8,
+        "estates": 6,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Shepherd",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.31875,
+      "params": {
+        "shepherd": 2,
+        "village": 2,
+        "draw": 4,
+        "embassy": 2,
+        "university": 1,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 2,
+        "green": 8,
+        "estates": 6,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Tent",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.31875,
+      "params": {
+        "shepherd": 2,
+        "village": 1,
+        "draw": 5,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 1,
+        "silvers": 3,
+        "golds": 4,
+        "green": 8,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.3125,
+      "params": {
+        "shepherd": 4,
+        "village": 3,
+        "draw": 5,
+        "embassy": 1,
+        "university": 1,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 3,
+        "golds": 3,
+        "green": 6,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.30625,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 1,
+        "embassy": 2,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 3,
+        "green": 10,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.3,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 0,
+        "embassy": 0,
+        "university": 1,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 3,
+        "green": 12,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Shepherd",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.29374999999999996,
+      "params": {
+        "shepherd": 2,
+        "village": 1,
+        "draw": 1,
+        "embassy": 0,
+        "university": 2,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 3,
+        "green": 0,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Tent",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.2875,
+      "params": {
+        "shepherd": 1,
+        "village": 3,
+        "draw": 2,
+        "embassy": 1,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 1,
+        "green": 8,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.2875,
+      "params": {
+        "shepherd": 4,
+        "village": 2,
+        "draw": 0,
+        "embassy": 0,
+        "university": 2,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 1,
+        "green": 8,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.2875,
+      "params": {
+        "shepherd": 2,
+        "village": 4,
+        "draw": 2,
+        "embassy": 1,
+        "university": 0,
+        "counting": 1,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 4,
+        "green": 12,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Shepherd",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.28125,
+      "params": {
+        "shepherd": 0,
+        "village": 2,
+        "draw": 0,
+        "bauble": 2,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "counting": 4
+      }
+    },
+    {
+      "rate": 0.28125,
+      "params": {
+        "shepherd": 2,
+        "village": 3,
+        "draw": 5,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 2,
+        "green": 12,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.28125,
+      "params": {
+        "shepherd": 2,
+        "village": 4,
+        "draw": 5,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 4,
+        "green": 8,
+        "estates": 6,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.275,
+      "params": {
+        "shepherd": 4,
+        "village": 4,
+        "draw": 4,
+        "embassy": 2,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 2,
+        "green": 0,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.275,
+      "params": {
+        "shepherd": 2,
+        "village": 4,
+        "draw": 1,
+        "embassy": 0,
+        "university": 1,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 3,
+        "green": 8,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.275,
+      "params": {
+        "shepherd": 0,
+        "village": 4,
+        "draw": 2,
+        "embassy": 0,
+        "university": 1,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 2,
+        "golds": 2,
+        "green": 12,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.27499999999999997,
+      "params": {
+        "shepherd": 4,
+        "village": 4,
+        "draw": 5,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 4,
+        "green": 8,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.26875000000000004,
+      "params": {
+        "shepherd": 1,
+        "village": 2,
+        "draw": 4,
+        "embassy": 1,
+        "university": 0,
+        "counting": 1,
+        "bauble": 1,
+        "fish": 1,
+        "silvers": 2,
+        "golds": 1,
+        "green": 0,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.2625,
+      "params": {
+        "shepherd": 3,
+        "village": 4,
+        "draw": 3,
+        "embassy": 1,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 4,
+        "green": 6,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.26249999999999996,
+      "params": {
+        "shepherd": 1,
+        "village": 4,
+        "draw": 3,
+        "embassy": 2,
+        "university": 0,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 1,
+        "silvers": 3,
+        "golds": 4,
+        "green": 12,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.25625,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 2,
+        "embassy": 2,
+        "university": 1,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 10,
+        "estates": 0,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.25625,
+      "params": {
+        "shepherd": 6,
+        "village": 2,
+        "draw": 0,
+        "embassy": 2,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 1,
+        "silvers": 2,
+        "golds": 1,
+        "green": 12,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.25625,
+      "params": {
+        "shepherd": 3,
+        "village": 4,
+        "draw": 0,
+        "embassy": 2,
+        "university": 2,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 2,
+        "green": 10,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.25625,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 4,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 3,
+        "green": 12,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.2375,
+      "params": {
+        "shepherd": 1,
+        "village": 4,
+        "draw": 5,
+        "embassy": 0,
+        "university": 0,
+        "counting": 1,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 1,
+        "green": 10,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.23125,
+      "params": {
+        "shepherd": 4,
+        "village": 3,
+        "draw": 4,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 4,
+        "green": 0,
+        "estates": 6,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.225,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 0,
+        "bauble": 2,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "counting": 4
+      }
+    },
+    {
+      "rate": 0.22187500000000002,
+      "params": {
+        "shepherd": 6,
+        "village": 4,
+        "draw": 4,
+        "embassy": 2,
+        "university": 2,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 2,
+        "green": 10,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Shepherd",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.21875,
+      "params": {
+        "shepherd": 6,
+        "village": 2,
+        "draw": 0,
+        "embassy": 2,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 1,
+        "green": 8,
+        "estates": 0,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.21875,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 2,
+        "embassy": 0,
+        "university": 2,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 1,
+        "green": 12,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Shepherd",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.21250000000000002,
+      "params": {
+        "shepherd": 1,
+        "village": 4,
+        "draw": 2,
+        "embassy": 1,
+        "university": 2,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 12,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.2,
+      "params": {
+        "shepherd": 6,
+        "village": 3,
+        "draw": 2,
+        "embassy": 1,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 1,
+        "green": 12,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.19375,
+      "params": {
+        "shepherd": 4,
+        "village": 3,
+        "draw": 0,
+        "embassy": 1,
+        "university": 0,
+        "counting": 1,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 1,
+        "green": 8,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.1875,
+      "params": {
+        "shepherd": 1,
+        "village": 4,
+        "draw": 5,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 2,
+        "green": 12,
+        "estates": 0,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.1875,
+      "params": {
+        "shepherd": 6,
+        "village": 0,
+        "draw": 3,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 3,
+        "green": 12,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.18125,
+      "params": {
+        "shepherd": 2,
+        "village": 1,
+        "draw": 4,
+        "embassy": 0,
+        "university": 1,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 1,
+        "green": 0,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Shepherd",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.16875,
+      "params": {
+        "shepherd": 4,
+        "village": 2,
+        "draw": 2,
+        "embassy": 2,
+        "university": 0,
+        "counting": 1,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 1,
+        "green": 6,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.15625,
+      "params": {
+        "shepherd": 1,
+        "village": 3,
+        "draw": 4,
+        "embassy": 2,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 0,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.15,
+      "params": {
+        "shepherd": 2,
+        "village": 0,
+        "draw": 2,
+        "embassy": 0,
+        "university": 2,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 1,
+        "green": 8,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.13125,
+      "params": {
+        "shepherd": 0,
+        "village": 1,
+        "draw": 3,
+        "embassy": 1,
+        "university": 1,
+        "counting": 1,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 2,
+        "green": 0,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.13124999999999998,
+      "params": {
+        "shepherd": 2,
+        "village": 4,
+        "draw": 2,
+        "embassy": 2,
+        "university": 1,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 12,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.11875,
+      "params": {
+        "shepherd": 4,
+        "village": 3,
+        "draw": 1,
+        "embassy": 2,
+        "university": 2,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 1,
+        "silvers": 2,
+        "golds": 4,
+        "green": 12,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.1125,
+      "params": {
+        "shepherd": 2,
+        "village": 0,
+        "draw": 3,
+        "embassy": 1,
+        "university": 0,
+        "counting": 1,
+        "bauble": 0,
+        "fish": 0,
+        "silvers": 2,
+        "golds": 4,
+        "green": 10,
+        "estates": 0,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.09375,
+      "params": {
+        "shepherd": 0,
+        "village": 2,
+        "draw": 5,
+        "embassy": 2,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 1,
+        "green": 12,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.0875,
+      "params": {
+        "shepherd": 3,
+        "village": 3,
+        "draw": 5,
+        "embassy": 2,
+        "university": 1,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 4,
+        "green": 10,
+        "estates": 8,
+        "fairgrounds": true,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.07500000000000001,
+      "params": {
+        "shepherd": 6,
+        "village": 0,
+        "draw": 3,
+        "embassy": 1,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 1,
+        "golds": 4,
+        "green": 10,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Shepherd",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.075,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 5,
+        "embassy": 1,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 3,
+        "golds": 2,
+        "green": 12,
+        "estates": 0,
+        "fairgrounds": true,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.0625,
+      "params": {
+        "shepherd": 4,
+        "village": 1,
+        "draw": 1,
+        "embassy": 2,
+        "university": 1,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 4,
+        "green": 0,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.04375,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 2,
+        "embassy": 2,
+        "university": 2,
+        "counting": 0,
+        "bauble": 0,
+        "fish": 1,
+        "silvers": 3,
+        "golds": 1,
+        "green": 12,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.037500000000000006,
+      "params": {
+        "shepherd": 6,
+        "village": 0,
+        "draw": 0,
+        "embassy": 2,
+        "university": 2,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 2,
+        "golds": 4,
+        "green": 10,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 4
+      }
+    },
+    {
+      "rate": 0.0125,
+      "params": {
+        "shepherd": 4,
+        "village": 0,
+        "draw": 5,
+        "embassy": 1,
+        "university": 0,
+        "counting": 0,
+        "bauble": 1,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 3,
+        "green": 12,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.0125,
+      "params": {
+        "shepherd": 6,
+        "village": 0,
+        "draw": 0,
+        "embassy": 2,
+        "university": 2,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 0,
+        "silvers": 1,
+        "golds": 4,
+        "green": 8,
+        "estates": 8,
+        "fairgrounds": false,
+        "forts": false,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    },
+    {
+      "rate": 0.00625,
+      "params": {
+        "shepherd": 3,
+        "village": 0,
+        "draw": 5,
+        "embassy": 1,
+        "university": 1,
+        "counting": 1,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 3,
+        "golds": 2,
+        "green": 6,
+        "estates": 0,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Silver",
+        "duchy": 3
+      }
+    }
+  ]
+}

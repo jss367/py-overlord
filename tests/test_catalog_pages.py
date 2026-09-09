@@ -97,6 +97,20 @@ def test_compatibility_requires_referenced_landscapes():
     assert strategy_is_compatible(strategy, board)
 
 
+def test_compatibility_includes_starting_heirlooms():
+    strategy = collect_rendered_strategies(names=["Big Money"])[0]
+    strategy = replace(strategy, references={**strategy.references, "Kingdom Cards": ["Pasture"]})
+    board = RenderedBoard(
+        display_name="Shepherd Kingdom",
+        page_path=Path("shepherd.html"),
+        source_path=Path("boards/shepherd.txt"),
+        config=BoardConfig(["Shepherd"]),
+    )
+    assert strategy_is_compatible(strategy, board)
+    board.config.kingdom_cards = ["Village"]
+    assert not strategy_is_compatible(strategy, board)
+
+
 def test_compatibility_includes_setup_created_piles():
     strategy = collect_rendered_strategies(names=["Big Money"])[0]
     strategy = replace(
@@ -161,10 +175,12 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
     )
 
     assert {path.relative_to(output).as_posix() for path in written} == {
+        "index.html",
         "boards/index.html",
         "boards/nested/other-board.html",
         "boards/sample-board.html",
         "strategies/big-money.html",
+        "strategies/random-unused-card-kingdom-guide.html",
         "strategies/cursed-band-biding-time-strategy-guide.html",
         "strategies/tea-house-kind-emperor-strategy-guide.html",
         "strategies/mine-guildhall-strategy-guide.html",
@@ -217,6 +233,32 @@ def test_catalog_indexes_link_to_each_other(tmp_path):
     assert "No tournament results yet" in leaderboard
     assert 'href="index.html">Strategy index</a>' in leaderboard
     assert 'href="../strategies/index.html">Strategy index</a>' in board_index
+    assert 'href="../index.html">Home</a>' in strategy_index
+    assert 'href="../index.html">Home</a>' in board_index
+
+
+def test_catalog_home_page_links_every_section(tmp_path):
+    boards_root = tmp_path / "boards"
+    board = _write_board(boards_root / "simple.txt", "Village\n")
+    output = tmp_path / "site"
+
+    written = render_catalog_pages(
+        output,
+        boards_root=boards_root,
+        board_paths=[board],
+        strategy_names=["Big Money"],
+    )
+
+    home = output / "index.html"
+    assert home in written
+    html = home.read_text(encoding="utf-8")
+    assert "<title>py-overlord Reports</title>" in html
+    assert 'href="strategies/index.html">Strategy catalog</a>' in html
+    assert 'href="boards/index.html">Board library</a>' in html
+    assert 'href="strategies/leaderboard.html">Leaderboard</a>' in html
+    assert 'href="strategies/card-strategy-usage.html">Card strategy usage</a>' in html
+    assert "1 strategy · " in html
+    assert "1 board<" in html
 
 
 def test_catalog_replaces_a_stale_leaderboard_placeholder(tmp_path):

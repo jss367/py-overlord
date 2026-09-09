@@ -71,9 +71,11 @@ Generate linked HTML pages for every board and registered strategy:
 PYTHONPATH=. python scripts/render_catalog.py
 ```
 
-Open the [board library](reports/boards/index.html) or
-[strategy catalog](reports/strategies/index.html) directly in your browser; no
-server or internet connection is needed. Board pages show a responsive grid of
+Open the [reports home page](reports/index.html) directly in your browser; no
+server or internet connection is needed. It links to the
+[board library](reports/boards/index.html), the
+[strategy catalog](reports/strategies/index.html), the leaderboard, and the
+card usage report. Board pages show a responsive grid of
 cards with printed coin, debt, and potion costs, card types, landscape setup,
 trait assignments, and any board-wide discount. Explicit basic piles such as
 Colony and Platinum appear separately from the Kingdom. Search the board library
@@ -101,9 +103,9 @@ cross-board tournament updates the catalog's card usage page; board-specific
 or custom output files get a separate companion beside their leaderboard.
 Regenerating the catalog resets both the leaderboard and card usage ranks.
 
-The generated board and strategy catalog under `reports/boards/` and
-`reports/strategies/` is committed so it can be browsed directly from a
-checkout. Regenerate it after changing a board or strategy. Continuous
+The generated home page at `reports/index.html` and the board and strategy
+catalog under `reports/boards/` and `reports/strategies/` are committed so they
+can be browsed directly from a checkout. Regenerate it after changing a board or strategy. Continuous
 integration regenerates the catalog in a temporary directory and fails if the
 committed pages are stale.
 
