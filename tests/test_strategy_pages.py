@@ -423,3 +423,13 @@ def test_strategy_leaderboard_without_results_has_no_filter_panel():
 
     assert 'id="leaderboard-filters"' not in html
     assert "leaderboard-row" not in html
+
+
+def test_rendered_kingdom_cards_exclude_non_supply_piles():
+    from dominion.reporting.strategy_pages import collect_rendered_strategies, non_supply_pile_names
+
+    assert {"Spoils", "Horse", "Will-o'-Wisp"} <= non_supply_pile_names()
+    rendered = collect_rendered_strategies(names=["Kolkata Stables Knights Money"])[0]
+    kingdom = rendered.references["Kingdom Cards"]
+    assert "Spoils" not in kingdom
+    assert "Stables" in kingdom and "Knights" in kingdom
