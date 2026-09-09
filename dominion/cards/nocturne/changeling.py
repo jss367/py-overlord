@@ -1,4 +1,4 @@
-"""Changeling — $3 Action-Night.
+"""Changeling — $3 Night.
 
 Trash this. Gain a copy of a card you have in play. When you gain a card
 costing $3+, you may exchange it for a Changeling.
@@ -13,7 +13,7 @@ class Changeling(Card):
             name="Changeling",
             cost=CardCost(coins=3),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.NIGHT],
+            types=[CardType.NIGHT],
         )
 
     def play_effect(self, game_state):

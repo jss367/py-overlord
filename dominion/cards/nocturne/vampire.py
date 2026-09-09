@@ -1,4 +1,4 @@
-"""Vampire — $5 Action-Attack-Night.
+"""Vampire — $5 Night-Attack-Doom.
 
 Each other player receives a Hex. Gain a card costing up to $5 (not Vampire).
 Exchange this for a Bat.
@@ -15,7 +15,7 @@ class Vampire(Card):
             name="Vampire",
             cost=CardCost(coins=5),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.ATTACK, CardType.NIGHT, CardType.DOOM],
+            types=[CardType.ATTACK, CardType.NIGHT, CardType.DOOM],
         )
 
     def play_effect(self, game_state):
