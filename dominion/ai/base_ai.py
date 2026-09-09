@@ -1918,10 +1918,23 @@ class AI(ABC):
                 return False
             players = list(state.players)
             gainer = state.current_player
-            if gainer in players:
-                nxt = players[(players.index(gainer) + 1) % len(players)]
-                return nxt is player
-            return False
+            if gainer not in players or gainer is player:
+                return False
+            # An extra turn already scheduled for the gainer (Outpost,
+            # Mission, Voyage, Journey, Fleet) means they act again first
+            # and would take the Fool's Gold themselves.
+            for flag in (
+                "outpost_pending",
+                "mission_extra_turn_pending",
+                "voyage_extra_turn_pending",
+                "journey_extra_turn_pending",
+            ):
+                if getattr(gainer, flag, False):
+                    return False
+            if getattr(state, "fleet_extra_round_active", False):
+                return False
+            nxt = players[(players.index(gainer) + 1) % len(players)]
+            return nxt is player
         count_in_hand = sum(1 for card in player.hand if card.name == "Fool's Gold")
         if count_in_hand > 1:
             return True

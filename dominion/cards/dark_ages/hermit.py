@@ -93,6 +93,8 @@ class Hermit(Card):
             ("action", player.ai.name, "exchanges Hermit for a Madman", {})
         )
 
-        # Gain a Madman from the Madman pile (non-supply pile).
+        # Take a Madman from the Madman pile (non-supply pile). Exchanging is
+        # not gaining: no gain reactions (Sheepdog, Trader, Watchtower), no
+        # gain counters, no on-gain hooks. The card goes straight to discard.
         game_state.supply["Madman"] -= 1
-        game_state.gain_card(player, get_card("Madman"))
+        player.discard.append(get_card("Madman"))

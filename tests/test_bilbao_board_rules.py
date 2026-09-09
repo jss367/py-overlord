@@ -453,3 +453,36 @@ def test_best_found_anvil_guard_accounts_for_silver_discard():
     # With a Copper available the discard costs $1 and the gain proceeds.
     p0.hand.append(get_card("Copper"))
     assert strat.choose_anvil_gain(state, p0, choices) is not None
+
+
+def test_fools_gold_reaction_declined_when_gainer_has_an_extra_turn():
+    state = _game()
+    p0, p1 = state.players
+    state.current_player_index = 0
+    p0.outpost_pending = True
+    p1.hand = [get_card("Fool's Gold")]
+    p1.deck = [get_card("Copper")]
+    state.supply["Province"] -= 1
+    state.gain_card(p0, get_card("Province"))
+    assert len(p1.hand) == 1
+    assert p1.deck[-1].name == "Copper"
+
+
+def test_hermit_exchange_is_not_a_gain_event():
+    """Exchanging for a Madman must not trigger gain reactions or counters."""
+    state = _game()
+    p0 = state.players[0]
+    state.current_player_index = 0
+    hermit = get_card("Hermit")
+    state.supply["Hermit"] -= 1
+    p0.in_play.append(hermit)
+    p0.hand = [get_card("Sheepdog")]
+    p0.deck = [get_card("Copper"), get_card("Copper")]
+    p0.cards_gained_this_buy_phase = 0
+    before = p0.cards_gained_this_turn
+    state._handle_buy_phase_end(p0)
+    assert any(c.name == "Madman" for c in p0.discard)
+    # Sheepdog stayed in hand (no gain reaction) and nothing was drawn.
+    assert [c.name for c in p0.hand] == ["Sheepdog"]
+    assert len(p0.deck) == 2
+    assert p0.cards_gained_this_turn == before
