@@ -3183,6 +3183,34 @@ class GameState:
 
         self._trigger_haggler_bonus(player, card)
 
+    def _cards_retained_in_play(self, player: PlayerState) -> set:
+        """Cards that stay in play through this Clean-up.
+
+        Pending Durations the player still owns and that have not already
+        left play (a Bonfire may have trashed one), plus, transitively, any
+        multiplier (Throne Room, King's Court) whose ``duration_targets``
+        include a retained card.
+        """
+        owned = set(player.all_cards())
+        moved_from_play = {
+            card for zone in player._physical_card_zones()
+            if zone is not player.in_play for card in zone
+        }
+        retained = {
+            card for card in player.duration + player.multiplied_durations
+            if card in owned and card not in moved_from_play
+        }
+        changed = True
+        while changed:
+            changed = False
+            for card in player.in_play:
+                if card not in retained and any(
+                    target in retained for target in getattr(card, "duration_targets", [])
+                ):
+                    retained.add(card)
+                    changed = True
+        return retained
+
     def handle_cleanup_phase(self):
         """Handle the cleanup phase of a turn."""
         player = self.current_player
@@ -3242,17 +3270,7 @@ class GameState:
             # Clean-up qualify: a Duration staying in play is not discarded,
             # and neither is a multiplier (Throne Room, King's Court) that is
             # retained because one of its ``duration_targets`` stays.
-            staying = set(player.duration) | set(player.multiplied_durations)
-            changed = True
-            while changed:
-                changed = False
-                for card in player.in_play:
-                    if card not in staying and any(
-                        target in staying
-                        for target in getattr(card, "duration_targets", [])
-                    ):
-                        staying.add(card)
-                        changed = True
+            staying = self._cards_retained_in_play(player)
             playable_actions = [
                 card
                 for card in player.in_play
@@ -3285,22 +3303,7 @@ class GameState:
                 player.coins += len(distinct_treasures)
 
         # Duration cards remain in play until their lingering effects finish.
-        owned = set(player.all_cards())
-        moved_from_play = {
-            card for zone in player._physical_card_zones()
-            if zone is not player.in_play for card in zone
-        }
-        durations_to_keep = {
-            card for card in player.duration + player.multiplied_durations
-            if card in owned and card not in moved_from_play
-        }
-        changed = True
-        while changed:
-            changed = False
-            for card in player.in_play:
-                if card not in durations_to_keep and any(t in durations_to_keep for t in getattr(card, "duration_targets", [])):
-                    durations_to_keep.add(card)
-                    changed = True
+        durations_to_keep = self._cards_retained_in_play(player)
 
         # A physical multiplier may be shuffled and played again. Completed
         # targets must not retain it during an unrelated later Duration play.

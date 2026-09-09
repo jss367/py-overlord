@@ -355,6 +355,30 @@ def test_scheme_does_not_topdeck_a_multiplier_retained_by_its_duration_target():
     assert scheme in player.hand
 
 
+def test_scheme_may_topdeck_a_multiplier_whose_duration_target_left_play():
+    state = _setup(["Scheme", "Research", "Throne Room"])
+    player = state.current_player
+    research = get_card("Research")
+    throne = get_card("Throne Room")
+    scheme = get_card("Scheme")
+    # The Throne Room played Research, but Research has since been trashed
+    # (Bonfire): it is still a pending Duration instruction, not a card in
+    # play, so the Throne Room is discarded from play this Clean-up.
+    player.in_play = [scheme, throne]
+    player.duration = [research]
+    state.trash.append(research)
+    throne.duration_targets = [research]
+    player.hand = []
+    player.deck = [get_card("Copper") for _ in range(5)]
+    player.discard = []
+
+    state.phase = "cleanup"
+    state.handle_cleanup_phase()
+
+    assert throne in player.hand
+    assert throne not in player.in_play
+
+
 def test_scheme_topdecks_nothing_when_journey_keeps_cards_in_play():
     state = _setup(["Scheme", "Stables"])
     player = state.current_player
