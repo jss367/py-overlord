@@ -239,15 +239,16 @@ class KimberleyMine(EnhancedStrategy):
         if any(n in self._multiplier_order(state, player)[:3] for n in
                [c.name for c in choices if c is not None]):
             multipliers = ["King's Court", "Throne Room"]
-        # A Priest before Mine turns Mine's trash into +$2, so with actions to
-        # spare the Priest goes first regardless of the terminal order.
+        # A Priest before Mine turns every later trash into +$2, so with actions
+        # to spare the Priest goes first, ahead of any multiplier aimed at Mine
+        # and regardless of the terminal order.
         lead = []
         if player.actions >= 2 and self._has_junk(player):
             lead = ["Priest"]
         order = (
             ["Mining Village", "Laboratory", "Market Square"]
-            + multipliers
             + lead
+            + multipliers
             + terminals
         )
         return self.pick(choices, order)

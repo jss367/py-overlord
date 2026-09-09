@@ -91,3 +91,18 @@ def test_search_reports_only_unnatural_turn_limit_endings_as_truncated(
     result = search.match(({}, search.REFERENCE, 2, 100))
 
     assert result["totals"]["truncated"] == (0 if normal_end else 2)
+
+
+def test_priest_leads_a_mine_multiplier_when_actions_allow():
+    from generated_strategies.kimberley_mine_engine import KimberleyMine
+
+    strategy = KimberleyMine(thrones=1)
+    player = PlayerState(ai=GeneticAI(strategy), actions=2)
+    player.hand = [get_card(n) for n in ["Estate", "Copper", "Mine", "Throne Room", "Priest"]]
+    state = _state(player, {"Platinum": 12, "Gold": 30, "Silver": 40})
+    state._choosing_main_action_phase = True
+    actions = [c for c in player.hand if c.is_action]
+
+    assert strategy.choose_action(state, player, actions).name == "Priest"
+    player.actions = 1
+    assert strategy.choose_action(state, player, actions).name == "Throne Room"
