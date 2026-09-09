@@ -76,8 +76,9 @@ footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
 <p>The pre-search audit compared all twelve implementations (ten cards, the
 Rich trait, and Madman) with the printed card text, verified against
 the Dominion Strategy wiki card data. Six rules defects were found and
-fixed first, with tests in <code>tests/test_bilbao_board_rules.py</code>. Two of
-them change how the whole board plays:</p>
+fixed first, with tests in <code>tests/test_bilbao_board_rules.py</code>; a seventh
+(Raider's card type) was caught in review. Two of them change how the
+whole board plays:</p>
 <ol>
 <li><strong>Shaman was a Duration card with a private trash rule.</strong> The simulator
    had Shaman stay in play and, only for the player who played it, gain a
@@ -106,6 +107,10 @@ them change how the whole board plays:</p>
    any $4 gain</strong>; because the gain is mandatory after the discard, the
    fallback then grabbed a random $4 card. The gain is now chosen first
    and the discard is skipped when nothing is wanted.</li>
+<li><strong>Raider was typed as an Action.</strong> The real card is a Night-Duration-
+   Attack: it is played after Treasures, costs no Action, and its attack
+   sees every Treasure in play. Caught by review after the first search;
+   the Raider experiments below were re-run with the corrected card.</li>
 </ol>
 <p>New AI hooks, all overridable on a strategy and routed through
 <code>GeneticAI</code> to strategy methods where present:
@@ -135,8 +140,9 @@ gain choices, which now follow the strategy's trash and gain lists.</p>
 <li><strong>Hermit</strong> exchanges itself for a Madman on a turn with no Buy-phase
   gain; Madman doubles the hand. Wandering Minstrel is the only village,
   Sheepdog the only draw.</li>
-<li><strong>Raider</strong> is a $6 terminal that pays $3 next turn; its attack only
-  touches five-card hands and only copies of cards in play.</li>
+<li><strong>Raider</strong> is a $6 Night card that pays $3 next turn; its attack only
+  touches five-card hands and only copies of cards you have in play, which
+  at Night includes the Treasures you played.</li>
 </ul>
 </section>
 <section class="section"><h2 id="recommendation">Recommendation</h2>
@@ -203,6 +209,9 @@ the leader, and island-model genetic evolution.</p>
 </section>
 <section class="section"><h2 id="validation">Validation</h2>
 <h3>Seed round robin (60 games per pairing)</h3>
+<p>Measured before Raider's card type was corrected; Raider Money's re-check
+against the published strategy with the Night-phase Raider is in the
+validation table below.</p>
 <div aria-label="Seed round robin" class="table-wrap" role="region" tabindex="0"><table>
 <thead><tr><th scope="col">Strategy</th><th scope="col" style="text-align: right;">Average win rate</th><th scope="col" style="text-align: right;">vs Big Money</th></tr></thead>
 <tbody>
@@ -229,7 +238,7 @@ the leader, and island-model genetic evolution.</p>
 <tr><td>Gold only at $7 (vs $6)</td><td style="text-align: right;">56.5%</td><td>200</td></tr>
 <tr><td>Never buy Gold</td><td style="text-align: right;">50.9%</td><td>100</td></tr>
 <tr><td>Never buy Estates</td><td style="text-align: right;">52.5%</td><td>200</td></tr>
-<tr><td>One or two Raiders</td><td style="text-align: right;">42-44%</td><td>200</td></tr>
+<tr><td>One or two Raiders (Night-phase Raider, re-run after the type fix)</td><td style="text-align: right;">49-50%</td><td>400</td></tr>
 <tr><td>One Wheelwright</td><td style="text-align: right;">36.5%</td><td>200</td></tr>
 <tr><td>Two Sheepdogs</td><td style="text-align: right;">34.5%</td><td>200</td></tr>
 <tr><td>Two Hermits</td><td style="text-align: right;">46.0%</td><td>200</td></tr>
@@ -263,7 +272,7 @@ the leader, and island-model genetic evolution.</p>
 <tr><td>Bilbao Fools Gold Rush</td><td style="text-align: right;">80.4%</td></tr>
 <tr><td>Bilbao Sheepdog Anvil Money</td><td style="text-align: right;">86.0%</td></tr>
 <tr><td>Bilbao Hermit Madman Engine</td><td style="text-align: right;">97.8%</td></tr>
-<tr><td>Bilbao Raider Money</td><td style="text-align: right;">99.8%</td></tr>
+<tr><td>Bilbao Raider Money (re-run with the Night-phase Raider: 100%)</td><td style="text-align: right;">99.8%</td></tr>
 <tr><td>Big Money</td><td style="text-align: right;">99.8%</td></tr>
 <tr><td><strong>Average</strong></td><td style="text-align: right;"><strong>86.8%</strong></td></tr>
 </tbody></table></div>

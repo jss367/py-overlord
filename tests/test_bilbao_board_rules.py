@@ -525,3 +525,25 @@ def test_fools_gold_reaction_fires_when_trash_holds_only_junk():
     state.supply["Province"] -= 1
     state.gain_card(p0, get_card("Province"))
     assert p1.deck[-1].name == "Gold"
+
+
+# --- Raider is a Night card --------------------------------------------------
+
+
+def test_raider_is_a_night_duration_attack_not_an_action():
+    raider = get_card("Raider")
+    assert raider.is_night and raider.is_duration and raider.is_attack
+    assert not raider.is_action
+
+
+def test_raider_plays_in_the_night_phase_and_sees_treasures_in_play():
+    state = _game()
+    p0, p1 = state.players
+    state.current_player_index = 0
+    raider = get_card("Raider")
+    p0.hand = [raider]
+    p0.in_play = [get_card("Copper"), get_card("Silver")]
+    p1.hand = [get_card("Silver")] + [get_card("Estate") for _ in range(4)]
+    state.handle_night_phase()
+    assert raider in p0.duration
+    assert [c.name for c in p1.discard] == ["Silver"]

@@ -21,8 +21,8 @@ Board texture
   Fool's Gold comes straight back at the start of the owner's next turn).
 - Hermit exchanges itself for a Madman on a turn with no Buy-phase gain;
   Madman doubles the hand. Wandering Minstrel is the only village.
-- Raider is a $6 terminal that pays +$3 next turn; its attack only touches
-  five-card hands and only copies of cards in play.
+- Raider is a $6 Night card that pays +$3 next turn; played after Treasures,
+  its attack makes five-card hands discard a copy of a card in play.
 
 Each seed is a distinct theory of the kingdom for the island model.
 """

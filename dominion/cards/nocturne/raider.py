@@ -1,7 +1,9 @@
-"""Raider — $6 Action-Attack-Duration.
+"""Raider — $6 Night-Duration-Attack.
 
-Each other player with 5 or more cards in hand discards a copy of a card you
-have in play (or reveals they can't). At the start of your next turn, +$3.
+Played in the Night phase, after Treasures, so "a card you have in play"
+includes every Treasure played this turn. Each other player with 5 or more
+cards in hand discards a copy of a card you have in play (or reveals they
+can't). At the start of your next turn, +$3.
 """
 
 from ..base_card import Card, CardCost, CardStats, CardType
@@ -13,7 +15,7 @@ class Raider(Card):
             name="Raider",
             cost=CardCost(coins=6),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.ATTACK, CardType.DURATION],
+            types=[CardType.NIGHT, CardType.DURATION, CardType.ATTACK],
         )
 
     def play_effect(self, game_state):
