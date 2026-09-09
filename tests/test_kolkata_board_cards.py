@@ -200,6 +200,24 @@ def test_artificer_can_gain_the_top_knight():
     assert state.supply["Knights"] == 9
 
 
+def test_artificer_never_offers_the_event_created_horse_pile():
+    from dominion.events.menagerie_events import ensure_horse_pile
+
+    state = _setup(["Artificer", "Stables"], wants=["Horse"])
+    ensure_horse_pile(state)
+    assert state.supply.get("Horse", 0) > 0
+    player = state.current_player
+    player.hand = [get_card("Copper") for _ in range(3)]
+    player.deck = []
+
+    artificer = get_card("Artificer")
+    player.in_play.append(artificer)
+    artificer.play_effect(state)
+
+    assert not any(c.name == "Horse" for c in player.deck + player.discard)
+    assert len(player.hand) == 3
+
+
 # ----------------------------------------------------------------- Armory
 
 
