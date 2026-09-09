@@ -52,9 +52,9 @@ footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
 <nav class="topbar" aria-label="Guide navigation"><a href="index.html">← Strategy catalog</a><a href="../boards/kimberley.html">View the board</a><a href="kimberley-mine-engine.html">Strategy implementation</a></nav>
 <header class="hero">
 <div class="intro"><span class="eyebrow">Board built for Mine</span><h1>Kimberley</h1><p><strong>A two-player Colony board where Mine is the best card.</strong> Mine trashes a Treasure and gains one costing up to $3 more directly into hand, so one play turns Gold into Platinum you spend the same turn. Kimberley surrounds it with cards that pay out on every trash: Sewers trashes a second card, Tomb awards a point, Priest adds $2, and Market Square turns into a Gold.</p>
-<p>The published engine won 88.8% of confirmation games against the strongest plan the search found that never buys Mine, and 98.7% against Colony Big Money with Smithy.</p>
+<p>The published engine won 87.0% of confirmation games against the strongest plan the search found that never buys Mine, and 97.3% against Colony Big Money with Smithy.</p>
 </div>
-<aside class="verdict" aria-label="Recommendation"><span class="eyebrow">Mine engine vs best no-Mine plan</span><strong>88.8%</strong><p>1,000 paired games per opponent. Buy one Mine on turn one or two, play it every turn it can climb, and skip both multipliers.</p><p>Two players · Estate starts · Colony and Platinum · Sewers · Tomb</p></aside>
+<aside class="verdict" aria-label="Recommendation"><span class="eyebrow">Mine engine vs best no-Mine plan</span><strong>87.0%</strong><p>1,000 paired games per opponent. Buy one Mine on turn one or two, play it every turn it can climb, and skip both multipliers.</p><p>Two players · Estate starts · Colony and Platinum · Sewers · Tomb</p></aside>
 </header>
 <nav class="contents" aria-label="On this page"><a href="#the-board">The board</a><a href="#how-to-play-it">How to play it</a><a href="#what-the-simulations-established">What the simulations established</a><a href="#reproduction">Reproduction</a></nav>
 <section class="section"><h2 id="the-board">The board</h2>
@@ -75,10 +75,10 @@ footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
 <section class="section"><h2 id="how-to-play-it">How to play it</h2>
 <ol>
 <li><strong>Open Mine/Priest.</strong> On $5/$2 buy Mine and nothing; on $4/$3 buy Priest and Silver or Market Square. Opening Laboratory instead of Mine was within noise; opening Silver instead of Priest lost clearly.</li>
-<li><strong>One Mine is enough.</strong> A second Mine lost 57.3% of games to the single-Mine engine. Play Mine every turn it can climb: trash Gold when Platinum remains in the supply, otherwise Silver, otherwise Copper. Never trash Platinum. Upgrading Copper first instead lost 65.9%.</li>
-<li><strong>Buy Sewers with your first spare $3.</strong> It converts every Mine play into two trashes. Let it eat Estates first, then Coppers while you own more than three. Skipping Sewers was the most expensive change tested after skipping Mine.</li>
-<li><strong>Priest before Mine when you have the Actions.</strong> Mining Village or Laboratory gives the second Action. Priest trashes an Estate or Copper, then Mine's trash and the Sewers trash each add $2. Priest and Market Square were each individually close to neutral in the ablations; they are there for the trash triggers and the +Buy, not as the core.</li>
-<li><strong>Skip Throne Room and King's Court.</strong> The engine plays one Mine per turn and wants every other purchase to be Platinum, draw, or a trash trigger. Adding one Throne Room lost 62.5% to the published engine; adding one King's Court was a coin flip. If you do own one, point it at Mine.</li>
+<li><strong>One Mine is enough.</strong> A second Mine lost 55.6% of games to the single-Mine engine. Play Mine every turn it can climb: trash Gold when Platinum remains in the supply, otherwise Silver, otherwise Copper. Never trash Platinum. Upgrading Copper first instead lost 69.7%.</li>
+<li><strong>Buy Sewers with your first spare $3.</strong> It converts every Mine play into two trashes. Let it eat Estates first, then Coppers while you own more than three. Skipping Sewers, skipping Priest, and opening Silver instead of Priest were the three costliest changes tested after skipping Mine.</li>
+<li><strong>Priest before Mine when you have the Actions.</strong> Mining Village or Laboratory gives the second Action. Priest trashes an Estate or Copper, then Mine's trash and the Sewers trash each add $2. Skipping Priest lost 75.9% of games to the published engine. Market Square was close to neutral on its own; it is there for the Gold reaction and the +Buy.</li>
+<li><strong>Skip Throne Room and King's Court.</strong> The engine plays one Mine per turn and wants every other purchase to be Platinum, draw, or a trash trigger. Adding one Throne Room lost 61.4% to the published engine; adding one King's Court was a coin flip. If you do own one, point it at Mine.</li>
 <li><strong>Money: Platinum at $9, one Gold, one Silver.</strong> Mine manufactures the rest. Add two Laboratories, two Market Squares, and a Mining Village once you own two terminals.</li>
 <li><strong>Green late.</strong> Buy Colony once you own a Platinum, Province once four or fewer Colonies remain, Duchy at two. Tomb points arrive on their own; the engine scores about 13 of them a game.</li>
 </ol>
@@ -90,12 +90,12 @@ footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
 <div class="table-wrap" role="region" aria-label="Confirmation results" tabindex="0"><table>
 <thead><tr><th>Opponent</th><th style="text-align: right;">Published engine's win rate</th></tr></thead>
 <tbody>
-<tr><td>Best no-Mine plan from the search (Priest opening, three Laboratories, King's Court with Smithy, three Market Squares, Hoard, Bank)</td><td style="text-align: right;">88.8%</td></tr>
+<tr><td>Best no-Mine plan from the search (Priest opening, three Laboratories, King's Court with Smithy, three Market Squares, Hoard, Bank)</td><td style="text-align: right;">87.0%</td></tr>
 <tr><td>Colony Big Money (Platinum, Gold, Silver only)</td><td style="text-align: right;">100.0%</td></tr>
-<tr><td>Colony Big Money with up to two Smithies</td><td style="text-align: right;">98.7%</td></tr>
-<tr><td>Colony Big Money with up to three Laboratories</td><td style="text-align: right;">99.8%</td></tr>
-<tr><td>Colony Big Money with up to two Mines (climbing to Platinum)</td><td style="text-align: right;">99.2%</td></tr>
-<tr><td>Colony Big Money with one Priest</td><td style="text-align: right;">99.7%</td></tr>
+<tr><td>Colony Big Money with up to two Smithies</td><td style="text-align: right;">97.3%</td></tr>
+<tr><td>Colony Big Money with up to three Laboratories</td><td style="text-align: right;">99.6%</td></tr>
+<tr><td>Colony Big Money with up to two Mines (climbing to Platinum)</td><td style="text-align: right;">98.3%</td></tr>
+<tr><td>Colony Big Money with one Priest</td><td style="text-align: right;">99.8%</td></tr>
 <tr><td>Colony Big Money with up to two Hoards</td><td style="text-align: right;">100.0%</td></tr>
 <tr><td>Colony Big Money with up to two Banks</td><td style="text-align: right;">100.0%</td></tr>
 </tbody></table></div>
@@ -103,19 +103,19 @@ footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
 <div class="table-wrap" role="region" aria-label="Ablation results" tabindex="0"><table>
 <thead><tr><th>Change</th><th style="text-align: right;">Published engine vs change</th><th style="text-align: right;">Changed engine vs best no-Mine plan</th></tr></thead>
 <tbody>
-<tr><td>Never buy Mine (Laboratory opening instead)</td><td style="text-align: right;">96.4%</td><td style="text-align: right;">25.4%</td></tr>
-<tr><td>Never buy Sewers</td><td style="text-align: right;">83.5%</td><td style="text-align: right;">66.6%</td></tr>
-<tr><td>Never buy Priest (Silver second)</td><td style="text-align: right;">48.6%</td><td style="text-align: right;">85.2%</td></tr>
-<tr><td>Never buy Market Square</td><td style="text-align: right;">52.6%</td><td style="text-align: right;">89.7%</td></tr>
-<tr><td>Mine upgrades Copper first instead of taking the biggest step</td><td style="text-align: right;">65.9%</td><td style="text-align: right;">81.6%</td></tr>
-<tr><td>Add one Throne Room, pointed at Mine</td><td style="text-align: right;">62.5%</td><td style="text-align: right;">80.8%</td></tr>
-<tr><td>Add one King's Court, pointed at Mine</td><td style="text-align: right;">49.1%</td><td style="text-align: right;">86.3%</td></tr>
-<tr><td>Buy a second Mine</td><td style="text-align: right;">57.3%</td><td style="text-align: right;">87.8%</td></tr>
-<tr><td>Open Laboratory instead of Mine</td><td style="text-align: right;">52.1%</td><td style="text-align: right;">91.3%</td></tr>
-<tr><td>Open Silver instead of Priest as the second card</td><td style="text-align: right;">70.1%</td><td style="text-align: right;">78.4%</td></tr>
+<tr><td>Never buy Mine (Laboratory opening instead)</td><td style="text-align: right;">90.5%</td><td style="text-align: right;">42.1%</td></tr>
+<tr><td>Never buy Sewers</td><td style="text-align: right;">78.0%</td><td style="text-align: right;">66.6%</td></tr>
+<tr><td>Never buy Priest (Silver second)</td><td style="text-align: right;">75.9%</td><td style="text-align: right;">65.9%</td></tr>
+<tr><td>Never buy Market Square</td><td style="text-align: right;">51.8%</td><td style="text-align: right;">85.5%</td></tr>
+<tr><td>Mine upgrades Copper first instead of taking the biggest step</td><td style="text-align: right;">69.7%</td><td style="text-align: right;">74.8%</td></tr>
+<tr><td>Add one Throne Room, pointed at Mine</td><td style="text-align: right;">61.4%</td><td style="text-align: right;">77.2%</td></tr>
+<tr><td>Add one King's Court, pointed at Mine</td><td style="text-align: right;">48.6%</td><td style="text-align: right;">84.4%</td></tr>
+<tr><td>Buy a second Mine</td><td style="text-align: right;">55.6%</td><td style="text-align: right;">83.8%</td></tr>
+<tr><td>Open Laboratory instead of Mine</td><td style="text-align: right;">51.0%</td><td style="text-align: right;">87.6%</td></tr>
+<tr><td>Open Silver instead of Priest as the second card</td><td style="text-align: right;">75.9%</td><td style="text-align: right;">71.8%</td></tr>
 </tbody></table></div>
-<p>Approximate sampling uncertainty for a 1,000-game result near 50% is three percentage points, before allowing for dependence between paired games. Results within that band (Priest, Market Square, King's Court, Laboratory opening) are not separated.</p>
-<p><strong>Practical takeaway:</strong> Mine is the engine here, not a support card. The same policy family without Mine falls from 88.8% to 25.4% against the best no-Mine plan, and Sewers is the piece that makes the difference: it turns each Mine play into a second trash, a second Tomb point, and a second Priest bonus. The multipliers that seem made for Mine are the trap.</p>
+<p>Approximate sampling uncertainty for a 1,000-game result near 50% is three percentage points, before allowing for dependence between paired games. Results within that band (Market Square, King's Court, the Laboratory opening, and a second Mine) are not separated.</p>
+<p><strong>Practical takeaway:</strong> Mine is the engine here, not a support card. The same policy family without Mine falls from 87.0% to 42.1% against the best no-Mine plan, and Sewers and Priest are the pieces that make the difference: Sewers turns each Mine play into a second trash and a second Tomb point, and Priest turns both trashes into money. The multipliers that seem made for Mine are the trap.</p>
 </section>
 <section class="section"><h2 id="reproduction">Reproduction</h2>
 <p>The registered <a href="../../generated_strategies/kimberley_mine_engine.py">strategy implementation</a> is named <strong>Kimberley Mine Engine</strong>. Its decision hooks choose the Mine trash and gain, the multiplier target when one is owned, and the buy order; the static gain list records referenced cards and is not a literal purchase order. Class parameters preserve the alternatives used in the search.</p>
@@ -126,8 +126,13 @@ PYTHONPATH=. python scripts/search_kimberley.py confirm
 PYTHONPATH=. python scripts/search_kimberley.py final
 </code></pre>
 <p>The script uses six worker processes. Raw results are in <a href="../../docs/analysis/kimberley_screen.json">the screen</a>, <a href="../../docs/analysis/kimberley_recheck.json">the recheck</a>, <a href="../../docs/analysis/kimberley_nomine.json">the no-Mine search</a>, <a href="../../docs/analysis/kimberley_confirm.json">the first confirmation</a>, and <a href="../../docs/analysis/kimberley_final.json">the final confirmation</a>.</p>
-<p>Before the search, the implementations of Mine, Throne Room, King's Court, Priest, Mining Village, Market Square, Hoard, Bank, Sewers, and Tomb were read against the card rules. Mine gains to hand and limits the gain to $3 above the trashed Treasure's cost; Sewers, Tomb, Priest, and Market Square all resolve from the shared trash hook; no corrections were needed.</p>
-<p>Validation on September 8, 2026, at revision <code>{REV}</code>: {TESTS}.</p>
+<p>Corrections made before these results were recorded:</p>
+<ul>
+<li>Sewers reads "when you trash a card <strong>other than with this</strong>, you may trash a card from your hand." The simulator let the Sewers trash re-trigger Sewers, so one trash could chain through every Estate and Copper in hand. It now yields at most one extra trash per trash, while Tomb, Priest, and Market Square still see both. Regression tests are in <code>tests/test_sewers_project.py</code>. The whole search was rerun after this fix; the earlier run had overstated the Sewers ablation. See the <a href="https://wiki.dominionstrategy.com/index.php/Sewers">Sewers rules</a>.</li>
+<li>The Colony Big Money baselines with Hoard and Bank originally ranked Gold above their support card, so they never bought it. They now buy Hoard or Bank ahead of Gold until the cap.</li>
+</ul>
+<p>The implementations of Mine, Throne Room, King's Court, Priest, Mining Village, Market Square, Hoard, Bank, and Tomb were also read against the card rules. Mine gains to hand and limits the gain to $3 above the trashed Treasure's cost; Tomb, Priest, Sewers, and Market Square all resolve from the shared trash hook.</p>
+<p>Validation on September 9, 2026, at revision <code>b499898</code>: <strong>2,659 passed</strong> in the full suite with this pull request's changes applied, and <code>ruff check --select E9,F63,F7,F82</code> clean. Focused tests in <code>tests/test_kimberley_search.py</code> cover the Mine climb order, the empty-Platinum fallback, multiplier targeting, the Colony buy gate, and the search's truncation reporting; <code>tests/test_sewers_project.py</code> covers the Sewers correction.</p>
 <p>The search compares implemented buying and tactical policies for two players. It does not exhaust every opening or Bank and Hoard line, and the no-Mine reference is the best of 120 random configurations of the same policy family, not a proof that no better Mine-free plan exists.</p></section>
 <footer>Repository simulations and official card rules. Best policies found within the tested search; not a proof of optimal play. <a href="index.html">Return to the strategy catalog</a>.</footer>
 </main>

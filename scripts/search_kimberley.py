@@ -93,8 +93,12 @@ class Money(EnhancedStrategy):
             names.append("Duchy")
         if colonies <= 1:
             names.append("Estate")
+        support = self.mode in SUPPORT_CAPS and c[self.mode] < SUPPORT_CAPS[self.mode]
+        # Hoard ($6) and Bank ($7) must outrank Gold or they are never bought.
+        if support and self.mode in ("Hoard", "Bank"):
+            names.append(self.mode)
         names.append("Gold")
-        if self.mode in SUPPORT_CAPS and c[self.mode] < SUPPORT_CAPS[self.mode]:
+        if support:
             names.append(self.mode)
         names.append("Silver")
         return self.pick(choices, names)

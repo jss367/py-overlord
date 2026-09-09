@@ -82,27 +82,28 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.25,
+    "rate": 0.34375,
     "paired_ci95": [
-      0.12348254402389103,
-      0.376517455976109
+      0.1712321869100662,
+      0.5162678130899339
     ],
     "totals": {
-      "wins": 8,
+      "wins": 11,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 39,
-      "turns": 927,
-      "score": 1052,
-      "opponent_score": 2952,
-      "tomb_points": 379,
-      "platinum_games": 5,
-      "platinum_first_turn": 59,
+      "max_turns": 37,
+      "turns": 824,
+      "score": 1768,
+      "opponent_score": 2446,
+      "tomb_points": 595,
+      "platinum_games": 11,
+      "platinum_first_turn": 109,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 5
+      "Priest": 52,
+      "King's Court": 21
     }
   },
   {
@@ -143,13 +144,13 @@
       "wins": 8,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 32,
-      "turns": 772,
-      "score": 1598,
-      "opponent_score": 2215,
+      "max_turns": 43,
+      "turns": 795,
+      "score": 1597,
+      "opponent_score": 2302,
       "tomb_points": 159,
-      "platinum_games": 23,
-      "platinum_first_turn": 292,
+      "platinum_games": 24,
+      "platinum_first_turn": 313,
       "mine_plays": 0
     },
     "mine_gains": {},
@@ -501,28 +502,28 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.4375,
+    "rate": 0.40625,
     "paired_ci95": [
-      0.22066000522658802,
-      0.654339994773412
+      0.2457485072758927,
+      0.5667514927241073
     ],
     "totals": {
-      "wins": 14,
+      "wins": 13,
       "ties": 0,
       "truncated": 0,
       "max_turns": 32,
-      "turns": 730,
-      "score": 1930,
-      "opponent_score": 2026,
-      "tomb_points": 205,
-      "platinum_games": 11,
-      "platinum_first_turn": 119,
+      "turns": 744,
+      "score": 1988,
+      "opponent_score": 2135,
+      "tomb_points": 230,
+      "platinum_games": 12,
+      "platinum_first_turn": 134,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 27,
-      "Smithy": 60,
+      "Smithy": 58,
+      "Priest": 40,
       "King's Court": 1
     }
   },
@@ -557,25 +558,25 @@
     "seed": 210000,
     "rate": 0.21875,
     "paired_ci95": [
-      0.09322485311699491,
-      0.3442751468830051
+      0.06460754694655554,
+      0.37289245305344443
     ],
     "totals": {
       "wins": 7,
       "ties": 0,
       "truncated": 0,
       "max_turns": 30,
-      "turns": 768,
-      "score": 1681,
-      "opponent_score": 2250,
-      "tomb_points": 125,
-      "platinum_games": 3,
-      "platinum_first_turn": 52,
+      "turns": 748,
+      "score": 1627,
+      "opponent_score": 2204,
+      "tomb_points": 124,
+      "platinum_games": 4,
+      "platinum_first_turn": 75,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Smithy": 64
+      "Smithy": 51
     }
   },
   {
@@ -607,27 +608,27 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.09375,
+    "rate": 0.0625,
     "paired_ci95": [
       0,
-      0.19251265741665724
+      0.14618343125533673
     ],
     "totals": {
-      "wins": 3,
+      "wins": 2,
       "ties": 0,
       "truncated": 0,
       "max_turns": 30,
-      "turns": 797,
-      "score": 1508,
-      "opponent_score": 2410,
-      "tomb_points": 223,
-      "platinum_games": 4,
-      "platinum_first_turn": 80,
+      "turns": 781,
+      "score": 1426,
+      "opponent_score": 2314,
+      "tomb_points": 209,
+      "platinum_games": 5,
+      "platinum_first_turn": 103,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 54
+      "Priest": 60
     }
   },
   {
@@ -712,19 +713,19 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.0625,
+    "rate": 0.03125,
     "paired_ci95": [
       0,
-      0.14618343125533673
+      0.0925
     ],
     "totals": {
-      "wins": 2,
+      "wins": 1,
       "ties": 0,
       "truncated": 0,
       "max_turns": 32,
-      "turns": 803,
-      "score": 1440,
-      "opponent_score": 2429,
+      "turns": 807,
+      "score": 1436,
+      "opponent_score": 2449,
       "tomb_points": 78,
       "platinum_games": 15,
       "platinum_first_turn": 156,
@@ -732,7 +733,7 @@
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Smithy": 62,
+      "Smithy": 61,
       "Throne Room": 1,
       "Priest": 1
     }
@@ -1346,22 +1347,22 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.53125,
+    "rate": 0.5,
     "paired_ci95": [
-      0.39068603176252226,
-      0.6718139682374777
+      0.32107729788164574,
+      0.6789227021183543
     ],
     "totals": {
-      "wins": 17,
+      "wins": 16,
       "ties": 0,
       "truncated": 0,
       "max_turns": 28,
-      "turns": 733,
-      "score": 1852,
-      "opponent_score": 1897,
-      "tomb_points": 157,
-      "platinum_games": 6,
-      "platinum_first_turn": 63,
+      "turns": 720,
+      "score": 1770,
+      "opponent_score": 1899,
+      "tomb_points": 155,
+      "platinum_games": 7,
+      "platinum_first_turn": 85,
       "mine_plays": 0
     },
     "mine_gains": {},
@@ -2074,30 +2075,29 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.03125,
+    "rate": 0.0625,
     "paired_ci95": [
       0,
-      0.0925
+      0.14618343125533673
     ],
     "totals": {
-      "wins": 1,
+      "wins": 2,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 44,
-      "turns": 872,
-      "score": 1473,
-      "opponent_score": 2736,
-      "tomb_points": 372,
+      "max_turns": 40,
+      "turns": 867,
+      "score": 1464,
+      "opponent_score": 2652,
+      "tomb_points": 288,
       "platinum_games": 4,
-      "platinum_first_turn": 57,
+      "platinum_first_turn": 66,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 93,
-      "Smithy": 68,
-      "King's Court": 1,
-      "Throne Room": 1
+      "Priest": 76,
+      "Smithy": 80,
+      "Throne Room": 3
     }
   },
   {
@@ -2183,30 +2183,30 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.375,
+    "rate": 0.3125,
     "paired_ci95": [
-      0.18522381603583657,
-      0.5647761839641634
+      0.19,
+      0.435
     ],
     "totals": {
-      "wins": 12,
+      "wins": 10,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 34,
-      "turns": 738,
-      "score": 1573,
-      "opponent_score": 2129,
-      "tomb_points": 284,
-      "platinum_games": 19,
-      "platinum_first_turn": 237,
+      "max_turns": 36,
+      "turns": 757,
+      "score": 1713,
+      "opponent_score": 2198,
+      "tomb_points": 303,
+      "platinum_games": 16,
+      "platinum_first_turn": 169,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 65,
-      "King's Court": 4,
-      "Throne Room": 14,
-      "Smithy": 107
+      "Priest": 69,
+      "King's Court": 6,
+      "Throne Room": 17,
+      "Smithy": 100
     }
   },
   {
@@ -2446,27 +2446,27 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.4375,
+    "rate": 0.65625,
     "paired_ci95": [
-      0.28581089909511187,
-      0.5891891009048882
+      0.4837321869100662,
+      0.8287678130899339
     ],
     "totals": {
-      "wins": 14,
+      "wins": 21,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 36,
-      "turns": 766,
-      "score": 1920,
-      "opponent_score": 2112,
-      "tomb_points": 256,
-      "platinum_games": 12,
-      "platinum_first_turn": 157,
+      "max_turns": 33,
+      "turns": 722,
+      "score": 2129,
+      "opponent_score": 1880,
+      "tomb_points": 249,
+      "platinum_games": 16,
+      "platinum_first_turn": 183,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 55
+      "Priest": 53
     }
   },
   {
@@ -2552,28 +2552,28 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.34375,
+    "rate": 0.375,
     "paired_ci95": [
-      0.1712321869100662,
-      0.5162678130899339
+      0.20763313748932657,
+      0.5423668625106735
     ],
     "totals": {
-      "wins": 11,
+      "wins": 12,
       "ties": 0,
       "truncated": 0,
       "max_turns": 30,
-      "turns": 747,
-      "score": 1809,
-      "opponent_score": 2181,
-      "tomb_points": 161,
-      "platinum_games": 14,
-      "platinum_first_turn": 175,
+      "turns": 739,
+      "score": 1835,
+      "opponent_score": 2133,
+      "tomb_points": 164,
+      "platinum_games": 15,
+      "platinum_first_turn": 190,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Smithy": 65,
-      "Priest": 5,
+      "Smithy": 70,
+      "Priest": 7,
       "King's Court": 2
     }
   },
@@ -3076,30 +3076,30 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.21875,
+    "rate": 0.125,
     "paired_ci95": [
-      0.06460754694655554,
-      0.37289245305344443
+      0.015432669102510316,
+      0.23456733089748968
     ],
     "totals": {
-      "wins": 7,
+      "wins": 4,
       "ties": 0,
       "truncated": 0,
       "max_turns": 38,
-      "turns": 804,
-      "score": 1687,
-      "opponent_score": 2411,
-      "tomb_points": 289,
-      "platinum_games": 14,
-      "platinum_first_turn": 155,
+      "turns": 780,
+      "score": 1696,
+      "opponent_score": 2247,
+      "tomb_points": 295,
+      "platinum_games": 20,
+      "platinum_first_turn": 246,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 54,
-      "King's Court": 3,
-      "Throne Room": 4,
-      "Smithy": 95
+      "Priest": 72,
+      "Smithy": 57,
+      "Throne Room": 3,
+      "King's Court": 2
     }
   },
   {
@@ -3239,26 +3239,26 @@
     "seed": 210000,
     "rate": 0.53125,
     "paired_ci95": [
-      0.36463198626799087,
-      0.6978680137320091
+      0.39068603176252226,
+      0.6718139682374777
     ],
     "totals": {
       "wins": 17,
       "ties": 0,
       "truncated": 0,
       "max_turns": 38,
-      "turns": 775,
-      "score": 2096,
-      "opponent_score": 2143,
-      "tomb_points": 184,
-      "platinum_games": 25,
-      "platinum_first_turn": 238,
+      "turns": 779,
+      "score": 2200,
+      "opponent_score": 2113,
+      "tomb_points": 185,
+      "platinum_games": 27,
+      "platinum_first_turn": 259,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 27,
-      "Smithy": 67
+      "Priest": 28,
+      "Smithy": 60
     }
   },
   {
@@ -3344,30 +3344,30 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.34375,
+    "rate": 0.3125,
     "paired_ci95": [
-      0.19624046640979437,
-      0.49125953359020563
+      0.1363951543350761,
+      0.4886048456649239
     ],
     "totals": {
-      "wins": 11,
+      "wins": 10,
       "ties": 0,
       "truncated": 0,
       "max_turns": 34,
-      "turns": 777,
-      "score": 1826,
-      "opponent_score": 2283,
-      "tomb_points": 209,
+      "turns": 752,
+      "score": 1747,
+      "opponent_score": 2236,
+      "tomb_points": 191,
       "platinum_games": 10,
-      "platinum_first_turn": 122,
+      "platinum_first_turn": 105,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 41,
-      "Smithy": 134,
-      "Throne Room": 2,
-      "King's Court": 1
+      "Priest": 43,
+      "Smithy": 98,
+      "King's Court": 2,
+      "Throne Room": 2
     }
   },
   {
@@ -3452,29 +3452,28 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.21875,
+    "rate": 0.125,
     "paired_ci95": [
-      0.06460754694655554,
-      0.37289245305344443
+      0.015432669102510316,
+      0.23456733089748968
     ],
     "totals": {
-      "wins": 7,
+      "wins": 4,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 35,
-      "turns": 823,
-      "score": 1292,
-      "opponent_score": 2378,
-      "tomb_points": 269,
-      "platinum_games": 3,
-      "platinum_first_turn": 45,
+      "max_turns": 38,
+      "turns": 859,
+      "score": 1494,
+      "opponent_score": 2664,
+      "tomb_points": 237,
+      "platinum_games": 6,
+      "platinum_first_turn": 89,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Smithy": 227,
-      "Throne Room": 1,
-      "Priest": 1
+      "Smithy": 184,
+      "King's Court": 1
     }
   },
   {
@@ -3506,29 +3505,29 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.0,
+    "rate": 0.0625,
     "paired_ci95": [
       0,
-      0.0
+      0.14618343125533673
     ],
     "totals": {
-      "wins": 0,
+      "wins": 2,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 43,
-      "turns": 983,
-      "score": 1016,
-      "opponent_score": 3203,
-      "tomb_points": 314,
-      "platinum_games": 8,
-      "platinum_first_turn": 129,
+      "max_turns": 37,
+      "turns": 924,
+      "score": 1132,
+      "opponent_score": 2916,
+      "tomb_points": 288,
+      "platinum_games": 12,
+      "platinum_first_turn": 193,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 4,
-      "Throne Room": 13,
-      "King's Court": 5
+      "Priest": 3,
+      "Throne Room": 9,
+      "King's Court": 3
     }
   },
   {
@@ -3612,30 +3611,30 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.09375,
+    "rate": 0.125,
     "paired_ci95": [
       0,
-      0.19251265741665724
+      0.2664508159514583
     ],
     "totals": {
-      "wins": 3,
+      "wins": 4,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 42,
-      "turns": 999,
-      "score": 751,
-      "opponent_score": 3162,
-      "tomb_points": 458,
-      "platinum_games": 5,
-      "platinum_first_turn": 41,
+      "max_turns": 46,
+      "turns": 936,
+      "score": 1185,
+      "opponent_score": 2889,
+      "tomb_points": 576,
+      "platinum_games": 9,
+      "platinum_first_turn": 104,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 63,
-      "Smithy": 143,
-      "King's Court": 12,
-      "Throne Room": 1
+      "Smithy": 421,
+      "Priest": 97,
+      "Throne Room": 6,
+      "King's Court": 12
     }
   },
   {
@@ -3717,30 +3716,30 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.1875,
+    "rate": 0.25,
     "paired_ci95": [
-      0.03581089909511187,
-      0.33918910090488813
+      0.12348254402389103,
+      0.376517455976109
     ],
     "totals": {
-      "wins": 6,
+      "wins": 8,
       "ties": 0,
       "truncated": 0,
       "max_turns": 30,
-      "turns": 771,
-      "score": 1648,
-      "opponent_score": 2220,
-      "tomb_points": 225,
-      "platinum_games": 8,
-      "platinum_first_turn": 83,
+      "turns": 777,
+      "score": 1639,
+      "opponent_score": 2260,
+      "tomb_points": 227,
+      "platinum_games": 9,
+      "platinum_first_turn": 105,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Smithy": 119,
+      "Smithy": 128,
       "Priest": 1,
-      "King's Court": 1,
-      "Throne Room": 3
+      "King's Court": 2,
+      "Throne Room": 6
     }
   },
   {
@@ -3989,18 +3988,19 @@
       "wins": 0,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 35,
-      "turns": 930,
-      "score": 992,
-      "opponent_score": 2980,
-      "tomb_points": 217,
-      "platinum_games": 4,
-      "platinum_first_turn": 75,
+      "max_turns": 38,
+      "turns": 946,
+      "score": 1006,
+      "opponent_score": 3055,
+      "tomb_points": 221,
+      "platinum_games": 6,
+      "platinum_first_turn": 117,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Throne Room": 3
+      "Throne Room": 5,
+      "Priest": 2
     }
   },
   {
@@ -4032,29 +4032,29 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.125,
+    "rate": 0.15625,
     "paired_ci95": [
-      0.015432669102510316,
-      0.23456733089748968
+      0.03896517929984858,
+      0.27353482070015145
     ],
     "totals": {
-      "wins": 4,
+      "wins": 5,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 32,
-      "turns": 788,
-      "score": 1605,
-      "opponent_score": 2339,
-      "tomb_points": 209,
+      "max_turns": 36,
+      "turns": 844,
+      "score": 1702,
+      "opponent_score": 2550,
+      "tomb_points": 173,
       "platinum_games": 14,
-      "platinum_first_turn": 180,
+      "platinum_first_turn": 150,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Smithy": 128,
-      "Throne Room": 1,
-      "King's Court": 1
+      "Smithy": 93,
+      "King's Court": 2,
+      "Throne Room": 1
     }
   },
   {
@@ -4086,28 +4086,26 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.21875,
+    "rate": 0.40625,
     "paired_ci95": [
-      0.09322485311699491,
-      0.3442751468830051
+      0.2225,
+      0.59
     ],
     "totals": {
-      "wins": 7,
+      "wins": 13,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 44,
-      "turns": 946,
-      "score": 1133,
-      "opponent_score": 2905,
-      "tomb_points": 344,
-      "platinum_games": 8,
-      "platinum_first_turn": 106,
+      "max_turns": 34,
+      "turns": 766,
+      "score": 1972,
+      "opponent_score": 2184,
+      "tomb_points": 313,
+      "platinum_games": 24,
+      "platinum_first_turn": 343,
       "mine_plays": 0
     },
     "mine_gains": {},
-    "multiplier_targets": {
-      "Priest": 1
-    }
+    "multiplier_targets": {}
   },
   {
     "a": {
@@ -4654,22 +4652,22 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.34375,
+    "rate": 0.53125,
     "paired_ci95": [
-      0.19624046640979437,
-      0.49125953359020563
+      0.34213390911047964,
+      0.7203660908895204
     ],
     "totals": {
-      "wins": 11,
+      "wins": 17,
       "ties": 0,
       "truncated": 0,
       "max_turns": 37,
-      "turns": 833,
-      "score": 1665,
-      "opponent_score": 2362,
-      "tomb_points": 280,
-      "platinum_games": 9,
-      "platinum_first_turn": 82,
+      "turns": 750,
+      "score": 2214,
+      "opponent_score": 1952,
+      "tomb_points": 269,
+      "platinum_games": 16,
+      "platinum_first_turn": 143,
       "mine_plays": 0
     },
     "mine_gains": {},
@@ -4863,28 +4861,28 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.21875,
+    "rate": 0.25,
     "paired_ci95": [
-      0.06460754694655554,
-      0.37289245305344443
+      0.07107729788164574,
+      0.42892270211835426
     ],
     "totals": {
-      "wins": 7,
+      "wins": 8,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 44,
-      "turns": 897,
-      "score": 1204,
-      "opponent_score": 2725,
-      "tomb_points": 405,
-      "platinum_games": 6,
-      "platinum_first_turn": 50,
+      "max_turns": 36,
+      "turns": 809,
+      "score": 1592,
+      "opponent_score": 2371,
+      "tomb_points": 432,
+      "platinum_games": 10,
+      "platinum_first_turn": 98,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 30,
-      "Smithy": 60
+      "Priest": 43,
+      "Smithy": 100
     }
   },
   {
@@ -4916,27 +4914,27 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.75,
+    "rate": 0.71875,
     "paired_ci95": [
-      0.623482544023891,
-      0.876517455976109
+      0.5932248531169949,
+      0.8442751468830051
     ],
     "totals": {
-      "wins": 24,
+      "wins": 23,
       "ties": 0,
       "truncated": 0,
       "max_turns": 29,
-      "turns": 714,
-      "score": 2229,
-      "opponent_score": 1813,
-      "tomb_points": 175,
-      "platinum_games": 22,
-      "platinum_first_turn": 176,
+      "turns": 710,
+      "score": 2213,
+      "opponent_score": 1822,
+      "tomb_points": 171,
+      "platinum_games": 20,
+      "platinum_first_turn": 160,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Smithy": 33,
+      "Smithy": 39,
       "Priest": 22
     }
   },
@@ -4969,29 +4967,26 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.1875,
+    "rate": 0.21875,
     "paired_ci95": [
-      0.065,
-      0.31
+      0.09322485311699491,
+      0.3442751468830051
     ],
     "totals": {
-      "wins": 6,
+      "wins": 7,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 36,
-      "turns": 816,
-      "score": 1618,
-      "opponent_score": 2415,
-      "tomb_points": 216,
-      "platinum_games": 16,
-      "platinum_first_turn": 199,
+      "max_turns": 32,
+      "turns": 780,
+      "score": 1693,
+      "opponent_score": 2263,
+      "tomb_points": 198,
+      "platinum_games": 21,
+      "platinum_first_turn": 257,
       "mine_plays": 0
     },
     "mine_gains": {},
-    "multiplier_targets": {
-      "King's Court": 1,
-      "Priest": 1
-    }
+    "multiplier_targets": {}
   },
   {
     "a": {
@@ -5022,27 +5017,27 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.3125,
+    "rate": 0.28125,
     "paired_ci95": [
-      0.1363951543350761,
-      0.4886048456649239
+      0.12710754694655554,
+      0.43539245305344443
     ],
     "totals": {
-      "wins": 10,
+      "wins": 9,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 28,
-      "turns": 748,
-      "score": 1851,
-      "opponent_score": 2102,
-      "tomb_points": 190,
-      "platinum_games": 10,
-      "platinum_first_turn": 130,
+      "max_turns": 34,
+      "turns": 794,
+      "score": 1790,
+      "opponent_score": 2275,
+      "tomb_points": 172,
+      "platinum_games": 7,
+      "platinum_first_turn": 98,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Smithy": 56
+      "Smithy": 50
     }
   },
   {
@@ -5074,30 +5069,30 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.15625,
+    "rate": 0.3125,
     "paired_ci95": [
-      0.03896517929984858,
-      0.27353482070015145
+      0.16081089909511187,
+      0.46418910090488813
     ],
     "totals": {
-      "wins": 5,
+      "wins": 10,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 44,
-      "turns": 908,
-      "score": 1394,
-      "opponent_score": 2765,
-      "tomb_points": 412,
-      "platinum_games": 11,
-      "platinum_first_turn": 110,
+      "max_turns": 35,
+      "turns": 804,
+      "score": 1844,
+      "opponent_score": 2295,
+      "tomb_points": 383,
+      "platinum_games": 22,
+      "platinum_first_turn": 214,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 73,
-      "Smithy": 279,
-      "King's Court": 3,
-      "Throne Room": 11
+      "Priest": 79,
+      "Smithy": 142,
+      "King's Court": 6,
+      "Throne Room": 6
     }
   },
   {
@@ -5179,27 +5174,27 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.09375,
+    "rate": 0.125,
     "paired_ci95": [
-      0,
-      0.19251265741665724
+      0.015432669102510316,
+      0.23456733089748968
     ],
     "totals": {
-      "wins": 3,
+      "wins": 4,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 33,
-      "turns": 800,
-      "score": 1685,
-      "opponent_score": 2430,
-      "tomb_points": 148,
-      "platinum_games": 10,
-      "platinum_first_turn": 132,
+      "max_turns": 28,
+      "turns": 754,
+      "score": 1758,
+      "opponent_score": 2270,
+      "tomb_points": 147,
+      "platinum_games": 14,
+      "platinum_first_turn": 172,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Smithy": 63
+      "Smithy": 49
     }
   },
   {
@@ -5283,28 +5278,28 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.53125,
+    "rate": 0.46875,
     "paired_ci95": [
-      0.39068603176252226,
-      0.6718139682374777
+      0.32818603176252226,
+      0.6093139682374777
     ],
     "totals": {
-      "wins": 17,
+      "wins": 15,
       "ties": 0,
       "truncated": 0,
       "max_turns": 27,
-      "turns": 697,
-      "score": 1880,
-      "opponent_score": 1855,
-      "tomb_points": 164,
-      "platinum_games": 7,
-      "platinum_first_turn": 70,
+      "turns": 689,
+      "score": 1840,
+      "opponent_score": 1916,
+      "tomb_points": 163,
+      "platinum_games": 6,
+      "platinum_first_turn": 62,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Smithy": 37,
-      "Priest": 5
+      "Smithy": 39,
+      "Priest": 6
     }
   },
   {
@@ -5599,28 +5594,28 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.375,
+    "rate": 0.53125,
     "paired_ci95": [
-      0.18522381603583657,
-      0.5647761839641634
+      0.3220414218616582,
+      0.7404585781383418
     ],
     "totals": {
-      "wins": 12,
+      "wins": 17,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 36,
-      "turns": 790,
-      "score": 1731,
-      "opponent_score": 2164,
-      "tomb_points": 282,
-      "platinum_games": 13,
-      "platinum_first_turn": 168,
+      "max_turns": 29,
+      "turns": 762,
+      "score": 2164,
+      "opponent_score": 2077,
+      "tomb_points": 262,
+      "platinum_games": 10,
+      "platinum_first_turn": 108,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 44,
-      "Smithy": 124
+      "Priest": 45,
+      "Smithy": 44
     }
   },
   {
@@ -6075,22 +6070,22 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.40625,
+    "rate": 0.4375,
     "paired_ci95": [
-      0.2457485072758927,
-      0.5667514927241073
+      0.2613951543350761,
+      0.6136048456649239
     ],
     "totals": {
-      "wins": 13,
+      "wins": 14,
       "ties": 0,
       "truncated": 0,
       "max_turns": 28,
-      "turns": 708,
-      "score": 1950,
-      "opponent_score": 1928,
-      "tomb_points": 86,
+      "turns": 697,
+      "score": 1968,
+      "opponent_score": 1920,
+      "tomb_points": 88,
       "platinum_games": 16,
-      "platinum_first_turn": 137,
+      "platinum_first_turn": 136,
       "mine_plays": 0
     },
     "mine_gains": {},
@@ -6125,29 +6120,29 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.25,
+    "rate": 0.34375,
     "paired_ci95": [
-      0.12348254402389103,
-      0.376517455976109
+      0.19624046640979437,
+      0.49125953359020563
     ],
     "totals": {
-      "wins": 8,
+      "wins": 11,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 39,
-      "turns": 782,
-      "score": 1634,
-      "opponent_score": 2203,
-      "tomb_points": 368,
-      "platinum_games": 11,
-      "platinum_first_turn": 81,
+      "max_turns": 32,
+      "turns": 770,
+      "score": 1826,
+      "opponent_score": 2151,
+      "tomb_points": 447,
+      "platinum_games": 14,
+      "platinum_first_turn": 105,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 66,
-      "Smithy": 196,
-      "Throne Room": 3
+      "Priest": 96,
+      "Smithy": 107,
+      "Throne Room": 6
     }
   },
   {
@@ -6179,28 +6174,28 @@
     },
     "games": 32,
     "seed": 210000,
-    "rate": 0.0625,
+    "rate": 0.125,
     "paired_ci95": [
-      0,
-      0.14618343125533673
+      0.015432669102510316,
+      0.23456733089748968
     ],
     "totals": {
-      "wins": 2,
+      "wins": 4,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 34,
-      "turns": 814,
-      "score": 1479,
-      "opponent_score": 2467,
-      "tomb_points": 238,
+      "max_turns": 33,
+      "turns": 794,
+      "score": 1560,
+      "opponent_score": 2434,
+      "tomb_points": 237,
       "platinum_games": 5,
-      "platinum_first_turn": 101,
+      "platinum_first_turn": 77,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Smithy": 80,
-      "Priest": 6
+      "Smithy": 86,
+      "Priest": 7
     }
   },
   {
@@ -6294,17 +6289,18 @@
       "ties": 0,
       "truncated": 0,
       "max_turns": 42,
-      "turns": 974,
-      "score": 986,
-      "opponent_score": 3055,
-      "tomb_points": 161,
-      "platinum_games": 5,
-      "platinum_first_turn": 110,
+      "turns": 983,
+      "score": 1038,
+      "opponent_score": 3009,
+      "tomb_points": 160,
+      "platinum_games": 6,
+      "platinum_first_turn": 159,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Throne Room": 4
+      "Throne Room": 4,
+      "Priest": 1
     }
   },
   {
@@ -6336,28 +6332,80 @@
     },
     "games": 400,
     "seed": 310000,
-    "rate": 0.5475,
+    "rate": 0.5625,
     "paired_ci95": [
-      0.5005895009126622,
-      0.5944104990873378
+      0.5139017727849852,
+      0.6110982272150148
     ],
     "totals": {
-      "wins": 219,
+      "wins": 225,
       "ties": 0,
       "truncated": 0,
       "max_turns": 46,
-      "turns": 8941,
-      "score": 25851,
-      "opponent_score": 24335,
-      "tomb_points": 2190,
-      "platinum_games": 170,
-      "platinum_first_turn": 1374,
+      "turns": 8966,
+      "score": 26189,
+      "opponent_score": 24163,
+      "tomb_points": 2193,
+      "platinum_games": 171,
+      "platinum_first_turn": 1387,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 331,
-      "Smithy": 518
+      "Priest": 344,
+      "Smithy": 496
+    }
+  },
+  {
+    "a": {
+      "mines": 0,
+      "opening": "Priest",
+      "second": "Silver",
+      "kings": 0,
+      "thrones": 2,
+      "labs": 4,
+      "smithies": 0,
+      "villages": 0,
+      "priests": 2,
+      "squares": 2,
+      "hoards": 1,
+      "banks": 0,
+      "golds": 1,
+      "silvers": 3,
+      "sewers": true,
+      "multiplier": "priest",
+      "terminal_order": "smithy",
+      "keep_coppers": 3,
+      "green_turn": 10,
+      "province_colonies": 2,
+      "kc_turn": 7
+    },
+    "b": {
+      "money": "Smithy"
+    },
+    "games": 400,
+    "seed": 310000,
+    "rate": 0.47,
+    "paired_ci95": [
+      0.42205035304388483,
+      0.5179496469561151
+    ],
+    "totals": {
+      "wins": 188,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 32,
+      "turns": 8987,
+      "score": 24220,
+      "opponent_score": 24988,
+      "tomb_points": 3099,
+      "platinum_games": 142,
+      "platinum_first_turn": 1482,
+      "mine_plays": 0
+    },
+    "mine_gains": {},
+    "multiplier_targets": {
+      "Priest": 671
     }
   },
   {
@@ -6521,58 +6569,6 @@
   {
     "a": {
       "mines": 0,
-      "opening": "Priest",
-      "second": "Silver",
-      "kings": 0,
-      "thrones": 2,
-      "labs": 4,
-      "smithies": 0,
-      "villages": 2,
-      "priests": 1,
-      "squares": 0,
-      "hoards": 2,
-      "banks": 2,
-      "golds": 4,
-      "silvers": 2,
-      "sewers": true,
-      "multiplier": "draw",
-      "terminal_order": "smithy",
-      "keep_coppers": 5,
-      "green_turn": 10,
-      "province_colonies": 6,
-      "kc_turn": 7
-    },
-    "b": {
-      "money": "Smithy"
-    },
-    "games": 400,
-    "seed": 310000,
-    "rate": 0.3325,
-    "paired_ci95": [
-      0.28473312947661333,
-      0.3802668705233867
-    ],
-    "totals": {
-      "wins": 133,
-      "ties": 0,
-      "truncated": 0,
-      "max_turns": 36,
-      "turns": 9223,
-      "score": 22468,
-      "opponent_score": 26583,
-      "tomb_points": 1965,
-      "platinum_games": 91,
-      "platinum_first_turn": 1036,
-      "mine_plays": 0
-    },
-    "mine_gains": {},
-    "multiplier_targets": {
-      "Priest": 2
-    }
-  },
-  {
-    "a": {
-      "mines": 0,
       "opening": "Laboratory",
       "second": "Priest",
       "kings": 0,
@@ -6599,105 +6595,52 @@
     },
     "games": 400,
     "seed": 310000,
-    "rate": 0.52,
+    "rate": 0.5275,
     "paired_ci95": [
-      0.46998134217461185,
-      0.5700186578253882
+      0.48028187097583475,
+      0.5747181290241652
     ],
     "totals": {
-      "wins": 208,
+      "wins": 211,
       "ties": 0,
       "truncated": 0,
       "max_turns": 44,
-      "turns": 9215,
-      "score": 25559,
-      "opponent_score": 25751,
-      "tomb_points": 2438,
-      "platinum_games": 230,
-      "platinum_first_turn": 2108,
+      "turns": 9142,
+      "score": 25974,
+      "opponent_score": 25397,
+      "tomb_points": 2426,
+      "platinum_games": 240,
+      "platinum_first_turn": 2211,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 383,
-      "Smithy": 810
+      "Priest": 416,
+      "Smithy": 729
     }
   },
   {
     "a": {
       "mines": 0,
       "opening": "Priest",
-      "second": "Mining Village",
-      "kings": 1,
-      "thrones": 0,
-      "labs": 3,
-      "smithies": 2,
-      "villages": 0,
-      "priests": 0,
-      "squares": 2,
-      "hoards": 2,
-      "banks": 0,
-      "golds": 3,
-      "silvers": 1,
-      "sewers": true,
-      "multiplier": "priest",
-      "terminal_order": "priest",
-      "keep_coppers": 5,
-      "green_turn": 10,
-      "province_colonies": 2,
-      "kc_turn": 7
-    },
-    "b": {
-      "money": "Smithy"
-    },
-    "games": 400,
-    "seed": 310000,
-    "rate": 0.6,
-    "paired_ci95": [
-      0.5594921683854769,
-      0.6405078316145231
-    ],
-    "totals": {
-      "wins": 240,
-      "ties": 0,
-      "truncated": 0,
-      "max_turns": 31,
-      "turns": 8606,
-      "score": 25253,
-      "opponent_score": 23181,
-      "tomb_points": 2136,
-      "platinum_games": 79,
-      "platinum_first_turn": 797,
-      "mine_plays": 0
-    },
-    "mine_gains": {},
-    "multiplier_targets": {
-      "Priest": 121,
-      "Smithy": 613
-    }
-  },
-  {
-    "a": {
-      "mines": 0,
-      "opening": "Laboratory",
-      "second": "Mining Village",
-      "kings": 1,
+      "second": "Smithy",
+      "kings": 0,
       "thrones": 0,
       "labs": 2,
       "smithies": 2,
-      "villages": 0,
-      "priests": 2,
+      "villages": 1,
+      "priests": 1,
       "squares": 3,
-      "hoards": 2,
+      "hoards": 0,
       "banks": 1,
-      "golds": 3,
-      "silvers": 2,
-      "sewers": false,
+      "golds": 1,
+      "silvers": 1,
+      "sewers": true,
       "multiplier": "priest",
-      "terminal_order": "priest",
-      "keep_coppers": 3,
-      "green_turn": 12,
-      "province_colonies": 2,
+      "terminal_order": "smithy",
+      "keep_coppers": 0,
+      "green_turn": 14,
+      "province_colonies": 6,
       "kc_turn": 4
     },
     "b": {
@@ -6705,28 +6648,78 @@
     },
     "games": 400,
     "seed": 310000,
-    "rate": 0.425,
+    "rate": 0.59,
     "paired_ci95": [
-      0.3780111207425699,
-      0.4719888792574301
+      0.540995075624328,
+      0.6390049243756719
     ],
     "totals": {
-      "wins": 170,
+      "wins": 236,
       "ties": 0,
       "truncated": 0,
-      "max_turns": 45,
-      "turns": 9063,
-      "score": 24161,
-      "opponent_score": 25857,
-      "tomb_points": 3195,
-      "platinum_games": 79,
-      "platinum_first_turn": 818,
+      "max_turns": 56,
+      "turns": 9256,
+      "score": 26317,
+      "opponent_score": 24491,
+      "tomb_points": 3006,
+      "platinum_games": 236,
+      "platinum_first_turn": 2067,
+      "mine_plays": 0
+    },
+    "mine_gains": {},
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "mines": 0,
+      "opening": "Throne Room",
+      "second": "Smithy",
+      "kings": 0,
+      "thrones": 1,
+      "labs": 1,
+      "smithies": 1,
+      "villages": 1,
+      "priests": 1,
+      "squares": 1,
+      "hoards": 2,
+      "banks": 0,
+      "golds": 3,
+      "silvers": 1,
+      "sewers": true,
+      "multiplier": "priest",
+      "terminal_order": "smithy",
+      "keep_coppers": 0,
+      "green_turn": 14,
+      "province_colonies": 6,
+      "kc_turn": 4
+    },
+    "b": {
+      "money": "Smithy"
+    },
+    "games": 400,
+    "seed": 310000,
+    "rate": 0.515,
+    "paired_ci95": [
+      0.4679290261104089,
+      0.5620709738895912
+    ],
+    "totals": {
+      "wins": 206,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 40,
+      "turns": 9113,
+      "score": 25161,
+      "opponent_score": 25581,
+      "tomb_points": 3657,
+      "platinum_games": 138,
+      "platinum_first_turn": 1713,
       "mine_plays": 0
     },
     "mine_gains": {},
     "multiplier_targets": {
-      "Priest": 386,
-      "Smithy": 503
+      "Priest": 714,
+      "Smithy": 629
     }
   }
 ]
