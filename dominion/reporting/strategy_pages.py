@@ -1525,6 +1525,7 @@ def render_strategy_index(
     card_usage_href: str | None = None,
     board_index_href: str | None = None,
     leaderboard_href: str | None = None,
+    home_href: str | None = None,
 ) -> str:
     rows = []
     for guide in curated_guides:
@@ -1568,9 +1569,10 @@ def render_strategy_index(
         else ""
     )
     card_nav = f'<a href="{escape(card_usage_href)}">Card strategy usage</a>' if card_usage_href else ""
+    home_nav = f'<a href="{escape(home_href)}">Home</a>' if home_href else ""
     navigation = (
-        f"<nav>{board_nav}{leaderboard_nav}{card_nav}</nav>"
-        if board_nav or leaderboard_nav or card_nav
+        f"<nav>{home_nav}{board_nav}{leaderboard_nav}{card_nav}</nav>"
+        if home_nav or board_nav or leaderboard_nav or card_nav
         else ""
     )
     body = f"""

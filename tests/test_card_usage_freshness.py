@@ -11,7 +11,7 @@ def test_freshness_comparison_ignores_only_tournament_rank_fields():
     normalize = normalize_card_usage_for_comparison
     assert normalize(clean) == normalize(ranked)
     # Even an unused card's removal must be detected, as must count or style changes.
-    missing_card = re.sub(r'<tr data-basic="false"><td data-sort="Advisor">.*?</tr>', '', ranked)
+    missing_card = re.sub(r'<tr data-basic="false"[^>]*><td data-sort="Advisor">.*?</tr>', '', ranked)
     assert missing_card != ranked
     assert normalize(clean) != normalize(missing_card)
     assert normalize(clean) != normalize(ranked.replace('<strong>1</strong>', '<strong>2</strong>'))
