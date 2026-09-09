@@ -486,3 +486,16 @@ def test_hermit_exchange_is_not_a_gain_event():
     assert [c.name for c in p0.hand] == ["Sheepdog"]
     assert len(p0.deck) == 2
     assert p0.cards_gained_this_turn == before
+
+
+def test_fools_gold_reaction_declined_when_generic_extra_turn_is_scheduled():
+    state = _game()
+    p0, p1 = state.players
+    state.current_player_index = 0
+    state.extra_turn = True
+    p1.hand = [get_card("Fool's Gold")]
+    p1.deck = [get_card("Copper")]
+    state.supply["Province"] -= 1
+    state.gain_card(p0, get_card("Province"))
+    assert len(p1.hand) == 1
+    assert p1.deck[-1].name == "Copper"

@@ -1933,6 +1933,9 @@ class AI(ABC):
                     return False
             if getattr(state, "fleet_extra_round_active", False):
                 return False
+            # Generic extra-turn flag (Seize the Day and friends).
+            if getattr(state, "extra_turn", False):
+                return False
             nxt = players[(players.index(gainer) + 1) % len(players)]
             return nxt is player
         count_in_hand = sum(1 for card in player.hand if card.name == "Fool's Gold")
