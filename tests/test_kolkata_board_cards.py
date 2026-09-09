@@ -155,8 +155,10 @@ def test_rogue_victim_default_does_not_sacrifice_a_knight():
 
     rogue.play_effect(state)
 
-    assert silver in state.trash
-    assert bailey in victim.discard
+    # The Silver was trashed (Rogue then gains it from the trash); the Knight
+    # was only discarded.
+    assert silver not in victim.discard and silver not in victim.deck
+    assert bailey in victim.discard and bailey not in state.trash
     assert rogue in attacker.in_play
 
 
@@ -200,7 +202,7 @@ def test_artificer_default_only_spends_junk_and_skips_free_gains():
 
 
 def test_artificer_ignores_discard_picks_outside_the_offered_pool():
-    state = _setup(["Artificer", "Scheme"], wants=["Scheme"])
+    state = _setup(["Artificer", "Scheme"], wants=["Estate"])
     player = state.current_player
     silver = get_card("Silver")
     copper = get_card("Copper")
@@ -208,14 +210,15 @@ def test_artificer_ignores_discard_picks_outside_the_offered_pool():
     gold = get_card("Gold")
     player.hand = [silver, copper, estate, gold]
     player.deck = []
-    # A misbehaving override answers the junk pass with a useful card.
+    # Two junk cards pay for a $2 gain. A misbehaving override answers the
+    # junk pass with useful cards; they must be ignored.
     player.ai.choose_cards_to_discard = lambda s, p, choices, n, reason=None: [silver, gold]
 
     artificer = get_card("Artificer")
     player.in_play.append(artificer)
     artificer.play_effect(state)
 
-    assert player.deck and player.deck[-1].name == "Scheme"
+    assert player.deck and player.deck[-1].name == "Estate"
     assert silver in player.hand and gold in player.hand
     assert copper in player.discard and estate in player.discard
 

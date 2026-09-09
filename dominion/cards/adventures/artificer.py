@@ -61,6 +61,15 @@ class Artificer(Card):
                     if card in remaining_hand and len(cards_to_discard) < target_cost:
                         cards_to_discard.append(card)
                         remaining_hand.remove(card)
+                # Exhaust this pool before the next one is offered: junk is
+                # spent before any useful card, even if the discard hook
+                # ignored part of the offer.
+                leftovers = [c for c in pool if c in remaining_hand]
+                while len(cards_to_discard) < target_cost and leftovers:
+                    fallback = min(leftovers, key=lambda c: (c.cost.coins, c.name))
+                    leftovers.remove(fallback)
+                    cards_to_discard.append(fallback)
+                    remaining_hand.remove(fallback)
 
             while len(cards_to_discard) < target_cost and remaining_hand:
                 fallback = min(remaining_hand, key=lambda c: (c.cost.coins, c.name))
