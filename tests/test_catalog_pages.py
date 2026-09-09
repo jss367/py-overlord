@@ -189,6 +189,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "strategies/oslo-strategy-guide.html",
         "strategies/port-moresby-strategy-guide.html",
         "strategies/kolkata-strategy-guide.html",
+        "strategies/first-game-strategy-guide.html",
         "strategies/index.html",
         "strategies/card-strategy-usage.html",
         "strategies/leaderboard.html",
@@ -292,6 +293,7 @@ def test_catalog_replaces_a_stale_leaderboard_placeholder(tmp_path):
         ("oslo-strategy-guide.html", "Discounted Oslo Strategy Search Guide"),
         ("port-moresby-strategy-guide.html", "Port Moresby Strategy Search Guide"),
         ("kolkata-strategy-guide.html", "Kolkata Strategy Search Guide"),
+        ("first-game-strategy-guide.html", "First Game Strategy Search Guide"),
     ],
 )
 def test_catalog_writes_curated_strategy_guide_to_clean_output(tmp_path, filename, title):

@@ -140,6 +140,17 @@ CURATED_STRATEGY_GUIDES = (
         ),
         source_label="Repository simulation and card rules",
     ),
+    CuratedStrategyGuide(
+        filename="first-game-strategy-guide.html",
+        display_name="First Game Strategy Search Guide",
+        description=(
+            "Militia money with Markets beats the Smithy/Militia community answer "
+            "about 72% head-to-head on the base-set First Game kingdom; search "
+            "stages, finalist matrix, and why every other card lost."
+        ),
+        kingdom_cards=("Militia", "Market", "Smithy", "Village", "Remodel"),
+        source_label="Repository strategy search and recorded simulation results",
+    ),
 )
 
 CURATED_STRATEGY_GUIDES_DIRECTORY = Path(__file__).with_name(
