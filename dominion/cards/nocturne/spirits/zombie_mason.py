@@ -1,4 +1,4 @@
-"""Zombie Mason — non-supply Action-Night, $3."""
+"""Zombie Mason — non-supply Action-Zombie, $3."""
 
 from ...base_card import Card, CardCost, CardStats, CardType
 
@@ -11,7 +11,7 @@ class ZombieMason(Card):
             name="Zombie Mason",
             cost=CardCost(coins=3),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.NIGHT, CardType.ZOMBIE],
+            types=[CardType.ACTION, CardType.ZOMBIE],
         )
 
     def starting_supply(self, game_state) -> int:

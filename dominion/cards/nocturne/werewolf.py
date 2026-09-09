@@ -1,4 +1,4 @@
-"""Werewolf — $5 Action-Night.
+"""Werewolf — $5 Action-Night-Attack-Doom.
 
 If played in Action phase: +3 Cards.
 If played in Night phase: each other player receives a Hex.
@@ -13,7 +13,7 @@ class Werewolf(Card):
             name="Werewolf",
             cost=CardCost(coins=5),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.NIGHT, CardType.DOOM],
+            types=[CardType.ACTION, CardType.NIGHT, CardType.ATTACK, CardType.DOOM],
         )
 
     def play_effect(self, game_state):

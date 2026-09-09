@@ -1,4 +1,4 @@
-"""Den of Sin — $5 Action-Night-Duration.
+"""Den of Sin — $5 Night-Duration.
 
 At start of next turn, +2 Cards. When you gain this, put it into hand.
 """
@@ -12,7 +12,7 @@ class DenOfSin(Card):
             name="Den of Sin",
             cost=CardCost(coins=5),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.NIGHT, CardType.DURATION],
+            types=[CardType.NIGHT, CardType.DURATION],
         )
 
     def on_gain(self, game_state, player):

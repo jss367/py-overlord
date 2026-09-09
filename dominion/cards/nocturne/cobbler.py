@@ -1,4 +1,4 @@
-"""Cobbler — $5 Action-Night-Duration.
+"""Cobbler — $5 Night-Duration.
 
 At the start of your next turn, gain a card costing up to $4 to your hand.
 """
@@ -12,7 +12,7 @@ class Cobbler(Card):
             name="Cobbler",
             cost=CardCost(coins=5),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.NIGHT, CardType.DURATION],
+            types=[CardType.NIGHT, CardType.DURATION],
         )
 
     def play_effect(self, game_state):
