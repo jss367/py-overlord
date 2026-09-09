@@ -357,15 +357,16 @@
     if any(n in self._multiplier_order(state, player)[:3] for n in
            [c.name for c in choices if c is not None]):
         multipliers = [&quot;King&#x27;s Court&quot;, &quot;Throne Room&quot;]
-    # A Priest before Mine turns Mine&#x27;s trash into +$2, so with actions to
-    # spare the Priest goes first regardless of the terminal order.
+    # A Priest before Mine turns every later trash into +$2, so with actions
+    # to spare the Priest goes first, ahead of any multiplier aimed at Mine
+    # and regardless of the terminal order.
     lead = []
     if player.actions &gt;= 2 and self._has_junk(player):
         lead = [&quot;Priest&quot;]
     order = (
         [&quot;Mining Village&quot;, &quot;Laboratory&quot;, &quot;Market Square&quot;]
-        + multipliers
         + lead
+        + multipliers
         + terminals
     )
     return self.pick(choices, order)
