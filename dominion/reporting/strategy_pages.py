@@ -41,6 +41,19 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="random-unused-card-kingdom-guide.html",
+        display_name="Random Unused Card Kingdom: Board and Strategy Guide",
+        description=(
+            "Ten randomly selected previously unused piles, a tested buying "
+            "and play policy, and reproducible strategy comparisons."
+        ),
+        kingdom_cards=(
+            "Bauble", "Fishmonger", "Embassy", "Catacombs", "University",
+            "Tent", "Cursed Village", "Counting House", "Shepherd", "Fairgrounds",
+        ),
+        source_label="Recorded random draw, repository simulations, and official rules",
+    ),
+    CuratedStrategyGuide(
         filename="hyderabad-strategy-guide.html",
         display_name="Hyderabad Strategy Search Guide",
         description=(
