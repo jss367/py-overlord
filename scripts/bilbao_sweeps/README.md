@@ -33,7 +33,7 @@ written up in `reports/strategies/bilbao-shaman-feodum-mill-guide.html`.
 ```
 PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill1.json --champion mill_base --games 200 --extra "Bilbao Best Found"
 PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill2.json --champion mill_bf --games 200 --extra "Bilbao Best Found"
-PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill3.json --champion "Bilbao Best Found" --games 200
+PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill3.json --champion "Bilbao Best Found" --games 400 --seed 31
 PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill4.json --champion "Bilbao Best Found" --games 400
 PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill5.json --champion "Bilbao Best Found" --games 400 --seed 21
 PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill6.json --champion "Bilbao Best Found" --games 400 --seed 31

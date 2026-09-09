@@ -110,15 +110,16 @@ footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
 <p>Against decks that cannot use Feodums the mill is merely slow rather than self-defeating: it beat Big Money 57-43 and the Hermit/Madman engine 59-41 (100 games), and lost every game to the Fool's Gold and Anvil money seeds.</p>
 </section>
 <section class="section"><h2 id="what-was-tried">What was tried</h2>
-<p>Six sweeps, all committed under <a href="../../scripts/bilbao_sweeps/README.md"><code>scripts/bilbao_sweeps/mill*.json</code></a>. The mill was measured against Best Found in every sweep; earlier sweeps used 200 games, the last three 400.</p>
+<p>Six sweeps, all committed under <a href="../../scripts/bilbao_sweeps/README.md"><code>scripts/bilbao_sweeps/mill*.json</code></a>. The mill was measured against Best Found in every sweep; sweeps 1 and 2 used 200 games, sweeps 3 to 6 400.</p>
 <ul>
 <li><strong>Sweep 1 (mill neighbourhood, 200 games vs the base mill):</strong> two or three Anvils gaining Feodums (80%), Fool's Gold (74%), Gold only at $7 (60%), stop trashing at four Provinces (58%) all beat the base mill, meaning the closer the mill got to Best Found the better it did. Two Hermits (43%), no Hermit (43%), three fodder Feodums (48%) and Madman conversion (40%) did not help.</li>
 <li><strong>Sweep 2 (mill on the Best Found chassis):</strong> the same deck with trashing switched off beat the trashing version 90-10. Capping trashing at 12 Silvers (73%) or stopping at four Provinces (56%) recovered part of the loss.</li>
-<li><strong>Sweep 3 (more trashers, pair mode, early stops, vs Best Found):</strong> every pure-mill variant scored 0-0.5%; the chassis variants 2.5-11.5%. Two or three Hermits and three or four Shamans did not raise the trash rate above 1.2 Feodums per game.</li>
+<li><strong>Sweep 3 (more trashers, pair mode, early stops, vs Best Found):</strong> every pure-mill variant scored 0-0.2%; the chassis variants 2.5-13.0%. Two or three Hermits and three or four Shamans did not raise the trash rate above 1.2 Feodums per game.</li>
 <li><strong>Sweep 4 (isolating the ingredients, 400 games):</strong> chassis control 49.3%, plus one Hermit 46.0%, plus two Hermits 35.9%, plus two bought Shamans that never trash 14.5%, plus two Shamans and a Hermit in any trash mode 11.5-12.7%, grabbing four Feodums from turn 1 to hoard 9.5%.</li>
-<li><strong>Sweep 5 (Shamans gained by Hermit instead of bought, 400 games):</strong> 24.4% whether the Shamans trash always, in pairs, only to turn 10, or never. Hermit gaining Silvers only: 44.5%.</li>
+<li><strong>Sweep 5 (Shamans gained by Hermit instead of bought, 400 games):</strong> 22.0-24.5% whether the Shamans trash always, in pairs, only to turn 10, or never. Hermit gaining Silvers only: 44.5%.</li>
 <li><strong>Sweep 6 (headline table above, 400 games, fresh seed).</strong></li>
 </ul>
+<p>After review, the fodder Feodum rule was corrected to honour the same Feodum-pile and turn cutoffs as the trash policy (it had kept buying fodder after <code>trash_stop_pile</code> or <code>trash_turn_max</code> stopped the trashing), and the affected sweep 3 and sweep 5 variants were re-measured; the figures above are the re-measured ones.</p>
 <p>Two implementation defects were found and fixed on the way: the first version bought only 1.3 Shamans per game because Hermit and fodder Feodums outranked Shaman at $3-$4 (Shaman now goes first at $2-$3), and a Hermit with $0-$1 in the Buy phase exchanged itself for a Madman and left the mill without its trasher (a Copper is bought instead).</p>
 </section>
 <section class="section"><h2 id="strategies-published">Strategies published</h2>

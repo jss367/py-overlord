@@ -123,3 +123,21 @@ def test_hermit_in_play_buys_a_copper_rather_than_becoming_a_madman():
 
     lazy = BilbaoShamanFeodumMill(avoid_madman=False)
     assert lazy.choose_gain(state, p0, choices) is None
+
+
+def test_fodder_feodum_honours_the_feodum_pile_stop():
+    mill = BilbaoShamanFeodumMill(trash_stop_pile=3)
+    state = _game(mill)
+    p0 = state.players[0]
+    p0.deck = [get_card("Shaman")]
+    p0.coins = 4
+    state.phase = "buy"
+    choices = [get_card("Feodum"), get_card("Silver"), None]
+
+    state.supply["Feodum"] = 3
+    pick = mill.choose_gain(state, p0, choices)
+    assert pick is not None and pick.name == "Silver"
+
+    state.supply["Feodum"] = 4
+    pick = mill.choose_gain(state, p0, choices)
+    assert pick is not None and pick.name == "Feodum"

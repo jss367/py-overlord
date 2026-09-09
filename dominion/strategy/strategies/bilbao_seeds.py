@@ -733,19 +733,19 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
                 )
             )
         # Fodder: a Feodum bought to be trashed. Only while a trasher exists,
-        # only while the trash policy is still active, and never more than
-        # ``fodder_max`` in the deck at once.
+        # only while the trash policy is still active (``_mill_active`` is
+        # the single source of truth for every trash cutoff: Silver pile,
+        # Province stop, Feodum-pile stop, turn max and Silver cap), and
+        # never more than ``fodder_max`` in the deck at once.
         rules.append(
             PriorityRule(
                 "Feodum",
                 PriorityRule.and_(
                     has_trasher,
+                    lambda s, me: self._mill_active(s, me),
                     PriorityRule.max_in_deck("Feodum", fodder_max),
                     PriorityRule.turn_number("<=", fodder_turn),
-                    PriorityRule.provinces_left(">", trash_stop_provinces),
-                    lambda s, me: me.count_in_deck("Silver") < trash_silver_cap,
                     PriorityRule.resources("coins", ">=", fodder_min_coins),
-                    PriorityRule.pile_count("Silver", ">=", 3),
                 ),
             )
         )
