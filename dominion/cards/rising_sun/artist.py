@@ -24,7 +24,9 @@ class Artist(Card):
         # name that appears exactly once, give +1 Card.
         from collections import Counter
 
-        names = [c.name for c in player.in_play + player.duration]
+        # A Duration staying in play is listed in both in_play and duration;
+        # count each physical card once.
+        names = [c.name for c in dict.fromkeys(player.in_play + player.duration)]
         counts = Counter(names)
         unique_singletons = sum(1 for n, c in counts.items() if c == 1)
         if unique_singletons > 0:

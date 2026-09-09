@@ -12,6 +12,9 @@ class Horse(Card):
             types=[CardType.ACTION],
         )
 
+    def may_be_bought(self, game_state) -> bool:  # pragma: no cover - not in supply
+        return False
+
     def play_effect(self, game_state):
         player = game_state.current_player
         if self in player.in_play:

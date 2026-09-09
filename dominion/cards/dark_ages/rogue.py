@@ -5,7 +5,8 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 class Rogue(Card):
     """+$2. Each other player reveals the top 2 cards of their deck. If any
-    cost between $3 and $6, you choose one to trash; otherwise they discard.
+    cost between $3 and $6, that player chooses one to trash; otherwise they
+    discard.
 
     If there are any cards in the trash costing $3 to $6, gain one (this
     happens before the attacks).
@@ -47,17 +48,22 @@ class Rogue(Card):
                 )
             )
 
-            trashable = [c for c in revealed if 3 <= c.cost.coins <= 6]
+            trashable = [
+                c
+                for c in revealed
+                if 3 <= game_state.get_card_cost(attacker, c) <= 6
+            ]
 
             if trashable:
                 if len(trashable) == 1:
                     chosen = trashable[0]
                 else:
-                    chosen = attacker.ai.choose_knight_to_trash(
-                        game_state, attacker, target, list(trashable)
+                    # "trashes one of them": the attacked player chooses.
+                    chosen = target.ai.choose_card_to_trash_for_rogue_attack(
+                        game_state, target, list(trashable)
                     )
                     if chosen not in trashable:
-                        chosen = max(
+                        chosen = min(
                             trashable, key=lambda c: (c.cost.coins, c.name)
                         )
                 revealed.remove(chosen)
@@ -77,7 +83,9 @@ class Rogue(Card):
 
         # Now check trash for $3-$6 to gain
         eligible_in_trash = [
-            c for c in game_state.trash if 3 <= c.cost.coins <= 6
+            c
+            for c in game_state.trash
+            if 3 <= game_state.get_card_cost(attacker, c) <= 6
         ]
         if eligible_in_trash:
             choice = attacker.ai.should_gain_from_trash_with_rogue(

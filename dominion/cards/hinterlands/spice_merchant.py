@@ -1,3 +1,6 @@
+"""Spice Merchant ($4): you may trash a Treasure from your hand to choose one:
++2 Cards and +1 Action; or +1 Buy and +$2."""
+
 from ..base_card import Card, CardCost, CardStats, CardType
 
 
@@ -17,17 +20,17 @@ class SpiceMerchant(Card):
         if not treasures:
             return
 
-        to_trash = self._choose_trash(treasures)
-        if not to_trash:
-            return
-
-        if to_trash not in player.hand:
+        to_trash = player.ai.choose_treasure_to_trash_for_spice_merchant(
+            game_state, player, list(treasures)
+        )
+        if to_trash is None or to_trash not in treasures:
             return
 
         player.hand.remove(to_trash)
         game_state.trash_card(player, to_trash)
 
-        draw = self._prefer_draw_option(player)
+        mode = player.ai.choose_spice_merchant_mode(game_state, player)
+        draw = mode != "coins"
         from ..allies._rules import select_modes
 
         def resolve(draw):
@@ -40,20 +43,3 @@ class SpiceMerchant(Card):
 
         for draw in select_modes(game_state, player, self, [True, False], [draw]):
             resolve(draw)
-
-    @staticmethod
-    def _choose_trash(treasures):
-        for name in ["Copper", "Silver", "Gold"]:
-            for card in treasures:
-                if card.name == name:
-                    return card
-        return treasures[0] if treasures else None
-
-    @staticmethod
-    def _prefer_draw_option(player) -> bool:
-        remaining_actions = sum(1 for card in player.hand if card.is_action)
-        if remaining_actions:
-            return True
-        if player.actions <= 0:
-            return True
-        return player.coins < 3
