@@ -43,7 +43,14 @@ def save_strategy_as_python(
     clean_for_publication: bool = True,
     board_config: BoardConfig | None = None,
 ) -> None:
-    """Serialize an EnhancedStrategy as a Python module."""
+    """Serialize an EnhancedStrategy as a Python module.
+
+    A strategy evolved from a hand-written seed subclass keeps that class as
+    its base (imported from the seed's module), so decision hooks the seed
+    defines in code (multiplier targets, Steward mode, ...) survive export.
+    """
+    seed_base = _importable_seed_base(strategy)
+    multiplier_priority = list(getattr(strategy, "multiplier_priority", None) or [])
     if clean_for_publication:
         strategy = cleanup_for_publication(strategy, board_config=board_config)
 
@@ -79,11 +86,16 @@ def save_strategy_as_python(
         if needs_way_rule
         else "from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule"
     )
-    lines = [
-        import_line,
+    base_name = "EnhancedStrategy"
+    lines = [import_line]
+    if seed_base is not None:
+        module_name, seed_class = seed_base
+        base_name = "_SeedBase"
+        lines.append(f"from {module_name} import {seed_class} as _SeedBase")
+    lines += [
         "",
         "",
-        f"class {class_name}(EnhancedStrategy):",
+        f"class {class_name}({base_name}):",
         "    def __init__(self) -> None:",
         "        super().__init__()",
         f"        self.name = {strategy.name!r}",
@@ -118,6 +130,9 @@ def save_strategy_as_python(
     if needs_way_rule:
         lines.extend(format_way_policy(strategy.way_policy))
         lines.append("")
+    if seed_base is not None and multiplier_priority:
+        lines.extend(format_list("multiplier_priority", multiplier_priority))
+        lines.append("")
 
     lines.extend(
         [
@@ -127,6 +142,34 @@ def save_strategy_as_python(
     )
 
     path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def _importable_seed_base(strategy: EnhancedStrategy) -> tuple[str, str] | None:
+    """Return ``(module, class)`` when ``strategy`` is an instance of a
+    hand-written seed class that a generated module can import, else None."""
+    cls = type(strategy)
+    module_name = cls.__module__
+    if cls.__name__ in {"EnhancedStrategy", "BaseStrategy"}:
+        return None
+    if not module_name.startswith(("dominion.strategy.strategies", "generated_strategies")):
+        return None
+    if cls.__name__.startswith("_"):
+        return None
+    try:
+        import importlib
+
+        module = importlib.import_module(module_name)
+    except ImportError:
+        return None
+    # StrategyLoader executes seed modules from their file path without
+    # registering them in sys.modules, so the class object here can differ
+    # from the one a fresh import returns; match by name and lineage instead.
+    exported = getattr(module, cls.__name__, None)
+    if not isinstance(exported, type) or not issubclass(exported, EnhancedStrategy):
+        return None
+    if [c.__name__ for c in exported.__mro__] != [c.__name__ for c in cls.__mro__]:
+        return None
+    return module_name, cls.__name__
 
 
 def merge_baseline_panel(base_panel: list, reused: list) -> list:

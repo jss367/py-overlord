@@ -131,6 +131,7 @@ duplicates have been removed:
 | [Lisbon strategy search](reports/strategies/lisbon-strategy-guide.html) | HTML guide in the strategy catalog. |
 | [Discounted Oslo strategy search](reports/strategies/oslo-strategy-guide.html) | HTML guide with links to the existing comparison reports. |
 | [Port Moresby strategy search](reports/strategies/port-moresby-strategy-guide.html) | HTML guide including results after simulator corrections. |
+| [Albuquerque strategy search](reports/strategies/albuquerque-strategy-guide.html) | HTML guide: card audit, engine play-skill fixes, hand and island search, confirmation. |
 
 A generated strategy detail page describes the runnable strategy; it does not
 automatically migrate a separate narrative's experiments and conclusions. The

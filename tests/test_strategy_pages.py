@@ -132,6 +132,7 @@ def test_render_strategy_pages_writes_index_and_strategy_page(tmp_path):
         "hyderabad-strategy-guide.html",
         "lisbon-strategy-guide.html",
         "oslo-strategy-guide.html",
+        "albuquerque-strategy-guide.html",
         "port-moresby-strategy-guide.html",
     }
 
@@ -172,6 +173,7 @@ def test_render_strategy_pages_resolves_alias_names(tmp_path):
         "hyderabad-strategy-guide.html",
         "lisbon-strategy-guide.html",
         "oslo-strategy-guide.html",
+        "albuquerque-strategy-guide.html",
         "port-moresby-strategy-guide.html",
     }
 

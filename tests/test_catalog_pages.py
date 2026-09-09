@@ -171,6 +171,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "strategies/hyderabad-strategy-guide.html",
         "strategies/lisbon-strategy-guide.html",
         "strategies/oslo-strategy-guide.html",
+        "strategies/albuquerque-strategy-guide.html",
         "strategies/port-moresby-strategy-guide.html",
         "strategies/index.html",
         "strategies/card-strategy-usage.html",
@@ -247,6 +248,7 @@ def test_catalog_replaces_a_stale_leaderboard_placeholder(tmp_path):
         ("hyderabad-strategy-guide.html", "Hyderabad Strategy Search Guide"),
         ("lisbon-strategy-guide.html", "Lisbon Strategy Search Guide"),
         ("oslo-strategy-guide.html", "Discounted Oslo Strategy Search Guide"),
+        ("albuquerque-strategy-guide.html", "Albuquerque Strategy Search Guide"),
         ("port-moresby-strategy-guide.html", "Port Moresby Strategy Search Guide"),
     ],
 )

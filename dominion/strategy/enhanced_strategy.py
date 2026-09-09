@@ -214,6 +214,26 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.deck_count_diff({card_a!r}, {card_b!r}, {op!r}, {amount!r})")
 
     @staticmethod
+    def deck_group_diff(
+        group_a: Iterable[str], group_b: Iterable[str], op: str, amount: int
+    ) -> Callable[[GameState, PlayerState], bool]:
+        """True when (owned copies of any card in ``group_a``) minus (owned copies
+        of any card in ``group_b``) satisfies the comparison.
+
+        The many-card form of :meth:`deck_count_diff`; lets a village rule
+        track every terminal in the deck ("buy Wandering Minstrel while
+        terminals exceed villages by more than one")."""
+        cmp = PriorityRule._OP_MAP[op]
+        a_list, b_list = list(group_a), list(group_b)
+        fn = lambda _s, me, _a=a_list, _b=b_list, _amount=amount, _cmp=cmp: _cmp(
+            sum(me.count_in_deck(c) for c in _a) - sum(me.count_in_deck(c) for c in _b),
+            _amount,
+        )
+        return PriorityRule._tag_source(
+            fn, f"PriorityRule.deck_group_diff({a_list!r}, {b_list!r}, {op!r}, {amount!r})"
+        )
+
+    @staticmethod
     def empty_piles(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         """True when the number of emptied supply piles satisfies the comparison."""
         cmp = PriorityRule._OP_MAP[op]
@@ -243,6 +263,21 @@ class PriorityRule:
         cmp = PriorityRule._OP_MAP[op]
         fn = lambda _s, me, _amount=amount, _cmp=cmp: _cmp(len(me.all_cards()), _amount)
         return PriorityRule._tag_source(fn, f"PriorityRule.deck_size({op!r}, {amount!r})")
+
+    @staticmethod
+    def treasure_value_in_deck(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
+        """True when the printed coin value of all Treasures the player owns satisfies the comparison.
+
+        Lets trashing rules keep an economy floor ("trash Copper while the deck
+        still holds more than $6 of Treasure") instead of counting cards.
+        """
+        cmp = PriorityRule._OP_MAP[op]
+
+        def _eval(_s, me, _amount=amount, _cmp=cmp):
+            value = sum(c.stats.coins for c in me.all_cards() if c.is_treasure)
+            return _cmp(value, _amount)
+
+        return PriorityRule._tag_source(_eval, f"PriorityRule.treasure_value_in_deck({op!r}, {amount!r})")
 
     @staticmethod
     def action_density(op: str, percent: int) -> Callable[[GameState, PlayerState], bool]:
@@ -291,6 +326,11 @@ class PriorityRule:
         fn = lambda s, me: all(c(s, me) for c in conds)
         sources = ", ".join(getattr(c, "_source", "None") for c in conds)
         return PriorityRule._tag_source(fn, f"PriorityRule.and_({sources})")
+
+    @staticmethod
+    def not_(cond: Callable[[GameState, PlayerState], bool]):
+        fn = lambda s, me: not cond(s, me)
+        return PriorityRule._tag_source(fn, f"PriorityRule.not_({getattr(cond, '_source', 'None')})")
 
     @staticmethod
     def or_(*conds: Optional[Callable[[GameState, PlayerState], bool]]):

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Big Money Wharf Strategy</title>
+  <title>Albuquerque Masquerade Money Strategy</title>
   <style>
     :root {
       color-scheme: light;
@@ -287,48 +287,116 @@
 <nav><a href="index.html">Strategy index</a><a href="leaderboard.html">Leaderboard</a></nav>
 <header class="hero">
   <p class="eyebrow">Dominion strategy</p>
-  <h1>Big Money Wharf</h1>
-  <p class="hero-description">Big Money with two Wharves and late greening</p>
+  <h1>Albuquerque Masquerade Money</h1>
+  <p class="hero-description">Big Money with a Masquerade thinning junk.</p>
 <span class="tags"><span class="tag">Big Money</span></span>
-  <div class="hero-links"><strong>Compatible boards</strong><span class="chip-list"><a class="board-chip" href="../boards/albuquerque.html">Albuquerque</a><a class="board-chip" href="../boards/big-cards.html">Big Cards</a><a class="board-chip" href="../boards/calibration/wharf-big-money.html">Wharf Big Money</a><a class="board-chip" href="../boards/taskmaster-workforce.html">Taskmaster Workforce</a><a class="board-chip" href="../boards/wharf-kingdom.html">Wharf Kingdom</a></span></div>
+  <div class="hero-links"><strong>Compatible boards</strong><span class="chip-list"><a class="board-chip" href="../boards/albuquerque.html">Albuquerque</a></span></div>
   <details class="technical-details">
     <summary>Implementation details and referenced components</summary>
     <dl class="meta">
-      <dt>Internal name</dt><dd>Big Money Wharf</dd>
+      <dt>Internal name</dt><dd>Albuquerque Masquerade Money</dd>
       <dt>Version</dt><dd>1.0</dd>
-      <dt>Source</dt><dd>dominion/strategy/strategies/calibration_known_best.py</dd>
-      <dt>Factory</dt><dd>create_big_money_wharf</dd>
-      <dt>Kingdom Cards</dt><dd><span class="chip-list"><span class="card-chip type-action" aria-label="Wharf, Action, Duration card"><span>Wharf</span><span class="type-marker marker-duration" title="Duration" aria-hidden="true"></span></span></span></dd><dt>Events</dt><dd><span class="empty">None</span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
+      <dt>Source</dt><dd>dominion/strategy/strategies/albuquerque_seeds.py</dd>
+      <dt>Factory</dt><dd>create_albuquerque_masquerade_money</dd>
+      <dt>Kingdom Cards</dt><dd><span class="chip-list"><span class="card-chip type-action" aria-label="Abandoned Mine, Action, Ruins card"><span>Abandoned Mine</span></span><span class="card-chip type-action" aria-label="Masquerade, Action card"><span>Masquerade</span></span><span class="card-chip type-action" aria-label="Ruined Library, Action, Ruins card"><span>Ruined Library</span></span><span class="card-chip type-action" aria-label="Ruined Market, Action, Ruins card"><span>Ruined Market</span></span><span class="card-chip type-action" aria-label="Ruined Village, Action, Ruins card"><span>Ruined Village</span></span><span class="card-chip type-action" aria-label="Survivors, Action, Ruins card"><span>Survivors</span></span></span></dd><dt>Events</dt><dd><span class="empty">None</span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
     </dl>
   </details>
 </header>
 
-<section class="section section-gain">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Priority</h2></div>
-  <p class="section-note">Read from the top for each choice. The list selects the first available option whose condition passes. For purchases, the option must also be affordable. “Always” means no additional condition on that row; earlier eligible rows still take precedence within the list.</p><p class="section-note">Shared gain logic can change the list choice: after playing Collection, it can favor an available Action over Silver or Copper; with Trail and Way of the Butterfly, it can choose Trail to gain a higher-priority card.</p>
+<section class="section section-custom">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">ƒ</span><h2>Custom Behaviors</h2></div>
+  <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
   <table class="priority-table">
-    <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
-    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Province, Victory card"><span>Province</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Duchy, Victory card"><span>Duchy</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Provinces remaining: at most 4</span></summary><pre><code>PriorityRule.provinces_left(&#x27;&lt;=&#x27;, 4)</code></pre></details></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Estate, Victory card"><span>Estate</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Provinces remaining: at most 2</span></summary><pre><code>PriorityRule.provinces_left(&#x27;&lt;=&#x27;, 2)</code></pre></details></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Wharf, Action, Duration card"><span>Wharf</span><span class="type-marker marker-duration" title="Duration" aria-hidden="true"></span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You own fewer than 2 copies of Wharf</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Wharf&#x27;, 2)</code></pre></details></td></tr>
-<tr><td data-label="Priority"><span class="priority-number">6</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
+    <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">When King&#x27;s Court or Disciple asks which Action to replay, use the multiplier list (another King&#x27;s Court with four Actions in hand, then Bridge, then Wharf, and so on); the main play order still decides what to play first, and if nothing on the multiplier list is in hand the King&#x27;s Court is played for no effect rather than tripling a bad card.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+    &quot;&quot;&quot;When King&#x27;s Court or Disciple asks which Action to replay, use the
+    multiplier list (another King&#x27;s Court with four Actions in hand, then
+    Bridge, then Wharf, and so on); the main play order still decides what
+    to play first, and if nothing on the multiplier list is in hand the
+    King&#x27;s Court is played for no effect rather than tripling a bad card.&quot;&quot;&quot;
+    in_main_phase = getattr(state, &quot;_choosing_main_action_phase&quot;, False)
+    if self.multiplier_priority and not in_main_phase:
+        pick = self._choose_from_priority(
+            self.multiplier_priority, choices, state, player, &quot;multiplier&quot;
+        )
+        if pick is not None:
+            return pick
+    return super().choose_action(state, player, choices)
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">Follow the gain list, except that with two piles empty and the lead, drain the smallest remaining pile (never Curses) to end the game.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
+    &quot;&quot;&quot;Follow the gain list, except that with two piles empty and the lead,
+    drain the smallest remaining pile (never Curses) to end the game.&quot;&quot;&quot;
+    pick = super().choose_gain(state, player, choices)
+    if pick is not None and pick.name == &quot;Province&quot;:
+        return pick
+    ender = self._pile_out_when_ahead(state, player, choices)
+    return ender if ender is not None else pick
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose card to pass for masquerade</span></td><td data-label="What it does">Pass a Curse, then a Ruins, then an Estate, then a Copper; failing those, the cheapest non-Action card in hand.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_to_pass_for_masquerade(self, state, player, choices):
+    &quot;&quot;&quot;Pass a Curse, then a Ruins, then an Estate, then a Copper; failing
+    those, the cheapest non-Action card in hand.&quot;&quot;&quot;
+    for name in [&quot;Curse&quot;, *RUINS, &quot;Estate&quot;, &quot;Copper&quot;]:
+        for card in choices:
+            if card.name == name:
+                return card
+    non_actions = [c for c in choices if not c.is_action]
+    pool = non_actions or choices
+    return min(pool, key=lambda c: (c.cost.coins, c.name))
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose steward mode</span></td><td data-label="What it does">Trash only when two hand cards pass the trash list (Steward must trash two); otherwise draw (engines) or take the coins (money).<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_steward_mode(self, state, player):
+    &quot;&quot;&quot;Trash only when two hand cards pass the trash list (Steward must
+    trash two); otherwise draw (engines) or take the coins (money).&quot;&quot;&quot;
+    wanted = [
+        c for c in player.hand if self.choose_trash(state, player, [c]) is c
+    ]
+    if len(wanted) &gt;= 2 and state.supply.get(&quot;Province&quot;, 0) &gt; 3:
+        return &quot;trash&quot;
+    if self.steward_mode == &quot;cards&quot;:
+        return &quot;cards&quot;
+    return &quot;coins&quot;
+</code></pre></details></td></tr></tbody>
   </table>
 </section>
+
+<section class="section section-gain">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Decisions</h2></div>
+  <p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Province, Victory card"><span>Province</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Duchy, Victory card"><span>Duchy</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Provinces remaining: at most 4</span></summary><pre><code>PriorityRule.provinces_left(&#x27;&lt;=&#x27;, 4)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Masquerade, Action card"><span>Masquerade</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">You do not own Masquerade</span></summary><pre><code>PriorityRule.max_in_deck(&#x27;Masquerade&#x27;, 1)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Estate, Victory card"><span>Estate</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Provinces remaining: at most 2</span></summary><pre><code>PriorityRule.provinces_left(&#x27;&lt;=&#x27;, 2)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">6</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr></tbody>
+  </table></details>
+</section>
 <section class="section section-action">
-  <div class="section-heading"><span class="section-icon" aria-hidden="true">A</span><h2>Action Priority</h2></div>
-  <p class="section-note">Read from the top for each choice. The list selects the first available option whose condition passes. “Always” means no additional condition on that row; earlier eligible rows still take precedence within the list.</p>
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">A</span><h2>Action Decisions</h2></div>
+  <p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
-    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Wharf, Action, Duration card"><span>Wharf</span><span class="type-marker marker-duration" title="Duration" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr></tbody>
-  </table>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Masquerade, Action card"><span>Masquerade</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Abandoned Mine, Action, Ruins card"><span>Abandoned Mine</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Ruined Library, Action, Ruins card"><span>Ruined Library</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Ruined Market, Action, Ruins card"><span>Ruined Market</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Ruined Village, Action, Ruins card"><span>Ruined Village</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">6</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Survivors, Action, Ruins card"><span>Survivors</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr></tbody>
+  </table></details>
 </section>
 <section class="section section-trash">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">×</span><h2>Trash Priority</h2></div>
+  <p class="section-note">Read from the top for each choice. The list selects the first available option whose condition passes. “Always” means no additional condition on that row; earlier eligible rows still take precedence within the list.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
-    <tbody><tr><td colspan="3" class="empty">None</td></tr></tbody>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-curse" aria-label="Curse, Curse card"><span>Curse</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Abandoned Mine, Action, Ruins card"><span>Abandoned Mine</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Ruined Library, Action, Ruins card"><span>Ruined Library</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Ruined Market, Action, Ruins card"><span>Ruined Market</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Ruined Village, Action, Ruins card"><span>Ruined Village</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">6</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Survivors, Action, Ruins card"><span>Survivors</span></span></td><td data-label="Condition"><span class="condition condition-always">Always</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">7</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Estate, Victory card"><span>Estate</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Provinces remaining: more than 2</span></summary><pre><code>PriorityRule.provinces_left(&#x27;&gt;&#x27;, 2)</code></pre></details></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">8</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><details class="condition-detail"><summary><span class="condition">Treasure value in deck(&gt;, 9)</span></summary><pre><code>PriorityRule.treasure_value_in_deck(&#x27;&gt;&#x27;, 9)</code></pre></details></td></tr></tbody>
   </table>
 </section>
 <section class="section section-treasure">

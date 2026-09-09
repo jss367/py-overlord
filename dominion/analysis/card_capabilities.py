@@ -80,6 +80,13 @@ _OVERRIDES: dict[str, dict] = {
     "Messenger": {"is_gainer": True},       # on-gain: everyone gains a <=$4 card
     "Quartermaster": {"is_gainer": True},   # banks a <=$4 card every turn
     "Secluded Shrine": {"is_trasher": True},  # next Treasure gain: trash 2
+    # Albuquerque board (Peasant / Chapel / Masquerade / Steward / Remake /
+    # Bridge / Wandering Minstrel / Wharf / Cultist / King's Court).
+    "Wharf": {"draw": 3.0, "buys": 1},      # +2 Cards +1 Buy now and next turn
+    "Masquerade": {"is_trasher": True},     # +2 Cards, pass, then trash one
+    "Steward": {"draw": 2.0, "is_trasher": True},  # +2 Cards / +$2 / trash 2
+    "Remake": {"is_gainer": True, "is_trasher": True},  # trash 2, gain +$1 each
+    "Bridge": {"is_gainer": False},         # +$1 +1 Buy, cards cost $1 less
 }
 
 

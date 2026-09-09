@@ -71,6 +71,17 @@ CURATED_STRATEGY_GUIDES = (
         source_label="Repository strategy search and recorded simulation results",
     ),
     CuratedStrategyGuide(
+        filename="albuquerque-strategy-guide.html",
+        display_name="Albuquerque Strategy Search Guide",
+        description=(
+            "Masquerade into a Wandering Minstrel / Wharf / Bridge / King's Court "
+            "engine: card audit, why the first engine seeds lost to money, hand "
+            "search, island evolution, and confirmation."
+        ),
+        kingdom_cards=("Masquerade", "Wandering Minstrel", "Wharf", "Bridge", "King's Court"),
+        source_label="Repository strategy search and recorded simulation results",
+    ),
+    CuratedStrategyGuide(
         filename="port-moresby-strategy-guide.html",
         display_name="Port Moresby Strategy Search Guide",
         description=(
