@@ -232,6 +232,21 @@ def test_armory_can_gain_sir_martin_from_the_top_of_the_knights_pile():
     assert "Sir Martin" not in state.pile_order["Knights"]
 
 
+def test_armory_gain_is_mandatory_when_the_hook_declines():
+    state = _setup(["Armory", "Research", "Stables"])
+    player = state.current_player
+    player.ai.choose_armory_gain = lambda s, p, choices: None
+    player.deck = []
+
+    armory = get_card("Armory")
+    player.in_play.append(armory)
+    armory.play_effect(state)
+
+    # Falls back to the shared ranking: the most expensive $4 option.
+    assert player.deck and player.deck[-1].cost.coins == 4
+    assert player.deck[-1].name != "Stables"
+
+
 # ------------------------------------------------------------------ Scheme
 
 

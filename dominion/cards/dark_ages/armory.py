@@ -31,7 +31,10 @@ class Armory(Card):
 
         chosen = player.ai.choose_armory_gain(game_state, player, options)
         if chosen is None or chosen not in options:
-            return
+            # The gain is mandatory ("Gain a card onto your deck costing up
+            # to $4"), so a declining or invalid hook falls back to the
+            # shared ranking rather than gaining nothing.
+            chosen = max(options, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
         gained = game_state.take_top_supply_card(game_state.supply_pile_key(chosen.name))
         if gained is None:
             return
