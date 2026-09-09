@@ -335,6 +335,9 @@ def test_card_expansion_comes_from_the_defining_card_package():
     assert card_expansion("Torturer") == "Intrigue"
     assert card_expansion("Gold") == "Base"
     assert card_expansion("Province") == "Base"
+    # Mill is implemented under dominion.cards.hinterlands but is an Intrigue
+    # card; the override must win over the defining package.
+    assert card_expansion("Mill") == "Intrigue"
     assert card_expansion("Not A Real Card") is None
 
 

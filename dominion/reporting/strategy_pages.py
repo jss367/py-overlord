@@ -654,18 +654,29 @@ _EXPANSION_LABELS = {
     "victory": "Base",
 }
 
+# The defining package is only a fallback. A few cards are implemented in the
+# wrong package, and moving their modules would churn imports across the
+# codebase, so the true expansion is pinned here instead.
+_CARD_EXPANSION_OVERRIDES = {
+    "Mill": "Intrigue",  # lives in dominion.cards.hinterlands
+}
+
 
 def card_expansion(name: str) -> str | None:
     """Return the expansion a registered card belongs to, or ``None`` if unknown.
 
     Card classes live in one package per expansion under ``dominion.cards``,
-    so the defining module is the single source of truth for this label.
+    so the defining module supplies the label unless the card is listed in
+    ``_CARD_EXPANSION_OVERRIDES``.
     """
 
     try:
         card = get_card(name)
     except (KeyError, ValueError):
         return None
+    override = _CARD_EXPANSION_OVERRIDES.get(card.name)
+    if override is not None:
+        return override
     parts = type(card).__module__.split(".")
     if len(parts) < 3 or parts[:2] != ["dominion", "cards"]:
         return None
