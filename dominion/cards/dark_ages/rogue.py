@@ -5,7 +5,8 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 class Rogue(Card):
     """+$2. Each other player reveals the top 2 cards of their deck. If any
-    cost between $3 and $6, you choose one to trash; otherwise they discard.
+    cost between $3 and $6, that player chooses one to trash; otherwise they
+    discard.
 
     If there are any cards in the trash costing $3 to $6, gain one (this
     happens before the attacks).

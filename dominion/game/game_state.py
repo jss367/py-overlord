@@ -3059,12 +3059,14 @@ class GameState:
         # cleanup). Scan every player's in_play and duration zones.
         bt_count = 0
         for tracker in self.players:
-            # A retained Troll sits in both duration and in_play: count each
-            # physical card once.
+            # Every duration entry is one active reduction (a Throne Roomed
+            # Troll is queued twice). A Troll still in in_play that is also
+            # queued in duration is the same physical card, not a second one.
+            bt_count += sum(1 for c in tracker.duration if c.name == "Bridge Troll")
             bt_count += sum(
                 1
-                for c in dict.fromkeys(tracker.duration + tracker.in_play)
-                if c.name == "Bridge Troll"
+                for c in tracker.in_play
+                if c.name == "Bridge Troll" and c not in tracker.duration
             )
         if bt_count:
             cost -= bt_count

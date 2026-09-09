@@ -441,6 +441,25 @@ def test_knight_attack_counts_a_retained_bridge_troll_once():
     assert province in victim.discard
 
 
+def test_knight_attack_keeps_a_throne_roomed_bridge_trolls_double_reduction():
+    state = _setup(["Knights", "Bridge Troll"])
+    attacker, victim = state.players
+    troll = get_card("Bridge Troll")
+    # Throne Room queued the same Troll twice: two active reductions.
+    attacker.in_play = [troll]
+    attacker.duration = [troll, troll]
+    destry = get_card("Sir Destry")
+    attacker.in_play.append(destry)
+    attacker.deck = [get_card("Copper"), get_card("Copper")]
+    province = get_card("Province")
+    victim.deck = [get_card("Copper"), province]
+
+    destry.play_effect(state)
+
+    # $8 - 2 = $6: inside the window this time.
+    assert province in state.trash
+
+
 def test_rogue_trash_gain_uses_the_attackers_cost_reduction():
     state = _setup(["Rogue", "Highway"])
     attacker, victim = state.players
