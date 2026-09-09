@@ -1,4 +1,4 @@
-"""Ghost Town — $3 Action-Night-Duration.
+"""Ghost Town — $3 Night-Duration.
 
 +1 Card +1 Action. When you gain this, put it into hand.
 (Per the spec: it provides +1 Card +1 Action at the start of your next turn.)
@@ -13,7 +13,7 @@ class GhostTown(Card):
             name="Ghost Town",
             cost=CardCost(coins=3),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.NIGHT, CardType.DURATION],
+            types=[CardType.NIGHT, CardType.DURATION],
         )
 
     def on_gain(self, game_state, player):

@@ -2,14 +2,14 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Crypt(Card):
-    """Implementation of the Nocturne card ``Crypt``."""
+    """Crypt — $5 Night-Duration."""
 
     def __init__(self):
         super().__init__(
             name="Crypt",
             cost=CardCost(coins=5),
             stats=CardStats(actions=1),
-            types=[CardType.ACTION, CardType.DURATION],
+            types=[CardType.NIGHT, CardType.DURATION],
         )
         self.set_aside: list = []
         self.duration_persistent = False

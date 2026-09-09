@@ -1,4 +1,4 @@
-"""Raider — $6 Action-Attack-Duration.
+"""Raider — $6 Night-Attack-Duration.
 
 Each other player reveals their hand and discards a card you have in play
 (of their choice). At the start of your next turn, +$3.
@@ -13,7 +13,7 @@ class Raider(Card):
             name="Raider",
             cost=CardCost(coins=6),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.ATTACK, CardType.DURATION],
+            types=[CardType.NIGHT, CardType.ATTACK, CardType.DURATION],
         )
 
     def play_effect(self, game_state):

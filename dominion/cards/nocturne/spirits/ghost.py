@@ -1,4 +1,4 @@
-"""Ghost — non-supply Action-Night-Duration-Spirit, $4."""
+"""Ghost — non-supply Night-Duration-Spirit, $4."""
 
 from ...base_card import Card, CardCost, CardStats, CardType
 
@@ -15,7 +15,7 @@ class Ghost(Card):
             name="Ghost",
             cost=CardCost(coins=4),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.NIGHT, CardType.DURATION, CardType.SPIRIT],
+            types=[CardType.NIGHT, CardType.DURATION, CardType.SPIRIT],
         )
 
     def starting_supply(self, game_state) -> int:

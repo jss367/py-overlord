@@ -184,6 +184,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "strategies/cursed-band-biding-time-strategy-guide.html",
         "strategies/tea-house-kind-emperor-strategy-guide.html",
         "strategies/mine-guildhall-strategy-guide.html",
+        "strategies/kimberley-mine-engine-strategy-guide.html",
         "strategies/hyderabad-strategy-guide.html",
         "strategies/lisbon-strategy-guide.html",
         "strategies/oslo-strategy-guide.html",

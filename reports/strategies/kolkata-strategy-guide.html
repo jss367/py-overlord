@@ -95,7 +95,8 @@ board's whole character:</p>
    "Trashes one of them" is the attacked player's choice. The default
    victim policy now gives up a revealed Knight first (that also trashes
    the attacking Knight), then the cheapest qualifying card. Rogue shared
-   the bug and uses the same hook.</li>
+   the bug; it asks its own hook, whose default is simply the cheapest
+   card, because trashing a Knight does not take a Rogue with it.</li>
 <li><strong>Armory always gained the same card.</strong> The gain was a
    hardcoded sort (on this board: Spice Merchant, every time). It now
    runs the strategy's gain priorities over every exposed $4 pile, the
@@ -114,8 +115,9 @@ board's whole character:</p>
    of the pile, and <code>count_in_deck("Knights")</code> counts every
    Knight owned.</li>
 </ol>
-<p>Seven decisions were exposed as AI hooks that strategies can override:
+<p>Eight decisions were exposed as AI hooks that strategies can override:
 <code>choose_card_to_trash_for_knight_attack</code>,
+<code>choose_card_to_trash_for_rogue_attack</code>,
 <code>choose_treasure_to_discard_for_stables</code> (default: Copper, then
 Spoils, then Silver), <code>choose_treasure_to_trash_for_spice_merchant</code>,
 <code>choose_spice_merchant_mode</code>, <code>choose_armory_gain</code>,

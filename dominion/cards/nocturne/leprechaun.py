@@ -1,4 +1,4 @@
-"""Leprechaun — $3 Action-Night.
+"""Leprechaun — $3 Action-Doom.
 
 Gain a Gold. If you have exactly 7 cards in play, gain a Wish; otherwise
 receive a Hex.
@@ -15,7 +15,7 @@ class Leprechaun(Card):
             name="Leprechaun",
             cost=CardCost(coins=3),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.NIGHT, CardType.DOOM],
+            types=[CardType.ACTION, CardType.DOOM],
         )
 
     def play_effect(self, game_state):

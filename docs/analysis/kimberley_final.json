@@ -1,0 +1,1336 @@
+[
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "mines": 0,
+      "opening": "Priest",
+      "second": "Market Square",
+      "kings": 1,
+      "thrones": 0,
+      "labs": 3,
+      "smithies": 1,
+      "villages": 1,
+      "priests": 0,
+      "squares": 3,
+      "hoards": 1,
+      "banks": 1,
+      "golds": 1,
+      "silvers": 3,
+      "sewers": false,
+      "multiplier": "draw",
+      "terminal_order": "smithy",
+      "keep_coppers": 5,
+      "green_turn": 14,
+      "province_colonies": 2,
+      "kc_turn": 4
+    },
+    "games": 1000,
+    "seed": 540000,
+    "rate": 0.88,
+    "paired_ci95": [
+      0.8608570319319886,
+      0.8991429680680114
+    ],
+    "totals": {
+      "wins": 880,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 34,
+      "turns": 18836,
+      "score": 73841,
+      "opponent_score": 50743,
+      "tomb_points": 12879,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9215,
+      "mine_plays": 6772
+    },
+    "mine_gains": {
+      "Copper -> Silver": 2073,
+      "Gold -> Platinum": 2597,
+      "Silver -> Gold": 2102
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "money": "plain"
+    },
+    "games": 1000,
+    "seed": 550000,
+    "rate": 1.0,
+    "paired_ci95": [
+      1.0,
+      1
+    ],
+    "totals": {
+      "wins": 1000,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 34,
+      "turns": 21287,
+      "score": 89997,
+      "opponent_score": 41935,
+      "tomb_points": 13572,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9157,
+      "mine_plays": 7474
+    },
+    "mine_gains": {
+      "Copper -> Silver": 2317,
+      "Silver -> Gold": 2249,
+      "Gold -> Platinum": 2908
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "money": "Smithy"
+    },
+    "games": 1000,
+    "seed": 550000,
+    "rate": 0.973,
+    "paired_ci95": [
+      0.9630844170736391,
+      0.9829155829263608
+    ],
+    "totals": {
+      "wins": 973,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 34,
+      "turns": 19506,
+      "score": 79042,
+      "opponent_score": 46687,
+      "tomb_points": 13109,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9136,
+      "mine_plays": 6979
+    },
+    "mine_gains": {
+      "Copper -> Silver": 2182,
+      "Silver -> Gold": 2162,
+      "Gold -> Platinum": 2635
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "money": "Laboratory"
+    },
+    "games": 1000,
+    "seed": 550000,
+    "rate": 0.996,
+    "paired_ci95": [
+      0.9920918013313462,
+      0.9999081986686538
+    ],
+    "totals": {
+      "wins": 996,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 33,
+      "turns": 20192,
+      "score": 83747,
+      "opponent_score": 44574,
+      "tomb_points": 13269,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9084,
+      "mine_plays": 7168
+    },
+    "mine_gains": {
+      "Copper -> Silver": 2228,
+      "Silver -> Gold": 2175,
+      "Gold -> Platinum": 2765
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "money": "Mine"
+    },
+    "games": 1000,
+    "seed": 550000,
+    "rate": 0.983,
+    "paired_ci95": [
+      0.9750493282319589,
+      0.9909506717680411
+    ],
+    "totals": {
+      "wins": 983,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 33,
+      "turns": 20420,
+      "score": 85065,
+      "opponent_score": 48959,
+      "tomb_points": 13347,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9155,
+      "mine_plays": 7256
+    },
+    "mine_gains": {
+      "Copper -> Silver": 2270,
+      "Silver -> Gold": 2176,
+      "Gold -> Platinum": 2810
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "money": "Priest"
+    },
+    "games": 1000,
+    "seed": 550000,
+    "rate": 0.998,
+    "paired_ci95": [
+      0.9952309202240435,
+      1
+    ],
+    "totals": {
+      "wins": 998,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 30,
+      "turns": 21005,
+      "score": 88125,
+      "opponent_score": 43387,
+      "tomb_points": 13437,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9214,
+      "mine_plays": 7353
+    },
+    "mine_gains": {
+      "Copper -> Silver": 2274,
+      "Silver -> Gold": 2242,
+      "Gold -> Platinum": 2837
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "money": "Hoard"
+    },
+    "games": 1000,
+    "seed": 550000,
+    "rate": 1.0,
+    "paired_ci95": [
+      1.0,
+      1
+    ],
+    "totals": {
+      "wins": 1000,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 31,
+      "turns": 22223,
+      "score": 95338,
+      "opponent_score": 39546,
+      "tomb_points": 13783,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9158,
+      "mine_plays": 7700
+    },
+    "mine_gains": {
+      "Copper -> Silver": 2373,
+      "Silver -> Gold": 2315,
+      "Gold -> Platinum": 3012
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "money": "Bank"
+    },
+    "games": 1000,
+    "seed": 550000,
+    "rate": 1.0,
+    "paired_ci95": [
+      1.0,
+      1
+    ],
+    "totals": {
+      "wins": 1000,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 34,
+      "turns": 20586,
+      "score": 85740,
+      "opponent_score": 43737,
+      "tomb_points": 13389,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9157,
+      "mine_plays": 7282
+    },
+    "mine_gains": {
+      "Copper -> Silver": 2278,
+      "Silver -> Gold": 2182,
+      "Gold -> Platinum": 2822
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "opening": "Laboratory",
+      "second": "Priest",
+      "mines": 0,
+      "kings": 0,
+      "thrones": 0
+    },
+    "games": 1000,
+    "seed": 560000,
+    "rate": 0.905,
+    "paired_ci95": [
+      0.887347784234185,
+      0.922652215765815
+    ],
+    "totals": {
+      "wins": 905,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 44,
+      "turns": 19233,
+      "score": 75757,
+      "opponent_score": 53334,
+      "tomb_points": 12835,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9235,
+      "mine_plays": 6761
+    },
+    "mine_gains": {
+      "Gold -> Platinum": 2587,
+      "Silver -> Gold": 2079,
+      "Copper -> Silver": 2095
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Laboratory",
+      "second": "Priest",
+      "mines": 0,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "mines": 0,
+      "opening": "Priest",
+      "second": "Market Square",
+      "kings": 1,
+      "thrones": 0,
+      "labs": 3,
+      "smithies": 1,
+      "villages": 1,
+      "priests": 0,
+      "squares": 3,
+      "hoards": 1,
+      "banks": 1,
+      "golds": 1,
+      "silvers": 3,
+      "sewers": false,
+      "multiplier": "draw",
+      "terminal_order": "smithy",
+      "keep_coppers": 5,
+      "green_turn": 14,
+      "province_colonies": 2,
+      "kc_turn": 4
+    },
+    "games": 1000,
+    "seed": 570000,
+    "rate": 0.431,
+    "paired_ci95": [
+      0.4007655208038152,
+      0.46123447919618477
+    ],
+    "totals": {
+      "wins": 431,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 44,
+      "turns": 21498,
+      "score": 62359,
+      "opponent_score": 65538,
+      "tomb_points": 7189,
+      "platinum_games": 832,
+      "platinum_first_turn": 8393,
+      "mine_plays": 0
+    },
+    "mine_gains": {},
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0,
+      "sewers": false
+    },
+    "games": 1000,
+    "seed": 560000,
+    "rate": 0.78,
+    "paired_ci95": [
+      0.7555580045355423,
+      0.8044419954644577
+    ],
+    "totals": {
+      "wins": 780,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 29,
+      "turns": 18598,
+      "score": 72162,
+      "opponent_score": 58218,
+      "tomb_points": 12753,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9236,
+      "mine_plays": 6674
+    },
+    "mine_gains": {
+      "Gold -> Platinum": 2549,
+      "Silver -> Gold": 2048,
+      "Copper -> Silver": 2077
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0,
+      "sewers": false
+    },
+    "b": {
+      "mines": 0,
+      "opening": "Priest",
+      "second": "Market Square",
+      "kings": 1,
+      "thrones": 0,
+      "labs": 3,
+      "smithies": 1,
+      "villages": 1,
+      "priests": 0,
+      "squares": 3,
+      "hoards": 1,
+      "banks": 1,
+      "golds": 1,
+      "silvers": 3,
+      "sewers": false,
+      "multiplier": "draw",
+      "terminal_order": "smithy",
+      "keep_coppers": 5,
+      "green_turn": 14,
+      "province_colonies": 2,
+      "kc_turn": 4
+    },
+    "games": 1000,
+    "seed": 570000,
+    "rate": 0.677,
+    "paired_ci95": [
+      0.6473527987782901,
+      0.70664720122171
+    ],
+    "totals": {
+      "wins": 677,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 30,
+      "turns": 19652,
+      "score": 67699,
+      "opponent_score": 57300,
+      "tomb_points": 10569,
+      "platinum_games": 999,
+      "platinum_first_turn": 9572,
+      "mine_plays": 5942
+    },
+    "mine_gains": {
+      "Copper -> Silver": 1930,
+      "Silver -> Gold": 1649,
+      "Gold -> Platinum": 2363
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "opening": "Mine",
+      "second": "Silver",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0,
+      "priests": 0
+    },
+    "games": 1000,
+    "seed": 560000,
+    "rate": 0.759,
+    "paired_ci95": [
+      0.7333561610957429,
+      0.7846438389042572
+    ],
+    "totals": {
+      "wins": 759,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 30,
+      "turns": 18789,
+      "score": 73173,
+      "opponent_score": 57981,
+      "tomb_points": 12765,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9273,
+      "mine_plays": 6703
+    },
+    "mine_gains": {
+      "Gold -> Platinum": 2587,
+      "Copper -> Silver": 2065,
+      "Silver -> Gold": 2051
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Silver",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0,
+      "priests": 0
+    },
+    "b": {
+      "mines": 0,
+      "opening": "Priest",
+      "second": "Market Square",
+      "kings": 1,
+      "thrones": 0,
+      "labs": 3,
+      "smithies": 1,
+      "villages": 1,
+      "priests": 0,
+      "squares": 3,
+      "hoards": 1,
+      "banks": 1,
+      "golds": 1,
+      "silvers": 3,
+      "sewers": false,
+      "multiplier": "draw",
+      "terminal_order": "smithy",
+      "keep_coppers": 5,
+      "green_turn": 14,
+      "province_colonies": 2,
+      "kc_turn": 4
+    },
+    "games": 1000,
+    "seed": 570000,
+    "rate": 0.667,
+    "paired_ci95": [
+      0.6378186783323898,
+      0.6961813216676103
+    ],
+    "totals": {
+      "wins": 667,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 35,
+      "turns": 19891,
+      "score": 67995,
+      "opponent_score": 58203,
+      "tomb_points": 10744,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9778,
+      "mine_plays": 5979
+    },
+    "mine_gains": {
+      "Copper -> Silver": 1611,
+      "Silver -> Gold": 1940,
+      "Gold -> Platinum": 2428
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0,
+      "squares": 0
+    },
+    "games": 1000,
+    "seed": 560000,
+    "rate": 0.518,
+    "paired_ci95": [
+      0.49307828201639164,
+      0.5429217179836083
+    ],
+    "totals": {
+      "wins": 518,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 27,
+      "turns": 17598,
+      "score": 63701,
+      "opponent_score": 62961,
+      "tomb_points": 12286,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9261,
+      "mine_plays": 6231
+    },
+    "mine_gains": {
+      "Gold -> Platinum": 2318,
+      "Silver -> Gold": 1925,
+      "Copper -> Silver": 1988
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0,
+      "squares": 0
+    },
+    "b": {
+      "mines": 0,
+      "opening": "Priest",
+      "second": "Market Square",
+      "kings": 1,
+      "thrones": 0,
+      "labs": 3,
+      "smithies": 1,
+      "villages": 1,
+      "priests": 0,
+      "squares": 3,
+      "hoards": 1,
+      "banks": 1,
+      "golds": 1,
+      "silvers": 3,
+      "sewers": false,
+      "multiplier": "draw",
+      "terminal_order": "smithy",
+      "keep_coppers": 5,
+      "green_turn": 14,
+      "province_colonies": 2,
+      "kc_turn": 4
+    },
+    "games": 1000,
+    "seed": 570000,
+    "rate": 0.855,
+    "paired_ci95": [
+      0.8332452013908414,
+      0.8767547986091586
+    ],
+    "totals": {
+      "wins": 855,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 29,
+      "turns": 18541,
+      "score": 71269,
+      "opponent_score": 50501,
+      "tomb_points": 12619,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9145,
+      "mine_plays": 6546
+    },
+    "mine_gains": {
+      "Copper -> Silver": 1958,
+      "Silver -> Gold": 1966,
+      "Gold -> Platinum": 2622
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0,
+      "upgrade": "copper"
+    },
+    "games": 1000,
+    "seed": 560000,
+    "rate": 0.697,
+    "paired_ci95": [
+      0.6717689734532817,
+      0.7222310265467182
+    ],
+    "totals": {
+      "wins": 697,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 29,
+      "turns": 18533,
+      "score": 70939,
+      "opponent_score": 61073,
+      "tomb_points": 12614,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9262,
+      "mine_plays": 6558
+    },
+    "mine_gains": {
+      "Gold -> Platinum": 2490,
+      "Silver -> Gold": 2015,
+      "Copper -> Silver": 2053
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0,
+      "upgrade": "copper"
+    },
+    "b": {
+      "mines": 0,
+      "opening": "Priest",
+      "second": "Market Square",
+      "kings": 1,
+      "thrones": 0,
+      "labs": 3,
+      "smithies": 1,
+      "villages": 1,
+      "priests": 0,
+      "squares": 3,
+      "hoards": 1,
+      "banks": 1,
+      "golds": 1,
+      "silvers": 3,
+      "sewers": false,
+      "multiplier": "draw",
+      "terminal_order": "smithy",
+      "keep_coppers": 5,
+      "green_turn": 14,
+      "province_colonies": 2,
+      "kc_turn": 4
+    },
+    "games": 1000,
+    "seed": 570000,
+    "rate": 0.748,
+    "paired_ci95": [
+      0.7218983706003892,
+      0.7741016293996108
+    ],
+    "totals": {
+      "wins": 748,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 38,
+      "turns": 19776,
+      "score": 71548,
+      "opponent_score": 56947,
+      "tomb_points": 12398,
+      "platinum_games": 920,
+      "platinum_first_turn": 9793,
+      "mine_plays": 7097
+    },
+    "mine_gains": {
+      "Copper -> Silver": 4429,
+      "Silver -> Gold": 2307,
+      "Gold -> Platinum": 361
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 1
+    },
+    "games": 1000,
+    "seed": 560000,
+    "rate": 0.61,
+    "paired_ci95": [
+      0.5834011075011697,
+      0.6365988924988303
+    ],
+    "totals": {
+      "wins": 610,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 30,
+      "turns": 18222,
+      "score": 68666,
+      "opponent_score": 62590,
+      "tomb_points": 12530,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9286,
+      "mine_plays": 6481
+    },
+    "mine_gains": {
+      "Gold -> Platinum": 2463,
+      "Silver -> Gold": 1973,
+      "Copper -> Silver": 2045
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 1
+    },
+    "b": {
+      "mines": 0,
+      "opening": "Priest",
+      "second": "Market Square",
+      "kings": 1,
+      "thrones": 0,
+      "labs": 3,
+      "smithies": 1,
+      "villages": 1,
+      "priests": 0,
+      "squares": 3,
+      "hoards": 1,
+      "banks": 1,
+      "golds": 1,
+      "silvers": 3,
+      "sewers": false,
+      "multiplier": "draw",
+      "terminal_order": "smithy",
+      "keep_coppers": 5,
+      "green_turn": 14,
+      "province_colonies": 2,
+      "kc_turn": 4
+    },
+    "games": 1000,
+    "seed": 570000,
+    "rate": 0.768,
+    "paired_ci95": [
+      0.742392662875081,
+      0.793607337124919
+    ],
+    "totals": {
+      "wins": 768,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 31,
+      "turns": 19345,
+      "score": 71350,
+      "opponent_score": 55011,
+      "tomb_points": 13821,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9360,
+      "mine_plays": 8057
+    },
+    "mine_gains": {
+      "Copper -> Silver": 2509,
+      "Silver -> Gold": 2603,
+      "Gold -> Platinum": 2945
+    },
+    "multiplier_targets": {
+      "Mine": 2050,
+      "Priest": 11
+    }
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 1,
+      "thrones": 0
+    },
+    "games": 1000,
+    "seed": 560000,
+    "rate": 0.485,
+    "paired_ci95": [
+      0.45820286109849384,
+      0.5117971389015061
+    ],
+    "totals": {
+      "wins": 485,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 31,
+      "turns": 17778,
+      "score": 64969,
+      "opponent_score": 64650,
+      "tomb_points": 12379,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9249,
+      "mine_plays": 6322
+    },
+    "mine_gains": {
+      "Gold -> Platinum": 2374,
+      "Silver -> Gold": 1955,
+      "Copper -> Silver": 1993
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 1,
+      "thrones": 0
+    },
+    "b": {
+      "mines": 0,
+      "opening": "Priest",
+      "second": "Market Square",
+      "kings": 1,
+      "thrones": 0,
+      "labs": 3,
+      "smithies": 1,
+      "villages": 1,
+      "priests": 0,
+      "squares": 3,
+      "hoards": 1,
+      "banks": 1,
+      "golds": 1,
+      "silvers": 3,
+      "sewers": false,
+      "multiplier": "draw",
+      "terminal_order": "smithy",
+      "keep_coppers": 5,
+      "green_turn": 14,
+      "province_colonies": 2,
+      "kc_turn": 4
+    },
+    "games": 1000,
+    "seed": 570000,
+    "rate": 0.849,
+    "paired_ci95": [
+      0.8277420613249208,
+      0.8702579386750792
+    ],
+    "totals": {
+      "wins": 849,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 35,
+      "turns": 18918,
+      "score": 73573,
+      "opponent_score": 51728,
+      "tomb_points": 15418,
+      "platinum_games": 999,
+      "platinum_first_turn": 9331,
+      "mine_plays": 8866
+    },
+    "mine_gains": {
+      "Copper -> Silver": 2710,
+      "Silver -> Gold": 2919,
+      "Gold -> Platinum": 3237
+    },
+    "multiplier_targets": {
+      "Mine": 1506,
+      "Priest": 3
+    }
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 2,
+      "kings": 0,
+      "thrones": 0
+    },
+    "games": 1000,
+    "seed": 560000,
+    "rate": 0.556,
+    "paired_ci95": [
+      0.5294063178054387,
+      0.5825936821945614
+    ],
+    "totals": {
+      "wins": 556,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 27,
+      "turns": 17867,
+      "score": 66053,
+      "opponent_score": 63416,
+      "tomb_points": 12385,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9254,
+      "mine_plays": 6358
+    },
+    "mine_gains": {
+      "Gold -> Platinum": 2422,
+      "Silver -> Gold": 1942,
+      "Copper -> Silver": 1994
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 2,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "mines": 0,
+      "opening": "Priest",
+      "second": "Market Square",
+      "kings": 1,
+      "thrones": 0,
+      "labs": 3,
+      "smithies": 1,
+      "villages": 1,
+      "priests": 0,
+      "squares": 3,
+      "hoards": 1,
+      "banks": 1,
+      "golds": 1,
+      "silvers": 3,
+      "sewers": false,
+      "multiplier": "draw",
+      "terminal_order": "smithy",
+      "keep_coppers": 5,
+      "green_turn": 14,
+      "province_colonies": 2,
+      "kc_turn": 4
+    },
+    "games": 1000,
+    "seed": 570000,
+    "rate": 0.84,
+    "paired_ci95": [
+      0.8179072169674292,
+      0.8620927830325708
+    ],
+    "totals": {
+      "wins": 840,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 31,
+      "turns": 19013,
+      "score": 73548,
+      "opponent_score": 53155,
+      "tomb_points": 15234,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9384,
+      "mine_plays": 9409
+    },
+    "mine_gains": {
+      "Copper -> Silver": 2909,
+      "Gold -> Platinum": 3520,
+      "Silver -> Gold": 2980
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "opening": "Laboratory",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "games": 1000,
+    "seed": 560000,
+    "rate": 0.51,
+    "paired_ci95": [
+      0.49384504890475434,
+      0.5261549510952457
+    ],
+    "totals": {
+      "wins": 510,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 24,
+      "turns": 17781,
+      "score": 64840,
+      "opponent_score": 64498,
+      "tomb_points": 12300,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9245,
+      "mine_plays": 6249
+    },
+    "mine_gains": {
+      "Gold -> Platinum": 2365,
+      "Copper -> Silver": 1942,
+      "Silver -> Gold": 1942
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Laboratory",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "mines": 0,
+      "opening": "Priest",
+      "second": "Market Square",
+      "kings": 1,
+      "thrones": 0,
+      "labs": 3,
+      "smithies": 1,
+      "villages": 1,
+      "priests": 0,
+      "squares": 3,
+      "hoards": 1,
+      "banks": 1,
+      "golds": 1,
+      "silvers": 3,
+      "sewers": false,
+      "multiplier": "draw",
+      "terminal_order": "smithy",
+      "keep_coppers": 5,
+      "green_turn": 14,
+      "province_colonies": 2,
+      "kc_turn": 4
+    },
+    "games": 1000,
+    "seed": 570000,
+    "rate": 0.879,
+    "paired_ci95": [
+      0.8582626920579993,
+      0.8997373079420007
+    ],
+    "totals": {
+      "wins": 879,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 44,
+      "turns": 18908,
+      "score": 73799,
+      "opponent_score": 51417,
+      "tomb_points": 12808,
+      "platinum_games": 999,
+      "platinum_first_turn": 9271,
+      "mine_plays": 6594
+    },
+    "mine_gains": {
+      "Copper -> Silver": 1979,
+      "Gold -> Platinum": 2578,
+      "Silver -> Gold": 2037
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Priest",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "opening": "Mine",
+      "second": "Silver",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "games": 1000,
+    "seed": 560000,
+    "rate": 0.759,
+    "paired_ci95": [
+      0.7333561610957429,
+      0.7846438389042572
+    ],
+    "totals": {
+      "wins": 759,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 28,
+      "turns": 18535,
+      "score": 71785,
+      "opponent_score": 58007,
+      "tomb_points": 12652,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9245,
+      "mine_plays": 6629
+    },
+    "mine_gains": {
+      "Gold -> Platinum": 2546,
+      "Silver -> Gold": 2012,
+      "Copper -> Silver": 2071
+    },
+    "multiplier_targets": {}
+  },
+  {
+    "a": {
+      "opening": "Mine",
+      "second": "Silver",
+      "mines": 1,
+      "kings": 0,
+      "thrones": 0
+    },
+    "b": {
+      "mines": 0,
+      "opening": "Priest",
+      "second": "Market Square",
+      "kings": 1,
+      "thrones": 0,
+      "labs": 3,
+      "smithies": 1,
+      "villages": 1,
+      "priests": 0,
+      "squares": 3,
+      "hoards": 1,
+      "banks": 1,
+      "golds": 1,
+      "silvers": 3,
+      "sewers": false,
+      "multiplier": "draw",
+      "terminal_order": "smithy",
+      "keep_coppers": 5,
+      "green_turn": 14,
+      "province_colonies": 2,
+      "kc_turn": 4
+    },
+    "games": 1000,
+    "seed": 570000,
+    "rate": 0.727,
+    "paired_ci95": [
+      0.698572382335268,
+      0.755427617664732
+    ],
+    "totals": {
+      "wins": 727,
+      "ties": 0,
+      "truncated": 0,
+      "max_turns": 30,
+      "turns": 19706,
+      "score": 69045,
+      "opponent_score": 56668,
+      "tomb_points": 11959,
+      "platinum_games": 1000,
+      "platinum_first_turn": 9775,
+      "mine_plays": 6051
+    },
+    "mine_gains": {
+      "Copper -> Silver": 1622,
+      "Silver -> Gold": 2017,
+      "Gold -> Platinum": 2412
+    },
+    "multiplier_targets": {}
+  }
+]

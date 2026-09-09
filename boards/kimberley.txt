@@ -1,0 +1,21 @@
+# Kimberley: a Colony board built around Mine.
+# Mine climbs Copper -> Silver -> Gold -> Platinum, each gain landing in hand.
+# King's Court and Throne Room repeat the climb in one play; Sewers, Tomb,
+# Market Square, and Priest all pay out on the Treasure Mine trashes.
+# Two players; standard Estate starts.
+Mine
+Throne Room
+King's Court
+Laboratory
+Smithy
+Mining Village
+Market Square
+Priest
+Hoard
+Bank
+
+Colony
+Platinum
+
+Project: Sewers
+Landmark: Tomb
