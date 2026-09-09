@@ -698,7 +698,6 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
             PriorityRule("Province", PriorityRule.resources("coins", ">=", province_min)),
             feodum_when_silvers(feodum_over_duchy_silvers),
             PriorityRule("Duchy", PriorityRule.provinces_left("<=", duchy_gate)),
-            PriorityRule("Gold", PriorityRule.resources("coins", ">=", gold_min)),
         ]
         if anvils:
             rules.append(
@@ -760,6 +759,9 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
             )
         )
         rules.append(feodum_when_silvers(feodum_silvers))
+        # Gold after Anvil and the Feodum-from-Silvers rule, mirroring
+        # ``BilbaoBestFound`` so the chassis variants are an exact control.
+        rules.append(PriorityRule("Gold", PriorityRule.resources("coins", ">=", gold_min)))
         fg_rule = PriorityRule("Fool's Gold", PriorityRule.max_in_deck("Fool's Gold", fg_max))
         late_feodum = PriorityRule("Feodum", PriorityRule.provinces_left("<=", feodum_late))
         if fg_max and fg_before_silver:
@@ -798,6 +800,9 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
         if state.supply.get("Silver", 0) - 4 < 3:
             return False
         if player.count_in_deck("Silver") + 4 >= self.params["trash_silver_cap"]:
+            return False
+        # ...and the second trash must still leave ``trash_keep_feodums``.
+        if player.count_in_deck("Feodum") - 1 <= self.params["trash_keep_feodums"]:
             return False
         hand_feodums = sum(1 for c in player.hand if c.name == "Feodum") - 1
         discard_feodums = sum(1 for c in player.discard if c.name == "Feodum")
@@ -900,7 +905,7 @@ def create_bilbao_shaman_feodum_mill() -> EnhancedStrategy:
 def create_bilbao_shaman_feodum_mill_hybrid() -> EnhancedStrategy:
     """Best Found chassis plus two Shamans and a Hermit that trash Feodums
     only in pairs (so one comes back). The strongest mill variant found:
-    83% against the seed field, 13% against Bilbao Best Found."""
+    81% against the seed field, 13% against Bilbao Best Found."""
     return BilbaoShamanFeodumMill(
         name="Bilbao Shaman Feodum Mill Hybrid",
         trash_mode="pair",

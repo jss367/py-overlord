@@ -107,6 +107,28 @@ def test_pair_mode_declines_when_the_first_trash_would_end_the_mill():
     assert second in p0.hand
 
 
+def test_pair_mode_honours_the_feodum_keep_threshold():
+    """With two Feodums and one to keep, the promised second trash would be
+    refused at the keep threshold, so the first must not happen either."""
+    state = _game(BilbaoShamanFeodumMill(trash_mode="pair", trash_keep_feodums=1))
+    p0 = state.players[0]
+    feodum, second = get_card("Feodum"), get_card("Feodum")
+    p0.hand = [feodum, second, get_card("Shaman")]
+    state.supply["Silver"] = 10
+    _play(state, "Shaman")
+    assert feodum in p0.hand and second in p0.hand
+    assert not state.trash
+
+    state = _game(BilbaoShamanFeodumMill(trash_mode="pair", trash_keep_feodums=0))
+    p0 = state.players[0]
+    feodum, second = get_card("Feodum"), get_card("Feodum")
+    p0.hand = [feodum, second, get_card("Shaman")]
+    state.supply["Silver"] = 10
+    _play(state, "Shaman")
+    assert feodum in state.trash
+    assert second in p0.hand
+
+
 def test_hermit_gains_shamans_up_to_target_then_silver():
     state = _game(BilbaoShamanFeodumMill(shamans=1))
     p0 = state.players[0]
