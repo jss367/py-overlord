@@ -290,6 +290,29 @@ def test_scheme_does_not_topdeck_a_duration_that_stays_in_play():
     assert scheme in player.hand
 
 
+def test_scheme_does_not_topdeck_a_multiplier_retained_by_its_duration_target():
+    state = _setup(["Scheme", "Research", "Throne Room"])
+    player = state.current_player
+    research = get_card("Research")
+    throne = get_card("Throne Room")
+    scheme = get_card("Scheme")
+    player.in_play = [scheme, throne, research]
+    player.duration = [research]
+    research.duration_persistent = True
+    # Throne Room stays in play with the Duration it multiplied.
+    throne.duration_targets = [research]
+    player.hand = []
+    player.deck = [get_card("Copper") for _ in range(5)]
+    player.discard = []
+
+    state.phase = "cleanup"
+    state.handle_cleanup_phase()
+
+    assert throne in player.in_play
+    assert throne not in player.deck
+    assert scheme in player.hand
+
+
 def test_scheme_topdeck_choice_is_forwarded_to_the_strategy():
     from dominion.ai.genetic_ai import GeneticAI
     from dominion.strategy.strategies.big_money import create_big_money

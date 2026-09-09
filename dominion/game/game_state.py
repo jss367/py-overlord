@@ -3237,8 +3237,20 @@ class GameState:
         scheme_count = sum(1 for card in player.in_play if card.name == "Scheme")
         if scheme_count:
             # Only Actions that are actually discarded from play this
-            # Clean-up qualify: a Duration staying in play is not discarded.
+            # Clean-up qualify: a Duration staying in play is not discarded,
+            # and neither is a multiplier (Throne Room, King's Court) that is
+            # retained because one of its ``duration_targets`` stays.
             staying = set(player.duration) | set(player.multiplied_durations)
+            changed = True
+            while changed:
+                changed = False
+                for card in player.in_play:
+                    if card not in staying and any(
+                        target in staying
+                        for target in getattr(card, "duration_targets", [])
+                    ):
+                        staying.add(card)
+                        changed = True
             playable_actions = [
                 card
                 for card in player.in_play
