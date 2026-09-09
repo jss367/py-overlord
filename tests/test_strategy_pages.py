@@ -329,3 +329,93 @@ def test_strategy_page_shows_custom_function_source_and_configured_values(tmp_pa
     assert "player.count_in_deck(&quot;Colony&quot;) &gt; 0" in page
     assert "Special strategy rule" not in page
     assert "custom condition" not in page
+
+
+def test_card_expansion_comes_from_the_defining_card_package():
+    from dominion.reporting.strategy_pages import card_expansion
+
+    assert card_expansion("Torturer") == "Intrigue"
+    assert card_expansion("Gold") == "Base"
+    assert card_expansion("Province") == "Base"
+    assert card_expansion("Not A Real Card") is None
+
+
+def test_card_expansion_overrides_win_over_the_defining_package():
+    # These cards are implemented under a different expansion's package than
+    # the set they belong to; the override table must win over the package.
+    from dominion.reporting.strategy_pages import card_expansion
+
+    assert card_expansion("Astrolabe") == "Seaside"
+    assert card_expansion("Collection") == "Prosperity"
+    assert card_expansion("Fisherman") == "Menagerie"
+    assert card_expansion("Highwayman") == "Allies"
+    assert card_expansion("Mill") == "Intrigue"
+    assert card_expansion("Pilgrim") == "Plunder"
+    assert card_expansion("Snowy Village") == "Menagerie"
+    assert card_expansion("Taskmaster") == "Plunder"
+    assert card_expansion("Trading Post") == "Intrigue"
+    assert card_expansion("Wandering Minstrel") == "Dark Ages"
+    assert card_expansion("Wealthy Village") == "Plunder"
+
+
+def test_card_expansion_overrides_only_name_registered_misfiled_cards():
+    from dominion.cards.registry import get_card
+    from dominion.reporting.strategy_pages import (
+        _CARD_EXPANSION_OVERRIDES,
+        _EXPANSION_LABELS,
+    )
+
+    for name, expansion in _CARD_EXPANSION_OVERRIDES.items():
+        # A typo in the key would silently make the override dead code.
+        card = get_card(name)
+        assert card.name == name
+        # An override that agrees with the defining package is redundant and
+        # suggests the card module was moved without pruning the table.
+        package = type(card).__module__.split(".")[2]
+        package_label = _EXPANSION_LABELS.get(
+            package, package.replace("_", " ").title()
+        )
+        assert expansion != package_label, name
+
+
+def test_strategy_leaderboard_rows_carry_card_and_expansion_filter_data():
+    html = render_strategy_leaderboard(
+        {
+            "Torture Campaign": {
+                "wins": 9,
+                "losses": 1,
+                "win_rate": 90.0,
+                "description": "Torturer engine.",
+                "cards": ["Inn", "Torturer"],
+            },
+            "Big Money": {
+                "wins": 1,
+                "losses": 9,
+                "win_rate": 10.0,
+                "description": "Simple treasure strategy.",
+                "cards": ["Gold", "Province"],
+            },
+        }
+    )
+
+    assert (
+        'class="leaderboard-row" data-cards="Inn|Torturer" '
+        'data-expansions="Hinterlands|Intrigue" data-win-rate="90.0" data-record="9-1"'
+    ) in html
+    assert 'data-cards="Gold|Province" data-expansions="Base"' in html
+    # The filter panel offers every card and expansion seen in the standings.
+    assert 'id="leaderboard-card-form"' in html
+    assert '<option value="Torturer"></option>' in html
+    assert '<option value="Province"></option>' in html
+    for expansion in ("Base", "Hinterlands", "Intrigue"):
+        assert f'class="expansion-toggle" data-expansion="{expansion}"' in html
+    assert "Showing all 2 strategies." in html
+    assert 'id="leaderboard-filter-empty"' in html
+    assert "querySelectorAll('.leaderboard-row')" in html
+
+
+def test_strategy_leaderboard_without_results_has_no_filter_panel():
+    html = render_strategy_leaderboard({})
+
+    assert 'id="leaderboard-filters"' not in html
+    assert "leaderboard-row" not in html

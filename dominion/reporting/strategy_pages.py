@@ -661,6 +661,52 @@ _PRIMARY_CARD_TYPES = (
 )
 
 
+_EXPANSION_LABELS = {
+    "base_set": "Base",
+    "treasures": "Base",
+    "victory": "Base",
+}
+
+# The defining package is only a fallback. A few cards are implemented in the
+# wrong package, and moving their modules would churn imports across the
+# codebase, so the true expansion is pinned here instead.
+_CARD_EXPANSION_OVERRIDES = {
+    "Astrolabe": "Seaside",  # lives in dominion.cards.plunder
+    "Collection": "Prosperity",  # lives in dominion.cards.allies
+    "Fisherman": "Menagerie",  # lives in dominion.cards.plunder
+    "Highwayman": "Allies",  # lives in dominion.cards.plunder
+    "Mill": "Intrigue",  # lives in dominion.cards.hinterlands
+    "Pilgrim": "Plunder",  # lives in dominion.cards.allies
+    "Snowy Village": "Menagerie",  # lives in dominion.cards.promo
+    "Taskmaster": "Plunder",  # lives in dominion.cards.allies
+    "Trading Post": "Intrigue",  # lives in dominion.cards.seaside
+    "Wandering Minstrel": "Dark Ages",  # lives in dominion.cards.hinterlands
+    "Wealthy Village": "Plunder",  # lives in dominion.cards.allies
+}
+
+
+def card_expansion(name: str) -> str | None:
+    """Return the expansion a registered card belongs to, or ``None`` if unknown.
+
+    Card classes live in one package per expansion under ``dominion.cards``,
+    so the defining module supplies the label unless the card is listed in
+    ``_CARD_EXPANSION_OVERRIDES``.
+    """
+
+    try:
+        card = get_card(name)
+    except (KeyError, ValueError):
+        return None
+    override = _CARD_EXPANSION_OVERRIDES.get(card.name)
+    if override is not None:
+        return override
+    parts = type(card).__module__.split(".")
+    if len(parts) < 3 or parts[:2] != ["dominion", "cards"]:
+        return None
+    package = parts[2]
+    return _EXPANSION_LABELS.get(package, package.replace("_", " ").title())
+
+
 def _card_chip(name: str) -> str:
     """Render a card using the types from the canonical card registry."""
 
@@ -936,16 +982,28 @@ def render_strategy_leaderboard(
         podium = f'<div class="podium">{"".join(podium_cards)}</div>'
 
     rows = []
+    all_cards: set[str] = set()
+    all_expansions: set[str] = set()
     for rank, (name, stats) in enumerate(ranked, 1):
         wins = int(stats.get("wins", 0))
         losses = int(stats.get("losses", 0))
         games = int(stats.get("games", wins + losses))
         win_rate = float(stats.get("win_rate", 0))
         cards = list(stats.get("cards", []) or [])
+        expansions = sorted({
+            expansion
+            for expansion in (card_expansion(card) for card in cards)
+            if expansion
+        })
+        all_cards.update(cards)
+        all_expansions.update(expansions)
         description = escape(str(stats.get("description", "") or ""))
         description_markup = description or '<span class="empty">No description</span>'
         rows.append(
-            "<tr>"
+            '<tr class="leaderboard-row" '
+            f'data-cards="{escape("|".join(cards))}" '
+            f'data-expansions="{escape("|".join(expansions))}" '
+            f'data-win-rate="{win_rate:.1f}" data-record="{wins}-{losses}">'
             f'<td data-label="Rank"><span class="rank-badge">{rank}</span></td>'
             f"<td>{_strategy_leaderboard_label(name, loader=loader, prefix=strategy_link_prefix)}</td>"
             f'<td data-label="Description" class="leaderboard-description">{description_markup}</td>'
@@ -959,12 +1017,15 @@ def render_strategy_leaderboard(
 
     if rows:
         standings = f"""
+{_leaderboard_filters(all_cards, all_expansions, total=len(rows))}
 <div class="table-scroll">
-  <table class="leaderboard-table">
+  <table class="leaderboard-table" id="leaderboard-table">
     <thead><tr><th>#</th><th>Strategy</th><th>Description</th><th>Record</th><th>Win rate</th><th>Games</th><th>Kingdom cards used</th></tr></thead>
     <tbody>{''.join(rows)}</tbody>
   </table>
 </div>
+<p class="empty-state" id="leaderboard-filter-empty" hidden>No strategies match those filters.</p>
+{_LEADERBOARD_FILTER_SCRIPT}
 """
     else:
         standings = """
@@ -1104,6 +1165,232 @@ def collect_rendered_strategies(
     return rendered
 
 
+def _leaderboard_filters(cards: Iterable[str], expansions: Iterable[str], *, total: int) -> str:
+    """Render the card and expansion filter panel shown above full standings."""
+
+    options = "".join(
+        f'<option value="{escape(card)}"></option>' for card in sorted(set(cards))
+    )
+    toggles = "".join(
+        f'<button type="button" class="expansion-toggle" data-expansion="{escape(expansion)}" '
+        f'data-mode="any" aria-pressed="false">{escape(expansion)}</button>'
+        for expansion in sorted(set(expansions))
+    )
+    expansion_block = (
+        f"""
+  <div class="filter-block">
+    <span class="eyebrow">Filter by expansion</span>
+    <div class="expansion-toggles">{toggles}</div>
+    <p class="filter-hint muted">Click an expansion once to hide strategies that use it, again to show only strategies that do, and a third time to clear it.</p>
+  </div>"""
+        if toggles
+        else ""
+    )
+    return f"""
+<section class="leaderboard-filters" id="leaderboard-filters" aria-label="Filter standings">
+  <div class="filter-block">
+    <form class="filter-form" id="leaderboard-card-form">
+      <label class="eyebrow" for="leaderboard-card-input">Filter by card</label>
+      <div class="filter-controls">
+        <input class="search filter-input" id="leaderboard-card-input" list="leaderboard-card-options" placeholder="Type a card name, e.g. Torturer" autocomplete="off">
+        <datalist id="leaderboard-card-options">{options}</datalist>
+        <button type="submit" class="filter-button" data-mode="without">Hide strategies using it</button>
+        <button type="button" class="filter-button filter-button-with" data-mode="with">Show only strategies using it</button>
+      </div>
+    </form>
+  </div>{expansion_block}
+  <div class="filter-block" id="leaderboard-active-wrapper" hidden>
+    <span class="eyebrow">Active filters</span>
+    <div class="chip-list" id="leaderboard-active-filters"></div>
+  </div>
+  <p class="filter-summary muted" id="leaderboard-filter-summary">Showing all {total} strategies.</p>
+</section>
+"""
+
+
+_LEADERBOARD_FILTER_SCRIPT = """
+<script>
+(() => {
+  const rows = Array.from(document.querySelectorAll('.leaderboard-row'));
+  const summary = document.getElementById('leaderboard-filter-summary');
+  const emptyNote = document.getElementById('leaderboard-filter-empty');
+  const activeWrapper = document.getElementById('leaderboard-active-wrapper');
+  const activeList = document.getElementById('leaderboard-active-filters');
+  const podium = document.querySelector('.podium');
+  const originalPodium = podium ? podium.innerHTML : '';
+  const cardForm = document.getElementById('leaderboard-card-form');
+  const cardInput = document.getElementById('leaderboard-card-input');
+  const knownCards = Array.from(document.querySelectorAll('#leaderboard-card-options option')).map((option) => option.value);
+  const expansionButtons = Array.from(document.querySelectorAll('.expansion-toggle'));
+
+  const KINDS = ['card', 'expansion'];
+  const MODES = ['without', 'with'];
+  const state = {
+    card: { with: new Set(), without: new Set() },
+    expansion: { with: new Set(), without: new Set() },
+  };
+
+  const split = (value) => (value ? value.split('|') : []);
+  const entries = rows.map((row) => ({
+    row,
+    card: new Set(split(row.dataset.cards)),
+    expansion: new Set(split(row.dataset.expansions)),
+  }));
+
+  const paramKey = (kind, mode) => (kind === 'card' ? mode : `${mode}-expansion`);
+  const anyActive = () => KINDS.some((kind) => MODES.some((mode) => state[kind][mode].size > 0));
+  const modeOf = (kind, name) => MODES.find((mode) => state[kind][mode].has(name)) || null;
+
+  function matches(entry) {
+    for (const kind of KINDS) {
+      for (const name of state[kind].with) if (!entry[kind].has(name)) return false;
+      for (const name of state[kind].without) if (entry[kind].has(name)) return false;
+    }
+    return true;
+  }
+
+  function add(kind, mode, name) {
+    for (const other of MODES) state[kind][other].delete(name);
+    state[kind][mode].add(name);
+  }
+
+  function remove(kind, name) {
+    for (const mode of MODES) state[kind][mode].delete(name);
+  }
+
+  function clearAll() {
+    for (const kind of KINDS) for (const mode of MODES) state[kind][mode].clear();
+  }
+
+  function readHash() {
+    const params = new URLSearchParams(location.hash.replace(/^#/, ''));
+    for (const kind of KINDS) {
+      for (const mode of MODES) {
+        state[kind][mode] = new Set(params.getAll(paramKey(kind, mode)).filter(Boolean));
+      }
+    }
+  }
+
+  function writeHash() {
+    const params = new URLSearchParams();
+    for (const kind of KINDS) {
+      for (const mode of MODES) {
+        for (const name of Array.from(state[kind][mode]).sort()) params.append(paramKey(kind, mode), name);
+      }
+    }
+    const next = params.toString();
+    if (next === location.hash.replace(/^#/, '')) return;
+    try {
+      history.replaceState(null, '', next ? `#${next}` : location.pathname + location.search);
+    } catch (error) {
+      location.hash = next;
+    }
+  }
+
+  function escapeHtml(text) {
+    const span = document.createElement('span');
+    span.textContent = text;
+    return span.innerHTML;
+  }
+
+  function podiumCard(entry, place) {
+    return `<article class="podium-card podium-rank-${place}">` +
+      `<span class="podium-place">#${place}</span>` +
+      `<h2>${entry.row.children[1].innerHTML}</h2>` +
+      `<strong class="podium-rate">${entry.row.dataset.winRate}%</strong>` +
+      `<span class="muted">${entry.row.dataset.record} record</span>` +
+      '</article>';
+  }
+
+  function activeChip(kind, mode, name) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `active-filter active-filter-${mode}`;
+    button.title = 'Remove this filter';
+    const kindLabel = kind === 'expansion' ? ' <span class="active-filter-kind">expansion</span>' : '';
+    button.innerHTML = `<span class="active-filter-mode">${mode}</span> ${escapeHtml(name)}${kindLabel} <span aria-hidden="true">×</span>`;
+    button.addEventListener('click', () => { remove(kind, name); apply(); });
+    return button;
+  }
+
+  function apply() {
+    const active = anyActive();
+    const visible = [];
+    for (const entry of entries) {
+      const match = matches(entry);
+      entry.row.hidden = !match;
+      if (match) visible.push(entry);
+    }
+    emptyNote.hidden = visible.length !== 0;
+    summary.textContent = active
+      ? `Showing ${visible.length} of ${rows.length} strategies.`
+      : `Showing all ${rows.length} strategies.`;
+    if (podium) {
+      podium.innerHTML = active
+        ? visible.slice(0, 3).map((entry, index) => podiumCard(entry, index + 1)).join('')
+        : originalPodium;
+      podium.hidden = active && visible.length === 0;
+    }
+    for (const button of expansionButtons) {
+      const mode = modeOf('expansion', button.dataset.expansion);
+      button.dataset.mode = mode || 'any';
+      button.setAttribute('aria-pressed', mode ? 'true' : 'false');
+    }
+    activeList.replaceChildren();
+    for (const kind of KINDS) {
+      for (const mode of MODES) {
+        for (const name of Array.from(state[kind][mode]).sort()) activeList.appendChild(activeChip(kind, mode, name));
+      }
+    }
+    if (active) {
+      const clear = document.createElement('button');
+      clear.type = 'button';
+      clear.className = 'clear-filters';
+      clear.textContent = 'Clear all';
+      clear.addEventListener('click', () => { clearAll(); apply(); });
+      activeList.appendChild(clear);
+    }
+    activeWrapper.hidden = !active;
+    writeHash();
+  }
+
+  function canonicalCard(value) {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    const query = trimmed.toLowerCase();
+    return knownCards.find((card) => card.toLowerCase() === query) || trimmed;
+  }
+
+  function addCard(mode) {
+    const name = canonicalCard(cardInput.value);
+    if (!name) return;
+    add('card', mode, name);
+    cardInput.value = '';
+    apply();
+  }
+
+  cardForm.addEventListener('submit', (event) => { event.preventDefault(); addCard('without'); });
+  cardForm.querySelector('[data-mode="with"]').addEventListener('click', () => addCard('with'));
+
+  for (const button of expansionButtons) {
+    button.addEventListener('click', () => {
+      const name = button.dataset.expansion;
+      const mode = modeOf('expansion', name);
+      if (mode === null) add('expansion', 'without', name);
+      else if (mode === 'without') add('expansion', 'with', name);
+      else remove('expansion', name);
+      apply();
+    });
+  }
+
+  window.addEventListener('hashchange', () => { readHash(); apply(); });
+  readHash();
+  apply();
+})();
+</script>
+"""
+
+
 _LEADERBOARD_STYLES = """
     .podium { align-items: stretch; display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); margin: 0 0 30px; }
     .podium-card {
@@ -1131,8 +1418,49 @@ _LEADERBOARD_STYLES = """
     .rate-track span { background: var(--accent); display: block; height: 100%; }
     .leaderboard-empty h2 { color: var(--text); font-size: 1.15rem; }
     .leaderboard-empty code { background: #ebe5d9; border-radius: 5px; color: var(--text); padding: 2px 5px; }
+    .leaderboard-filters {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 5px 16px rgb(64 48 28 / 5%);
+      display: grid;
+      gap: 18px;
+      margin-bottom: 18px;
+      padding: 18px 20px;
+    }
+    .filter-block { display: grid; gap: 8px; }
+    .filter-block .eyebrow { margin-bottom: 0; }
+    .filter-controls { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; }
+    .filter-input.search { margin: 0; width: min(340px, 100%); }
+    .filter-button, .expansion-toggle, .active-filter, .clear-filters {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      font-size: .84rem;
+      font-weight: 700;
+      line-height: 1.2;
+      padding: 8px 14px;
+    }
+    .filter-button:hover, .expansion-toggle:hover, .clear-filters:hover { border-color: var(--accent); color: var(--accent-dark); }
+    .filter-button-with { border-color: var(--accent); color: var(--accent-dark); }
+    .expansion-toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+    .expansion-toggle[data-mode="without"], .active-filter-without { background: #f6e3e1; border-color: var(--attack); color: #7d322c; }
+    .expansion-toggle[data-mode="with"], .active-filter-with { background: #e4f0dc; border-color: #5f9a48; color: #2f5a22; }
+    .expansion-toggle[data-mode="without"]::before { content: "✕ "; }
+    .expansion-toggle[data-mode="with"]::before { content: "✓ "; }
+    .filter-hint, .filter-summary { font-size: .82rem; margin: 0; }
+    .active-filter { align-items: center; display: inline-flex; gap: 6px; }
+    .active-filter-mode { font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; }
+    .active-filter-kind { color: var(--muted); font-weight: 500; }
+    .clear-filters { background: transparent; border-style: dashed; }
     @media (max-width: 680px) {
       .podium { grid-template-columns: 1fr; }
+    }
+    @media print {
+      .leaderboard-filters { display: none; }
     }
 """
 
