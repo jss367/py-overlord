@@ -80,6 +80,14 @@ _OVERRIDES: dict[str, dict] = {
     "Messenger": {"is_gainer": True},       # on-gain: everyone gains a <=$4 card
     "Quartermaster": {"is_gainer": True},   # banks a <=$4 card every turn
     "Secluded Shrine": {"is_trasher": True},  # next Treasure gain: trash 2
+    # Kolkata board.
+    "Stables": {"draw": 3.0, "actions": 1},   # discard a Treasure: +3 Cards +1 Action
+    "Artist": {"draw": 2.0},                  # +1 Card per singleton in play
+    "Artificer": {"is_gainer": True},         # discard N, gain a $N card onto the deck
+    "Armory": {"is_gainer": True},            # gains a <=$4 card onto the deck
+    "Bandit Camp": {"is_gainer": True},       # village that gains a Spoils ($3 one-shot)
+    "Research": {"is_trasher": True},         # trash from hand, set aside $1 per cost
+    "Spice Merchant": {"is_trasher": True},   # trash a Treasure: +2 Cards +1 Action or +$2 +1 Buy
 }
 
 

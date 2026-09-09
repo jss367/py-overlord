@@ -16,6 +16,19 @@ from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
 
 
+def _rule_matches_card(rule_card: str, card: Card) -> bool:
+    """Whether a priority rule written for ``rule_card`` applies to ``card``.
+
+    The Knights pile is bought and played as individual Knights ("Sir
+    Bailey", "Dame Anna", ...), so a rule for ``"Knights"`` matches any of
+    them (the top of the pile when buying, whichever Knight is in hand when
+    playing).
+    """
+    if card.name == rule_card:
+        return True
+    return rule_card == "Knights" and getattr(card, "is_knight", False)
+
+
 @dataclass
 class PriorityRule:
     """Represents a single priority rule.
@@ -356,7 +369,7 @@ class EnhancedStrategy:
 
         for rule in priority:
             for card in choices:
-                if card is None or card.name != rule.card:
+                if card is None or not _rule_matches_card(rule.card, card):
                     continue
 
                 cond = rule.condition

@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Kolkata Strategy Search Guide: simulator audit, seeds, island evolution, and recorded simulation results.">
+<title>Kolkata Strategy Search Guide</title>
+<style>
+:root { color-scheme: dark; --ink:#f5f0e4; --muted:#b8b1a3; --paper:#151916; --panel:#1d231f; --line:#414940; --gold:#e9c46a; }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; background:radial-gradient(circle at 15% 0%,#263a2b66,transparent 36rem),var(--paper); color:var(--ink); font:16px/1.7 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+a { color:var(--gold); text-underline-offset:3px; }
+a:hover { color:#ffe09a; }
+a:focus-visible { outline:2px solid var(--gold); outline-offset:4px; }
+.page { max-width:1180px; margin:auto; padding:26px clamp(18px,4vw,52px) 60px; }
+.topbar,.contents { display:flex; flex-wrap:wrap; gap:12px 24px; font-size:.9rem; }
+.topbar { justify-content:space-between; margin-bottom:32px; }
+.eyebrow { color:var(--gold); font-size:.76rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+.hero { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(250px,.8fr); align-items:start; gap:40px; padding:30px 0 48px; border-bottom:1px solid var(--line); }
+h1,h2,h3 { font-family:Georgia,"Times New Roman",serif; line-height:1.16; }
+h1 { font-size:clamp(2.7rem,5.5vw,4.8rem); letter-spacing:-.04em; margin:12px 0 24px; max-width:18ch; }
+h2 { font-size:clamp(1.8rem,3vw,2.7rem); margin:0 0 24px; scroll-margin-top:20px; }
+h3 { font-size:1.4rem; }
+p { margin:0 0 18px; }
+.intro p { color:var(--muted); }
+.intro strong { color:var(--ink); }
+.verdict { background:linear-gradient(145deg,#e9c46a22,#e9c46a05); border:1px solid #9d7730; border-radius:18px; padding:26px; }
+.verdict strong { display:block; color:var(--gold); font:700 2.1rem/1.2 Georgia,serif; margin:12px 0 16px; }
+.verdict p:last-child { margin:0; }
+.contents { padding:22px 0; border-bottom:1px solid var(--line); }
+.section { padding:40px 0; border-bottom:1px solid var(--line); }
+.section>p,.section>ul,.section>ol { max-width:88ch; }
+ul,ol { padding-left:26px; }
+li { margin:10px 0; padding-left:5px; }
+.table-wrap { width:100%; overflow-x:auto; margin:24px 0; border:1px solid var(--line); border-radius:12px; }
+table { width:100%; border-collapse:collapse; background:var(--panel); font-size:.94rem; }
+th,td { padding:13px 16px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th { color:var(--gold); font-size:.85rem; }
+tr:last-child td { border-bottom:0; }
+tbody tr:hover { background:#ffffff05; }
+code { font-size:.86em; background:#ffffff09; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; }
+pre { padding:20px; border-radius:12px; border:1px solid var(--line); background:var(--panel); white-space:pre-wrap; overflow-wrap:anywhere; }
+pre code { padding:0; background:none; }
+footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
+@media(max-width:780px) { .hero { grid-template-columns:1fr; gap:24px; } h1 { max-width:none; } .topbar { justify-content:flex-start; } th,td { padding:10px; } }
+@media print { :root { color-scheme:light; --ink:#171717; --muted:#444; --paper:#fff; --panel:#fff; --line:#bbb; --gold:#654a0a; } body { background:white; } .page { max-width:none; padding:0; } .topbar,.contents { display:none; } .hero { padding-top:0; } .verdict { background:white; } .table-wrap { overflow:visible; } tr { break-inside:avoid; } pre { background:#f5f5f5; } }
+
+.hero { display:block; } h1 { max-width:24ch; }
+</style>
+</head>
+<body>
+<main class="page">
+<nav class="topbar" aria-label="Guide navigation"><a href="index.html">← Strategy catalog</a><a href="../boards/kolkata.html">View the board</a><a href="kolkata-best-found.html">Strategy implementation</a></nav>
+<header class="hero"><span class="eyebrow">Board strategy research</span><h1>Kolkata Strategy Search Guide</h1><p>Kolkata Board Strategy Search</p></header>
+<nav class="contents" aria-label="On this page"><a href="#simulator-fixes-made-before-searching">Simulator fixes made before searching</a><a href="#board-texture">Board texture</a><a href="#recommendation">Recommendation</a><a href="#why-this-strategy-wins">Why this strategy wins</a><a href="#method">Method</a><a href="#validation">Validation</a><a href="#search-notes">Search notes</a></nav>
+<article>
+<section class="section">
+<p>Board: <a href="../../boards/kolkata.txt"><code>boards/kolkata.txt</code></a></p>
+<p>Kingdom:</p>
+<ul>
+<li>Artist (8 Debt)</li>
+<li>Artificer</li>
+<li>Armory</li>
+<li>Bandit Camp</li>
+<li>Bard</li>
+<li>Knights</li>
+<li>Research</li>
+<li>Scheme</li>
+<li>Spice Merchant</li>
+<li>Stables</li>
+</ul>
+<p>No events, landmarks, Colony, or Platinum. Two players.</p>
+</section>
+<section class="section"><h2 id="simulator-fixes-made-before-searching">Simulator fixes made before searching</h2>
+<p>The pre-search audit compared all ten implementations with the printed
+card text (verified against the Dominion Strategy wiki card data). Rules
+defects were found and fixed first, with tests in
+<code>tests/test_kolkata_board_cards.py</code>. Two of them changed the
+board's whole character:</p>
+<ol>
+<li><strong>Every Knight gave the attacker a phantom +$2.</strong> The
+   simulator folded "+$2" into the shared Knight attack, so all ten
+   Knights played as Militia-strength terminals. Only Dame Sylvia prints
+   +$2. The attack itself is unchanged: each other player reveals two
+   cards, trashes one costing $3–$6, and discards the rest.</li>
+<li><strong>Artificer gained its card into hand.</strong> The real card
+   gains "onto your deck". The simulator's version was a free extra card
+   every play; the real one is a topdeck gainer that only pays off when
+   something draws the card.</li>
+<li><strong>Sir Martin</strong> cost $5 with +1 Buy; the real card costs
+   $4 and gives +2 Buys (so Armory can gain it from the top of the
+   pile).</li>
+<li><strong>The attacker chose which revealed card a Knight trashed.</strong>
+   "Trashes one of them" is the attacked player's choice. The default
+   victim policy now gives up a revealed Knight first (that also trashes
+   the attacking Knight), then the cheapest qualifying card. Rogue shared
+   the bug and uses the same hook.</li>
+<li><strong>Armory always gained the same card.</strong> The gain was a
+   hardcoded sort (on this board: Spice Merchant, every time). It now
+   runs the strategy's gain priorities over every exposed $4 pile, the
+   top Knight included.</li>
+<li><strong>Scheme could topdeck a Duration.</strong> Research stays in
+   play until the next turn, so it is not "discarded from play" and
+   Scheme cannot choose it; the simulator put it on the deck while the
+   Duration was still pending.</li>
+<li><strong>Spice Merchant was not optional.</strong> With no Copper in
+   hand it trashed a Silver or a Gold. It now only trashes Copper unless
+   a strategy says otherwise.</li>
+<li><strong>Strategies could not name the Knights pile.</strong> The
+   buyable card is "Sir Bailey" or "Dame Anna", never "Knights", so a rule
+   for "Knights" never fired and the genetic algorithm could not buy or
+   play a Knight. A "Knights" rule now matches whichever Knight is on top
+   of the pile, and <code>count_in_deck("Knights")</code> counts every
+   Knight owned.</li>
+</ol>
+<p>Seven decisions were exposed as AI hooks that strategies can override:
+<code>choose_card_to_trash_for_knight_attack</code>,
+<code>choose_treasure_to_discard_for_stables</code> (default: Copper, then
+Spoils, then Silver), <code>choose_treasure_to_trash_for_spice_merchant</code>,
+<code>choose_spice_merchant_mode</code>, <code>choose_armory_gain</code>,
+<code>choose_artificer_gain</code> (default: only discard Curses, Victory
+cards and Coppers, never take a $0 card), and
+<code>choose_card_to_topdeck_for_scheme</code>.</p>
+</section>
+<section class="section"><h2 id="board-texture">Board texture</h2>
+<ul>
+<li><strong>Bandit Camp</strong> is the only village: +1 Card +2 Actions
+  and a Spoils, a $3 one-shot Treasure that returns to its pile when
+  played.</li>
+<li><strong>Stables</strong> is the draw: discard a Treasure for +3 Cards
+  +1 Action. Coppers and Spoils are Stables fuel, so a Stables deck wants
+  to keep Treasure, not trash it.</li>
+<li><strong>Artist</strong> (8 Debt) is +1 Action and +1 Card per card you
+  have exactly one copy of in play. It rewards a deck of singletons.</li>
+<li><strong>Knights</strong> are the only attack. Each play trashes one of
+  the opponent's top two cards costing $3–$6: Silver, Gold, Duchy and
+  every kingdom card qualify. Only Dame Sylvia gives coins; Sir Martin
+  ($4) gives +2 Buys.</li>
+<li><strong>Trashing</strong> comes from Research (trash a card, draw its
+  cost next turn), Spice Merchant (trash a Treasure for +2 Cards +1 Action
+  or +$2 +1 Buy) and Dame Anna.</li>
+<li><strong>Gainers</strong>: Armory (a $4 onto the deck), Artificer
+  (discard N cards, gain a $N card onto the deck), Dame Natalie ($3).</li>
+<li><strong>Scheme</strong> topdecks one Action at Clean-up, so a Knight
+  can attack every turn.</li>
+<li><strong>Bard</strong> is +$2 and a Boon. Buys come only from Spice
+  Merchant and Sir Martin.</li>
+</ul>
+</section>
+<section class="section"><h2 id="recommendation">Recommendation</h2>
+<div class="verdict"><span class="eyebrow">Best strategy found</span><strong>Stables and Bard money with one Bandit Camp</strong>
+<p>Published as <code>Kolkata Best Found</code>, defined in
+<code>generated_strategies/kolkata_best_found.py</code>.</p></div>
+<p>This is not a formal proof of optimal play. It is the best strategy found
+by the current simulator, hand-written seeds, island-model genetic
+evolution, and focused local search around the leader.</p>
+<ul>
+<li><strong>Buy order:</strong> Province at $8; Duchy from four Provinces
+  left; Gold; one Bandit Camp; up to two Stables; one Bard; Estate from two
+  Provinces left; otherwise Silver.</li>
+<li><strong>Play order:</strong> Bandit Camp, then Stables (discard a
+  Copper, else a Spoils, else a Silver, for three cards), then Bard.</li>
+<li><strong>Spoils:</strong> play them like any other Treasure. A policy
+  that saved a Spoils unless it lifted the hand across $5, $6 or $8 was
+  measured neutral (see Validation), so the published strategy keeps the
+  shared default.</li>
+<li><strong>Never trash Copper.</strong> Coppers are Stables fuel. Ignore
+  Research and Spice Merchant.</li>
+<li><strong>Ignore the Knights.</strong> Without the phantom +$2 they are $5
+  terminals that trash one card per play; every Knights seed and variant
+  lost to the same deck without them.</li>
+</ul>
+</section>
+<section class="section"><h2 id="why-this-strategy-wins">Why this strategy wins</h2>
+<ul>
+<li><strong>The board is fast.</strong> Money reaches eight Provinces in ten
+  or eleven turns per player, so a deck that spends its first five turns
+  on villages and draw is buying Duchies against a wall of Provinces. Every
+  engine seed lost to money, and every engine island evolved into money
+  with Bandit Camps.</li>
+<li><strong>Stables is a Laboratory that eats a Copper.</strong> It never
+  costs an Action and turns the weakest card in hand into three new ones.
+  Two copies are enough: a third stayed within noise.</li>
+<li><strong>Bandit Camp is a one-card economy.</strong> Each play is +1
+  Card +2 Actions and a $3 Spoils. One copy adds four to eight points over
+  the same deck without it; the genetic run pushed the count to six or
+  seven, but on the Stables chassis one, four and six copies finished
+  within a point of each other at 300 games.</li>
+<li><strong>Spoils are not worth saving.</strong> The intuition that a
+  Spoils kept for a later $5 hand beats one spent on a Silver looked right
+  at 200 and 300 games (57% and 53%) and vanished at 1,000 (50.7%). Two
+  Stables cycle the deck fast enough that a Spoils comes back soon either
+  way.</li>
+<li><strong>Bard is the cheapest $2.</strong> A single terminal is all the
+  deck wants, and the Boon is a small bonus on top. Dropping it cost ten to
+  fifteen points; a second copy was noise.</li>
+</ul>
+</section>
+
+<section class="section"><h2 id="method">Method</h2>
+<ol>
+<li><strong>Audit</strong> of the ten implementations (fixes above).</li>
+<li><strong>Archetype seeds</strong> — thirteen hand-written theories of the
+   kingdom in <code>dominion/strategy/strategies/kolkata_seeds.py</code>:
+   Knights money, Scheme/Knights money, Stables money, Bard money, Spice
+   Merchant money, Armory/Bard money, Bard/Stables money, Stables/Knights
+   money, Bandit Camp money, and four engines (Bandit Camp/Stables,
+   Artificer, Artist singleton, Research).</li>
+<li><strong>Seed round robin</strong> (80 games per matchup) to rank the
+   theories before evolving them.</li>
+<li><strong>Hand local search</strong> around the leader (four rounds of
+   60–200-game round robins): Stables, Bard, Bandit Camp and Knight counts,
+   greening timing, Artificer, Scheme, Spice Merchant, and a Spoils-saving
+   Treasure policy; then a second branch around the Bandit Camp/Scheme
+   slog the Artist island evolved into.</li>
+<li><strong>Island-model genetic algorithm</strong> — one island per seed
+   (eight hand seeds), plus a board-derived roster and a library-free
+   roster (the two engine archetypes the capability tables enumerate,
+   Big Money, one random island): 20 generations, population 24, 12 games
+   per evaluation, fixed panel of Big Money, Bard Money and Stables
+   Money.</li>
+<li><strong>Champion tournament</strong> (100 games per matchup), a
+   200-game round among the leaders of both hand-search branches and the
+   champions, then a 300-game confirmation round including Spoils-policy
+   grafts onto the strongest champions.</li>
+<li><strong>Head-to-head confirmation</strong> of the published strategy
+   against its Spoils-policy variant, the six-Bandit-Camp variant, the
+   strongest champion graft and Big Money (1,000 games per matchup).</li>
+</ol>
+</section>
+<section class="section"><h2 id="validation">Validation</h2>
+<h3>Confirmation round (300 games per matchup, alternating first player)</h3>
+<p>"Hand" rows are variants built on the Bard Stables Money seed with one
+Bard and the stated number of Bandit Camps; "save" adds the Spoils-saving
+policy. "Champion" rows are island champions from the library-free run and
+the board-derived run, with and without that policy grafted on.</p>
+<div class="table-wrap"><table><thead><tr><th>Strategy</th><th>Average win rate</th></tr></thead><tbody>
+<tr><td>Hand: 1 Bandit Camp, save Spoils</td><td>57.9%</td></tr>
+<tr><td>Hand: 6 Bandit Camps, save Spoils</td><td>57.0%</td></tr>
+<tr><td><strong>Hand: 1 Bandit Camp (published as Kolkata Best Found)</strong></td><td>56.6%</td></tr>
+<tr><td>Hand: 2 Bandit Camps, 2 Bards</td><td>56.4%</td></tr>
+<tr><td>Hand: 4 Bandit Camps, save Spoils</td><td>56.2%</td></tr>
+<tr><td>Champion: 7-Bandit-Camp money, save Spoils</td><td>53.8%</td></tr>
+<tr><td>Champion: Big Money island (derived run)</td><td>53.4%</td></tr>
+<tr><td>Champion: 7-Bandit-Camp money</td><td>51.9%</td></tr>
+<tr><td>Champion: Bandit Camp/Stables engine, save Spoils</td><td>51.6%</td></tr>
+<tr><td>Hand: Bandit Camp/Scheme slog, save Spoils</td><td>51.4%</td></tr>
+<tr><td>Champion: Bandit Camp/Stables engine</td><td>49.5%</td></tr>
+<tr><td>Champion: random island</td><td>46.2%</td></tr>
+<tr><td>Big Money</td><td>7.9%</td></tr>
+</tbody></table></div>
+<p>The top five are one deck with cosmetic differences: the spread between
+them (1.7 points) is inside the noise of a 300-game matchup. The published
+strategy is the simplest member of that group.</p>
+<h3>Head-to-heads (1,000 games per matchup, alternating first player)</h3>
+<p>The confirmation ran the hand-search factory that is rule-for-rule the
+published module.</p>
+<div class="table-wrap"><table><thead><tr><th>Matchup</th><th>Result</th></tr></thead><tbody>
+<tr><td>Best Found vs Big Money</td><td>95.0%</td></tr>
+<tr><td>Best Found vs 7-Bandit-Camp money champion with the Spoils policy</td><td>55.7%</td></tr>
+<tr><td>Best Found vs 6 Bandit Camps with the Spoils policy</td><td>54.8%</td></tr>
+<tr><td>Best Found vs itself with the Spoils policy</td><td>49.3% (0.0 VP)</td></tr>
+</tbody></table></div>
+<p>The Spoils-policy row is the reason the policy is not published: after
+leading three smaller rounds it is exactly even at 1,000 games. Every
+other comparison in this guide should be read with the same caution —
+differences under about five points between money variants on this board
+did not survive larger samples.</p>
+</section>
+
+<section class="section"><h2 id="search-notes">Search notes</h2>
+<h3>Seed round robin (80 games per matchup)</h3>
+<div class="table-wrap"><table><thead><tr><th>Seed</th><th>Average win rate</th></tr></thead><tbody>
+<tr><td>Bard Stables Money</td><td>68.0%</td></tr>
+<tr><td>Bard Money</td><td>66.5%</td></tr>
+<tr><td>Bandit Camp Money</td><td>63.8%</td></tr>
+<tr><td>Artificer Engine</td><td>59.2%</td></tr>
+<tr><td>Stables Money</td><td>56.1%</td></tr>
+<tr><td>Armory Bard Money</td><td>54.5%</td></tr>
+<tr><td>Stables Knights Money</td><td>54.2%</td></tr>
+<tr><td>Artist Engine</td><td>48.3%</td></tr>
+<tr><td>Knights Money</td><td>48.0%</td></tr>
+<tr><td>Bandit Camp Stables Engine</td><td>42.0%</td></tr>
+<tr><td>Research Engine</td><td>20.7%</td></tr>
+<tr><td>Big Money</td><td>18.6%</td></tr>
+</tbody></table></div>
+<p>The first version of the Bandit Camp/Stables engine scored 23%: it
+trashed its own Coppers with Spice Merchant and Research and never bought
+Gold, so Stables had nothing to discard and the deck had no money. Keeping
+every Treasure and buying Gold at $6 lifted it to 42%. Games here are
+short (each player gets ten or eleven turns before the Provinces run
+out), which is why every engine seed lost to money.</p>
+<h3>Hand local search</h3>
+<ul>
+<li>Around Bard Stables Money, every single-card change (Stables 1–3,
+  Bard 1–3, Knight, Scheme, Artificer, Spice Merchant, greening timing,
+  refusing to discard Gold to Stables) stayed within 40–58% of the base in
+  60-game mirrors: noise. The one repeatable signal was adding a Bandit
+  Camp (+4 to +8 points over three rounds), and dropping Bard cost 10–15
+  points.</li>
+<li>A Spoils-saving Treasure policy (only play a Spoils when it lifts
+  the hand across $5, $6 or $8) beat the same deck without it 57% of the
+  time at 200 games and 53% at 300, and led every round it entered — then
+  split 50.7% / 49.3% at 1,000 games. It is reported here as a lesson in
+  sample size, not as a finding.</li>
+<li>The Artist island evolved into a different plan: six Bandit Camps by
+  turn 11, five Schemes that put a Bandit Camp back on the deck every
+  turn, one Bard, and Duchies from six Provinces left. Hand search around
+  it found the same small Spoils-policy signal (+3), and that Scheme count is the
+  fragile lever: with no Bard the deck fills its $3–$4 buys with Schemes,
+  reaches fewer Bandit Camps, and collapses to 12%.</li>
+</ul>
+<h3>Island run</h3>
+<p>Every island converged on Bandit Camps, one Bard, Gold and Silver.
+The hand-seed champions (Bard Stables Money 57.9%, Artist Engine 57.9%,
+Stables Knights Money 53.7%) all lost to the hand-search leaders (64.1%
+and 63.3%) in the 100-game champion tournament. The library-free run's
+engine archetypes evolved into seven-Bandit-Camp money (70% against the
+panel), which is the same deck the hand search was converging on from
+the other direction.</p>
+</section>
+
+</article>
+<footer>Search run on September 8, 2026 with the repository simulator after the audit fixes above. <a href="index.html">Return to the strategy catalog</a>.</footer>
+</main>
+</body>
+</html>

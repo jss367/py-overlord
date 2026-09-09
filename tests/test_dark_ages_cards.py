@@ -210,8 +210,8 @@ def test_sir_bailey_attack_trashes_eligible_card():
     victim.deck = [get_card("Copper"), get_card("Smithy")]
 
     bailey.play_effect(state)
-    # +1 Card +1 Action from Bailey, +$2 from attack
-    assert attacker.coins == 2
+    # The Knight attack gives no coins (only Dame Sylvia prints +$2).
+    assert attacker.coins == 0
     # Smithy should be trashed; Copper discarded
     assert any(c.name == "Smithy" for c in state.trash)
     assert any(c.name == "Copper" for c in victim.discard)

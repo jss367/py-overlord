@@ -47,17 +47,22 @@ class Rogue(Card):
                 )
             )
 
-            trashable = [c for c in revealed if 3 <= c.cost.coins <= 6]
+            trashable = [
+                c
+                for c in revealed
+                if 3 <= game_state.get_card_cost(target, c) <= 6
+            ]
 
             if trashable:
                 if len(trashable) == 1:
                     chosen = trashable[0]
                 else:
-                    chosen = attacker.ai.choose_knight_to_trash(
-                        game_state, attacker, target, list(trashable)
+                    # "trashes one of them": the attacked player chooses.
+                    chosen = target.ai.choose_card_to_trash_for_knight_attack(
+                        game_state, target, list(trashable)
                     )
                     if chosen not in trashable:
-                        chosen = max(
+                        chosen = min(
                             trashable, key=lambda c: (c.cost.coins, c.name)
                         )
                 revealed.remove(chosen)

@@ -81,6 +81,17 @@ CURATED_STRATEGY_GUIDES = (
         source_label="Repository strategy search and recorded simulation results",
     ),
     CuratedStrategyGuide(
+        filename="kolkata-strategy-guide.html",
+        display_name="Kolkata Strategy Search Guide",
+        description=(
+            "Stables and Bard money on the Knights board: Knights, Artificer, "
+            "Armory and Scheme rules audit, seed and island-model search "
+            "results, and confirmation tournaments."
+        ),
+        kingdom_cards=("Stables", "Bard", "Bandit Camp", "Knights", "Artificer"),
+        source_label="Repository strategy search and recorded simulation results",
+    ),
+    CuratedStrategyGuide(
         filename="tea-house-kind-emperor-strategy-guide.html",
         display_name="Tea House and Kind Emperor Strategy Guide",
         description=(

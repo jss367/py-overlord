@@ -529,7 +529,13 @@ class PlayerState:
         self.discard = ally_discard
 
     def count_in_deck(self, card_name: str) -> int:
-        """Count total copies of named card across all piles."""
+        """Count total copies of named card across all piles.
+
+        ``"Knights"`` counts every Knight (Sir Bailey, Dame Anna, ...), since
+        the pile is bought by that name but its cards each have their own.
+        """
+        if card_name == "Knights":
+            return sum(1 for card in self.all_cards() if card.is_knight)
         return sum(1 for card in self.all_cards() if card.name == card_name)
 
     # Alias used by strategy condition evaluation

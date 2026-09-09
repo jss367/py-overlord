@@ -3236,14 +3236,27 @@ class GameState:
         # Discard hand and in-play cards
         scheme_count = sum(1 for card in player.in_play if card.name == "Scheme")
         if scheme_count:
-            playable_actions = [card for card in player.in_play if card.is_action]
+            # Only Actions that are actually discarded from play this
+            # Clean-up qualify: a Duration staying in play is not discarded.
+            staying = set(player.duration) | set(player.multiplied_durations)
+            playable_actions = [
+                card
+                for card in player.in_play
+                if card.is_action and card not in staying
+            ]
             for _ in range(scheme_count):
                 if not playable_actions:
                     break
-                chosen = max(
-                    playable_actions,
-                    key=lambda c: (c.cost.coins, c.stats.cards, c.stats.actions, c.name),
-                )
+                hook = getattr(player.ai, "choose_card_to_topdeck_for_scheme", None)
+                if hook is not None:
+                    chosen = hook(self, player, list(playable_actions))
+                else:
+                    chosen = max(
+                        playable_actions,
+                        key=lambda c: (c.cost.coins, c.stats.cards, c.stats.actions, c.name),
+                    )
+                if chosen is None or chosen not in playable_actions:
+                    break
                 playable_actions.remove(chosen)
                 if chosen in player.in_play:
                     player.in_play.remove(chosen)

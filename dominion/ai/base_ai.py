@@ -2625,14 +2625,119 @@ class AI(ABC):
             return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
         return max(choices, key=lambda c: (c.cost.coins, c.name))
 
-    def choose_knight_to_trash(
-        self, state: GameState, attacker: PlayerState, target: PlayerState,
-        choices: list[Card],
+    def choose_card_to_trash_for_knight_attack(
+        self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Card | None:
-        """Knight attack: attacker picks one revealed $3-$6 card to trash."""
+        """Knight attack: the attacked player picks which revealed $3-$6 card to trash.
+
+        Default: give up a revealed Knight first (that also trashes the
+        attacking Knight), otherwise the cheapest card.
+        """
         if not choices:
             return None
-        return max(choices, key=lambda c: (c.cost.coins, c.is_action, c.name))
+        return min(
+            choices,
+            key=lambda c: (not c.is_knight, c.cost.coins, c.is_action, c.name),
+        )
+
+    def choose_treasure_to_discard_for_stables(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Card | None:
+        """Stables: discard a Treasure for +3 Cards +1 Action, or None to decline.
+
+        Default: Copper, then Spoils (it is kept for a later turn instead of
+        being returned to its pile), then Silver, then anything else.
+        """
+        if not choices:
+            return None
+
+        def priority(card: Card) -> tuple:
+            if card.name == "Copper":
+                return (0, card.name)
+            if card.name == "Spoils":
+                return (1, card.name)
+            if card.name == "Silver":
+                return (2, card.name)
+            return (3, card.cost.coins, card.name)
+
+        return min(choices, key=priority)
+
+    def choose_treasure_to_trash_for_spice_merchant(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Card | None:
+        """Spice Merchant: Treasure to trash, or None to decline (it is optional).
+
+        Default: only ever trash a Copper.
+        """
+        for card in choices:
+            if card.name == "Copper":
+                return card
+        return None
+
+    def choose_spice_merchant_mode(
+        self, state: GameState, player: PlayerState
+    ) -> str:
+        """Spice Merchant mode after trashing: ``"cards"`` or ``"coins"``.
+
+        Default: draw when there are Actions left to play or no Action left
+        to spend, else take the money when the hand is short of $3.
+        """
+        if any(card.is_action for card in player.hand):
+            return "cards"
+        if player.actions <= 0:
+            return "cards"
+        return "cards" if player.coins < 3 else "coins"
+
+    def choose_armory_gain(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Card | None:
+        """Armory: choose a card costing up to $4 to gain onto the deck."""
+        if not choices:
+            return None
+        chosen = self.choose_buy(state, list(choices) + [None])
+        if chosen is not None and chosen in choices:
+            return chosen
+        return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+
+    def choose_artificer_gain(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Card | None:
+        """Artificer: card to gain onto the deck (its cost is the discard count).
+
+        ``choices`` only contains cards whose cost the hand can pay for.
+        Default: spend junk only — never discard more cards than the hand
+        holds in Curses, non-Action Victory cards and Coppers — and skip
+        free ($0) gains.
+        """
+        if not choices:
+            return None
+        junk = sum(
+            1
+            for card in player.hand
+            if card.name == "Curse"
+            or card.name == "Copper"
+            or (card.is_victory and not card.is_action)
+        )
+        affordable = [
+            card for card in choices if 0 < state.get_card_cost(player, card) <= junk
+        ]
+        if not affordable:
+            return None
+        chosen = self.choose_buy(state, affordable + [None])
+        if chosen is not None and chosen in affordable:
+            return chosen
+        return None
+
+    def choose_card_to_topdeck_for_scheme(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Card | None:
+        """Scheme: Action in play to put on the deck at Clean-up, or None."""
+        if not choices:
+            return None
+        return max(
+            choices,
+            key=lambda c: (c.cost.coins, c.stats.cards, c.stats.actions, c.name),
+        )
 
     # =================================================================
     # Menagerie expansion AI hooks
