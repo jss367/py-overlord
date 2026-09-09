@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Kimberley: a Colony board where Mine climbs Copper to Platinum in hand and Sewers, Tomb, Priest, and Market Square pay out on every trash.">
+<title>Kimberley Mine Engine Guide</title>
+<style>
+:root { color-scheme: dark; --ink:#f5f0e4; --muted:#b8b1a3; --paper:#151916; --panel:#1d231f; --line:#414940; --gold:#e9c46a; }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; background:radial-gradient(circle at 15% 0%,#263a2b66,transparent 36rem),var(--paper); color:var(--ink); font:16px/1.7 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+a { color:var(--gold); text-underline-offset:3px; }
+a:hover { color:#ffe09a; }
+a:focus-visible { outline:2px solid var(--gold); outline-offset:4px; }
+.page { max-width:1180px; margin:auto; padding:26px clamp(18px,4vw,52px) 60px; }
+.topbar,.contents { display:flex; flex-wrap:wrap; gap:12px 24px; font-size:.9rem; }
+.topbar { justify-content:space-between; margin-bottom:32px; }
+.eyebrow { color:var(--gold); font-size:.76rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+.hero { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(250px,.8fr); align-items:start; gap:40px; padding:30px 0 48px; border-bottom:1px solid var(--line); }
+h1,h2,h3 { font-family:Georgia,"Times New Roman",serif; line-height:1.16; }
+h1 { font-size:clamp(2.7rem,5.5vw,4.8rem); letter-spacing:-.04em; margin:12px 0 24px; max-width:18ch; }
+h2 { font-size:clamp(1.8rem,3vw,2.7rem); margin:0 0 24px; scroll-margin-top:20px; }
+h3 { font-size:1.4rem; }
+p { margin:0 0 18px; }
+.intro p { color:var(--muted); }
+.intro strong { color:var(--ink); }
+.verdict { background:linear-gradient(145deg,#e9c46a22,#e9c46a05); border:1px solid #9d7730; border-radius:18px; padding:26px; }
+.verdict strong { display:block; color:var(--gold); font:700 2.1rem/1.2 Georgia,serif; margin:12px 0 16px; }
+.verdict p:last-child { margin:0; }
+.contents { padding:22px 0; border-bottom:1px solid var(--line); }
+.section { padding:40px 0; border-bottom:1px solid var(--line); }
+.section>p,.section>ul,.section>ol { max-width:88ch; }
+ul,ol { padding-left:26px; }
+li { margin:10px 0; padding-left:5px; }
+.table-wrap { width:100%; overflow-x:auto; margin:24px 0; border:1px solid var(--line); border-radius:12px; }
+table { width:100%; border-collapse:collapse; background:var(--panel); font-size:.94rem; }
+th,td { padding:13px 16px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th { color:var(--gold); font-size:.85rem; }
+tr:last-child td { border-bottom:0; }
+tbody tr:hover { background:#ffffff05; }
+code { font-size:.86em; background:#ffffff09; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; }
+pre { padding:20px; border-radius:12px; border:1px solid var(--line); background:var(--panel); white-space:pre-wrap; overflow-wrap:anywhere; }
+pre code { padding:0; background:none; }
+footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
+@media(max-width:780px) { .hero { grid-template-columns:1fr; gap:24px; } h1 { max-width:none; } .topbar { justify-content:flex-start; } th,td { padding:10px; } }
+@media print { :root { color-scheme:light; --ink:#171717; --muted:#444; --paper:#fff; --panel:#fff; --line:#bbb; --gold:#654a0a; } body { background:white; } .page { max-width:none; padding:0; } .topbar,.contents { display:none; } .hero { padding-top:0; } .verdict { background:white; } .table-wrap { overflow:visible; } tr { break-inside:avoid; } pre { background:#f5f5f5; } }
+</style>
+</head>
+<body>
+<main class="page">
+<nav class="topbar" aria-label="Guide navigation"><a href="index.html">← Strategy catalog</a><a href="../boards/kimberley.html">View the board</a><a href="kimberley-mine-engine.html">Strategy implementation</a></nav>
+<header class="hero">
+<div class="intro"><span class="eyebrow">Board built for Mine</span><h1>Kimberley</h1><p><strong>A two-player Colony board where Mine is the best card.</strong> Mine trashes a Treasure and gains one costing up to $3 more directly into hand, so one play turns Gold into Platinum you spend the same turn. Kimberley surrounds it with cards that pay out on every trash: Sewers trashes a second card, Tomb awards a point, Priest adds $2, and Market Square turns into a Gold.</p>
+<p>The published engine won 88.8% of confirmation games against the strongest plan the search found that never buys Mine, and 98.7% against Colony Big Money with Smithy.</p>
+</div>
+<aside class="verdict" aria-label="Recommendation"><span class="eyebrow">Mine engine vs best no-Mine plan</span><strong>88.8%</strong><p>1,000 paired games per opponent. Buy one Mine on turn one or two, play it every turn it can climb, and skip both multipliers.</p><p>Two players · Estate starts · Colony and Platinum · Sewers · Tomb</p></aside>
+</header>
+<nav class="contents" aria-label="On this page"><a href="#the-board">The board</a><a href="#how-to-play-it">How to play it</a><a href="#what-the-simulations-established">What the simulations established</a><a href="#reproduction">Reproduction</a></nav>
+<section class="section"><h2 id="the-board">The board</h2>
+<p>Kingdom: Mine, Throne Room, King's Court, Laboratory, Smithy, Mining Village, Market Square, Priest, Hoard, Bank. Colony and Platinum are in the supply. Landscapes: the Sewers project and the Tomb landmark. Board file: <a href="../../boards/kimberley.txt"><code>boards/kimberley.txt</code></a>. The multipliers are on the board because Mine is the card they most want to repeat; the search found the engine is stronger without them, and the ablation table below shows by how much.</p>
+<div class="table-wrap" role="region" aria-label="Why each piece is here" tabindex="0"><table>
+<thead><tr><th>Piece</th><th>What it does for Mine</th></tr></thead>
+<tbody>
+<tr><td>Platinum and Colony</td><td>Gives Mine a top rung. Gold costs $6, so Mine reaches Platinum ($9) in one step, and Colonies keep the game long enough for the climb to matter.</td></tr>
+<tr><td>Sewers</td><td>Every Mine play trashes a second card from hand. The engine removes Estates and spare Coppers without a dedicated trasher.</td></tr>
+<tr><td>Tomb</td><td>+1 VP per trash. With Sewers doubling trashes, the published engine banks about 13 Tomb points per game.</td></tr>
+<tr><td>Priest</td><td>+$2 per later trash this turn. Played before Mine, it turns each climb into money as well.</td></tr>
+<tr><td>Market Square</td><td>Reacts to any trash by becoming a Gold, which Mine later turns into Platinum. Its +Buy spends the surplus.</td></tr>
+<tr><td>Throne Room, King's Court</td><td>Repeat Mine: Copper to Silver to Gold, or Gold to Platinum twice. Tempting, but neither helped in testing: King's Court at $7 competes with Platinum, and Throne Room at $4 competes with Priest and Sewers while needing Mine in the same hand.</td></tr>
+<tr><td>Laboratory, Smithy, Mining Village</td><td>Draw and Actions so Mine and Priest can both fire. Mining Village trashing itself also triggers Sewers and Tomb.</td></tr>
+<tr><td>Hoard, Bank</td><td>Alternative Mine targets from Silver and Gold. Neither beat plain Platinum climbing in the search.</td></tr>
+</tbody></table></div>
+</section>
+<section class="section"><h2 id="how-to-play-it">How to play it</h2>
+<ol>
+<li><strong>Open Mine/Priest.</strong> On $5/$2 buy Mine and nothing; on $4/$3 buy Priest and Silver or Market Square. Opening Laboratory instead of Mine was within noise; opening Silver instead of Priest lost clearly.</li>
+<li><strong>One Mine is enough.</strong> A second Mine lost 57.3% of games to the single-Mine engine. Play Mine every turn it can climb: trash Gold when Platinum remains in the supply, otherwise Silver, otherwise Copper. Never trash Platinum. Upgrading Copper first instead lost 65.9%.</li>
+<li><strong>Buy Sewers with your first spare $3.</strong> It converts every Mine play into two trashes. Let it eat Estates first, then Coppers while you own more than three. Skipping Sewers was the most expensive change tested after skipping Mine.</li>
+<li><strong>Priest before Mine when you have the Actions.</strong> Mining Village or Laboratory gives the second Action. Priest trashes an Estate or Copper, then Mine's trash and the Sewers trash each add $2. Priest and Market Square were each individually close to neutral in the ablations; they are there for the trash triggers and the +Buy, not as the core.</li>
+<li><strong>Skip Throne Room and King's Court.</strong> The engine plays one Mine per turn and wants every other purchase to be Platinum, draw, or a trash trigger. Adding one Throne Room lost 62.5% to the published engine; adding one King's Court was a coin flip. If you do own one, point it at Mine.</li>
+<li><strong>Money: Platinum at $9, one Gold, one Silver.</strong> Mine manufactures the rest. Add two Laboratories, two Market Squares, and a Mining Village once you own two terminals.</li>
+<li><strong>Green late.</strong> Buy Colony once you own a Platinum, Province once four or fewer Colonies remain, Duchy at two. Tomb points arrive on their own; the engine scores about 13 of them a game.</li>
+</ol>
+<p>Key rules: Mine gains the new Treasure to your hand, so it is playable this turn. Sewers triggers on each trash, including Priest's own trash and Mining Village trashing itself. Priest's +$2 applies only to trashes after its own. See the <a href="https://wiki.dominionstrategy.com/index.php/Mine">Mine</a>, <a href="https://wiki.dominionstrategy.com/index.php/Sewers">Sewers</a>, and <a href="https://wiki.dominionstrategy.com/index.php/Priest">Priest</a> rules.</p>
+</section>
+<section class="section"><h2 id="what-the-simulations-established">What the simulations established</h2>
+<p>The search played 100,920 games: a 340-candidate screen at 32 games each against Colony Big Money with Smithy, a 40-candidate recheck at 400 games, a separate 120-candidate search for the best plan that never buys Mine (with an eight-candidate recheck), a first confirmation of the recheck leader, and a final confirmation of the published engine after the first confirmation's ablations showed it was stronger without Throne Room. Seats alternate; each shuffle seed is used in both seats; equal scores use the fewer-turns tiebreak and complete ties count as half a win. No game reached the turn limit.</p>
+<p>The best no-Mine plan the search found (Priest opening, three Laboratories, King's Court with Smithy, three Market Squares, Hoard and Bank) won 67.9% against Colony Big Money with Smithy. Final confirmation of the published engine, 1,000 games per opponent:</p>
+<div class="table-wrap" role="region" aria-label="Confirmation results" tabindex="0"><table>
+<thead><tr><th>Opponent</th><th style="text-align: right;">Published engine's win rate</th></tr></thead>
+<tbody>
+<tr><td>Best no-Mine plan from the search (Priest opening, three Laboratories, King's Court with Smithy, three Market Squares, Hoard, Bank)</td><td style="text-align: right;">88.8%</td></tr>
+<tr><td>Colony Big Money (Platinum, Gold, Silver only)</td><td style="text-align: right;">100.0%</td></tr>
+<tr><td>Colony Big Money with up to two Smithies</td><td style="text-align: right;">98.7%</td></tr>
+<tr><td>Colony Big Money with up to three Laboratories</td><td style="text-align: right;">99.8%</td></tr>
+<tr><td>Colony Big Money with up to two Mines (climbing to Platinum)</td><td style="text-align: right;">99.2%</td></tr>
+<tr><td>Colony Big Money with one Priest</td><td style="text-align: right;">99.7%</td></tr>
+<tr><td>Colony Big Money with up to two Hoards</td><td style="text-align: right;">100.0%</td></tr>
+<tr><td>Colony Big Money with up to two Banks</td><td style="text-align: right;">100.0%</td></tr>
+</tbody></table></div>
+<p>Changing one thing about the published engine, 1,000 games each. The first column is the published engine against the changed version; the second is the changed version against the best no-Mine plan.</p>
+<div class="table-wrap" role="region" aria-label="Ablation results" tabindex="0"><table>
+<thead><tr><th>Change</th><th style="text-align: right;">Published engine vs change</th><th style="text-align: right;">Changed engine vs best no-Mine plan</th></tr></thead>
+<tbody>
+<tr><td>Never buy Mine (Laboratory opening instead)</td><td style="text-align: right;">96.4%</td><td style="text-align: right;">25.4%</td></tr>
+<tr><td>Never buy Sewers</td><td style="text-align: right;">83.5%</td><td style="text-align: right;">66.6%</td></tr>
+<tr><td>Never buy Priest (Silver second)</td><td style="text-align: right;">48.6%</td><td style="text-align: right;">85.2%</td></tr>
+<tr><td>Never buy Market Square</td><td style="text-align: right;">52.6%</td><td style="text-align: right;">89.7%</td></tr>
+<tr><td>Mine upgrades Copper first instead of taking the biggest step</td><td style="text-align: right;">65.9%</td><td style="text-align: right;">81.6%</td></tr>
+<tr><td>Add one Throne Room, pointed at Mine</td><td style="text-align: right;">62.5%</td><td style="text-align: right;">80.8%</td></tr>
+<tr><td>Add one King's Court, pointed at Mine</td><td style="text-align: right;">49.1%</td><td style="text-align: right;">86.3%</td></tr>
+<tr><td>Buy a second Mine</td><td style="text-align: right;">57.3%</td><td style="text-align: right;">87.8%</td></tr>
+<tr><td>Open Laboratory instead of Mine</td><td style="text-align: right;">52.1%</td><td style="text-align: right;">91.3%</td></tr>
+<tr><td>Open Silver instead of Priest as the second card</td><td style="text-align: right;">70.1%</td><td style="text-align: right;">78.4%</td></tr>
+</tbody></table></div>
+<p>Approximate sampling uncertainty for a 1,000-game result near 50% is three percentage points, before allowing for dependence between paired games. Results within that band (Priest, Market Square, King's Court, Laboratory opening) are not separated.</p>
+<p><strong>Practical takeaway:</strong> Mine is the engine here, not a support card. The same policy family without Mine falls from 88.8% to 25.4% against the best no-Mine plan, and Sewers is the piece that makes the difference: it turns each Mine play into a second trash, a second Tomb point, and a second Priest bonus. The multipliers that seem made for Mine are the trap.</p>
+</section>
+<section class="section"><h2 id="reproduction">Reproduction</h2>
+<p>The registered <a href="../../generated_strategies/kimberley_mine_engine.py">strategy implementation</a> is named <strong>Kimberley Mine Engine</strong>. Its decision hooks choose the Mine trash and gain, the multiplier target when one is owned, and the buy order; the static gain list records referenced cards and is not a literal purchase order. Class parameters preserve the alternatives used in the search.</p>
+<pre><code class="language-bash">PYTHONPATH=. python scripts/search_kimberley.py screen
+PYTHONPATH=. python scripts/search_kimberley.py recheck
+PYTHONPATH=. python scripts/search_kimberley.py nomine
+PYTHONPATH=. python scripts/search_kimberley.py confirm
+PYTHONPATH=. python scripts/search_kimberley.py final
+</code></pre>
+<p>The script uses six worker processes. Raw results are in <a href="../../docs/analysis/kimberley_screen.json">the screen</a>, <a href="../../docs/analysis/kimberley_recheck.json">the recheck</a>, <a href="../../docs/analysis/kimberley_nomine.json">the no-Mine search</a>, <a href="../../docs/analysis/kimberley_confirm.json">the first confirmation</a>, and <a href="../../docs/analysis/kimberley_final.json">the final confirmation</a>.</p>
+<p>Before the search, the implementations of Mine, Throne Room, King's Court, Priest, Mining Village, Market Square, Hoard, Bank, Sewers, and Tomb were read against the card rules. Mine gains to hand and limits the gain to $3 above the trashed Treasure's cost; Sewers, Tomb, Priest, and Market Square all resolve from the shared trash hook; no corrections were needed.</p>
+<p>Validation on September 8, 2026, at revision <code>{REV}</code>: {TESTS}.</p>
+<p>The search compares implemented buying and tactical policies for two players. It does not exhaust every opening or Bank and Hoard line, and the no-Mine reference is the best of 120 random configurations of the same policy family, not a proof that no better Mine-free plan exists.</p></section>
+<footer>Repository simulations and official card rules. Best policies found within the tested search; not a proof of optimal play. <a href="index.html">Return to the strategy catalog</a>.</footer>
+</main>
+</body>
+</html>
