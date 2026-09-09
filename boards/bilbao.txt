@@ -1,0 +1,18 @@
+# Bilbao board.
+#
+# Hinterlands / Plunder / Prosperity 2E / Dark Ages / Menagerie / Nocturne mix
+# with the Rich trait on Fool's Gold (every Fool's Gold gained also gains a
+# Silver). Shaman's game-wide rule applies: at the start of every player's
+# turn they gain a card costing up to $6 from the trash. No Colony/Platinum.
+Fool's Gold
+Grotto
+Shaman
+Anvil
+Hermit
+Sheepdog
+Feodum
+Wandering Minstrel
+Wheelwright
+Raider
+
+Trait: Rich (Fool's Gold)

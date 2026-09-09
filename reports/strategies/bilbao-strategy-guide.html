@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Bilbao Strategy Search Guide: rules audit, recommendations, experiments, and recorded simulation results.">
+<title>Bilbao Strategy Search Guide</title>
+<style>
+:root { color-scheme: dark; --ink:#f5f0e4; --muted:#b8b1a3; --paper:#151916; --panel:#1d231f; --line:#414940; --gold:#e9c46a; }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; background:radial-gradient(circle at 15% 0%,#263a2b66,transparent 36rem),var(--paper); color:var(--ink); font:16px/1.7 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+a { color:var(--gold); text-underline-offset:3px; }
+a:hover { color:#ffe09a; }
+a:focus-visible { outline:2px solid var(--gold); outline-offset:4px; }
+.page { max-width:1180px; margin:auto; padding:26px clamp(18px,4vw,52px) 60px; }
+.topbar,.contents { display:flex; flex-wrap:wrap; gap:12px 24px; font-size:.9rem; }
+.topbar { justify-content:space-between; margin-bottom:32px; }
+.eyebrow { color:var(--gold); font-size:.76rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+.hero { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(250px,.8fr); align-items:start; gap:40px; padding:30px 0 48px; border-bottom:1px solid var(--line); }
+h1,h2,h3 { font-family:Georgia,"Times New Roman",serif; line-height:1.16; }
+h1 { font-size:clamp(2.7rem,5.5vw,4.8rem); letter-spacing:-.04em; margin:12px 0 24px; max-width:18ch; }
+h2 { font-size:clamp(1.8rem,3vw,2.7rem); margin:0 0 24px; scroll-margin-top:20px; }
+h3 { font-size:1.4rem; }
+p { margin:0 0 18px; }
+.intro p { color:var(--muted); }
+.intro strong { color:var(--ink); }
+.verdict { background:linear-gradient(145deg,#e9c46a22,#e9c46a05); border:1px solid #9d7730; border-radius:18px; padding:26px; }
+.verdict strong { display:block; color:var(--gold); font:700 2.1rem/1.2 Georgia,serif; margin:12px 0 16px; }
+.verdict p:last-child { margin:0; }
+.contents { padding:22px 0; border-bottom:1px solid var(--line); }
+.section { padding:40px 0; border-bottom:1px solid var(--line); }
+.section>p,.section>ul,.section>ol { max-width:88ch; }
+ul,ol { padding-left:26px; }
+li { margin:10px 0; padding-left:5px; }
+.table-wrap { width:100%; overflow-x:auto; margin:24px 0; border:1px solid var(--line); border-radius:12px; }
+table { width:100%; border-collapse:collapse; background:var(--panel); font-size:.94rem; }
+th,td { padding:13px 16px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th { color:var(--gold); font-size:.85rem; }
+tr:last-child td { border-bottom:0; }
+tbody tr:hover { background:#ffffff05; }
+code { font-size:.86em; background:#ffffff09; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; }
+pre { padding:20px; border-radius:12px; border:1px solid var(--line); background:var(--panel); white-space:pre-wrap; overflow-wrap:anywhere; }
+pre code { padding:0; background:none; }
+footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
+@media(max-width:780px) { .hero { grid-template-columns:1fr; gap:24px; } h1 { max-width:none; } .topbar { justify-content:flex-start; } th,td { padding:10px; } }
+@media print { :root { color-scheme:light; --ink:#171717; --muted:#444; --paper:#fff; --panel:#fff; --line:#bbb; --gold:#654a0a; } body { background:white; } .page { max-width:none; padding:0; } .topbar,.contents { display:none; } .hero { padding-top:0; } .verdict { background:white; } .table-wrap { overflow:visible; } tr { break-inside:avoid; } pre { background:#f5f5f5; } }
+
+.hero { display:block; } h1 { max-width:24ch; }
+</style>
+</head>
+<body>
+<main class="page">
+<nav class="topbar" aria-label="Guide navigation"><a href="index.html">← Strategy catalog</a><a href="../boards/bilbao.html">View the board</a><a href="bilbao-best-found.html">Strategy implementation</a></nav>
+<header class="hero"><span class="eyebrow">Board strategy research</span><h1>Bilbao Strategy Search Guide</h1><p>Bilbao Board Strategy Search</p></header>
+<nav class="contents" aria-label="On this page"><a href="#simulator-fixes-made-before-searching">Simulator fixes made before searching</a><a href="#board-texture">Board texture</a><a href="#recommendation">Recommendation</a><a href="#why-this-strategy-wins">Why This Strategy Wins</a><a href="#method">Method</a><a href="#validation">Validation</a><a href="#search-notes">Search notes</a></nav>
+<article>
+<section class="section">
+<p>Board: <a href="../../boards/bilbao.txt"><code>boards/bilbao.txt</code></a></p>
+<p>Kingdom:</p>
+<ul>
+<li>Fool's Gold (Rich trait: gaining one also gains a Silver)</li>
+<li>Grotto</li>
+<li>Shaman</li>
+<li>Anvil</li>
+<li>Hermit</li>
+<li>Sheepdog</li>
+<li>Feodum</li>
+<li>Wandering Minstrel</li>
+<li>Wheelwright</li>
+<li>Raider</li>
+</ul>
+<p>No Colony or Platinum, no Events, Landmarks or Projects.</p>
+</section>
+<section class="section"><h2 id="simulator-fixes-made-before-searching">Simulator fixes made before searching</h2>
+<p>The pre-search audit compared all twelve implementations (ten cards, the
+Rich trait, and Madman) with the printed card text, verified against
+the Dominion Strategy wiki card data. Six rules defects were found and
+fixed first, with tests in <code>tests/test_bilbao_board_rules.py</code>; a seventh
+(Raider's card type) was caught in review. Two of them change how the
+whole board plays:</p>
+<ol>
+<li><strong>Shaman was a Duration card with a private trash rule.</strong> The simulator
+   had Shaman stay in play and, only for the player who played it, gain a
+   card from the trash on their next turn. The real card is a plain
+   cantrip (+1 Action, +$1, you may trash a card from your hand), and its
+   second half is a game-wide setup rule: "in games using this, at the
+   start of your turn, gain a card from the trash costing up to $6". That
+   applies to every player from turn one whether or not anyone owns a
+   Shaman, and the gain is mandatory. So on this board every trashed
+   Estate or Copper is handed to the next player, and a Fool's Gold
+   trashed for its reaction comes straight back to its owner.</li>
+<li><strong>Raider attacked every hand.</strong> The real card only makes players with
+   five or more cards in hand discard a copy of a card you have in play.</li>
+<li><strong>Hermit was trashed when it became a Madman.</strong> Current card text says
+   "exchange this for a Madman": the Hermit goes back onto its pile. With
+   Shaman in the game a trashed Hermit would have been recoverable from
+   the trash.</li>
+<li><strong>Grotto set aside the four cheapest cards with no choice.</strong> The real
+   card lets the player choose up to four cards; it is now an AI hook
+   (<code>choose_cards_to_set_aside_for_grotto</code>) whose default sets aside dead
+   cards only, and a Grotto that sets nothing aside does not stay in play.</li>
+<li><strong>Wheelwright discarded junk whenever any cheap Action existed</strong>, even
+   if the strategy wanted none of them. The discard is optional, so the
+   gain choice (the strategy's gain list) now decides whether to discard.</li>
+<li><strong>Anvil discarded a Copper before knowing whether the strategy wanted
+   any $4 gain</strong>; because the gain is mandatory after the discard, the
+   fallback then grabbed a random $4 card. The gain is now chosen first
+   and the discard is skipped when nothing is wanted.</li>
+<li><strong>Raider was typed as an Action.</strong> The real card is a Night-Duration-
+   Attack: it is played after Treasures, costs no Action, and its attack
+   sees every Treasure in play. Caught by review after the first search;
+   the Raider experiments below were re-run with the corrected card.</li>
+</ol>
+<p>New AI hooks, all overridable on a strategy and routed through
+<code>GeneticAI</code> to strategy methods where present:
+<code>choose_card_to_gain_from_trash_with_shaman</code>,
+<code>choose_cards_to_set_aside_for_grotto</code>, <code>choose_wheelwright_discard</code>,
+<code>should_trash_fools_gold_for_gold</code> (the reaction was a hard-coded
+heuristic), <code>choose_anvil_treasure_to_discard</code>, and Hermit's trash and
+gain choices, which now follow the strategy's trash and gain lists.</p>
+</section>
+<section class="section"><h2 id="board-texture">Board texture</h2>
+<ul>
+<li><strong>There is no +Buy.</strong> Extra gains come only from Anvil (discard a
+  Treasure to gain a card costing up to $4), Hermit (gain up to $3),
+  Wheelwright (discard a card to gain an Action costing no more), the Rich
+  trait and Shaman's setup rule.</li>
+<li><strong>Rich Fool's Gold is a Silver factory.</strong> Every Fool's Gold gained,
+  bought or Anvil-gained, brings a Silver. The Fool's Golds pay $1 then $4
+  each; the Silvers pay Feodum.</li>
+<li><strong>Anvil is the board's economy.</strong> $1, and each play turns a Copper
+  into "Fool's Gold + Silver" or a Feodum. Three Anvils mean roughly one
+  extra gain per turn all game in a deck with one Buy.</li>
+<li><strong>Feodum</strong> is worth 1 VP per 3 Silvers; a deck that ends with 12-15
+  Silvers scores 4-5 VP per Feodum, for $4.</li>
+<li><strong>Shaman's setup rule makes trashing double-edged.</strong> A trashed card
+  costing up to $6 must be taken by the next player. Against a deck that
+  never trashes that is a junking attack; in a mirror the junk ping-pongs.</li>
+<li><strong>Hermit</strong> exchanges itself for a Madman on a turn with no Buy-phase
+  gain; Madman doubles the hand. Wandering Minstrel is the only village,
+  Sheepdog the only draw.</li>
+<li><strong>Raider</strong> is a $6 Night card that pays $3 next turn; its attack only
+  touches five-card hands and only copies of cards you have in play, which
+  at Night includes the Treasures you played.</li>
+</ul>
+</section>
+<section class="section"><h2 id="recommendation">Recommendation</h2>
+<p>The best strategy found is published as <code>Bilbao Best Found</code>, defined in
+<a href="../../generated_strategies/bilbao_best_found.py"><code>generated_strategies/bilbao_best_found.py</code></a>.</p>
+<p>This is not a formal proof of optimal play. It is the best strategy found
+by the current simulator, hand-written seeds, focused local search around
+the leader, and island-model genetic evolution.</p>
+<p>The shape is Anvil / Fool's Gold / Feodum money:</p>
+<ul>
+<li>Buy Anvil with the first $3-$4 hands until you hold three (by turn 10).</li>
+<li>Play Anvil before other Treasures and discard a Copper to gain a
+  Feodum once the deck holds three Silvers, otherwise a Fool's Gold (which
+  brings a Silver). Skip the gain only when the Copper is needed for $8.</li>
+<li>Buy Province at $8, Duchy from six Provinces left, Gold only at $7,
+  Feodum at $4-$6 once you have three Silvers, Fool's Gold ahead of Silver
+  with anything else, never Estates.</li>
+<li>Always react with Fool's Gold when the opponent gains a Province: the
+  Gold goes on your deck and Shaman's rule returns the Fool's Gold at the
+  start of your next turn.</li>
+<li>Never trash anything (every trashed card is a gift to the opponent).</li>
+</ul>
+</section>
+<section class="section"><h2 id="why-this-strategy-wins">Why This Strategy Wins</h2>
+<ul>
+<li><strong>Two free cards a turn.</strong> An Anvil in hand plus a Copper is a Fool's
+  Gold and a Silver, on top of the buy. The deck reaches 12-15 Silvers and
+  5-8 Fool's Golds without ever spending a Buy on Silver.</li>
+<li><strong>Feodum is a $4 Province.</strong> With that many Silvers each Feodum is
+  worth 4-5 VP, so the deck greens from $4 hands all game while Provinces
+  come from the $8 hands. Big Money, which cannot use the Silvers, ends
+  20-40 VP behind.</li>
+<li><strong>Engines do not get there.</strong> Wandering Minstrel discards the
+  Treasures it reveals, Sheepdog is the only draw, Hermit/Madman is a
+  one-shot, and there is no +Buy to spend a big hand on. Every engine
+  seed lost to the money decks by 70-100%.</li>
+<li><strong>Trashing is a liability.</strong> Shaman's mandatory trash gain means every
+  Shaman or Hermit trash hands a card to the opponent; adding Shamans to
+  the leader dropped its mirror win rate to 9-29%.</li>
+</ul>
+</section>
+<section class="section"><h2 id="method">Method</h2>
+<ol>
+<li><strong>Audit</strong> of the twelve implementations (fixes above).</li>
+<li><strong>Archetype seeds</strong> — six hand-written theories of the kingdom in
+   <a href="../../dominion/strategy/strategies/bilbao_seeds.py"><code>dominion/strategy/strategies/bilbao_seeds.py</code></a>: Fool's Gold rush,
+   Anvil/Feodum slog, Raider money, Hermit/Madman engine, Shaman peddler,
+   Sheepdog/Anvil money. The board-derived island roster had no library
+   reuse and only two weak Wandering Minstrel engine seeds.</li>
+<li><strong>Round robin</strong> of the seeds plus Big Money (60 games per pairing).</li>
+<li><strong>Hand local search</strong> on the leader with a parametrised chassis
+   (<code>BilbaoAnvilFeodumVariant</code>, driven by <code>scripts/bilbao_variants.py</code>):
+   five sweeps of 100-400 games per pairing over Anvil count, Feodum
+   timing, Duchy timing, Gold, Fool's Gold cap, Estates, Anvil policy,
+   and every kingdom add-on (Raider, Wheelwright, Sheepdog, Hermit,
+   Shaman, Grotto).</li>
+<li><strong>Island-model genetic algorithm</strong> — one island per money seed
+   (Anvil/Feodum, Fool's Gold rush, Sheepdog/Anvil), population 20,
+   12 generations, 16 games per evaluation, fixed panel of the three seeds
+   plus Big Money, run in-process (the shared machine kept killing worker
+   pools).</li>
+<li><strong>Confirmation</strong> tournament at 400 games per pairing.</li>
+</ol>
+</section>
+<section class="section"><h2 id="validation">Validation</h2>
+<h3>Seed round robin (60 games per pairing)</h3>
+<p>Measured before Raider's card type was corrected; Raider Money's re-check
+against the published strategy with the Night-phase Raider is in the
+validation table below.</p>
+<div aria-label="Seed round robin" class="table-wrap" role="region" tabindex="0"><table>
+<thead><tr><th scope="col">Strategy</th><th scope="col" style="text-align: right;">Average win rate</th><th scope="col" style="text-align: right;">vs Big Money</th></tr></thead>
+<tbody>
+<tr><td>Bilbao Anvil Feodum Slog</td><td style="text-align: right;">96.4%</td><td style="text-align: right;">100%</td></tr>
+<tr><td>Bilbao Fools Gold Rush</td><td style="text-align: right;">75.3%</td><td style="text-align: right;">96.7%</td></tr>
+<tr><td>Bilbao Sheepdog Anvil Money</td><td style="text-align: right;">67.2%</td><td style="text-align: right;">90.0%</td></tr>
+<tr><td>Bilbao Hermit Madman Engine</td><td style="text-align: right;">53.3%</td><td style="text-align: right;">100%</td></tr>
+<tr><td>Bilbao Raider Money</td><td style="text-align: right;">30.3%</td><td style="text-align: right;">76.7%</td></tr>
+<tr><td>Bilbao Shaman Peddler</td><td style="text-align: right;">16.1%</td><td style="text-align: right;">68.3%</td></tr>
+<tr><td>Big Money</td><td style="text-align: right;">11.4%</td><td style="text-align: right;">—</td></tr>
+</tbody></table></div>
+<h3>Hand local search (mirror win rate against the leader of each round)</h3>
+<div aria-label="Local search" class="table-wrap" role="region" tabindex="0"><table>
+<thead><tr><th scope="col">Change to the leader</th><th scope="col" style="text-align: right;">Win rate vs leader</th><th scope="col">Games</th></tr></thead>
+<tbody>
+<tr><td>Silver ahead of Fool's Gold</td><td style="text-align: right;">27.7%</td><td>200</td></tr>
+<tr><td>Gold ahead of Feodum</td><td style="text-align: right;">41.0%</td><td>200</td></tr>
+<tr><td>Feodum only from 12 Silvers (vs 6)</td><td style="text-align: right;">19.5%</td><td>200</td></tr>
+<tr><td>Duchy only from 3 Provinces left (vs 5)</td><td style="text-align: right;">40.5%</td><td>200</td></tr>
+<tr><td>No Duchies at all</td><td style="text-align: right;">29.0%</td><td>100</td></tr>
+<tr><td>Never buy Province (pure Feodum rush)</td><td style="text-align: right;">5-7%</td><td>100</td></tr>
+<tr><td>Fool's Gold capped at 4 (vs 8)</td><td style="text-align: right;">42.0%</td><td>200</td></tr>
+<tr><td>Four or five Anvils (vs 3)</td><td style="text-align: right;">43-48%</td><td>200-400</td></tr>
+<tr><td>Gold only at $7 (vs $6)</td><td style="text-align: right;">56.5%</td><td>200</td></tr>
+<tr><td>Never buy Gold</td><td style="text-align: right;">50.9%</td><td>100</td></tr>
+<tr><td>Never buy Estates</td><td style="text-align: right;">52.5%</td><td>200</td></tr>
+<tr><td>One or two Raiders (Night-phase Raider, re-run after the type fix)</td><td style="text-align: right;">49-50%</td><td>400</td></tr>
+<tr><td>One Wheelwright</td><td style="text-align: right;">36.5%</td><td>200</td></tr>
+<tr><td>Two Sheepdogs</td><td style="text-align: right;">34.5%</td><td>200</td></tr>
+<tr><td>Two Hermits</td><td style="text-align: right;">46.0%</td><td>200</td></tr>
+<tr><td>One to three Shamans (trashing Coppers/Estates)</td><td style="text-align: right;">9-29%</td><td>200</td></tr>
+<tr><td>One or two Grottos</td><td style="text-align: right;">22-31%</td><td>200</td></tr>
+<tr><td>Feodum from 0 Silvers (before the first Fool's Gold)</td><td style="text-align: right;">13.2%</td><td>400</td></tr>
+<tr><td>Feodum from 2 Silvers (vs 3)</td><td style="text-align: right;">52.0%</td><td>400</td></tr>
+<tr><td>Duchy from 7 Provinces left (vs 6)</td><td style="text-align: right;">53.0%</td><td>400</td></tr>
+<tr><td>Duchy from 8 Provinces left</td><td style="text-align: right;">38.5%</td><td>400</td></tr>
+<tr><td>Two Anvils (vs 3)</td><td style="text-align: right;">45.8%</td><td>400</td></tr>
+<tr><td>Anvil never discards a Silver</td><td style="text-align: right;">48.0%</td><td>100</td></tr>
+<tr><td>Anvil always gains Feodum</td><td style="text-align: right;">45.0%</td><td>100</td></tr>
+</tbody></table></div>
+<h3>Confirmation among the final candidates (400 games per pairing)</h3>
+<div aria-label="Confirmation" class="table-wrap" role="region" tabindex="0"><table>
+<thead><tr><th scope="col">Feodum from N Silvers / Duchy from N Provinces left</th><th scope="col" style="text-align: right;">Average win rate</th></tr></thead>
+<tbody>
+<tr><td>3 Silvers / 6 Provinces (published)</td><td style="text-align: right;">55.3%</td></tr>
+<tr><td>4 Silvers / 6 Provinces</td><td style="text-align: right;">51.8%</td></tr>
+<tr><td>3 Silvers / 5 Provinces</td><td style="text-align: right;">50.3%</td></tr>
+<tr><td>5 Silvers / 6 Provinces</td><td style="text-align: right;">49.5%</td></tr>
+<tr><td>4 Silvers / 5 Provinces</td><td style="text-align: right;">48.6%</td></tr>
+<tr><td>5 Silvers / 5 Provinces</td><td style="text-align: right;">44.6%</td></tr>
+</tbody></table></div>
+<h3>Published strategy against every seed (400 games per pairing, alternating first player)</h3>
+<p>Measured after the review fixes to the Fool's Gold reaction (one copy per opponent Province, only when this player acts next) and the Anvil guard (the guard now values the Treasure actually discarded). The earlier always-react version scored 87.0%.</p>
+<div aria-label="Best Found validation" class="table-wrap" role="region" tabindex="0"><table>
+<thead><tr><th scope="col">Opponent</th><th scope="col" style="text-align: right;">Bilbao Best Found win rate</th></tr></thead>
+<tbody>
+<tr><td>Bilbao Anvil Feodum Slog (the seed it was tuned from)</td><td style="text-align: right;">56.8%</td></tr>
+<tr><td>Bilbao Fools Gold Rush</td><td style="text-align: right;">80.4%</td></tr>
+<tr><td>Bilbao Sheepdog Anvil Money</td><td style="text-align: right;">86.0%</td></tr>
+<tr><td>Bilbao Hermit Madman Engine</td><td style="text-align: right;">97.8%</td></tr>
+<tr><td>Bilbao Raider Money (re-run with the Night-phase Raider: 100%)</td><td style="text-align: right;">99.8%</td></tr>
+<tr><td>Big Money</td><td style="text-align: right;">99.8%</td></tr>
+<tr><td><strong>Average</strong></td><td style="text-align: right;"><strong>86.8%</strong></td></tr>
+</tbody></table></div>
+<h3>Island champions against the published strategy (400 games per pairing)</h3>
+<p>Three islands (Anvil/Feodum slog, Fool's Gold rush, Sheepdog/Anvil money),
+population 20, 12 generations, 16 games per evaluation, panel of the three
+seeds plus Big Money, re-measured after the review fixes. The Anvil/Feodum island's champion is committed as
+<a href="../../generated_strategies/bilbao_anvil_feodum_slog_champion.py"><code>generated_strategies/bilbao_anvil_feodum_slog_champion.py</code></a>.</p>
+<div aria-label="Champion tournament" class="table-wrap" role="region" tabindex="0"><table>
+<thead><tr><th scope="col">Strategy</th><th scope="col" style="text-align: right;">vs Best Found</th><th scope="col" style="text-align: right;">Average win rate</th></tr></thead>
+<tbody>
+<tr><td>Bilbao Best Found (published)</td><td style="text-align: right;">—</td><td style="text-align: right;">73.4%</td></tr>
+<tr><td>Anvil Feodum Slog Champion (evolved, 78% vs its panel)</td><td style="text-align: right;">39.4%</td><td style="text-align: right;">72.5%</td></tr>
+<tr><td>Bilbao Anvil Feodum Slog (seed)</td><td style="text-align: right;">43.0%</td><td style="text-align: right;">64.6%</td></tr>
+<tr><td>Sheepdog Anvil Money Champion (evolved)</td><td style="text-align: right;">8.5%</td><td style="text-align: right;">18.6%</td></tr>
+<tr><td>Fools Gold Rush Champion (evolved)</td><td style="text-align: right;">15.5%</td><td style="text-align: right;">20.9%</td></tr>
+</tbody></table></div>
+
+</section>
+<section class="section"><h2 id="search-notes">Search notes</h2>
+<ul>
+<li><strong>The turn gate on Anvil never fires</strong>: three Anvils are always bought
+  before turn 6 (variants with the gate at 6, 14 and 99 played identical
+  games).</li>
+<li><strong>Feodum ahead of Province never triggers</strong> in practice: the Feodum
+  pile is empty before the deck holds 12 Silvers with $8 in hand.</li>
+<li><strong>Reproduce</strong> with <code>PYTHONPATH=. python scripts/search_bilbao.py --games 400
+  --strategies "Bilbao Best Found" "Bilbao Anvil Feodum Slog" "Bilbao Fools Gold Rush" BigMoney</code>.
+  The five hand-search sweeps are committed as JSON under
+  <a href="../../scripts/bilbao_sweeps/README.md"><code>scripts/bilbao_sweeps/</code></a> with the exact
+  <code>scripts/bilbao_variants.py</code> command for each; the GA islands ran
+  <code>scripts/island_evolve.py --board boards/bilbao.txt --population 20 --generations 12
+  --games-per-eval 16 --workers 1 --only "&lt;seed&gt;" --seeds "&lt;seed&gt;" --panel "Bilbao Anvil Feodum Slog"
+  "Bilbao Fools Gold Rush" "Bilbao Sheepdog Anvil Money" BigMoney</code> once per seed.</li>
+<li><strong>Evolution agreed with the hand search.</strong> The Anvil/Feodum island
+  deleted its Gold, Estate and late-Feodum rules and kept Anvil ×3, Feodum
+  from six Silvers, Fool's Gold before Silver and Duchy from five Provinces;
+  it beat its own seed 61-39 but lost 39-61 to the hand-tuned Feodum-from-
+  three-Silvers / Duchy-from-six version. The Fool's Gold and Sheepdog
+  islands barely moved from their seeds (55-56% vs the panel).</li>
+<li><strong>The genetic runs had to be run in-process.</strong> Parallel islands and
+  worker pools were killed twice by other jobs on the shared machine
+  (BrokenProcessPool with no error of their own); single-process islands
+  with <code>--workers 1</code> finished.</li>
+
+</ul></section>
+</article>
+<footer>Written on September 8, 2026 from the recorded search results. <a href="index.html">Return to the strategy catalog</a>.</footer>
+</main>
+</body>
+</html>

@@ -188,6 +188,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "strategies/hyderabad-strategy-guide.html",
         "strategies/lisbon-strategy-guide.html",
         "strategies/oslo-strategy-guide.html",
+        "strategies/bilbao-strategy-guide.html",
         "strategies/port-moresby-strategy-guide.html",
         "strategies/first-game-strategy-guide.html",
         "strategies/index.html",
