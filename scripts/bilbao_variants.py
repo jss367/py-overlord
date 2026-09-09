@@ -43,6 +43,8 @@ def main():
     args = parser.parse_args()
     if args.games < 1:
         parser.error("--games must be at least 1")
+    if args.games % 2:
+        parser.error("--games must be even so each shuffle seed is played in both seats")
     if args.workers < 1:
         parser.error("--workers must be at least 1")
 
