@@ -108,6 +108,19 @@ def test_pair_mode_declines_when_the_first_trash_would_end_the_mill():
     assert second in p0.hand
 
 
+def test_pair_mode_accepts_a_pile_of_exactly_six_silvers():
+    """Six Silvers minus the first trash's three still leaves the mill active."""
+    mill = BilbaoShamanFeodumMill(trash_mode="pair")
+    state = _game(mill)
+    p0 = state.players[0]
+    first, second = get_card("Feodum"), get_card("Feodum")
+    p0.hand = [first, second, get_card("Shaman")]
+    state.supply["Silver"] = 6
+    _play(state, "Shaman")
+    assert first in state.trash
+    assert second in p0.hand
+
+
 def test_pair_mode_honours_the_feodum_keep_threshold():
     """With two Feodums and one to keep, the promised second trash would be
     refused at the keep threshold, so the first must not happen either."""

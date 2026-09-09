@@ -802,12 +802,13 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
         if via_hermit:
             return False  # Hermit is terminal: nothing plays after it
         # The second trash still has to pass ``_mill_active`` after this
-        # trash's Silvers land (three now, plus Hermit's own gain), so a
-        # near-empty Silver pile or a player close to ``trash_silver_cap``
-        # cannot promise a pair. Four is a conservative bound for both.
-        if state.supply.get("Silver", 0) - 4 < 3:
+        # Feodum's three Silvers land, so a near-empty Silver pile or a
+        # player close to ``trash_silver_cap`` cannot promise a pair. (A
+        # following Hermit gains its own Silver only after its trash
+        # decision, so exactly three Silvers separate the two decisions.)
+        if state.supply.get("Silver", 0) - 3 < 3:
             return False
-        if player.count_in_deck("Silver") + 4 >= self.params["trash_silver_cap"]:
+        if player.count_in_deck("Silver") + 3 >= self.params["trash_silver_cap"]:
             return False
         # ...and the second trash must still leave ``trash_keep_feodums``.
         if player.count_in_deck("Feodum") - 1 <= self.params["trash_keep_feodums"]:
