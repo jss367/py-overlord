@@ -732,17 +732,27 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
                     ),
                 )
             )
+        # The trash policy's cutoffs, built once as a tagged condition so the
+        # catalog can render them and so ``_mill_active`` (used by the trash
+        # and Anvil decisions below) and the fodder rule share one source of
+        # truth: Silver pile, Province stop, Feodum-pile stop, turn max and
+        # Silver cap.
+        self._mill_gate = PriorityRule.and_(
+            PriorityRule.pile_count("Silver", ">=", 3),
+            PriorityRule.provinces_left(">", trash_stop_provinces),
+            PriorityRule.pile_count("Feodum", ">", trash_stop_pile),
+            PriorityRule.turn_number("<=", trash_turn_max),
+            PriorityRule.max_in_deck("Silver", trash_silver_cap),
+        )
         # Fodder: a Feodum bought to be trashed. Only while a trasher exists,
-        # only while the trash policy is still active (``_mill_active`` is
-        # the single source of truth for every trash cutoff: Silver pile,
-        # Province stop, Feodum-pile stop, turn max and Silver cap), and
-        # never more than ``fodder_max`` in the deck at once.
+        # only while the trash policy is still active, and never more than
+        # ``fodder_max`` in the deck at once.
         rules.append(
             PriorityRule(
                 "Feodum",
                 PriorityRule.and_(
                     has_trasher,
-                    lambda s, me: self._mill_active(s, me),
+                    self._mill_gate,
                     PriorityRule.max_in_deck("Feodum", fodder_max),
                     PriorityRule.turn_number("<=", fodder_turn),
                     PriorityRule.resources("coins", ">=", fodder_min_coins),
@@ -772,18 +782,7 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
     # ---- trash policy ----------------------------------------------------
 
     def _mill_active(self, state, player) -> bool:
-        p = self.params
-        if state.supply.get("Silver", 0) < 3:
-            return False
-        if state.supply.get("Province", 0) <= p["trash_stop_provinces"]:
-            return False
-        if state.supply.get("Feodum", 0) <= p["trash_stop_pile"]:
-            return False
-        if state.turn_number > p["trash_turn_max"]:
-            return False
-        if player.count_in_deck("Silver") >= p["trash_silver_cap"]:
-            return False
-        return True
+        return bool(self._mill_gate(state, player))
 
     def _pair_available(self, state, player, via_hermit: bool) -> bool:
         """Can a second Feodum go to the trash this turn, so that the
@@ -792,6 +791,14 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
             return True
         if via_hermit:
             return False  # Hermit is terminal: nothing plays after it
+        # The second trash still has to pass ``_mill_active`` after this
+        # trash's Silvers land (three now, plus Hermit's own gain), so a
+        # near-empty Silver pile or a player close to ``trash_silver_cap``
+        # cannot promise a pair. Four is a conservative bound for both.
+        if state.supply.get("Silver", 0) - 4 < 3:
+            return False
+        if player.count_in_deck("Silver") + 4 >= self.params["trash_silver_cap"]:
+            return False
         hand_feodums = sum(1 for c in player.hand if c.name == "Feodum") - 1
         discard_feodums = sum(1 for c in player.discard if c.name == "Feodum")
         shamans = sum(1 for c in player.hand if c.name == "Shaman")

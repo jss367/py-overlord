@@ -89,6 +89,24 @@ def test_pair_mode_declines_a_lone_feodum_and_accepts_when_hermit_can_follow():
     assert sum(1 for c in p0.discard if c.name == "Silver") == 7  # 3 + 3 + Hermit's gain
 
 
+def test_pair_mode_declines_when_the_first_trash_would_end_the_mill():
+    """The first trash gains three Silvers; the promised second trasher would
+    then find the mill inactive and leave the opponent a lone Feodum."""
+    state = _game(BilbaoShamanFeodumMill(trash_mode="pair"))
+    p0 = state.players[0]
+    feodum, second = get_card("Feodum"), get_card("Feodum")
+    p0.hand = [feodum, second, get_card("Shaman")]
+    state.supply["Silver"] = 5
+    _play(state, "Shaman")
+    assert feodum in p0.hand and second in p0.hand
+    assert not state.trash
+
+    state.supply["Silver"] = 10
+    _play(state, "Shaman")
+    assert feodum in state.trash
+    assert second in p0.hand
+
+
 def test_hermit_gains_shamans_up_to_target_then_silver():
     state = _game(BilbaoShamanFeodumMill(shamans=1))
     p0 = state.players[0]
