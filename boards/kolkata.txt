@@ -1,0 +1,15 @@
+# Kolkata board.
+#
+# Rising Sun / Adventures / Dark Ages / Nocturne / Renaissance / Hinterlands
+# mix. Artist costs 8 Debt. Knights is the shuffled ten-card split pile.
+# No events, landmarks, or Colony/Platinum.
+Artist
+Artificer
+Armory
+Bandit Camp
+Bard
+Knights
+Research
+Scheme
+Spice Merchant
+Stables

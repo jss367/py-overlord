@@ -3059,8 +3059,15 @@ class GameState:
         # cleanup). Scan every player's in_play and duration zones.
         bt_count = 0
         for tracker in self.players:
+            # Every duration entry is one active reduction (a Throne Roomed
+            # Troll is queued twice). A Troll still in in_play that is also
+            # queued in duration is the same physical card, not a second one.
             bt_count += sum(1 for c in tracker.duration if c.name == "Bridge Troll")
-            bt_count += sum(1 for c in tracker.in_play if c.name == "Bridge Troll")
+            bt_count += sum(
+                1
+                for c in tracker.in_play
+                if c.name == "Bridge Troll" and c not in tracker.duration
+            )
         if bt_count:
             cost -= bt_count
 
@@ -3199,6 +3206,34 @@ class GameState:
 
         self._trigger_haggler_bonus(player, card)
 
+    def _cards_retained_in_play(self, player: PlayerState) -> set:
+        """Cards that stay in play through this Clean-up.
+
+        Pending Durations the player still owns and that have not already
+        left play (a Bonfire may have trashed one), plus, transitively, any
+        multiplier (Throne Room, King's Court) whose ``duration_targets``
+        include a retained card.
+        """
+        owned = set(player.all_cards())
+        moved_from_play = {
+            card for zone in player._physical_card_zones()
+            if zone is not player.in_play for card in zone
+        }
+        retained = {
+            card for card in player.duration + player.multiplied_durations
+            if card in owned and card not in moved_from_play
+        }
+        changed = True
+        while changed:
+            changed = False
+            for card in player.in_play:
+                if card not in retained and any(
+                    target in retained for target in getattr(card, "duration_targets", [])
+                ):
+                    retained.add(card)
+                    changed = True
+        return retained
+
     def handle_cleanup_phase(self):
         """Handle the cleanup phase of a turn."""
         player = self.current_player
@@ -3250,16 +3285,41 @@ class GameState:
         self._call_tavern_triggers(player, "cleanup_start")
 
         # Discard hand and in-play cards
-        scheme_count = sum(1 for card in player.in_play if card.name == "Scheme")
-        if scheme_count:
-            playable_actions = [card for card in player.in_play if card.is_action]
+        # Scheme's trigger belongs to the turn it was played. Actions kept in
+        # play by Journey (including a Scheme) were not played on the extra
+        # turn, so they do not trigger at its Clean-up.
+        journey_retained = set(getattr(player, "journey_retained_actions", []))
+        scheme_count = sum(
+            1
+            for card in player.in_play
+            if card.name == "Scheme" and card not in journey_retained
+        )
+        # After buying Journey nothing is discarded from play this Clean-up,
+        # so Scheme has no card to put on the deck.
+        if scheme_count and not getattr(player, "journey_extra_turn_pending", False):
+            # Only Actions that are actually discarded from play this
+            # Clean-up qualify: a Duration staying in play is not discarded,
+            # and neither is a multiplier (Throne Room, King's Court) that is
+            # retained because one of its ``duration_targets`` stays.
+            staying = self._cards_retained_in_play(player)
+            playable_actions = [
+                card
+                for card in player.in_play
+                if card.is_action and card not in staying
+            ]
             for _ in range(scheme_count):
                 if not playable_actions:
                     break
-                chosen = max(
-                    playable_actions,
-                    key=lambda c: (c.cost.coins, c.stats.cards, c.stats.actions, c.name),
-                )
+                hook = getattr(player.ai, "choose_card_to_topdeck_for_scheme", None)
+                if hook is not None:
+                    chosen = hook(self, player, list(playable_actions))
+                else:
+                    chosen = max(
+                        playable_actions,
+                        key=lambda c: (c.cost.coins, c.stats.cards, c.stats.actions, c.name),
+                    )
+                if chosen is None or chosen not in playable_actions:
+                    break
                 playable_actions.remove(chosen)
                 if chosen in player.in_play:
                     player.in_play.remove(chosen)
@@ -3274,22 +3334,7 @@ class GameState:
                 player.coins += len(distinct_treasures)
 
         # Duration cards remain in play until their lingering effects finish.
-        owned = set(player.all_cards())
-        moved_from_play = {
-            card for zone in player._physical_card_zones()
-            if zone is not player.in_play for card in zone
-        }
-        durations_to_keep = {
-            card for card in player.duration + player.multiplied_durations
-            if card in owned and card not in moved_from_play
-        }
-        changed = True
-        while changed:
-            changed = False
-            for card in player.in_play:
-                if card not in durations_to_keep and any(t in durations_to_keep for t in getattr(card, "duration_targets", [])):
-                    durations_to_keep.add(card)
-                    changed = True
+        durations_to_keep = self._cards_retained_in_play(player)
 
         # A physical multiplier may be shuffled and played again. Completed
         # targets must not retain it during an unrelated later Duration play.
@@ -3306,9 +3351,13 @@ class GameState:
         # the granted extra turn.
         journey_extra_turn = bool(getattr(player, "journey_extra_turn_pending", False))
         if journey_extra_turn:
-            for card in player.in_play:
-                if card.is_action:
-                    durations_to_keep.add(card)
+            player.journey_retained_actions = [
+                card for card in player.in_play if card.is_action
+            ]
+            for card in player.journey_retained_actions:
+                durations_to_keep.add(card)
+        else:
+            player.journey_retained_actions = []
 
         # Determine which Treasures (if any) Trickster will set aside before
         # firing discard-from-play hooks, so we don't trigger those hooks on

@@ -10,7 +10,7 @@ import textwrap
 from typing import Any, Iterable, Mapping
 
 from dominion.cards.base_card import CardType
-from dominion.cards.registry import get_card
+from dominion.cards.registry import get_all_card_names, get_card
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.reporting.strategy_links import PageLink, strategy_slug
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
@@ -91,6 +91,17 @@ CURATED_STRATEGY_GUIDES = (
             "search results, and confirmation after simulator corrections."
         ),
         kingdom_cards=("Quartermaster", "Barbarian", "Messenger", "Trail", "Sculptor"),
+        source_label="Repository strategy search and recorded simulation results",
+    ),
+    CuratedStrategyGuide(
+        filename="kolkata-strategy-guide.html",
+        display_name="Kolkata Strategy Search Guide",
+        description=(
+            "Stables and Bard money on the Knights board: Knights, Artificer, "
+            "Armory and Scheme rules audit, seed and island-model search "
+            "results, and confirmation tournaments."
+        ),
+        kingdom_cards=("Stables", "Bard", "Bandit Camp", "Knights", "Artificer"),
         source_label="Repository strategy search and recorded simulation results",
     ),
     CuratedStrategyGuide(
@@ -1153,6 +1164,35 @@ def _tags_markup(labels: Iterable[str]) -> str:
     )
 
 
+_NON_SUPPLY_PILE_NAMES: set[str] | None = None
+
+
+def non_supply_pile_names() -> set[str]:
+    """Names of piles that game setup creates outside the Supply.
+
+    Spoils, Horses, Will-o'-Wisps, Madman and the like are gained through
+    kingdom cards (Bandit Camp, Cavalry, Bard, Hermit) but are never kingdom
+    piles themselves, so a strategy that names them is not asking for a
+    board that lists them.
+    """
+
+    global _NON_SUPPLY_PILE_NAMES
+    if _NON_SUPPLY_PILE_NAMES is None:
+        names: set[str] = set()
+        for card_name in get_all_card_names():
+            try:
+                card = get_card(card_name)
+            except (KeyError, ValueError):
+                continue
+            names.update(card.get_additional_non_supply_piles())
+            names.update(getattr(card, "nocturne_piles", {}))
+            names.update(getattr(card, "nocturne_trash_piles", {}))
+            if getattr(card, "uses_boons", False):
+                names.add("Will-o'-Wisp")
+        _NON_SUPPLY_PILE_NAMES = names
+    return set(_NON_SUPPLY_PILE_NAMES)
+
+
 def collect_rendered_strategies(
     loader: StrategyLoader | None = None,
     *,
@@ -1165,6 +1205,7 @@ def collect_rendered_strategies(
     display_names = list(names) if names is not None else loader.list_strategies()
     rendered = []
 
+    non_supply = non_supply_pile_names()
     for display_name in sorted(display_names):
         strategy = loader.get_strategy(display_name)
         if strategy is None:
@@ -1183,7 +1224,9 @@ def collect_rendered_strategies(
                 source_path=source_path,
                 factory_name=factory_name,
                 references={
-                    "Kingdom Cards": refs.kingdom_cards,
+                    "Kingdom Cards": [
+                        name for name in refs.kingdom_cards if name not in non_supply
+                    ],
                     "Events": refs.events,
                     "Projects": refs.projects,
                     "Ways": refs.ways,
