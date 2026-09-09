@@ -156,7 +156,7 @@ def test_conclave_does_not_play_a_third_copy_under_warlord():
     assert len(player.deck) == 1
 
 
-def test_cursed_village_draws_to_six_and_hexes():
+def test_cursed_village_draws_to_six_without_a_hex_on_play():
     state, player = _setup()
     cv = get_card("Cursed Village")
     player.hand = []
@@ -169,6 +169,18 @@ def test_cursed_village_draws_to_six_and_hexes():
     assert len(player.hand) >= 6
     # +2 Actions
     assert player.actions == 3
+    assert state.hex_deck == ["Greed"]
+    assert state.hex_discard == []
+
+
+def test_cursed_village_hexes_the_gainer_not_the_active_player(monkeypatch):
+    state, player = _setup(players=2)
+    recipient = state.players[1]
+    received = []
+    monkeypatch.setattr(state, "give_hex_to_player", received.append)
+    state.gain_card(recipient, get_card("Cursed Village"))
+    assert received == [recipient]
+    assert any(c.name == "Cursed Village" for c in recipient.discard)
 
 
 def test_den_of_sin_drawn_into_hand_on_gain():

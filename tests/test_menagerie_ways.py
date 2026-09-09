@@ -423,9 +423,8 @@ def test_way_of_the_chameleon_does_not_swap_cursed_village_draw_until_six():
     # No coins were granted: Cursed Village had no +$ to swap, and the
     # imperative draw must NOT have been converted to coins.
     assert p1.coins == 0
-    # The Hex still fires: a Hex was drawn from the Hex deck and is
-    # now in the Hex discard pile.
-    assert state.hex_discard, "Cursed Village should have caused a Hex"
+    # The Hex is an on-gain effect, so playing the card does not draw one.
+    assert not state.hex_discard
 
 
 def test_way_of_the_chameleon_does_not_swap_library_draw_until_seven():

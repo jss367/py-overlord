@@ -24,6 +24,60 @@ from dominion.strategy.strategy_loader import StrategyLoader
 REPORT_BASIC_CARDS = BASIC_CARDS | {"Colony", "Platinum", "Potion"}
 
 
+# These implementations live outside their printed expansion's package.
+_EXPANSION_OVERRIDES = {
+    "Astrolabe": "Seaside",
+    "Collection": "Prosperity",
+    "Fisherman": "Menagerie",
+    "Mill": "Intrigue",
+    "Pilgrim": "Plunder",
+    "Snowy Village": "Menagerie",
+    "Taskmaster": "Plunder",
+    "Trading Post": "Intrigue",
+    "Wealthy Village": "Plunder",
+}
+
+
+# Retired Kingdom cards and Tournament's Prizes; wording/art changes and
+# renames (such as Harem -> Farm) are not edition removals.
+# Lists are published in Temple Gates Games' first-edition packs:
+# https://store.steampowered.com/app/1131620/Dominion/ (Content For This Game).
+_SECOND_EDITION_REMOVED_CARDS = frozenset({
+    # Base
+    "Adventurer", "Chancellor", "Feast", "Spy", "Thief", "Woodcutter",
+    # Intrigue
+    "Coppersmith", "Great Hall", "Saboteur", "Scout", "Secret Chamber", "Tribute",
+    # Seaside
+    "Ambassador", "Embargo", "Explorer", "Ghost Ship", "Navigator", "Pearl Diver",
+    "Pirate Ship", "Sea Hag",
+    # Prosperity
+    "Contraband", "Counting House", "Goons", "Loan", "Mountebank", "Royal Seal",
+    "Talisman", "Trade Route", "Venture",
+    # Hinterlands
+    "Cache", "Duchess", "Embassy", "Ill-Gotten Gains", "Mandarin", "Noble Brigand",
+    "Nomad Camp", "Oracle", "Silk Road",
+    # Cornucopia & Guilds, including Prizes
+    "Farming Village", "Fortune Teller", "Harvest", "Horse Traders", "Tournament",
+    "Bag of Gold", "Diadem", "Followers", "Princess", "Trusty Steed",
+    "Doctor", "Masterpiece", "Taxman",
+})
+
+
+def _card_expansion(name: str) -> str:
+    card = get_card(name)
+    if card.name in _EXPANSION_OVERRIDES:
+        return _EXPANSION_OVERRIDES[card.name]
+    package = type(card).__module__.split(".")[2]
+    return {
+        "base_set": "Base",
+        "treasures": "Base",
+        "victory": "Base",
+        "cornucopia": "Cornucopia & Guilds",
+        "guilds": "Cornucopia & Guilds",
+        "promo": "Promo",
+    }.get(package, package.replace("_", " ").title())
+
+
 @dataclass(frozen=True)
 class CardUsage:
     name: str
@@ -89,6 +143,11 @@ def render_card_usage(
     rows = collect_card_usage(strategies, results, loader=loader)
     total = len({item.display_name for item in strategies})
     used = sum(bool(row.strategies) for row in rows)
+    expansions = {row.name: _card_expansion(row.name) for row in rows}
+    expansion_options = "".join(
+        f'<option value="{escape(name)}">{escape(name)}</option>'
+        for name in sorted(set(expansions.values()))
+    )
     markup = []
     for row in rows:
         count = len(row.strategies)
@@ -104,7 +163,9 @@ def render_card_usage(
             if count else '<span class="muted">No strategies</span>'
         )
         markup.append(
-            f'<tr data-basic="{str(row.name in REPORT_BASIC_CARDS).lower()}">'
+            f'<tr data-basic="{str(row.name in REPORT_BASIC_CARDS).lower()}" '
+            f'data-removed-second-edition="{str(row.name in _SECOND_EDITION_REMOVED_CARDS).lower()}" '
+            f'data-expansion="{escape(expansions[row.name])}">'
             f'<td data-sort="{escape(row.name)}">{_card_chip(row.name)}</td>'
             f'<td data-sort="{count}"><strong>{count}</strong></td>'
             f'<td data-sort="{share}">{share:.1f}%</td>'
@@ -146,8 +207,13 @@ def render_card_usage(
   <div class="usage-controls">
     <div><label for="card-search">Find a card or strategy</label><br>
     <input class="search" id="card-search" type="search" placeholder="Search cards or strategies"></div>
+    <div><label for="card-expansion">Expansion</label><br>
+    <select class="search" id="card-expansion">
+      <option value="">All expansions</option>{expansion_options}
+    </select></div>
     <label><input id="include-basic" type="checkbox"> Include basic and starting cards</label>
     <label><input id="unused-only" type="checkbox"> Only unused cards</label>
+    <label><input id="hide-removed" type="checkbox"> Hide cards removed in second editions</label>
   </div>
   <p id="card-count" role="status" aria-live="polite"></p>
   <div class="table-scroll">
@@ -199,8 +265,10 @@ _SCRIPT = """
   const rows = Array.from(body.rows);
   const buttons = Array.from(table.querySelectorAll('th button'));
   const search = document.getElementById('card-search');
+  const expansion = document.getElementById('card-expansion');
   const basic = document.getElementById('include-basic');
   const unused = document.getElementById('unused-only');
+  const hideRemoved = document.getElementById('hide-removed');
   let column = 1;
   let direction = -1;
   function filter() {
@@ -208,6 +276,8 @@ _SCRIPT = """
     let visible = 0;
     rows.forEach(row => {
       row.hidden = (!basic.checked && row.dataset.basic === 'true') ||
+        (expansion.value !== '' && row.dataset.expansion !== expansion.value) ||
+        (hideRemoved.checked && row.dataset.removedSecondEdition === 'true') ||
         (unused.checked && Number(row.cells[1].dataset.sort) !== 0) ||
         !row.textContent.toLowerCase().includes(query);
       if (!row.hidden) visible++;
@@ -237,8 +307,10 @@ _SCRIPT = """
     });
   }));
   search.addEventListener('input', filter);
+  expansion.addEventListener('change', filter);
   basic.addEventListener('change', filter);
   unused.addEventListener('change', filter);
+  hideRemoved.addEventListener('change', filter);
   filter();
 })();
 </script>

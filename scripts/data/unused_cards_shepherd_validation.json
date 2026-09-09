@@ -1,0 +1,344 @@
+[
+  {
+    "a": {
+      "shepherd": 1,
+      "village": 0,
+      "draw": 0,
+      "bauble": 1,
+      "silvers": 99,
+      "golds": 99,
+      "opening": "Embassy",
+      "embassy": 1
+    },
+    "b": {
+      "shepherd": 0,
+      "village": 0,
+      "draw": 0,
+      "bauble": 0,
+      "silvers": 99,
+      "golds": 99,
+      "opening": "Embassy",
+      "embassy": 1
+    },
+    "games": 400,
+    "seed": 200000,
+    "wins": 195,
+    "ties": 0,
+    "rate": 0.4875,
+    "turns": 16.55,
+    "scores": [
+      38.305,
+      38.64
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Bauble": 0.282,
+        "Copper": 6.0,
+        "Duchy": 2.285,
+        "Embassy": 1.0,
+        "Estate": 3.89,
+        "Gold": 2.368,
+        "Pasture": 1.0,
+        "Province": 3.945,
+        "Shepherd": 1.0,
+        "Silver": 5.105
+      },
+      {
+        "Copper": 6.0,
+        "Duchy": 2.21,
+        "Embassy": 1.0,
+        "Estate": 3.84,
+        "Gold": 2.14,
+        "Pasture": 1.0,
+        "Province": 4.055,
+        "Silver": 6.165
+      }
+    ]
+  },
+  {
+    "a": {
+      "shepherd": 1,
+      "village": 0,
+      "draw": 0,
+      "bauble": 1,
+      "silvers": 99,
+      "golds": 99,
+      "opening": "Embassy",
+      "embassy": 1
+    },
+    "b": {
+      "shepherd": 0,
+      "village": 0,
+      "draw": 0,
+      "bauble": 1,
+      "silvers": 99,
+      "golds": 99,
+      "opening": "Silver",
+      "embassy": 1
+    },
+    "games": 400,
+    "seed": 201000,
+    "wins": 203,
+    "ties": 0,
+    "rate": 0.5075,
+    "turns": 17.1075,
+    "scores": [
+      39.42,
+      38.8725
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Bauble": 0.302,
+        "Copper": 6.0,
+        "Duchy": 2.325,
+        "Embassy": 1.0,
+        "Estate": 3.998,
+        "Gold": 2.507,
+        "Pasture": 1.0,
+        "Province": 4.075,
+        "Shepherd": 1.0,
+        "Silver": 5.235
+      },
+      {
+        "Bauble": 0.307,
+        "Copper": 6.0,
+        "Duchy": 2.408,
+        "Embassy": 1.0,
+        "Estate": 4.05,
+        "Gold": 2.223,
+        "Pasture": 1.0,
+        "Province": 3.925,
+        "Silver": 6.525
+      }
+    ]
+  },
+  {
+    "a": {
+      "shepherd": 1,
+      "village": 0,
+      "draw": 0,
+      "bauble": 1,
+      "silvers": 99,
+      "golds": 99,
+      "opening": "Embassy",
+      "embassy": 1
+    },
+    "b": {
+      "shepherd": 0,
+      "village": 0,
+      "draw": 0,
+      "bauble": 0,
+      "silvers": 99,
+      "golds": 99,
+      "opening": "Silver",
+      "embassy": 1
+    },
+    "games": 400,
+    "seed": 202000,
+    "wins": 224,
+    "ties": 0,
+    "rate": 0.56,
+    "turns": 16.64,
+    "scores": [
+      39.09,
+      38.1675
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Bauble": 0.295,
+        "Copper": 6.0,
+        "Duchy": 2.235,
+        "Embassy": 0.998,
+        "Estate": 3.922,
+        "Gold": 2.263,
+        "Pasture": 1.0,
+        "Province": 4.09,
+        "Shepherd": 1.0,
+        "Silver": 5.152
+      },
+      {
+        "Copper": 6.0,
+        "Duchy": 2.322,
+        "Embassy": 1.0,
+        "Estate": 3.87,
+        "Gold": 2.038,
+        "Pasture": 1.0,
+        "Province": 3.91,
+        "Silver": 6.33
+      }
+    ]
+  },
+  {
+    "a": {
+      "shepherd": 1,
+      "village": 0,
+      "draw": 0,
+      "bauble": 1,
+      "silvers": 99,
+      "golds": 99,
+      "opening": "Embassy",
+      "embassy": 1
+    },
+    "b": {
+      "shepherd": 1,
+      "village": 0,
+      "draw": 0,
+      "bauble": 1,
+      "silvers": 99,
+      "golds": 99,
+      "opening": "Silver",
+      "embassy": 1
+    },
+    "games": 400,
+    "seed": 203000,
+    "wins": 234,
+    "ties": 0,
+    "rate": 0.585,
+    "turns": 16.77,
+    "scores": [
+      39.185,
+      37.285
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Bauble": 0.335,
+        "Copper": 6.0,
+        "Duchy": 2.145,
+        "Embassy": 1.0,
+        "Estate": 3.865,
+        "Gold": 2.438,
+        "Pasture": 1.0,
+        "Province": 4.17,
+        "Shepherd": 1.0,
+        "Silver": 5.237
+      },
+      {
+        "Bauble": 0.32,
+        "Copper": 6.0,
+        "Duchy": 2.17,
+        "Embassy": 1.0,
+        "Estate": 3.897,
+        "Gold": 2.257,
+        "Pasture": 1.0,
+        "Province": 3.83,
+        "Shepherd": 1.0,
+        "Silver": 5.643
+      }
+    ]
+  },
+  {
+    "a": {
+      "shepherd": 1,
+      "village": 0,
+      "draw": 0,
+      "bauble": 1,
+      "silvers": 99,
+      "golds": 99,
+      "opening": "Embassy",
+      "embassy": 1
+    },
+    "b": {
+      "shepherd": 0,
+      "village": 0,
+      "draw": 0,
+      "bauble": 0,
+      "silvers": 99,
+      "golds": 99,
+      "opening": "Silver"
+    },
+    "games": 400,
+    "seed": 204000,
+    "wins": 298,
+    "ties": 0,
+    "rate": 0.745,
+    "turns": 18.1325,
+    "scores": [
+      42.3375,
+      35.3675
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Bauble": 0.362,
+        "Copper": 6.0,
+        "Duchy": 2.072,
+        "Embassy": 1.0,
+        "Estate": 3.967,
+        "Gold": 2.672,
+        "Pasture": 1.0,
+        "Province": 4.697,
+        "Shepherd": 1.0,
+        "Silver": 4.857
+      },
+      {
+        "Copper": 6.0,
+        "Duchy": 2.663,
+        "Estate": 3.783,
+        "Gold": 3.978,
+        "Pasture": 1.0,
+        "Province": 3.303,
+        "Silver": 7.192
+      }
+    ]
+  },
+  {
+    "a": {
+      "shepherd": 1,
+      "village": 0,
+      "draw": 0,
+      "bauble": 1,
+      "silvers": 99,
+      "golds": 99,
+      "opening": "Embassy",
+      "embassy": 1
+    },
+    "b": {
+      "shepherd": 0,
+      "village": 0,
+      "draw": 2,
+      "bauble": 0,
+      "silvers": 99,
+      "golds": 99,
+      "opening": "Silver"
+    },
+    "games": 400,
+    "seed": 205000,
+    "wins": 243,
+    "ties": 0,
+    "rate": 0.6075,
+    "turns": 17.84,
+    "scores": [
+      40.1575,
+      37.7775
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Bauble": 0.35,
+        "Copper": 6.0,
+        "Duchy": 2.268,
+        "Embassy": 1.0,
+        "Estate": 4.085,
+        "Gold": 2.578,
+        "Pasture": 1.0,
+        "Province": 4.197,
+        "Shepherd": 1.0,
+        "Silver": 4.785
+      },
+      {
+        "Catacombs": 1.992,
+        "Copper": 6.0,
+        "Duchy": 2.388,
+        "Estate": 3.9,
+        "Gold": 2.328,
+        "Pasture": 1.0,
+        "Province": 3.803,
+        "Silver": 6.22
+      }
+    ]
+  }
+]

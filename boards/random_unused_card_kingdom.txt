@@ -1,0 +1,16 @@
+# Random unused-card kingdom; seed 3496985294, drawn September 8, 2026.
+# Ten piles; Tent is the top of Forts (Tent, Garrison, Hill Fort, Stronghold).
+# Two players; six Coppers, Pasture, three Estates; Potion supply required.
+# No Colony, Platinum, Events, Projects, Ways, or Prophecy.
+Bauble
+Fishmonger
+Embassy
+Catacombs
+University
+Tent
+Cursed Village
+Counting House
+Shepherd
+Fairgrounds
+
+Ally: Woodworkers' Guild
