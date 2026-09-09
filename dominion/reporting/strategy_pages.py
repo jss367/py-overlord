@@ -114,6 +114,16 @@ CURATED_STRATEGY_GUIDES = (
         source_label="Dedicated simulation search and controlled comparisons",
     ),
     CuratedStrategyGuide(
+        filename="kimberley-mine-engine-strategy-guide.html",
+        display_name="Kimberley Mine Engine Guide",
+        description=(
+            "A Colony board built around Mine: climb Copper to Platinum in hand, "
+            "with Sewers, Tomb, Priest, and Market Square paying out on every trash."
+        ),
+        kingdom_cards=("Mine", "Throne Room", "Priest", "Market Square", "Platinum", "Colony"),
+        source_label="Repository board search and recorded simulation results",
+    ),
+    CuratedStrategyGuide(
         filename="cursed-band-biding-time-strategy-guide.html",
         display_name="Cursed Band and Biding Time Strategy Guide",
         description=(
