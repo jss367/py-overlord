@@ -893,7 +893,7 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
 def create_bilbao_shaman_feodum_mill() -> EnhancedStrategy:
     """Two Shamans and two Hermits trash Feodums for Silvers (the user's
     mill idea in its best pure form). Loses every game to Bilbao Best Found;
-    see ``reports/strategies/bilbao-shaman-feodum-mill-guide.html``."""
+    see ``reports/strategies/bilbao-shaman-feodum-mill-strategy-guide.html``."""
     return BilbaoShamanFeodumMill(name="Bilbao Shaman Feodum Mill", hermits=2)
 
 

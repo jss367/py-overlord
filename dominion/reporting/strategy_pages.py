@@ -115,7 +115,7 @@ CURATED_STRATEGY_GUIDES = (
         source_label="Repository strategy search and recorded simulation results",
     ),
     CuratedStrategyGuide(
-        filename="bilbao-shaman-feodum-mill-guide.html",
+        filename="bilbao-shaman-feodum-mill-strategy-guide.html",
         display_name="Bilbao Shaman Feodum Mill Guide",
         description=(
             "Trashing Feodums with Shaman and Hermit for Silvers: why the mill "

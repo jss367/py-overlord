@@ -27,7 +27,7 @@ dropped mid-run after losing about 95% of its games.
 
 `mill1.json` to `mill6.json` parametrise `BilbaoShamanFeodumMill` (same file)
 and are run with `--variant-class BilbaoShamanFeodumMill`; the results are
-written up in `reports/strategies/bilbao-shaman-feodum-mill-guide.html`.
+written up in `reports/strategies/bilbao-shaman-feodum-mill-strategy-guide.html`.
 `--champion` accepts a loader name as well as a variant name.
 
 ```
@@ -41,3 +41,9 @@ PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodu
 
 `mill6.json` is the headline table; `mill1.json` and `mill2.json` predate the
 Shaman buy-order fix (Shaman before Hermit, only at $2-$3) and the pair mode.
+
+`m4_bf_s2h1_grab` in `mill4.json` was corrected after review from
+`feodum_silvers: 0` to `1`: `has_cards(["Silver"], 0)` means "no Silver in
+deck", so the original setting inverted the rule instead of disabling the
+threshold. Re-measured with the fix (same seed, 400 games) it scores 12.9%
+against Bilbao Best Found, up from 9.5%.
