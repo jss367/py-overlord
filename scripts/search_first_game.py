@@ -306,8 +306,10 @@ def main():
     ap.add_argument("--checkpoint", help="JSON-lines file of finished matchups; reruns skip them")
     args = ap.parse_args()
     specs = json.loads(Path(args.specs).read_text()) if args.specs else STAGES[args.stage]
-    games, seed = STAGE_DEFAULTS.get(args.stage, (200, 1000))
-    out = round_robin(specs, args.games or games, args.seed or seed, args.workers, args.checkpoint)
+    default_games, default_seed = STAGE_DEFAULTS.get(args.stage, (200, 1000))
+    games = default_games if args.games is None else args.games
+    seed = default_seed if args.seed is None else args.seed
+    out = round_robin(specs, games, seed, args.workers, args.checkpoint)
     if args.output:
         Path(args.output).write_text(json.dumps(out, indent=1))
 
