@@ -114,7 +114,6 @@ class FirstGameVariant(EnhancedStrategy):
             PriorityRule("Mine"),
             PriorityRule("Moat"),
             PriorityRule("Workshop"),
-            PriorityRule("Remodel"),
         ]
         self.treasure_priority = [PriorityRule("Gold"), PriorityRule("Silver"), PriorityRule("Copper")]
         self.trash_priority = [
