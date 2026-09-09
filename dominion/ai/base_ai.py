@@ -1906,12 +1906,22 @@ class AI(ABC):
         remaining ones keep their +$4 bonus) or when the deck is short of
         Gold; otherwise keep it as money.
         """
-        # With Shaman's setup rule the reaction is free: the trashed Fool's
-        # Gold costs $2, so its owner takes it straight back from the trash at
-        # the start of their next turn (they move right after the Province
-        # gainer), keeping the Fool's Gold and netting a Gold on deck.
+        # With Shaman's setup rule the reaction can be free: the trashed
+        # Fool's Gold costs $2, so its owner takes it straight back at the
+        # start of their next turn. That only holds when this player acts
+        # next (an intervening player would claim it first) and for ONE copy
+        # per trigger: Shaman returns a single card per turn, so a second
+        # trashed copy (or one already in the trash) would go to the next
+        # player instead, together with its Rich Silver.
         if state.game_uses_shaman():
-            return True
+            if any(c.name == "Fool's Gold" for c in state.trash):
+                return False
+            players = list(state.players)
+            gainer = state.current_player
+            if gainer in players:
+                nxt = players[(players.index(gainer) + 1) % len(players)]
+                return nxt is player
+            return False
         count_in_hand = sum(1 for card in player.hand if card.name == "Fool's Gold")
         if count_in_hand > 1:
             return True

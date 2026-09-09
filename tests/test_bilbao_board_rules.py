@@ -384,3 +384,72 @@ def test_grotto_set_aside_follows_strategy_hook():
     grotto.on_play(state)
     assert len(grotto.set_aside) == 4
     assert sorted(c.name for c in p0.hand) == ["Copper", "Estate"]
+
+
+# --- Fool's Gold reaction under Shaman's rule ------------------------------
+
+
+def test_fools_gold_reaction_fires_once_per_trigger_with_shaman():
+    """Shaman returns one card per turn, so only one copy is worth trashing."""
+    state = _game()
+    p0, p1 = state.players
+    state.current_player_index = 0
+    fgs = [get_card("Fool's Gold"), get_card("Fool's Gold")]
+    p1.hand = list(fgs)
+    p1.deck = [get_card("Copper")]
+    state.supply["Province"] -= 1
+    state.gain_card(p0, get_card("Province"))
+    assert sum(1 for c in state.trash if c.name == "Fool's Gold") == 1
+    assert sum(1 for c in p1.hand if c.name == "Fool's Gold") == 1
+    assert p1.deck[-1].name == "Gold"
+
+
+def test_fools_gold_reaction_declined_when_trash_already_holds_one():
+    state = _game()
+    p0, p1 = state.players
+    state.current_player_index = 0
+    state.trash.append(get_card("Fool's Gold"))
+    p1.hand = [get_card("Fool's Gold")]
+    p1.deck = [get_card("Copper")]
+    state.supply["Province"] -= 1
+    state.gain_card(p0, get_card("Province"))
+    assert len(p1.hand) == 1
+    assert p1.deck[-1].name == "Copper"
+
+
+def test_fools_gold_reaction_declined_when_another_player_acts_first():
+    state = _game(num_players=3)
+    p0, p1, p2 = state.players
+    state.current_player_index = 0
+    for p in (p1, p2):
+        p.hand = [get_card("Fool's Gold")]
+        p.deck = [get_card("Copper")]
+    state.supply["Province"] -= 1
+    state.gain_card(p0, get_card("Province"))
+    # p1 acts next and reacts; p2 would lose its copy to p1, so it keeps it.
+    assert p1.deck[-1].name == "Gold"
+    assert p2.deck[-1].name == "Copper"
+    assert len(p2.hand) == 1
+
+
+# --- Best Found Anvil guard ------------------------------------------------
+
+
+def test_best_found_anvil_guard_accounts_for_silver_discard():
+    from generated_strategies.bilbao_best_found import BilbaoBestFound
+
+    strat = BilbaoBestFound()
+    state = _game(ais=[GeneticAI(strat), DummyAI()])
+    p0 = state.players[0]
+    state.current_player_index = 0
+    anvil = get_card("Anvil")
+    # Anvil in play ($1 already counted), hand Gold + Silver + Silver + Anvil = $9;
+    # the only discard is a Silver, which would drop the hand to $7.
+    p0.in_play = [anvil]
+    p0.coins = 1
+    p0.hand = [get_card("Gold"), get_card("Silver"), get_card("Silver"), get_card("Anvil")]
+    choices = [get_card("Feodum"), get_card("Fool's Gold")]
+    assert strat.choose_anvil_gain(state, p0, choices) is None
+    # With a Copper available the discard costs $1 and the gain proceeds.
+    p0.hand.append(get_card("Copper"))
+    assert strat.choose_anvil_gain(state, p0, choices) is not None

@@ -12,9 +12,9 @@ Gold and make each Feodum worth 3-5 VP by the end.
 
 The Anvil policy is hand-written: skip the gain when discarding the Copper
 would drop the hand below $8, discard a Copper first, then a lone first
-Fool's Gold (worth only $1), then a Silver. The Fool's Gold reaction always
-fires because Shaman's setup rule returns the trashed Fool's Gold to its
-owner at the start of their next turn.
+Fool's Gold (worth only $1), then a Silver. The Fool's Gold reaction fires
+once per opponent Province (the AI default): Shaman's setup rule returns
+that one trashed Fool's Gold to its owner at the start of their next turn.
 """
 
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
@@ -33,6 +33,17 @@ def _hand_money(player) -> int:
         else:
             total += card.stats.coins
     return total
+
+
+def _anvil_discard_value(player, card) -> int:
+    """Coins the hand loses by discarding ``card`` to Anvil."""
+    if card.name == "Fool's Gold":
+        first = getattr(player, "fools_gold_played", 0) == 0 and not any(
+            c.name == "Fool's Gold" for c in player.in_play
+        )
+        only_one = sum(1 for c in player.hand if c.name == "Fool's Gold") == 1
+        return 1 if first and only_one else 4
+    return card.stats.coins
 
 
 class BilbaoBestFound(EnhancedStrategy):
@@ -81,10 +92,15 @@ class BilbaoBestFound(EnhancedStrategy):
     # ---- Anvil policy ----------------------------------------------------
 
     def choose_anvil_gain(self, state, player, choices):
-        """Gain through the ordinary gain list, unless the discarded Copper
-        would cost this hand a Province."""
+        """Gain through the ordinary gain list, unless the Treasure that
+        would be discarded (Copper, a lone first Fool's Gold, or a Silver)
+        costs this hand a Province."""
+        treasures = [c for c in player.hand if c.is_treasure]
+        discard = self.choose_anvil_treasure_to_discard(state, player, treasures)
+        if discard is None:
+            return None
         money = _hand_money(player)
-        if money >= 8 and money - 1 < 8:
+        if money >= 8 and money - _anvil_discard_value(player, discard) < 8:
             return None
         return self.choose_gain(state, player, choices)
 
@@ -104,9 +120,8 @@ class BilbaoBestFound(EnhancedStrategy):
                 return card
         return None
 
-    def should_trash_fools_gold_for_gold(self, state, player):
-        # Free under Shaman's setup rule: the Fool's Gold comes straight back.
-        return True
+    # Fool's Gold reaction: the AI default already handles Shaman's setup
+    # rule (react once per trigger, only when this player acts next).
 
 
 def create_bilbao_best_found() -> EnhancedStrategy:

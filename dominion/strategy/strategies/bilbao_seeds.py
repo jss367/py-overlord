@@ -61,10 +61,30 @@ def _money_treasures() -> list[PriorityRule]:
     ]
 
 
-def _anvil_gain_guard(state, player, choices, base):
-    """Skip the Anvil gain when discarding a Copper would cost a Province."""
+def _anvil_discard_value(player, card) -> int:
+    """Coins the hand loses by discarding ``card`` to Anvil."""
+    if card.name == "Fool's Gold":
+        first = getattr(player, "fools_gold_played", 0) == 0 and not any(
+            c.name == "Fool's Gold" for c in player.in_play
+        )
+        only_one = sum(1 for c in player.hand if c.name == "Fool's Gold") == 1
+        return 1 if first and only_one else 4
+    return card.stats.coins
+
+
+def _anvil_gain_guard(state, player, choices, base, discard_pick=None):
+    """Skip the Anvil gain when the discard it needs would cost a Province.
+
+    ``discard_pick`` is the Treasure that will actually be discarded (the
+    fallback can be a Silver, not just a Copper); without it, assume $1.
+    """
+    treasures = [c for c in player.hand if c.is_treasure]
+    discard = discard_pick(player, treasures) if discard_pick else None
+    if discard_pick and discard is None:
+        return None
+    lost = _anvil_discard_value(player, discard) if discard is not None else 1
     money = _hand_money(player)
-    if money >= 8 and money - 1 < 8:
+    if money >= 8 and money - lost < 8:
         return None
     return base(state, player, choices)
 
@@ -91,14 +111,15 @@ class _BilbaoBase(EnhancedStrategy):
     """Shared Anvil policy and the always-on Fool's Gold reaction."""
 
     def choose_anvil_gain(self, state, player, choices):
-        return _anvil_gain_guard(state, player, choices, super().choose_gain)
+        return _anvil_gain_guard(
+            state, player, choices, super().choose_gain, _anvil_discard
+        )
 
     def choose_anvil_treasure_to_discard(self, state, player, choices):
         return _anvil_discard(player, choices)
 
-    def should_trash_fools_gold_for_gold(self, state, player):
-        # Free with Shaman's setup rule: the Fool's Gold comes back next turn.
-        return True
+    # The Fool's Gold reaction follows the AI default: with Shaman's setup
+    # rule it fires once per trigger when this player acts next.
 
 
 # ---------------------------------------------------------------------------
@@ -552,20 +573,32 @@ class BilbaoAnvilFeodumVariant(_BilbaoBase):
             self.trash_priority.append(PriorityRule("Copper"))
         self.treasure_priority = _money_treasures()
 
-    def choose_anvil_gain(self, state, player, choices):
+    def _choose_anvil_gain(self, state, player, choices):
         mode = self.params["anvil_gain"]
         if mode == "fg":
             fg = next((c for c in choices if c.name == "Fool's Gold"), None)
             if fg is not None and player.count_in_deck("Fool's Gold") < self.params["fg_max"]:
-                return _anvil_gain_guard(state, player, choices, lambda *_: fg)
+                return _anvil_gain_guard(
+                    state, player, choices, lambda *_: fg, self._variant_discard
+                )
         elif mode == "feodum":
             feodum = next((c for c in choices if c.name == "Feodum"), None)
             if feodum is not None:
-                return _anvil_gain_guard(state, player, choices, lambda *_: feodum)
-        return super().choose_anvil_gain(state, player, choices)
+                return _anvil_gain_guard(
+                    state, player, choices, lambda *_: feodum, self._variant_discard
+                )
+        return _anvil_gain_guard(
+            state, player, choices, super().choose_gain, self._variant_discard
+        )
 
-    def choose_anvil_treasure_to_discard(self, state, player, choices):
+    def _variant_discard(self, player, choices):
         pick = _anvil_discard(player, choices)
         if pick is not None and pick.name == "Silver" and not self.params["anvil_discard_silver"]:
             return None
         return pick
+
+    def choose_anvil_gain(self, state, player, choices):  # noqa: F811
+        return self._choose_anvil_gain(state, player, choices)
+
+    def choose_anvil_treasure_to_discard(self, state, player, choices):
+        return self._variant_discard(player, choices)

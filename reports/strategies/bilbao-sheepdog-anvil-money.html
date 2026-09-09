@@ -317,14 +317,12 @@
     return super().choose_action(state, player, choices)
 </code></pre></details></td></tr>
 <tr><td data-label="Hook"><span class="behavior-name">Choose anvil gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_gain(self, state, player, choices):
-    return _anvil_gain_guard(state, player, choices, super().choose_gain)
+    return _anvil_gain_guard(
+        state, player, choices, super().choose_gain, _anvil_discard
+    )
 </code></pre></details></td></tr>
 <tr><td data-label="Hook"><span class="behavior-name">Choose anvil treasure to discard</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_treasure_to_discard(self, state, player, choices):
     return _anvil_discard(player, choices)
-</code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Should trash fools gold for gold</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def should_trash_fools_gold_for_gold(self, state, player):
-    # Free with Shaman&#x27;s setup rule: the Fool&#x27;s Gold comes back next turn.
-    return True
 </code></pre></details></td></tr></tbody>
   </table>
 </section>
