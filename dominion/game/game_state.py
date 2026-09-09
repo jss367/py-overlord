@@ -739,6 +739,7 @@ class GameState:
         # ``charlatan_curse_active`` re-activate Curse-as-Treasure in a
         # Charlatan-free kingdom.
         self._charlatan_seen = False
+        self._shaman_seen = False
         self.trash = []
         self.setup_card_cost_reduction = max(0, card_cost_reduction)
         # Create PlayerState objects for each AI
@@ -994,8 +995,10 @@ class GameState:
         # Reset latches that depend on supply contents. Pairing the reset
         # with the set (at the bottom of this method) means callers using
         # ``setup_supply`` directly — e.g. tests rebuilding a kingdom on the
-        # same ``GameState`` — don't leak the prior setup's Charlatan flag.
+        # same ``GameState`` — don't leak the prior setup's Charlatan or
+        # Shaman flags.
         self._charlatan_seen = False
+        self._shaman_seen = False
         self.ordered_supply_piles = {}
         self.non_supply_pile_names = set()
         self.ferryman_card_name = ""
@@ -1353,6 +1356,13 @@ class GameState:
         # before the first Curse-as-Treasure check could observe it live.
         if "Charlatan" in self.supply or "Charlatan" in self.black_market_deck:
             self._charlatan_seen = True
+
+        # Same latch for Shaman's game-wide start-of-turn rule. Shaman is
+        # "in the game" for the whole game once it is in the Supply or the
+        # Black Market deck at setup; buying the only copy out of the Black
+        # Market deck must not switch the rule off.
+        if "Shaman" in self.supply or "Shaman" in self.black_market_deck:
+            self._shaman_seen = True
 
     def gain_ruins(self, target) -> Card | None:
         """Resolve a "gain a Ruins" by handing over the top of the Ruins pile."""
@@ -4883,8 +4893,21 @@ class GameState:
         return bool(player.ai.should_trash_fools_gold_for_gold(self, player))
 
     def game_uses_shaman(self) -> bool:
-        """True when Shaman is part of this game (its setup rule applies)."""
-        return "Shaman" in self.supply or "Shaman" in self.black_market_deck
+        """True when Shaman is part of this game (its setup rule applies).
+
+        The authoritative source is the setup-time latch ``_shaman_seen``,
+        mirroring ``charlatan_curse_active``: once Shaman was in the Supply
+        or the Black Market deck at setup the rule applies all game, even
+        after the only copy is bought out of the Black Market deck (which
+        drops its name from ``black_market_deck``). The live checks are a
+        backstop for code paths that skipped ``setup_supply``.
+        """
+        if getattr(self, "_shaman_seen", False):
+            return True
+        if "Shaman" in self.supply or "Shaman" in self.black_market_deck:
+            self._shaman_seen = True
+            return True
+        return False
 
     def _handle_shaman_start_of_turn(self, player: PlayerState) -> None:
         """Plunder Shaman: at the start of your turn, gain a card from the
@@ -4923,7 +4946,13 @@ class GameState:
         self.log_callback(
             ("action", player.ai.name, f"gains {pick} from the trash (Shaman)", {})
         )
-        self.gain_card(player, pick, from_supply=False)
+        gained = self.gain_card(player, pick, from_supply=False)
+        if gained is not pick and not getattr(pick, "returned_to_supply", False):
+            # The gain was replaced by Trader's Silver, so the chosen card
+            # never left the trash. (A Changeling exchange also returns a
+            # different card, but it has already put ``pick`` back on its
+            # Supply pile, flagged via ``returned_to_supply``.)
+            self.trash.append(pick)
 
     def _maybe_play_guard_dogs(self, player: PlayerState) -> None:
         guard_dogs = [card for card in list(player.hand) if card.name == "Guard Dog"]

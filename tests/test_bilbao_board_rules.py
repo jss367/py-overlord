@@ -132,6 +132,56 @@ def test_shaman_gain_follows_the_strategy_gain_list():
     assert state.trash == [gold]
 
 
+def test_shaman_rule_stays_active_after_buying_it_out_of_black_market():
+    """Shaman "in the game" is latched at setup. Buying the only copy out of
+    the Black Market deck drops its name from ``black_market_deck``; the
+    game-wide rule must keep applying for the rest of the game."""
+    state = GameState(players=[])
+    state.log_callback = lambda *_: None
+    state.initialize_game([DummyAI(), DummyAI()], [get_card("Black Market")])
+    assert "Shaman" not in state.supply
+    assert "Shaman" in state.black_market_deck
+    assert state.game_uses_shaman()
+
+    # What BlackMarket.play_effect does when the Shaman is bought.
+    state.black_market_deck.remove("Shaman")
+    assert state.game_uses_shaman()
+    p0 = state.players[0]
+    state.trash.append(get_card("Silver"))
+    state._handle_shaman_start_of_turn(p0)
+    assert any(c.name == "Silver" for c in p0.discard)
+    assert not state.trash
+
+
+def test_shaman_latch_resets_between_games_on_same_state():
+    state = _game()
+    assert state.game_uses_shaman()
+    state.initialize_game([DummyAI(), DummyAI()], [get_card("Village")])
+    assert not state.game_uses_shaman()
+
+
+class _RevealTraderAI(DummyAI):
+    def should_reveal_trader(self, state, player, gained_card, *, to_deck):
+        return True
+
+
+def test_shaman_gain_replaced_by_trader_leaves_card_in_trash():
+    """Revealing Trader swaps the Shaman gain for a Silver; the chosen card
+    was never gained, so it must remain in the trash."""
+    state = _game(ais=[_RevealTraderAI(), DummyAI()])
+    p0 = state.players[0]
+    p0.hand = [get_card("Trader")]
+    gold = get_card("Gold")
+    state.trash.append(gold)
+    silver_before = state.supply["Silver"]
+
+    state._handle_shaman_start_of_turn(p0)
+
+    assert [c.name for c in p0.discard] == ["Silver"]
+    assert state.trash == [gold]
+    assert state.supply["Silver"] == silver_before - 1
+
+
 def test_shaman_rule_fires_during_a_real_turn_start():
     state = _game()
     p0 = state.players[0]
