@@ -41,6 +41,10 @@ def main():
     parser.add_argument("--extra", nargs="*", default=[], help="Loader names to add.")
     parser.add_argument("--output")
     args = parser.parse_args()
+    if args.games < 1:
+        parser.error("--games must be at least 1")
+    if args.workers < 1:
+        parser.error("--workers must be at least 1")
 
     sweep = json.loads(Path(args.sweep).read_text())
     refs = [write_variant(name, **params) for name, params in sweep.items()] + args.extra

@@ -25,7 +25,6 @@ from dominion.boards.loader import load_board
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.strategy.strategy_loader import StrategyLoader
-from dominion.traits import apply_trait
 
 BOARD_PATH = "boards/bilbao.txt"
 MAX_TURNS = 120
@@ -63,9 +62,11 @@ def play_game(ref_a: str, ref_b: str, seed: int, swap: bool):
         ais.reverse()
     state = GameState(players=[], supply={})
     state.log_callback = lambda *_: None
-    state.initialize_game(ais, [get_card(n) for n in board.kingdom_cards])
-    for card_name, trait in board.traits.items():
-        apply_trait(state, trait, card_name)
+    state.initialize_game(
+        ais,
+        [get_card(n) for n in board.kingdom_cards],
+        traits=board.traits,
+    )
     while not state.is_game_over() and state.turn_number < MAX_TURNS:
         state.play_turn()
     truncated = not state._normal_game_end_reached()
@@ -180,6 +181,10 @@ def main():
     parser.add_argument("--workers", type=int, default=6)
     parser.add_argument("--output", help="Write the JSON results here.")
     args = parser.parse_args()
+    if args.games < 1:
+        parser.error("--games must be at least 1")
+    if args.workers < 1:
+        parser.error("--workers must be at least 1")
 
     if args.champion:
         pairs = [(args.champion, other) for other in args.strategies if other != args.champion]

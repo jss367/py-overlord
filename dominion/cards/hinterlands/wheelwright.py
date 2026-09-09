@@ -30,7 +30,10 @@ class Wheelwright(Card):
         for name, count in game_state.supply.items():
             if count <= 0 or name in game_state.non_supply_pile_names:
                 continue
-            candidate = get_card(name)
+            try:
+                candidate = get_card(name)
+            except ValueError:
+                continue
             if not candidate.is_action:
                 continue
             if candidate.cost.potions or candidate.cost.debt:
