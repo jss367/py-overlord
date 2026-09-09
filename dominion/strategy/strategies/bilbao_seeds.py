@@ -602,3 +602,307 @@ class BilbaoAnvilFeodumVariant(_BilbaoBase):
 
     def choose_anvil_treasure_to_discard(self, state, player, choices):
         return self._variant_discard(player, choices)
+
+
+# ---------------------------------------------------------------------------
+# Shaman / Feodum Silver mill (parametrised; two configurations registered)
+# ---------------------------------------------------------------------------
+
+
+class BilbaoShamanFeodumMill(_BilbaoBase):
+    """Trash Feodums for Silvers: Shamans and Hermits turn every $4 Feodum
+    into three Silvers (Hermit adds a fourth), the Silvers make the Feodums
+    kept at the end worth 4-8 VP each.
+
+    Shaman's setup rule hands each trashed Feodum to the opponent at the
+    start of their turn, so the mill also feeds them; when two Feodums are
+    trashed in one turn the second one comes back to this player instead.
+    Knobs cover how many Shamans/Hermits/Anvils to buy, when to stop
+    trashing, and when Feodums outscore Provinces.
+    """
+
+    def __init__(
+        self,
+        name: str = "Bilbao Shaman Feodum Mill",
+        shamans: int = 2,
+        shaman_turn: int = 8,
+        shaman_min_coins: int = 2,
+        shaman_max_coins: int = 3,
+        hermits: int = 1,
+        hermit_turn: int = 8,
+        anvils: int = 0,
+        anvil_turn: int = 10,
+        anvil_gain: str = "list",
+        fodder_max: int = 2,
+        fodder_turn: int = 99,
+        fodder_min_coins: int = 4,
+        feodum_silvers: int = 9,
+        feodum_max: int = 8,
+        feodum_over_province_silvers: int = 99,
+        feodum_over_duchy_silvers: int = 99,
+        feodum_late: int = 4,
+        trash_stop_provinces: int = 2,
+        trash_stop_pile: int = 0,
+        trash_turn_max: int = 99,
+        trash_mode: str = "always",
+        trash_silver_cap: int = 99,
+        trash_estates: bool = False,
+        trash_coppers: bool = False,
+        trash_keep_feodums: int = 0,
+        gold_min: int = 6,
+        fg_max: int = 0,
+        fg_before_silver: bool = True,
+        duchy_gate: int = 5,
+        province_min: int = 8,
+        hermit_gain: str = "silver",
+        madman: bool = False,
+        avoid_madman: bool = True,
+    ) -> None:
+        super().__init__()
+        self.name = name
+        self.description = "Shamans and Hermits trash Feodums for Silvers."
+        self.version = "1.0"
+        self.params = dict(
+            shamans=shamans, shaman_turn=shaman_turn, shaman_min_coins=shaman_min_coins,
+            shaman_max_coins=shaman_max_coins,
+            hermits=hermits, hermit_turn=hermit_turn, anvils=anvils, anvil_turn=anvil_turn,
+            anvil_gain=anvil_gain, fodder_max=fodder_max, fodder_turn=fodder_turn,
+            fodder_min_coins=fodder_min_coins, feodum_silvers=feodum_silvers,
+            feodum_max=feodum_max,
+            feodum_over_province_silvers=feodum_over_province_silvers,
+            feodum_over_duchy_silvers=feodum_over_duchy_silvers, feodum_late=feodum_late,
+            trash_stop_provinces=trash_stop_provinces, trash_stop_pile=trash_stop_pile,
+            trash_turn_max=trash_turn_max, trash_mode=trash_mode,
+            trash_silver_cap=trash_silver_cap,
+            trash_estates=trash_estates, trash_coppers=trash_coppers,
+            trash_keep_feodums=trash_keep_feodums, gold_min=gold_min, fg_max=fg_max,
+            fg_before_silver=fg_before_silver, duchy_gate=duchy_gate,
+            province_min=province_min, hermit_gain=hermit_gain, madman=madman,
+            avoid_madman=avoid_madman,
+        )
+
+        def feodum_when_silvers(n: int) -> PriorityRule:
+            return PriorityRule(
+                "Feodum",
+                PriorityRule.and_(
+                    PriorityRule.has_cards(["Silver"], n),
+                    PriorityRule.max_in_deck("Feodum", feodum_max),
+                ),
+            )
+
+        has_trasher = PriorityRule.or_(
+            PriorityRule.has_cards(["Shaman"], 1), PriorityRule.has_cards(["Hermit"], 1)
+        )
+        rules = [
+            feodum_when_silvers(feodum_over_province_silvers),
+            PriorityRule("Province", PriorityRule.resources("coins", ">=", province_min)),
+            feodum_when_silvers(feodum_over_duchy_silvers),
+            PriorityRule("Duchy", PriorityRule.provinces_left("<=", duchy_gate)),
+            PriorityRule("Gold", PriorityRule.resources("coins", ">=", gold_min)),
+        ]
+        if anvils:
+            rules.append(
+                PriorityRule(
+                    "Anvil",
+                    PriorityRule.and_(
+                        PriorityRule.max_in_deck("Anvil", anvils),
+                        PriorityRule.turn_number("<=", anvil_turn),
+                    ),
+                )
+            )
+        if shamans:
+            rules.append(
+                PriorityRule(
+                    "Shaman",
+                    PriorityRule.and_(
+                        PriorityRule.max_in_deck("Shaman", shamans),
+                        PriorityRule.turn_number("<=", shaman_turn),
+                        PriorityRule.resources("coins", ">=", shaman_min_coins),
+                        PriorityRule.resources("coins", "<=", shaman_max_coins),
+                    ),
+                )
+            )
+        if hermits:
+            rules.append(
+                PriorityRule(
+                    "Hermit",
+                    PriorityRule.and_(
+                        PriorityRule.max_in_deck("Hermit", hermits),
+                        PriorityRule.turn_number("<=", hermit_turn),
+                    ),
+                )
+            )
+        # Fodder: a Feodum bought to be trashed. Only while a trasher exists,
+        # only while the trash policy is still active, and never more than
+        # ``fodder_max`` in the deck at once.
+        rules.append(
+            PriorityRule(
+                "Feodum",
+                PriorityRule.and_(
+                    has_trasher,
+                    PriorityRule.max_in_deck("Feodum", fodder_max),
+                    PriorityRule.turn_number("<=", fodder_turn),
+                    PriorityRule.provinces_left(">", trash_stop_provinces),
+                    lambda s, me: me.count_in_deck("Silver") < trash_silver_cap,
+                    PriorityRule.resources("coins", ">=", fodder_min_coins),
+                    PriorityRule.pile_count("Silver", ">=", 3),
+                ),
+            )
+        )
+        rules.append(feodum_when_silvers(feodum_silvers))
+        fg_rule = PriorityRule("Fool's Gold", PriorityRule.max_in_deck("Fool's Gold", fg_max))
+        late_feodum = PriorityRule("Feodum", PriorityRule.provinces_left("<=", feodum_late))
+        if fg_max and fg_before_silver:
+            rules += [fg_rule, late_feodum, PriorityRule("Silver")]
+        elif fg_max:
+            rules += [late_feodum, PriorityRule("Silver"), fg_rule]
+        else:
+            rules += [late_feodum, PriorityRule("Silver")]
+        self.gain_priority = rules
+
+        self.action_priority = [
+            PriorityRule("Shaman"),
+            PriorityRule("Wandering Minstrel"),
+            PriorityRule("Madman"),
+            PriorityRule("Hermit"),
+        ]
+        self.treasure_priority = _money_treasures()
+        self.trash_priority = []  # choose_trash is hand-written below
+
+    # ---- trash policy ----------------------------------------------------
+
+    def _mill_active(self, state, player) -> bool:
+        p = self.params
+        if state.supply.get("Silver", 0) < 3:
+            return False
+        if state.supply.get("Province", 0) <= p["trash_stop_provinces"]:
+            return False
+        if state.supply.get("Feodum", 0) <= p["trash_stop_pile"]:
+            return False
+        if state.turn_number > p["trash_turn_max"]:
+            return False
+        if player.count_in_deck("Silver") >= p["trash_silver_cap"]:
+            return False
+        return True
+
+    def _pair_available(self, state, player, via_hermit: bool) -> bool:
+        """Can a second Feodum go to the trash this turn, so that the
+        opponent takes one and this player gets the other back?"""
+        if any(c.name == "Feodum" for c in state.trash):
+            return True
+        if via_hermit:
+            return False  # Hermit is terminal: nothing plays after it
+        hand_feodums = sum(1 for c in player.hand if c.name == "Feodum") - 1
+        discard_feodums = sum(1 for c in player.discard if c.name == "Feodum")
+        shamans = sum(1 for c in player.hand if c.name == "Shaman")
+        hermits = sum(1 for c in player.hand if c.name == "Hermit")
+        if shamans and hand_feodums >= 1:
+            return True
+        if hermits and (hand_feodums >= 1 or discard_feodums >= 1):
+            return True
+        return False
+
+    def _pick_trash(self, state, player, choices, via_hermit: bool = False):
+        p = self.params
+        feodums = [c for c in choices if c is not None and c.name == "Feodum"]
+        if feodums and self._mill_active(state, player):
+            keep_ok = player.count_in_deck("Feodum") > p["trash_keep_feodums"]
+            mode_ok = p["trash_mode"] == "always" or (
+                p["trash_mode"] == "pair" and self._pair_available(state, player, via_hermit)
+            )
+            if keep_ok and mode_ok:
+                return feodums[0]
+        if p["trash_estates"]:
+            estate = next((c for c in choices if c is not None and c.name == "Estate"), None)
+            if estate is not None:
+                return estate
+        if p["trash_coppers"] and state.turn_number <= 12:
+            copper = next((c for c in choices if c is not None and c.name == "Copper"), None)
+            if copper is not None:
+                return copper
+        return None
+
+    def choose_trash(self, state, player, choices):
+        return self._pick_trash(state, player, choices)
+
+    def should_trash_with_hermit(self, state, player, choices):
+        return self._pick_trash(state, player, choices, via_hermit=True)
+
+    def choose_hermit_gain(self, state, player, choices):
+        p = self.params
+        names = {c.name: c for c in choices}
+        if "Shaman" in names and player.count_in_deck("Shaman") < p["shamans"]:
+            return names["Shaman"]
+        if p["hermit_gain"] == "silver" and "Silver" in names:
+            return names["Silver"]
+        return None
+
+    def choose_shaman_gain(self, state, player, choices):
+        """Start-of-turn gain from the trash: take a Feodum back first."""
+        feodum = next((c for c in choices if c.name == "Feodum"), None)
+        if feodum is not None:
+            return feodum
+        return None
+
+    # ---- Anvil ------------------------------------------------------------
+
+    def choose_anvil_gain(self, state, player, choices):
+        if self.params["anvil_gain"] == "feodum":
+            feodum = next((c for c in choices if c.name == "Feodum"), None)
+            if (
+                feodum is not None
+                and self._mill_active(state, player)
+                and player.count_in_deck("Feodum") < self.params["fodder_max"]
+            ):
+                return _anvil_gain_guard(
+                    state, player, choices, lambda *_: feodum, _anvil_discard
+                )
+        return _anvil_gain_guard(
+            state, player, choices, super().choose_gain, _anvil_discard
+        )
+
+    # ---- Madman -----------------------------------------------------------
+
+    def choose_gain(self, state, player, choices):
+        if (
+            self.params["madman"]
+            and getattr(state, "phase", None) == "buy"
+            and any(c.name == "Hermit" for c in player.in_play)
+            and player.coins <= 3
+            and state.supply.get("Madman", 0) > 0
+        ):
+            return None
+        pick = super().choose_gain(state, player, choices)
+        if (
+            pick is None
+            and self.params["avoid_madman"]
+            and getattr(state, "phase", None) == "buy"
+            and any(c.name == "Hermit" for c in player.in_play)
+        ):
+            pick = next((c for c in choices if c is not None and c.name == "Copper"), None)
+        return pick
+
+
+def create_bilbao_shaman_feodum_mill() -> EnhancedStrategy:
+    """Two Shamans and two Hermits trash Feodums for Silvers (the user's
+    mill idea in its best pure form). Loses every game to Bilbao Best Found;
+    see ``reports/strategies/bilbao-shaman-feodum-mill-guide.html``."""
+    return BilbaoShamanFeodumMill(name="Bilbao Shaman Feodum Mill", hermits=2)
+
+
+def create_bilbao_shaman_feodum_mill_hybrid() -> EnhancedStrategy:
+    """Best Found chassis plus two Shamans and a Hermit that trash Feodums
+    only in pairs (so one comes back). The strongest mill variant found:
+    83% against the seed field, 13% against Bilbao Best Found."""
+    return BilbaoShamanFeodumMill(
+        name="Bilbao Shaman Feodum Mill Hybrid",
+        trash_mode="pair",
+        shamans=2,
+        hermits=1,
+        anvils=3,
+        fg_max=8,
+        feodum_silvers=3,
+        duchy_gate=6,
+        gold_min=7,
+        fodder_max=0,
+    )

@@ -1,0 +1,21 @@
+{
+  "m3_base": {},
+  "m3_pair": {"trash_mode": "pair"},
+  "m3_h2": {"hermits": 2},
+  "m3_h3": {"hermits": 3},
+  "m3_s3_h2": {"shamans": 3, "hermits": 2},
+  "m3_s4_h2": {"shamans": 4, "hermits": 2, "shaman_turn": 12},
+  "m3_pair_h2": {"trash_mode": "pair", "hermits": 2},
+  "m3_pair_s3_h2": {"trash_mode": "pair", "shamans": 3, "hermits": 2},
+  "m3_pair_fod3_h2": {"trash_mode": "pair", "fodder_max": 3, "hermits": 2},
+  "m3_fod3_h2": {"fodder_max": 3, "hermits": 2},
+  "m3_pile3_h2": {"trash_stop_pile": 3, "hermits": 2},
+  "m3_turn10_h2": {"trash_turn_max": 10, "hermits": 2},
+  "m3_turn14_h2": {"trash_turn_max": 14, "hermits": 2},
+  "m3_shamany": {"shaman_max_coins": 4},
+  "m3_bf_pair": {"trash_mode": "pair", "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7},
+  "m3_bf_turn10": {"trash_turn_max": 10, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7},
+  "m3_bf_pile3": {"trash_stop_pile": 3, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7},
+  "m3_bf_h2_turn12": {"trash_turn_max": 12, "hermits": 2, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7},
+  "m3_bf_anvfeo_turn12": {"trash_turn_max": 12, "hermits": 2, "anvils": 3, "anvil_gain": "feodum", "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7}
+}

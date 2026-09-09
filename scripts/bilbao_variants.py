@@ -17,19 +17,22 @@ VARIANT_DIR = Path("reports/bilbao/variants")
 
 TEMPLATE = '''"""Generated Bilbao variant: {name}."""
 from dominion.strategy.enhanced_strategy import EnhancedStrategy
-from dominion.strategy.strategies.bilbao_seeds import BilbaoAnvilFeodumVariant
+from dominion.strategy.strategies.bilbao_seeds import {cls}
 
 
 def create_variant() -> EnhancedStrategy:
-    return BilbaoAnvilFeodumVariant(**{params!r})
+    return {cls}(**{params!r})
 '''
 
 
-def write_variant(name: str, **params) -> str:
+def write_variant(name: str, cls: str = "BilbaoAnvilFeodumVariant", **params) -> str:
+    """Write one importable variant file; ``cls`` names the parametrised
+    class in ``bilbao_seeds`` (a ``_class`` key in the sweep JSON overrides
+    the ``--variant-class`` default per variant)."""
     VARIANT_DIR.mkdir(parents=True, exist_ok=True)
     path = VARIANT_DIR / f"{name}.py"
     params = dict(params, name=name)
-    path.write_text(TEMPLATE.format(name=name, params=params))
+    path.write_text(TEMPLATE.format(name=name, cls=cls, params=params))
     return str(path)
 
 
@@ -42,6 +45,11 @@ def main():
     parser.add_argument("--champion", help="Variant name to play against all others.")
     parser.add_argument("--extra", nargs="*", default=[], help="Loader names to add.")
     parser.add_argument("--output")
+    parser.add_argument(
+        "--variant-class",
+        default="BilbaoAnvilFeodumVariant",
+        help="Parametrised class in bilbao_seeds to instantiate (per-variant `_class` overrides).",
+    )
     args = parser.parse_args()
     if args.games < 1:
         parser.error("--games must be at least 1")
@@ -51,9 +59,16 @@ def main():
         parser.error("--workers must be at least 1")
 
     sweep = json.loads(Path(args.sweep).read_text())
-    refs = [write_variant(name, **params) for name, params in sweep.items()] + args.extra
+    refs = [
+        write_variant(name, cls=params.pop("_class", args.variant_class), **params)
+        for name, params in sweep.items()
+    ] + args.extra
     if args.champion:
         champ = str(VARIANT_DIR / f"{args.champion}.py")
+        if args.champion not in sweep:
+            champ = args.champion  # a loader name, e.g. "Bilbao Best Found"
+            if champ not in refs:
+                refs.append(champ)
         pairs = [(champ, r) for r in refs if r != champ]
         names = [champ] + [r for r in refs if r != champ]
     else:

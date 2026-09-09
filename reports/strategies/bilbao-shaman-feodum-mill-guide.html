@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Bilbao Shaman Feodum Mill Guide: a Shaman and Hermit Feodum-trashing strategy, every variant tried, and why it loses to Bilbao Best Found.">
+<title>Bilbao Shaman Feodum Mill Guide</title>
+<style>
+:root { color-scheme: dark; --ink:#f5f0e4; --muted:#b8b1a3; --paper:#151916; --panel:#1d231f; --line:#414940; --gold:#e9c46a; }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; background:radial-gradient(circle at 15% 0%,#263a2b66,transparent 36rem),var(--paper); color:var(--ink); font:16px/1.7 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+a { color:var(--gold); text-underline-offset:3px; }
+a:hover { color:#ffe09a; }
+a:focus-visible { outline:2px solid var(--gold); outline-offset:4px; }
+.page { max-width:1180px; margin:auto; padding:26px clamp(18px,4vw,52px) 60px; }
+.topbar,.contents { display:flex; flex-wrap:wrap; gap:12px 24px; font-size:.9rem; }
+.topbar { justify-content:space-between; margin-bottom:32px; }
+.eyebrow { color:var(--gold); font-size:.76rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+.hero { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(250px,.8fr); align-items:start; gap:40px; padding:30px 0 48px; border-bottom:1px solid var(--line); }
+h1,h2,h3 { font-family:Georgia,"Times New Roman",serif; line-height:1.16; }
+h1 { font-size:clamp(2.7rem,5.5vw,4.8rem); letter-spacing:-.04em; margin:12px 0 24px; max-width:18ch; }
+h2 { font-size:clamp(1.8rem,3vw,2.7rem); margin:0 0 24px; scroll-margin-top:20px; }
+h3 { font-size:1.4rem; }
+p { margin:0 0 18px; }
+.intro p { color:var(--muted); }
+.intro strong { color:var(--ink); }
+.verdict { background:linear-gradient(145deg,#e9c46a22,#e9c46a05); border:1px solid #9d7730; border-radius:18px; padding:26px; }
+.verdict strong { display:block; color:var(--gold); font:700 2.1rem/1.2 Georgia,serif; margin:12px 0 16px; }
+.verdict p:last-child { margin:0; }
+.contents { padding:22px 0; border-bottom:1px solid var(--line); }
+.section { padding:40px 0; border-bottom:1px solid var(--line); }
+.section>p,.section>ul,.section>ol { max-width:88ch; }
+ul,ol { padding-left:26px; }
+li { margin:10px 0; padding-left:5px; }
+.table-wrap { width:100%; overflow-x:auto; margin:24px 0; border:1px solid var(--line); border-radius:12px; }
+table { width:100%; border-collapse:collapse; background:var(--panel); font-size:.94rem; }
+th,td { padding:13px 16px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th { color:var(--gold); font-size:.85rem; }
+tr:last-child td { border-bottom:0; }
+tbody tr:hover { background:#ffffff05; }
+code { font-size:.86em; background:#ffffff09; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; }
+pre { padding:20px; border-radius:12px; border:1px solid var(--line); background:var(--panel); white-space:pre-wrap; overflow-wrap:anywhere; }
+pre code { padding:0; background:none; }
+footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
+@media(max-width:780px) { .hero { grid-template-columns:1fr; gap:24px; } h1 { max-width:none; } .topbar { justify-content:flex-start; } th,td { padding:10px; } }
+@media print { :root { color-scheme:light; --ink:#171717; --muted:#444; --paper:#fff; --panel:#fff; --line:#bbb; --gold:#654a0a; } body { background:white; } .page { max-width:none; padding:0; } .topbar,.contents { display:none; } .hero { padding-top:0; } .verdict { background:white; } .table-wrap { overflow:visible; } tr { break-inside:avoid; } pre { background:#f5f5f5; } }
+
+.hero { display:block; } h1 { max-width:24ch; }
+</style>
+</head>
+<body>
+<main class="page">
+<nav class="topbar" aria-label="Guide navigation"><a href="index.html">← Strategy catalog</a><a href="../boards/bilbao.html">View the board</a><a href="bilbao-shaman-feodum-mill.html">Strategy implementation</a><a href="bilbao-strategy-guide.html">Bilbao search guide</a></nav>
+<header class="hero"><span class="eyebrow">Board strategy research</span><h1>Bilbao Shaman Feodum Mill Guide</h1><p>Can Shaman and Hermit trash Feodums into Silvers and beat Bilbao Best Found?</p></header>
+<nav class="contents" aria-label="On this page"><a href="#the-idea">The idea</a><a href="#verdict">Verdict</a><a href="#why-the-mill-loses">Why the mill loses</a><a href="#what-was-tried">What was tried</a><a href="#strategies-published">Strategies published</a><a href="#method">Method and reproduction</a></nav>
+<article>
+<section class="section">
+<p>Board: <a href="../../boards/bilbao.txt"><code>boards/bilbao.txt</code></a> (Fool's Gold with the Rich trait, Grotto, Shaman, Anvil, Hermit, Sheepdog, Feodum, Wandering Minstrel, Wheelwright, Raider). The benchmark is the published <a href="bilbao-strategy-guide.html">Bilbao Best Found</a>: three Anvils, Fool's Gold before Silver, Feodum from three Silvers, Duchy from six Provinces left.</p>
+<p>This is a follow-up search on one specific idea rather than a new board-wide search. The result is negative, and the numbers below record how negative and why.</p>
+</section>
+<section class="section"><h2 id="the-idea">The idea</h2>
+<p>Buy two Shamans and one or two Hermits. Buy Feodums at $4 as fodder and trash them: Feodum's on-trash effect gains three Silvers, Hermit adds a fourth Silver with its own gain, and every Silver raises the score of the Feodums kept at the end (1 VP per three Silvers). Shaman is a cantrip (+1 Action, +$1) that may trash a card from hand; Hermit is terminal but can trash a non-Treasure from the discard pile, so it reaches a Feodum bought last turn before it is even drawn.</p>
+<p>The strategy was implemented as a parametrised class, <code>BilbaoShamanFeodumMill</code> in <a href="../../dominion/strategy/strategies/bilbao_seeds.py"><code>dominion/strategy/strategies/bilbao_seeds.py</code></a>, with hand-written policy for the parts the priority lists cannot express:</p>
+<ul>
+<li><strong>Trash policy.</strong> Shaman and Hermit trash a Feodum while the mill is active (Silver pile holds three, Province and Feodum piles above their stop levels, turn and Silver caps not reached); otherwise nothing. A <em>pair</em> mode trashes a Feodum only when a second one can go to the trash this turn (another Shaman with a Feodum in hand, a Hermit with a Feodum in hand or discard, or a Feodum already in the trash), so that the opponent takes one and this player takes the other back.</li>
+<li><strong>Start-of-turn gain.</strong> Shaman's setup rule offers a card from the trash every turn; the mill always takes a Feodum back first.</li>
+<li><strong>Hermit gain.</strong> Shamans until the target count is reached, then Silver. Buying nothing with a Hermit in play would exchange it for a Madman, so a Copper is bought instead when nothing else qualifies.</li>
+<li><strong>Buy order.</strong> Province at $8, Duchy late, Gold at $6, then Anvils and Hermits, then Shaman at $2-$3, then a fodder Feodum at $4 while a trasher exists, then Feodums as victory cards once enough Silvers are held, then Silver.</li>
+</ul>
+</section>
+<section class="section"><h2 id="verdict">Verdict</h2>
+<div class="verdict"><span class="eyebrow">Result</span><strong>The mill cannot compete with Bilbao Best Found.</strong><p>The pure mill (two Shamans, two Hermits, Feodum fodder) won 0.2% of 400 games. Grafting the Shamans and a Hermit onto the Best Found chassis and trashing only in pairs, the strongest variant found, won 13%. Every Shaman added to the Best Found deck costs win rate even when it never trashes anything.</p></div>
+<h3>Headline table: each variant against Bilbao Best Found (400 games, seed 31, both seats)</h3>
+<div aria-label="Headline results" class="table-wrap" role="region" tabindex="0"><table>
+<thead><tr><th scope="col">Variant</th><th scope="col">Shape</th><th scope="col" style="text-align: right;">Win rate vs Best Found</th></tr></thead>
+<tbody>
+<tr><td>mill_pure_s2h1</td><td>2 Shamans, 1 Hermit, Feodum fodder, trash always</td><td style="text-align: right;">0.2%</td></tr>
+<tr><td>mill_pure_s2h2 (published as <code>Bilbao Shaman Feodum Mill</code>)</td><td>2 Shamans, 2 Hermits</td><td style="text-align: right;">0.2%</td></tr>
+<tr><td>mill_pure_s3h2</td><td>3 Shamans, 2 Hermits</td><td style="text-align: right;">0.0%</td></tr>
+<tr><td>mill_pure_s2h2_pair</td><td>2 Shamans, 2 Hermits, trash only in pairs</td><td style="text-align: right;">0.0%</td></tr>
+<tr><td>mill_bf_s2h1_always</td><td>Best Found chassis + 2 Shamans + Hermit, fodder, trash always</td><td style="text-align: right;">8.8%</td></tr>
+<tr><td>mill_bf_s2h1_pair (published as <code>Bilbao Shaman Feodum Mill Hybrid</code>)</td><td>Best Found chassis + 2 Shamans + Hermit, trash in pairs</td><td style="text-align: right;">13.0%</td></tr>
+<tr><td>mill_bf_s2h1_notrash</td><td>Best Found chassis + 2 Shamans + Hermit, never trash</td><td style="text-align: right;">13.0%</td></tr>
+<tr><td>mill_bf_hermitshamans_notrash</td><td>Best Found chassis + Hermit; Hermit gains the 2 Shamans; never trash</td><td style="text-align: right;">24.9%</td></tr>
+<tr><td>mill_bf_hermit_only</td><td>Best Found chassis + 1 Hermit gaining Silvers, no Shamans</td><td style="text-align: right;">44.5%</td></tr>
+<tr><td>mill_bf_plain</td><td>Best Found chassis with nothing added (control)</td><td style="text-align: right;">49.0%</td></tr>
+</tbody></table></div>
+<p>The control row shows the parametrised class reproduces Best Found (a mirror is 50%). Reading upward from it, each ingredient of the idea removes win rate: one Hermit costs 4.5 points, two free Shamans cost another 20, buying the Shamans instead of Fool's Gold costs 12 more, and trashing Feodums costs the rest.</p>
+</section>
+<section class="section"><h2 id="why-the-mill-loses">Why the mill loses</h2>
+<p>Three board mechanics work against it, measured over 100 games (50 shuffles, both seats) of the pure mill against Best Found:</p>
+<div aria-label="Deck composition" class="table-wrap" role="region" tabindex="0"><table>
+<thead><tr><th scope="col">Average per game</th><th scope="col" style="text-align: right;">Bilbao Shaman Feodum Mill</th><th scope="col" style="text-align: right;">Bilbao Best Found</th></tr></thead>
+<tbody>
+<tr><td>Final score (VP)</td><td style="text-align: right;">42.8</td><td style="text-align: right;">79.4</td></tr>
+<tr><td>Feodums held at the end</td><td style="text-align: right;">1.1</td><td style="text-align: right;">6.9</td></tr>
+<tr><td>Silvers held at the end</td><td style="text-align: right;">17.7</td><td style="text-align: right;">19.8</td></tr>
+<tr><td>Provinces</td><td style="text-align: right;">3.8</td><td style="text-align: right;">3.7</td></tr>
+<tr><td>Feodums bought</td><td style="text-align: right;">2.3</td><td style="text-align: right;">2.6</td></tr>
+<tr><td>Feodums trashed</td><td style="text-align: right;">1.2</td><td style="text-align: right;">0</td></tr>
+<tr><td>Feodums taken from the trash</td><td style="text-align: right;">0.0</td><td style="text-align: right;">1.2</td></tr>
+<tr><td>Fool's Golds</td><td style="text-align: right;">0.1</td><td style="text-align: right;">8.6</td></tr>
+</tbody></table></div>
+<ol>
+<li><strong>Shaman's setup rule hands every trashed Feodum to the opponent.</strong> At the start of each player's turn they must gain a card costing up to $6 from the trash. A Feodum trashed on this player's turn is therefore in the opponent's discard before this player sees the trash again. Best Found's gain list already asks for Feodum from three Silvers, so it takes the gift and scores it at 6-7 VP. Pair mode gets one Feodum back but the pairing almost never lines up (2 Shamans and 2 Feodums in a 40-card deck), so it trashed 0.07 Feodums per game.</li>
+<li><strong>The Feodum pile is the scarce resource and Best Found empties it by turn 13.</strong> Eight Feodums are in the pile. Best Found buys them from three Silvers and its Anvils gain them for free; add the gifts and it ends most games with all eight. The mill then has nothing to trash and nothing to score: in the traced game the mill's Silvers matched Best Found's (21 to 19) but it held no Feodums at all. The mill starves even before the gift problem bites.</li>
+<li><strong>Every non-Silver, non-Fool's Gold card is a liability here.</strong> Rich Fool's Gold gives Best Found a Silver with every $2-$3 hand, and each Silver is worth about one point across its Feodums plus $2 of money. A Shaman bought at $2-$3 replaces a Fool's Gold and its Silver; a Shaman gained by Hermit replaces a Silver. Two Hermit-gained Shamans that never trash reduced the deck by 1.6 Silvers and 3.5 VP per game, and that alone moved the mirror from 44.5% to 24.9%.</li>
+</ol>
+<p>Against decks that cannot use Feodums the mill is merely slow rather than self-defeating: it beat Big Money 57-43 and the Hermit/Madman engine 59-41 (100 games), and lost every game to the Fool's Gold and Anvil money seeds.</p>
+</section>
+<section class="section"><h2 id="what-was-tried">What was tried</h2>
+<p>Six sweeps, all committed under <a href="../../scripts/bilbao_sweeps/README.md"><code>scripts/bilbao_sweeps/mill*.json</code></a>. The mill was measured against Best Found in every sweep; earlier sweeps used 200 games, the last three 400.</p>
+<ul>
+<li><strong>Sweep 1 (mill neighbourhood, 200 games vs the base mill):</strong> two or three Anvils gaining Feodums (80%), Fool's Gold (74%), Gold only at $7 (60%), stop trashing at four Provinces (58%) all beat the base mill, meaning the closer the mill got to Best Found the better it did. Two Hermits (43%), no Hermit (43%), three fodder Feodums (48%) and Madman conversion (40%) did not help.</li>
+<li><strong>Sweep 2 (mill on the Best Found chassis):</strong> the same deck with trashing switched off beat the trashing version 90-10. Capping trashing at 12 Silvers (73%) or stopping at four Provinces (56%) recovered part of the loss.</li>
+<li><strong>Sweep 3 (more trashers, pair mode, early stops, vs Best Found):</strong> every pure-mill variant scored 0-0.5%; the chassis variants 2.5-11.5%. Two or three Hermits and three or four Shamans did not raise the trash rate above 1.2 Feodums per game.</li>
+<li><strong>Sweep 4 (isolating the ingredients, 400 games):</strong> chassis control 49.3%, plus one Hermit 46.0%, plus two Hermits 35.9%, plus two bought Shamans that never trash 14.5%, plus two Shamans and a Hermit in any trash mode 11.5-12.7%, grabbing four Feodums from turn 1 to hoard 9.5%.</li>
+<li><strong>Sweep 5 (Shamans gained by Hermit instead of bought, 400 games):</strong> 24.4% whether the Shamans trash always, in pairs, only to turn 10, or never. Hermit gaining Silvers only: 44.5%.</li>
+<li><strong>Sweep 6 (headline table above, 400 games, fresh seed).</strong></li>
+</ul>
+<p>Two implementation defects were found and fixed on the way: the first version bought only 1.3 Shamans per game because Hermit and fodder Feodums outranked Shaman at $3-$4 (Shaman now goes first at $2-$3), and a Hermit with $0-$1 in the Buy phase exchanged itself for a Madman and left the mill without its trasher (a Copper is bought instead).</p>
+</section>
+<section class="section"><h2 id="strategies-published">Strategies published</h2>
+<ul>
+<li><code>Bilbao Shaman Feodum Mill</code>: the idea as asked, in its best pure form (two Shamans, two Hermits, Feodum fodder trashed whenever the mill is active). 22% average against the seed field, 0.2% against Best Found.</li>
+<li><code>Bilbao Shaman Feodum Mill Hybrid</code>: Best Found chassis plus two Shamans and one Hermit, trashing Feodums only in pairs. 83% average against the seed field (100 games per pairing: 100% against Big Money and the pure mill, 98% against the Hermit engine, 75% against Sheepdog money, 68% against the Fool's Gold rush, 26% against the Anvil Feodum slog), 13% against Best Found.</li>
+</ul>
+<p>Neither is a recommendation. <a href="bilbao-strategy-guide.html">Bilbao Best Found</a> remains the strategy to play on this board; the closest thing to a useful addition is a single Hermit gaining Silvers, and even that measured 4.5 points below the plain chassis.</p>
+</section>
+<section class="section"><h2 id="method">Method and reproduction</h2>
+<ul>
+<li>Every pairing plays each shuffle seed in both seats; ties count half.</li>
+<li>Headline table: <code>PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill6.json --champion "Bilbao Best Found" --games 400 --seed 31</code>.</li>
+<li>Field round robin: <code>PYTHONPATH=. python scripts/search_bilbao.py --games 100 --seed 5 --strategies "Bilbao Shaman Feodum Mill" "Bilbao Shaman Feodum Mill Hybrid" BigMoney "Bilbao Fools Gold Rush" "Bilbao Anvil Feodum Slog" "Bilbao Hermit Madman Engine" "Bilbao Sheepdog Anvil Money" "Bilbao Raider Money"</code>.</li>
+<li>The deck-composition table counts cards owned at game end and hooks <code>GameState.trash_card</code> and the Shaman start-of-turn log line to count Feodum trashes and recoveries.</li>
+<li>Policy tests for the mill's hand-written hooks are in <code>tests/test_bilbao_shaman_feodum_mill.py</code>.</li>
+</ul>
+</section>
+</article>
+<footer>Written on September 9, 2026 from the recorded search results. <a href="index.html">Return to the strategy catalog</a>.</footer>
+</main>
+</body>
+</html>
