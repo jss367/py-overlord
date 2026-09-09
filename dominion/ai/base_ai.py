@@ -1859,6 +1859,134 @@ class AI(ABC):
             return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
         return max(choices, key=lambda c: (c.cost.coins, c.name))
 
+    def choose_cards_to_set_aside_for_grotto(
+        self, state: GameState, player: PlayerState, hand: list[Card]
+    ) -> list[Card]:
+        """Grotto: pick up to 4 cards from hand to set aside; next turn they
+        are discarded and replaced by fresh draws.
+
+        Default: only dead cards (Curses and pure Victory cards), which cost
+        nothing to give up this turn and become live draws next turn.
+        """
+        dead = [
+            c
+            for c in hand
+            if c.name == "Curse"
+            or (c.is_victory and not c.is_action and not c.is_treasure)
+        ]
+        return dead[:4]
+
+    def choose_card_to_gain_from_trash_with_shaman(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Card | None:
+        """Shaman setup rule: pick which trashed card (cost <= $6) to gain.
+
+        The gain is mandatory; returning None lets the engine pick the least
+        harmful option. Default: the most expensive non-junk card.
+        """
+        if not choices:
+            return None
+        return max(
+            choices,
+            key=lambda c: (
+                c.name != "Curse",
+                not (c.is_victory and not c.is_action and c.cost.coins <= 2),
+                c.cost.coins,
+                c.name,
+            ),
+        )
+
+    def should_trash_fools_gold_for_gold(
+        self, state: GameState, player: PlayerState
+    ) -> bool:
+        """Fool's Gold reaction: another player gained a Province; trash a
+        Fool's Gold from hand to gain a Gold onto your deck?
+
+        Default heuristic: react when holding several Fool's Golds (the
+        remaining ones keep their +$4 bonus) or when the deck is short of
+        Gold; otherwise keep it as money.
+        """
+        # With Shaman's setup rule the reaction can be free: the trashed
+        # Fool's Gold costs $2, so its owner takes it straight back at the
+        # start of their next turn. That only holds when this player acts
+        # next (an intervening player would claim it first) and for ONE copy
+        # per trigger: Shaman returns a single card per turn, so a second
+        # trashed copy (or one already in the trash) would go to the next
+        # player instead, together with its Rich Silver.
+        if state.game_uses_shaman():
+            if any(c.name == "Fool's Gold" for c in state.trash):
+                return False
+            players = list(state.players)
+            gainer = state.current_player
+            if gainer not in players or gainer is player:
+                return False
+            # A skipped turn (Lich) means this player does not act next.
+            if getattr(player, "turns_to_skip", 0):
+                return False
+            # An extra turn already scheduled for the gainer (Outpost,
+            # Mission, Voyage, Journey, Fleet) means they act again first
+            # and would take the Fool's Gold themselves.
+            for flag in (
+                "outpost_pending",
+                "mission_extra_turn_pending",
+                "voyage_extra_turn_pending",
+                "journey_extra_turn_pending",
+            ):
+                if getattr(gainer, flag, False):
+                    return False
+            if getattr(state, "fleet_extra_round_active", False):
+                return False
+            # Generic extra-turn flag (Seize the Day and friends).
+            if getattr(state, "extra_turn", False):
+                return False
+            nxt = players[(players.index(gainer) + 1) % len(players)]
+            if nxt is not player:
+                return False
+            # The start-of-turn gain takes ONE card, chosen by this AI. If
+            # something already in the trash would be picked ahead of the
+            # Fool's Gold (a Silver, say), the Fool's Gold would be left for
+            # the opponent, so the reaction is not free.
+            from ..cards.registry import get_card
+
+            probe = get_card("Fool's Gold")
+            candidates = [
+                c
+                for c in state.trash
+                if c.cost.potions == 0
+                and c.cost.debt == 0
+                and state.get_card_cost(player, c) <= 6
+            ] + [probe]
+            pick = self.choose_card_to_gain_from_trash_with_shaman(
+                state, player, candidates
+            )
+            return pick is probe
+        count_in_hand = sum(1 for card in player.hand if card.name == "Fool's Gold")
+        if count_in_hand > 1:
+            return True
+        existing_gold = sum(1 for card in player.all_cards() if card.name == "Gold")
+        return existing_gold < 2
+
+    def choose_wheelwright_discard(
+        self, state: GameState, player: PlayerState, hand: list[Card]
+    ) -> list[Card] | None:
+        """Wheelwright: candidate cards to discard, in preference order.
+
+        The card tries each candidate in turn and discards the first one for
+        which the AI actually wants to gain an Action of that cost or less;
+        return None (or an empty list) to never discard. Default: Curses,
+        then pure Victory cards, then Coppers.
+        """
+        ranked = []
+        for card in hand:
+            if card.name == "Curse":
+                ranked.append((0, card))
+            elif card.is_victory and not card.is_action and not card.is_treasure:
+                ranked.append((1, card))
+            elif card.name == "Copper":
+                ranked.append((2, card))
+        ranked.sort(key=lambda item: (item[0], item[1].cost.coins, item[1].name))
+        return [card for _, card in ranked]
+
     def choose_card_to_topdeck_for_clerk(
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Card | None:

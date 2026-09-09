@@ -1,0 +1,12 @@
+{
+ "e4_feo3_duchy6": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 3, "duchy_gate": 6},
+ "g1_feo0_duchy6": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 0, "duchy_gate": 6},
+ "g2_feo2_duchy6": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 2, "duchy_gate": 6},
+ "g3_feo3_duchy7": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 3, "duchy_gate": 7},
+ "g4_feo3_duchy8": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 3, "duchy_gate": 8},
+ "g5_feo3_duchy6_feoduchy9": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 3, "duchy_gate": 6, "feodum_over_duchy_silvers": 9},
+ "g6_feo3_duchy6_nogold": {"gold_min": 9, "estate_gate": 0, "feodum_silvers": 3, "duchy_gate": 6},
+ "g7_feo3_duchy6_anvils2": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 3, "duchy_gate": 6, "anvils": 2},
+ "g8_feo3_duchy6_fgmax6": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 3, "duchy_gate": 6, "fg_max": 6},
+ "g9_feo3_duchy6_est2": {"gold_min": 7, "estate_gate": 2, "feodum_silvers": 3, "duchy_gate": 6}
+}

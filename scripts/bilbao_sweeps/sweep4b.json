@@ -1,0 +1,12 @@
+{
+ "b8": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 5},
+ "f1_shaman1": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 5, "shamans": 1},
+ "f2_shaman2": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 5, "shamans": 2},
+ "f3_shaman3": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 5, "shamans": 3},
+ "f4_shaman2_estate": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 5, "shamans": 2, "shaman_trash": "estate"},
+ "f5_shaman2_notrash": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 5, "shamans": 2, "shaman_trash": "none"},
+ "f6_grotto1": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 5, "grottos": 1},
+ "f7_grotto2": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 5, "grottos": 2},
+ "f8_hermit2": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 5, "hermits": 2},
+ "f9_wm_sheepdog": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 5, "sheepdogs": 2}
+}

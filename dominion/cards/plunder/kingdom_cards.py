@@ -59,7 +59,13 @@ class Cage(Card):
 
 
 class Grotto(Card):
-    """$2 Action-Duration: +1 Action. Set aside up to 4; discard, draw that many."""
+    """$2 Action-Duration: +1 Action. Set aside up to 4 cards from your hand
+    (the player chooses which); at the start of your next turn, discard them,
+    then draw that many.
+
+    Setting aside 0 cards means Grotto has nothing to do next turn, so it
+    does not stay in play (official rules clarification).
+    """
 
     def __init__(self):
         super().__init__(
@@ -68,30 +74,44 @@ class Grotto(Card):
             stats=CardStats(actions=1),
             types=[CardType.ACTION, CardType.DURATION],
         )
-        self.duration_persistent = True
+        self.duration_persistent = False
         self.set_aside: list = []
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
-            player.duration.append(self)
         if not player.hand:
             return
-        candidates = sorted(
-            player.hand,
-            key=lambda c: (c.cost.coins, c.is_victory or c.name == "Curse"),
-        )
-        choice_count = min(4, len(player.hand))
-        for card in candidates[:choice_count]:
+        chooser = getattr(player.ai, "choose_cards_to_set_aside_for_grotto", None)
+        if chooser is None:
+            # Stub AIs in tests may predate this hook: use the base default.
+            from ...ai.base_ai import AI
+
+            chooser = lambda gs, p, hand: AI.choose_cards_to_set_aside_for_grotto(  # noqa: E731
+                player.ai, gs, p, hand
+            )
+        chosen = chooser(game_state, player, list(player.hand))
+        # Defensive: only cards actually in hand, no duplicates, at most 4.
+        picked: list[Card] = []
+        for card in chosen or []:
+            if card in player.hand and card not in picked:
+                picked.append(card)
+            if len(picked) == 4:
+                break
+        if not picked:
+            return
+        for card in picked:
             player.hand.remove(card)
             self.set_aside.append(card)
+        self.duration_persistent = True
+        if self not in player.duration:
+            player.duration.append(self)
 
     def on_duration(self, game_state):
         player = game_state.current_player
         n = len(self.set_aside)
-        for c in self.set_aside:
-            player.discard.append(c)
-        self.set_aside = []
+        set_aside, self.set_aside = self.set_aside, []
+        for c in set_aside:
+            game_state.discard_card(player, c)
         if n:
             game_state.draw_cards(player, n)
         self.duration_persistent = False
@@ -146,40 +166,31 @@ class Search(Card):
 
 
 class Shaman(Card):
-    """$2 Action: +1 Action +$1. May trash. Start of turn, gain from trash up to $6."""
+    """$2 Action: +1 Action, +$1. You may trash a card from your hand.
+
+    The second half of the card is a game-wide setup rule, not a Duration
+    effect: in games using Shaman, at the start of EVERY player's turn (from
+    turn one, whether or not anyone owns a Shaman) that player gains a card
+    from the trash costing up to $6. The gain is mandatory when such a card
+    exists. ``GameState._handle_shaman_start_of_turn`` implements it.
+    """
 
     def __init__(self):
         super().__init__(
             name="Shaman",
             cost=CardCost(coins=2),
             stats=CardStats(actions=1, coins=1),
-            types=[CardType.ACTION, CardType.DURATION],
+            types=[CardType.ACTION],
         )
-        self.duration_persistent = True
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
-            player.duration.append(self)
         if not player.hand:
             return
         choice = player.ai.choose_card_to_trash(game_state, player.hand + [None])
         if choice and choice in player.hand:
             player.hand.remove(choice)
             game_state.trash_card(player, choice)
-
-    def on_duration(self, game_state):
-        player = game_state.current_player
-        candidates = [
-            c for c in game_state.trash
-            if c.cost.coins <= 6 and c.cost.potions == 0 and c.cost.debt == 0
-        ]
-        if candidates:
-            candidates.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
-            pick = candidates[0]
-            game_state.trash.remove(pick)
-            game_state.gain_card(player, pick, from_supply=False)
-        self.duration_persistent = False
 
 
 # ---------------------------------------------------------------------------

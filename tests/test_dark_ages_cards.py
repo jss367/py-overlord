@@ -271,9 +271,12 @@ def test_hermit_no_buy_turns_into_madman_at_buy_phase_end():
     hermit = get_card("Hermit")
     player.in_play.append(hermit)
     player.cards_gained_this_buy_phase = 0
+    hermits_before = state.supply["Hermit"]
     state._handle_buy_phase_end(player)
-    # Hermit trashed, Madman gained
-    assert hermit in state.trash
+    # Hermit is EXCHANGED (returned to its pile, not trashed), Madman gained.
+    assert hermit not in state.trash
+    assert hermit not in player.in_play
+    assert state.supply["Hermit"] == hermits_before + 1
     assert any(c.name == "Madman" for c in player.discard)
     assert state.supply["Madman"] == 9
 
