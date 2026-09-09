@@ -10,6 +10,10 @@ from dominion.game.player_state import PlayerState
 class AI(ABC):
     """Base class for all AIs."""
 
+    def choose_bauble_options(self, state, player, options, count):
+        hook = getattr(getattr(self, "strategy", None), "choose_bauble_options", None)
+        return hook(state, player, options, count) if hook else ["buy", "coin"]
+
     def choose_allies_option(self, state, player, reason, options, default):
         hook = getattr(getattr(self, "strategy", None), "choose_allies_option", None)
         return hook(state, player, reason, options, default) if hook else default

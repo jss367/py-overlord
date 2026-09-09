@@ -1,0 +1,661 @@
+{
+  "games": 3600,
+  "truncated": 0,
+  "candidate_entries": 50,
+  "ranking": [
+    {
+      "rate": 0.6805555555555555,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 0,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.6111111111111112,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 0,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.5972222222222222,
+      "params": {
+        "shepherd": 6,
+        "village": 4,
+        "draw": 1,
+        "embassy": 0,
+        "university": 0,
+        "counting": 0,
+        "bauble": 2,
+        "fish": 1,
+        "silvers": 3,
+        "golds": 2,
+        "green": 10,
+        "estates": 6,
+        "fairgrounds": false,
+        "forts": true,
+        "opening": "Tent",
+        "duchy": 2
+      }
+    },
+    {
+      "rate": 0.5833333333333334,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 0,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.5833333333333334,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 1,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.5833333333333334,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 1,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.5694444444444445,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 2,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.5555555555555555,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 1,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.5277777777777778,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 0,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.513888888888889,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 0,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.48611111111111116,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 2,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.4861111111111111,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 1,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.4861111111111111,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 1,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.47222222222222227,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 2,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.47222222222222227,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 2,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.47222222222222215,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 1,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.4583333333333333,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 0,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.4583333333333333,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 1,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.4444444444444444,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 0,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.4444444444444444,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 1,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.4305555555555556,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 0,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.4305555555555556,
+      "params": {
+        "shepherd": 0,
+        "village": 1,
+        "draw": 0,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.4305555555555556,
+      "params": {
+        "shepherd": 0,
+        "village": 1,
+        "draw": 1,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.4305555555555556,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 2,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.4305555555555555,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 2,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.4166666666666667,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 2,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.40277777777777785,
+      "params": {
+        "shepherd": 2,
+        "village": 1,
+        "draw": 1,
+        "estates": 0
+      }
+    },
+    {
+      "rate": 0.40277777777777773,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 1,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.40277777777777773,
+      "params": {
+        "shepherd": 0,
+        "village": 1,
+        "draw": 2,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.38888888888888884,
+      "params": {
+        "shepherd": 0,
+        "village": 1,
+        "draw": 1,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.375,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 0,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.375,
+      "params": {
+        "shepherd": 0,
+        "village": 1,
+        "draw": 0,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.375,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 0,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.375,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 0,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.36111111111111116,
+      "params": {
+        "shepherd": 0,
+        "village": 1,
+        "draw": 1,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.3611111111111111,
+      "params": {
+        "shepherd": 0,
+        "village": 1,
+        "draw": 1,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.34722222222222227,
+      "params": {
+        "shepherd": 0,
+        "village": 1,
+        "draw": 0,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.34722222222222227,
+      "params": {
+        "shepherd": 0,
+        "village": 1,
+        "draw": 2,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.34722222222222215,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 1,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.3333333333333333,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 0,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.3194444444444444,
+      "params": {
+        "shepherd": 0,
+        "village": 1,
+        "draw": 0,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 0
+      }
+    },
+    {
+      "rate": 0.3055555555555556,
+      "params": {
+        "shepherd": 0,
+        "village": 0,
+        "draw": 2,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.2777777777777778,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 2,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.2777777777777778,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 2,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.2638888888888889,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 1,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.25,
+      "params": {
+        "shepherd": 0,
+        "village": 1,
+        "draw": 2,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.24999999999999997,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 2,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.23611111111111108,
+      "params": {
+        "shepherd": 1,
+        "village": 1,
+        "draw": 1,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.2222222222222222,
+      "params": {
+        "shepherd": 1,
+        "village": 0,
+        "draw": 2,
+        "bauble": 0,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    },
+    {
+      "rate": 0.2222222222222222,
+      "params": {
+        "shepherd": 0,
+        "village": 1,
+        "draw": 2,
+        "bauble": 1,
+        "silvers": 99,
+        "golds": 99,
+        "opening": "Silver",
+        "embassy": 1
+      }
+    }
+  ]
+}
