@@ -1,6 +1,7 @@
 """Build linked static pages for all registered strategies and boards."""
 
 from dataclasses import replace
+from html import escape
 import os
 from pathlib import Path
 from typing import Iterable
@@ -23,6 +24,7 @@ from dominion.reporting.strategy_links import PageLink
 from dominion.reporting.strategy_pages import (
     CURATED_STRATEGY_GUIDES,
     RenderedStrategy,
+    _page_shell,
     collect_rendered_strategies,
     render_strategy_index,
     render_strategy_leaderboard,
@@ -145,6 +147,76 @@ def _link_catalog(
     return linked_strategies, linked_boards
 
 
+def render_catalog_home(
+    *,
+    strategy_count: int,
+    board_count: int,
+    guide_count: int,
+    strategy_index_href: str = "strategies/index.html",
+    board_index_href: str = "boards/index.html",
+    leaderboard_href: str = "strategies/leaderboard.html",
+    card_usage_href: str = "strategies/card-strategy-usage.html",
+) -> str:
+    """Render the landing page that ties the catalog's sections together."""
+
+    def plural(count: int, singular: str, plural_form: str | None = None) -> str:
+        return singular if count == 1 else (plural_form or f"{singular}s")
+
+    sections = [
+        (
+            strategy_index_href,
+            "Strategy catalog",
+            "Every registered strategy with its defining cards, decision rules, and compatible boards, "
+            "alongside the curated strategy guides.",
+            f"{strategy_count} {plural(strategy_count, 'strategy', 'strategies')} · "
+            f"{guide_count} curated {plural(guide_count, 'guide')}",
+        ),
+        (
+            board_index_href,
+            "Board library",
+            "Searchable Kingdoms with their cards, landscapes, and the strategies that can play them.",
+            f"{board_count} {plural(board_count, 'board')}",
+        ),
+        (
+            leaderboard_href,
+            "Leaderboard",
+            "Standings from the latest cross-strategy tournament, or a prompt to run one.",
+            "compare_all_strategies.py",
+        ),
+        (
+            card_usage_href,
+            "Card strategy usage",
+            "Which cards the strategies lean on, ranked by how the strategies place in the tournament.",
+            "Derived from the catalog",
+        ),
+    ]
+    cards = "".join(
+        '<article class="strategy-card">'
+        f'<h2><a href="{escape(href)}">{escape(title)}</a></h2>'
+        f"<p>{escape(description)}</p>"
+        f'<div class="card-footer"><span>{escape(footer)}</span></div>'
+        "</article>"
+        for href, title, description, footer in sections
+    )
+    body = f"""
+<main>
+<header class="hero">
+  <p class="eyebrow">Dominion simulator</p>
+  <h1>py-overlord</h1>
+  <p class="hero-description">Static reports from the Dominion strategy simulator: the strategy catalog, the board library, tournament standings, and card usage.</p>
+  <div class="hero-links">
+    <strong>Jump to</strong>
+    <a href="{escape(strategy_index_href)}">Strategies</a>
+    <a href="{escape(board_index_href)}">Boards</a>
+    <a href="{escape(leaderboard_href)}">Leaderboard</a>
+  </div>
+</header>
+<div class="catalog-grid">{cards}</div>
+</main>
+"""
+    return _page_shell("py-overlord Reports", body)
+
+
 def render_catalog_pages(
     output_dir: Path = Path("reports"),
     *,
@@ -174,6 +246,7 @@ def render_catalog_pages(
             card_usage_href="card-strategy-usage.html",
             board_index_href="../boards/index.html",
             leaderboard_href="leaderboard.html",
+            home_href="../index.html",
         ),
         encoding="utf-8",
     )
@@ -207,7 +280,11 @@ def render_catalog_pages(
 
     board_index = board_dir / "index.html"
     board_index.write_text(
-        render_board_index(boards, strategy_index_href="../strategies/index.html"),
+        render_board_index(
+            boards,
+            strategy_index_href="../strategies/index.html",
+            home_href="../index.html",
+        ),
         encoding="utf-8",
     )
     written.append(board_index)
@@ -217,5 +294,16 @@ def render_catalog_pages(
         index_href = _relative_href(board_index.relative_to(output_dir), path.relative_to(output_dir))
         path.write_text(render_board_page(board, index_href=index_href), encoding="utf-8")
         written.append(path)
+
+    home = output_dir / "index.html"
+    home.write_text(
+        render_catalog_home(
+            strategy_count=len(strategies),
+            board_count=len(boards),
+            guide_count=len(CURATED_STRATEGY_GUIDES),
+        ),
+        encoding="utf-8",
+    )
+    written.append(home)
 
     return written

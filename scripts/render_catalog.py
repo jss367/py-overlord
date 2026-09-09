@@ -18,6 +18,7 @@ def main() -> None:
 
     written = render_catalog_pages(args.output_dir)
     print(f"Wrote {len(written)} files to {args.output_dir}")
+    print(f"Home page: {args.output_dir / 'index.html'}")
     print(f"Board index: {args.output_dir / 'boards' / 'index.html'}")
     print(f"Strategy index: {args.output_dir / 'strategies' / 'index.html'}")
     print(f"Card strategy usage: {args.output_dir / 'strategies' / 'card-strategy-usage.html'}")

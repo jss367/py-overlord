@@ -175,6 +175,7 @@ cython_debug/
 battle_logs/*
 # /optimal_strategy_logs
 /reports/*
+!/reports/index.html
 !/reports/boards/
 !/reports/boards/**
 !/reports/strategies/
