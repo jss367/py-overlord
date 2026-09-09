@@ -1,4 +1,4 @@
-"""Guardian — $2 Action-Night-Duration.
+"""Guardian — $2 Night-Duration.
 
 Until your next turn, when another player plays an Attack, it doesn't
 affect you. At start of next turn, +$1.
@@ -13,7 +13,7 @@ class Guardian(Card):
             name="Guardian",
             cost=CardCost(coins=2),
             stats=CardStats(),
-            types=[CardType.ACTION, CardType.NIGHT, CardType.DURATION],
+            types=[CardType.NIGHT, CardType.DURATION],
         )
 
     def play_effect(self, game_state):
