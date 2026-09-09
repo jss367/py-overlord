@@ -138,6 +138,8 @@ def make(spec):
 
 def match(task):
     a, b, games, seed = task
+    if games % 2:
+        raise ValueError("games must be even so every seed is played in both seats")
     outcomes = []
     totals = Counter()
     for i in range(games):
@@ -284,10 +286,19 @@ STAGES = {"1": STAGE1, "2": STAGE2, "3": STAGE3, "4": STAGE4}
 STAGE_DEFAULTS = {"1": (200, 1000), "2": (200, 2000), "3": (200, 3000), "4": (1000, 4000)}
 
 
+def _even_games(value: str) -> int:
+    games = int(value)
+    if games <= 0 or games % 2:
+        raise argparse.ArgumentTypeError(
+            f"--games must be a positive even number so every seed is played in both seats, got {value}"
+        )
+    return games
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", default="1")
-    ap.add_argument("--games", type=int, help="Default: 200 (stages 1-3) or 1000 (stage 4)")
+    ap.add_argument("--games", type=_even_games, help="Even number; default 200 (stages 1-3) or 1000 (stage 4)")
     ap.add_argument("--seed", type=int, help="Default: 1000 x stage")
     ap.add_argument("--workers", type=int, default=8)
     ap.add_argument("--specs", help="JSON file with a list of specs (overrides --stage)")
