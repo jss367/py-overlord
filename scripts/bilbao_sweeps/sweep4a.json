@@ -1,0 +1,8 @@
+{
+ "b8": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 5},
+ "e1_duchy6": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 5, "duchy_gate": 6},
+ "e2_feo3": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 3},
+ "e3_feo4_duchy6": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 4, "duchy_gate": 6},
+ "e4_feo3_duchy6": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 3, "duchy_gate": 6},
+ "e5_feo4": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 4}
+}

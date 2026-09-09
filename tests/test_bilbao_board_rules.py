@@ -499,3 +499,29 @@ def test_fools_gold_reaction_declined_when_generic_extra_turn_is_scheduled():
     state.gain_card(p0, get_card("Province"))
     assert len(p1.hand) == 1
     assert p1.deck[-1].name == "Copper"
+
+
+def test_fools_gold_reaction_declined_when_trash_holds_a_better_shaman_pick():
+    """A Silver in the trash would be taken ahead of the Fool's Gold next turn."""
+    state = _game()
+    p0, p1 = state.players
+    state.current_player_index = 0
+    state.trash.append(get_card("Silver"))
+    p1.hand = [get_card("Fool's Gold")]
+    p1.deck = [get_card("Copper")]
+    state.supply["Province"] -= 1
+    state.gain_card(p0, get_card("Province"))
+    assert len(p1.hand) == 1
+    assert p1.deck[-1].name == "Copper"
+
+
+def test_fools_gold_reaction_fires_when_trash_holds_only_junk():
+    state = _game()
+    p0, p1 = state.players
+    state.current_player_index = 0
+    state.trash.extend([get_card("Copper"), get_card("Estate")])
+    p1.hand = [get_card("Fool's Gold")]
+    p1.deck = [get_card("Copper")]
+    state.supply["Province"] -= 1
+    state.gain_card(p0, get_card("Province"))
+    assert p1.deck[-1].name == "Gold"

@@ -2,7 +2,9 @@
 
 Generates one importable strategy file per variant under
 ``reports/bilbao/variants/`` and plays a round robin (or a champion-vs-all
-sweep) with ``scripts/search_bilbao.py``. Run with ``PYTHONPATH=.``.
+sweep) with ``scripts/search_bilbao.py``. Run with ``PYTHONPATH=.``. The
+sweep inputs behind the published guide live in ``scripts/bilbao_sweeps/``
+(see its README for the exact command per sweep).
 """
 
 import argparse

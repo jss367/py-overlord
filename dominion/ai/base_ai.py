@@ -1937,7 +1937,26 @@ class AI(ABC):
             if getattr(state, "extra_turn", False):
                 return False
             nxt = players[(players.index(gainer) + 1) % len(players)]
-            return nxt is player
+            if nxt is not player:
+                return False
+            # The start-of-turn gain takes ONE card, chosen by this AI. If
+            # something already in the trash would be picked ahead of the
+            # Fool's Gold (a Silver, say), the Fool's Gold would be left for
+            # the opponent, so the reaction is not free.
+            from ..cards.registry import get_card
+
+            probe = get_card("Fool's Gold")
+            candidates = [
+                c
+                for c in state.trash
+                if c.cost.potions == 0
+                and c.cost.debt == 0
+                and state.get_card_cost(player, c) <= 6
+            ] + [probe]
+            pick = self.choose_card_to_gain_from_trash_with_shaman(
+                state, player, candidates
+            )
+            return pick is probe
         count_in_hand = sum(1 for card in player.hand if card.name == "Fool's Gold")
         if count_in_hand > 1:
             return True

@@ -291,8 +291,13 @@ seeds plus Big Money, re-measured after the review fixes. The Anvil/Feodum islan
 <li><strong>Feodum ahead of Province never triggers</strong> in practice: the Feodum
   pile is empty before the deck holds 12 Silvers with $8 in hand.</li>
 <li><strong>Reproduce</strong> with <code>PYTHONPATH=. python scripts/search_bilbao.py --games 400
-  --strategies "Bilbao Best Found" "Bilbao Anvil Feodum Slog" "Bilbao Fools Gold Rush" BigMoney</code>
-  and the sweeps in <code>scripts/bilbao_variants.py</code>.</li>
+  --strategies "Bilbao Best Found" "Bilbao Anvil Feodum Slog" "Bilbao Fools Gold Rush" BigMoney</code>.
+  The five hand-search sweeps are committed as JSON under
+  <a href="../../scripts/bilbao_sweeps/README.md"><code>scripts/bilbao_sweeps/</code></a> with the exact
+  <code>scripts/bilbao_variants.py</code> command for each; the GA islands ran
+  <code>scripts/island_evolve.py --board boards/bilbao.txt --population 20 --generations 12
+  --games-per-eval 16 --workers 1 --only "&lt;seed&gt;" --seeds "&lt;seed&gt;" --panel "Bilbao Anvil Feodum Slog"
+  "Bilbao Fools Gold Rush" "Bilbao Sheepdog Anvil Money" BigMoney</code> once per seed.</li>
 <li><strong>Evolution agreed with the hand search.</strong> The Anvil/Feodum island
   deleted its Gold, Estate and late-Feodum rules and kept Anvil ×3, Feodum
   from six Silvers, Fool's Gold before Silver and Duchy from five Provinces;
