@@ -524,3 +524,65 @@ def test_spice_merchant_rejects_a_non_treasure_returned_by_the_hook():
     assert player.hand == [copper, estate]
     assert not state.trash
     assert player.coins == 0 and player.buys == 1 and player.actions == 1
+
+
+def test_artificer_discards_budgeted_junk_before_cheap_useful_cards():
+    # Duchy + Copper budget a $2 gain. The generic discard ordering ranks by
+    # printed cost and would throw the $3 Scheme before the $5 Duchy.
+    state = _setup(["Artificer", "Scheme", "Cellar"], wants=["Cellar"])
+    player = state.current_player
+    duchy, copper, scheme = get_card("Duchy"), get_card("Copper"), get_card("Scheme")
+    golds = [get_card("Gold"), get_card("Gold")]
+    player.hand = [duchy, copper, scheme, *golds]
+    player.deck = []
+
+    artificer = get_card("Artificer")
+    player.in_play.append(artificer)
+    artificer.play_effect(state)
+
+    assert player.deck and player.deck[-1].name == "Cellar"
+    assert sorted(c.name for c in player.discard) == ["Copper", "Duchy"]
+    assert sorted(c.name for c in player.hand) == ["Gold", "Gold", "Scheme"]
+
+
+def test_artificer_override_spends_junk_first_then_useful_cards():
+    # A strategy hook may deliberately pay more than the junk covers; the
+    # extra card comes from the useful cards only after all junk is spent.
+    state = _setup(["Artificer", "Scheme"])
+    player = state.current_player
+    scheme = get_card("Scheme")
+    player.ai.choose_artificer_gain = lambda s, p, choices: next(
+        c for c in choices if c.name == "Scheme"
+    )
+    player.hand = [get_card("Silver"), get_card("Copper"), get_card("Gold"), get_card("Estate")]
+    player.deck = []
+
+    artificer = get_card("Artificer")
+    player.in_play.append(artificer)
+    artificer.play_effect(state)
+
+    assert player.deck and player.deck[-1].name == scheme.name
+    assert sorted(c.name for c in player.discard) == ["Copper", "Estate", "Silver"]
+    assert [c.name for c in player.hand] == ["Gold"]
+
+
+def test_a_failed_knights_rule_covers_every_knight_in_the_action_fallback():
+    from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [
+        PriorityRule("Knights", PriorityRule.turn_number(">", 999)),
+    ]
+    state = _setup(["Knights", "Village"])
+    player = state.current_player
+    knight = get_card("Sir Bailey")
+    village = get_card("Village")
+    player.hand = [knight]
+
+    # GeneticAI drops the pass option during the main action phase, so a
+    # Knight whose rule failed used to count as "unexpected" and was played.
+    assert strategy.choose_action(state, player, [knight]) is None
+    # Cards no rule mentions are still played by the fallback.
+    assert strategy.choose_action(state, player, [knight, village]) is village
+    # The same coverage applies to the Overlord target fallback.
+    assert strategy.choose_overlord_target(state, player, [knight, village]) is village

@@ -2715,13 +2715,9 @@ class AI(ABC):
         """
         if not choices:
             return None
-        junk = sum(
-            1
-            for card in player.hand
-            if card.name == "Curse"
-            or card.name == "Copper"
-            or (card.is_victory and not card.is_action)
-        )
+        from dominion.cards.adventures.artificer import is_artificer_junk
+
+        junk = sum(1 for card in player.hand if is_artificer_junk(card))
         affordable = [
             card for card in choices if 0 < state.get_card_cost(player, card) <= junk
         ]

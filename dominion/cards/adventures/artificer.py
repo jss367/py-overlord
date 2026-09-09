@@ -40,15 +40,25 @@ class Artificer(Card):
 
         cards_to_discard: list = []
         if target_cost > 0:
-            discard_order = player.ai.choose_cards_to_discard(
-                game_state, player, list(player.hand), target_cost,
-                reason="artificer",
-            )
+            # The default gain hook budgets the cost by the junk in hand, so
+            # spend that junk first. The generic discard ordering ranks by
+            # printed cost and would otherwise throw a $3 Scheme before a
+            # Duchy. Useful cards are only offered when a strategy's own
+            # ``choose_artificer_gain`` chose a cost the junk cannot cover.
             remaining_hand = list(player.hand)
-            for card in discard_order:
-                if card in remaining_hand and len(cards_to_discard) < target_cost:
-                    cards_to_discard.append(card)
-                    remaining_hand.remove(card)
+            junk = [c for c in remaining_hand if is_artificer_junk(c)]
+            useful = [c for c in remaining_hand if not is_artificer_junk(c)]
+            for pool in (junk, useful):
+                needed = target_cost - len(cards_to_discard)
+                if needed <= 0 or not pool:
+                    continue
+                discard_order = player.ai.choose_cards_to_discard(
+                    game_state, player, pool, needed, reason="artificer",
+                )
+                for card in discard_order:
+                    if card in remaining_hand and len(cards_to_discard) < target_cost:
+                        cards_to_discard.append(card)
+                        remaining_hand.remove(card)
 
             while len(cards_to_discard) < target_cost and remaining_hand:
                 fallback = min(remaining_hand, key=lambda c: (c.cost.coins, c.name))
@@ -67,6 +77,20 @@ class Artificer(Card):
         if gained is None:
             return
         game_state.gain_card(player, gained, to_deck=True)
+
+
+def is_artificer_junk(card) -> bool:
+    """Cards the default Artificer policy is willing to discard.
+
+    Curses, Coppers and non-Action Victory cards. ``BaseAI.choose_artificer_gain``
+    budgets the gain cost from this set and ``Artificer.play_effect`` spends it
+    before any other card, so the two must agree.
+    """
+    return (
+        card.name == "Curse"
+        or card.name == "Copper"
+        or (card.is_victory and not card.is_action)
+    )
 
 
 def _exposed_supply_card(game_state, pile_name):
