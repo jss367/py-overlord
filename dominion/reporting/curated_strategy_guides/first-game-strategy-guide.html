@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Militia money with Markets beats the Smithy/Militia community answer about 72% head-to-head on the base-set First Game kingdom.">
+<title>First Game Strategy Search Guide</title>
+<style>
+:root { color-scheme: dark; --ink:#f5f0e4; --muted:#b8b1a3; --paper:#151916; --panel:#1d231f; --line:#414940; --gold:#e9c46a; }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; background:radial-gradient(circle at 15% 0%,#263a2b66,transparent 36rem),var(--paper); color:var(--ink); font:16px/1.7 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+a { color:var(--gold); text-underline-offset:3px; }
+a:hover { color:#ffe09a; }
+a:focus-visible { outline:2px solid var(--gold); outline-offset:4px; }
+.page { max-width:1180px; margin:auto; padding:26px clamp(18px,4vw,52px) 60px; }
+.topbar,.contents { display:flex; flex-wrap:wrap; gap:12px 24px; font-size:.9rem; }
+.topbar { justify-content:space-between; margin-bottom:32px; }
+.eyebrow { color:var(--gold); font-size:.76rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+.hero { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(250px,.8fr); align-items:start; gap:40px; padding:30px 0 48px; border-bottom:1px solid var(--line); }
+h1,h2,h3 { font-family:Georgia,"Times New Roman",serif; line-height:1.16; }
+h1 { font-size:clamp(2.7rem,5.5vw,4.8rem); letter-spacing:-.04em; margin:12px 0 24px; max-width:18ch; }
+h2 { font-size:clamp(1.8rem,3vw,2.7rem); margin:0 0 24px; scroll-margin-top:20px; }
+h3 { font-size:1.4rem; }
+p { margin:0 0 18px; }
+.intro p { color:var(--muted); }
+.intro strong { color:var(--ink); }
+.verdict { background:linear-gradient(145deg,#e9c46a22,#e9c46a05); border:1px solid #9d7730; border-radius:18px; padding:26px; }
+.verdict strong { display:block; color:var(--gold); font:700 2.1rem/1.2 Georgia,serif; margin:12px 0 16px; }
+.verdict p:last-child { margin:0; }
+.contents { padding:22px 0; border-bottom:1px solid var(--line); }
+.section { padding:40px 0; border-bottom:1px solid var(--line); }
+.section>p,.section>ul,.section>ol { max-width:88ch; }
+ul,ol { padding-left:26px; }
+li { margin:10px 0; padding-left:5px; }
+.table-wrap { width:100%; overflow-x:auto; margin:24px 0; border:1px solid var(--line); border-radius:12px; }
+table { width:100%; border-collapse:collapse; background:var(--panel); font-size:.94rem; }
+th,td { padding:13px 16px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th { color:var(--gold); font-size:.85rem; }
+tr:last-child td { border-bottom:0; }
+tbody tr:hover { background:#ffffff05; }
+code { font-size:.86em; background:#ffffff09; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; }
+pre { padding:20px; border-radius:12px; border:1px solid var(--line); background:var(--panel); white-space:pre-wrap; overflow-wrap:anywhere; }
+pre code { padding:0; background:none; }
+footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
+@media(max-width:780px) { .hero { grid-template-columns:1fr; gap:24px; } h1 { max-width:none; } .topbar { justify-content:flex-start; } th,td { padding:10px; } }
+@media print { :root { color-scheme:light; --ink:#171717; --muted:#444; --paper:#fff; --panel:#fff; --line:#bbb; --gold:#654a0a; } body { background:white; } .page { max-width:none; padding:0; } .topbar,.contents { display:none; } .hero { padding-top:0; } .verdict { background:white; } .table-wrap { overflow:visible; } tr { break-inside:avoid; } pre { background:#f5f5f5; } }
+</style>
+</head>
+<body>
+<main class="page">
+<nav class="topbar" aria-label="Guide navigation"><a href="index.html">← Strategy catalog</a><a href="../boards/calibration/first-game.html">View the board</a><a href="first-game-militia-market.html">Strategy implementation</a><a href="first-game-smithy-militia.html">Known-best reference</a></nav>
+<header class="hero">
+<div class="intro"><span class="eyebrow">Board strategy search · base set</span><h1>First Game</h1><p><strong>Skip Smithy. Buy Militia, then Markets, then money.</strong> On the base-set "First Game" kingdom (Cellar, Market, Merchant, Militia, Mine, Moat, Remodel, Smithy, Village, Workshop) a money deck with up to three Militias and three Markets beat the community answer, Smithy money with one Militia, in 71.7% of 1,000 paired games, and beat straight Big Money in 89.4%.</p>
+<p>Every engine, Remodel, Merchant, Mine, Workshop and Cellar variant tried lost to the money line. Two players, Estate starts, no Colonies or Shelters.</p>
+</div>
+<aside class="verdict" aria-label="Recommendation"><span class="eyebrow">Best found vs Smithy/Militia money</span><strong>71.7%</strong><p>1,000 paired games, 95% interval 68.9%–74.5%. Implemented as <a href="first-game-militia-market.html">First Game Militia Market</a>.</p><p>128,200 scored games across four search stages</p></aside>
+</header>
+<nav class="contents" aria-label="On this page"><a href="#the-strategy">The strategy</a><a href="#how-the-search-ran">How the search ran</a><a href="#finalist-results">Finalist results</a><a href="#what-lost-and-why">What lost and why</a><a href="#genetic-search">Genetic search</a><a href="#reproduction">Reproduction</a></nav>
+
+<section class="section"><h2 id="the-strategy">The strategy</h2>
+<p>The buy list is plain Big Money with two kingdom cards added, in this order:</p>
+<ol>
+<li><strong>Province</strong>; Duchy once four or fewer Provinces remain; Estate once two or fewer remain.</li>
+<li><strong>Gold.</strong></li>
+<li><strong>Market</strong>, up to three copies.</li>
+<li><strong>Militia</strong>, up to three copies.</li>
+<li><strong>Silver.</strong></li>
+</ol>
+<p>Play Markets first, then one Militia. There is no Smithy, no Village and no trashing. Militia is the only terminal, so up to three copies collide rarely and the attack lands most turns from the mid-game on. Markets are cantrips that add a coin, a buy and no terminal risk, which is exactly what a Militia deck wants: more coin density without more dead draws under the mirror attack.</p>
+<p>The board's cards that do not appear: Smithy (its draw gets cut to three cards by the opponent's Militia and it collides with Militia), Cellar, Merchant, Mine, Moat, Remodel, Village and Workshop.</p>
+</section>
+
+<section class="section"><h2 id="how-the-search-ran">How the search ran</h2>
+<p>The ten cards were audited against their printed text first (the repository's standing lesson from the Hyderabad, Vientiane and Port Moresby boards). All ten base-set implementations matched, including Merchant's once-per-turn Silver bonus, Militia's discard-to-three and Remodel's mandatory trash.</p>
+<p>The search itself was a hand-variant round robin: one parameterised money/engine strategy family (<code>scripts/search_first_game.py</code>) with caps and gates as parameters, played in paired seats so each shuffle seed is used from both starting positions. Ties count half.</p>
+<div class="table-wrap" role="region" aria-label="Search stages" tabindex="0"><table>
+<thead><tr><th>Stage</th><th>Scope</th><th style="text-align:right;">Games</th><th>Leader</th></tr></thead>
+<tbody>
+<tr><td>1 · Archetypes</td><td>21 variants: Big Money, Smithy/Militia mixes, Market, Merchant, Cellar, Moat, Remodel, Mine, Workshop adds, three Village/Smithy engines · 200 games per pair</td><td style="text-align:right;">42,000</td><td>Double Militia money, 67.2% average</td></tr>
+<tr><td>2 · Around Double Militia</td><td>20 variants: Militia caps, Market adds, greening gates, timing, one-card adds · 200 games per pair</td><td style="text-align:right;">38,000</td><td>Double Militia + two Markets, 61.2% average</td></tr>
+<tr><td>3 · Market/Militia sweep</td><td>17 variants: Militia 1–3 × Market 2–4, gates, adds, Market-over-Gold · 200 games per pair</td><td style="text-align:right;">27,200</td><td>Triple Militia + three Markets, 58.4% average</td></tr>
+<tr><td>4 · Finalists</td><td>7 strategies · 1,000 games per pair</td><td style="text-align:right;">21,000</td><td>Triple Militia + three Markets, 64.9% average</td></tr>
+</tbody></table></div>
+<p>Stage 1 ranking, average win rate against the other 20 variants (the known-best encoding is "Smithy ×2, Militia ×1"):</p>
+<div class="table-wrap" role="region" aria-label="Stage 1 results" tabindex="0"><table>
+<thead><tr><th>Variant</th><th style="text-align:right;">Average win rate</th></tr></thead>
+<tbody>
+<tr><td>Militia ×2 (no Smithy)</td><td style="text-align:right;">67.2%</td></tr>
+<tr><td>Smithy ×1, Militia ×1</td><td style="text-align:right;">62.0%</td></tr>
+<tr><td>Smithy ×1, Militia ×2</td><td style="text-align:right;">61.8%</td></tr>
+<tr><td>Militia ×1</td><td style="text-align:right;">60.9%</td></tr>
+<tr><td>Smithy ×1</td><td style="text-align:right;">59.0%</td></tr>
+<tr><td>Smithy ×2, Militia ×1, Market ×2</td><td style="text-align:right;">58.1%</td></tr>
+<tr><td>Smithy ×2 (Double Smithy)</td><td style="text-align:right;">57.6%</td></tr>
+<tr><td>Smithy ×2, Militia ×1 (known best)</td><td style="text-align:right;">56.2%</td></tr>
+<tr><td>Smithy ×2, Militia ×1 + Moat / Cellar / Mine</td><td style="text-align:right;">51–55%</td></tr>
+<tr><td>Smithy ×2, Militia ×1 + Remodel</td><td style="text-align:right;">43.0%</td></tr>
+<tr><td>Smithy ×2, Militia ×1 + Merchant</td><td style="text-align:right;">40.4%</td></tr>
+<tr><td>Big Money</td><td style="text-align:right;">37.5%</td></tr>
+<tr><td>Village/Smithy/Market engines (three shapes)</td><td style="text-align:right;">25–33%</td></tr>
+<tr><td>Smithy ×2, Militia ×1 + Workshop</td><td style="text-align:right;">30.4%</td></tr>
+</tbody></table></div>
+</section>
+
+<section class="section"><h2 id="finalist-results">Finalist results</h2>
+<p>Stage 4: 1,000 paired games per pair, row beats column. The 95% interval on a 1,000-game cell is about ±3 points.</p>
+<div class="table-wrap" role="region" aria-label="Finalist win-rate matrix" tabindex="0"><table>
+<thead><tr><th>Row vs column</th><th>Big Money</th><th>Smithy ×2 Militia ×1</th><th>Militia ×2</th><th>Militia ×2 Market ×2</th><th>Militia ×3 Market ×2</th><th>Militia ×3 Market ×3</th><th>Militia ×2 Market ×2 Moat</th><th style="text-align:right;">Average</th></tr></thead>
+<tbody>
+<tr><td><strong>Militia ×3 Market ×3</strong></td><td>89.4%</td><td>71.7%</td><td>70.4%</td><td>54.7%</td><td>52.2%</td><td>—</td><td>51.2%</td><td style="text-align:right;"><strong>64.9%</strong></td></tr>
+<tr><td>Militia ×2 Market ×2 + Moat</td><td>85.4%</td><td>69.1%</td><td>66.1%</td><td>53.6%</td><td>52.0%</td><td>48.8%</td><td>—</td><td style="text-align:right;">62.5%</td></tr>
+<tr><td>Militia ×3 Market ×2</td><td>88.3%</td><td>68.6%</td><td>66.7%</td><td>53.1%</td><td>—</td><td>47.8%</td><td>48.0%</td><td style="text-align:right;">62.1%</td></tr>
+<tr><td>Militia ×2 Market ×2</td><td>86.7%</td><td>67.5%</td><td>64.2%</td><td>—</td><td>46.9%</td><td>45.3%</td><td>46.4%</td><td style="text-align:right;">59.5%</td></tr>
+<tr><td>Militia ×2</td><td>82.7%</td><td>58.2%</td><td>—</td><td>35.8%</td><td>33.3%</td><td>29.6%</td><td>33.9%</td><td style="text-align:right;">45.6%</td></tr>
+<tr><td>Smithy ×2 Militia ×1 (known best)</td><td>68.7%</td><td>—</td><td>41.8%</td><td>32.5%</td><td>31.4%</td><td>28.3%</td><td>30.9%</td><td style="text-align:right;">38.9%</td></tr>
+<tr><td>Big Money</td><td>—</td><td>31.3%</td><td>17.3%</td><td>13.3%</td><td>11.7%</td><td>10.6%</td><td>14.6%</td><td style="text-align:right;">16.5%</td></tr>
+</tbody></table></div>
+<p>The three Militia/Market variants at the top are within noise of each other (51–55% cells). Triple Militia with three Markets is published because it had the best average in both stage 3 and stage 4; two Militias with two Markets and a Moat is an equally defensible choice. All of them beat the community answer by roughly two to one.</p>
+<p>Independent confirmation with the repository's standard battle tool (<code>strategy_battle</code>, 400 games, alternating seats, fresh seeds) on the same board:</p>
+<div class="table-wrap" role="region" aria-label="Battle confirmation" tabindex="0"><table>
+<thead><tr><th>Matchup</th><th style="text-align:right;">First Game Militia Market wins</th></tr></thead>
+<tbody>
+<tr><td>vs First Game Smithy Militia (calibration known-best)</td><td style="text-align:right;">277 / 400 · 69.2%</td></tr>
+<tr><td>vs Big Money (library strategy)</td><td style="text-align:right;">393 / 400 · 98.2%</td></tr>
+</tbody></table></div>
+<p>The library Big Money loses more heavily than the search harness's own kingdom-free variant (89.4% above) because the library version greens on a different schedule; both numbers say the same thing.</p>
+</section>
+
+<section class="section"><h2 id="what-lost-and-why">What lost and why</h2>
+<ul>
+<li><strong>Smithy money.</strong> The classic answer for this kingdom, but under a Militia attack a Smithy hand of three cards draws into an average of about four coins, and Smithy collides with the Militia the deck also wants. Removing both Smithies from the known-best encoding raised its average win rate by 11 points in stage 1; adding a Smithy to the Militia/Market line cost 10–20 points in stages 2 and 3.</li>
+<li><strong>Village/Smithy/Market engines.</strong> Three shapes were tried (two to four Villages paired to Smithies, with Markets, with and without Remodel). All finished at 25–33% average: no +Buy beyond Market, no trashing worth the tempo, and Militia hits the engine's five-card hands hardest.</li>
+<li><strong>Remodel.</strong> Estate-to-Silver early and Gold-to-Province late, played only when a target is in hand, still cost 13 points. A terminal that competes with Militia for the action and gives up a Gold is not worth it in a game that ends around turn 16.</li>
+<li><strong>Merchant.</strong> A cantrip that only pays with a Silver in the same hand; it dilutes the money faster than it adds. Cost 16 points in stage 1 and 5 points in stage 3.</li>
+<li><strong>Mine, Workshop, Cellar.</strong> Mine's Silver-to-Gold upgrade is too slow; Workshop gains nothing this deck wants; Cellar was neutral to slightly negative. Moat was neutral to slightly positive as the fourth card, blocking about half of the mirror's attacks for a $2 card.</li>
+<li><strong>Greening gates.</strong> Duchy at three Provinces left lost 7 points; at five left, neutral. The standard four-Province gate was kept.</li>
+<li><strong>Market over Gold.</strong> Taking Market ahead of Gold at $6+ cost 9 points; Markets are a supplement to the money, not the economy.</li>
+</ul>
+</section>
+
+<section class="section"><h2 id="genetic-search">Genetic search</h2>
+<p>The island genetic search (<code>scripts/island_evolve.py</code>, six islands, population 20, 15 generations, 12 games per evaluation, default Big Money and library panel) was run on the board as an independent check. Every island converged to a money deck; none kept a Village. The island seeded with the Village/Smithy engine archetype converged to <strong>Militia ×3 and Market ×4 over money</strong>, the same shape the hand search found, and the island seeded with the known-best Smithy/Militia strategy dropped its Smithies and kept a single Militia.</p>
+<p>Round robin of the six island champions against the published strategy, the known-best and Big Money (200 games per pair, alternating seats):</p>
+<div class="table-wrap" role="region" aria-label="Island champion tournament" tabindex="0"><table>
+<thead><tr><th>Strategy</th><th style="text-align:right;">Average win rate</th><th style="text-align:right;">vs First Game Militia Market</th></tr></thead>
+<tbody>
+<tr><td><strong>First Game Militia Market</strong> (published)</td><td style="text-align:right;"><strong>77.6%</strong></td><td style="text-align:right;">—</td></tr>
+<tr><td>Engine Village + Smithy champion (Militia ×3, Market ×4, Militia before Gold)</td><td style="text-align:right;">65.1%</td><td style="text-align:right;">38.5%</td></tr>
+<tr><td>First Game Smithy Militia (known best)</td><td style="text-align:right;">57.6%</td><td style="text-align:right;">30.5%</td></tr>
+<tr><td>Big Money Island champion (Militia ×1, Smithy ×1)</td><td style="text-align:right;">56.5%</td><td style="text-align:right;">23.5%</td></tr>
+<tr><td>Reuse Smithy/Militia champion (Militia ×1, no Smithy)</td><td style="text-align:right;">53.2%</td><td style="text-align:right;">23.0%</td></tr>
+<tr><td>Engine Village + Moat champion (Militia ×2 money)</td><td style="text-align:right;">52.2%</td><td style="text-align:right;">21.5%</td></tr>
+<tr><td>Reuse gen0 champion (Mine ×1, Militia ×1 money)</td><td style="text-align:right;">45.1%</td><td style="text-align:right;">21.0%</td></tr>
+<tr><td>Reuse Village/Smithy/Lab champion (Smithy ×1 money)</td><td style="text-align:right;">36.3%</td><td style="text-align:right;">19.0%</td></tr>
+<tr><td>Big Money</td><td style="text-align:right;">6.4%</td><td style="text-align:right;">2.5%</td></tr>
+</tbody></table></div>
+<p>The genetic search found the right cards but not the right ordering: its best champion takes Militia ahead of Gold and greens from six Provinces left, and loses 61.5% to the hand-tuned list. The earlier calibration-suite run on this board (population 30, 30 generations) had its champion tie the known-best at 51.5%, which is consistent with a search that stops at Militia money without the Markets.</p>
+</section>
+
+<section class="section"><h2 id="reproduction">Reproduction</h2>
+<p>From the repository root:</p>
+<pre><code>PYTHONPATH=. python scripts/search_first_game.py --stage 1
+PYTHONPATH=. python scripts/search_first_game.py --stage 2
+PYTHONPATH=. python scripts/search_first_game.py --stage 3
+PYTHONPATH=. python scripts/search_first_game.py --stage 4   # 1,000 games per pair
+
+PYTHONPATH=. python -m dominion.simulation.strategy_battle \
+    "First Game Militia Market" "First Game Smithy Militia" \
+    --board boards/calibration/first_game.txt --games 400 --no-report --print</code></pre>
+<p>Stage seeds are fixed (1000, 2000, 3000, 4000), so the tables above reproduce exactly. Pass <code>--checkpoint &lt;file&gt;</code> to save finished matchups and resume after an interruption, and <code>--workers N</code> to set the process count.</p>
+</section>
+
+<footer>Board: <a href="../boards/calibration/first-game.html">First Game</a> (calibration suite). Strategy: <a href="first-game-militia-market.html">First Game Militia Market</a>. Search date: 8 September 2026.</footer>
+</main>
+</body>
+</html>
