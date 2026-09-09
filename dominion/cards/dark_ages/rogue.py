@@ -82,7 +82,9 @@ class Rogue(Card):
 
         # Now check trash for $3-$6 to gain
         eligible_in_trash = [
-            c for c in game_state.trash if 3 <= c.cost.coins <= 6
+            c
+            for c in game_state.trash
+            if 3 <= game_state.get_card_cost(attacker, c) <= 6
         ]
         if eligible_in_trash:
             choice = attacker.ai.should_gain_from_trash_with_rogue(

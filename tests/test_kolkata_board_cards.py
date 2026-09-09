@@ -398,6 +398,66 @@ def test_scheme_topdecks_nothing_when_journey_keeps_cards_in_play():
     assert stables not in player.hand and scheme not in player.hand
 
 
+def test_scheme_kept_in_play_by_journey_does_not_fire_at_the_extra_turns_cleanup():
+    state = _setup(["Scheme", "Stables"])
+    player = state.current_player
+    scheme = get_card("Scheme")
+    stables = get_card("Stables")
+    player.in_play = [scheme, stables]
+    player.journey_extra_turn_pending = True
+    player.hand = []
+    player.duration = []
+    player.deck = [get_card("Copper") for _ in range(10)]
+    player.discard = []
+    state.phase = "cleanup"
+    state.handle_cleanup_phase()
+    assert scheme in player.in_play and stables in player.in_play
+
+    # Extra turn: nothing new was played; the old Scheme must not trigger.
+    player.journey_extra_turn_pending = False
+    player.hand = []
+    state.phase = "cleanup"
+    state.handle_cleanup_phase()
+    assert stables in player.discard and scheme in player.discard
+    assert not any(c.name in {"Scheme", "Stables"} for c in player.hand)
+
+
+def test_knight_attack_counts_a_retained_bridge_troll_once():
+    state = _setup(["Knights", "Bridge Troll"])
+    attacker, victim = state.players
+    troll = get_card("Bridge Troll")
+    attacker.in_play = [troll]
+    attacker.duration = [troll]
+    destry = get_card("Sir Destry")
+    attacker.in_play.append(destry)
+    attacker.deck = [get_card("Copper"), get_card("Copper")]
+    province = get_card("Province")
+    victim.deck = [get_card("Copper"), province]
+
+    destry.play_effect(state)
+
+    # One Troll makes a Province cost $7: still outside the $3-$6 window.
+    assert province not in state.trash
+    assert province in victim.discard
+
+
+def test_rogue_trash_gain_uses_the_attackers_cost_reduction():
+    state = _setup(["Rogue", "Highway"])
+    attacker, victim = state.players
+    attacker.cost_reduction = 1
+    rogue = get_card("Rogue")
+    attacker.in_play.append(rogue)
+    forge = get_card("Forge")  # $7, $6 with the reduction
+    state.trash = [forge]
+    victim.deck = [get_card("Copper"), get_card("Copper")]
+    attacker.ai.should_gain_from_trash_with_rogue = lambda s, p, choices: choices[0]
+
+    rogue.play_effect(state)
+
+    assert forge not in state.trash
+    assert forge in attacker.discard
+
+
 def test_scheme_topdeck_choice_is_forwarded_to_the_strategy():
     from dominion.ai.genetic_ai import GeneticAI
     from dominion.strategy.strategies.big_money import create_big_money

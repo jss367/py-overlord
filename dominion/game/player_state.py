@@ -127,6 +127,9 @@ class PlayerState:
     # Plunder Journey event: once-per-turn lockout and extra-turn pending flag.
     journey_used_this_turn: bool = False
     journey_extra_turn_pending: bool = False
+    # Actions kept in play by Journey; they do not re-trigger Scheme at the
+    # extra turn's Clean-up.
+    journey_retained_actions: list = field(default_factory=list)
     # Generic "the current turn is an extra turn from any source" flag, used
     # by Journey to enforce its "not a 3rd in a row" restriction. Set at end
     # of cleanup whenever the next turn is an extra turn (Outpost, Journey,
@@ -352,6 +355,7 @@ class PlayerState:
         self.launch_used = False
         self.journey_used_this_turn = False
         self.journey_extra_turn_pending = False
+        self.journey_retained_actions = []
         self.took_extra_turn_last_turn = False
         self.cage_state = None
         self.grotto_set_aside = []

@@ -3059,8 +3059,13 @@ class GameState:
         # cleanup). Scan every player's in_play and duration zones.
         bt_count = 0
         for tracker in self.players:
-            bt_count += sum(1 for c in tracker.duration if c.name == "Bridge Troll")
-            bt_count += sum(1 for c in tracker.in_play if c.name == "Bridge Troll")
+            # A retained Troll sits in both duration and in_play: count each
+            # physical card once.
+            bt_count += sum(
+                1
+                for c in dict.fromkeys(tracker.duration + tracker.in_play)
+                if c.name == "Bridge Troll"
+            )
         if bt_count:
             cost -= bt_count
 
@@ -3278,7 +3283,15 @@ class GameState:
         self._call_tavern_triggers(player, "cleanup_start")
 
         # Discard hand and in-play cards
-        scheme_count = sum(1 for card in player.in_play if card.name == "Scheme")
+        # Scheme's trigger belongs to the turn it was played. Actions kept in
+        # play by Journey (including a Scheme) were not played on the extra
+        # turn, so they do not trigger at its Clean-up.
+        journey_retained = set(getattr(player, "journey_retained_actions", []))
+        scheme_count = sum(
+            1
+            for card in player.in_play
+            if card.name == "Scheme" and card not in journey_retained
+        )
         # After buying Journey nothing is discarded from play this Clean-up,
         # so Scheme has no card to put on the deck.
         if scheme_count and not getattr(player, "journey_extra_turn_pending", False):
@@ -3336,9 +3349,13 @@ class GameState:
         # the granted extra turn.
         journey_extra_turn = bool(getattr(player, "journey_extra_turn_pending", False))
         if journey_extra_turn:
-            for card in player.in_play:
-                if card.is_action:
-                    durations_to_keep.add(card)
+            player.journey_retained_actions = [
+                card for card in player.in_play if card.is_action
+            ]
+            for card in player.journey_retained_actions:
+                durations_to_keep.add(card)
+        else:
+            player.journey_retained_actions = []
 
         # Determine which Treasures (if any) Trickster will set aside before
         # firing discard-from-play hooks, so we don't trigger those hooks on
