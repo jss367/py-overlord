@@ -50,3 +50,30 @@ def test_sewers_declines_when_no_priority_card_is_in_hand():
 
     assert [c.name for c in state.trash] == ["Estate"]
     assert len(player.hand) == 2
+
+
+def test_sewers_still_triggers_for_a_separate_trash_nested_inside_its_own():
+    """A different card trashed while the Sewers trash resolves (e.g. a Pious
+    pile card) is not trashed "with Sewers" and gets its own trigger."""
+
+    class TrashAnotherOnFirstTrash:
+        name = "Fake Pious"
+        fired = False
+
+        def on_trash(self, game_state, player, card):
+            if self.fired:
+                return
+            self.fired = True
+            game_state.trash_card(player, get_card("Curse"))
+
+    player = _player_with_sewers(["Estate", "Estate", "Copper", "Gold"])
+    state = GameState(players=[player], supply={"Gold": 30})
+    state.landmarks = [TrashAnotherOnFirstTrash()]
+    trashed = player.hand.pop(3)  # Gold, trashed by something other than Sewers
+
+    state.trash_card(player, trashed)
+
+    # Gold -> Sewers trashes Estate -> fake Pious trashes a Curse -> that Curse
+    # trash gets its own Sewers trigger (Estate), but Sewers' own trashes do not.
+    assert [c.name for c in state.trash] == ["Gold", "Estate", "Curse", "Estate"]
+    assert sorted(c.name for c in player.hand) == ["Copper"]

@@ -53,6 +53,22 @@ nm_vs_smithy = next(x for x in first if x["a"] == nm and "money" in x["b"])["rat
 tomb = sum(x["totals"]["tomb_points"] for x in final if x["a"] == FINAL) / sum(x["games"] for x in final if x["a"] == FINAL)
 style = re.search(r"<style>.*?</style>", Path("dominion/reporting/curated_strategy_guides/mine-guildhall-strategy-guide.html").read_text(), re.S).group(0)
 vs_nm, vs_sm = pct(rate(FINAL, nm)), pct(rate(FINAL, {"money": "Smithy"}))
+def ci(a, b):
+    lo, hi = res[(key(a), key(b))]["paired_ci95"]
+    return lo, hi
+short_labels = {
+    "no_mine": "no Mine", "no_sewers": "no Sewers", "no_priest": "no Priest",
+    "no_squares": "no Market Square", "copper_first": "Copper-first upgrades",
+    "throne_room": "adding Throne Room", "kings_court": "adding King's Court",
+    "two_mines": "a second Mine", "lab_opening": "the Laboratory opening",
+    "silver_second": "Silver as the second card",
+}
+unseparated = ", ".join(
+    short_labels[k]
+    for k in change_labels
+    if ci(FINAL, changes[k])[0] <= 0.5 <= ci(FINAL, changes[k])[1]
+)
+two_mine_ci = "%s to %s" % tuple(pct(v) for v in ci(FINAL, changes["two_mines"]))
 html = f'''<!doctype html>
 <html lang="en">
 <head>
@@ -113,7 +129,7 @@ html = f'''<!doctype html>
 <tbody>
 {chr(10).join(arows)}
 </tbody></table></div>
-<p>Approximate sampling uncertainty for a 1,000-game result near 50% is three percentage points, before allowing for dependence between paired games. Results within that band (Market Square, King's Court, the Laboratory opening, and a second Mine) are not separated.</p>
+<p>Approximate sampling uncertainty for a 1,000-game result near 50% is three percentage points, before allowing for dependence between paired games. Changes whose paired 95% interval includes 50% ({unseparated}) are not separated from the published engine; the second Mine's interval ({two_mine_ci}) sits just above it.</p>
 <p><strong>Practical takeaway:</strong> Mine is the engine here, not a support card. The same policy family without Mine falls from {vs_nm} to {pct(rate(changes["no_mine"], nm))} against the best no-Mine plan, and Sewers and Priest are the pieces that make the difference: Sewers turns each Mine play into a second trash and a second Tomb point, and Priest turns both trashes into money. The multipliers that seem made for Mine are the trap.</p>
 </section>
 <section class="section"><h2 id="reproduction">Reproduction</h2>
