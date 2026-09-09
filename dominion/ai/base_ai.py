@@ -1920,6 +1920,9 @@ class AI(ABC):
             gainer = state.current_player
             if gainer not in players or gainer is player:
                 return False
+            # A skipped turn (Lich) means this player does not act next.
+            if getattr(player, "turns_to_skip", 0):
+                return False
             # An extra turn already scheduled for the gainer (Outpost,
             # Mission, Voyage, Journey, Fleet) means they act again first
             # and would take the Fool's Gold themselves.

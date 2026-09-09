@@ -547,3 +547,16 @@ def test_raider_plays_in_the_night_phase_and_sees_treasures_in_play():
     state.handle_night_phase()
     assert raider in p0.duration
     assert [c.name for c in p1.discard] == ["Silver"]
+
+
+def test_fools_gold_reaction_declined_when_own_turn_is_skipped():
+    state = _game()
+    p0, p1 = state.players
+    state.current_player_index = 0
+    p1.turns_to_skip = 1
+    p1.hand = [get_card("Fool's Gold")]
+    p1.deck = [get_card("Copper")]
+    state.supply["Province"] -= 1
+    state.gain_card(p0, get_card("Province"))
+    assert len(p1.hand) == 1
+    assert p1.deck[-1].name == "Copper"
