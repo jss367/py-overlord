@@ -3235,7 +3235,9 @@ class GameState:
 
         # Discard hand and in-play cards
         scheme_count = sum(1 for card in player.in_play if card.name == "Scheme")
-        if scheme_count:
+        # After buying Journey nothing is discarded from play this Clean-up,
+        # so Scheme has no card to put on the deck.
+        if scheme_count and not getattr(player, "journey_extra_turn_pending", False):
             # Only Actions that are actually discarded from play this
             # Clean-up qualify: a Duration staying in play is not discarded,
             # and neither is a multiplier (Throne Room, King's Court) that is

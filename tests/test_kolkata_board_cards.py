@@ -313,6 +313,25 @@ def test_scheme_does_not_topdeck_a_multiplier_retained_by_its_duration_target():
     assert scheme in player.hand
 
 
+def test_scheme_topdecks_nothing_when_journey_keeps_cards_in_play():
+    state = _setup(["Scheme", "Stables"])
+    player = state.current_player
+    scheme = get_card("Scheme")
+    stables = get_card("Stables")
+    player.in_play = [scheme, stables]
+    player.journey_extra_turn_pending = True
+    player.hand = []
+    player.duration = []
+    player.deck = [get_card("Copper") for _ in range(5)]
+    player.discard = []
+
+    state.phase = "cleanup"
+    state.handle_cleanup_phase()
+
+    assert stables in player.in_play and scheme in player.in_play
+    assert stables not in player.hand and scheme not in player.hand
+
+
 def test_scheme_topdeck_choice_is_forwarded_to_the_strategy():
     from dominion.ai.genetic_ai import GeneticAI
     from dominion.strategy.strategies.big_money import create_big_money
@@ -436,6 +455,26 @@ def test_a_knights_rule_matches_the_top_knight_and_counts_all_knights():
     player.discard = [get_card("Sir Bailey"), get_card("Dame Anna")]
     assert player.count_in_deck("Knights") == 2
     assert strategy.choose_gain(state, player, [silver, top, None]) is silver
+
+
+# ------------------------------------------------------------------ Artist
+
+
+def test_artist_counts_a_retained_duration_once():
+    state = _setup(["Artist", "Research"])
+    player = state.current_player
+    research = get_card("Research")
+    artist = get_card("Artist")
+    # A Research played last turn is in both in_play and duration.
+    player.in_play = [research, artist]
+    player.duration = [research]
+    player.deck = [get_card("Copper") for _ in range(5)]
+    player.hand = []
+
+    artist.play_effect(state)
+
+    # Research and Artist are each a singleton: +2 Cards.
+    assert len(player.hand) == 2
 
 
 # ---------------------------------------------------------- Best Found
