@@ -97,6 +97,20 @@ def test_compatibility_requires_referenced_landscapes():
     assert strategy_is_compatible(strategy, board)
 
 
+def test_compatibility_includes_starting_heirlooms():
+    strategy = collect_rendered_strategies(names=["Big Money"])[0]
+    strategy = replace(strategy, references={**strategy.references, "Kingdom Cards": ["Pasture"]})
+    board = RenderedBoard(
+        display_name="Shepherd Kingdom",
+        page_path=Path("shepherd.html"),
+        source_path=Path("boards/shepherd.txt"),
+        config=BoardConfig(["Shepherd"]),
+    )
+    assert strategy_is_compatible(strategy, board)
+    board.config.kingdom_cards = ["Village"]
+    assert not strategy_is_compatible(strategy, board)
+
+
 def test_compatibility_includes_setup_created_piles():
     strategy = collect_rendered_strategies(names=["Big Money"])[0]
     strategy = replace(
@@ -166,6 +180,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "boards/nested/other-board.html",
         "boards/sample-board.html",
         "strategies/big-money.html",
+        "strategies/random-unused-card-kingdom-guide.html",
         "strategies/cursed-band-biding-time-strategy-guide.html",
         "strategies/tea-house-kind-emperor-strategy-guide.html",
         "strategies/mine-guildhall-strategy-guide.html",
