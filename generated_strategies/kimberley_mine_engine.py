@@ -43,9 +43,15 @@ class KimberleyMine(EnhancedStrategy):
     ):
         super().__init__()
         self.name = "Kimberley Mine Engine"
+        multipliers = [
+            name
+            for name, count in (("Throne Room", thrones), ("King's Court", kings))
+            if count
+        ]
         self.description = (
-            "Mine climbs Treasures to Platinum under King's Court; "
-            "Sewers, Tomb, Priest, and Market Square pay out on each trash."
+            "Mine climbs Copper to Silver to Gold to Platinum in hand"
+            + (f", repeated by {' and '.join(multipliers)}" if multipliers else ", with no multipliers")
+            + "; Sewers, Tomb, Priest, and Market Square pay out on each trash."
         )
         self.params = dict(
             opening=opening,
