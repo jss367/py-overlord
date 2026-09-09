@@ -70,7 +70,13 @@ class Artificer(Card):
 
 
 def _exposed_supply_card(game_state, pile_name):
-    """The card a gainer would take from ``pile_name`` (top of ordered piles)."""
+    """The card a gainer would take from ``pile_name`` (top of ordered piles).
+
+    Split piles (Catapult/Rocks, Castles, the Allies rotating piles) keep one
+    ``supply`` count per member, so iterating ``game_state.supply`` visits
+    buried members too. Only the physically exposed card is offered: this is
+    the card ``take_top_supply_card(supply_pile_key(name))`` will remove.
+    """
 
     if game_state.supply.get(pile_name, 0) <= 0:
         return None
@@ -84,6 +90,8 @@ def _exposed_supply_card(game_state, pile_name):
         card = get_card(pile_name)
     except ValueError:
         return None
+    if game_state.top_supply_card(pile_name) != pile_name:
+        return None  # buried under another member of its split pile
     if not card.may_be_gained(game_state):
         return None
     return card

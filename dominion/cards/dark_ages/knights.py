@@ -69,7 +69,7 @@ class _BaseKnight(Card):
             trashable = [
                 c
                 for c in revealed
-                if 3 <= game_state.get_card_cost(target, c) <= 6
+                if 3 <= game_state.get_card_cost(attacker, c) <= 6
             ]
 
             if trashable:

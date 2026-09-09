@@ -22,7 +22,7 @@ class Stables(Card):
         choice = player.ai.choose_treasure_to_discard_for_stables(
             game_state, player, list(treasures)
         )
-        if choice is None or choice not in player.hand:
+        if choice is None or choice not in treasures:
             return
         player.hand.remove(choice)
         game_state.discard_card(player, choice)

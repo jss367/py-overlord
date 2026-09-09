@@ -23,7 +23,7 @@ class SpiceMerchant(Card):
         to_trash = player.ai.choose_treasure_to_trash_for_spice_merchant(
             game_state, player, list(treasures)
         )
-        if to_trash is None or to_trash not in player.hand:
+        if to_trash is None or to_trash not in treasures:
             return
 
         player.hand.remove(to_trash)

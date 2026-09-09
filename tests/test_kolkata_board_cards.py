@@ -398,3 +398,129 @@ def test_kolkata_best_found_keeps_coppers_and_plays_spoils():
     assert strategy.choose_trash(state, player, [copper, estate]) is estate
     assert strategy.choose_trash(state, player, [copper]) is None
     assert strategy.choose_treasure(state, player, [spoils, None]) is spoils
+
+
+# ----------------------------------------------- Review regressions (#363)
+
+
+def test_artificer_only_offers_the_exposed_card_of_a_split_pile():
+    from dominion.cards.adventures.artificer import _exposed_supply_card
+
+    state = _setup(["Artificer", "Catapult"], wants=["Rocks"])
+    player = state.current_player
+    # Rocks costs $4 but sits under the Catapults: it must not be offered
+    # while a Catapult is on top, and Catapult stays a $3 candidate.
+    assert _exposed_supply_card(state, "Rocks") is None
+    assert _exposed_supply_card(state, "Catapult").name == "Catapult"
+
+    player.hand = [get_card("Copper") for _ in range(4)]
+    player.deck = []
+    artificer = get_card("Artificer")
+    player.in_play.append(artificer)
+    artificer.play_effect(state)
+
+    # Rocks was the only wanted card, so nothing is gained or discarded.
+    assert player.deck == []
+    assert len(player.hand) == 4
+    assert state.supply["Catapult"] == 5 and state.supply["Rocks"] == 5
+
+    # Once the Catapults are gone, Rocks is exposed and the gain takes it.
+    state.supply["Catapult"] = 0
+    assert _exposed_supply_card(state, "Catapult") is None
+    assert _exposed_supply_card(state, "Rocks").name == "Rocks"
+    artificer.play_effect(state)
+
+    assert player.deck and player.deck[-1].name == "Rocks"
+    assert state.supply["Rocks"] == 4
+    assert len(player.hand) == 0
+
+
+def test_knight_attack_uses_the_attackers_cost_reduction():
+    state = _setup(["Knights", "Highway"])
+    attacker, victim = state.players
+    destry = get_card("Sir Destry")
+    attacker.in_play.append(destry)
+    attacker.deck = [get_card("Copper"), get_card("Copper")]
+    # Highway in the attacker's play: a $7 card costs $6 and is trashable.
+    attacker.cost_reduction = 1
+    forge = get_card("Forge")
+    copper = get_card("Copper")
+    victim.deck = [copper, forge]
+
+    destry.play_effect(state)
+
+    assert forge in state.trash
+    assert copper in victim.discard
+
+
+def test_knight_attack_ignores_the_victims_cost_reduction():
+    state = _setup(["Knights", "Highway"])
+    attacker, victim = state.players
+    destry = get_card("Sir Destry")
+    attacker.in_play.append(destry)
+    attacker.deck = [get_card("Copper"), get_card("Copper")]
+    # A stale reduction on the victim must not make a $7 card eligible.
+    victim.cost_reduction = 1
+    forge = get_card("Forge")
+    copper = get_card("Copper")
+    victim.deck = [copper, forge]
+
+    destry.play_effect(state)
+
+    assert not state.trash
+    assert forge in victim.discard and copper in victim.discard
+
+
+def test_rogue_attack_uses_the_attackers_cost_reduction():
+    state = _setup(["Rogue", "Highway"])
+    attacker, victim = state.players
+    rogue = get_card("Rogue")
+    attacker.in_play.append(rogue)
+    attacker.ai.should_gain_from_trash_with_rogue = lambda s, p, choices: None
+    attacker.cost_reduction = 1
+    forge = get_card("Forge")
+    copper = get_card("Copper")
+    victim.deck = [copper, forge]
+
+    rogue.play_effect(state)
+
+    assert forge in state.trash
+    assert copper in victim.discard
+
+
+def test_stables_rejects_a_non_treasure_returned_by_the_hook():
+    state = _setup(["Stables"])
+    player = state.current_player
+    estate = get_card("Estate")
+    gold = get_card("Gold")
+    player.hand = [gold, estate]
+    player.deck = [get_card("Copper") for _ in range(4)]
+    player.ai.choose_treasure_to_discard_for_stables = lambda s, p, choices: estate
+
+    stables = get_card("Stables")
+    player.in_play.append(stables)
+    stables.play_effect(state)
+
+    assert player.hand == [gold, estate]
+    assert not player.discard
+    assert player.actions == 1
+
+
+def test_spice_merchant_rejects_a_non_treasure_returned_by_the_hook():
+    state = _setup(["Spice Merchant"])
+    player = state.current_player
+    estate = get_card("Estate")
+    copper = get_card("Copper")
+    player.hand = [copper, estate]
+    player.deck = [get_card("Copper") for _ in range(3)]
+    player.ai.choose_treasure_to_trash_for_spice_merchant = (
+        lambda s, p, choices: estate
+    )
+
+    merchant = get_card("Spice Merchant")
+    player.in_play.append(merchant)
+    merchant.play_effect(state)
+
+    assert player.hand == [copper, estate]
+    assert not state.trash
+    assert player.coins == 0 and player.buys == 1 and player.actions == 1
