@@ -135,6 +135,7 @@ def test_render_strategy_pages_writes_index_and_strategy_page(tmp_path):
         "lisbon-strategy-guide.html",
         "oslo-strategy-guide.html",
         "port-moresby-strategy-guide.html",
+        "first-game-strategy-guide.html",
     }
 
     index = (tmp_path / "index.html").read_text(encoding="utf-8")
@@ -177,6 +178,7 @@ def test_render_strategy_pages_resolves_alias_names(tmp_path):
         "lisbon-strategy-guide.html",
         "oslo-strategy-guide.html",
         "port-moresby-strategy-guide.html",
+        "first-game-strategy-guide.html",
     }
 
     page = (tmp_path / "big-money.html").read_text(encoding="utf-8")
