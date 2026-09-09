@@ -39,8 +39,9 @@ PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodu
 PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill6.json --champion "Bilbao Best Found" --games 400 --seed 31
 ```
 
-`mill6.json` is the headline table; `mill1.json` and `mill2.json` predate the
-Shaman buy-order fix (Shaman before Hermit, only at $2-$3) and the pair mode.
+`mill6.json` is the headline table. All six sweeps were re-measured with the
+final class after review, so each command above reproduces the figures in the
+guide.
 
 `m4_bf_s2h1_grab` in `mill4.json` was corrected after review from
 `feodum_silvers: 0` to `1`: `has_cards(["Silver"], 0)` means "no Silver in
