@@ -232,3 +232,20 @@ def test_pair_mode_never_trashes_outside_two_player_games():
     state.trash = [get_card("Feodum")]
     _play(state, "Shaman")
     assert first in p0.hand and second in p0.hand
+
+
+def test_anvil_feodum_gain_honours_the_fodder_headroom():
+    mill = BilbaoShamanFeodumMill(anvil_gain="feodum", anvils=3, trash_stop_pile=3)
+    state = _game(mill)
+    p0 = state.players[0]
+    p0.deck = [get_card("Shaman")]
+    p0.hand = [get_card("Copper"), get_card("Copper")]
+    choices = [get_card("Feodum"), get_card("Silver")]
+
+    state.supply["Feodum"] = 4  # one above the stop: the gain would strand it
+    pick = mill.choose_anvil_gain(state, p0, choices)
+    assert pick is None or pick.name != "Feodum"
+
+    state.supply["Feodum"] = 5
+    pick = mill.choose_anvil_gain(state, p0, choices)
+    assert pick is not None and pick.name == "Feodum"

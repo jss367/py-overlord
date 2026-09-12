@@ -743,21 +743,25 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
             PriorityRule.turn_number("<=", trash_turn_max),
             PriorityRule.max_in_deck("Silver", trash_silver_cap),
         )
+        # Gaining fodder (by purchase or by Anvil) lowers the Feodum pile,
+        # and the trash can only happen on a later turn, so a fodder gain
+        # needs headroom under the pile stop and the turn cap on top of the
+        # mill gate; otherwise the gate would reject the fodder just gained.
+        self._fodder_gate = PriorityRule.and_(
+            self._mill_gate,
+            PriorityRule.pile_count("Feodum", ">", trash_stop_pile + 1),
+            PriorityRule.turn_number("<", trash_turn_max),
+            PriorityRule.max_in_deck("Feodum", fodder_max),
+        )
         # Fodder: a Feodum bought to be trashed. Only while a trasher exists,
-        # only while the trash policy is still active, and never more than
-        # ``fodder_max`` in the deck at once. The gain itself lowers the
-        # Feodum pile and the trash can only happen on a later turn, so the
-        # purchase also needs headroom under the pile stop and the turn cap;
-        # otherwise the mill gate would reject the fodder it just bought.
+        # only while the fodder gate is open, and never more than
+        # ``fodder_max`` in the deck at once.
         rules.append(
             PriorityRule(
                 "Feodum",
                 PriorityRule.and_(
                     has_trasher,
-                    self._mill_gate,
-                    PriorityRule.pile_count("Feodum", ">", trash_stop_pile + 1),
-                    PriorityRule.turn_number("<", trash_turn_max),
-                    PriorityRule.max_in_deck("Feodum", fodder_max),
+                    self._fodder_gate,
                     PriorityRule.turn_number("<=", fodder_turn),
                     PriorityRule.resources("coins", ">=", fodder_min_coins),
                 ),
@@ -875,11 +879,7 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
     def choose_anvil_gain(self, state, player, choices):
         if self.params["anvil_gain"] == "feodum":
             feodum = next((c for c in choices if c.name == "Feodum"), None)
-            if (
-                feodum is not None
-                and self._mill_active(state, player)
-                and player.count_in_deck("Feodum") < self.params["fodder_max"]
-            ):
+            if feodum is not None and self._fodder_gate(state, player):
                 return _anvil_gain_guard(
                     state, player, choices, lambda *_: feodum, _anvil_discard
                 )
