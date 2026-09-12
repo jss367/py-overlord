@@ -745,13 +745,18 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
         )
         # Fodder: a Feodum bought to be trashed. Only while a trasher exists,
         # only while the trash policy is still active, and never more than
-        # ``fodder_max`` in the deck at once.
+        # ``fodder_max`` in the deck at once. The gain itself lowers the
+        # Feodum pile and the trash can only happen on a later turn, so the
+        # purchase also needs headroom under the pile stop and the turn cap;
+        # otherwise the mill gate would reject the fodder it just bought.
         rules.append(
             PriorityRule(
                 "Feodum",
                 PriorityRule.and_(
                     has_trasher,
                     self._mill_gate,
+                    PriorityRule.pile_count("Feodum", ">", trash_stop_pile + 1),
+                    PriorityRule.turn_number("<", trash_turn_max),
                     PriorityRule.max_in_deck("Feodum", fodder_max),
                     PriorityRule.turn_number("<=", fodder_turn),
                     PriorityRule.resources("coins", ">=", fodder_min_coins),

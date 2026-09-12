@@ -188,11 +188,32 @@ def test_fodder_feodum_honours_the_feodum_pile_stop():
     state.phase = "buy"
     choices = [get_card("Feodum"), get_card("Silver"), None]
 
-    state.supply["Feodum"] = 3
+    # At the stop level, and one above it (the purchase itself would drop
+    # the pile to the stop and strand the Feodum), buy Silver instead.
+    for pile in (3, 4):
+        state.supply["Feodum"] = pile
+        pick = mill.choose_gain(state, p0, choices)
+        assert pick is not None and pick.name == "Silver", pile
+
+    state.supply["Feodum"] = 5
+    pick = mill.choose_gain(state, p0, choices)
+    assert pick is not None and pick.name == "Feodum"
+
+
+def test_fodder_feodum_is_not_bought_on_the_last_trash_turn():
+    mill = BilbaoShamanFeodumMill(trash_turn_max=10)
+    state = _game(mill)
+    p0 = state.players[0]
+    p0.deck = [get_card("Shaman")]
+    p0.coins = 4
+    state.phase = "buy"
+    choices = [get_card("Feodum"), get_card("Silver"), None]
+
+    state.turn_number = 10
     pick = mill.choose_gain(state, p0, choices)
     assert pick is not None and pick.name == "Silver"
 
-    state.supply["Feodum"] = 4
+    state.turn_number = 9
     pick = mill.choose_gain(state, p0, choices)
     assert pick is not None and pick.name == "Feodum"
 
