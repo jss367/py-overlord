@@ -1,0 +1,5 @@
+{
+ "best": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 3, "duchy_gate": 6},
+ "raiders1": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 3, "duchy_gate": 6, "raiders": 1},
+ "raiders2": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 3, "duchy_gate": 6, "raiders": 2}
+}

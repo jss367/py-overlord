@@ -1,6 +1,6 @@
 """Cursed Village — $5 Action.
 
-+2 Actions. Draw until you have 6 in hand. Receive a Hex.
++2 Actions. Draw until you have 6 in hand. When gained, receive a Hex.
 """
 
 from ..base_card import Card, CardCost, CardStats, CardType
@@ -20,4 +20,7 @@ class CursedVillage(Card):
         deficit = max(0, 6 - len(player.hand))
         if deficit:
             game_state.draw_cards(player, deficit)
+
+    def on_gain(self, game_state, player):
+        super().on_gain(game_state, player)
         game_state.give_hex_to_player(player)

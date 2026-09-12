@@ -11,6 +11,9 @@ def ensure_horse_pile(game_state) -> None:
 
     if "Horse" not in game_state.supply:
         game_state.supply["Horse"] = HORSE_PILE_COUNT
+    # Horses are not in the Supply: gainers that scan ``supply`` (Workshop,
+    # Armory, Artificer, ...) must never offer them.
+    game_state.non_supply_pile_names.add("Horse")
 
 
 class Desperation(Event):

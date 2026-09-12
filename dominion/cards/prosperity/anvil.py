@@ -27,25 +27,15 @@ class Anvil(Card):
         if not treasures:
             return
 
-        choice = player.ai.choose_anvil_treasure_to_discard(
-            game_state, player, list(treasures)
-        )
-        if (
-            choice is None
-            or choice not in player.hand
-            or not game_state.is_treasure(choice)
-        ):
-            return
-
-        # Discard the chosen Treasure from hand.
-        player.hand.remove(choice)
-        game_state.discard_card(player, choice)
-
         from ..registry import get_card
 
+        # Work out what could be gained BEFORE deciding to discard: the
+        # discard is optional, so a player who wants nothing on offer simply
+        # keeps the Treasure. Once a Treasure is discarded the gain is
+        # mandatory.
         gainable = []
         for name, count in game_state.supply.items():
-            if count <= 0:
+            if count <= 0 or name in game_state.non_supply_pile_names:
                 continue
             card = get_card(name)
             if (
@@ -59,9 +49,22 @@ class Anvil(Card):
             return
 
         target = player.ai.choose_anvil_gain(game_state, player, gainable)
-        if target not in gainable:
-            # The discard is optional; after discarding, the gain is mandatory.
-            target = max(gainable, key=lambda c: (c.cost.coins, c.name))
+        if target is None or target not in gainable:
+            return
+
+        choice = player.ai.choose_anvil_treasure_to_discard(
+            game_state, player, list(treasures)
+        )
+        if (
+            choice is None
+            or choice not in player.hand
+            or not game_state.is_treasure(choice)
+        ):
+            return
+
+        # Discard the chosen Treasure from hand.
+        player.hand.remove(choice)
+        game_state.discard_card(player, choice)
 
         if game_state.supply.get(target.name, 0) <= 0:
             return

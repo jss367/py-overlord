@@ -2,13 +2,15 @@
 
 There are ten unique Knights. The Knights pile is a single supply pile
 shuffled at game start; only the top Knight is face up and available to be
-bought or gained. Each Knight is an Action-Attack-Knight ($5).
+bought or gained. Each Knight is an Action-Attack-Knight ($5, Sir Martin $4).
 
-Generic attack: +$2. Each other player reveals the top 2 cards of their deck,
-trashes one of them costing $3-$6 (attacker's choice), discards the rest. If
-a Knight is trashed by this attack, also trash the attacking Knight.
+Generic attack: each other player reveals the top 2 cards of their deck,
+trashes one of them costing $3-$6 (the attacked player chooses when both
+qualify), and discards the rest. If a Knight is trashed by this attack, also
+trash the attacking Knight. There is no printed +$2: only Dame Sylvia gives
+coins.
 
-Per-knight extras are listed in each subclass.
+Per-knight extras are listed in each subclass. Sir Martin costs $4.
 """
 
 from typing import Optional
@@ -19,10 +21,10 @@ from ..base_card import Card, CardCost, CardStats, CardType
 class _BaseKnight(Card):
     """Base class wiring up the shared Knight attack."""
 
-    def __init__(self, name: str, stats: CardStats | None = None):
+    def __init__(self, name: str, stats: CardStats | None = None, cost: int = 5):
         super().__init__(
             name=name,
-            cost=CardCost(coins=5),
+            cost=CardCost(coins=cost),
             stats=stats or CardStats(),
             types=[CardType.ACTION, CardType.ATTACK, CardType.KNIGHT],
         )
@@ -39,7 +41,6 @@ class _BaseKnight(Card):
         from ..registry import get_card  # noqa: F401
 
         attacker = game_state.current_player
-        attacker.coins += 2
 
         knight_was_trashed = False
 
@@ -66,18 +67,22 @@ class _BaseKnight(Card):
             )
 
             trashable = [
-                c for c in revealed if 3 <= c.cost.coins <= 6
+                c
+                for c in revealed
+                if 3 <= game_state.get_card_cost(attacker, c) <= 6
             ]
 
             if trashable:
                 if len(trashable) == 1:
                     chosen = trashable[0]
                 else:
-                    chosen = attacker.ai.choose_knight_to_trash(
-                        game_state, attacker, target, list(trashable)
+                    # The attacked player trashes "one of them": it is their
+                    # choice which qualifying card goes.
+                    chosen = target.ai.choose_card_to_trash_for_knight_attack(
+                        game_state, target, list(trashable)
                     )
                     if chosen not in trashable:
-                        chosen = max(
+                        chosen = min(
                             trashable, key=lambda c: (c.cost.coins, c.name)
                         )
                 revealed.remove(chosen)
@@ -124,10 +129,10 @@ class SirDestry(_BaseKnight):
 
 
 class SirMartin(_BaseKnight):
-    """+1 Buy + standard attack."""
+    """+2 Buys + standard attack. Costs $4."""
 
     def __init__(self):
-        super().__init__("Sir Martin", CardStats(buys=1))
+        super().__init__("Sir Martin", CardStats(buys=2), cost=4)
 
 
 class SirMichael(_BaseKnight):
@@ -245,11 +250,7 @@ class DameNatalie(_BaseKnight):
 
 
 class DameSylvia(_BaseKnight):
-    """+$2 (so $4 total this play) + standard attack.
-
-    Implementation: extra +$2 happens via stats.coins, the attack itself adds
-    its $2 inside ``_resolve_knight_attack``.
-    """
+    """+$2 + standard attack (the only Knight that gives coins)."""
 
     def __init__(self):
         super().__init__("Dame Sylvia", CardStats(coins=2))

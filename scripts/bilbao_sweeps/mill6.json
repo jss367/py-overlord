@@ -1,0 +1,12 @@
+{
+  "mill_pure_s2h1": {},
+  "mill_pure_s2h2": {"hermits": 2},
+  "mill_pure_s3h2": {"shamans": 3, "hermits": 2},
+  "mill_pure_s2h2_pair": {"hermits": 2, "trash_mode": "pair"},
+  "mill_bf_s2h1_pair": {"trash_mode": "pair", "shamans": 2, "hermits": 1, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 0},
+  "mill_bf_s2h1_always": {"shamans": 2, "hermits": 1, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 2},
+  "mill_bf_s2h1_notrash": {"trash_stop_provinces": 99, "shamans": 2, "hermits": 1, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 0},
+  "mill_bf_hermitshamans_notrash": {"trash_stop_provinces": 99, "shamans": 2, "shaman_min_coins": 99, "hermits": 1, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 0},
+  "mill_bf_hermit_only": {"trash_stop_provinces": 99, "shamans": 0, "hermits": 1, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 0},
+  "mill_bf_plain": {"trash_stop_provinces": 99, "shamans": 0, "hermits": 0, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 0}
+}

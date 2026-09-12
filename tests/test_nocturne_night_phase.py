@@ -1,10 +1,13 @@
 """Tests for the Night phase: fires between Buy and Cleanup."""
 
+import pytest
+
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
 
 from tests.utils import DummyAI
+from tests.test_nocturne_card_types import EXPECTED_TYPES
 
 
 class _PlayAllAI(DummyAI):
@@ -96,4 +99,40 @@ def test_full_turn_flow_includes_night():
     assert state.phase == "night"
     # Run night phase
     state.handle_night_phase()
+    assert state.phase == "cleanup"
+
+
+@pytest.mark.parametrize("phase", ["action", "night"])
+def test_phase_offers_only_cards_with_the_printed_phase_type(phase):
+    state, player = _setup()
+    player.hand = [get_card(name) for name in EXPECTED_TYPES]
+    player.deck = []
+    player.actions = 1
+    state.phase = phase
+    offered = []
+
+    def record_choices(state, choices):
+        offered.extend(card.name for card in choices if card is not None)
+        return None
+
+    setattr(player.ai, f"choose_{phase}", record_choices)
+    getattr(state, f"handle_{phase}_phase")()
+
+    assert set(offered) == {
+        name for name, types in EXPECTED_TYPES.items() if phase in types
+    }
+
+
+@pytest.mark.parametrize("name", ["Crypt", "Raider"])
+def test_previously_missing_night_cards_play_without_actions(name):
+    state, player = _setup()
+    card = get_card(name)
+    player.hand = [card]
+    player.actions = 0
+    state.phase = "night"
+
+    state.handle_night_phase()
+
+    assert card not in player.hand
+    assert card in player.in_play or card in player.duration
     assert state.phase == "cleanup"

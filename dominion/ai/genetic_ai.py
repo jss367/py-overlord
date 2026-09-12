@@ -83,11 +83,123 @@ class GeneticAI(AI):
             return hook(state, player, choices)
         return self.strategy.choose_gain(state, player, choices)
 
+    def choose_anvil_treasure_to_discard(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_anvil_treasure_to_discard", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_anvil_treasure_to_discard(state, player, choices)
+
+    # ---- Bilbao board hooks (Grotto / Shaman / Hermit / Wheelwright / ...) ----
+
+    def choose_cards_to_set_aside_for_grotto(self, state, player, hand):
+        hook = getattr(self.strategy, "choose_grotto_set_aside", None)
+        if hook is not None:
+            return hook(state, player, hand)
+        return super().choose_cards_to_set_aside_for_grotto(state, player, hand)
+
+    def choose_card_to_gain_from_trash_with_shaman(self, state, player, choices):
+        """Strategy hook first, then the gain menu, then the safe default."""
+        hook = getattr(self.strategy, "choose_shaman_gain", None)
+        if hook is not None:
+            pick = hook(state, player, choices)
+            if pick is not None:
+                return pick
+        pick = self.strategy.choose_gain(state, player, choices)
+        if pick is not None:
+            return pick
+        return super().choose_card_to_gain_from_trash_with_shaman(state, player, choices)
+
+    def should_trash_fools_gold_for_gold(self, state, player):
+        hook = getattr(self.strategy, "should_trash_fools_gold_for_gold", None)
+        if hook is not None:
+            return bool(hook(state, player))
+        return super().should_trash_fools_gold_for_gold(state, player)
+
+    def choose_wheelwright_discard(self, state, player, hand):
+        hook = getattr(self.strategy, "choose_wheelwright_discard", None)
+        if hook is not None:
+            return hook(state, player, hand)
+        return super().choose_wheelwright_discard(state, player, hand)
+
+    def should_trash_with_hermit(self, state, player, choices):
+        """Hermit's optional trash follows the strategy's trash list."""
+        hook = getattr(self.strategy, "should_trash_with_hermit", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return self.strategy.choose_trash(state, player, choices)
+
+    def choose_card_to_gain_with_hermit(self, state, player, choices):
+        """Hermit's mandatory $0-$3 gain follows the gain menu when it wants
+        something; otherwise the generic default (best Action) applies."""
+        hook = getattr(self.strategy, "choose_hermit_gain", None)
+        if hook is not None:
+            pick = hook(state, player, choices)
+            if pick is not None:
+                return pick
+        pick = self.strategy.choose_gain(state, player, choices)
+        if pick is not None:
+            return pick
+        return super().choose_card_to_gain_with_hermit(state, player, choices)
+
+    def should_play_sheepdog(self, state, player, gained_card):
+        hook = getattr(self.strategy, "should_play_sheepdog", None)
+        if hook is not None:
+            return bool(hook(state, player, gained_card))
+        return super().should_play_sheepdog(state, player, gained_card)
+
     def should_play_falconer(self, state: "GameState", player, gainer, gained_card):
         hook = getattr(self.strategy, "should_play_falconer", None)
         if hook is not None:
             return bool(hook(state, player, gainer, gained_card))
         return super().should_play_falconer(state, player, gainer, gained_card)
+
+    def choose_card_to_trash_for_knight_attack(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_card_to_trash_for_knight_attack", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_card_to_trash_for_knight_attack(state, player, choices)
+
+    def choose_card_to_trash_for_rogue_attack(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_card_to_trash_for_rogue_attack", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_card_to_trash_for_rogue_attack(state, player, choices)
+
+    def choose_treasure_to_discard_for_stables(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_treasure_to_discard_for_stables", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_treasure_to_discard_for_stables(state, player, choices)
+
+    def choose_treasure_to_trash_for_spice_merchant(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_treasure_to_trash_for_spice_merchant", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_treasure_to_trash_for_spice_merchant(state, player, choices)
+
+    def choose_spice_merchant_mode(self, state, player):
+        hook = getattr(self.strategy, "choose_spice_merchant_mode", None)
+        if hook is not None:
+            return hook(state, player)
+        return super().choose_spice_merchant_mode(state, player)
+
+    def choose_armory_gain(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_armory_gain", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_armory_gain(state, player, choices)
+
+    def choose_artificer_gain(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_artificer_gain", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_artificer_gain(state, player, choices)
+
+    def choose_card_to_topdeck_for_scheme(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_card_to_topdeck_for_scheme", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_card_to_topdeck_for_scheme(state, player, choices)
 
     def choose_quartermaster_option(self, state: "GameState", player, mat, candidates):
         hook = getattr(self.strategy, "choose_quartermaster_option", None)

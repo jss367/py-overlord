@@ -16,6 +16,28 @@ from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
 
 
+def _rule_matches_card(rule_card: str, card: Card) -> bool:
+    """Whether a priority rule written for ``rule_card`` applies to ``card``.
+
+    The Knights pile is bought and played as individual Knights ("Sir
+    Bailey", "Dame Anna", ...), so a rule for ``"Knights"`` matches any of
+    them (the top of the pile when buying, whichever Knight is in hand when
+    playing).
+    """
+    if card.name == rule_card:
+        return True
+    return rule_card == "Knights" and getattr(card, "is_knight", False)
+
+
+def _rules_cover_card(rules: Iterable["PriorityRule"], card: Card) -> bool:
+    """Whether any rule in ``rules`` is written for ``card`` (alias-aware).
+
+    A card covered by a rule whose condition failed is a deliberate "no",
+    not an unexpected card for the fallbacks to play or rank.
+    """
+    return any(_rule_matches_card(rule.card, card) for rule in rules)
+
+
 @dataclass
 class PriorityRule:
     """Represents a single priority rule.
@@ -396,7 +418,7 @@ class EnhancedStrategy:
 
         for rule in priority:
             for card in choices:
-                if card is None or card.name != rule.card:
+                if card is None or not _rule_matches_card(rule.card, card):
                     continue
 
                 cond = rule.condition
@@ -443,8 +465,10 @@ class EnhancedStrategy:
 
         # Fallback: play unexpected action cards not covered by any priority rule
         # (e.g. cards gained via Swindle or other opponent effects).
-        priority_names = {rule.card for rule in self.action_priority}
-        unexpected = [c for c in choices if c is not None and c.name not in priority_names]
+        unexpected = [
+            c for c in choices
+            if c is not None and not _rules_cover_card(self.action_priority, c)
+        ]
         if not unexpected:
             return None
         return self._score_unexpected_action(unexpected, player)
@@ -475,8 +499,10 @@ class EnhancedStrategy:
             return result
 
         # Fallback: play any unexpected treasure not in our priority list
-        priority_names = {rule.card for rule in self.treasure_priority}
-        unexpected = [c for c in choices if c is not None and c.name not in priority_names]
+        unexpected = [
+            c for c in choices
+            if c is not None and not _rules_cover_card(self.treasure_priority, c)
+        ]
         return unexpected[0] if unexpected else None
 
     def choose_gain(self, state, player, choices):
@@ -525,13 +551,14 @@ class EnhancedStrategy:
         if not actions:
             return normal
 
-        priority_names = [rule.card_name for rule in self.gain_priority]
-
         def action_score(card: Card) -> tuple:
-            try:
-                priority = priority_names.index(card.name)
-            except ValueError:
-                priority = len(priority_names)
+            priority = next(
+                (
+                    i for i, rule in enumerate(self.gain_priority)
+                    if _rule_matches_card(rule.card, card)
+                ),
+                len(self.gain_priority),
+            )
             return (
                 -priority,
                 card.cost.coins,
@@ -637,9 +664,17 @@ class EnhancedStrategy:
         return float("inf")
 
     # -- Card-specific tactical defaults -----------------------------------
-    def _tactical_priority_names(self, state, player, kind: str) -> set[str]:
-        """Cards covered by the action or gain rules consulted this decision."""
-        return {rule.card for rule in getattr(self, f"{kind}_priority")}
+    def _tactical_rules(self, state, player, kind: str) -> list[PriorityRule]:
+        """The action or gain rules consulted this decision."""
+        return list(getattr(self, f"{kind}_priority"))
+
+    def _unspecified(
+        self, state, player, kind: str, choices: list[Card],
+        extra_rules: Iterable[PriorityRule] = (),
+    ) -> list[Card]:
+        """Cards no consulted rule covers ("Knights" covers every Knight)."""
+        rules = self._tactical_rules(state, player, kind) + list(extra_rules)
+        return [c for c in choices if not _rules_cover_card(rules, c)]
 
     def choose_courier_target(self, state, player, choices: list[Card]) -> Optional[Card]:
         """Try Action preferences, then explicit Treasure preferences and tactics.
@@ -660,10 +695,9 @@ class EnhancedStrategy:
         )
         if choice is not None:
             return choice
-        specified = self._tactical_priority_names(state, player, "action")
-        specified |= {rule.card for rule in self.treasure_priority}
         return tactical_defaults.choose_courier_target(
-            player, [c for c in choices if c.name not in specified]
+            player,
+            self._unspecified(state, player, "action", choices, self.treasure_priority),
         )
 
     def choose_overlord_target(self, state, player, choices: list[Card]) -> Optional[Card]:
@@ -676,9 +710,8 @@ class EnhancedStrategy:
         if choice is not None:
             return choice
         # Prefer unspecified cards over rules whose conditions did not pass.
-        specified = self._tactical_priority_names(state, player, "action")
         return tactical_defaults.choose_overlord_target(
-            player, [c for c in choices if c.name not in specified] or choices
+            player, self._unspecified(state, player, "action", choices) or choices
         )
 
     def choose_quartermaster_gain(self, state, player, choices: list[Card]) -> Optional[Card]:
@@ -690,9 +723,8 @@ class EnhancedStrategy:
         choice = self.choose_gain(state, player, choices)
         if choice is not None:
             return choice
-        specified = self._tactical_priority_names(state, player, "gain")
         return tactical_defaults.choose_quartermaster_gain(
-            [c for c in choices if c.name not in specified] or choices
+            self._unspecified(state, player, "gain", choices) or choices
         )
 
     def quartermaster_take_all(self, state, player, mat: list[Card]) -> bool:

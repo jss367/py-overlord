@@ -739,6 +739,7 @@ class GameState:
         # ``charlatan_curse_active`` re-activate Curse-as-Treasure in a
         # Charlatan-free kingdom.
         self._charlatan_seen = False
+        self._shaman_seen = False
         self.trash = []
         self.setup_card_cost_reduction = max(0, card_cost_reduction)
         # Create PlayerState objects for each AI
@@ -994,8 +995,10 @@ class GameState:
         # Reset latches that depend on supply contents. Pairing the reset
         # with the set (at the bottom of this method) means callers using
         # ``setup_supply`` directly — e.g. tests rebuilding a kingdom on the
-        # same ``GameState`` — don't leak the prior setup's Charlatan flag.
+        # same ``GameState`` — don't leak the prior setup's Charlatan or
+        # Shaman flags.
         self._charlatan_seen = False
+        self._shaman_seen = False
         self.ordered_supply_piles = {}
         self.non_supply_pile_names = set()
         self.ferryman_card_name = ""
@@ -1353,6 +1356,13 @@ class GameState:
         # before the first Curse-as-Treasure check could observe it live.
         if "Charlatan" in self.supply or "Charlatan" in self.black_market_deck:
             self._charlatan_seen = True
+
+        # Same latch for Shaman's game-wide start-of-turn rule. Shaman is
+        # "in the game" for the whole game once it is in the Supply or the
+        # Black Market deck at setup; buying the only copy out of the Black
+        # Market deck must not switch the rule off.
+        if "Shaman" in self.supply or "Shaman" in self.black_market_deck:
+            self._shaman_seen = True
 
     def gain_ruins(self, target) -> Card | None:
         """Resolve a "gain a Ruins" by handing over the top of the Ruins pile."""
@@ -1805,6 +1815,12 @@ class GameState:
         # Only log duration phase if there are duration cards
         if self.current_player.duration:
             self.do_duration_phase()
+
+        # Plunder Shaman setup rule: in games using Shaman, at the start of
+        # every player's turn they gain a card costing up to $6 from the
+        # trash. Runs after the Duration phase so cards trashed by
+        # start-of-turn effects are already in the trash.
+        self._handle_shaman_start_of_turn(self.current_player)
 
         # Plunder Deliver event: return any set-aside gains to hand.
         deliver_set_aside = getattr(self.current_player, "deliver_set_aside", None)
@@ -3043,8 +3059,15 @@ class GameState:
         # cleanup). Scan every player's in_play and duration zones.
         bt_count = 0
         for tracker in self.players:
+            # Every duration entry is one active reduction (a Throne Roomed
+            # Troll is queued twice). A Troll still in in_play that is also
+            # queued in duration is the same physical card, not a second one.
             bt_count += sum(1 for c in tracker.duration if c.name == "Bridge Troll")
-            bt_count += sum(1 for c in tracker.in_play if c.name == "Bridge Troll")
+            bt_count += sum(
+                1
+                for c in tracker.in_play
+                if c.name == "Bridge Troll" and c not in tracker.duration
+            )
         if bt_count:
             cost -= bt_count
 
@@ -3183,6 +3206,34 @@ class GameState:
 
         self._trigger_haggler_bonus(player, card)
 
+    def _cards_retained_in_play(self, player: PlayerState) -> set:
+        """Cards that stay in play through this Clean-up.
+
+        Pending Durations the player still owns and that have not already
+        left play (a Bonfire may have trashed one), plus, transitively, any
+        multiplier (Throne Room, King's Court) whose ``duration_targets``
+        include a retained card.
+        """
+        owned = set(player.all_cards())
+        moved_from_play = {
+            card for zone in player._physical_card_zones()
+            if zone is not player.in_play for card in zone
+        }
+        retained = {
+            card for card in player.duration + player.multiplied_durations
+            if card in owned and card not in moved_from_play
+        }
+        changed = True
+        while changed:
+            changed = False
+            for card in player.in_play:
+                if card not in retained and any(
+                    target in retained for target in getattr(card, "duration_targets", [])
+                ):
+                    retained.add(card)
+                    changed = True
+        return retained
+
     def handle_cleanup_phase(self):
         """Handle the cleanup phase of a turn."""
         player = self.current_player
@@ -3234,16 +3285,41 @@ class GameState:
         self._call_tavern_triggers(player, "cleanup_start")
 
         # Discard hand and in-play cards
-        scheme_count = sum(1 for card in player.in_play if card.name == "Scheme")
-        if scheme_count:
-            playable_actions = [card for card in player.in_play if card.is_action]
+        # Scheme's trigger belongs to the turn it was played. Actions kept in
+        # play by Journey (including a Scheme) were not played on the extra
+        # turn, so they do not trigger at its Clean-up.
+        journey_retained = set(getattr(player, "journey_retained_actions", []))
+        scheme_count = sum(
+            1
+            for card in player.in_play
+            if card.name == "Scheme" and card not in journey_retained
+        )
+        # After buying Journey nothing is discarded from play this Clean-up,
+        # so Scheme has no card to put on the deck.
+        if scheme_count and not getattr(player, "journey_extra_turn_pending", False):
+            # Only Actions that are actually discarded from play this
+            # Clean-up qualify: a Duration staying in play is not discarded,
+            # and neither is a multiplier (Throne Room, King's Court) that is
+            # retained because one of its ``duration_targets`` stays.
+            staying = self._cards_retained_in_play(player)
+            playable_actions = [
+                card
+                for card in player.in_play
+                if card.is_action and card not in staying
+            ]
             for _ in range(scheme_count):
                 if not playable_actions:
                     break
-                chosen = max(
-                    playable_actions,
-                    key=lambda c: (c.cost.coins, c.stats.cards, c.stats.actions, c.name),
-                )
+                hook = getattr(player.ai, "choose_card_to_topdeck_for_scheme", None)
+                if hook is not None:
+                    chosen = hook(self, player, list(playable_actions))
+                else:
+                    chosen = max(
+                        playable_actions,
+                        key=lambda c: (c.cost.coins, c.stats.cards, c.stats.actions, c.name),
+                    )
+                if chosen is None or chosen not in playable_actions:
+                    break
                 playable_actions.remove(chosen)
                 if chosen in player.in_play:
                     player.in_play.remove(chosen)
@@ -3258,22 +3334,7 @@ class GameState:
                 player.coins += len(distinct_treasures)
 
         # Duration cards remain in play until their lingering effects finish.
-        owned = set(player.all_cards())
-        moved_from_play = {
-            card for zone in player._physical_card_zones()
-            if zone is not player.in_play for card in zone
-        }
-        durations_to_keep = {
-            card for card in player.duration + player.multiplied_durations
-            if card in owned and card not in moved_from_play
-        }
-        changed = True
-        while changed:
-            changed = False
-            for card in player.in_play:
-                if card not in durations_to_keep and any(t in durations_to_keep for t in getattr(card, "duration_targets", [])):
-                    durations_to_keep.add(card)
-                    changed = True
+        durations_to_keep = self._cards_retained_in_play(player)
 
         # A physical multiplier may be shuffled and played again. Completed
         # targets must not retain it during an unrelated later Duration play.
@@ -3290,9 +3351,13 @@ class GameState:
         # the granted extra turn.
         journey_extra_turn = bool(getattr(player, "journey_extra_turn_pending", False))
         if journey_extra_turn:
-            for card in player.in_play:
-                if card.is_action:
-                    durations_to_keep.add(card)
+            player.journey_retained_actions = [
+                card for card in player.in_play if card.is_action
+            ]
+            for card in player.journey_retained_actions:
+                durations_to_keep.add(card)
+        else:
+            player.journey_retained_actions = []
 
         # Determine which Treasures (if any) Trickster will set aside before
         # firing discard-from-play hooks, so we don't trigger those hooks on
@@ -4872,14 +4937,71 @@ class GameState:
                 self.gain_card(other, get_card("Gold"), to_deck=True)
 
     def _should_trash_fools_gold(self, player: PlayerState) -> bool:
-        """Simple heuristic to decide if a player should reveal Fool's Gold."""
+        """Ask the owner's AI whether to react with a Fool's Gold in hand."""
 
-        count_in_hand = sum(1 for card in player.hand if card.name == "Fool's Gold")
-        if count_in_hand > 1:
+        return bool(player.ai.should_trash_fools_gold_for_gold(self, player))
+
+    def game_uses_shaman(self) -> bool:
+        """True when Shaman is part of this game (its setup rule applies).
+
+        The authoritative source is the setup-time latch ``_shaman_seen``,
+        mirroring ``charlatan_curse_active``: once Shaman was in the Supply
+        or the Black Market deck at setup the rule applies all game, even
+        after the only copy is bought out of the Black Market deck (which
+        drops its name from ``black_market_deck``). The live checks are a
+        backstop for code paths that skipped ``setup_supply``.
+        """
+        if getattr(self, "_shaman_seen", False):
             return True
+        if "Shaman" in self.supply or "Shaman" in self.black_market_deck:
+            self._shaman_seen = True
+            return True
+        return False
 
-        existing_gold = sum(1 for card in player.all_cards() if card.name == "Gold")
-        return existing_gold < 2
+    def _handle_shaman_start_of_turn(self, player: PlayerState) -> None:
+        """Plunder Shaman: at the start of your turn, gain a card from the
+        trash costing up to $6.
+
+        This is a game-wide setup rule, active from the first turn for every
+        player whether or not anyone owns a Shaman. The gain is mandatory
+        when an eligible card exists; the player only chooses which one.
+        """
+
+        if not self.game_uses_shaman():
+            return
+        candidates = [
+            c
+            for c in self.trash
+            if c.cost.potions == 0
+            and c.cost.debt == 0
+            and self.get_card_cost(player, c) <= 6
+        ]
+        if not candidates:
+            return
+        # Stub AIs in tests may predate this hook; fall back to the default.
+        chooser = getattr(player.ai, "choose_card_to_gain_from_trash_with_shaman", None)
+        pick = chooser(self, player, list(candidates)) if chooser else None
+        if pick is None or pick not in candidates:
+            pick = max(
+                candidates,
+                key=lambda c: (
+                    c.name != "Curse",
+                    not (c.is_victory and not c.is_action and c.cost.coins <= 2),
+                    c.cost.coins,
+                    c.name,
+                ),
+            )
+        self.trash.remove(pick)
+        self.log_callback(
+            ("action", player.ai.name, f"gains {pick} from the trash (Shaman)", {})
+        )
+        gained = self.gain_card(player, pick, from_supply=False)
+        if gained is not pick and not getattr(pick, "returned_to_supply", False):
+            # The gain was replaced by Trader's Silver, so the chosen card
+            # never left the trash. (A Changeling exchange also returns a
+            # different card, but it has already put ``pick`` back on its
+            # Supply pile, flagged via ``returned_to_supply``.)
+            self.trash.append(pick)
 
     def _maybe_play_guard_dogs(self, player: PlayerState) -> None:
         guard_dogs = [card for card in list(player.hand) if card.name == "Guard Dog"]

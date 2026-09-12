@@ -1,0 +1,15 @@
+{
+ "base": {},
+ "anvils2": {"anvils": 2}, "anvils4": {"anvils": 4}, "anvils5": {"anvils": 5},
+ "anvil_turn6": {"anvil_turn": 6}, "anvil_turn14": {"anvil_turn": 14}, "anvil_turn99": {"anvil_turn": 99},
+ "feodum_silvers3": {"feodum_silvers": 3}, "feodum_silvers9": {"feodum_silvers": 9}, "feodum_silvers12": {"feodum_silvers": 12},
+ "duchy3": {"duchy_gate": 3}, "duchy6": {"duchy_gate": 6}, "duchy8": {"duchy_gate": 8},
+ "gold_max2": {"gold_max": 2}, "gold_max4": {"gold_max": 4}, "gold_min7": {"gold_min": 7},
+ "fg_max4": {"fg_max": 4}, "fg_max12": {"fg_max": 12}, "fg_max20": {"fg_max": 20},
+ "gold_before_feodum": {"feodum_before_gold": false},
+ "silver_before_fg": {"fg_before_silver": false},
+ "raiders1": {"raiders": 1}, "raiders2": {"raiders": 2},
+ "wheelwright1": {"wheelwrights": 1}, "sheepdogs2": {"sheepdogs": 2}, "hermit1": {"hermits": 1},
+ "estate3": {"estate_gate": 3}, "estate0": {"estate_gate": 0},
+ "feodum_late6": {"feodum_late": 6}, "feodum_late2": {"feodum_late": 2}
+}

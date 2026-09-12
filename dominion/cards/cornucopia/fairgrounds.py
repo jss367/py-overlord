@@ -12,6 +12,9 @@ class Fairgrounds(Card):
             types=[CardType.VICTORY],
         )
 
+    def starting_supply(self, game_state) -> int:
+        return 8 if len(game_state.players) <= 2 else 12
+
     def get_victory_points(self, player) -> int:
         unique_names = {card.name for card in player.all_cards()}
         return (len(unique_names) // 5) * 2

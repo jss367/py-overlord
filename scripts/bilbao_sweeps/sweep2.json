@@ -1,0 +1,16 @@
+{
+ "base": {},
+ "c1_gold7": {"gold_min": 7},
+ "c2_gold7_est0": {"gold_min": 7, "estate_gate": 0},
+ "c3_c2_anvils4": {"gold_min": 7, "estate_gate": 0, "anvils": 4},
+ "c4_c2_duchy6": {"gold_min": 7, "estate_gate": 0, "duchy_gate": 6},
+ "c5_c2_goldmax2": {"gold_min": 7, "estate_gate": 0, "gold_max": 2},
+ "c6_all": {"gold_min": 7, "estate_gate": 0, "anvils": 4, "duchy_gate": 6, "gold_max": 2},
+ "c7_c2_noduchy": {"gold_min": 7, "estate_gate": 0, "duchy_gate": 0},
+ "c8_c2_feo5": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 5},
+ "c9_c2_feo4": {"gold_min": 7, "estate_gate": 0, "feodum_silvers": 4},
+ "c10_c2_nosilverdiscard": {"gold_min": 7, "estate_gate": 0, "anvil_discard_silver": false},
+ "c11_c2_anvilfg": {"gold_min": 7, "estate_gate": 0, "anvil_gain": "fg"},
+ "c12_c2_nogold": {"gold_min": 7, "estate_gate": 0, "gold_min": 9},
+ "c13_c2_anvilfeodum": {"gold_min": 7, "estate_gate": 0, "anvil_gain": "feodum"}
+}

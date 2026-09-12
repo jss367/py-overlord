@@ -1,0 +1,12 @@
+{
+  "m4_bf_h1_notrash": {"trash_stop_provinces": 99, "shamans": 0, "hermits": 1, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 0},
+  "m4_bf_h2_notrash": {"trash_stop_provinces": 99, "shamans": 0, "hermits": 2, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 0},
+  "m4_bf_s2_notrash": {"trash_stop_provinces": 99, "shamans": 2, "hermits": 0, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 0},
+  "m4_bf_s2h1_notrash": {"trash_stop_provinces": 99, "shamans": 2, "hermits": 1, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 0},
+  "m4_bf_s2h1_pair": {"trash_mode": "pair", "shamans": 2, "hermits": 1, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 0},
+  "m4_bf_s2h1_pair_fod2": {"trash_mode": "pair", "shamans": 2, "hermits": 1, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 2},
+  "m4_bf_s2h1_turn8": {"trash_turn_max": 8, "shamans": 2, "hermits": 1, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 0},
+  "m4_bf_s2h1_pile5": {"trash_stop_pile": 5, "shamans": 2, "hermits": 1, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 2},
+  "m4_bf_s2h1_grab": {"trash_mode": "pair", "shamans": 2, "hermits": 1, "anvils": 3, "fg_max": 8, "feodum_silvers": 1, "duchy_gate": 6, "gold_min": 7, "fodder_max": 4, "fodder_min_coins": 4},
+  "m4_bf_plain": {"trash_stop_provinces": 99, "shamans": 0, "hermits": 0, "anvils": 3, "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 0}
+}

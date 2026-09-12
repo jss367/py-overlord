@@ -87,6 +87,21 @@ _OVERRIDES: dict[str, dict] = {
     "Steward": {"draw": 2.0, "is_trasher": True},  # +2 Cards / +$2 / trash 2
     "Remake": {"is_gainer": True, "is_trasher": True},  # trash 2, gain +$1 each
     "Bridge": {"is_gainer": False},         # +$1 +1 Buy, cards cost $1 less
+    # Kolkata board.
+    "Stables": {"draw": 3.0, "actions": 1},   # discard a Treasure: +3 Cards +1 Action
+    "Artist": {"draw": 2.0},                  # +1 Card per singleton in play
+    "Artificer": {"is_gainer": True},         # discard N, gain a $N card onto the deck
+    "Armory": {"is_gainer": True},            # gains a <=$4 card onto the deck
+    "Bandit Camp": {"is_gainer": True},       # village that gains a Spoils ($3 one-shot)
+    "Research": {"is_trasher": True},         # trash from hand, set aside $1 per cost
+    "Spice Merchant": {"is_trasher": True},   # trash a Treasure: +2 Cards +1 Action or +$2 +1 Buy
+    # Bilbao board (Fool's Gold / Grotto / Shaman / Hermit / Wheelwright / Raider).
+    "Fool's Gold": {"coins": 2.5},          # $1 first, $4 for each further copy
+    "Raider": {"coins": 3.0},               # +$3 at the start of next turn
+    "Shaman": {"is_trasher": True},         # cantrip +$1, may trash from hand
+    "Hermit": {"is_gainer": True, "is_trasher": True},  # trash junk, gain <=$3
+    "Wheelwright": {"is_gainer": True},     # discard to gain an Action
+    "Grotto": {"draw": 2.0},                # sift: set aside up to 4, redraw next turn
 }
 
 

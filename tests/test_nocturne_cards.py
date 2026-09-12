@@ -156,7 +156,7 @@ def test_conclave_does_not_play_a_third_copy_under_warlord():
     assert len(player.deck) == 1
 
 
-def test_cursed_village_draws_to_six_and_hexes():
+def test_cursed_village_draws_to_six_without_a_hex_on_play():
     state, player = _setup()
     cv = get_card("Cursed Village")
     player.hand = []
@@ -169,6 +169,18 @@ def test_cursed_village_draws_to_six_and_hexes():
     assert len(player.hand) >= 6
     # +2 Actions
     assert player.actions == 3
+    assert state.hex_deck == ["Greed"]
+    assert state.hex_discard == []
+
+
+def test_cursed_village_hexes_the_gainer_not_the_active_player(monkeypatch):
+    state, player = _setup(players=2)
+    recipient = state.players[1]
+    received = []
+    monkeypatch.setattr(state, "give_hex_to_player", received.append)
+    state.gain_card(recipient, get_card("Cursed Village"))
+    assert received == [recipient]
+    assert any(c.name == "Cursed Village" for c in recipient.discard)
 
 
 def test_den_of_sin_drawn_into_hand_on_gain():
@@ -487,20 +499,28 @@ def test_bat_is_typed_as_night_only():
     assert not bat.is_shadow
 
 
-def test_raider_attack_works_against_small_hand():
-    """Raider must force a discard whenever the target has a matching card,
-    regardless of hand size; previous code immunized hands of <5 cards."""
+def test_raider_attack_skips_hands_below_five_cards():
+    """Card text: "Each other player with 5 or more cards in hand discards a
+    copy of a card you have in play." Smaller hands are immune."""
 
     state, player = _setup(players=2)
     raider = get_card("Raider")
     other = state.players[1]
-    # Make sure Raider's in-play set will match a card in the target's small
-    # hand. Use Copper (always in the supply) as the matched card.
     player.in_play = [raider, get_card("Copper")]
     other.hand = [get_card("Copper"), get_card("Estate")]
     raider.play_effect(state)
-    # The matching Copper should have been discarded.
-    assert any(c.name == "Copper" for c in other.discard)
+    assert not other.discard
+    assert sum(1 for c in other.hand if c.name == "Copper") == 1
+
+
+def test_raider_attack_forces_discard_from_five_card_hand():
+    state, player = _setup(players=2)
+    raider = get_card("Raider")
+    other = state.players[1]
+    player.in_play = [raider, get_card("Copper")]
+    other.hand = [get_card("Copper")] + [get_card("Estate") for _ in range(4)]
+    raider.play_effect(state)
+    assert [c.name for c in other.discard] == ["Copper"]
     assert not any(c.name == "Copper" for c in other.hand)
 
 
