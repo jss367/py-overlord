@@ -22,3 +22,29 @@ after Raider was corrected to a Night card; the Raider Money seed re-check is
 
 `sweep3.json` omits the never-buy-Province variant (`province_min: 99`) that was
 dropped mid-run after losing about 95% of its games.
+
+## Shaman / Feodum mill sweeps (September 9, 2026)
+
+`mill1.json` to `mill6.json` parametrise `BilbaoShamanFeodumMill` (same file)
+and are run with `--variant-class BilbaoShamanFeodumMill`; the results are
+written up in `reports/strategies/bilbao-shaman-feodum-mill-strategy-guide.html`.
+`--champion` accepts a loader name as well as a variant name.
+
+```
+PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill1.json --champion mill_base --games 200 --extra "Bilbao Best Found"
+PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill2.json --champion mill_bf --games 200 --extra "Bilbao Best Found"
+PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill3.json --champion "Bilbao Best Found" --games 400 --seed 31
+PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill4.json --champion "Bilbao Best Found" --games 400
+PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill5.json --champion "Bilbao Best Found" --games 400 --seed 21
+PYTHONPATH=. python scripts/bilbao_variants.py --variant-class BilbaoShamanFeodumMill --sweep scripts/bilbao_sweeps/mill6.json --champion "Bilbao Best Found" --games 400 --seed 31
+```
+
+`mill6.json` is the headline table. All six sweeps were re-measured with the
+final class after review, so each command above reproduces the figures in the
+guide.
+
+`m4_bf_s2h1_grab` in `mill4.json` was corrected after review from
+`feodum_silvers: 0` to `1`: `has_cards(["Silver"], 0)` means "no Silver in
+deck", so the original setting inverted the rule instead of disabling the
+threshold. Re-measured with the fix (same seed, 400 games) it scores 12.9%
+against Bilbao Best Found, up from 9.5%.

@@ -1,0 +1,16 @@
+{
+  "mill_base": {},
+  "mill_anvil2_feo": {"anvils": 2, "anvil_gain": "feodum"},
+  "mill_anvil3_feo": {"anvils": 3, "anvil_gain": "feodum"},
+  "mill_hermit2": {"hermits": 2},
+  "mill_hermit0": {"hermits": 0},
+  "mill_fodder3": {"fodder_max": 3},
+  "mill_fodder1": {"fodder_max": 1},
+  "mill_fg": {"fg_max": 6},
+  "mill_estates": {"trash_estates": true},
+  "mill_stop4": {"trash_stop_provinces": 4},
+  "mill_keep1": {"trash_keep_feodums": 1},
+  "mill_gold7": {"gold_min": 7},
+  "mill_feo_over_prov18": {"feodum_over_province_silvers": 18, "feodum_over_duchy_silvers": 12},
+  "mill_madman": {"madman": true}
+}

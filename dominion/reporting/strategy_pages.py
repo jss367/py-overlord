@@ -115,6 +115,16 @@ CURATED_STRATEGY_GUIDES = (
         source_label="Repository strategy search and recorded simulation results",
     ),
     CuratedStrategyGuide(
+        filename="bilbao-shaman-feodum-mill-strategy-guide.html",
+        display_name="Bilbao Shaman Feodum Mill Guide",
+        description=(
+            "Trashing Feodums with Shaman and Hermit for Silvers: why the mill "
+            "loses to Bilbao Best Found, every variant tried, and the numbers."
+        ),
+        kingdom_cards=("Shaman", "Feodum", "Hermit", "Fool's Gold", "Anvil"),
+        source_label="Repository strategy search and recorded simulation results",
+    ),
+    CuratedStrategyGuide(
         filename="tea-house-kind-emperor-strategy-guide.html",
         display_name="Tea House and Kind Emperor Strategy Guide",
         description=(

@@ -1,0 +1,9 @@
+{
+  "mill_bf": {"anvils": 3, "anvil_gain": "list", "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 2},
+  "mill_bf_feo": {"anvils": 3, "anvil_gain": "feodum", "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "fodder_max": 2},
+  "mill_bf_noherm": {"anvils": 3, "anvil_gain": "list", "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "hermits": 0},
+  "mill_bf_1sham": {"anvils": 3, "anvil_gain": "list", "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "shamans": 1},
+  "mill_bf_notrash": {"anvils": 3, "anvil_gain": "list", "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "trash_stop_provinces": 99},
+  "mill_bf_stop4": {"anvils": 3, "anvil_gain": "list", "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "trash_stop_provinces": 4},
+  "mill_bf_cap12": {"anvils": 3, "anvil_gain": "list", "fg_max": 8, "feodum_silvers": 3, "duchy_gate": 6, "gold_min": 7, "trash_silver_cap": 12}
+}
