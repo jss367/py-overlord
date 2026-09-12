@@ -741,7 +741,9 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
             PriorityRule.provinces_left(">", trash_stop_provinces),
             PriorityRule.pile_count("Feodum", ">", trash_stop_pile),
             PriorityRule.turn_number("<=", trash_turn_max),
-            PriorityRule.max_in_deck("Silver", trash_silver_cap),
+            # A trashed Feodum gains three Silvers, so the mill only runs
+            # while the deck can take them without passing the cap.
+            PriorityRule.max_in_deck("Silver", trash_silver_cap - 2),
         )
         # Gaining fodder (by purchase or by Anvil) lowers the Feodum pile,
         # and the trash can only happen on a later turn, so a fodder gain
@@ -817,7 +819,7 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
         # decision, so exactly three Silvers separate the two decisions.)
         if state.supply.get("Silver", 0) - 3 < 3:
             return False
-        if player.count_in_deck("Silver") + 3 >= self.params["trash_silver_cap"]:
+        if player.count_in_deck("Silver") + 3 >= self.params["trash_silver_cap"] - 2:
             return False
         # ...and the second trash must still leave ``trash_keep_feodums``.
         if player.count_in_deck("Feodum") - 1 <= self.params["trash_keep_feodums"]:

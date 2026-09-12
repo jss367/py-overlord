@@ -249,3 +249,19 @@ def test_anvil_feodum_gain_honours_the_fodder_headroom():
     state.supply["Feodum"] = 5
     pick = mill.choose_anvil_gain(state, p0, choices)
     assert pick is not None and pick.name == "Feodum"
+
+
+def test_silver_cap_leaves_room_for_the_three_silvers_a_trash_gains():
+    mill = BilbaoShamanFeodumMill(trash_silver_cap=12)
+    state = _game(mill)
+    p0 = state.players[0]
+    feodum = get_card("Feodum")
+    p0.hand = [feodum]
+    p0.deck = [get_card("Silver") for _ in range(10)]
+    _play(state, "Shaman")
+    assert feodum in p0.hand, "10 + 3 would exceed a cap of 12"
+
+    p0.deck = [get_card("Silver") for _ in range(9)]
+    _play(state, "Shaman")
+    assert feodum in state.trash
+    assert sum(1 for c in p0.all_cards() if c.name == "Silver") == 12
