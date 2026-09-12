@@ -819,25 +819,34 @@ class BilbaoShamanFeodumMill(_BilbaoBase):
         # decision, so exactly three Silvers separate the two decisions.)
         if state.supply.get("Silver", 0) - 3 < 3:
             return False
-        if player.count_in_deck("Silver") + 3 >= self.params["trash_silver_cap"] - 2:
-            return False
         # ...and the second trash must still leave ``trash_keep_feodums``.
         if player.count_in_deck("Feodum") - 1 <= self.params["trash_keep_feodums"]:
             return False
+        # Under the Silver cap the follow-up must fit its own gains too:
+        # a second Shaman trash adds three more Silvers, a Hermit trash
+        # adds four (its own gain lands after the trash).
+        cap = self.params["trash_silver_cap"]
+        silvers = player.count_in_deck("Silver") + 3
         hand_feodums = sum(1 for c in player.hand if c.name == "Feodum") - 1
         discard_feodums = sum(1 for c in player.discard if c.name == "Feodum")
         shamans = sum(1 for c in player.hand if c.name == "Shaman")
         hermits = sum(1 for c in player.hand if c.name == "Hermit")
-        if shamans and hand_feodums >= 1:
+        if shamans and hand_feodums >= 1 and silvers + 3 <= cap:
             return True
-        if hermits and (hand_feodums >= 1 or discard_feodums >= 1):
+        if hermits and (hand_feodums >= 1 or discard_feodums >= 1) and silvers + 4 <= cap:
             return True
         return False
 
     def _pick_trash(self, state, player, choices, via_hermit: bool = False):
         p = self.params
         feodums = [c for c in choices if c is not None and c.name == "Feodum"]
-        if feodums and self._mill_active(state, player):
+        # Hermit gains a Silver of its own after trashing, so under the cap
+        # its trash needs room for four Silvers, not three.
+        hermit_cap_ok = (
+            not via_hermit
+            or player.count_in_deck("Silver") + 4 <= p["trash_silver_cap"]
+        )
+        if feodums and self._mill_active(state, player) and hermit_cap_ok:
             keep_ok = player.count_in_deck("Feodum") > p["trash_keep_feodums"]
             mode_ok = p["trash_mode"] == "always" or (
                 p["trash_mode"] == "pair" and self._pair_available(state, player, via_hermit)

@@ -265,3 +265,39 @@ def test_silver_cap_leaves_room_for_the_three_silvers_a_trash_gains():
     _play(state, "Shaman")
     assert feodum in state.trash
     assert sum(1 for c in p0.all_cards() if c.name == "Silver") == 12
+
+
+def test_hermit_trash_reserves_room_for_its_own_silver_under_the_cap():
+    # shamans=0 so Hermit's own gain is a Silver rather than a Shaman.
+    mill = BilbaoShamanFeodumMill(trash_silver_cap=12, shamans=0)
+    state = _game(mill)
+    p0 = state.players[0]
+    feodum = get_card("Feodum")
+    p0.discard = [feodum]
+    p0.deck = [get_card("Silver") for _ in range(9)]
+    _play(state, "Hermit")
+    assert feodum in p0.discard, "9 + 3 + Hermit's own Silver would exceed 12"
+
+    p0.discard = [feodum]
+    p0.deck = [get_card("Silver") for _ in range(8)]
+    _play(state, "Hermit")
+    assert feodum in state.trash
+    assert sum(1 for c in p0.all_cards() if c.name == "Silver") == 12
+
+
+def test_pair_mode_counts_the_hermit_follow_up_silver_under_the_cap():
+    mill = BilbaoShamanFeodumMill(trash_mode="pair", trash_silver_cap=12)
+    state = _game(mill)
+    p0 = state.players[0]
+    first, second = get_card("Feodum"), get_card("Feodum")
+    state.supply["Silver"] = 20
+    # 6 Silvers: Shaman trash -> 9, Hermit trash -> 12 + its own gain = 13.
+    p0.hand = [first, get_card("Hermit")]
+    p0.discard = [second]
+    p0.deck = [get_card("Silver") for _ in range(6)]
+    _play(state, "Shaman")
+    assert first in p0.hand and not state.trash
+
+    p0.deck = [get_card("Silver") for _ in range(5)]
+    _play(state, "Shaman")
+    assert first in state.trash
