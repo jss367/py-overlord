@@ -1,5 +1,6 @@
 """Exported champions evolved from a hand-written seed keep the seed's hooks."""
 
+import copy
 import importlib.util
 
 from dominion.runner import save_strategy_as_python
@@ -84,40 +85,36 @@ def test_seed_export_serializes_lists_emptied_by_evolution(tmp_path):
     ]
 
 
-def test_graft_keeps_way_rule_on_the_original_import(tmp_path):
-    from dominion.strategy.strategy_loader import StrategyLoader
-    from scripts.graft_seed_hooks import graft
+def test_island_champion_subclass_keeps_seed_ancestor_as_base(tmp_path):
+    """``island_merge`` loads champions under a throwaway ``champion_<stem>``
+    module and the trainer deep-copies that class, so the concrete class is
+    not importable; the export must fall back to the nearest seed ancestor."""
+    from scripts.island_merge import _load_strategy_from_path
 
-    run_dir = tmp_path / "run"
-    run_dir.mkdir()
-    out_dir = tmp_path / "out"
-    out_dir.mkdir()
-    champion = run_dir / "albuquerque_chapel_bridge_engine_champion.py"
-    champion.write_text(
-        "from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule\n"
-        "\n\n"
-        "class Old(EnhancedStrategy):\n"
-        "    def __init__(self) -> None:\n"
-        "        super().__init__()\n"
-        "        self.name = 'Old'\n"
-        "        self.gain_priority = [PriorityRule('Province')]\n"
-        "        self.way_policy = []\n"
-        "\n\n"
-        "def create_old() -> EnhancedStrategy:\n"
-        "    return Old()\n"
-    )
+    first = AlbuquerqueChapelBridgeEngine()
+    first.name = "Island Champion"
+    first.gain_priority = [PriorityRule("Province")]
+    island_file = tmp_path / "albuquerque_chapel_bridge_engine_champion.py"
+    save_strategy_as_python(first, island_file, "IslandChampion", clean_for_publication=False)
 
-    assert graft(champion, out_dir, StrategyLoader()).startswith("grafted onto")
-    text = (out_dir / champion.name).read_text()
-    lines = text.splitlines()
-    assert lines[0] == (
-        "from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule"
-    )
-    assert lines[1] == (
+    loaded = _load_strategy_from_path(island_file)
+    assert type(loaded).__module__.startswith("champion_")
+    merged = copy.deepcopy(loaded)
+    merged.name = "Merged"
+    merged.gain_priority = [PriorityRule("Province"), PriorityRule("Bridge")]
+
+    out = tmp_path / "merged.py"
+    save_strategy_as_python(merged, out, "Merged", clean_for_publication=False)
+    text = out.read_text()
+    assert (
         "from dominion.strategy.strategies.albuquerque_seeds import "
         "AlbuquerqueChapelBridgeEngine as _SeedBase"
-    )
-    assert "class Old(_SeedBase):" in text
-    grafted = _load(out_dir / champion.name).create_old()
-    assert isinstance(grafted, AlbuquerqueStrategy)
-    assert [r.card for r in grafted.multiplier_priority][:2] == ["King's Court", "Bridge"]
+    ) in text
+    assert "class Merged(_SeedBase):" in text
+
+    champion = _load(out).create_merged()
+    assert isinstance(champion, AlbuquerqueStrategy)
+    assert [r.card for r in champion.gain_priority] == ["Province", "Bridge"]
+    assert [r.card for r in champion.multiplier_priority] == [
+        r.card for r in merged.multiplier_priority
+    ]
