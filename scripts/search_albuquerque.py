@@ -159,6 +159,8 @@ def main():
     args = parser.parse_args()
     if args.games <= 0 or args.games % 2:
         parser.error(f"--games must be a positive even number (each seed is played from both seats), got {args.games}")
+    if not args.versus and len(args.strategies) < 2:
+        parser.error("a round robin needs at least two --strategies (or pass --versus)")
     if args.versus:
         pairs = [(a, b) for a in args.strategies for b in args.versus]
     else:
