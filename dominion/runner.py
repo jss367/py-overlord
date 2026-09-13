@@ -55,6 +55,8 @@ def save_strategy_as_python(
         strategy = cleanup_for_publication(strategy, board_config=board_config)
 
     def format_list(name: str, rules: list[PriorityRule]) -> list[str]:
+        if not rules:
+            return [f"        self.{name} = []"]
         lines = [f"        self.{name} = ["]
         for rule in rules:
             cond_source = getattr(rule.condition, "_source", None) if rule.condition else None
@@ -66,6 +68,8 @@ def save_strategy_as_python(
         return lines
 
     def format_way_policy(rules: list[WayRule]) -> list[str]:
+        if not rules:
+            return ["        self.way_policy = []"]
         lines = ["        self.way_policy = ["]
         for rule in rules:
             cond_source = getattr(rule.condition, "_source", None) if rule.condition else None
@@ -104,33 +108,30 @@ def save_strategy_as_python(
         "",
     ]
 
-    if strategy.gain_priority:
-        lines.extend(format_list("gain_priority", strategy.gain_priority))
+    # A seed base's __init__ fills these lists with the seed's own defaults,
+    # so a seed-derived export must write every list, including ones that
+    # evolved or were cleaned to empty; otherwise the seed's list would
+    # silently come back when the module is loaded.
+    always = seed_base is not None
+
+    def emit(name: str, rules: list | None) -> None:
+        if rules or always:
+            lines.extend(format_list(name, list(rules or [])))
+            lines.append("")
+
+    emit("gain_priority", strategy.gain_priority)
+    emit("action_priority", strategy.action_priority)
+    emit("treasure_priority", strategy.treasure_priority)
+    emit("trash_priority", strategy.trash_priority)
+    emit(
+        "bounty_hunter_exile_priority",
+        getattr(strategy, "bounty_hunter_exile_priority", None),
+    )
+    emit("discard_priority", getattr(strategy, "discard_priority", None))
+    if needs_way_rule or always:
+        lines.extend(format_way_policy(list(getattr(strategy, "way_policy", None) or [])))
         lines.append("")
-    if strategy.action_priority:
-        lines.extend(format_list("action_priority", strategy.action_priority))
-        lines.append("")
-    if strategy.treasure_priority:
-        lines.extend(format_list("treasure_priority", strategy.treasure_priority))
-        lines.append("")
-    if strategy.trash_priority:
-        lines.extend(format_list("trash_priority", strategy.trash_priority))
-        lines.append("")
-    if getattr(strategy, "bounty_hunter_exile_priority", None):
-        lines.extend(
-            format_list(
-                "bounty_hunter_exile_priority",
-                strategy.bounty_hunter_exile_priority,
-            )
-        )
-        lines.append("")
-    if getattr(strategy, "discard_priority", None):
-        lines.extend(format_list("discard_priority", strategy.discard_priority))
-        lines.append("")
-    if needs_way_rule:
-        lines.extend(format_way_policy(strategy.way_policy))
-        lines.append("")
-    if seed_base is not None and multiplier_priority:
+    if always:
         lines.extend(format_list("multiplier_priority", multiplier_priority))
         lines.append("")
 

@@ -56,3 +56,68 @@ def test_loader_instantiated_seed_is_recognised(tmp_path):
     save_strategy_as_python(strategy, out, "LoaderChampion", clean_for_publication=False)
     assert "AlbuquerqueMasqueradeBridgeEngine as _SeedBase" in out.read_text()
     assert isinstance(_load(out).create_loaderchampion(), AlbuquerqueStrategy)
+
+
+def test_seed_export_serializes_lists_emptied_by_evolution(tmp_path):
+    """A list that evolved (or was cleaned) to empty must be written out, or
+    the seed's ``__init__`` would restore its own list when the module loads."""
+    strategy = AlbuquerqueChapelBridgeEngine()
+    strategy.name = "Thin"
+    assert strategy.trash_priority and strategy.action_priority
+    strategy.trash_priority = []
+    strategy.action_priority = []
+    strategy.multiplier_priority = []
+
+    out = tmp_path / "thin.py"
+    save_strategy_as_python(strategy, out, "Thin", clean_for_publication=False)
+    text = out.read_text()
+    assert "self.trash_priority = []" in text
+    assert "self.action_priority = []" in text
+    assert "self.multiplier_priority = []" in text
+
+    champion = _load(out).create_thin()
+    assert champion.trash_priority == []
+    assert champion.action_priority == []
+    assert champion.multiplier_priority == []
+    assert [r.card for r in champion.gain_priority] == [
+        r.card for r in strategy.gain_priority
+    ]
+
+
+def test_graft_keeps_way_rule_on_the_original_import(tmp_path):
+    from dominion.strategy.strategy_loader import StrategyLoader
+    from scripts.graft_seed_hooks import graft
+
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    champion = run_dir / "albuquerque_chapel_bridge_engine_champion.py"
+    champion.write_text(
+        "from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule\n"
+        "\n\n"
+        "class Old(EnhancedStrategy):\n"
+        "    def __init__(self) -> None:\n"
+        "        super().__init__()\n"
+        "        self.name = 'Old'\n"
+        "        self.gain_priority = [PriorityRule('Province')]\n"
+        "        self.way_policy = []\n"
+        "\n\n"
+        "def create_old() -> EnhancedStrategy:\n"
+        "    return Old()\n"
+    )
+
+    assert graft(champion, out_dir, StrategyLoader()).startswith("grafted onto")
+    text = (out_dir / champion.name).read_text()
+    lines = text.splitlines()
+    assert lines[0] == (
+        "from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule"
+    )
+    assert lines[1] == (
+        "from dominion.strategy.strategies.albuquerque_seeds import "
+        "AlbuquerqueChapelBridgeEngine as _SeedBase"
+    )
+    assert "class Old(_SeedBase):" in text
+    grafted = _load(out_dir / champion.name).create_old()
+    assert isinstance(grafted, AlbuquerqueStrategy)
+    assert [r.card for r in grafted.multiplier_priority][:2] == ["King's Court", "Bridge"]

@@ -308,20 +308,24 @@
   <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
   <table class="priority-table">
     <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
-    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">When King&#x27;s Court or Disciple asks which Action to replay, use the multiplier list (another King&#x27;s Court with four Actions in hand, then Bridge, then Wharf, and so on); the main play order still decides what to play first, and if nothing on the multiplier list is in hand the King&#x27;s Court is played for no effect rather than tripling a bad card.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
-    &quot;&quot;&quot;When King&#x27;s Court or Disciple asks which Action to replay, use the
-    multiplier list (another King&#x27;s Court with four Actions in hand, then
-    Bridge, then Wharf, and so on); the main play order still decides what
-    to play first, and if nothing on the multiplier list is in hand the
-    King&#x27;s Court is played for no effect rather than tripling a bad card.&quot;&quot;&quot;
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">When King&#x27;s Court asks which Action to replay, use the multiplier list (another King&#x27;s Court with four Actions in hand, then Bridge, then Wharf, and so on); the main play order still decides what to play first. If nothing on the multiplier list is in hand, decline: the King&#x27;s Court is played for no effect rather than tripling a card the list deliberately omits (Peasant, Teacher, a Ruins).<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+    &quot;&quot;&quot;When King&#x27;s Court asks which Action to replay, use the multiplier
+    list (another King&#x27;s Court with four Actions in hand, then Bridge, then
+    Wharf, and so on); the main play order still decides what to play
+    first. If nothing on the multiplier list is in hand, decline: the
+    King&#x27;s Court is played for no effect rather than tripling a card the
+    list deliberately omits (Peasant, Teacher, a Ruins).&quot;&quot;&quot;
     in_main_phase = getattr(state, &quot;_choosing_main_action_phase&quot;, False)
     if self.multiplier_priority and not in_main_phase:
-        pick = self._choose_from_priority(
+        return self._choose_from_priority(
             self.multiplier_priority, choices, state, player, &quot;multiplier&quot;
         )
-        if pick is not None:
-            return pick
     return super().choose_action(state, player, choices)
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose disciple action to replay</span></td><td data-label="What it does">Disciple replays the same targets King&#x27;s Court triples, and likewise declines when nothing on the multiplier list is in hand.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_disciple_action_to_replay(self, state, player, choices):
+    &quot;&quot;&quot;Disciple replays the same targets King&#x27;s Court triples, and
+    likewise declines when nothing on the multiplier list is in hand.&quot;&quot;&quot;
+    return self.choose_action(state, player, choices)
 </code></pre></details></td></tr>
 <tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">Follow the gain list, except that with two piles empty and the lead, drain the smallest remaining pile (never Curses) to end the game.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
     &quot;&quot;&quot;Follow the gain list, except that with two piles empty and the lead,

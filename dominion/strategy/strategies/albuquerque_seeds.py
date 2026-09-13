@@ -52,9 +52,9 @@ class AlbuquerqueStrategy(EnhancedStrategy):
     """Shared decision hooks for this board.
 
     ``multiplier_priority`` is consulted when King's Court or Disciple asks
-    which Action to replay (the engine calls ``choose_action`` outside the
-    main action phase for that). The main ``action_priority`` still decides
-    what to play first.
+    which Action to replay: King's Court calls ``choose_action`` outside the
+    main action phase, Disciple calls ``choose_disciple_action_to_replay``.
+    The main ``action_priority`` still decides what to play first.
     """
 
     steward_mode = "cards"
@@ -64,19 +64,23 @@ class AlbuquerqueStrategy(EnhancedStrategy):
         self.multiplier_priority: list[PriorityRule] = []
 
     def choose_action(self, state, player, choices):
-        """When King's Court or Disciple asks which Action to replay, use the
-        multiplier list (another King's Court with four Actions in hand, then
-        Bridge, then Wharf, and so on); the main play order still decides what
-        to play first, and if nothing on the multiplier list is in hand the
-        King's Court is played for no effect rather than tripling a bad card."""
+        """When King's Court asks which Action to replay, use the multiplier
+        list (another King's Court with four Actions in hand, then Bridge, then
+        Wharf, and so on); the main play order still decides what to play
+        first. If nothing on the multiplier list is in hand, decline: the
+        King's Court is played for no effect rather than tripling a card the
+        list deliberately omits (Peasant, Teacher, a Ruins)."""
         in_main_phase = getattr(state, "_choosing_main_action_phase", False)
         if self.multiplier_priority and not in_main_phase:
-            pick = self._choose_from_priority(
+            return self._choose_from_priority(
                 self.multiplier_priority, choices, state, player, "multiplier"
             )
-            if pick is not None:
-                return pick
         return super().choose_action(state, player, choices)
+
+    def choose_disciple_action_to_replay(self, state, player, choices):
+        """Disciple replays the same targets King's Court triples, and
+        likewise declines when nothing on the multiplier list is in hand."""
+        return self.choose_action(state, player, choices)
 
     def choose_gain(self, state, player, choices):
         """Follow the gain list, except that with two piles empty and the lead,

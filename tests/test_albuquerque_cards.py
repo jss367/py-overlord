@@ -151,3 +151,50 @@ def test_engine_drains_a_low_pile_when_ahead_with_two_piles_empty():
     me.deck += [get_card("Bridge") for _ in range(6)]
     pick = strategy.choose_gain(state, me, choices)
     assert pick is None or pick.name != "Bridge"
+
+
+def _engine_state():
+    from dominion.ai.genetic_ai import GeneticAI
+    from dominion.strategy.strategies.albuquerque_seeds import AlbuquerqueChapelBridgeEngine
+
+    state, player = _state(GeneticAI(AlbuquerqueChapelBridgeEngine()))
+    return state, player
+
+
+def test_kings_court_declines_when_no_multiplier_target_is_in_hand():
+    """Peasant is not on the multiplier list, so King's Court must not fall
+    through to the main play order and triple it."""
+    state, player = _engine_state()
+    player.hand = [get_card("Peasant")]
+    kc = get_card("King's Court")
+    player.in_play.append(kc)
+    kc.play_effect(state)
+
+    assert [c.name for c in player.hand] == ["Peasant"]
+    assert player.coins == 0 and player.buys == 1
+
+
+def test_disciple_replays_the_multiplier_target_through_the_strategy():
+    state, player = _engine_state()
+    player.hand = [get_card("Peasant"), get_card("Bridge")]
+    bridges_before = state.supply["Bridge"]
+    disciple = get_card("Disciple")
+    player.in_play.append(disciple)
+    disciple.play_effect(state)
+
+    assert [c.name for c in player.hand] == ["Peasant"]
+    assert player.coins == 2 and player.buys == 3
+    assert state.supply["Bridge"] == bridges_before - 1
+
+
+def test_disciple_declines_when_no_multiplier_target_is_in_hand():
+    state, player = _engine_state()
+    player.hand = [get_card("Peasant")]
+    peasants_before = state.supply["Peasant"]
+    disciple = get_card("Disciple")
+    player.in_play.append(disciple)
+    disciple.play_effect(state)
+
+    assert [c.name for c in player.hand] == ["Peasant"]
+    assert player.coins == 0 and player.buys == 1
+    assert state.supply["Peasant"] == peasants_before

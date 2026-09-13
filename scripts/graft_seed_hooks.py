@@ -31,12 +31,17 @@ def graft(path: Path, out_dir: Path, loader: StrategyLoader) -> str:
     if cls.__name__ in {"EnhancedStrategy", "BaseStrategy"}:
         (out_dir / path.name).write_text(text)
         return "plain seed"
-    text = text.replace(
-        "from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule",
-        "from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule\n"
-        f"from {cls.__module__} import {cls.__name__} as _SeedBase",
-        1,
+    # Match the whole import line so a trailing ``, WayRule`` (or any other
+    # name) stays on the original import instead of the seed import.
+    text, n = re.subn(
+        r"^(from dominion\.strategy\.enhanced_strategy import .*)$",
+        rf"\1\nfrom {cls.__module__} import {cls.__name__} as _SeedBase",
+        text,
+        count=1,
+        flags=re.M,
     )
+    if n == 0:
+        return "no enhanced_strategy import to graft onto"
     text = re.sub(r"^class (\w+)\(EnhancedStrategy\):", r"class \1(_SeedBase):", text, count=1, flags=re.M)
     multiplier = getattr(seed, "multiplier_priority", None) or []
     if multiplier:
