@@ -133,12 +133,35 @@ class AlbuquerqueStrategy(EnhancedStrategy):
         pool = non_actions or choices
         return min(pool, key=lambda c: (c.cost.coins, c.name))
 
+    def choose_cards_to_trash(self, state, player, choices, count):
+        """Pick up to ``count`` cards one at a time, hiding each pick from the
+        hand before the next so deck-wide conditions such as
+        ``treasure_value_in_deck`` see the pending trash. Chapel already
+        removes each card before asking again; Steward and Remake ask for
+        both at once, and without this the second pick still counts the
+        first Copper and the deck drops one Copper below the floor."""
+        original_hand = list(player.hand)
+        remaining = list(choices)
+        selected: list = []
+        try:
+            while remaining and len(selected) < count:
+                pick = self.choose_trash(state, player, remaining)
+                if pick is None or pick not in remaining:
+                    break
+                selected.append(pick)
+                remaining.remove(pick)
+                if pick in player.hand:
+                    player.hand.remove(pick)
+        finally:
+            player.hand[:] = original_hand
+        return selected
+
     def choose_steward_mode(self, state, player):
-        """Trash only when two hand cards pass the trash list (Steward must
-        trash two); otherwise draw (engines) or take the coins (money)."""
-        wanted = [
-            c for c in player.hand if self.choose_trash(state, player, [c]) is c
-        ]
+        """Trash only when two hand cards clear the trash list together
+        (Steward fills a second slot with junk on its own, so a lone pick
+        would still cost a second Copper); otherwise draw (engines) or take
+        the coins (money)."""
+        wanted = self.choose_cards_to_trash(state, player, list(player.hand), 2)
         if len(wanted) >= 2 and state.supply.get("Province", 0) > 3:
             return "trash"
         if self.steward_mode == "cards":

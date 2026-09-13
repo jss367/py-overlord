@@ -217,3 +217,48 @@ def test_empty_multiplier_list_declines_the_replay_instead_of_using_play_order()
 
     state._choosing_main_action_phase = True
     assert strategy.choose_action(state, player, choices).name == "Bridge"
+
+
+def _floor_state(treasure_total):
+    """Engine player holding two Coppers and a Silver with a Gold in the deck,
+    padded with Coppers to the requested Treasure total (the Copper trash
+    rule's floor is $6)."""
+    state, player = _engine_state()
+    state.supply["Province"] = 8
+    player.hand = [get_card("Copper"), get_card("Copper"), get_card("Silver")]
+    player.deck = [get_card("Gold")] + [get_card("Copper") for _ in range(treasure_total - 7)]
+    return state, player
+
+
+def test_multi_card_trash_keeps_the_treasure_floor():
+    """At exactly floor + 1 the second pick must see the first Copper as
+    already gone and stop, and the hand must be left as it was."""
+    state, player = _floor_state(7)
+    picks = player.ai.choose_cards_to_trash(state, list(player.hand), 2)
+
+    assert [c.name for c in picks] == ["Copper"]
+    assert [c.name for c in player.hand] == ["Copper", "Copper", "Silver"]
+
+    state, player = _floor_state(8)
+    picks = player.ai.choose_cards_to_trash(state, list(player.hand), 2)
+    assert [c.name for c in picks] == ["Copper", "Copper"]
+
+
+def test_steward_trashes_two_coppers_only_when_both_clear_the_floor():
+    """Steward fills a second slot with junk by itself, so the strategy must
+    not enter trash mode unless two cards clear the floor together."""
+    state, player = _floor_state(7)
+    assert player.ai.choose_steward_mode(state, player) == "cards"
+    steward = get_card("Steward")
+    player.in_play.append(steward)
+    steward.play_effect(state)
+    assert sum(1 for c in player.hand if c.name == "Copper") >= 2
+    assert not state.trash
+
+    state, player = _floor_state(8)
+    assert player.ai.choose_steward_mode(state, player) == "trash"
+    steward = get_card("Steward")
+    player.in_play.append(steward)
+    steward.play_effect(state)
+    assert [c.name for c in state.trash] == ["Copper", "Copper"]
+    assert [c.name for c in player.hand] == ["Silver"]
