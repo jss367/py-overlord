@@ -43,11 +43,20 @@ def save_strategy_as_python(
     clean_for_publication: bool = True,
     board_config: BoardConfig | None = None,
 ) -> None:
-    """Serialize an EnhancedStrategy as a Python module."""
+    """Serialize an EnhancedStrategy as a Python module.
+
+    A strategy evolved from a hand-written seed subclass keeps that class as
+    its base (imported from the seed's module), so decision hooks the seed
+    defines in code (multiplier targets, Steward mode, ...) survive export.
+    """
+    seed_base = _importable_seed_base(strategy)
+    multiplier_priority = list(getattr(strategy, "multiplier_priority", None) or [])
     if clean_for_publication:
         strategy = cleanup_for_publication(strategy, board_config=board_config)
 
     def format_list(name: str, rules: list[PriorityRule]) -> list[str]:
+        if not rules:
+            return [f"        self.{name} = []"]
         lines = [f"        self.{name} = ["]
         for rule in rules:
             cond_source = getattr(rule.condition, "_source", None) if rule.condition else None
@@ -59,6 +68,8 @@ def save_strategy_as_python(
         return lines
 
     def format_way_policy(rules: list[WayRule]) -> list[str]:
+        if not rules:
+            return ["        self.way_policy = []"]
         lines = ["        self.way_policy = ["]
         for rule in rules:
             cond_source = getattr(rule.condition, "_source", None) if rule.condition else None
@@ -79,11 +90,16 @@ def save_strategy_as_python(
         if needs_way_rule
         else "from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule"
     )
-    lines = [
-        import_line,
+    base_name = "EnhancedStrategy"
+    lines = [import_line]
+    if seed_base is not None:
+        module_name, seed_class = seed_base
+        base_name = "_SeedBase"
+        lines.append(f"from {module_name} import {seed_class} as _SeedBase")
+    lines += [
         "",
         "",
-        f"class {class_name}(EnhancedStrategy):",
+        f"class {class_name}({base_name}):",
         "    def __init__(self) -> None:",
         "        super().__init__()",
         f"        self.name = {strategy.name!r}",
@@ -92,31 +108,31 @@ def save_strategy_as_python(
         "",
     ]
 
-    if strategy.gain_priority:
-        lines.extend(format_list("gain_priority", strategy.gain_priority))
+    # A seed base's __init__ fills these lists with the seed's own defaults,
+    # so a seed-derived export must write every list, including ones that
+    # evolved or were cleaned to empty; otherwise the seed's list would
+    # silently come back when the module is loaded.
+    always = seed_base is not None
+
+    def emit(name: str, rules: list | None) -> None:
+        if rules or always:
+            lines.extend(format_list(name, list(rules or [])))
+            lines.append("")
+
+    emit("gain_priority", strategy.gain_priority)
+    emit("action_priority", strategy.action_priority)
+    emit("treasure_priority", strategy.treasure_priority)
+    emit("trash_priority", strategy.trash_priority)
+    emit(
+        "bounty_hunter_exile_priority",
+        getattr(strategy, "bounty_hunter_exile_priority", None),
+    )
+    emit("discard_priority", getattr(strategy, "discard_priority", None))
+    if needs_way_rule or always:
+        lines.extend(format_way_policy(list(getattr(strategy, "way_policy", None) or [])))
         lines.append("")
-    if strategy.action_priority:
-        lines.extend(format_list("action_priority", strategy.action_priority))
-        lines.append("")
-    if strategy.treasure_priority:
-        lines.extend(format_list("treasure_priority", strategy.treasure_priority))
-        lines.append("")
-    if strategy.trash_priority:
-        lines.extend(format_list("trash_priority", strategy.trash_priority))
-        lines.append("")
-    if getattr(strategy, "bounty_hunter_exile_priority", None):
-        lines.extend(
-            format_list(
-                "bounty_hunter_exile_priority",
-                strategy.bounty_hunter_exile_priority,
-            )
-        )
-        lines.append("")
-    if getattr(strategy, "discard_priority", None):
-        lines.extend(format_list("discard_priority", strategy.discard_priority))
-        lines.append("")
-    if needs_way_rule:
-        lines.extend(format_way_policy(strategy.way_policy))
+    if always:
+        lines.extend(format_list("multiplier_priority", multiplier_priority))
         lines.append("")
 
     lines.extend(
@@ -127,6 +143,44 @@ def save_strategy_as_python(
     )
 
     path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def _importable_seed_base(strategy: EnhancedStrategy) -> tuple[str, str] | None:
+    """Return ``(module, class)`` for the nearest class in ``strategy``'s
+    lineage that is a hand-written seed a generated module can import, else
+    None.
+
+    The concrete class is not always importable itself: ``island_merge``
+    loads champions under a throwaway ``champion_<stem>`` module name and the
+    trainer deep-copies that class, so a merged winner descended from an
+    island champion is ``champion_x.Champion(AlbuquerqueChapelBridgeEngine)``.
+    Walking the MRO keeps the seed's coded hooks for such strategies instead
+    of exporting them as plain ``EnhancedStrategy`` subclasses.
+    """
+    import importlib
+
+    for cls in type(strategy).__mro__:
+        if cls.__name__ in {"EnhancedStrategy", "BaseStrategy", "object"}:
+            return None
+        module_name = cls.__module__
+        if not module_name.startswith(("dominion.strategy.strategies", "generated_strategies")):
+            continue
+        if cls.__name__.startswith("_"):
+            continue
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError:
+            continue
+        # StrategyLoader executes seed modules from their file path without
+        # registering them in sys.modules, so the class object here can differ
+        # from the one a fresh import returns; match by name and lineage instead.
+        exported = getattr(module, cls.__name__, None)
+        if not isinstance(exported, type) or not issubclass(exported, EnhancedStrategy):
+            continue
+        if [c.__name__ for c in exported.__mro__] != [c.__name__ for c in cls.__mro__]:
+            continue
+        return module_name, cls.__name__
+    return None
 
 
 def merge_baseline_panel(base_panel: list, reused: list) -> list:

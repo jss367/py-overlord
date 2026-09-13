@@ -28,8 +28,11 @@ class Remake(Card):
             if card not in player.hand:
                 continue
             player.hand.remove(card)
+            # "Costing exactly $1 more" compares current (modified) costs, so
+            # a Bridge in play lets a Copper (cost $0) become a $2 card.
+            target_cost = game_state.get_card_cost(player, card) + 1
             game_state.trash_card(player, card)
-            self._gain_card_costing_exactly(game_state, player, card.cost.coins + 1)
+            self._gain_card_costing_exactly(game_state, player, target_cost)
 
     def _gain_card_costing_exactly(self, game_state, player, cost):
         if cost < 0:
@@ -42,7 +45,11 @@ class Remake(Card):
             if count <= 0:
                 continue
             candidate = get_card(name)
-            if candidate.cost.coins == cost and candidate.cost.potions == 0:
+            if (
+                game_state.get_card_cost(player, candidate) == cost
+                and candidate.cost.potions == 0
+                and candidate.cost.debt == 0
+            ):
                 options.append(candidate)
 
         if not options:
@@ -50,7 +57,13 @@ class Remake(Card):
 
         choice = player.ai.choose_buy(game_state, options + [None])
         if choice is None:
-            choice = options[0]
+            # The gain is mandatory. When the strategy wants none of the
+            # options, take the least harmful: an Action or Treasure over
+            # a Victory card or Curse.
+            choice = min(
+                options,
+                key=lambda c: (c.name == "Curse", c.is_victory, -c.cost.coins, c.name),
+            )
 
         if game_state.supply.get(choice.name, 0) <= 0:
             return

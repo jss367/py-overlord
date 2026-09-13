@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Albuquerque Strategy Search Guide: card audit, search method, hand and evolutionary search results, and confirmation.">
+<title>Albuquerque Strategy Search Guide</title>
+<style>
+:root { color-scheme: dark; --ink:#f5f0e4; --muted:#b8b1a3; --paper:#151916; --panel:#1d231f; --line:#414940; --gold:#e9c46a; }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { margin:0; background:radial-gradient(circle at 15% 0%,#263a2b66,transparent 36rem),var(--paper); color:var(--ink); font:16px/1.7 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+a { color:var(--gold); text-underline-offset:3px; }
+a:hover { color:#ffe09a; }
+a:focus-visible { outline:2px solid var(--gold); outline-offset:4px; }
+.page { max-width:1180px; margin:auto; padding:26px clamp(18px,4vw,52px) 60px; }
+.topbar,.contents { display:flex; flex-wrap:wrap; gap:12px 24px; font-size:.9rem; }
+.topbar { justify-content:space-between; margin-bottom:32px; }
+.eyebrow { color:var(--gold); font-size:.76rem; font-weight:800; letter-spacing:.13em; text-transform:uppercase; }
+.hero { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(250px,.8fr); align-items:start; gap:40px; padding:30px 0 48px; border-bottom:1px solid var(--line); }
+h1,h2,h3 { font-family:Georgia,"Times New Roman",serif; line-height:1.16; }
+h1 { font-size:clamp(2.7rem,5.5vw,4.8rem); letter-spacing:-.04em; margin:12px 0 24px; max-width:18ch; }
+h2 { font-size:clamp(1.8rem,3vw,2.7rem); margin:0 0 24px; scroll-margin-top:20px; }
+h3 { font-size:1.4rem; }
+p { margin:0 0 18px; }
+.intro p { color:var(--muted); }
+.intro strong { color:var(--ink); }
+.verdict { background:linear-gradient(145deg,#e9c46a22,#e9c46a05); border:1px solid #9d7730; border-radius:18px; padding:26px; }
+.verdict strong { display:block; color:var(--gold); font:700 2.1rem/1.2 Georgia,serif; margin:12px 0 16px; }
+.verdict p:last-child { margin:0; }
+.contents { padding:22px 0; border-bottom:1px solid var(--line); }
+.section { padding:40px 0; border-bottom:1px solid var(--line); }
+.section>p,.section>ul,.section>ol { max-width:88ch; }
+ul,ol { padding-left:26px; }
+li { margin:10px 0; padding-left:5px; }
+.table-wrap { width:100%; overflow-x:auto; margin:24px 0; border:1px solid var(--line); border-radius:12px; }
+table { width:100%; border-collapse:collapse; background:var(--panel); font-size:.94rem; }
+th,td { padding:13px 16px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th { color:var(--gold); font-size:.85rem; }
+tr:last-child td { border-bottom:0; }
+tbody tr:hover { background:#ffffff05; }
+code { font-size:.86em; background:#ffffff09; padding:2px 5px; border-radius:4px; overflow-wrap:anywhere; }
+pre { padding:20px; border-radius:12px; border:1px solid var(--line); background:var(--panel); white-space:pre-wrap; overflow-wrap:anywhere; }
+pre code { padding:0; background:none; }
+footer { color:var(--muted); padding-top:28px; font-size:.85rem; }
+@media(max-width:780px) { .hero { grid-template-columns:1fr; gap:24px; } h1 { max-width:none; } .topbar { justify-content:flex-start; } th,td { padding:10px; } }
+@media print { :root { color-scheme:light; --ink:#171717; --muted:#444; --paper:#fff; --panel:#fff; --line:#bbb; --gold:#654a0a; } body { background:white; } .page { max-width:none; padding:0; } .topbar,.contents { display:none; } .hero { padding-top:0; } .verdict { background:white; } .table-wrap { overflow:visible; } tr { break-inside:avoid; } pre { background:#f5f5f5; } }
+
+.hero { display:block; } h1 { max-width:24ch; }
+</style>
+</head>
+<body>
+<main class="page">
+<nav class="topbar" aria-label="Guide navigation"><a href="index.html">← Strategy catalog</a><a href="../boards/albuquerque.html">View the board</a><a href="albuquerque-best-found.html">Strategy implementation</a></nav>
+<header class="hero"><span class="eyebrow">Board strategy research</span><h1>Albuquerque Strategy Search Guide</h1><p>Albuquerque Board Strategy Search</p></header>
+<nav class="contents" aria-label="On this page"><a href="#card-audit">Card audit</a><a href="#board-texture">Board texture</a><a href="#recommendation">Recommendation</a><a href="#why-this-strategy-wins">Why this strategy wins</a><a href="#method">Method</a><a href="#results">Results</a><a href="#validation">Validation</a><a href="#search-notes">Search notes</a></nav>
+<article>
+<section class="section">
+<p>Board: <a href="../../boards/albuquerque.txt"><code>boards/albuquerque.txt</code></a></p>
+<p>Kingdom (no landscapes, no Colony or Platinum):</p>
+<ul>
+<li>Peasant (with the Soldier / Fugitive / Disciple / Teacher Traveller piles)</li>
+<li>Chapel</li>
+<li>Masquerade</li>
+<li>Steward</li>
+<li>Remake</li>
+<li>Bridge</li>
+<li>Wandering Minstrel</li>
+<li>Wharf</li>
+<li>Cultist (with the Ruins pile)</li>
+<li>King's Court</li>
+</ul>
+<p>Search date: September 8, 2026. Two-player games throughout.</p>
+</section>
+<section class="section"><h2 id="card-audit">Card audit</h2>
+<p>All ten implementations were read against the printed card text and then
+exercised in a scripted game state (King's Court on Wharf and on Bridge, the
+Peasant exchange at clean-up, Cultist chains and the Ruins pile, Disciple,
+Teacher's token, Masquerade passing, Wandering Minstrel's sift, Steward's
+modes). Unlike earlier boards the rules were essentially right. Three edge
+defects were fixed, with tests:</p>
+<ol>
+<li><strong>Remake compared printed costs.</strong> "Costing exactly $1 more"
+   uses current costs, so with a Bridge in play a trashed Copper (cost $0)
+   must become a $2 card, and under three Bridges a $4 card. The simulator
+   found nothing to gain. It now uses the modified cost for both the trashed
+   card and the candidates, and excludes Debt and Potion costs.</li>
+<li><strong>King's Court forced a target.</strong> The card says "you may";
+   the simulator played the first Action in hand whenever the AI declined,
+   which made King's Court triple a Chapel. Declining is now respected.</li>
+<li><strong>Remake's mandatory gain fell back to the first pile</strong>
+   (an Estate) when the strategy wanted none of the options. It now takes the
+   least harmful option, an Action or Treasure over a Victory card.</li>
+</ol>
+<p>Search infrastructure was extended alongside: <code>GeneticAI</code> now
+forwards the Steward mode, Masquerade pass, Cultist chain, Traveller
+exchange, Teacher token and discard decisions to the strategy; the card
+capability table marks Wharf as draw and Masquerade, Steward and Remake as
+trashers so the engine enumerator sees them; three <code>PriorityRule</code>
+conditions were added (<code>treasure_value_in_deck</code>,
+<code>deck_group_diff</code>, <code>not_</code>); and exported island
+champions keep their hand-written seed class as a base so decision hooks
+survive evolution.</p>
+</section>
+<section class="section"><h2 id="board-texture">Board texture</h2>
+<ul>
+<li><strong>Four trashers</strong> (Chapel, Masquerade, Steward, Remake) make a
+  thin deck cheap. Masquerade is the one that draws while it thins, and it
+  hands junk to the opponent.</li>
+<li><strong>Wandering Minstrel is the only village</strong>, and a cantrip one:
+  +1 Card +2 Actions, then it puts the Actions among the top three cards back
+  and discards the rest, so a thin engine deck keeps drawing live cards.
+  Ruins are Actions, so a Cultist victim's Minstrel keeps Ruins on top.</li>
+<li><strong>Wharf is the draw and the Buys</strong>: +2 Cards +1 Buy this turn
+  and next. King's Court on Wharf is six cards and three Buys, twice.</li>
+<li><strong>Bridge is the payload</strong>: +$1 +1 Buy and every card costs $1
+  less, stacking. King's Court on Bridge makes Provinces cost $5 and adds three
+  Buys; with a few plain Bridges on top the deck buys several Provinces a
+  turn.</li>
+<li><strong>Cultist</strong> is the only attack: +2 Cards, chains itself, and
+  hands out Ruins. Against a Masquerade deck the Ruins come straight back.</li>
+<li><strong>Peasant</strong> is a $2 +Buy/+$1 that walks to Soldier, Fugitive,
+  Disciple (a Throne Room that also gains a copy) and Teacher. It is slower
+  than the Bridge and Wharf Buys the engine already has.</li>
+</ul>
+</section>
+<section class="section"><h2 id="recommendation">Recommendation</h2>
+<p>The best strategy found is published as <code>Albuquerque Best Found</code>,
+defined in <code>generated_strategies/albuquerque_best_found.py</code>
+(<a href="albuquerque-best-found.html">strategy page</a>). It is the
+Masquerade Bridge Engine seed with the two hand-search adjustments that
+measured best.</p>
+<div class="verdict"><span class="eyebrow">Best found</span><strong>Masquerade into Minstrel / Wharf / Bridge / King's Court</strong>
+<p>Open Masquerade (turn 1 to 4). Then, in order of what $ buys: Province once a
+King's Court and three payload cards are owned (or from turn 12, or with five
+Provinces left); King's Court up to two while two payload cards are owned;
+Wharf up to two; Wandering Minstrel while terminals exceed Minstrels by more
+than one; Bridge up to four; Minstrel up to four; one Silver (a second while
+the deck is short of money before turn 8); Duchy with two Provinces left and
+Estates with spare Buys. Trash Curses, Ruins, Estates while more than two
+Provinces remain, and Coppers only while the deck keeps more than $6 of
+Treasure (more than $3 once three Bridges are owned). Play Minstrel first,
+King's Court when it has a target, then Wharf, Masquerade, Bridge. King's
+Court triples another King's Court with four Actions in hand, else Bridge,
+else Wharf. With two piles empty and the lead, drain the smallest pile.</p></div>
+</section>
+<section class="section"><h2 id="why-this-strategy-wins">Why this strategy wins</h2>
+<ul>
+<li><strong>It finishes in 13 to 15 turns.</strong> Traced games against
+  Cultist Wharf money end with six to eight Provinces for the engine on turn
+  13 or 14; money has three or four by then.</li>
+<li><strong>Masquerade beats Chapel here.</strong> Chapel thins faster but
+  costs a turn each time it fires and leaves the deck too poor to buy the
+  engine; Masquerade draws two, thins one card a turn, and passes the Cultist
+  player's Ruins back. The Chapel version of the same core lost 31% head to
+  head in the seed round robin.</li>
+<li><strong>Two King's Courts, four Bridges.</strong> The seed wanted three and
+  six. Hand search found the smaller counts better: the deck reaches its
+  greening threshold sooner and the mega-turn still buys three or four
+  Provinces.</li>
+<li><strong>The greening gate matters.</strong> An unconditional Province rule
+  greened on turn 9 with two Bridges and lost to money; waiting for a King's
+  Court plus three payload cards (or turn 12) was worth about 20 points.</li>
+</ul>
+</section>
+<section class="section"><h2 id="method">Method</h2>
+<ol>
+<li><strong>Card audit</strong> (above), then ten hand-written seeds covering four
+  money lines (Double Cultist, Wharf, Cultist Wharf, Masquerade) and six engine
+  theories (Chapel, Masquerade, Steward, Remake and Cultist openers on a Bridge
+  core, a Wharf-and-Gold engine, and a Traveller line).</li>
+<li><strong>Seed round robin</strong> (100 games per pair, both seats, shared
+  shuffles). The first engine seeds lost to every money seed; traces showed
+  four play-skill defects, fixed in the seed vocabulary: trashing rules that
+  counted engine cards as economy and stripped every Copper, an unconditional
+  Province rule, a village rule that only compared Minstrels to Bridges, and
+  King's Court choosing its target from the main play order (it tripled
+  Chapel). After the fixes the Masquerade Bridge Engine led the round robin.</li>
+<li><strong>Hand local search</strong> around the leader over the engine's
+  counts (King's Courts, Bridges, Wharves, Minstrels, Silvers, greening turn,
+  Duchy timing, opener) against three fixed opponents, 100 then 200 games per
+  match.</li>
+<li><strong>Island evolution</strong>: nine islands (seven engine seeds and two
+  money seeds), population 20, 10 generations, 16 games per evaluation, panel
+  of the two leading engines and two money seeds.</li>
+<li><strong>Cross-island tournament</strong> between the champions, the hand
+  leader and the best seeds, then a long confirmation of the winner.</li>
+</ol>
+<p>Reproduction (from the repository root):</p>
+<pre><code>PYTHONPATH=. python scripts/search_albuquerque.py --games 100 --strategies \
+  "Big Money" "Albuquerque Wharf Money" "Albuquerque Cultist Wharf Money" \
+  "Albuquerque Masquerade Money" "Albuquerque Double Cultist Money" \
+  "Albuquerque Chapel Bridge Engine" "Albuquerque Masquerade Bridge Engine" \
+  "Albuquerque Steward Bridge Engine" "Albuquerque Remake Bridge Engine" \
+  "Albuquerque Cultist Bridge Engine" "Albuquerque Wharf Engine" \
+  "Albuquerque Traveller Engine"
+
+PYTHONPATH=. python scripts/search_albuquerque.py --games 200 --seed 4242 \
+  --versus "Albuquerque Masquerade Bridge Engine" "Albuquerque Chapel Bridge Engine" \
+  "Albuquerque Cultist Wharf Money" \
+  --strategies 'variant:{"name":"kc2_bridge4","kc":2,"bridge":4}' \
+  'variant:{"name":"kc2_bridge5","kc":2,"bridge":5}'
+
+PYTHONPATH=. python scripts/island_evolve.py --board boards/albuquerque.txt \
+  --population 20 --generations 10 --games-per-eval 16 --parallel --workers 1 \
+  --output-dir generated_strategies/island_champions/albuquerque \
+  --seeds "Albuquerque Masquerade Bridge Engine" "Albuquerque Chapel Bridge Engine" \
+  "Albuquerque Cultist Bridge Engine" "Albuquerque Remake Bridge Engine" \
+  "Albuquerque Traveller Engine" "Albuquerque Steward Bridge Engine" \
+  "Albuquerque Wharf Engine" "Albuquerque Cultist Wharf Money" \
+  "Albuquerque Double Cultist Money" \
+  --panel "Albuquerque Masquerade Bridge Engine" "Albuquerque Chapel Bridge Engine" \
+  "Albuquerque Cultist Wharf Money" "Albuquerque Wharf Money"
+
+PYTHONPATH=. python scripts/search_albuquerque.py --games 1000 --seed 99 \
+  --versus "Albuquerque Masquerade Bridge Engine" "Albuquerque Chapel Bridge Engine" \
+  "Albuquerque Cultist Wharf Money" "Albuquerque Wharf Money" \
+  "Albuquerque Masquerade Money" "Big Money" \
+  --strategies "Albuquerque Best Found"</code></pre>
+</section>
+<section class="section"><h2 id="results">Results</h2>
+<h3>Seed round robin after the play-skill fixes</h3>
+<p>100 games per pair, each shuffle played from both seats. Cells are the row
+strategy's win rate against the column strategy; ties count half.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>#</th><th>Strategy</th><th>Avg</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Masquerade Bridge Engine</td><td>78.4</td><td>-</td><td>69</td><td>74</td><td>57</td><td>71</td><td>72</td><td>75</td><td>76</td><td>88</td><td>90</td><td>94</td><td>96</td></tr>
+<tr><td>2</td><td>Chapel Bridge Engine</td><td>61.7</td><td>31</td><td>-</td><td>52</td><td>47</td><td>61</td><td>62</td><td>58</td><td>54</td><td>62</td><td>78</td><td>81</td><td>93</td></tr>
+<tr><td>3</td><td>Cultist Wharf Money</td><td>59.4</td><td>26</td><td>48</td><td>-</td><td>58</td><td>60</td><td>60</td><td>52</td><td>52</td><td>52</td><td>79</td><td>71</td><td>95</td></tr>
+<tr><td>4</td><td>Cultist Bridge Engine</td><td>58.6</td><td>43</td><td>53</td><td>42</td><td>-</td><td>49</td><td>55</td><td>57</td><td>62</td><td>50</td><td>70</td><td>78</td><td>86</td></tr>
+<tr><td>5</td><td>Double Cultist Money</td><td>56.5</td><td>29</td><td>39</td><td>40</td><td>51</td><td>-</td><td>60</td><td>51</td><td>58</td><td>45</td><td>75</td><td>75</td><td>98</td></tr>
+<tr><td>6</td><td>Wharf Money</td><td>55.6</td><td>28</td><td>38</td><td>40</td><td>45</td><td>40</td><td>-</td><td>52</td><td>51</td><td>63</td><td>84</td><td>72</td><td>99</td></tr>
+<tr><td>7</td><td>Traveller Engine</td><td>53.1</td><td>25</td><td>42</td><td>48</td><td>43</td><td>49</td><td>48</td><td>-</td><td>47</td><td>52</td><td>65</td><td>78</td><td>87</td></tr>
+<tr><td>8</td><td>Remake Bridge Engine</td><td>52.5</td><td>24</td><td>46</td><td>48</td><td>38</td><td>42</td><td>49</td><td>53</td><td>-</td><td>46</td><td>71</td><td>77</td><td>84</td></tr>
+<tr><td>9</td><td>Masquerade Money</td><td>52.5</td><td>12</td><td>38</td><td>48</td><td>50</td><td>55</td><td>37</td><td>48</td><td>54</td><td>-</td><td>72</td><td>73</td><td>91</td></tr>
+<tr><td>10</td><td>Wharf Engine</td><td>31.9</td><td>10</td><td>22</td><td>21</td><td>30</td><td>25</td><td>16</td><td>35</td><td>29</td><td>28</td><td>-</td><td>57</td><td>78</td></tr>
+<tr><td>11</td><td>Steward Bridge Engine</td><td>27.5</td><td>6</td><td>19</td><td>29</td><td>22</td><td>25</td><td>28</td><td>22</td><td>23</td><td>27</td><td>43</td><td>-</td><td>58</td></tr>
+<tr><td>12</td><td>Big Money</td><td>12.3</td><td>4</td><td>7</td><td>5</td><td>14</td><td>2</td><td>1</td><td>13</td><td>16</td><td>9</td><td>22</td><td>42</td><td>-</td></tr>
+</tbody></table></div>
+<p>Before the play-skill fixes the same engine seeds averaged 10% to 55% and
+every one of them lost to Wharf money; the first-cut Steward engine trashed
+its whole economy and finished games with three cards.</p>
+<h3>Hand local search around the Masquerade Bridge Engine</h3>
+<p>Variants of the seed's counts against three fixed opponents. Round one used
+100 games per match; rounds two and three used 200 (about ±3.5 points).</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Variant (round three, 200 games)</th><th>Avg</th><th>vs Masquerade Bridge Engine</th><th>vs Chapel Bridge Engine</th><th>vs Cultist Wharf Money</th></tr></thead>
+<tbody>
+<tr><td>KC 2, Bridge 4, green from turn 14</td><td>71.3</td><td>56.5</td><td>78.0</td><td>79.5</td></tr>
+<tr><td><strong>KC 2, Bridge 4</strong> (published)</td><td>70.8</td><td>54.5</td><td>77.5</td><td>80.5</td></tr>
+<tr><td>KC 2, Bridge 4, Minstrel 5</td><td>69.3</td><td>55.0</td><td>76.5</td><td>76.5</td></tr>
+<tr><td>KC 2, Bridge 5</td><td>68.8</td><td>57.5</td><td>73.0</td><td>76.0</td></tr>
+<tr><td>KC 2, Bridge 4, Duchy at 3</td><td>67.5</td><td>56.0</td><td>77.0</td><td>69.5</td></tr>
+<tr><td>KC 2, Bridge 3</td><td>66.5</td><td>53.0</td><td>78.5</td><td>68.0</td></tr>
+<tr><td>KC 2, Bridge 4, Silver 2</td><td>65.3</td><td>53.5</td><td>72.5</td><td>70.0</td></tr>
+<tr><td>KC 2, Bridge 4, green from turn 10</td><td>63.0</td><td>51.0</td><td>72.0</td><td>66.0</td></tr>
+<tr><td>KC 2, Bridge 4, Wharf 3</td><td>59.0</td><td>49.0</td><td>60.5</td><td>67.5</td></tr>
+<tr><td>Chapel opener, KC 2, Bridge 4</td><td>50.0</td><td>36.5</td><td>58.0</td><td>55.5</td></tr>
+</tbody></table></div>
+<p>Round two (200 games, seed 777) had the unmodified seed at 65.4 and
+"KC 2, Bridge 4" at 69.7. Round one (100 games) rejected a second
+Masquerade (50.3), a Cultist (48.7), three Wharves (50.3) and King's Court
+preferring Wharf over Bridge (64.7 average but 39% in the mirror). Greening
+turn 12 versus 14 and Minstrel cap 4 versus 5 are within noise.</p>
+<h3>Island evolution</h3>
+<p>Nine islands, population 20, 10 generations, 16 games per evaluation,
+against a panel of the two leading engine seeds and two money seeds. Fitness
+is the champion's confirmed win rate against that panel.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Island (seed)</th><th>Champion win rate vs panel</th><th>What changed</th></tr></thead>
+<tbody>
+<tr><td>Masquerade Bridge Engine</td><td>64.5%</td><td>Gain list unchanged; play order reshuffled.</td></tr>
+<tr><td>Cultist Wharf Money</td><td>55.8%</td><td>Money tuning.</td></tr>
+<tr><td>Chapel Bridge Engine</td><td>54.5%</td><td>Chapel gated on owning a Wharf; Minstrel before Wharf; Silver cap 2.</td></tr>
+<tr><td>Double Cultist Money</td><td>53.0%</td><td>Money tuning.</td></tr>
+<tr><td>Remake Bridge Engine</td><td>49.5%</td><td>Minor.</td></tr>
+<tr><td>Wharf Engine</td><td>46.8%</td><td>Minor.</td></tr>
+<tr><td>Cultist Bridge Engine</td><td>45.8%</td><td>Duchy ahead of Province; Wharf dropped; Minstrel cap 5.</td></tr>
+<tr><td>Traveller Engine</td><td>42.8%</td><td>Minor.</td></tr>
+<tr><td>Steward Bridge Engine</td><td>30.2%</td><td>Minor.</td></tr>
+</tbody></table></div>
+<p>The evolution found nothing the hand search had not: the leading island's
+champion kept its seed's gain list. The exported champions had also lost the
+seed's coded hooks (King's Court targets, Masquerade pass, Steward mode, the
+pile-out rule), because the strategy loader executes seed modules from their
+file path and the exporter did not recognise the class. Without the hooks the
+Masquerade champion lost 73.5% to its own seed. The exporter now keeps the
+seed class as the champion's base, and
+<code>scripts/graft_seed_hooks.py</code> re-bases older champion files.</p>
+<h3>Cross-island tournament</h3>
+<p>200 games per pair (seed 8080) between the published strategy, the co-leading
+hand variant, the best seeds and the hook-grafted champions.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>#</th><th>Strategy</th><th>Avg</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><strong>Albuquerque Best Found</strong> (KC 2, Bridge 4)</td><td>65.9</td><td>-</td><td>50</td><td>56</td><td>56</td><td>68</td><td>72</td><td>72</td><td>75</td><td>80</td></tr>
+<tr><td>2</td><td>Hand variant KC 2, Bridge 4, green from turn 14</td><td>64.4</td><td>50</td><td>-</td><td>56</td><td>56</td><td>66</td><td>68</td><td>77</td><td>69</td><td>74</td></tr>
+<tr><td>3</td><td>Masquerade Bridge Engine champion (grafted)</td><td>59.4</td><td>44</td><td>44</td><td>-</td><td>50</td><td>64</td><td>67</td><td>64</td><td>71</td><td>71</td></tr>
+<tr><td>4</td><td>Masquerade Bridge Engine (seed)</td><td>58.7</td><td>44</td><td>44</td><td>50</td><td>-</td><td>70</td><td>58</td><td>58</td><td>74</td><td>72</td></tr>
+<tr><td>5</td><td>Cultist Bridge Engine champion (grafted)</td><td>43.7</td><td>32</td><td>34</td><td>36</td><td>30</td><td>-</td><td>64</td><td>58</td><td>40</td><td>55</td></tr>
+<tr><td>6</td><td>Chapel Bridge Engine champion (grafted)</td><td>41.9</td><td>29</td><td>32</td><td>33</td><td>42</td><td>36</td><td>-</td><td>54</td><td>52</td><td>59</td></tr>
+<tr><td>7</td><td>Remake Bridge Engine champion (grafted)</td><td>40.0</td><td>29</td><td>23</td><td>36</td><td>42</td><td>42</td><td>46</td><td>-</td><td>52</td><td>50</td></tr>
+<tr><td>8</td><td>Cultist Wharf Money (seed)</td><td>39.2</td><td>25</td><td>31</td><td>29</td><td>26</td><td>60</td><td>48</td><td>48</td><td>-</td><td>45</td></tr>
+<tr><td>9</td><td>Chapel Bridge Engine (seed)</td><td>36.8</td><td>20</td><td>26</td><td>29</td><td>29</td><td>45</td><td>41</td><td>50</td><td>55</td><td>-</td></tr>
+</tbody></table></div>
+<p>The published strategy and the turn-14 variant are indistinguishable (50%
+in the mirror, 200 games); the turn-12 gate was kept because it also led the
+earlier round. Both beat the seed they came from 56%.</p>
+
+</section>
+<section class="section"><h2 id="validation">Validation</h2>
+<p>1,000 games per opponent (seed 99), each shuffle played from both seats, ties
+counting half. The panel mixes the strategy's own seed, the hook-grafted
+island champions, the money seeds and Big Money.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Opponent</th><th>Best Found win rate</th><th>Average turns</th><th>Average VP (Best Found - opponent)</th></tr></thead>
+<tbody>
+<tr><td>Masquerade Bridge Engine (seed)</td><td>58.0%</td><td>14.4</td><td>38.2 - 32.3</td></tr>
+<tr><td>Masquerade Bridge Engine champion (grafted)</td><td>57.0%</td><td>14.5</td><td>38.0 - 32.6</td></tr>
+<tr><td>Chapel Bridge Engine (seed)</td><td>74.9%</td><td>14.8</td><td>44.2 - 26.1</td></tr>
+<tr><td>Cultist Wharf Money (seed)</td><td>72.0%</td><td>18.6</td><td>43.5 - 29.3</td></tr>
+<tr><td>Cultist Wharf Money champion</td><td>57.5%</td><td>20.8</td><td>39.2 - 34.4</td></tr>
+<tr><td>Wharf Money</td><td>84.0%</td><td>15.2</td><td>45.0 - 27.3</td></tr>
+<tr><td>Masquerade Money</td><td>84.8%</td><td>15.6</td><td>44.6 - 26.5</td></tr>
+<tr><td>Double Cultist Money (seed)</td><td>76.2%</td><td>18.7</td><td>44.5 - 28.8</td></tr>
+<tr><td>Double Cultist Money champion</td><td>55.5%</td><td>21.5</td><td>39.5 - 35.1</td></tr>
+<tr><td>Big Money</td><td>98.5%</td><td>16.4</td><td>52.6 - 17.2</td></tr>
+</tbody></table></div>
+<p>Average over the panel: 71.8%. No game reached the turn limit. At 1,000
+games a win rate carries about ±3 points, so the 55% to 58% results against
+the evolved money champions and the engine's own seed are real but narrow
+edges; the evolved Cultist money decks slow the game to 21 turns and hand
+out Ruins, and the engine still wins because Masquerade returns them.</p>
+
+</section>
+<section class="section"><h2 id="search-notes">Search notes</h2>
+<ul>
+<li><strong>The board's ranking was hidden by play skill, not rules.</strong> On
+  earlier boards the pre-search audit flipped rankings by fixing cards. Here
+  the cards were right and the first engines still lost by 20 to 40 points
+  to money. Each of the four seed defects (Copper trashing without an economy
+  floor, greening on the first $8, villages counted against one terminal,
+  King's Court targeting through the main play order) was found by tracing a
+  single game, and each was worth 10 to 20 points.</li>
+<li><strong>Money is genuinely good here.</strong> Wharf money and Cultist Wharf
+  money beat Big Money 98% to 99% and are a real bar; Masquerade money was the
+  strongest pure money line before the engines were fixed.</li>
+<li><strong>Turn-limit stalls.</strong> One game in a hundred against Big Money
+  ran to the turn limit: the engine emptied the Estate and Duchy piles with its
+  spare Buys and was then too green to afford the last Province, while Big
+  Money's endgame guard refused it from behind. The engine base class now
+  drains the smallest pile when two piles are empty and it leads.</li>
+<li><strong>Steward and Remake openers underperformed.</strong> Steward's forced
+  "trash two" fires only when two hand cards pass the trash list; Remake's
+  mandatory gain turns Coppers into $2 cards under Bridge, so the seed refuses
+  to Remake while a Bridge is in play. Neither opener matched Masquerade's
+  draw.</li>
+<li><strong>Peasant and Cultist did not earn a slot.</strong> The Traveller line
+  is too slow for a 14-turn game, and a Cultist in the engine cost about 15
+  points (a terminal that draws two is worse than a Wharf here, and its Ruins
+  come back through Masquerade).</li>
+</ul>
+</section>
+</article>
+<footer>Written on September 8, 2026 from the recorded search runs. <a href="index.html">Return to the strategy catalog</a>.</footer>
+</main>
+</body>
+</html>

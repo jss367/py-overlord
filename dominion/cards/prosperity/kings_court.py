@@ -23,8 +23,12 @@ class KingsCourt(Card):
         if not actions_in_hand:
             return
 
+        # "You may play an Action card from your hand three times": the AI
+        # can decline (None) rather than being forced onto a poor target.
         choice = player.ai.choose_action(game_state, actions_in_hand + [None])
-        if choice is None or choice not in actions_in_hand:
+        if choice is None:
+            return
+        if choice not in actions_in_hand:
             choice = actions_in_hand[0]
 
         # Move the chosen action from hand to play before resolving so the
