@@ -297,3 +297,62 @@ class GeneticAI(AI):
         if hook is not None:
             return hook(state, player, choices)
         return super().choose_treasure_to_trash_for_investment(state, player, choices)
+
+    # ------------------------------------------------------------------
+    # Generic strategy-level overrides for per-card decisions. A strategy may
+    # define any of these methods (same signature as the AI hook, minus
+    # ``self``) to replace the tactical default.
+    # ------------------------------------------------------------------
+    def choose_steward_mode(self, state: "GameState", player) -> str:
+        hook = getattr(self.strategy, "choose_steward_mode", None)
+        if hook is not None:
+            return hook(state, player)
+        return super().choose_steward_mode(state, player)
+
+    def choose_card_to_pass_for_masquerade(
+        self, state: "GameState", player, choices: list[Card]
+    ) -> Optional[Card]:
+        hook = getattr(self.strategy, "choose_card_to_pass_for_masquerade", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_card_to_pass_for_masquerade(state, player, choices)
+
+    def should_play_cultist_chain(self, state: "GameState", player) -> bool:
+        hook = getattr(self.strategy, "should_play_cultist_chain", None)
+        if hook is not None:
+            return bool(hook(state, player))
+        return super().should_play_cultist_chain(state, player)
+
+    def choose_disciple_action_to_replay(
+        self, state: "GameState", player, choices: list[Card]
+    ) -> Optional[Card]:
+        hook = getattr(self.strategy, "choose_disciple_action_to_replay", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_disciple_action_to_replay(state, player, choices)
+
+    def should_exchange_traveller(self, state: "GameState", player, card: Card) -> bool:
+        hook = getattr(self.strategy, "should_exchange_traveller", None)
+        if hook is not None:
+            return bool(hook(state, player, card))
+        return super().should_exchange_traveller(state, player, card)
+
+    def choose_teacher_token(self, state: "GameState", player, options: list[str]) -> str:
+        hook = getattr(self.strategy, "choose_teacher_token", None)
+        if hook is not None:
+            return hook(state, player, options)
+        return super().choose_teacher_token(state, player, options)
+
+    def choose_cards_to_trash(self, state: "GameState", choices: list[Card], count: int) -> list[Card]:
+        hook = getattr(self.strategy, "choose_cards_to_trash", None)
+        if hook is not None:
+            return hook(state, state.current_player, choices, count)
+        return super().choose_cards_to_trash(state, choices, count)
+
+    def choose_cards_to_discard(
+        self, state: "GameState", player, choices: list[Card], count: int, *, reason=None
+    ) -> list[Card]:
+        hook = getattr(self.strategy, "choose_cards_to_discard", None)
+        if hook is not None:
+            return hook(state, player, choices, count, reason=reason)
+        return super().choose_cards_to_discard(state, player, choices, count, reason=reason)

@@ -1,0 +1,16 @@
+# Albuquerque board.
+#
+# Adventures / Base / Intrigue / Cornucopia / Hinterlands / Seaside /
+# Dark Ages / Prosperity mix. No events, landmarks, or projects.
+# No Colony/Platinum. Cultist adds the Ruins pile; Peasant adds the
+# Soldier / Fugitive / Disciple / Teacher Traveller piles.
+Peasant
+Chapel
+Masquerade
+Steward
+Remake
+Bridge
+Wandering Minstrel
+Wharf
+Cultist
+King's Court
