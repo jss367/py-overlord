@@ -69,9 +69,12 @@ class AlbuquerqueStrategy(EnhancedStrategy):
         Wharf, and so on); the main play order still decides what to play
         first. If nothing on the multiplier list is in hand, decline: the
         King's Court is played for no effect rather than tripling a card the
-        list deliberately omits (Peasant, Teacher, a Ruins)."""
+        list deliberately omits (Peasant, Teacher, a Ruins). The phase check
+        alone decides which list applies, so an empty multiplier list (an
+        exported seed that never set one) also declines instead of falling
+        through to ``action_priority``."""
         in_main_phase = getattr(state, "_choosing_main_action_phase", False)
-        if self.multiplier_priority and not in_main_phase:
+        if not in_main_phase:
             return self._choose_from_priority(
                 self.multiplier_priority, choices, state, player, "multiplier"
             )

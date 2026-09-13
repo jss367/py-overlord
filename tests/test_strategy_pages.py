@@ -441,3 +441,13 @@ def test_rendered_kingdom_cards_exclude_non_supply_piles():
     kingdom = rendered.references["Kingdom Cards"]
     assert "Spoils" not in kingdom
     assert "Stables" in kingdom and "Knights" in kingdom
+
+
+def test_rendered_kingdom_cards_exclude_auxiliary_piles():
+    from dominion.reporting.strategy_pages import auxiliary_pile_names, collect_rendered_strategies
+
+    assert {"Ruins", "Abandoned Mine", "Soldier", "Disciple", "Teacher"} <= auxiliary_pile_names()
+    rendered = collect_rendered_strategies(names=["Albuquerque Best Found"])[0]
+    kingdom = rendered.references["Kingdom Cards"]
+    assert not {"Ruins", "Abandoned Mine", "Survivors", "Disciple", "Teacher"} & set(kingdom)
+    assert "Cultist" in kingdom and "Peasant" in kingdom

@@ -198,3 +198,22 @@ def test_disciple_declines_when_no_multiplier_target_is_in_hand():
     assert [c.name for c in player.hand] == ["Peasant"]
     assert player.coins == 0 and player.buys == 1
     assert state.supply["Peasant"] == peasants_before
+
+
+def test_empty_multiplier_list_declines_the_replay_instead_of_using_play_order():
+    """With ``multiplier_priority = []`` (an exported seed that never set one)
+    a replay request outside the main action phase must return None rather
+    than fall through to ``action_priority`` and pick Bridge."""
+    from dominion.strategy.strategies.albuquerque_seeds import AlbuquerqueChapelBridgeEngine
+
+    strategy = AlbuquerqueChapelBridgeEngine()
+    strategy.multiplier_priority = []
+    state, player = _state(DummyAI())
+    state._choosing_main_action_phase = False
+    choices = [get_card("Bridge"), get_card("Peasant"), None]
+
+    assert strategy.choose_action(state, player, choices) is None
+    assert strategy.choose_disciple_action_to_replay(state, player, choices) is None
+
+    state._choosing_main_action_phase = True
+    assert strategy.choose_action(state, player, choices).name == "Bridge"

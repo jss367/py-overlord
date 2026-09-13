@@ -10,6 +10,7 @@ import textwrap
 from typing import Any, Iterable, Mapping
 
 from dominion.cards.base_card import CardType
+from dominion.cards.dark_ages.ruins import RUIN_VARIANT_NAMES
 from dominion.cards.registry import get_all_card_names, get_card
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.reporting.strategy_links import PageLink, strategy_slug
@@ -1186,6 +1187,7 @@ def _tags_markup(labels: Iterable[str]) -> str:
 
 
 _NON_SUPPLY_PILE_NAMES: set[str] | None = None
+_AUXILIARY_PILE_NAMES: set[str] | None = None
 
 
 def non_supply_pile_names() -> set[str]:
@@ -1214,6 +1216,30 @@ def non_supply_pile_names() -> set[str]:
     return set(_NON_SUPPLY_PILE_NAMES)
 
 
+def auxiliary_pile_names() -> set[str]:
+    """Names of Supply piles that a kingdom card brings along at setup.
+
+    Ruins (and each Ruins variant) arrive with Cultist, Marauder or Death
+    Cart; Soldier, Fugitive, Disciple and Teacher arrive with Peasant. They
+    sit in the Supply but are never kingdom piles, so a strategy that names
+    one is asking for the parent card, which it already lists.
+    """
+
+    global _AUXILIARY_PILE_NAMES
+    if _AUXILIARY_PILE_NAMES is None:
+        names: set[str] = set()
+        for card_name in get_all_card_names():
+            try:
+                card = get_card(card_name)
+            except (KeyError, ValueError):
+                continue
+            names.update(card.get_additional_piles())
+        if "Ruins" in names:
+            names.update(RUIN_VARIANT_NAMES)
+        _AUXILIARY_PILE_NAMES = names
+    return set(_AUXILIARY_PILE_NAMES)
+
+
 def collect_rendered_strategies(
     loader: StrategyLoader | None = None,
     *,
@@ -1226,7 +1252,7 @@ def collect_rendered_strategies(
     display_names = list(names) if names is not None else loader.list_strategies()
     rendered = []
 
-    non_supply = non_supply_pile_names()
+    excluded = non_supply_pile_names() | auxiliary_pile_names()
     for display_name in sorted(display_names):
         strategy = loader.get_strategy(display_name)
         if strategy is None:
@@ -1246,7 +1272,7 @@ def collect_rendered_strategies(
                 factory_name=factory_name,
                 references={
                     "Kingdom Cards": [
-                        name for name in refs.kingdom_cards if name not in non_supply
+                        name for name in refs.kingdom_cards if name not in excluded
                     ],
                     "Events": refs.events,
                     "Projects": refs.projects,

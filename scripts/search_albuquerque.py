@@ -151,11 +151,14 @@ def main():
     parser.add_argument("--strategies", nargs="+", required=True)
     parser.add_argument("--versus", nargs="*", default=None,
                         help="If given, play every --strategies entry against every --versus entry instead of a round robin.")
-    parser.add_argument("--games", type=int, default=200)
+    parser.add_argument("--games", type=int, default=200,
+                        help="Games per pairing; a positive even number, since each shuffle seed is played from both seats.")
     parser.add_argument("--seed", type=int, default=20260908)
     parser.add_argument("--workers", type=int, default=8)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
+    if args.games <= 0 or args.games % 2:
+        parser.error(f"--games must be a positive even number (each seed is played from both seats), got {args.games}")
     if args.versus:
         pairs = [(a, b) for a in args.strategies for b in args.versus]
     else:
