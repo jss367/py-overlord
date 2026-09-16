@@ -43,13 +43,13 @@ h1,h2,h3{font-family:Georgia,serif;line-height:1.15}h1{font-size:clamp(38px,6vw,
 </section>
 
 <section aria-labelledby="strategy"><h2 id="strategy">The recommendation: Margrave, Library and Monument</h2>
-<div class="callout"><strong>Build a Fishing Village engine with two Libraries, one Margrave and two Junk Dealers, and take the points from two Monuments. Buy no Groundskeeper at all.</strong> This policy won the twelve-entrant finalist round robin at 74.8% with ties counted as half a win, then scored 76.3% across 2,100 further games on fresh shuffle seeds against seven opponents, beating every one of them.</div>
+<div class="callout"><strong>Build a Fishing Village engine with two Libraries, one Margrave and two Junk Dealers, and take the points from two Monuments. Buy no Groundskeeper at all.</strong> This policy won the twelve-entrant finalist round robin at 74.8% with ties counted as half a win, then scored 78.2% across 2,100 further games on fresh shuffle seeds against seven opponents, beating every one of them.</div>
 <p><a href="margrave-library-monument-engine.html">Open the runnable strategy</a>.</p>
 
 <h3>Opening and buying</h3>
 <ol>
 <li><strong>Open Silver, then the best engine piece you can afford.</strong> Across 60 traced games the deck bought a Silver on turn 1 in 59 of them, then on turn 2 took a Fishing Village at $3, a Monument at $4, or a Margrave at $5 depending on the split.</li>
-<li><strong>Skip Moneylender, but not because it is unplayable.</strong> The winner buys none, yet the second- and third-place finalists each ran one and finished 3.1 and 6.3 points behind it. This is the least settled choice in the list.</li>
+<li><strong>Skip Moneylender, but not because it is unplayable.</strong> The winner buys none, yet the second- and third-place finalists each ran one and finished 3.1 and 6.3 points behind it. Those finalists differ from the winner in several knobs besides Moneylender, so that gap is a standings difference and not a measurement of the card; no ablation of Moneylender was run. This is the least settled choice in the list.</li>
 <li><strong>Buy Fishing Villages freely up to four.</strong> They are $3, they are never dead, and their duration half means the next turn starts with +1 Action and +$1 already banked. In traced games the first arrives around turn 3.</li>
 <li><strong>Add the payload early and the draw late.</strong> Monument lands around turn 4 and Margrave around turn 5, before the first Junk Dealer (turn 6) and well before the first Library (turn 7.5). Library is held back deliberately until the villages can support it; Border Village arrives last, around turn 10.</li>
 <li><strong>Cap the draw at two Libraries and one Margrave.</strong> The third draw terminal loses to a Silver; Margrave's +1 Buy is what earns its single slot, not its cards.</li>
@@ -58,7 +58,7 @@ h1,h2,h3{font-family:Georgia,serif;line-height:1.15}h1{font-size:clamp(38px,6vw,
 
 <h3>Playing the deck</h3>
 <p>Villages first, then Junk Dealer while it still has junk to eat, then the draw terminals, then Monument. Once only three Coppers are left Junk Dealer prefers an Estate to a Copper &mdash; Estates gained under Groundskeeper have already scored their token, so eating them afterwards is free. That three-Copper mark is a preference between junk, not a reserve: Junk Dealer's trash is mandatory, so a hand holding no junk at all still gives up its cheapest spare, and that is usually one of the last Coppers. The deck genuinely does end on one or two of them. Making the floor a hard reserve was measured and costs win rate, because the only thing left to feed Junk Dealer is then a Silver, which is worth more than the Copper it saves.</p>
-<p>Library is the reason the villages come first. It draws up to seven cards and sets aside Actions you cannot play, so a hand that has already banked two or three +Actions turns Library into a genuine refill rather than a hand of stranded terminals. With no Actions left the strategy sets aside <em>every</em> Action, villages included: Library puts a kept card in hand without playing it, and nothing on this board grants Villagers, so a village drawn at zero Actions is dead weight that costs a replacement draw. Setting villages aside as well was worth 1.3 points of win rate over keeping them.</p>
+<p>Library is the reason the villages come first. It draws up to seven cards and sets aside Actions you cannot play, so a hand that has already banked two or three +Actions turns Library into a genuine refill rather than a hand of stranded terminals. With no Actions left the strategy sets aside <em>every</em> Action, villages included: Library puts a kept card in hand without playing it, and nothing on this board grants Villagers, so a village drawn at zero Actions is dead weight that costs a replacement draw. Setting villages aside as well was worth 1.3 points of win rate over keeping them, measured as a single-knob A/B in which only that rule changed.</p>
 <p>Margrave's attack matters less than its buy. Against these opponents the discard-to-three does real work in the greening turns, but the deck is built around the +1 Buy that lets a $13 turn become a Province and a Duchy, or an $11 turn a Province and a Silver.</p>
 </section>
 
@@ -76,7 +76,7 @@ h1,h2,h3{font-family:Georgia,serif;line-height:1.15}h1{font-size:clamp(38px,6vw,
 <tr><td>1</td><td><strong>Margrave + 2 Library + 2 Monument + 2 Junk Dealer</strong></td><td><strong>74.8%</strong></td></tr>
 <tr><td>2</td><td>2 Margrave + 1 Library + 2 Monument + Moneylender</td><td>71.7%</td></tr>
 <tr><td>3</td><td>3 Margrave + 2 Monument + Moneylender, green from turn 8</td><td>68.6%</td></tr>
-<tr><td>4</td><td>Same engine shape with no Monument</td><td>62.6%</td></tr>
+<tr><td>4</td><td>2 Margrave + 2 Library + 2 Junk Dealer + Oasis, no Monument</td><td>62.6%</td></tr>
 <tr><td>5</td><td>1 Library + 2 Monument + Junk Dealer, no Margrave</td><td>56.4%</td></tr>
 <tr><td>6</td><td>3 Margrave, no payload card</td><td>51.3%</td></tr>
 <tr><td>7</td><td>2 Margrave + 1 Monument + 2 Oasis</td><td>50.1%</td></tr>
@@ -92,13 +92,13 @@ h1,h2,h3{font-family:Georgia,serif;line-height:1.15}h1{font-size:clamp(38px,6vw,
 <div class="scroll"><table><caption>Margrave Library Monument Engine against each opponent; 300 games each.</caption><thead><tr><th>Opponent</th><th>Wins</th><th>Win rate</th><th>Mean score</th></tr></thead><tbody>
 <tr><td>Runner-up: 2 Margrave / 1 Library money</td><td>192 / 300</td><td>64.0%</td><td>41.7 – 39.2</td></tr>
 <tr><td>Third: 3 Margrave, green from turn 8</td><td>179 / 300</td><td>59.7%</td><td>40.7 – 40.2</td></tr>
-<tr><td>The same engine without Monument</td><td>175 / 300</td><td>58.3%</td><td>34.5 – 31.1</td></tr>
+<tr><td>Ablation: the recommended deck with Monument removed</td><td>214 / 300</td><td>71.3%</td><td>37.5 – 28.0</td></tr>
 <tr><td>Groundskeeper engine</td><td>284 / 300</td><td>94.7%</td><td>49.3 – 32.3</td></tr>
 <tr><td>Monument money</td><td>252 / 300</td><td>84.0%</td><td>41.3 – 29.4</td></tr>
 <tr><td>Margrave money</td><td>245 / 300</td><td>81.7%</td><td>40.7 – 30.4</td></tr>
 <tr><td>Treasure-only money</td><td>276 / 300</td><td>92.0%</td><td>42.8 – 26.7</td></tr>
 </tbody></table></div>
-<p><strong>The three closest results are the honest ones.</strong> The runner-up, the third-place engine and the Monument-free version of this engine lose at 64.0%, 59.7% and 58.3%, which is a real but modest edge; the recommendation is the best policy found, not a proven optimum. Dropping Monument from the same engine is worth 12.2 points of round-robin win rate and 3.4 points of mean final score head to head, which isolates the payload's contribution directly.</p>
+<p><strong>The two closest results are the honest ones.</strong> The runner-up and the third-place engine lose at 64.0% and 59.7%, which is a real but modest edge; the recommendation is the best policy found, not a proven optimum. The third row is a different kind of comparison: it is a one-field ablation, the recommended parameters with <code>monument</code> set to zero and nothing else touched, so its 71.3% does isolate the payload's contribution. Removing Monument without re-tuning the rest of the deck costs 21.3 points of head-to-head win rate and 9.5 points of mean final score. The ablated deck buys Silver where the original buys Monument and ends with the same 3.6 Provinces; it simply scores fewer points, and the gap is the Monument tokens it never collected. The fourth-place round-robin entry above also skips Monument, but it is a separately tuned policy rather than an ablation, so its 62.6% measures a different thing and is not evidence about Monument.</p>
 
 <h3>What the winning deck looks like</h3>
 <p>Averaged over the validation games, the recommended deck finished with about four Fishing Villages, 1.6 Border Villages, 1.9 Libraries, one Margrave, two Monuments, 1.9 Junk Dealers, 1.5 Silvers and 0.7 Gold, plus 4.1 Provinces, 1.5 Duchies and 0.8 Estates. It had trashed its starting Coppers from seven down to 1.2 and its Estates from three down to 0.8. Games ran about 18 to 21 turns.</p>

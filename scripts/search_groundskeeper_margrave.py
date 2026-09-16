@@ -96,17 +96,10 @@ THIRD = dict(
     estate_vp=True,
     opening="Fishing Village",
 )
-NO_MONUMENT = dict(
-    margrave=2,
-    library=2,
-    junk_dealer=2,
-    fishing_village=5,
-    silvers=3,
-    golds=4,
-    green=12,
-    duchy=5,
-    opening="Fishing Village",
-)
+# A one-field ablation of the winner: same deck plan, no Monument. Derived from
+# ``WINNER`` rather than written out, so it cannot drift into a second policy and
+# turn the head-to-head into a confounded comparison.
+NO_MONUMENT = dict(WINNER, monument=0)
 
 TURN_LIMIT = 160
 
@@ -297,7 +290,7 @@ def main():
         opponents = [
             ("Runner-up: Margrave/Library money", RUNNER_UP),
             ("Third: three Margraves, early green", THIRD),
-            ("Same engine without Monument", NO_MONUMENT),
+            ("Ablation: the winner with no Monument", NO_MONUMENT),
             ("Groundskeeper engine", ENGINE),
             ("Monument money", MONUMENT_MONEY),
             ("Margrave money", MARGRAVE_MONEY),
