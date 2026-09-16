@@ -1,0 +1,3287 @@
+{
+  "description": "Broad screen: each candidate plays a fixed four-policy panel.",
+  "matches": 672,
+  "games": 16128,
+  "candidates": 166,
+  "games_per_match": 24,
+  "ranking": [
+    {
+      "rate": 0.8958,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 2,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 3,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.875,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 3,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 5,
+        "border_village": 1,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 3,
+        "green": 8,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.8542,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 2,
+        "library": 1,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 4,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 4,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.8229,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 2,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 5,
+        "border_village": 1,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 2,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.8229,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 2,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 5,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 4,
+        "green": 12,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.8229,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 3,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 3,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 2,
+        "green": 8,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.7917,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 3,
+        "border_village": 0,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.7708,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 0,
+        "library": 1,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 5,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 2,
+        "green": 10,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.7604,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 3,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 99,
+        "green": 6,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.7604,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 2,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 5,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 2,
+        "green": 8,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.7604,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 3,
+        "green": 10,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.7604,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 3,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 2,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 3,
+        "green": 10,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.75,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 3,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 0,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 2,
+        "green": 10,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.7396,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 3,
+        "border_village": 1,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 2,
+        "green": 14,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.7292,
+      "params": {
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "opening": "Silver",
+        "margrave": 2,
+        "fishing_village": 0
+      }
+    },
+    {
+      "rate": 0.7292,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 4,
+        "border_village": 1,
+        "oasis": 1,
+        "cellar": 1,
+        "silvers": 3,
+        "golds": 2,
+        "green": 6,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.7188,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 3,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 5,
+        "border_village": 0,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 2,
+        "green": 6,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.7188,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 1,
+        "library": 2,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 3,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 99,
+        "green": 14,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.6979,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 3,
+        "library": 1,
+        "monument": 1,
+        "moneylender": 1,
+        "junk_dealer": 2,
+        "fishing_village": 2,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 3,
+        "green": 14,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.6979,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 2,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 4,
+        "green": 6,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.6979,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 3,
+        "library": 1,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 3,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 1,
+        "golds": 3,
+        "green": 14,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.6875,
+      "params": {
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "opening": "Silver",
+        "margrave": 1
+      }
+    },
+    {
+      "rate": 0.6771,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 0,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 99,
+        "green": 8,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.6667,
+      "params": {
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "opening": "Silver",
+        "margrave": 2,
+        "fishing_village": 2
+      }
+    },
+    {
+      "rate": 0.6562,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 3,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 4,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 1,
+        "silvers": 2,
+        "golds": 4,
+        "green": 12,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.6458,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 2,
+        "library": 1,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 3,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 3,
+        "green": 12,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.6458,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 0,
+        "library": 2,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 4,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 4,
+        "green": 14,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.6458,
+      "params": {
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "opening": "Silver",
+        "margrave": 1,
+        "fishing_village": 0
+      }
+    },
+    {
+      "rate": 0.6354,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 3,
+        "border_village": 2,
+        "oasis": 2,
+        "cellar": 1,
+        "silvers": 3,
+        "golds": 99,
+        "green": 8,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.6354,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 3,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 2,
+        "border_village": 2,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 2,
+        "green": 6,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.6354,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 2,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 2,
+        "fishing_village": 3,
+        "border_village": 1,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 99,
+        "green": 12,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.625,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 2,
+        "library": 1,
+        "monument": 1,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 2,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 1,
+        "silvers": 1,
+        "golds": 4,
+        "green": 12,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.6146,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 3,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 2,
+        "golds": 99,
+        "green": 12,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.5937,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 2,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 5,
+        "border_village": 1,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 99,
+        "green": 6,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.5833,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 2,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 3,
+        "golds": 3,
+        "green": 14,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.5729,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 2,
+        "monument": 1,
+        "moneylender": 1,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 4,
+        "green": 10,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.5625,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 0,
+        "library": 1,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 5,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 2,
+        "green": 12,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.5625,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 0,
+        "library": 2,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 5,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.5625,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 4,
+        "border_village": 1,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 3,
+        "green": 12,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.5625,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 2,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 2,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 4,
+        "green": 12,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.5625,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 4,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.5625,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 3,
+        "library": 2,
+        "monument": 1,
+        "moneylender": 1,
+        "junk_dealer": 2,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.5521,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 2,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 99,
+        "green": 8,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.5521,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 4,
+        "border_village": 1,
+        "oasis": 2,
+        "cellar": 1,
+        "silvers": 1,
+        "golds": 3,
+        "green": 6,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.5521,
+      "params": {
+        "silvers": 3,
+        "golds": 4,
+        "green": 10,
+        "opening": "Silver",
+        "library": 1,
+        "fishing_village": 2
+      }
+    },
+    {
+      "rate": 0.5417,
+      "params": {
+        "silvers": 3,
+        "golds": 4,
+        "green": 10,
+        "opening": "Silver",
+        "library": 1,
+        "fishing_village": 0
+      }
+    },
+    {
+      "rate": 0.5417,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 2,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 3,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 99,
+        "golds": 4,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.5417,
+      "params": {
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "opening": "Silver",
+        "margrave": 1,
+        "fishing_village": 2
+      }
+    },
+    {
+      "rate": 0.5417,
+      "params": {
+        "silvers": 3,
+        "golds": 4,
+        "green": 10,
+        "opening": "Silver",
+        "library": 2,
+        "fishing_village": 4
+      }
+    },
+    {
+      "rate": 0.5417,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 0,
+        "library": 1,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 5,
+        "border_village": 0,
+        "oasis": 2,
+        "cellar": 1,
+        "silvers": 3,
+        "golds": 2,
+        "green": 14,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.5312,
+      "params": {
+        "silvers": 3,
+        "golds": 4,
+        "green": 10,
+        "opening": "Silver",
+        "library": 2,
+        "fishing_village": 2
+      }
+    },
+    {
+      "rate": 0.5312,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 2,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 4,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 4,
+        "green": 14,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.5312,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 0,
+        "library": 1,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 5,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 2,
+        "golds": 4,
+        "green": 10,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.5208,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 1,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 3,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 4,
+        "green": 6,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.5104,
+      "params": {
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "opening": "Moneylender",
+        "monument": 2,
+        "moneylender": 1
+      }
+    },
+    {
+      "rate": 0.5104,
+      "params": {
+        "silvers": 3,
+        "golds": 4,
+        "green": 10,
+        "opening": "Silver",
+        "library": 2,
+        "fishing_village": 0
+      }
+    },
+    {
+      "rate": 0.5104,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 2,
+        "library": 2,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 0,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 3,
+        "green": 14,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.5104,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 3,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 99,
+        "golds": 2,
+        "green": 12,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.5104,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 2,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 4,
+        "green": 6,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.5,
+      "params": {
+        "silvers": 3,
+        "golds": 4,
+        "green": 10,
+        "opening": "Silver",
+        "library": 1,
+        "fishing_village": 4
+      }
+    },
+    {
+      "rate": 0.5,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 3,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 3,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 99,
+        "green": 6,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.5,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 3,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 14,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.4896,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 0,
+        "library": 2,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 2,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 3,
+        "green": 14,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.4896,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 2,
+        "fishing_village": 3,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 1,
+        "golds": 3,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.4896,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 1,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 2,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.4792,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 0,
+        "library": 1,
+        "monument": 1,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 2,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 3,
+        "green": 12,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.4792,
+      "params": {
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "opening": "Moneylender",
+        "monument": 1,
+        "moneylender": 1
+      }
+    },
+    {
+      "rate": 0.4792,
+      "params": {
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "opening": "Moneylender",
+        "monument": 3,
+        "moneylender": 1
+      }
+    },
+    {
+      "rate": 0.4792,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 3,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 0,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 2,
+        "green": 14,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.4583,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 0,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 4,
+        "border_village": 0,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 2,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.4479,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 2,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 4,
+        "green": 12,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.4479,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 2,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 2,
+        "silvers": 2,
+        "golds": 3,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.4479,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 2,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 2,
+        "silvers": 2,
+        "golds": 3,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.4479,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 1,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 2,
+        "fishing_village": 5,
+        "border_village": 2,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 3,
+        "green": 8,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.4479,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 2,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 2,
+        "border_village": 1,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 4,
+        "green": 14,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.4375,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 5,
+        "border_village": 2,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 99,
+        "green": 8,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.4375,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 1,
+        "library": 1,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 1,
+        "oasis": 1,
+        "cellar": 1,
+        "silvers": 99,
+        "golds": 3,
+        "green": 12,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.4375,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 3,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 2,
+        "border_village": 2,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 3,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.4271,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 1,
+        "library": 1,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 5,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 2,
+        "green": 8,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.4167,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 1,
+        "library": 2,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 4,
+        "green": 12,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.4167,
+      "params": {
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.4167,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 0,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 2,
+        "border_village": 0,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 99,
+        "green": 12,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.4063,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 0,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 4,
+        "border_village": 1,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 99,
+        "green": 10,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.4062,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 3,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 3,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 99,
+        "green": 8,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.4062,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 0,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 4,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.4062,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 2,
+        "library": 1,
+        "monument": 1,
+        "moneylender": 1,
+        "junk_dealer": 2,
+        "fishing_village": 2,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.3958,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 2,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 2,
+        "silvers": 2,
+        "golds": 3,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.3958,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 0,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 3,
+        "green": 10,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.3958,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 2,
+        "border_village": 2,
+        "oasis": 1,
+        "cellar": 1,
+        "silvers": 3,
+        "golds": 99,
+        "green": 14,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.3958,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 5,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 1,
+        "golds": 99,
+        "green": 10,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.3854,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 1,
+        "library": 1,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 12,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.375,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 5,
+        "border_village": 2,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 99,
+        "green": 8,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.3646,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 2,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 2,
+        "silvers": 2,
+        "golds": 3,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.3646,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 0,
+        "library": 1,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 3,
+        "border_village": 1,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 2,
+        "green": 8,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.3542,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 2,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 2,
+        "silvers": 2,
+        "golds": 3,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.3542,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 3,
+        "border_village": 2,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.3542,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 0,
+        "library": 2,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 2,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 4,
+        "green": 8,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.3438,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 3,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 3,
+        "border_village": 1,
+        "oasis": 2,
+        "cellar": 1,
+        "silvers": 99,
+        "golds": 4,
+        "green": 10,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.3333,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 1,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 12,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.3333,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 2,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 4,
+        "border_village": 2,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 4,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.3333,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 2,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 2,
+        "silvers": 2,
+        "golds": 3,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.3333,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 3,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 4,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 2,
+        "green": 6,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.3229,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 0,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 3,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 3,
+        "green": 12,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.3125,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 0,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 5,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 2,
+        "golds": 99,
+        "green": 10,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.3021,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 0,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 0,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 3,
+        "green": 14,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.2917,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 2,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 3,
+        "border_village": 0,
+        "oasis": 2,
+        "cellar": 1,
+        "silvers": 1,
+        "golds": 3,
+        "green": 8,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.2917,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 3,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 3,
+        "green": 14,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.2917,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 3,
+        "library": 2,
+        "monument": 1,
+        "moneylender": 1,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 6,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.2812,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 2,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 2,
+        "silvers": 2,
+        "golds": 3,
+        "green": 8,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.2812,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 3,
+        "library": 1,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 4,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.2812,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 3,
+        "library": 2,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 3,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 3,
+        "green": 6,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.2708,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 2,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 2,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 99,
+        "green": 10,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.2708,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 0,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 2,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.2708,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 2,
+        "border_village": 2,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 3,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.2708,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 3,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 2,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.2604,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 0,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 3,
+        "border_village": 0,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 99,
+        "green": 8,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.2604,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 0,
+        "library": 1,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 1,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 3,
+        "green": 14,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.2604,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 3,
+        "library": 2,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 2,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 2,
+        "green": 8,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.2604,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 0,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 1,
+        "golds": 4,
+        "green": 14,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.25,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 2,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 2,
+        "silvers": 2,
+        "golds": 3,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.25,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 1,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 1,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 1,
+        "golds": 2,
+        "green": 14,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.2396,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 0,
+        "library": 1,
+        "monument": 1,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 4,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 99,
+        "golds": 4,
+        "green": 6,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.2292,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 1,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 99,
+        "green": 8,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.2188,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 5,
+        "border_village": 1,
+        "oasis": 1,
+        "cellar": 1,
+        "silvers": 2,
+        "golds": 3,
+        "green": 14,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.2188,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 3,
+        "library": 1,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 3,
+        "green": 8,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.2188,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 2,
+        "library": 0,
+        "monument": 1,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 8,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.2083,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 1,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 5,
+        "border_village": 2,
+        "oasis": 1,
+        "cellar": 1,
+        "silvers": 2,
+        "golds": 99,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.2083,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 1,
+        "golds": 2,
+        "green": 14,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.1979,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 1,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 99,
+        "golds": 3,
+        "green": 12,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.1979,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 0,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 1,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 3,
+        "green": 10,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.1875,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 1,
+        "library": 1,
+        "monument": 1,
+        "moneylender": 1,
+        "junk_dealer": 2,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 6,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.1771,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 0,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 5,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 99,
+        "green": 6,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.1771,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 2,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 2,
+        "fishing_village": 0,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 3,
+        "green": 6,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.1771,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 1,
+        "library": 2,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 3,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 99,
+        "green": 6,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.1667,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 2,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 2,
+        "silvers": 2,
+        "golds": 3,
+        "green": 8,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.1667,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 3,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 2,
+        "golds": 3,
+        "green": 10,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.1562,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 2,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 2,
+        "silvers": 2,
+        "golds": 3,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.1562,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 3,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 4,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 2,
+        "green": 8,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.1562,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 1,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 2,
+        "oasis": 2,
+        "cellar": 1,
+        "silvers": 1,
+        "golds": 4,
+        "green": 8,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.1562,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 1,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 3,
+        "border_village": 2,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 4,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.125,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 3,
+        "library": 1,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 99,
+        "golds": 99,
+        "green": 6,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.125,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 3,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 4,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 4,
+        "green": 8,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.1146,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 5,
+        "border_village": 0,
+        "oasis": 2,
+        "cellar": 1,
+        "silvers": 3,
+        "golds": 3,
+        "green": 8,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.1042,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 3,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 2,
+        "cellar": 1,
+        "silvers": 3,
+        "golds": 99,
+        "green": 8,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.1042,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 3,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 1,
+        "fishing_village": 3,
+        "border_village": 1,
+        "oasis": 1,
+        "cellar": 1,
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.1042,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 3,
+        "library": 2,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 5,
+        "border_village": 0,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 3,
+        "green": 6,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.0938,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 0,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 1,
+        "silvers": 3,
+        "golds": 4,
+        "green": 12,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.0833,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 3,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.0625,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 3,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 5,
+        "border_village": 1,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 2,
+        "golds": 3,
+        "green": 8,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.0625,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 0,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 4,
+        "border_village": 2,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 99,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.0625,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 0,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 4,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 2,
+        "golds": 3,
+        "green": 14,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.0521,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 2,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 2,
+        "silvers": 2,
+        "golds": 3,
+        "green": 8,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.0521,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 0,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 1,
+        "silvers": 2,
+        "golds": 4,
+        "green": 14,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.0521,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 3,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 0,
+        "fishing_village": 0,
+        "border_village": 2,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 1,
+        "golds": 3,
+        "green": 6,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.0521,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 3,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 0,
+        "border_village": 1,
+        "oasis": 2,
+        "cellar": 1,
+        "silvers": 99,
+        "golds": 3,
+        "green": 8,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.0521,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 2,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 2,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 1,
+        "silvers": 99,
+        "golds": 3,
+        "green": 8,
+        "duchy": 5,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.0417,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 5,
+        "border_village": 2,
+        "oasis": 2,
+        "cellar": 1,
+        "silvers": 99,
+        "golds": 2,
+        "green": 12,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.0417,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 1,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 5,
+        "border_village": 2,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 3,
+        "green": 8,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.0312,
+      "params": {
+        "groundskeeper": 0,
+        "margrave": 0,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 0,
+        "fishing_village": 5,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 99,
+        "golds": 4,
+        "green": 14,
+        "duchy": 4,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.0312,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 2,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 2,
+        "border_village": 0,
+        "oasis": 0,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 2,
+        "green": 6,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "rate": 0.0208,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 0,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 5,
+        "border_village": 0,
+        "oasis": 2,
+        "cellar": 1,
+        "silvers": 1,
+        "golds": 3,
+        "green": 8,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.0208,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 0,
+        "library": 2,
+        "monument": 0,
+        "moneylender": 0,
+        "junk_dealer": 2,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 2,
+        "golds": 3,
+        "green": 8,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.0208,
+      "params": {
+        "groundskeeper": 1,
+        "margrave": 0,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 2,
+        "fishing_village": 2,
+        "border_village": 1,
+        "oasis": 2,
+        "cellar": 0,
+        "silvers": 99,
+        "golds": 4,
+        "green": 14,
+        "duchy": 3,
+        "estate_vp": false,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.0,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 1,
+        "library": 1,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 2,
+        "border_village": 2,
+        "oasis": 0,
+        "cellar": 1,
+        "silvers": 99,
+        "golds": 2,
+        "green": 6,
+        "duchy": 3,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "rate": 0.0,
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 2,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 2,
+        "fishing_village": 0,
+        "border_village": 0,
+        "oasis": 1,
+        "cellar": 0,
+        "silvers": 3,
+        "golds": 4,
+        "green": 8,
+        "duchy": 5,
+        "estate_vp": false,
+        "opening": "Moneylender"
+      }
+    },
+    {
+      "rate": 0.0,
+      "params": {
+        "groundskeeper": 3,
+        "margrave": 1,
+        "library": 0,
+        "monument": 0,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 4,
+        "border_village": 2,
+        "oasis": 2,
+        "cellar": 1,
+        "silvers": 3,
+        "golds": 4,
+        "green": 6,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    }
+  ]
+}

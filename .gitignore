@@ -186,3 +186,7 @@ battle_logs/*
 /island_logs
 /generated_strategies/island_champions
 /generated_strategies/island_merged
+
+# Scratch output from the board search scripts; the summaries worth keeping
+# are committed under scripts/data/.
+/.context/

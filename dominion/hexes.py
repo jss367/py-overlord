@@ -73,7 +73,10 @@ def fear(game_state: "GameState", player: "PlayerState") -> None:
     if not choices:
         return
 
-    selected = player.ai.choose_cards_to_discard(game_state, player, choices, 1)
+    # Mandatory, but the fallback below already pays it if the AI answers short.
+    selected = player.ai.choose_cards_to_discard(
+        game_state, player, choices, 1, reason="fear"
+    )
     card = selected[0] if selected else choices[0]
     if card in player.hand:
         player.hand.remove(card)
@@ -98,7 +101,11 @@ def haunting(game_state: "GameState", player: "PlayerState") -> None:
         return
 
     choices = list(player.hand)
-    selected = player.ai.choose_cards_to_discard(game_state, player, choices, 1)
+    # This picks a card to *topdeck*, not to discard; the hook is reused only
+    # for its ranking. Mandatory, and the fallback below pays it either way.
+    selected = player.ai.choose_cards_to_discard(
+        game_state, player, choices, 1, reason="haunting"
+    )
     card = selected[0] if selected else choices[0]
     if card in player.hand:
         player.hand.remove(card)
@@ -156,7 +163,10 @@ def poverty(game_state: "GameState", player: "PlayerState") -> None:
         return
 
     choices = list(player.hand)
-    selected = player.ai.choose_cards_to_discard(game_state, player, choices, discard_target)
+    # Mandatory; the top-up below fills any short answer.
+    selected = player.ai.choose_cards_to_discard(
+        game_state, player, choices, discard_target, reason="poverty"
+    )
     if len(selected) < discard_target:
         remaining = [card for card in choices if card not in selected]
         selected.extend(remaining[: discard_target - len(selected)])

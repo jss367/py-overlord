@@ -141,8 +141,9 @@ def the_skys_gift(game_state: "GameState", player: "PlayerState") -> None:
 
     if len(player.hand) < 3:
         return
+    # Optional ("you may"): a short answer declines the Boon, so no fallback.
     discards = player.ai.choose_cards_to_discard(
-        game_state, player, list(player.hand), 3
+        game_state, player, list(player.hand), 3, reason="the_skys_gift"
     )
     if len(discards) < 3:
         return
@@ -170,8 +171,10 @@ def the_suns_gift(game_state: "GameState", player: "PlayerState") -> None:
     if not revealed:
         return
 
+    # Optional: every revealed card may be discarded *or* put back, so a short
+    # answer is a real choice and must not be topped up.
     discards = player.ai.choose_cards_to_discard(
-        game_state, player, list(revealed), len(revealed)
+        game_state, player, list(revealed), len(revealed), reason="the_suns_gift"
     )
     discard_set = []
     for card in discards:
@@ -207,8 +210,11 @@ def the_winds_gift(game_state: "GameState", player: "PlayerState") -> None:
     if not player.hand:
         return
     count = min(2, len(player.hand))
+    # Mandatory: "Discard 2 cards" is not a choice about *whether*, and this
+    # slice takes whatever comes back, so the name lets an AI that answers
+    # short recognise the obligation and fill its own selection.
     discards = player.ai.choose_cards_to_discard(
-        game_state, player, list(player.hand), count
+        game_state, player, list(player.hand), count, reason="the_winds_gift"
     )
     for card in discards[:count]:
         if card in player.hand:

@@ -42,6 +42,21 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="groundskeeper-margrave-strategy-guide.html",
+        display_name="Groundskeeper Margrave: Board and Strategy Guide",
+        description=(
+            "Ten hand-picked previously unused piles, a searched and validated "
+            "Margrave/Library/Monument engine, and the evidence that the "
+            "board's Groundskeeper plans are a trap."
+        ),
+        kingdom_cards=(
+            "Cellar", "Oasis", "Fishing Village", "Moneylender", "Monument",
+            "Junk Dealer", "Library", "Margrave", "Groundskeeper",
+            "Border Village",
+        ),
+        source_label="Repository strategy search and recorded simulation results",
+    ),
+    CuratedStrategyGuide(
         filename="random-unused-card-kingdom-guide.html",
         display_name="Random Unused Card Kingdom: Board and Strategy Guide",
         description=(
