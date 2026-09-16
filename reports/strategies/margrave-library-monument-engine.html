@@ -339,7 +339,32 @@
         (self._junk_rank(c), c) for c in choices if self._junk_rank(c) is not None
     ]
     ranked.sort(key=lambda item: (item[0], item[1].name))
-    return [card for _, card in ranked[:count]]
+    picks = [card for _, card in ranked[:count]]
+
+    # Cellar is the only discard on this board that routes through here, and
+    # it is optional: handing back only the junk is the whole point, so a
+    # short list is correct. Every other discard is mandatory -- a hand-size
+    # attack, Torturer, Fugitive -- and returning fewer than ``count`` there
+    # would quietly keep cards the rules make the player give up. Fill the
+    # request out of the rest of the hand, junk first, then the cheapest
+    # card that is not an engine piece.
+    if reason == &quot;cellar&quot; or len(picks) &gt;= count:
+        return picks
+
+    taken = {id(card) for card in picks}
+    rest = [card for card in choices if id(card) not in taken]
+    # Gold sits in ``_ENGINE_PIECES`` to keep Junk Dealer and Cellar off it,
+    # but a discard is not a trash: money is exactly what a forced discard
+    # should shed before the pieces that make the deck run.
+    rest.sort(
+        key=lambda c: (
+            c.name in _ENGINE_PIECES and c.name != &quot;Gold&quot;,
+            c.cost.coins,
+            c.name,
+        )
+    )
+    picks += rest[: count - len(picks)]
+    return picks
 </code></pre></details></td></tr>
 <tr><td data-label="Hook"><span class="behavior-name">Choose card to trash with junk dealer</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_to_trash_with_junk_dealer(self, state, player, choices):
     if not choices:

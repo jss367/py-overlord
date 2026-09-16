@@ -170,3 +170,50 @@ def test_junk_dealer_spends_a_last_copper_before_an_engine_piece():
     assert strategy.choose_card_to_trash_with_junk_dealer(
         state, player, choices
     ).name == "Copper"
+
+
+def test_cellar_discards_only_junk_even_when_the_hand_is_short_of_it():
+    """Cellar's discard is optional, so a short list is the right answer."""
+    strategy = GroundskeeperMargrave()
+    state = board_state(strategy)
+    player = state.current_player
+    hand = [get_card("Copper"), get_card("Gold"), get_card("Margrave")]
+
+    picks = strategy.choose_cards_to_discard(
+        state, player, hand, len(hand), reason="cellar"
+    )
+    assert [c.name for c in picks] == ["Copper"]
+
+
+def test_mandatory_discards_fill_the_requested_count():
+    """A hand-size attack or Torturer takes ``count`` cards, junk or not.
+
+    Returning fewer would keep cards the rules make the player give up, and
+    Torturer reads any nonempty answer as "I discarded", so a short list would
+    dodge the Curse as well.
+    """
+    strategy = GroundskeeperMargrave()
+    state = board_state(strategy)
+    player = state.current_player
+    hand = [
+        get_card("Gold"),
+        get_card("Copper"),
+        get_card("Margrave"),
+        get_card("Silver"),
+    ]
+
+    picks = strategy.choose_cards_to_discard(state, player, hand, 3, reason="torturer")
+    assert len(picks) == 3
+    # Junk goes first, then the cheapest card that is not an engine piece.
+    assert [c.name for c in picks] == ["Copper", "Silver", "Gold"]
+
+    # Nothing junky at all still fills the count, and still spares the engine.
+    engine_hand = [get_card("Margrave"), get_card("Silver"), get_card("Library")]
+    picks = strategy.choose_cards_to_discard(
+        state, player, engine_hand, 2, reason="militia"
+    )
+    assert [c.name for c in picks] == ["Silver", "Library"]
+
+    # A request for more cards than the hand holds returns the whole hand.
+    picks = strategy.choose_cards_to_discard(state, player, engine_hand, 9, reason=None)
+    assert len(picks) == 3
