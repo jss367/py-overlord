@@ -2,6 +2,8 @@
 
 from collections import Counter
 
+import pytest
+
 from dominion.ai.genetic_ai import GeneticAI
 from dominion.boards.loader import load_board
 from dominion.cards.registry import get_card
@@ -185,35 +187,56 @@ def test_cellar_discards_only_junk_even_when_the_hand_is_short_of_it():
     assert [c.name for c in picks] == ["Copper"]
 
 
-def test_mandatory_discards_fill_the_requested_count():
-    """A hand-size attack or Torturer takes ``count`` cards, junk or not.
+@pytest.mark.parametrize("reason", [None, "the_suns_gift", "vault", "hamlet_action"])
+def test_optional_discards_never_give_up_a_good_card(reason):
+    """An optional discard must stay short rather than shed Provinces and Golds.
 
-    Returning fewer would keep cards the rules make the player give up, and
-    Torturer reads any nonempty answer as "I discarded", so a short list would
-    dodge the Curse as well.
+    The Sun's Gift reveals four cards and calls this hook with every one of
+    them and no ``reason`` (``dominion/boons.py``), because each card may be
+    discarded *or* put back. Filling the requested count there would throw away
+    the whole reveal. The hook's contract is "up to ``count``", so returning
+    only the junk is both legal and correct.
     """
     strategy = GroundskeeperMargrave()
     state = board_state(strategy)
     player = state.current_player
-    hand = [
+    revealed = [
+        get_card("Province"),
         get_card("Gold"),
-        get_card("Copper"),
         get_card("Margrave"),
+        get_card("Copper"),
+    ]
+
+    picks = strategy.choose_cards_to_discard(
+        state, player, revealed, len(revealed), reason=reason
+    )
+    assert [c.name for c in picks] == ["Copper"]
+
+
+def test_mandatory_discards_are_topped_up_by_the_engine_not_the_strategy():
+    """A short answer to a mandatory discard is safe: the caller fills it.
+
+    Militia stands in for the whole family of hand-size attacks. The strategy
+    offers only its junk; the card's own fallback discards down to three. This
+    is why the hook does not need to guess which effects are mandatory.
+    """
+    strategy = GroundskeeperMargrave()
+    state = board_state(strategy)
+    target = state.players[1]
+    hand = [
+        get_card("Copper"),
+        get_card("Gold"),
+        get_card("Margrave"),
+        get_card("Library"),
         get_card("Silver"),
     ]
 
-    picks = strategy.choose_cards_to_discard(state, player, hand, 3, reason="torturer")
-    assert len(picks) == 3
-    # Junk goes first, then the cheapest card that is not an engine piece.
-    assert [c.name for c in picks] == ["Copper", "Silver", "Gold"]
+    # The strategy offers one card for a request of two.
+    picks = strategy.choose_cards_to_discard(state, target, hand, 2, reason="militia")
+    assert [c.name for c in picks] == ["Copper"]
 
-    # Nothing junky at all still fills the count, and still spares the engine.
-    engine_hand = [get_card("Margrave"), get_card("Silver"), get_card("Library")]
-    picks = strategy.choose_cards_to_discard(
-        state, player, engine_hand, 2, reason="militia"
-    )
-    assert [c.name for c in picks] == ["Silver", "Library"]
-
-    # A request for more cards than the hand holds returns the whole hand.
-    picks = strategy.choose_cards_to_discard(state, player, engine_hand, 9, reason=None)
-    assert len(picks) == 3
+    # Militia still gets the target down to three.
+    target.hand = list(hand)
+    get_card("Militia").play_effect(state)
+    assert len(target.hand) == 3
+    assert "Copper" not in [c.name for c in target.hand]

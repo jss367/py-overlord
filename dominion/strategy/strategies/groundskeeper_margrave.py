@@ -183,32 +183,26 @@ class GroundskeeperMargrave(EnhancedStrategy):
             (self._junk_rank(c), c) for c in choices if self._junk_rank(c) is not None
         ]
         ranked.sort(key=lambda item: (item[0], item[1].name))
-        picks = [card for _, card in ranked[:count]]
-
-        # Cellar is the only discard on this board that routes through here, and
-        # it is optional: handing back only the junk is the whole point, so a
-        # short list is correct. Every other discard is mandatory -- a hand-size
-        # attack, Torturer, Fugitive -- and returning fewer than ``count`` there
-        # would quietly keep cards the rules make the player give up. Fill the
-        # request out of the rest of the hand, junk first, then the cheapest
-        # card that is not an engine piece.
-        if reason == "cellar" or len(picks) >= count:
-            return picks
-
-        taken = {id(card) for card in picks}
-        rest = [card for card in choices if id(card) not in taken]
-        # Gold sits in ``_ENGINE_PIECES`` to keep Junk Dealer and Cellar off it,
-        # but a discard is not a trash: money is exactly what a forced discard
-        # should shed before the pieces that make the deck run.
-        rest.sort(
-            key=lambda c: (
-                c.name in _ENGINE_PIECES and c.name != "Gold",
-                c.cost.coins,
-                c.name,
-            )
-        )
-        picks += rest[: count - len(picks)]
-        return picks
+        # The hook's contract is "choose *up to* ``count``" (``BaseAI``), so a
+        # short list is a legal answer everywhere, and offering only the junk is
+        # the right one. Cellar -- the only one of this board's ten piles that
+        # reaches this hook at all -- is optional, and so are plenty of the
+        # effects elsewhere in the engine: The Sun's Gift, Vault, Hamlet,
+        # Marchland, Plaza, Sextant, Artificer, Quest, Capital City. Filling the
+        # count there hands away Provinces and Golds for nothing.
+        #
+        # ``reason`` cannot separate the two. It is a flat namespace of effect
+        # names with no mandatory flag, optional and mandatory callers draw from
+        # it alike, the six Boon and Hex call sites pass no reason at all (The
+        # Sun's Gift optional, The Wind's Gift mandatory), and Haunting and
+        # Sibyl reuse this hook to pick a card to *topdeck*. The mandatory
+        # callers do not need help anyway: Militia, Goons, Legionary, Samurai,
+        # Ninja, Footpad, Sword, Poacher, Warehouse, Sea Witch, Tide Pools,
+        # Forum, Dungeon, Young Witch, Horse Traders, Soldier, Villain,
+        # Ferryman, Count, Mercenary, Urchin, Sir Michael, Followers, Scouting
+        # Party, Sycophant, Poverty and ``allies/_rules.discard`` all top the
+        # selection up from the rest of the hand themselves.
+        return [card for _, card in ranked[:count]]
 
     def choose_card_to_trash_with_junk_dealer(self, state, player, choices):
         if not choices:
