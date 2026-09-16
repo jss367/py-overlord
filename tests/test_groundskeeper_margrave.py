@@ -106,14 +106,67 @@ def test_junk_dealer_never_eats_an_engine_piece_when_a_spare_exists():
     ).name == "Silver"
 
 
-def test_library_keeps_a_village_but_skips_a_terminal_with_no_actions_left():
+def test_library_sets_aside_every_action_once_no_actions_remain():
+    """Library puts kept cards in hand without playing them, and this board
+
+    grants no Villagers, so with no Actions left even a village is dead weight
+    that costs a replacement draw. Exercised through ``GeneticAI`` so a broken
+    forwarding method cannot pass.
+    """
+    strategy = GroundskeeperMargrave()
+    state = board_state(strategy)
+    player = state.current_player
+    ai = player.ai
+
+    player.actions = 1
+    assert ai.should_keep_library_action(state, player, get_card("Margrave")) is True
+    assert (
+        ai.should_keep_library_action(state, player, get_card("Fishing Village"))
+        is True
+    )
+
+    player.actions = 0
+    assert ai.should_keep_library_action(state, player, get_card("Margrave")) is False
+    assert (
+        ai.should_keep_library_action(state, player, get_card("Fishing Village"))
+        is False
+    )
+
+
+def test_library_draws_a_full_hand_past_stranded_actions():
+    """The set-aside cards are discarded, so Library still refills to seven."""
     strategy = GroundskeeperMargrave()
     state = board_state(strategy)
     player = state.current_player
     player.actions = 0
-    assert strategy.should_keep_library_action(state, player, get_card("Margrave")) is (
-        False
-    )
-    assert strategy.should_keep_library_action(
-        state, player, get_card("Fishing Village")
-    ) is True
+    player.hand = []
+    player.discard = []
+    # ``deck`` is drawn from the end, so the villages come off the top first.
+    player.deck = [get_card("Copper") for _ in range(7)]
+    player.deck += [get_card("Fishing Village") for _ in range(4)]
+
+    get_card("Library").play_effect(state)
+
+    assert len(player.hand) == 7
+    assert all(card.name == "Copper" for card in player.hand)
+    assert Counter(c.name for c in player.discard)["Fishing Village"] == 4
+
+
+def test_junk_dealer_spends_a_last_copper_before_an_engine_piece():
+    """The three-Copper floor ranks junk; it is not a hard reserve.
+
+    Junk Dealer's trash is mandatory, so a hand with no junk left gives up its
+    cheapest spare. Protecting the last Coppers there would feed Junk Dealer a
+    Silver instead, which measured worse.
+    """
+    strategy = GroundskeeperMargrave()
+    state = board_state(strategy)
+    player = state.current_player
+    player.deck = [get_card("Copper") for _ in range(3)]
+    player.discard = []
+    player.hand = []
+
+    choices = [get_card("Margrave"), get_card("Copper"), get_card("Silver")]
+    assert strategy.choose_card_to_trash_with_junk_dealer(
+        state, player, choices
+    ).name == "Copper"

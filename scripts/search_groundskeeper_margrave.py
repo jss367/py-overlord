@@ -273,6 +273,8 @@ def main():
     parser.add_argument("--finalists", type=int, default=8)
     parser.add_argument("--workers", type=int, default=0)
     args = parser.parse_args()
+    if args.mode == "tournament" and args.input is None:
+        parser.error("tournament mode needs --input, the search mode's output")
     workers = args.workers or None
 
     if args.mode == "smoke":

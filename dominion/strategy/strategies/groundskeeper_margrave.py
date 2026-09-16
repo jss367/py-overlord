@@ -194,8 +194,8 @@ class GroundskeeperMargrave(EnhancedStrategy):
             rank = self._junk_rank(card)
             if rank is None:
                 continue
-            # Keep enough Copper to still hit price points while the deck is
-            # small; Estates gained under Groundskeeper have already scored
+            # Once only three Coppers are left the deck would rather eat an
+            # Estate: Estates gained under Groundskeeper have already scored
             # their token, so trashing them afterwards is free.
             if card.name == "Copper" and counts["Copper"] <= 3:
                 continue
@@ -203,7 +203,12 @@ class GroundskeeperMargrave(EnhancedStrategy):
         if ranked:
             ranked.sort(key=lambda item: item[:2])
             return ranked[0][2]
-        # Nothing junky: give up the least useful spare rather than a key piece.
+        # Nothing junky is left to eat, and Junk Dealer's trash is not optional,
+        # so give up the cheapest spare rather than an engine piece. That spare
+        # is often one of the last Coppers: the floor above is a preference
+        # between junk, not a hard reserve. Reserving those Coppers outright
+        # was measured and costs win rate, because the only cards left to feed
+        # Junk Dealer instead are Silvers, which are worth more than a Copper.
         spare = [c for c in choices if c.name not in _ENGINE_PIECES]
         pool = spare or list(choices)
         return min(pool, key=lambda c: (c.cost.coins, c.name))
@@ -213,10 +218,10 @@ class GroundskeeperMargrave(EnhancedStrategy):
         return counts["Copper"] > 3
 
     def should_keep_library_action(self, state, player, card):
-        if player.actions > 0:
-            return True
-        # Terminals are dead with no Actions left; villages still are not.
-        return card.stats.actions >= 1
+        # Library puts a kept card in hand, it does not play it, and nothing on
+        # this board grants Villagers. With no Actions left even a village is
+        # dead weight that costs a replacement draw, so set every Action aside.
+        return player.actions > 0
 
     # -- buys ----------------------------------------------------------
     # Border Village's on-gain pick reaches ``choose_gain`` too: it calls
