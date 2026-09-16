@@ -214,11 +214,13 @@ def test_optional_discards_never_give_up_a_good_card(reason):
 
 
 def test_mandatory_discards_are_topped_up_by_the_engine_not_the_strategy():
-    """A short answer to a mandatory discard is safe: the caller fills it.
+    """A short answer is safe wherever the caller fills the gap itself.
 
-    Militia stands in for the whole family of hand-size attacks. The strategy
-    offers only its junk; the card's own fallback discards down to three. This
-    is why the hook does not need to guess which effects are mandatory.
+    Militia stands in for the whole family of hand-size attacks that carry
+    their own fallback. The strategy offers only its junk; the card discards
+    down to three regardless. Those reasons are deliberately left off
+    ``_MANDATORY_DISCARDS``: the fill would be redundant there, and the list
+    only needs the callers that would otherwise under-discard.
     """
     strategy = GroundskeeperMargrave()
     state = board_state(strategy)
@@ -238,5 +240,54 @@ def test_mandatory_discards_are_topped_up_by_the_engine_not_the_strategy():
     # Militia still gets the target down to three.
     target.hand = list(hand)
     get_card("Militia").play_effect(state)
+    assert len(target.hand) == 3
+    assert "Copper" not in [c.name for c in target.hand]
+
+
+@pytest.mark.parametrize(
+    "reason", ["torturer", "fugitive", "alley", "marquis", "sickness"]
+)
+def test_listed_mandatory_discards_are_filled_to_count(reason):
+    """These callers take a short answer as the whole choice, so fill it.
+
+    Torturer discards whatever comes back and stops, Fugitive and Alley drop
+    the effect entirely on an empty list, and Marquis and Sickness slice to
+    ``picks[:count]``. None of them tops the selection up, so under-answering
+    silently under-discards. Junk still goes first; the filler is the deadest
+    card left, which is a victory card before a spare Treasure.
+    """
+    strategy = GroundskeeperMargrave()
+    state = board_state(strategy)
+    player = state.current_player
+    hand = [
+        get_card("Gold"),
+        get_card("Province"),
+        get_card("Copper"),
+        get_card("Margrave"),
+        get_card("Silver"),
+    ]
+
+    picks = strategy.choose_cards_to_discard(state, player, hand, 3, reason=reason)
+
+    assert [c.name for c in picks] == ["Copper", "Province", "Silver"]
+    assert len({id(c) for c in picks}) == 3
+
+
+def test_torturer_gets_two_discards_from_a_hand_holding_one_junk_card():
+    """The end-to-end case: Torturer under-discards on a short answer."""
+    strategy = GroundskeeperMargrave()
+    state = board_state(strategy)
+    target = state.players[1]
+    state.supply["Curse"] = 0  # force the discard branch.
+    target.hand = [
+        get_card("Copper"),
+        get_card("Gold"),
+        get_card("Margrave"),
+        get_card("Library"),
+        get_card("Silver"),
+    ]
+
+    get_card("Torturer").play_effect(state)
+
     assert len(target.hand) == 3
     assert "Copper" not in [c.name for c in target.hand]

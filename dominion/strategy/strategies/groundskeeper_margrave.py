@@ -35,6 +35,37 @@ _ENGINE_PIECES = frozenset(
 )
 
 
+#: Discard requests that are both mandatory *and* whose callers accept a short
+#: answer as the player's whole choice. For these -- and only these -- the hook
+#: below tops its junk-first selection up to ``count``.
+#:
+#: Every other mandatory discard in the engine fills the gap itself, either with
+#: an explicit fallback (Militia, Goons, Legionary, Samurai, Ninja, Footpad,
+#: Sword, Poacher, Warehouse, Sea Witch, Tide Pools, Forum, Dungeon, Young
+#: Witch, Horse Traders, Soldier, Villain, Ferryman, Count, Catapult, Diplomat,
+#: Scouting Party, Sycophant, Sibyl and ``allies/_rules.discard``) or with a
+#: ``while len(hand) > n`` loop that keeps asking (Mercenary, Urchin, Sir
+#: Michael). Filling those too would be harmless but pointless; filling the
+#: *optional* effects would be actively wrong, which is why this is an explicit
+#: list and not "everything except Cellar".
+_MANDATORY_DISCARDS = frozenset(
+    {
+        # Torturer: takes any nonempty result as the choice, so a short answer
+        # discards one card instead of two and the attack is under-paid.
+        "torturer",
+        # Fugitive: returns without discarding at all if the result is empty.
+        "fugitive",
+        # Alley: same shape as Fugitive -- discard a card, no fallback.
+        "alley",
+        # Marquis: discard down to ten, sliced to ``picks[:excess]``.
+        "marquis",
+        # Sickness (Prophecy): the Curse-or-discard choice is already made, and
+        # the discard branch slices to ``chosen[:count]``.
+        "sickness",
+    }
+)
+
+
 class GroundskeeperMargrave(EnhancedStrategy):
     """One parameterized deck plan for the Groundskeeper / Margrave board.
 
@@ -183,26 +214,35 @@ class GroundskeeperMargrave(EnhancedStrategy):
             (self._junk_rank(c), c) for c in choices if self._junk_rank(c) is not None
         ]
         ranked.sort(key=lambda item: (item[0], item[1].name))
+        picks = [card for _, card in ranked[:count]]
         # The hook's contract is "choose *up to* ``count``" (``BaseAI``), so a
-        # short list is a legal answer everywhere, and offering only the junk is
-        # the right one. Cellar -- the only one of this board's ten piles that
-        # reaches this hook at all -- is optional, and so are plenty of the
-        # effects elsewhere in the engine: The Sun's Gift, Vault, Hamlet,
-        # Marchland, Plaza, Sextant, Artificer, Quest, Capital City. Filling the
-        # count there hands away Provinces and Golds for nothing.
+        # short list is a legal answer and, for an optional effect, the right
+        # one: Cellar -- the only one of this board's ten piles that reaches
+        # this hook at all -- is optional, and so are The Sun's Gift, Vault,
+        # Hamlet, Marchland, Plaza, Sextant, Artificer, Quest, Capital City,
+        # Cave Dwellers and Lost in the Woods. Filling the count there hands
+        # away Provinces and Golds for nothing.
         #
-        # ``reason`` cannot separate the two. It is a flat namespace of effect
-        # names with no mandatory flag, optional and mandatory callers draw from
-        # it alike, the six Boon and Hex call sites pass no reason at all (The
-        # Sun's Gift optional, The Wind's Gift mandatory), and Haunting and
-        # Sibyl reuse this hook to pick a card to *topdeck*. The mandatory
-        # callers do not need help anyway: Militia, Goons, Legionary, Samurai,
-        # Ninja, Footpad, Sword, Poacher, Warehouse, Sea Witch, Tide Pools,
-        # Forum, Dungeon, Young Witch, Horse Traders, Soldier, Villain,
-        # Ferryman, Count, Mercenary, Urchin, Sir Michael, Followers, Scouting
-        # Party, Sycophant, Poverty and ``allies/_rules.discard`` all top the
-        # selection up from the rest of the hand themselves.
-        return [card for _, card in ranked[:count]]
+        # ``reason`` is a flat namespace of effect names with no mandatory flag,
+        # the six Boon and Hex call sites pass no reason at all, and Haunting
+        # and Sibyl reuse this hook to pick a card to *topdeck*. So the default
+        # stays short, and only the named mandatory callers that would otherwise
+        # under-discard get topped up.
+        if reason not in _MANDATORY_DISCARDS or len(picks) >= count:
+            return picks
+        # Junk first (above), then the cheapest thing the deck can spare:
+        # victory cards are dead in hand, engine pieces are not spare at all.
+        chosen = {id(card) for card in picks}
+        rest = [card for card in choices if id(card) not in chosen]
+        rest.sort(
+            key=lambda c: (
+                not (c.is_victory and not c.is_action and not c.is_treasure),
+                c.name in _ENGINE_PIECES,
+                c.cost.coins,
+                c.name,
+            )
+        )
+        return picks + rest[: count - len(picks)]
 
     def choose_card_to_trash_with_junk_dealer(self, state, player, choices):
         if not choices:
