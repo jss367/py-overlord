@@ -349,10 +349,9 @@
     # away Provinces and Golds for nothing.
     #
     # ``reason`` is a flat namespace of effect names with no mandatory flag,
-    # the six Boon and Hex call sites pass no reason at all, and Haunting
-    # and Sibyl reuse this hook to pick a card to *topdeck*. So the default
-    # stays short, and only the named mandatory callers that would otherwise
-    # under-discard get topped up.
+    # and Haunting and Sibyl reuse this hook to pick a card to *topdeck*.
+    # So the default stays short, and only the named mandatory callers that
+    # would otherwise under-discard get topped up.
     if reason not in _MANDATORY_DISCARDS or len(picks) &gt;= count:
         return picks
     # Junk first (above), then the cheapest thing the deck can spare:

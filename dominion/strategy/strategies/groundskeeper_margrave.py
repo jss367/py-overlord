@@ -48,6 +48,14 @@ _ENGINE_PIECES = frozenset(
 #: Michael). Filling those too would be harmless but pointless; filling the
 #: *optional* effects would be actively wrong, which is why this is an explicit
 #: list and not "everything except Cellar".
+#:
+#: Because this list is keyed on ``reason``, a mandatory caller that passed no
+#: reason could never appear in it. Every discard request in ``dominion/`` now
+#: names itself -- the last six anonymous ones were the Boons and Hexes, split
+#: as The Sky's Gift and The Sun's Gift (optional, so deliberately absent
+#: below), Fear, Haunting and Poverty (mandatory but self-filling, like
+#: Militia) and The Wind's Gift (mandatory with no fallback, so listed).
+#: ``test_every_engine_discard_request_names_its_caller`` keeps it that way.
 _MANDATORY_DISCARDS = frozenset(
     {
         # Torturer: takes any nonempty result as the choice, so a short answer
@@ -62,6 +70,10 @@ _MANDATORY_DISCARDS = frozenset(
         # Sickness (Prophecy): the Curse-or-discard choice is already made, and
         # the discard branch slices to ``chosen[:count]``.
         "sickness",
+        # The Wind's Gift: "+2 Cards. Discard 2 cards." The Boon slices to
+        # ``discards[:count]`` and has no fallback, so a hand with fewer than
+        # two junk cards would under-pay a discard that is not optional.
+        "the_winds_gift",
     }
 )
 
@@ -224,10 +236,9 @@ class GroundskeeperMargrave(EnhancedStrategy):
         # away Provinces and Golds for nothing.
         #
         # ``reason`` is a flat namespace of effect names with no mandatory flag,
-        # the six Boon and Hex call sites pass no reason at all, and Haunting
-        # and Sibyl reuse this hook to pick a card to *topdeck*. So the default
-        # stays short, and only the named mandatory callers that would otherwise
-        # under-discard get topped up.
+        # and Haunting and Sibyl reuse this hook to pick a card to *topdeck*.
+        # So the default stays short, and only the named mandatory callers that
+        # would otherwise under-discard get topped up.
         if reason not in _MANDATORY_DISCARDS or len(picks) >= count:
             return picks
         # Junk first (above), then the cheapest thing the deck can spare:

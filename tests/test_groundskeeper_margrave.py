@@ -1,11 +1,15 @@
 """Setup, hook forwarding, and policy checks for the ten-unused-card board."""
 
+import ast
+import pathlib
 from collections import Counter
 
 import pytest
 
 from dominion.ai.genetic_ai import GeneticAI
 from dominion.boards.loader import load_board
+from dominion.boons import the_skys_gift, the_winds_gift
+from dominion.hexes import fear, haunting, poverty
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.strategy.strategies.groundskeeper_margrave import GroundskeeperMargrave
@@ -187,15 +191,19 @@ def test_cellar_discards_only_junk_even_when_the_hand_is_short_of_it():
     assert [c.name for c in picks] == ["Copper"]
 
 
-@pytest.mark.parametrize("reason", [None, "the_suns_gift", "vault", "hamlet_action"])
+@pytest.mark.parametrize(
+    "reason", [None, "the_suns_gift", "the_skys_gift", "vault", "hamlet_action"]
+)
 def test_optional_discards_never_give_up_a_good_card(reason):
     """An optional discard must stay short rather than shed Provinces and Golds.
 
     The Sun's Gift reveals four cards and calls this hook with every one of
-    them and no ``reason`` (``dominion/boons.py``), because each card may be
-    discarded *or* put back. Filling the requested count there would throw away
-    the whole reveal. The hook's contract is "up to ``count``", so returning
-    only the junk is both legal and correct.
+    them (``dominion/boons.py``), because each card may be discarded *or* put
+    back. Filling the requested count there would throw away the whole reveal.
+    The Sky's Gift is the other optional Boon: "you may discard 3 cards" to
+    gain a Gold, and it reads a short answer as declining. ``None`` stands for
+    any caller this strategy has not classified. The hook's contract is "up to
+    ``count``", so returning only the junk is both legal and correct.
     """
     strategy = GroundskeeperMargrave()
     state = board_state(strategy)
@@ -291,3 +299,112 @@ def test_torturer_gets_two_discards_from_a_hand_holding_one_junk_card():
 
     assert len(target.hand) == 3
     assert "Copper" not in [c.name for c in target.hand]
+
+
+def test_the_winds_gift_is_paid_in_full_from_a_hand_short_of_junk():
+    """The Wind's Gift is the one mandatory Boon with no fallback of its own.
+
+    ``dominion/boons.py`` slices the answer to ``discards[:count]`` and stops,
+    so a hand holding fewer than two Curses, Estates or Coppers would pay one
+    card for a "+2 Cards. Discard 2 cards." that is not optional. The reason is
+    on ``_MANDATORY_DISCARDS``, so the hook tops its junk pick up with the
+    deadest card left -- a Province in hand, not a Gold or an engine piece.
+    """
+    strategy = GroundskeeperMargrave()
+    state = board_state(strategy)
+    player = state.current_player
+    player.deck = [get_card("Gold"), get_card("Gold")]
+    player.hand = [get_card("Copper"), get_card("Province"), get_card("Margrave")]
+    player.discard = []
+
+    the_winds_gift(state, player)
+
+    assert len(player.hand) == 3
+    assert sorted(c.name for c in player.discard) == ["Copper", "Province"]
+
+
+def test_the_skys_gift_is_still_declined_rather_than_overpaid():
+    """Naming the optional Boons must not turn them into mandatory ones.
+
+    The Sky's Gift is "you may discard 3 cards" to gain a Gold. With one junk
+    card in hand the strategy answers short, and the Boon reads that as
+    declining -- it must not shed a Gold and a Province to buy one Gold.
+    """
+    strategy = GroundskeeperMargrave()
+    state = board_state(strategy)
+    player = state.current_player
+    player.hand = [get_card("Copper"), get_card("Gold"), get_card("Province")]
+    player.discard = []
+    golds_before = state.supply["Gold"]
+
+    the_skys_gift(state, player)
+
+    assert [c.name for c in player.hand] == ["Copper", "Gold", "Province"]
+    assert not player.discard
+    assert state.supply["Gold"] == golds_before
+
+
+def test_named_but_self_filling_hexes_are_paid_by_the_caller():
+    """Fear, Poverty and Haunting are mandatory and now named, but stay off
+    ``_MANDATORY_DISCARDS`` because each already fills a short answer itself --
+    the same reason Militia is absent. A hand with no junk at all is the case
+    that would expose a missing fill.
+    """
+    strategy = GroundskeeperMargrave()
+    state = board_state(strategy)
+    player = state.current_player
+
+    def fresh(n):
+        player.hand = [get_card("Gold") for _ in range(n)]
+        player.discard = []
+        player.deck = []
+
+    # Fear: discard an Action or Treasure. Fallback is ``choices[0]``.
+    fresh(5)
+    fear(state, player)
+    assert len(player.hand) == 4
+    assert len(player.discard) == 1
+
+    # Poverty: discard down to three. The Hex tops the selection up itself.
+    fresh(5)
+    poverty(state, player)
+    assert len(player.hand) == 3
+    assert len(player.discard) == 2
+
+    # Haunting reuses the hook to pick a card to *topdeck*, not to discard.
+    fresh(4)
+    haunting(state, player)
+    assert len(player.hand) == 3
+    assert len(player.deck) == 1
+    assert not player.discard
+
+
+def test_every_engine_discard_request_names_its_caller():
+    """``_MANDATORY_DISCARDS`` is keyed on ``reason``, so an anonymous caller
+    could never be classified as mandatory no matter what the list said. This
+    walks every ``choose_cards_to_discard`` call in ``dominion/`` and requires a
+    ``reason``, which keeps that hole closed: a new effect cannot silently
+    inherit the "optional, answer short" default by omitting its name.
+    """
+    package = pathlib.Path(__file__).resolve().parents[1] / "dominion"
+    anonymous = []
+    for path in sorted(package.rglob("*.py")):
+        tree = ast.parse(path.read_text())
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            func = node.func
+            if not isinstance(func, ast.Attribute):
+                continue
+            if func.attr != "choose_cards_to_discard":
+                continue
+            named = any(kw.arg == "reason" for kw in node.keywords)
+            # state, player, choices, count, reason
+            positional = len(node.args) >= 5
+            if not named and not positional:
+                anonymous.append(f"{path.relative_to(package.parent)}:{node.lineno}")
+
+    assert not anonymous, (
+        "these discard requests pass no ``reason`` and so can never be "
+        f"classified as mandatory: {anonymous}"
+    )
