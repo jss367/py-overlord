@@ -1,0 +1,18 @@
+# Ten piles drawn entirely from cards no registered strategy referenced.
+# Checked against the Card Strategy Usage report on September 16, 2026.
+# Two players; no Colony, Platinum, Potion, Shelters, or landscapes.
+#
+# Two villages (Fishing Village, Border Village), two draw terminals
+# (Margrave, Library), two trashers (Moneylender, Junk Dealer), and two
+# competing payloads: Monument's VP tokens for a money deck, Groundskeeper's
+# VP-per-victory-gain for an engine that greens early.
+Cellar
+Oasis
+Fishing Village
+Moneylender
+Monument
+Junk Dealer
+Library
+Margrave
+Groundskeeper
+Border Village

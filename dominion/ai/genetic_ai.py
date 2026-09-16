@@ -356,3 +356,23 @@ class GeneticAI(AI):
         if hook is not None:
             return hook(state, player, choices, count, reason=reason)
         return super().choose_cards_to_discard(state, player, choices, count, reason=reason)
+
+    def should_trash_copper_for_moneylender(self, state: "GameState", player) -> bool:
+        hook = getattr(self.strategy, "should_trash_copper_for_moneylender", None)
+        if hook is not None:
+            return bool(hook(state, player))
+        return super().should_trash_copper_for_moneylender(state, player)
+
+    def should_keep_library_action(self, state: "GameState", player, card: Card) -> bool:
+        hook = getattr(self.strategy, "should_keep_library_action", None)
+        if hook is not None:
+            return bool(hook(state, player, card))
+        return super().should_keep_library_action(state, player, card)
+
+    def choose_card_to_trash_with_junk_dealer(
+        self, state: "GameState", player, choices: list[Card]
+    ) -> Optional[Card]:
+        hook = getattr(self.strategy, "choose_card_to_trash_with_junk_dealer", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_card_to_trash_with_junk_dealer(state, player, choices)

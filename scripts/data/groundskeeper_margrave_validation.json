@@ -1,0 +1,368 @@
+{
+  "description": "Frozen winner on fresh seeds, 300 games per opponent, both seats.",
+  "games": 2100,
+  "overall_rate": 0.7505,
+  "truncated": 0,
+  "opponents": [
+    {
+      "label": "Runner-up: Margrave/Library money",
+      "rate": 0.6,
+      "wins": 180,
+      "ties": 0,
+      "games": 300,
+      "turns": 19.4,
+      "scores": [
+        41.4,
+        39.9
+      ],
+      "seed": 900000,
+      "winner_deck": {
+        "Border Village": 1.38,
+        "Copper": 1.45,
+        "Duchy": 1.68,
+        "Estate": 0.9,
+        "Fishing Village": 3.95,
+        "Gold": 0.59,
+        "Junk Dealer": 1.93,
+        "Library": 1.93,
+        "Margrave": 0.98,
+        "Monument": 1.95,
+        "Province": 3.95,
+        "Silver": 1.66
+      },
+      "opponent_deck": {
+        "Copper": 6.43,
+        "Duchy": 2.34,
+        "Estate": 4.1,
+        "Fishing Village": 4.0,
+        "Gold": 1.75,
+        "Library": 0.72,
+        "Margrave": 2.0,
+        "Moneylender": 0.28,
+        "Monument": 2.0,
+        "Province": 3.43,
+        "Silver": 2.64
+      },
+      "params": {
+        "silvers": 3,
+        "golds": 4,
+        "green": 10,
+        "opening": "Fishing Village",
+        "margrave": 2,
+        "library": 1,
+        "monument": 2,
+        "moneylender": 1,
+        "fishing_village": 4,
+        "duchy": 4
+      }
+    },
+    {
+      "label": "Third: three Margraves, early green",
+      "rate": 0.61,
+      "wins": 183,
+      "ties": 0,
+      "games": 300,
+      "turns": 20.0,
+      "scores": [
+        40.6,
+        39.9
+      ],
+      "seed": 901000,
+      "winner_deck": {
+        "Border Village": 1.32,
+        "Copper": 1.21,
+        "Duchy": 1.83,
+        "Estate": 0.92,
+        "Fishing Village": 3.96,
+        "Gold": 0.63,
+        "Junk Dealer": 1.9,
+        "Library": 1.88,
+        "Margrave": 0.98,
+        "Monument": 1.96,
+        "Province": 3.6,
+        "Silver": 1.77
+      },
+      "opponent_deck": {
+        "Border Village": 0.63,
+        "Copper": 3.85,
+        "Duchy": 2.23,
+        "Estate": 2.51,
+        "Fishing Village": 4.79,
+        "Gold": 0.3,
+        "Junk Dealer": 0.99,
+        "Margrave": 2.88,
+        "Moneylender": 0.7,
+        "Monument": 1.95,
+        "Oasis": 0.78,
+        "Province": 3.46,
+        "Silver": 0.29
+      },
+      "params": {
+        "margrave": 3,
+        "library": 0,
+        "monument": 2,
+        "moneylender": 1,
+        "junk_dealer": 1,
+        "fishing_village": 5,
+        "border_village": 1,
+        "oasis": 2,
+        "silvers": 3,
+        "golds": 3,
+        "green": 8,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "label": "Same engine without Monument",
+      "rate": 0.5567,
+      "wins": 167,
+      "ties": 0,
+      "games": 300,
+      "turns": 17.4,
+      "scores": [
+        33.7,
+        31.2
+      ],
+      "seed": 902000,
+      "winner_deck": {
+        "Border Village": 1.21,
+        "Copper": 1.87,
+        "Duchy": 1.26,
+        "Estate": 0.9,
+        "Fishing Village": 3.95,
+        "Gold": 0.45,
+        "Junk Dealer": 1.9,
+        "Library": 1.86,
+        "Margrave": 0.96,
+        "Monument": 1.94,
+        "Province": 3.16,
+        "Silver": 1.52
+      },
+      "opponent_deck": {
+        "Copper": 2.92,
+        "Duchy": 1.78,
+        "Estate": 1.29,
+        "Fishing Village": 4.99,
+        "Gold": 1.36,
+        "Junk Dealer": 1.81,
+        "Library": 1.96,
+        "Margrave": 1.97,
+        "Province": 4.09,
+        "Silver": 1.86
+      },
+      "params": {
+        "margrave": 2,
+        "library": 2,
+        "junk_dealer": 2,
+        "fishing_village": 5,
+        "silvers": 3,
+        "golds": 4,
+        "green": 12,
+        "duchy": 5,
+        "opening": "Fishing Village"
+      }
+    },
+    {
+      "label": "Groundskeeper engine",
+      "rate": 0.9333,
+      "wins": 280,
+      "ties": 0,
+      "games": 300,
+      "turns": 21.4,
+      "scores": [
+        49.4,
+        32.3
+      ],
+      "seed": 903000,
+      "winner_deck": {
+        "Border Village": 1.73,
+        "Copper": 0.59,
+        "Duchy": 1.33,
+        "Estate": 0.78,
+        "Fishing Village": 3.98,
+        "Gold": 0.87,
+        "Junk Dealer": 1.95,
+        "Library": 1.96,
+        "Margrave": 0.99,
+        "Monument": 1.97,
+        "Province": 5.02,
+        "Silver": 1.49
+      },
+      "opponent_deck": {
+        "Border Village": 0.36,
+        "Copper": 4.96,
+        "Duchy": 3.54,
+        "Estate": 4.07,
+        "Fishing Village": 3.99,
+        "Gold": 0.05,
+        "Groundskeeper": 1.99,
+        "Junk Dealer": 1.52,
+        "Margrave": 1.96,
+        "Province": 1.58,
+        "Silver": 3.25
+      },
+      "params": {
+        "groundskeeper": 2,
+        "margrave": 2,
+        "junk_dealer": 2,
+        "fishing_village": 4,
+        "border_village": 2,
+        "silvers": 2,
+        "golds": 3,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "opening": "Silver"
+      }
+    },
+    {
+      "label": "Monument money",
+      "rate": 0.8367,
+      "wins": 251,
+      "ties": 0,
+      "games": 300,
+      "turns": 18.7,
+      "scores": [
+        41.9,
+        29.7
+      ],
+      "seed": 904000,
+      "winner_deck": {
+        "Border Village": 1.65,
+        "Copper": 1.05,
+        "Duchy": 1.36,
+        "Estate": 0.75,
+        "Fishing Village": 3.98,
+        "Gold": 0.66,
+        "Junk Dealer": 1.99,
+        "Library": 1.98,
+        "Margrave": 1.0,
+        "Monument": 2.0,
+        "Province": 4.26,
+        "Silver": 1.27
+      },
+      "opponent_deck": {
+        "Copper": 5.42,
+        "Duchy": 2.31,
+        "Estate": 3.41,
+        "Gold": 5.01,
+        "Moneylender": 0.51,
+        "Monument": 0.49,
+        "Province": 2.84,
+        "Silver": 5.93
+      },
+      "params": {
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "opening": "Moneylender",
+        "monument": 1,
+        "moneylender": 1
+      }
+    },
+    {
+      "label": "Margrave money",
+      "rate": 0.8033,
+      "wins": 241,
+      "ties": 0,
+      "games": 300,
+      "turns": 18.5,
+      "scores": [
+        40.6,
+        30.9
+      ],
+      "seed": 905000,
+      "winner_deck": {
+        "Border Village": 1.46,
+        "Copper": 1.31,
+        "Duchy": 1.42,
+        "Estate": 0.81,
+        "Fishing Village": 3.94,
+        "Gold": 0.6,
+        "Junk Dealer": 1.96,
+        "Library": 1.93,
+        "Margrave": 0.99,
+        "Monument": 1.97,
+        "Province": 4.02,
+        "Silver": 1.45
+      },
+      "opponent_deck": {
+        "Copper": 7.0,
+        "Duchy": 2.44,
+        "Estate": 3.58,
+        "Gold": 4.82,
+        "Margrave": 1.0,
+        "Province": 3.33,
+        "Silver": 6.52
+      },
+      "params": {
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "opening": "Silver",
+        "margrave": 1
+      }
+    },
+    {
+      "label": "Treasure-only money",
+      "rate": 0.9133,
+      "wins": 274,
+      "ties": 0,
+      "games": 300,
+      "turns": 18.5,
+      "scores": [
+        42.5,
+        26.8
+      ],
+      "seed": 906000,
+      "winner_deck": {
+        "Border Village": 1.76,
+        "Copper": 1.0,
+        "Duchy": 1.27,
+        "Estate": 0.74,
+        "Fishing Village": 3.97,
+        "Gold": 0.76,
+        "Junk Dealer": 1.98,
+        "Library": 1.98,
+        "Margrave": 0.99,
+        "Monument": 1.97,
+        "Province": 4.36,
+        "Silver": 1.19
+      },
+      "opponent_deck": {
+        "Copper": 7.0,
+        "Duchy": 2.42,
+        "Estate": 3.34,
+        "Gold": 5.21,
+        "Province": 2.7,
+        "Silver": 6.61
+      },
+      "params": {
+        "silvers": 3,
+        "golds": 99,
+        "green": 10,
+        "opening": "Silver"
+      }
+    }
+  ],
+  "winner": {
+    "groundskeeper": 0,
+    "margrave": 1,
+    "library": 2,
+    "monument": 2,
+    "moneylender": 0,
+    "junk_dealer": 2,
+    "fishing_village": 4,
+    "border_village": 2,
+    "oasis": 0,
+    "cellar": 0,
+    "silvers": 99,
+    "golds": 3,
+    "green": 12,
+    "duchy": 4,
+    "estate_vp": true,
+    "opening": "Silver"
+  }
+}
