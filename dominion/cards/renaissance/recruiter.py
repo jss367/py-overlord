@@ -32,7 +32,7 @@ class Recruiter(Card):
             )
         if choice not in player.hand:
             return
-        cost = choice.cost.coins
+        cost = game_state.get_card_cost(player, choice)
         player.hand.remove(choice)
         game_state.trash_card(player, choice)
         player.villagers += cost

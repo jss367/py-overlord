@@ -1,0 +1,14 @@
+# Recruiter and Kitsune with Great Leader.
+# Two players; normal Copper/Estate starts; no Colony, Platinum, or Shelters.
+Recruiter
+Kitsune
+Inventor
+Treasurer
+Villa
+Village
+Courtyard
+Counterfeit
+Anvil
+Engineer
+
+Prophecy: Great Leader

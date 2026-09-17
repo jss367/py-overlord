@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ten Strongest Cards Without Runnable Strategies</title>
+<meta name="description" content="An opinionated ranking of ten powerful Dominion cards absent from the runnable strategy catalog, with reasons and coverage evidence.">
+<style>
+:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#f5f2e9;color:#263b32;font:17px/1.65 system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:32px 24px 64px}a{color:#79521d}nav{display:flex;gap:24px;flex-wrap:wrap;font-size:14px}h1,h2{font-family:Georgia,serif;line-height:1.2}h1{font-size:clamp(32px,5vw,52px)}header{padding:24px 0}.lead{font-size:20px}.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:16px}th,td{padding:14px 12px;text-align:left;vertical-align:top;border-bottom:1px solid #d5dbcf}th{background:#e5ecdf}td:nth-child(2){min-width:150px}.note{background:#e5ecdf;padding:18px 22px;margin:24px 0}pre{overflow:auto;background:#263b32;color:#f5f2e9;padding:20px;font-size:13px}footer{margin-top:32px;font-size:14px}
+</style>
+</head>
+<body><main>
+<nav><a href="index.html">Strategy catalog</a><a href="card-strategy-usage.html">Card usage report</a></nav>
+<header><p>Assessment dated September 17, 2026</p><h1>Ten strongest cards without runnable strategies</h1>
+<p class="lead">Recruiter, Goons, and Governor are my first picks. This is a qualitative ranking of strength for the cost, versatility, and ability to define a winning strategy under standard Dominion rules.</p>
+<p>At the time of this assessment, before the Recruiter and Kitsune board search, all ten had zero explicit references across 135 runnable strategies. The catalog contained 610 cards, of which 405 were unused by that definition. These ten were individual candidates for future strategies, not a proposed ten-card kingdom. See the <a href="card-strategy-usage.html">live coverage report</a> for current counts.</p></header>
+<div class="scroll"><table><caption>Opinionated ranking; no simulations were run for this shortlist.</caption><thead><tr><th>Rank</th><th>Card / expansion</th><th>Why I would prioritize it</th></tr></thead><tbody>
+<tr><td>1</td><td>Recruiter<br>Renaissance</td><td>Combines drawing, trashing, and banked extra actions through Villagers. It improves deck quality while making ambitious action decks work. <a href="https://dominionstrategy.com/2018/12/06/recruiter/">Strategy analysis</a>.</td></tr>
+<tr><td>2</td><td>Goons<br>Prosperity, first edition</td><td>A discard attack plus money, an extra buy, and points for purchases. Multiple copies can make cheap purchases a winning scoring engine. <a href="https://adamhorton.com/flog/bite-sized-goons/">Strategy analysis</a>.</td></tr>
+<tr><td>3</td><td>Governor<br>Promo</td><td>Draws cards, gains Gold, and converts Gold into Provinces while preserving an action. Its flexibility is exceptional, although opponents benefit too. <a href="https://adamhorton.com/flog/bite-sized-governor/">Strategy analysis</a>.</td></tr>
+<tr><td>4</td><td>Ambassador<br>Seaside, first edition</td><td>At $3, removes starting junk from your deck while handing copies to opponents. That combination can determine the entire opening. <a href="https://dominionstrategy.fandom.com/wiki/Ambassador">Card rules</a>.</td></tr>
+<tr><td>5</td><td>Scrying Pool<br>Alchemy</td><td>Can draw huge stretches of an action-heavy deck and disrupt an opponent's next draw. Requires investment in Potion and enough Actions to exploit it. <a href="https://adamhorton.com/flog/bite-sized-scrying-pool/">Strategy analysis</a>.</td></tr>
+<tr><td>6</td><td>Black Market<br>Promo</td><td>Provides money and access to cards outside the kingdom, potentially supplying missing draw, trashing, or actions. Its ceiling depends on the Black Market deck and purchase choices. <a href="https://dominionstrategy.com/2015/03/09/promos-black-market/">Strategy analysis</a>.</td></tr>
+<tr><td>7</td><td>Kitsune<br>Rising Sun</td><td>Combines a Curse attack with actions or money, then remains useful after Curses run out. Its Prophecy also affects its value. <a href="https://wiki.dominionstrategy.com/index.php/Kitsune">Card rules and strategy</a>.</td></tr>
+<tr><td>8</td><td>Inventor<br>Renaissance</td><td>Gaining cards while stacking cost reductions can produce explosive growth and pile-ending turns. Needs support to play repeatedly; the reductions also make later Inventor gains stronger.</td></tr>
+<tr><td>9</td><td>Treasurer<br>Renaissance</td><td>Provides $3 alongside Copper removal, Treasure recovery, or control of the Key. Strong economy and deck improvement in one slot, with a valuable contest over the extra card from the Key.</td></tr>
+<tr><td>10</td><td>Villa<br>Empires</td><td>Gaining it can restart the Action phase immediately. This rescues stalled turns and enables rapid growth, especially with draw and cost reduction. <a href="https://adamhorton.com/flog/bite-sized-villa/">Strategy analysis</a>.</td></tr>
+</tbody></table></div>
+<h2>Scope and simulator limitations</h2>
+<p>The ordering is my judgment, not a tournament result or a universal buying order. Goons and Ambassador are included because the repository implements first-edition cards. Special rewards such as Loot and Prizes are excluded from this shortlist so each recommendation is an ordinary kingdom-card candidate.</p>
+<p>“Unused” follows <a href="../../dominion/reporting/card_usage.py">the catalog's coverage calculation</a>: explicit gain, action, trash, exile, treasure priorities, and Way rules. It excludes condition-only references, custom decision code, automatic gains, and written guides. Publishing this guide does not change those usage counts.</p>
+<div class="note"><strong>Standard-rule strength needs separate simulator validation.</strong> During the original inspection, Kitsune's action option granted only one action; the published card grants two. That discrepancy was subsequently corrected and tested during the <a href="recruiter-kitsune-strategy-guide.html">Recruiter and Kitsune board search</a>. This shortlist does not certify all card implementations.</div>
+<h2>Recheck eligibility</h2>
+<p>Run from the repository root. Counts and eligibility are a snapshot and will change as runnable strategies are added.</p>
+<pre><code>PYTHONPATH=. python - &lt;&lt;'PY'
+from dominion.reporting.strategy_pages import collect_rendered_strategies
+from dominion.reporting.card_usage import collect_card_usage
+
+names = ["Recruiter", "Goons", "Governor", "Ambassador", "Scrying Pool",
+         "Black Market", "Kitsune", "Inventor", "Treasurer", "Villa"]
+strategies = collect_rendered_strategies()
+rows = collect_card_usage(strategies)
+usage = {row.name: len(row.strategies) for row in rows}
+print(len(strategies), "strategies;", len(rows), "cards;",
+      sum(count == 0 for count in usage.values()), "unused")
+for name in names:
+    print(name, usage[name])
+PY</code></pre>
+<footer>Coverage verified against the local strategy loader. Ranking and recommendations are qualitative; linked analyses support the card evaluations.</footer>
+</main></body></html>

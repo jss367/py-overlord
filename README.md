@@ -119,6 +119,10 @@ See the [publishing workflow](AGENTS.md#publish-strategy-guides-as-html).
 Runnable strategies remain Python. Repository instructions, developer references,
 and design plans may remain Markdown.
 
+The [Recruiter and Kitsune guide](reports/strategies/recruiter-kitsune-strategy-guide.html)
+covers the user-selected kingdom with Great Leader, corrected card interactions,
+and a reproducible strategy search with independent validation.
+
 The strategy writeup migration is complete as of September 7, 2026. The
 [Tea House and Kind Emperor guide](reports/strategies/tea-house-kind-emperor-strategy-guide.html)
 and [Mine and Guildhall investigation](reports/strategies/mine-guildhall-strategy-guide.html)

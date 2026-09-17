@@ -2750,6 +2750,11 @@ class GameState:
             }
             self.log_callback(("action", player.ai.name, f"plays {choice}", context))
 
+            # Villa gained by Anvil (or another Treasure) returns to Actions
+            # after the current Treasure has finished resolving.
+            if self.phase == "action":
+                return
+
         self.phase = "buy"
 
     def handle_buy_phase(self):
@@ -2815,7 +2820,7 @@ class GameState:
             # Play the new Action phase (with whatever Actions remain), then a
             # fresh Treasure/Buy phase — start-of-Buy effects fire again —
             # and keep buying with the coins already accumulated.
-            if self.phase == "action":
+            while self.phase == "action":
                 self.handle_action_phase()
                 self.handle_treasure_phase()
 

@@ -4,13 +4,13 @@ from ..base_card import Card, CardCost, CardStats, CardType
 class Kitsune(Card):
     """Action-Attack-Omen ($5): +1 Sun.
     Then choose two different options (in the listed order):
-    - Each other player gains a Curse
-    - +1 Action
+    - +2 Actions
     - +$2
+    - Each other player gains a Curse
     - Gain a Silver
     """
 
-    OPTIONS = ["curse", "action", "coins", "silver"]
+    OPTIONS = ["action", "coins", "curse", "silver"]
 
     def __init__(self):
         super().__init__(
@@ -47,7 +47,7 @@ class Kitsune(Card):
             if option == "curse":
                 self._curse_others(game_state, player)
             elif option == "action":
-                player.actions += 1
+                player.actions += 2
             elif option == "coins":
                 player.coins += 2
             elif option == "silver":

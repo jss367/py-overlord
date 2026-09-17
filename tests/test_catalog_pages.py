@@ -180,6 +180,8 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "boards/nested/other-board.html",
         "boards/sample-board.html",
         "strategies/big-money.html",
+        "strategies/ten-strongest-unused-cards.html",
+        "strategies/recruiter-kitsune-strategy-guide.html",
         "strategies/groundskeeper-margrave-strategy-guide.html",
         "strategies/random-unused-card-kingdom-guide.html",
         "strategies/cursed-band-biding-time-strategy-guide.html",

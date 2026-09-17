@@ -42,6 +42,32 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="recruiter-kitsune-strategy-guide.html",
+        display_name="Recruiter and Kitsune with Great Leader: Strategy Guide",
+        description=(
+            "A searched Courtyard engine for the ten-card Recruiter and Kitsune "
+            "kingdom, including opening choices, card interactions, and validation."
+        ),
+        kingdom_cards=(
+            "Recruiter", "Kitsune", "Inventor", "Treasurer", "Villa", "Village",
+            "Courtyard", "Counterfeit", "Anvil", "Engineer",
+        ),
+        source_label="User-selected kingdom, official rules, and seeded simulations",
+    ),
+    CuratedStrategyGuide(
+        filename="ten-strongest-unused-cards.html",
+        display_name="Ten Strongest Cards Without Runnable Strategies",
+        description=(
+            "An opinionated shortlist of powerful unused cards, ranked by standard "
+            "Dominion strength and versatility, with reasons and simulator caveats."
+        ),
+        kingdom_cards=(
+            "Recruiter", "Goons", "Governor", "Ambassador", "Scrying Pool",
+            "Black Market", "Kitsune", "Inventor", "Treasurer", "Villa",
+        ),
+        source_label="Verified catalog coverage and qualitative strategy assessment",
+    ),
+    CuratedStrategyGuide(
         filename="groundskeeper-margrave-strategy-guide.html",
         display_name="Groundskeeper Margrave: Board and Strategy Guide",
         description=(
