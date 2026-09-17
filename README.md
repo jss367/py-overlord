@@ -135,6 +135,14 @@ duplicates have been removed:
 | [Port Moresby strategy search](reports/strategies/port-moresby-strategy-guide.html) | HTML guide including results after simulator corrections. |
 | [Albuquerque strategy search](reports/strategies/albuquerque-strategy-guide.html) | HTML guide: card audit, engine play-skill fixes, hand and island search, confirmation. |
 
+Three additional HTML guides cover kingdoms built from 30 distinct cards that
+were unused by the existing strategies:
+[Sentry and Hunting Party](reports/strategies/sentry-hunting-party-strategy-guide.html),
+[Minion and Courtier](reports/strategies/minion-courtier-strategy-guide.html), and
+[Old Witch and Rabble](reports/strategies/old-witch-rabble-strategy-guide.html).
+Each includes its ten-card board, a runnable best-found policy, the card-usage
+audit, and reproducible tournament and validation results.
+
 A generated strategy detail page describes the runnable strategy; it does not
 automatically migrate a separate narrative's experiments and conclusions. The
 catalog renderer does not convert arbitrary Markdown files to HTML.
