@@ -56,6 +56,24 @@ class GeneticAI(AI):
             return hook(state, player, maximum)
         return super().choose_coffers_for_debt(state, player, maximum)
 
+    def choose_minion_mode(self, state, player):
+        hook = getattr(self.strategy, "choose_minion_mode", None)
+        if hook is not None:
+            return hook(state, player)
+        return super().choose_minion_mode(state, player)
+
+    def choose_courtier_options(self, state, player, options, num_choices):
+        hook = getattr(self.strategy, "choose_courtier_options", None)
+        if hook is not None:
+            return hook(state, player, options, num_choices)
+        return super().choose_courtier_options(state, player, options, num_choices)
+
+    def choose_squire_option(self, state, player, options):
+        hook = getattr(self.strategy, "choose_squire_option", None)
+        if hook is not None:
+            return hook(state, player, options)
+        return super().choose_squire_option(state, player, options)
+
     def choose_mine_treasure(self, state, player, choices):
         hook = getattr(self.strategy, "choose_mine_treasure", None)
         if hook is not None:

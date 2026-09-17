@@ -1,0 +1,12 @@
+# Ten distinct previously unused kingdom piles; selected September 17, 2026.
+# Two players, standard Copper/Estate start; no landscapes or Colony/Platinum.
+Minion
+Courtier
+Diplomat
+Baron
+Shanty Town
+Secret Passage
+Replace
+Trading Post
+Conclave
+Native Village
