@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Old Witch and Rabble: Board and Strategy Guide</title><style>
+:root{color-scheme:light;--ink:#203e39;--paper:#f6f3eb;--accent:#8c5027}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.65 system-ui,sans-serif}
+main{max-width:1080px;margin:auto;padding:32px 25px 70px}a{color:var(--accent)}nav{display:flex;gap:20px;flex-wrap:wrap;font-size:14px}
+header{padding:38px 0 22px;border-bottom:1px solid #ccd5c8}h1,h2,h3{font-family:Georgia,serif;line-height:1.18}h1{font-size:clamp(36px,6vw,58px)}h2{font-size:29px;margin-top:40px}
+.lead{font-size:21px}.eyebrow{font-size:13px;text-transform:uppercase;letter-spacing:.1em}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.card{padding:15px;background:#fffdf7;border:1px solid #cdd6c8;border-radius:9px}.card strong,.card small{display:block}.callout{background:#e5eddf;border-left:4px solid #618454;padding:20px 24px;margin:25px 0}.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:15px}td,th{padding:12px;text-align:left;border-bottom:1px solid #cdd6c8;vertical-align:top}th{background:#e5eddf}pre{background:#203e39;color:#fff;padding:20px;overflow:auto;border-radius:8px;font-size:13px}li{margin:9px 0}small,.muted{color:#53675e}details{margin:14px 0}summary{cursor:pointer}footer{margin-top:45px;border-top:1px solid #cdd6c8;padding-top:18px;font-size:14px}
+@media(max-width:750px){.cards{grid-template-columns:repeat(2,1fr)}}@media print{nav{display:none}body{background:white}main{padding:0}tr,.card{break-inside:avoid}}
+</style></head><body><main>
+<nav><a href="index.html">Strategy catalog</a><a href="../boards/old-witch-rabble.html">Board details</a><a href="old-witch-rabble-best-found.html">Runnable strategy</a></nav>
+<header><p class="eyebrow">Three kingdoms from previously unused cards · September 17, 2026</p>
+<h1>Old Witch and Rabble</h1><p class="lead">Ten previously unused kingdom piles, a reproducible strategy search, and a practical plan for the strongest policy found.</p></header>
+<h2>The kingdom</h2><div class="cards"><div class="card"><strong>Old Witch</strong><small>$5</small></div><div class="card"><strong>Rabble</strong><small>$5</small></div><div class="card"><strong>Recruiter</strong><small>$5</small></div><div class="card"><strong>Silk Merchant</strong><small>$4</small></div><div class="card"><strong>Spices</strong><small>$5</small></div><div class="card"><strong>Squire</strong><small>$2</small></div><div class="card"><strong>Caravan</strong><small>$4</small></div><div class="card"><strong>Warehouse</strong><small>$3</small></div><div class="card"><strong>Haggler</strong><small>$5</small></div><div class="card"><strong>Soothsayer</strong><small>$5</small></div></div>
+<p>Two players. Standard supply and starting decks: seven Coppers and three Estates each. No landscapes, Shelters, Colony, Platinum or Potion. The three kingdoms share no kingdom cards.</p><p>Old Witch combines draw with Curses, while Rabble attacks the opponent's next draws. Recruiter can turn Estates or Silk Merchants into Villagers, and Spices provides money, a buy and Coffers on gain. Squire and Caravan offer a more conventional engine; Soothsayer offers an alternative curse-and-Gold plan.</p>
+<h2>The overall tournament winner</h2><div class="callout"><strong>1 Warehouse, 2 Soothsayer, 1 Caravan, 5 Spices.</strong> This policy scored 69.0% in the eight-policy finalist tournament and 94.9% against treasure-only money on 1,000 fresh validation games. Ties count as half a win.</div>
+<p><strong>Matchup caveat:</strong> its toughest tested finalist matchup was 1 Old Witch, 2 Haggler, 5 Spices, 1 Squire, against which it scored 46.2% (approximate 95% interval 43.2–49.2%). The recommendation optimizes the overall tournament result; opponent-specific counters and close alternatives matter.</p>
+<p><strong>Opening preference:</strong> Silver. During your first two turns, prefer that card when affordable and not already owned; otherwise follow the purchase priorities below. This specifies a preference, not a guaranteed opening split.</p>
+<ol><li>Buy Province from your turn 8, or whenever four or fewer Provinces remain.</li>
+<li>Buy Duchy at 2 or fewer Provinces remaining, and Estate at one or fewer. These scoring buys precede deck-building targets.</li>
+<li>Next take the first affordable card below whose ownership target has not been met, in the listed order. Cards lower on the list can be bought before a more expensive target when money is short.<ol><li>Warehouse: up to <strong>1</strong> owned at a time.</li><li>Soothsayer: up to <strong>2</strong> owned at a time.</li><li>Caravan: up to <strong>1</strong> owned at a time.</li><li>Spices: up to <strong>5</strong> owned at a time.</li></ol></li>
+<li>Then buy Gold up to 99 copies and Silver up to 99. A cap of 99 is effectively uncapped. Pass if nothing on the list is affordable; do not add early Estates or extra Copper.</li></ol>
+<p>Play Caravan before Warehouse, discard Victory cards, Curses and then Copper with Warehouse, and finish with Soothsayer. Soothsayer supplies Gold and curses the opponent; Spices supplies $2 and another buy, plus two Coffers when gained. Use the extra buying power for Provinces from turn eight, or earlier when four or fewer remain. The simulator automatically uses Coffers to cover a purchase when needed.</p><p>The recommendation skips Old Witch and Rabble. Soothsayer offers a different attack plan: accumulate Gold while distributing Curses, then use Warehouse to filter weak hands. These are plausible reasons for the complete policy's result, rather than measured single-card effects.</p>
+<details><summary>Exact recommended parameters</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Warehouse&quot;,
+      1
+    ],
+    [
+      &quot;Soothsayer&quot;,
+      2
+    ],
+    [
+      &quot;Caravan&quot;,
+      1
+    ],
+    [
+      &quot;Spices&quot;,
+      5
+    ]
+  ],
+  &quot;opening&quot;: &quot;Silver&quot;,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 99,
+  &quot;green&quot;: 8,
+  &quot;duchy&quot;: 2,
+  &quot;minion_redraw&quot;: 2,
+  &quot;attack_first&quot;: true
+}</pre></details>
+<h2>What the search establishes</h2><p>154 candidate policies were screened against four fixed opponents, with 40 games per pairing. Candidates included one-, two- and five-copy plans for every pile, money baselines, seeded engines and randomized mixtures. The top eight advanced to a complete round robin: 240 games per pairing, 1,680 per entrant. The tournament winner was frozen, then faced four finalists and two baselines for 1,000 games each on disjoint fresh seeds.</p>
+<p>Every random seed is played in both seats. Scores include the equal-score, fewer-turns tiebreaker. In total, this board contributed <strong>37,360 games</strong>: 24,640 screening, 6,720 tournament and 6,000 validation. <strong>0 games reached the safeguard without a normal ending.</strong> All displayed rates include ties as half a win.</p>
+
+<div class="scroll"><table><caption>Finalist tournament</caption><thead><tr><th>Place</th><th>Policy</th><th>Score rate</th></tr></thead><tbody><tr><td>1</td><td>1 Warehouse, 2 Soothsayer, 1 Caravan, 5 Spices<details><summary>Exact policy</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Warehouse&quot;,
+      1
+    ],
+    [
+      &quot;Soothsayer&quot;,
+      2
+    ],
+    [
+      &quot;Caravan&quot;,
+      1
+    ],
+    [
+      &quot;Spices&quot;,
+      5
+    ]
+  ],
+  &quot;opening&quot;: &quot;Silver&quot;,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 99,
+  &quot;green&quot;: 8,
+  &quot;duchy&quot;: 2,
+  &quot;minion_redraw&quot;: 2,
+  &quot;attack_first&quot;: true
+}</pre></details></td><td>69.0%</td></tr><tr><td>2</td><td>1 Old Witch, 2 Haggler, 5 Spices, 1 Squire<details><summary>Exact policy</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Old Witch&quot;,
+      1
+    ],
+    [
+      &quot;Haggler&quot;,
+      2
+    ],
+    [
+      &quot;Spices&quot;,
+      5
+    ],
+    [
+      &quot;Squire&quot;,
+      1
+    ]
+  ],
+  &quot;opening&quot;: &quot;Spices&quot;,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 0,
+  &quot;green&quot;: 0,
+  &quot;duchy&quot;: 3,
+  &quot;minion_redraw&quot;: 1,
+  &quot;attack_first&quot;: true
+}</pre></details></td><td>60.0%</td></tr><tr><td>3</td><td>2 Recruiter, 2 Old Witch, 5 Silk Merchant, 3 Rabble, 5 Squire<details><summary>Exact policy</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Recruiter&quot;,
+      2
+    ],
+    [
+      &quot;Old Witch&quot;,
+      2
+    ],
+    [
+      &quot;Silk Merchant&quot;,
+      5
+    ],
+    [
+      &quot;Rabble&quot;,
+      3
+    ],
+    [
+      &quot;Squire&quot;,
+      5
+    ]
+  ],
+  &quot;opening&quot;: &quot;Silver&quot;,
+  &quot;silver&quot;: 3,
+  &quot;gold&quot;: 0,
+  &quot;green&quot;: 12,
+  &quot;duchy&quot;: 3,
+  &quot;minion_redraw&quot;: 4,
+  &quot;attack_first&quot;: false
+}</pre></details></td><td>57.4%</td></tr><tr><td>4</td><td>2 Soothsayer, 3 Spices<details><summary>Exact policy</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Soothsayer&quot;,
+      2
+    ],
+    [
+      &quot;Spices&quot;,
+      3
+    ]
+  ],
+  &quot;opening&quot;: &quot;Silver&quot;,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 99,
+  &quot;green&quot;: 0,
+  &quot;duchy&quot;: 3,
+  &quot;minion_redraw&quot;: 3,
+  &quot;attack_first&quot;: true
+}</pre></details></td><td>52.9%</td></tr><tr><td>5</td><td>2 Old Witch<details><summary>Exact policy</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Old Witch&quot;,
+      2
+    ]
+  ],
+  &quot;opening&quot;: &quot;Old Witch&quot;,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 99,
+  &quot;green&quot;: 0,
+  &quot;duchy&quot;: 3,
+  &quot;minion_redraw&quot;: 3,
+  &quot;attack_first&quot;: true
+}</pre></details></td><td>45.6%</td></tr><tr><td>6</td><td>2 Old Witch<details><summary>Exact policy</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Old Witch&quot;,
+      2
+    ]
+  ],
+  &quot;opening&quot;: &quot;Silver&quot;,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 99,
+  &quot;green&quot;: 0,
+  &quot;duchy&quot;: 3,
+  &quot;minion_redraw&quot;: 3,
+  &quot;attack_first&quot;: true
+}</pre></details></td><td>42.5%</td></tr><tr><td>7</td><td>1 Old Witch<details><summary>Exact policy</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Old Witch&quot;,
+      1
+    ]
+  ],
+  &quot;opening&quot;: &quot;Old Witch&quot;,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 99,
+  &quot;green&quot;: 0,
+  &quot;duchy&quot;: 3,
+  &quot;minion_redraw&quot;: 3,
+  &quot;attack_first&quot;: true
+}</pre></details></td><td>40.4%</td></tr><tr><td>8</td><td>5 Soothsayer, 2 Spices<details><summary>Exact policy</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Soothsayer&quot;,
+      5
+    ],
+    [
+      &quot;Spices&quot;,
+      2
+    ]
+  ],
+  &quot;opening&quot;: &quot;Soothsayer&quot;,
+  &quot;silver&quot;: 5,
+  &quot;gold&quot;: 2,
+  &quot;green&quot;: 8,
+  &quot;duchy&quot;: 4,
+  &quot;minion_redraw&quot;: 2,
+  &quot;attack_first&quot;: true
+}</pre></details></td><td>32.1%</td></tr></tbody></table></div>
+<h3>Held-out validation</h3><div class="scroll"><table><caption>The frozen tournament winner versus each opponent; 1,000 games per row</caption><thead><tr><th>Opponent</th><th>Wins / ties / losses</th><th>Score rate</th><th>Approx. 95% interval</th><th>Mean points, winner–opponent</th></tr></thead><tbody><tr><td>1 Old Witch, 2 Haggler, 5 Spices, 1 Squire<br><small>Opening preference: Spices</small><details><summary>Exact policy</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Old Witch&quot;,
+      1
+    ],
+    [
+      &quot;Haggler&quot;,
+      2
+    ],
+    [
+      &quot;Spices&quot;,
+      5
+    ],
+    [
+      &quot;Squire&quot;,
+      1
+    ]
+  ],
+  &quot;opening&quot;: &quot;Spices&quot;,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 0,
+  &quot;green&quot;: 0,
+  &quot;duchy&quot;: 3,
+  &quot;minion_redraw&quot;: 1,
+  &quot;attack_first&quot;: true
+}</pre></details></td><td>462 / 0 / 538</td><td>46.2%</td><td>43.2–49.2%</td><td>29.4–32.0</td></tr><tr><td>2 Recruiter, 2 Old Witch, 5 Silk Merchant, 3 Rabble, 5 Squire<br><small>Opening preference: Silver</small><details><summary>Exact policy</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Recruiter&quot;,
+      2
+    ],
+    [
+      &quot;Old Witch&quot;,
+      2
+    ],
+    [
+      &quot;Silk Merchant&quot;,
+      5
+    ],
+    [
+      &quot;Rabble&quot;,
+      3
+    ],
+    [
+      &quot;Squire&quot;,
+      5
+    ]
+  ],
+  &quot;opening&quot;: &quot;Silver&quot;,
+  &quot;silver&quot;: 3,
+  &quot;gold&quot;: 0,
+  &quot;green&quot;: 12,
+  &quot;duchy&quot;: 3,
+  &quot;minion_redraw&quot;: 4,
+  &quot;attack_first&quot;: false
+}</pre></details></td><td>620 / 0 / 380</td><td>62.0%</td><td>59.0–65.0%</td><td>34.3–28.7</td></tr><tr><td>2 Soothsayer, 3 Spices<br><small>Opening preference: Silver</small><details><summary>Exact policy</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Soothsayer&quot;,
+      2
+    ],
+    [
+      &quot;Spices&quot;,
+      3
+    ]
+  ],
+  &quot;opening&quot;: &quot;Silver&quot;,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 99,
+  &quot;green&quot;: 0,
+  &quot;duchy&quot;: 3,
+  &quot;minion_redraw&quot;: 3,
+  &quot;attack_first&quot;: true
+}</pre></details></td><td>614 / 0 / 386</td><td>61.4%</td><td>58.8–64.0%</td><td>31.0–28.0</td></tr><tr><td>2 Old Witch<br><small>Opening preference: Old Witch</small><details><summary>Exact policy</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Old Witch&quot;,
+      2
+    ]
+  ],
+  &quot;opening&quot;: &quot;Old Witch&quot;,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 99,
+  &quot;green&quot;: 0,
+  &quot;duchy&quot;: 3,
+  &quot;minion_redraw&quot;: 3,
+  &quot;attack_first&quot;: true
+}</pre></details></td><td>671 / 0 / 329</td><td>67.1%</td><td>64.3–69.9%</td><td>32.9–28.4</td></tr><tr><td>Treasure-only money<br><small>Opening preference: Silver</small><details><summary>Exact policy</summary><pre>{
+  &quot;targets&quot;: [],
+  &quot;opening&quot;: &quot;Silver&quot;,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 99,
+  &quot;green&quot;: 0,
+  &quot;duchy&quot;: 3,
+  &quot;minion_redraw&quot;: 3,
+  &quot;attack_first&quot;: true
+}</pre></details></td><td>949 / 0 / 51</td><td>94.9%</td><td>93.6–96.2%</td><td>37.6–23.0</td></tr><tr><td>2 Old Witch<br><small>Opening preference: Silver</small><details><summary>Exact policy</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Old Witch&quot;,
+      2
+    ]
+  ],
+  &quot;opening&quot;: &quot;Silver&quot;,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 99,
+  &quot;green&quot;: 0,
+  &quot;duchy&quot;: 3,
+  &quot;minion_redraw&quot;: 3,
+  &quot;attack_first&quot;: true
+}</pre></details></td><td>727 / 0 / 273</td><td>72.7%</td><td>70.1–75.3%</td><td>34.0–27.6</td></tr></tbody></table></div>
+<p>Intervals use the standard error of the 500 two-seat pair scores, preserving dependence within each seeded pair. They describe simulation uncertainty for a fixed matchup and are not adjusted for multiple comparisons. Despite the highest overall tournament score, the recommendation scored only 46.2% against 1 Old Witch, 2 Haggler, 5 Spices, 1 Squire; its interval lies below 50%. That opponent is a demonstrated counter in this matchup. Consider its exact policy above when facing the recommended deck.</p>
+<p><strong>Scope:</strong> this is the best policy found within the tested purchase plans and decision rules, not a proof of optimal Dominion play. The search varies ownership caps, purchase order, opening preference, treasure density, greening, and two play settings. It does not exhaust tactical policies, tune every card-specific choice, or model human opponents. Results use this repository's simulator, including its fixed card heuristics; they are not an independent certification of all card rules. Finalists differ in multiple settings, so their ranking does not isolate the value of a single card.</p>
+<p><strong>Rules correction before the recorded search:</strong> Soothsayer previously put the opponent's Curse directly into their hand. It now gains to the discard pile and then draws a card, following the <a href="https://cs.uwaterloo.ca/~dtompkin/archive/dtlib/expansions/Dominion%20%28Second%20Edition%29%20~%20Guilds.pdf">official Guilds rulebook (archived copy)</a>. Regression tests cover the gain destination and the absence of a draw when Curses run out. All results shown here were regenerated after that correction; the earlier exploratory results were discarded.</p>
+<h2>Why these cards qualify</h2><p>Before writing these strategies, all 30 selected kingdom cards had zero references in the catalog of 135 registered strategies. An additional syntax-tree scan found no exact card-name string literals in the existing Python strategy modules, including unpublished variants. Basic supply and starting cards are exempt. This is a repository-specific definition: it does not claim these cards are unused in Dominion generally, and indirect or dynamically constructed references can escape a static audit.</p>
+<p>The baseline revision is <code>7d1b4b1b9aa0874e51362c4201cbebd83dfbd21d</code>. The <a href="../../scripts/data/three_unused_kingdoms_provenance.json">selection audit</a> preserves the original candidate pool and all three boards. Newly published strategies will now make their chosen cards appear as used.</p>
+<h2>Reproduce the results</h2><pre>PYTHONPATH=. python scripts/search_three_unused_kingdoms.py screen --board old_witch_rabble
+PYTHONPATH=. python scripts/search_three_unused_kingdoms.py tournament --board old_witch_rabble
+PYTHONPATH=. python scripts/search_three_unused_kingdoms.py validate --board old_witch_rabble
+PYTHONPATH=. python scripts/write_three_unused_kingdom_guides.py
+PYTHONPATH=. python scripts/render_catalog.py
+git restore -- reports/strategies/leaderboard.html</pre>
+<p><a href="../../scripts/data/three_unused_kingdoms/old_witch_rabble_screen.json">Screen data</a> · <a href="../../scripts/data/three_unused_kingdoms/old_witch_rabble_tournament.json">Tournament data</a> · <a href="../../scripts/data/three_unused_kingdoms/old_witch_rabble_validate.json">Validate data</a>. Parameters, seeds, wins, ties, game lengths, truncations and mean final decks are recorded. The search source is <a href="../../scripts/search_three_unused_kingdoms.py">available here</a>; runnable policies live in <a href="../../dominion/strategy/strategies/three_unused_kingdoms.py">the strategy module</a>.</p>
+<footer>Explore the other two kingdoms: <a href="sentry-hunting-party-strategy-guide.html">Sentry and Hunting Party</a> · <a href="minion-courtier-strategy-guide.html">Minion and Courtier</a>.</footer></main></body></html>

@@ -68,6 +68,30 @@ CURATED_STRATEGY_GUIDES = (
         source_label="Verified catalog coverage and qualitative strategy assessment",
     ),
     CuratedStrategyGuide(
+        filename="sentry-hunting-party-strategy-guide.html",
+        display_name="Sentry and Hunting Party: Board and Strategy Guide",
+        description="Ten previously unused piles, a reproducible search, and validated purchase and play priorities.",
+        kingdom_cards=("Bazaar", "Hunting Party", "Sentry", "Merchant", "Poacher",
+                       "Candlestick Maker", "Conspirator", "Bureaucrat", "Artisan", "Vassal"),
+        source_label="Recorded card-usage audit and seat-balanced repository simulations",
+    ),
+    CuratedStrategyGuide(
+        filename="minion-courtier-strategy-guide.html",
+        display_name="Minion and Courtier: Board and Strategy Guide",
+        description="Ten different previously unused piles, competing Minion and Courtier plans, and held-out validation.",
+        kingdom_cards=("Minion", "Courtier", "Diplomat", "Baron", "Shanty Town",
+                       "Secret Passage", "Replace", "Trading Post", "Conclave", "Native Village"),
+        source_label="Recorded card-usage audit and seat-balanced repository simulations",
+    ),
+    CuratedStrategyGuide(
+        filename="old-witch-rabble-strategy-guide.html",
+        display_name="Old Witch and Rabble: Board and Strategy Guide",
+        description="Ten more previously unused piles, curse and draw strategies, and independent validation games.",
+        kingdom_cards=("Old Witch", "Rabble", "Recruiter", "Silk Merchant", "Spices",
+                       "Squire", "Caravan", "Warehouse", "Haggler", "Soothsayer"),
+        source_label="Recorded card-usage audit and seat-balanced repository simulations",
+    ),
+    CuratedStrategyGuide(
         filename="groundskeeper-margrave-strategy-guide.html",
         display_name="Groundskeeper Margrave: Board and Strategy Guide",
         description=(

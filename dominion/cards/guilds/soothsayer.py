@@ -26,7 +26,7 @@ class Soothsayer(Card):
                 continue
 
             def attack(target):
-                gained = game_state.give_curse_to_player(target, to_hand=True)
+                gained = game_state.give_curse_to_player(target)
                 if gained:
                     game_state.draw_cards(target, 1)
 
