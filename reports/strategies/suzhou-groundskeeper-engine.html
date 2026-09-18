@@ -338,7 +338,7 @@
     names.append(&quot;Crossroads&quot;)
     return self.pick(choices, names)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose card modes</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_modes(self, state, player, card, options, minimum, maximum, defaults):
+<tr><td data-label="Hook"><span class="behavior-name">Choose card modes</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_modes(self, state, player, card, options, minimum, maximum, defaults):
     if card.name == &quot;Nobles&quot;:
         # ``True`` is +3 Cards, ``False`` is +2 Actions.
         stranded = player.actions == 0 and any(
@@ -347,10 +347,10 @@
         return [not stranded]
     return defaults
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose treasure</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_treasure(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose treasure</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_treasure(self, state, player, choices):
     return self.pick(choices, [&quot;Gold&quot;, &quot;Silver&quot;, &quot;Copper&quot;])
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices, *, mandatory=None):
+<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices, *, mandatory=None):
     p = self.params
     counts = Counter(card.name for card in player.all_cards())
     provinces = state.supply.get(&quot;Province&quot;, 8)

@@ -308,12 +308,12 @@
   <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
   <table class="priority-table">
     <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
-    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose anvil gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_gain(self, state, player, choices):
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose anvil gain</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_gain(self, state, player, choices):
     return _anvil_gain_guard(
         state, player, choices, super().choose_gain, _anvil_discard
     )
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose anvil treasure to discard</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_treasure_to_discard(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose anvil treasure to discard</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_treasure_to_discard(self, state, player, choices):
     return _anvil_discard(player, choices)
 </code></pre></details></td></tr></tbody>
   </table>

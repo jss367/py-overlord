@@ -65,6 +65,11 @@ conditions and decision hooks work unchanged.
 
 ## Board and strategy catalog
 
+For a single learned player trained across multiple kingdoms, see
+[Training a Dominion agent across kingdoms](docs/general-dominion-agent.md).
+It includes imitation and league training, versioned checkpoints, and evaluation
+on withheld kingdoms from a supported fifteen-card pool.
+
 Retired strategies are omitted from default tournaments, automatic strategy
 reuse, and active catalog listings. Their factories and aliases still work for
 explicit comparisons, and their historical HTML pages remain available in the
@@ -161,6 +166,24 @@ python scripts/check_catalog.py
 Continuous integration runs this same check against a clean regeneration seeded
 with the saved tournament results. It checks every generated page, including
 the leaderboard and card ranks, and fails if the committed catalog is stale.
+
+The check also warns about custom decision methods that have neither readable
+instructions nor a docstring. Use `python scripts/check_catalog.py --strict-descriptions`
+to fail on these gaps as well. Existing gaps remain warnings by default while
+the catalog's custom policies are documented.
+
+Custom policies can supply parameter-aware explanations through reporting
+providers in `dominion/reporting/strategy_instructions.py`. Each provider returns
+`DecisionInstructions` (an introduction and ordered steps) for the methods it
+describes, reading limits and thresholds from the strategy instance. Register
+the provider under the implementing class's full module and qualified name in
+`_PROVIDERS`; this describes existing strategies and does not register runnable
+strategies. Inherited methods reuse their explanations; overridden methods need
+their own provider or docstring. Keep descriptions consistent with the policy's
+control flow and test configured limits against actual choices. The renderer
+escapes this plain text, shows the instructions before technical details, and
+keeps source code available for inspection. Simple hooks can continue to use
+their first docstring paragraph as their explanation.
 
 ## Documentation formats and migration status
 

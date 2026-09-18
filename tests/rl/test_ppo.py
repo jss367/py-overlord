@@ -91,3 +91,65 @@ class TestPPOTrainer:
 
         env.close()
         env2.close()
+
+
+@pytest.mark.parametrize(
+    'terminated,truncated,reward,expected_return',
+    [(False, True, 0.0, 6.3), (True, False, 1.0, 1.0), (False, False, 0.0, 6.3)],
+)
+def test_rollout_bootstraps_final_observation_before_reset(terminated, truncated, reward, expected_return):
+    import numpy as np
+    from types import SimpleNamespace
+    from dominion.rl.networks import MLPPolicy
+
+    class BoundaryEnv:
+        observation_space = SimpleNamespace(shape=(1,))
+        action_space = SimpleNamespace(n=1)
+        resets = 0
+
+        def reset(self, **kwargs):
+            self.resets += 1
+            return np.array([2.0 if self.resets == 1 else 100.0], dtype=np.float32), {
+                'action_mask': np.array([True])}
+
+        def step(self, action):
+            return np.array([7.0], dtype=np.float32), reward, terminated, truncated, {
+                'action_mask': np.array([True])}
+
+    policy = MLPPolicy(1, 1, hidden_size=2)
+    policy.forward = lambda obs: (torch.zeros((len(obs), 1)), obs[:, :1])
+    env = BoundaryEnv()
+    trainer = PPOTrainer(env, policy=policy, rollout_steps=1, gamma=.9)
+    rollout = trainer.collect_rollout()
+    assert rollout['terminated'].tolist() == [terminated]
+    assert rollout['truncated'].tolist() == [truncated]
+    assert env.resets == (2 if terminated or truncated else 1)
+    if truncated:
+        assert rollout['truncated_values'].tolist() == [7.0]
+        assert trainer._obs[0] == 100.0
+    _, returns = trainer.compute_advantages(rollout)
+    np.testing.assert_allclose(returns, [expected_return])
+
+
+def test_advantages_stop_at_truncation_without_losing_bootstrap():
+    import numpy as np
+
+    # Values in the reset episode are deliberately very different: neither
+    # its initial observation nor its advantages may leak into the capped one.
+    trainer = object.__new__(PPOTrainer)
+    trainer.gamma = .9
+    trainer.gae_lambda = .8
+    trainer.device = torch.device('cpu')
+    trainer._obs = np.array([999.0], dtype=np.float32)
+    trainer.policy = lambda obs: (torch.zeros((len(obs), 1)), obs[:, :1])
+    rollout = {
+        'rewards': np.array([0.0, 0.0, 1.0]),
+        'values': np.array([2.0, 4.0, 10.0]),
+        'dones': np.array([False, True, True]),
+        'terminated': np.array([False, False, True]),
+        'truncated': np.array([False, True, False]),
+        'truncated_values': np.array([0.0, 7.0, 0.0]),
+    }
+    advantages, returns = trainer.compute_advantages(rollout)
+    np.testing.assert_allclose(advantages, [3.256, 2.3, -9.0])
+    np.testing.assert_allclose(returns, [5.256, 6.3, 1.0])

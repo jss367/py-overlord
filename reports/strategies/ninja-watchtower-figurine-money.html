@@ -308,7 +308,7 @@
   <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
   <table class="priority-table">
     <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
-    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does"><a href="#instructions-action">Read the action instructions below.</a><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
     p = self.params
     available = {c.name: c for c in choices if c is not None}
     conclave_ready = &quot;Conclave&quot; in available and any(
@@ -356,12 +356,12 @@
     names += [&quot;Ninja&quot;, &quot;Harbor Village&quot;, &quot;Innkeeper&quot;, &quot;Catapult&quot;, &quot;Watchtower&quot;]
     return self.pick(choices, names)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose treasure to discard for stables</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_treasure_to_discard_for_stables(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose treasure to discard for stables</span></td><td data-label="What it does"><p>Choose whether and what to discard for Stables.</p><ol class="decision-instructions"><li>Discard nothing if both your deck and discard pile are empty.</li><li>Otherwise discard the first available Treasure in this order: Copper, Rocks, Silver, Figurine, Pendant, Gold, Platinum.</li></ol><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_treasure_to_discard_for_stables(self, state, player, choices):
     if not player.deck and not player.discard:
         return None
     return self.pick(choices, [&quot;Copper&quot;, &quot;Rocks&quot;, &quot;Silver&quot;, &quot;Figurine&quot;, &quot;Pendant&quot;, &quot;Gold&quot;, &quot;Platinum&quot;])
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose trash</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_trash(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose trash</span></td><td data-label="What it does"><a href="#instructions-trash">Read the trash instructions below.</a><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_trash(self, state, player, choices):
     p = self.params
     names = [&quot;Curse&quot;, &quot;Estate&quot;]
     if p[&quot;curse_silver&quot;] and state.supply.get(&quot;Curse&quot;, 0):
@@ -372,7 +372,7 @@
         names.append(&quot;Silk Merchant&quot;)
     return self.pick(choices, names)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose cards to discard</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_cards_to_discard(self, state, player, choices, count, reason=&quot;&quot;):
+<tr><td data-label="Hook"><span class="behavior-name">Choose cards to discard</span></td><td data-label="What it does"><p>Discard the required number of cards, starting with the lowest-value group. Break ties by their order among the offered cards.</p><ol class="decision-instructions"><li>Curse first; then Estate, Duchy, Province and Colony.</li><li>Stables with no Treasure among the offered cards; then Copper; then cards not named in these instructions.</li><li>Silver and Ninja; then Pendant and Catapult; then Gold, Figurine and Innkeeper.</li><li>Silk Merchant; then Platinum and Conclave; then Harbor Village and Stables with a Treasure available; keep Watchtower longest.</li></ol><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_cards_to_discard(self, state, player, choices, count, reason=&quot;&quot;):
     # Preserve a village/draw starter when attacked; spare Copper feeds Stables.
     values = {&quot;Curse&quot;: -5, &quot;Estate&quot;: -4, &quot;Duchy&quot;: -4, &quot;Province&quot;: -4,
               &quot;Colony&quot;: -4, &quot;Copper&quot;: 1, &quot;Silver&quot;: 3, &quot;Gold&quot;: 5,
@@ -388,13 +388,13 @@
         return v
     return sorted(choices, key=value)[:count]
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose card modes</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_modes(self, state, player, card, options, minimum, maximum, defaults):
+<tr><td data-label="Hook"><span class="behavior-name">Choose card modes</span></td><td data-label="What it does"><p>Choose Innkeeper&#x27;s mode from your current hand.</p><ol class="decision-instructions"><li>Draw three and discard three if you have at least two Victory cards or Curses in total, or at most two cards in hand.</li><li>Otherwise choose its one-card mode. For other cards, use the supplied default modes.</li></ol><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_modes(self, state, player, card, options, minimum, maximum, defaults):
     if card.name == &quot;Innkeeper&quot;:
         junk = sum(c.is_victory or c.name == &quot;Curse&quot; for c in player.hand)
         return [&quot;sift3&quot; if junk &gt;= 2 or len(player.hand) &lt;= 2 else &quot;card&quot;]
     return defaults
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose watchtower reaction</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_watchtower_reaction(self, state, player, gained_card):
+<tr><td data-label="Hook"><span class="behavior-name">Choose watchtower reaction</span></td><td data-label="What it does"><p>When Watchtower can react to a gain, use these rules in order.</p><ol class="decision-instructions"><li>Trash a gained Curse, except keep your first Curse when at most one Colony remains.</li><li>Leave gained Victory cards and Copper where they were gained.</li><li>Put any other gained card on top of your deck.</li></ol><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_watchtower_reaction(self, state, player, gained_card):
     if gained_card.name == &quot;Curse&quot;:
         # A first Curse is +1 net Museum point only at the very end.
         if state.supply.get(&quot;Colony&quot;, 8) &lt;= 1 and not player.count(&quot;Curse&quot;):
@@ -404,7 +404,7 @@
         return None
     return &quot;topdeck&quot;
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does"><a href="#instructions-gain">Read the gain instructions below.</a><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
     p = self.params
     c = Counter(card.name for card in player.all_cards())
     available = {x.name: x for x in choices if x is not None}
@@ -467,7 +467,7 @@
 
 <section class="section section-gain">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Decisions</h2></div>
-  <p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
+  <div id="instructions-gain"><p>On your first two turns, try your first Ninja, then your first Watchtower. Do not buy Credit. Otherwise take Silver if available, or pass. After turn two, take the first available option below; purchases must also be affordable.</p><ol class="decision-instructions"><li>Colony whenever available.</li><li>Province when 4 or fewer Colonies remain, or from your turn 22.</li><li>Duchy when two or fewer Colonies or two or fewer Provinces remain.</li><li>Platinum while you own fewer than 3 copies.</li><li>Your first Ninja.</li><li>Gold while you own fewer than 2 copies.</li><li>Silk Merchant while you own fewer than 1 copy.</li><li>Figurine while you own fewer than 3 copies.</li><li>Gold while you own fewer than 2 copies.</li><li>Pendant while you own fewer than 5 copies.</li><li>Silver while you own fewer than 3 copies.</li><li>For Museum, when two or fewer Colonies or two or fewer Provinces remain, or from your turn 22, collect missing card names in this order: Catapult, Watchtower, Conclave, Harbor Village, Innkeeper, Ninja, Silk Merchant, Figurine, Pendant, Stables, Rocks, Gold, Silver, Estate, Copper, Curse. Include kingdom cards skipped during the earlier buying steps.</li><li>Estate when two or fewer Colonies or two or fewer Provinces remain. Otherwise pass.</li></ol></div><p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
     <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Catapult, Action, Attack card"><span>Catapult</span><span class="type-marker marker-attack" title="Attack" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
@@ -490,7 +490,7 @@
 </section>
 <section class="section section-action">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">A</span><h2>Action Decisions</h2></div>
-  <p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
+  <div id="instructions-action"><p>For each Action choice, use the first available option in this order.</p><ol class="decision-instructions"><li>Harbor Village.</li><li>Conclave if your hand has an Action other than Conclave whose name is not already in play.</li><li>Watchtower if your hand has five or fewer cards.</li><li>Stables if your hand contains a Treasure.</li><li>Innkeeper, then Silk Merchant, then Ninja.</li><li>Catapult if your hand contains a card selected by the trashing instructions below.</li><li>Conclave. Otherwise play no Action.</li></ol></div><p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
     <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Catapult, Action, Attack card"><span>Catapult</span><span class="type-marker marker-attack" title="Attack" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
@@ -507,7 +507,7 @@
 </section>
 <section class="section section-trash">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">×</span><h2>Trash Decisions</h2></div>
-  <p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
+  <div id="instructions-trash"><p>Trash the first eligible card in this order.</p><ol class="decision-instructions"><li>Curse, then Estate.</li><li>Copper while you own more than 3 copies.</li><li>Silk Merchant while you own more than one and Curses remain in the supply.</li><li>Otherwise trash nothing.</li></ol></div><p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
     <tbody><tr><td colspan="3" class="empty">None</td></tr></tbody>

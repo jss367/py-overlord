@@ -308,7 +308,7 @@
   <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
   <table class="priority-table">
     <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
-    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
     p = self.params
     counts = Counter(c.name for c in player.all_cards())
     provinces = state.supply.get(&quot;Province&quot;, 8)
@@ -331,7 +331,7 @@
     # A legal optional pass is preferable to buying Copper or early Estate.
     return self.pick(choices, names)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
     names = list(ACTION_ORDER[self.board])
     if self.board == &quot;minion_courtier&quot;:
         if len(player.hand) &lt;= 4:
@@ -358,13 +358,13 @@
         names = [n for n in names if n not in {&quot;Trading Post&quot;, &quot;Replace&quot;}]
     return self.pick(choices, names)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose trash</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_trash(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose trash</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_trash(self, state, player, choices):
     names = [&quot;Curse&quot;, &quot;Estate&quot;, &quot;Copper&quot;]
     if self.board == &quot;old_witch_rabble&quot;:
         names.append(&quot;Silk Merchant&quot;)
     return self.pick(choices, names)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose cards to discard</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_cards_to_discard(self, state, player, choices, count, reason=None):
+<tr><td data-label="Hook"><span class="behavior-name">Choose cards to discard</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_cards_to_discard(self, state, player, choices, count, reason=None):
     return sorted(
         choices,
         key=lambda c: (
@@ -378,7 +378,7 @@
         ),
     )[:count]
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose minion mode</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_minion_mode(self, state, player):
+<tr><td data-label="Hook"><span class="behavior-name">Choose minion mode</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_minion_mode(self, state, player):
     treasure = sum(c.stats.coins for c in player.hand if c.is_treasure)
     if any(c.name == &quot;Minion&quot; for c in player.hand):
         return &quot;coins&quot;
@@ -386,13 +386,13 @@
         return &quot;coins&quot;
     return &quot;discard&quot; if treasure &lt;= self.params[&quot;minion_redraw&quot;] else &quot;coins&quot;
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose courtier options</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_courtier_options(self, state, player, options, num_choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose courtier options</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_courtier_options(self, state, player, options, num_choices):
     priority = [&quot;coins&quot;, &quot;gold&quot;, &quot;buy&quot;, &quot;action&quot;]
     if player.actions == 0 and any(c.is_action for c in player.hand):
         priority = [&quot;action&quot;, &quot;coins&quot;, &quot;gold&quot;, &quot;buy&quot;]
     return [n for n in priority if n in options][:num_choices]
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose squire option</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_squire_option(self, state, player, options):
+<tr><td data-label="Hook"><span class="behavior-name">Choose squire option</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_squire_option(self, state, player, options):
     # The generic AI always gains Silver. An engine needs Squire&#x27;s
     # actions to play its draw terminals, so do not strand them.
     terminals = sum(c.is_action and c.stats.actions == 0 for c in player.hand)

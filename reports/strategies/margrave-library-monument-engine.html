@@ -308,7 +308,7 @@
   <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
   <table class="priority-table">
     <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
-    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
     available = {c.name for c in choices if c is not None}
     names = [&quot;Fishing Village&quot;, &quot;Border Village&quot;]
 
@@ -334,7 +334,7 @@
     names += [&quot;Junk Dealer&quot;, &quot;Cellar&quot;]
     return self.pick(choices, names)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose cards to discard</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_cards_to_discard(self, state, player, choices, count, *, reason=None):
+<tr><td data-label="Hook"><span class="behavior-name">Choose cards to discard</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_cards_to_discard(self, state, player, choices, count, *, reason=None):
     ranked = [
         (self._junk_rank(c), c) for c in choices if self._junk_rank(c) is not None
     ]
@@ -368,7 +368,7 @@
     )
     return picks + rest[: count - len(picks)]
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose card to trash with junk dealer</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_to_trash_with_junk_dealer(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose card to trash with junk dealer</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_to_trash_with_junk_dealer(self, state, player, choices):
     if not choices:
         return None
     counts = Counter(c.name for c in player.all_cards())
@@ -396,17 +396,17 @@
     pool = spare or list(choices)
     return min(pool, key=lambda c: (c.cost.coins, c.name))
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Should trash copper for moneylender</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def should_trash_copper_for_moneylender(self, state, player):
+<tr><td data-label="Hook"><span class="behavior-name">Should trash copper for moneylender</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def should_trash_copper_for_moneylender(self, state, player):
     counts = Counter(c.name for c in player.all_cards())
     return counts[&quot;Copper&quot;] &gt; 3
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Should keep library action</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def should_keep_library_action(self, state, player, card):
+<tr><td data-label="Hook"><span class="behavior-name">Should keep library action</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def should_keep_library_action(self, state, player, card):
     # Library puts a kept card in hand, it does not play it, and nothing on
     # this board grants Villagers. With no Actions left even a village is
     # dead weight that costs a replacement draw, so set every Action aside.
     return player.actions &gt; 0
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
     p = self.params
     available = {c.name: c for c in choices if c is not None}
     if not available:

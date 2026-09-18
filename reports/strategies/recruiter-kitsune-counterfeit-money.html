@@ -308,7 +308,7 @@
   <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
   <table class="priority-table">
     <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
-    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
     names = [&quot;Village&quot;, &quot;Villa&quot;]
     # The action has already been spent when card effects run, but here
     # it has not: preserve the last action with Kitsune before activation.
@@ -323,10 +323,10 @@
         names.append(&quot;Recruiter&quot;)
     return self.pick(choices, names)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose treasure</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_treasure(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose treasure</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_treasure(self, state, player, choices):
     return self.pick(choices, [&quot;Counterfeit&quot;, &quot;Anvil&quot;, &quot;Gold&quot;, &quot;Silver&quot;, &quot;Copper&quot;])
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose trash</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_trash(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose trash</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_trash(self, state, player, choices):
     pick = self.pick(choices, [&quot;Curse&quot;, &quot;Estate&quot;, &quot;Copper&quot;, &quot;Silver&quot;])
     if pick:
         return pick
@@ -336,7 +336,7 @@
     counts = Counter(c.name for c in player.all_cards())
     return min(choices, key=lambda c: (c.name in {&quot;Province&quot;, &quot;Duchy&quot;}, counts[c.name] &lt;= 1, c.cost.coins))
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose card modes</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_modes(self, state, player, card, options, minimum, maximum, defaults):
+<tr><td data-label="Hook"><span class="behavior-name">Choose card modes</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_modes(self, state, player, card, options, minimum, maximum, defaults):
     if card.name == &quot;Kitsune&quot;:
         modes = []
         if not self.leader(state) and player.actions == 0 and any(c.is_action for c in player.hand):
@@ -360,7 +360,7 @@
         return [&quot;key&quot;]
     return defaults
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose card to topdeck for courtyard</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_to_topdeck_for_courtyard(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose card to topdeck for courtyard</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_to_topdeck_for_courtyard(self, state, player, choices):
     can_continue = self.leader(state) or player.actions &gt; 0 or player.villagers &gt; 0
     if not can_continue:
         action = self.pick(choices, [&quot;Recruiter&quot;, &quot;Kitsune&quot;, &quot;Courtyard&quot;, &quot;Inventor&quot;, &quot;Treasurer&quot;, &quot;Engineer&quot;])
@@ -374,10 +374,10 @@
         c.cost.coins,
     )) if choices else None
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Should trash engineer for extra gains</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def should_trash_engineer_for_extra_gains(self, state, player, engineer):
+<tr><td data-label="Hook"><span class="behavior-name">Should trash engineer for extra gains</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def should_trash_engineer_for_extra_gains(self, state, player, engineer):
     return self.params[&quot;engineer_trash&quot;] or state.supply.get(&quot;Province&quot;, 8) &lt;= 3
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Should replay treasure with counterfeit</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def should_replay_treasure_with_counterfeit(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Should replay treasure with counterfeit</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def should_replay_treasure_with_counterfeit(self, state, player, choices):
     copper = self.pick(choices, [&quot;Copper&quot;])
     if copper:
         return copper
@@ -385,13 +385,13 @@
         return self.pick(choices, [&quot;Gold&quot;, &quot;Silver&quot;, &quot;Anvil&quot;])
     return None
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose anvil treasure to discard</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_treasure_to_discard(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose anvil treasure to discard</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_treasure_to_discard(self, state, player, choices):
     return self.pick(choices, [&quot;Copper&quot;, &quot;Silver&quot;])
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose anvil gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_gain(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose anvil gain</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_gain(self, state, player, choices):
     return self.choose_gain(state, player, choices)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
     p = self.params
     available = {c.name: c for c in choices if c is not None}
     if not available:

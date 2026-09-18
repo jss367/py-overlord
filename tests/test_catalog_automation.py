@@ -1,6 +1,7 @@
 """Regression coverage for preserving results and staged-only catalog updates."""
 
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -17,6 +18,21 @@ from scripts.catalog_pre_commit import refresh_staged_catalog
 
 
 REPO = Path(__file__).resolve().parents[1]
+
+
+@pytest.mark.parametrize("strict", [False, True])
+def test_catalog_check_flags_missing_instructions_without_pythonpath(strict):
+    command = [sys.executable, "scripts/check_catalog.py"]
+    if strict:
+        command.append("--strict-descriptions")
+    result = subprocess.run(
+        command, cwd=REPO, capture_output=True, text=True,
+        env={key: value for key, value in os.environ.items() if key != "PYTHONPATH"},
+    )
+    assert result.returncode == int(strict), result.stdout + result.stderr
+    assert "custom behaviors without readable instructions" in result.stdout
+    assert "Catalog is current" in result.stdout
+    assert "Ninja Watchtower Figurine Money:" not in result.stdout
 
 
 def test_fingerprint_tracks_simulation_inputs_but_not_presentation(tmp_path):
