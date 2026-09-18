@@ -6,7 +6,7 @@ class Watchtower(Card):
         super().__init__(
             name="Watchtower",
             cost=CardCost(coins=3),
-            stats=CardStats(cards=2),
+            stats=CardStats(),
             types=[CardType.ACTION, CardType.REACTION],
         )
 

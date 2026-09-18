@@ -1,0 +1,15 @@
+# Two players, standard Estate starts; Catapult is the Catapult/Rocks split pile.
+Catapult
+Watchtower
+Conclave
+Harbor Village
+Innkeeper
+Ninja
+Silk Merchant
+Figurine
+Pendant
+Stables
+Platinum
+Colony
+Event: Credit
+Landmark: Museum

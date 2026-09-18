@@ -1,0 +1,3941 @@
+{
+  "stage": "refine",
+  "results": [
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.5,
+      "paired_ci95": [
+        0.5,
+        0.5
+      ],
+      "totals": {
+        "wins": 50,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2244,
+        "score": 8102,
+        "opponent_score": 8102,
+        "museum_points": 2362
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.67,
+      "paired_ci95": [
+        0.578795614140547,
+        0.761204385859453
+      ],
+      "totals": {
+        "wins": 67,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2648,
+        "score": 8977,
+        "opponent_score": 8271,
+        "museum_points": 2522
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Silk Merchant",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.49,
+      "paired_ci95": [
+        0.4037436379158036,
+        0.5762563620841964
+      ],
+      "totals": {
+        "wins": 49,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2312,
+        "score": 8294,
+        "opponent_score": 8406,
+        "museum_points": 2720
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Silk Merchant",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.63,
+      "paired_ci95": [
+        0.5297850310582296,
+        0.7302149689417704
+      ],
+      "totals": {
+        "wins": 63,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2604,
+        "score": 9121,
+        "opponent_score": 8347,
+        "museum_points": 2762
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Conclave",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.42,
+      "paired_ci95": [
+        0.32562712254042475,
+        0.5143728774595752
+      ],
+      "totals": {
+        "wins": 42,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2404,
+        "score": 8332,
+        "opponent_score": 8627,
+        "museum_points": 2690
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Conclave",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.54,
+      "paired_ci95": [
+        0.4478123652543358,
+        0.6321876347456643
+      ],
+      "totals": {
+        "wins": 54,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2726,
+        "score": 8907,
+        "opponent_score": 8600,
+        "museum_points": 2752
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Figurine",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.52,
+      "paired_ci95": [
+        0.4273035059994177,
+        0.6126964940005823
+      ],
+      "totals": {
+        "wins": 52,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2290,
+        "score": 8277,
+        "opponent_score": 8291,
+        "museum_points": 2382
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Figurine",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.7,
+      "paired_ci95": [
+        0.6071345058700488,
+        0.7928654941299511
+      ],
+      "totals": {
+        "wins": 70,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2595,
+        "score": 9165,
+        "opponent_score": 8046,
+        "museum_points": 2506
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Catapult",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.43,
+      "paired_ci95": [
+        0.33296474867348463,
+        0.5270352513265153
+      ],
+      "totals": {
+        "wins": 43,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2414,
+        "score": 8291,
+        "opponent_score": 8686,
+        "museum_points": 2652
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Catapult",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.45,
+      "paired_ci95": [
+        0.33712839152382035,
+        0.5628716084761797
+      ],
+      "totals": {
+        "wins": 45,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2684,
+        "score": 8459,
+        "opponent_score": 8699,
+        "museum_points": 2664
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Silver",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.54,
+      "paired_ci95": [
+        0.44365395700912263,
+        0.6363460429908775
+      ],
+      "totals": {
+        "wins": 54,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2307,
+        "score": 8206,
+        "opponent_score": 8319,
+        "museum_points": 2406
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Silver",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.72,
+      "paired_ci95": [
+        0.64001600160032,
+        0.7999839983996799
+      ],
+      "totals": {
+        "wins": 72,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2537,
+        "score": 8871,
+        "opponent_score": 8034,
+        "museum_points": 2518
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 2,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.58,
+      "paired_ci95": [
+        0.4943364721716412,
+        0.6656635278283587
+      ],
+      "totals": {
+        "wins": 58,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2230,
+        "score": 8316,
+        "opponent_score": 7888,
+        "museum_points": 2408
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 2,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.75,
+      "paired_ci95": [
+        0.6695761229484676,
+        0.8304238770515324
+      ],
+      "totals": {
+        "wins": 75,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2537,
+        "score": 9352,
+        "opponent_score": 8085,
+        "museum_points": 2630
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 3,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.67,
+      "paired_ci95": [
+        0.5878401557937213,
+        0.7521598442062788
+      ],
+      "totals": {
+        "wins": 67,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2256,
+        "score": 8371,
+        "opponent_score": 7846,
+        "museum_points": 2396
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 3,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.72,
+      "paired_ci95": [
+        0.6352566226776393,
+        0.8047433773223607
+      ],
+      "totals": {
+        "wins": 72,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2518,
+        "score": 9013,
+        "opponent_score": 7828,
+        "museum_points": 2562
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 4,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.52,
+      "paired_ci95": [
+        0.43618687453626376,
+        0.6038131254637363
+      ],
+      "totals": {
+        "wins": 52,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2264,
+        "score": 8291,
+        "opponent_score": 8096,
+        "museum_points": 2400
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 4,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.71,
+      "paired_ci95": [
+        0.6303598091413638,
+        0.7896401908586361
+      ],
+      "totals": {
+        "wins": 71,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2559,
+        "score": 9038,
+        "opponent_score": 8016,
+        "museum_points": 2600
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 5,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.53,
+      "paired_ci95": [
+        0.4712,
+        0.5888
+      ],
+      "totals": {
+        "wins": 53,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2285,
+        "score": 8334,
+        "opponent_score": 8186,
+        "museum_points": 2416
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 5,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.67,
+      "paired_ci95": [
+        0.5705704269344377,
+        0.7694295730655624
+      ],
+      "totals": {
+        "wins": 67,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2532,
+        "score": 8897,
+        "opponent_score": 7954,
+        "museum_points": 2492
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 8,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.52,
+      "paired_ci95": [
+        0.49256571488082845,
+        0.5474342851191716
+      ],
+      "totals": {
+        "wins": 52,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2246,
+        "score": 8135,
+        "opponent_score": 8088,
+        "museum_points": 2364
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 8,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.63,
+      "paired_ci95": [
+        0.5379400195524678,
+        0.7220599804475322
+      ],
+      "totals": {
+        "wins": 63,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2732,
+        "score": 8963,
+        "opponent_score": 8324,
+        "museum_points": 2442
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 10,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.52,
+      "paired_ci95": [
+        0.49256571488082845,
+        0.5474342851191716
+      ],
+      "totals": {
+        "wins": 52,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2246,
+        "score": 8135,
+        "opponent_score": 8088,
+        "museum_points": 2364
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 10,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.62,
+      "paired_ci95": [
+        0.5248,
+        0.7152
+      ],
+      "totals": {
+        "wins": 62,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2680,
+        "score": 8786,
+        "opponent_score": 8273,
+        "museum_points": 2362
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.48,
+      "paired_ci95": [
+        0.41164328855189125,
+        0.5483567114481087
+      ],
+      "totals": {
+        "wins": 48,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2288,
+        "score": 8091,
+        "opponent_score": 8297,
+        "museum_points": 2404
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.62,
+      "paired_ci95": [
+        0.5248,
+        0.7152
+      ],
+      "totals": {
+        "wins": 62,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2718,
+        "score": 9057,
+        "opponent_score": 8538,
+        "museum_points": 2602
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 1,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.52,
+      "paired_ci95": [
+        0.49256571488082845,
+        0.5474342851191716
+      ],
+      "totals": {
+        "wins": 52,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2259,
+        "score": 8195,
+        "opponent_score": 8134,
+        "museum_points": 2452
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 1,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.67,
+      "paired_ci95": [
+        0.578795614140547,
+        0.761204385859453
+      ],
+      "totals": {
+        "wins": 67,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2657,
+        "score": 8995,
+        "opponent_score": 8269,
+        "museum_points": 2602
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 2,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.51,
+      "paired_ci95": [
+        0.4904,
+        0.5296
+      ],
+      "totals": {
+        "wins": 51,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2248,
+        "score": 8116,
+        "opponent_score": 8119,
+        "museum_points": 2384
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 2,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.69,
+      "paired_ci95": [
+        0.5975999999999999,
+        0.7824
+      ],
+      "totals": {
+        "wins": 69,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2661,
+        "score": 9009,
+        "opponent_score": 8276,
+        "museum_points": 2544
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 3,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.5,
+      "paired_ci95": [
+        0.5,
+        0.5
+      ],
+      "totals": {
+        "wins": 50,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2244,
+        "score": 8104,
+        "opponent_score": 8102,
+        "museum_points": 2364
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 3,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.67,
+      "paired_ci95": [
+        0.578795614140547,
+        0.761204385859453
+      ],
+      "totals": {
+        "wins": 67,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2664,
+        "score": 8980,
+        "opponent_score": 8277,
+        "museum_points": 2534
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 8,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.5,
+      "paired_ci95": [
+        0.5,
+        0.5
+      ],
+      "totals": {
+        "wins": 50,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2244,
+        "score": 8102,
+        "opponent_score": 8102,
+        "museum_points": 2362
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 8,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.68,
+      "paired_ci95": [
+        0.5881531709856024,
+        0.7718468290143977
+      ],
+      "totals": {
+        "wins": 68,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2653,
+        "score": 8984,
+        "opponent_score": 8269,
+        "museum_points": 2520
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 1,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.43,
+      "paired_ci95": [
+        0.33296474867348463,
+        0.5270352513265153
+      ],
+      "totals": {
+        "wins": 43,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2421,
+        "score": 8376,
+        "opponent_score": 8847,
+        "museum_points": 2708
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 1,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.47,
+      "paired_ci95": [
+        0.3713620762586722,
+        0.5686379237413277
+      ],
+      "totals": {
+        "wins": 47,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2733,
+        "score": 8799,
+        "opponent_score": 8867,
+        "museum_points": 2826
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 2,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.22,
+      "paired_ci95": [
+        0.1352566226776393,
+        0.3047433773223607
+      ],
+      "totals": {
+        "wins": 22,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2498,
+        "score": 8055,
+        "opponent_score": 9317,
+        "museum_points": 2736
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 2,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.45,
+      "paired_ci95": [
+        0.36484132457582497,
+        0.5351586754241751
+      ],
+      "totals": {
+        "wins": 45,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2991,
+        "score": 8961,
+        "opponent_score": 9378,
+        "museum_points": 2846
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 3,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.17,
+      "paired_ci95": [
+        0.09801222325977835,
+        0.24198777674022168
+      ],
+      "totals": {
+        "wins": 17,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2581,
+        "score": 7776,
+        "opponent_score": 9596,
+        "museum_points": 2750
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 3,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.21,
+      "paired_ci95": [
+        0.14090180899618282,
+        0.27909819100381716
+      ],
+      "totals": {
+        "wins": 21,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 3201,
+        "score": 8464,
+        "opponent_score": 10302,
+        "museum_points": 2920
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 1,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.6,
+      "paired_ci95": [
+        0.5030051547761428,
+        0.6969948452238571
+      ],
+      "totals": {
+        "wins": 60,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2265,
+        "score": 8397,
+        "opponent_score": 8172,
+        "museum_points": 2668
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 1,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.62,
+      "paired_ci95": [
+        0.5248,
+        0.7152
+      ],
+      "totals": {
+        "wins": 62,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2743,
+        "score": 9237,
+        "opponent_score": 8537,
+        "museum_points": 2826
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 2,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.29,
+      "paired_ci95": [
+        0.1926421035560032,
+        0.38735789644399676
+      ],
+      "totals": {
+        "wins": 29,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2395,
+        "score": 8013,
+        "opponent_score": 9155,
+        "museum_points": 2756
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 2,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.42,
+      "paired_ci95": [
+        0.3298765291391859,
+        0.510123470860814
+      ],
+      "totals": {
+        "wins": 42,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2670,
+        "score": 8412,
+        "opponent_score": 8991,
+        "museum_points": 2790
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 1,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.33,
+      "paired_ci95": [
+        0.25801222325977835,
+        0.4019877767402217
+      ],
+      "totals": {
+        "wins": 33,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2416,
+        "score": 8205,
+        "opponent_score": 8923,
+        "museum_points": 2708
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 1,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.46,
+      "paired_ci95": [
+        0.3636539570091226,
+        0.5563460429908774
+      ],
+      "totals": {
+        "wins": 46,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2736,
+        "score": 8993,
+        "opponent_score": 8921,
+        "museum_points": 2786
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 2,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.21,
+      "paired_ci95": [
+        0.13544424904811164,
+        0.28455575095188834
+      ],
+      "totals": {
+        "wins": 21,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2464,
+        "score": 7880,
+        "opponent_score": 9394,
+        "museum_points": 2732
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 2,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.4,
+      "paired_ci95": [
+        0.3114562255152854,
+        0.48854377448471464
+      ],
+      "totals": {
+        "wins": 40,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2929,
+        "score": 8751,
+        "opponent_score": 9378,
+        "museum_points": 2836
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 1
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.41,
+      "paired_ci95": [
+        0.31426620241523895,
+        0.505733797584761
+      ],
+      "totals": {
+        "wins": 41,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2372,
+        "score": 8344,
+        "opponent_score": 8675,
+        "museum_points": 2668
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 1
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.64,
+      "paired_ci95": [
+        0.5606062974789562,
+        0.7193937025210438
+      ],
+      "totals": {
+        "wins": 64,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2779,
+        "score": 9307,
+        "opponent_score": 8666,
+        "museum_points": 2794
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 2
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.4,
+      "paired_ci95": [
+        0.30300515477614287,
+        0.4969948452238572
+      ],
+      "totals": {
+        "wins": 40,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2382,
+        "score": 8342,
+        "opponent_score": 8723,
+        "museum_points": 2650
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 2
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.61,
+      "paired_ci95": [
+        0.5201815163788656,
+        0.6998184836211344
+      ],
+      "totals": {
+        "wins": 61,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2818,
+        "score": 9257,
+        "opponent_score": 8776,
+        "museum_points": 2764
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "ninjas": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.5,
+      "paired_ci95": [
+        0.5,
+        0.5
+      ],
+      "totals": {
+        "wins": 50,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2244,
+        "score": 8102,
+        "opponent_score": 8102,
+        "museum_points": 2362
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "ninjas": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.67,
+      "paired_ci95": [
+        0.578795614140547,
+        0.761204385859453
+      ],
+      "totals": {
+        "wins": 67,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2648,
+        "score": 8977,
+        "opponent_score": 8271,
+        "museum_points": 2522
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "ninjas": 1
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.5,
+      "paired_ci95": [
+        0.5,
+        0.5
+      ],
+      "totals": {
+        "wins": 50,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2244,
+        "score": 8102,
+        "opponent_score": 8102,
+        "museum_points": 2362
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "ninjas": 1
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.67,
+      "paired_ci95": [
+        0.578795614140547,
+        0.761204385859453
+      ],
+      "totals": {
+        "wins": 67,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2648,
+        "score": 8977,
+        "opponent_score": 8271,
+        "museum_points": 2522
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "ninjas": 2
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.33,
+      "paired_ci95": [
+        0.24320000000000003,
+        0.4168
+      ],
+      "totals": {
+        "wins": 33,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2343,
+        "score": 8058,
+        "opponent_score": 8431,
+        "museum_points": 2418
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "ninjas": 2
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.6,
+      "paired_ci95": [
+        0.5030051547761428,
+        0.6969948452238571
+      ],
+      "totals": {
+        "wins": 60,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2771,
+        "score": 8885,
+        "opponent_score": 8393,
+        "museum_points": 2560
+      }
+    },
+    {
+      "a": {
+        "catapults": 1,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.29,
+      "paired_ci95": [
+        0.2010586710240959,
+        0.37894132897590405
+      ],
+      "totals": {
+        "wins": 29,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2382,
+        "score": 7911,
+        "opponent_score": 8863,
+        "museum_points": 2636
+      }
+    },
+    {
+      "a": {
+        "catapults": 1,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.57,
+      "paired_ci95": [
+        0.4729647486734846,
+        0.6670352513265153
+      ],
+      "totals": {
+        "wins": 57,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2793,
+        "score": 8898,
+        "opponent_score": 8836,
+        "museum_points": 2728
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "watchtowers": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.46,
+      "paired_ci95": [
+        0.4220189520944985,
+        0.4979810479055015
+      ],
+      "totals": {
+        "wins": 46,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2241,
+        "score": 8034,
+        "opponent_score": 8117,
+        "museum_points": 2344
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "watchtowers": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.64,
+      "paired_ci95": [
+        0.5469658127353176,
+        0.7330341872646824
+      ],
+      "totals": {
+        "wins": 64,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2628,
+        "score": 8863,
+        "opponent_score": 8339,
+        "museum_points": 2472
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "watchtowers": 1
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.5,
+      "paired_ci95": [
+        0.5,
+        0.5
+      ],
+      "totals": {
+        "wins": 50,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2244,
+        "score": 8102,
+        "opponent_score": 8102,
+        "museum_points": 2362
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "watchtowers": 1
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.67,
+      "paired_ci95": [
+        0.578795614140547,
+        0.761204385859453
+      ],
+      "totals": {
+        "wins": 67,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2648,
+        "score": 8977,
+        "opponent_score": 8271,
+        "museum_points": 2522
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "credit": false
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.5,
+      "paired_ci95": [
+        0.5,
+        0.5
+      ],
+      "totals": {
+        "wins": 50,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2244,
+        "score": 8102,
+        "opponent_score": 8102,
+        "museum_points": 2362
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "credit": false
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.67,
+      "paired_ci95": [
+        0.578795614140547,
+        0.761204385859453
+      ],
+      "totals": {
+        "wins": 67,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2648,
+        "score": 8977,
+        "opponent_score": 8271,
+        "museum_points": 2522
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "credit": true
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.5,
+      "paired_ci95": [
+        0.4515025773880714,
+        0.5484974226119286
+      ],
+      "totals": {
+        "wins": 50,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2241,
+        "score": 8085,
+        "opponent_score": 8077,
+        "museum_points": 2386
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "credit": true
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.66,
+      "paired_ci95": [
+        0.5695292312401403,
+        0.7504707687598597
+      ],
+      "totals": {
+        "wins": 66,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2643,
+        "score": 8952,
+        "opponent_score": 8282,
+        "museum_points": 2532
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "ninja_first": false
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.5,
+      "paired_ci95": [
+        0.5,
+        0.5
+      ],
+      "totals": {
+        "wins": 50,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2244,
+        "score": 8102,
+        "opponent_score": 8102,
+        "museum_points": 2362
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "ninja_first": false
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.67,
+      "paired_ci95": [
+        0.578795614140547,
+        0.761204385859453
+      ],
+      "totals": {
+        "wins": 67,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2648,
+        "score": 8977,
+        "opponent_score": 8271,
+        "museum_points": 2522
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "ninja_first": true
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.44,
+      "paired_ci95": [
+        0.33658936224933145,
+        0.5434106377506686
+      ],
+      "totals": {
+        "wins": 44,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2316,
+        "score": 7958,
+        "opponent_score": 8291,
+        "museum_points": 2440
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "ninja_first": true
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.68,
+      "paired_ci95": [
+        0.5881531709856024,
+        0.7718468290143977
+      ],
+      "totals": {
+        "wins": 68,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2722,
+        "score": 9168,
+        "opponent_score": 8434,
+        "museum_points": 2598
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "green_turn": 12
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.3,
+      "paired_ci95": [
+        0.22591896329019145,
+        0.3740810367098085
+      ],
+      "totals": {
+        "wins": 30,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2412,
+        "score": 8261,
+        "opponent_score": 9096,
+        "museum_points": 2528
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "green_turn": 12
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.52,
+      "paired_ci95": [
+        0.44613092663367165,
+        0.5938690733663283
+      ],
+      "totals": {
+        "wins": 52,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2878,
+        "score": 9168,
+        "opponent_score": 9173,
+        "museum_points": 2734
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "green_turn": 17
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.5,
+      "paired_ci95": [
+        0.5,
+        0.5
+      ],
+      "totals": {
+        "wins": 50,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2244,
+        "score": 8102,
+        "opponent_score": 8102,
+        "museum_points": 2362
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "green_turn": 17
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.67,
+      "paired_ci95": [
+        0.578795614140547,
+        0.761204385859453
+      ],
+      "totals": {
+        "wins": 67,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2648,
+        "score": 8977,
+        "opponent_score": 8271,
+        "museum_points": 2522
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "green_turn": 22
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.47,
+      "paired_ci95": [
+        0.4182946811246657,
+        0.5217053188753342
+      ],
+      "totals": {
+        "wins": 47,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2232,
+        "score": 7979,
+        "opponent_score": 8074,
+        "museum_points": 2318
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "green_turn": 22
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.69,
+      "paired_ci95": [
+        0.5934507379624266,
+        0.7865492620375732
+      ],
+      "totals": {
+        "wins": 69,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2523,
+        "score": 8662,
+        "opponent_score": 7991,
+        "museum_points": 2398
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "green_turn": 27
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.47,
+      "paired_ci95": [
+        0.4182946811246657,
+        0.5217053188753342
+      ],
+      "totals": {
+        "wins": 47,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2232,
+        "score": 7979,
+        "opponent_score": 8074,
+        "museum_points": 2318
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "green_turn": 27
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.69,
+      "paired_ci95": [
+        0.5934507379624266,
+        0.7865492620375732
+      ],
+      "totals": {
+        "wins": 69,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2523,
+        "score": 8662,
+        "opponent_score": 7991,
+        "museum_points": 2398
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "museum": false
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.48,
+      "paired_ci95": [
+        0.4242807035220293,
+        0.5357192964779707
+      ],
+      "totals": {
+        "wins": 48,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2253,
+        "score": 7982,
+        "opponent_score": 8115,
+        "museum_points": 2132
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "museum": false
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.64,
+      "paired_ci95": [
+        0.5388893675225004,
+        0.7411106324774996
+      ],
+      "totals": {
+        "wins": 64,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2524,
+        "score": 8563,
+        "opponent_score": 8154,
+        "museum_points": 2144
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "museum": true
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0
+      },
+      "games": 100,
+      "seed": 370000,
+      "rate": 0.5,
+      "paired_ci95": [
+        0.5,
+        0.5
+      ],
+      "totals": {
+        "wins": 50,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2244,
+        "score": 8102,
+        "opponent_score": 8102,
+        "museum_points": 2362
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 6,
+        "golds": 2,
+        "opening": "Ninja",
+        "pendants": 5,
+        "second": "Watchtower",
+        "silks": 0,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "museum": true
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 100,
+      "seed": 380000,
+      "rate": 0.67,
+      "paired_ci95": [
+        0.578795614140547,
+        0.761204385859453
+      ],
+      "totals": {
+        "wins": 67,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 2648,
+        "score": 8977,
+        "opponent_score": 8271,
+        "museum_points": 2522
+      }
+    }
+  ]
+}

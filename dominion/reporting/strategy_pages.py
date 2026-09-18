@@ -42,6 +42,14 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="ninja-watchtower-figurine-strategy-guide.html",
+        display_name="Ninja, Watchtower and Figurine: Museum Colony Strategy Guide",
+        description="A reproducible search comparing Treasure draw, Stables engines, attacks and Museum scoring with Platinum and Colony.",
+        kingdom_cards=("Catapult", "Watchtower", "Conclave", "Harbor Village", "Innkeeper",
+                       "Ninja", "Silk Merchant", "Figurine", "Pendant", "Stables"),
+        source_label="Seat-balanced simulations, held-out validation and official card rules",
+    ),
+    CuratedStrategyGuide(
         filename="sentry-hunting-party-strategy-guide.html",
         display_name="Sentry and Hunting Party: Board and Strategy Guide",
         description="Ten previously unused piles, a reproducible search, and validated purchase and play priorities.",

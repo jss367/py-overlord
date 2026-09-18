@@ -111,7 +111,6 @@ MULTI_TYPE_TREASURES = {
     "Figurehead": {CardType.TREASURE, CardType.DURATION},
     "Fool's Gold": {CardType.TREASURE, CardType.REACTION},
     "Jewels": {CardType.TREASURE, CardType.DURATION},
-    "Rocks": {CardType.TREASURE, CardType.VICTORY},
     "Shield": {CardType.TREASURE, CardType.REACTION},
     "Spell Scroll": {CardType.TREASURE, CardType.ACTION},
     "Sword": {CardType.TREASURE, CardType.ATTACK},
