@@ -171,7 +171,15 @@ class Card:
         return self.stats.vp
 
     def starting_supply(self, game_state) -> int:
-        """Get number of copies of this card in the supply at game start."""
+        """Get number of copies of this card in the supply at game start.
+
+        Kingdom Victory piles are 8 in a two-player game and 12 otherwise;
+        every other Kingdom pile is 10. Piles with their own rule (Castles,
+        Ruins, Knights, Port, the Travellers, ...) override this.
+        """
+
+        if self.is_victory:
+            return 8 if len(getattr(game_state, "players", ())) <= 2 else 12
         return 10
 
     def may_be_bought(self, game_state) -> bool:
