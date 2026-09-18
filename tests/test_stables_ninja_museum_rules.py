@@ -232,15 +232,32 @@ def test_conclave_consults_the_strategy_hook():
     assert [c.name for c in p.hand] == ["Watchtower"]
 
 
-def test_published_policy_buys_nothing_that_refunds_an_action():
-    """Why the Action-ordering fix cannot cost the published money deck.
+def test_published_policy_buys_action_refunders_only_as_late_museum_pickups():
+    """Where the Action-ordering fix can and cannot reach this policy.
 
-    The fix only reorders cards that refund an Action. This policy buys none of
-    them, so its choices are the same before and after.
+    The caps say zero, but that is not the whole story: the Museum branch of
+    ``choose_gain`` appends every missing kingdom name once the game is late,
+    so the policy really can end up holding a Stables or an Innkeeper. What
+    bounds the fix is that it only moves those two ahead of Watchtower --
+    Harbor Village and Conclave already led -- and they arrive late or not at
+    all.
     """
-    params = create_ninja_watchtower_figurine_money().params
-    assert all(params[name] == 0 for name in
-               ("stables", "villages", "innkeepers", "conclaves"))
+    from dominion.game.player_state import PlayerState
+
+    strategy = create_ninja_watchtower_figurine_money()
+    player = PlayerState(ai=None, turns_taken=3)
+    state = GameState(players=[player], supply={"Colony": 8, "Province": 8})
+    refunders = ["Stables", "Innkeeper", "Conclave", "Harbor Village"]
+
+    # Mid-game none of them are on the buy list at all, so Silver wins.
+    choices = [get_card(n) for n in (*refunders, "Silver")]
+    assert strategy.choose_gain(state, player, choices).name == "Silver"
+
+    # Once Museum collection opens they become diversity pickups, in the
+    # kingdom's own order.
+    player.turns_taken = strategy.params["green_turn"]
+    assert strategy.choose_gain(
+        state, player, [get_card(n) for n in refunders]).name == "Conclave"
 
 
 def test_published_policy_action_choice_ignores_spare_actions():
