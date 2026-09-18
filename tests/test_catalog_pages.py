@@ -182,6 +182,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "strategies/big-money.html",
         "strategies/ninja-watchtower-figurine-strategy-guide.html",
         "strategies/ten-strongest-unused-cards.html",
+        "strategies/strategy-retirement-and-rebuild-comparison.html",
         "strategies/recruiter-kitsune-strategy-guide.html",
         "strategies/groundskeeper-margrave-strategy-guide.html",
         "strategies/sentry-hunting-party-strategy-guide.html",

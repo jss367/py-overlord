@@ -42,6 +42,16 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="strategy-retirement-and-rebuild-comparison.html",
+        display_name="When to Retire a Strategy: Rebuild Comparison",
+        description=(
+            "Seeded Rebuild Rush comparisons and a proposed policy for retaining "
+            "research strategies while curating recommendations."
+        ),
+        kingdom_cards=("Forager", "Rebuild", "Skulk"),
+        source_label="Seat-balanced repository simulations and catalog policy proposal",
+    ),
+    CuratedStrategyGuide(
         filename="ninja-watchtower-figurine-strategy-guide.html",
         display_name="Ninja, Watchtower and Figurine: Museum Colony Strategy Guide",
         description="A reproducible search comparing Treasure draw, Stables engines, attacks and Museum scoring with Platinum and Colony.",
@@ -2004,13 +2014,24 @@ def render_strategy_page(
         for guide in CURATED_STRATEGY_GUIDES
         if guide.filename == f"{item.slug}-strategy-guide.html"
     )
+    alternative_note = ""
+    if item.slug in {"skulk-rebuild", "skulk-rebuild-improved"}:
+        alternative_note = (
+            '<p class="section-note"><strong>Stronger tested alternative:</strong> '
+            '<a href="rebuild-rush.html">Rebuild Rush</a> uses fewer kingdom cards '
+            'and performed better head-to-head in 400 games against this strategy '
+            'on a Forager/Rebuild/Skulk supply with Estate starts. '
+            'This does not establish superiority against other opponents or on other boards. '
+            '<a href="strategy-retirement-and-rebuild-comparison.html">'
+            'Read the comparison and its limits</a>.</p>'
+        )
     body = f"""
 <nav><a href="{escape(index_href)}">Strategy index</a>{leaderboard_nav}{guide_nav}</nav>
 <header class="hero">
   <p class="eyebrow">Dominion strategy</p>
   <h1>{escape(item.display_name)}</h1>
   <p class="hero-description">{escape(_audience_description(strategy))}</p>
-{_tags_markup(_strategy_tags(item))}
+{_tags_markup(_strategy_tags(item))}{alternative_note}
   <div class="hero-links"><strong>Compatible boards</strong>{_page_link_list(item.compatible_boards)}</div>
   <details class="technical-details">
     <summary>Implementation details and referenced components</summary>
