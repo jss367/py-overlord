@@ -230,6 +230,9 @@ def render_catalog_pages(
 ) -> list[Path]:
     """Write reciprocal board and strategy pages and return created paths."""
 
+    from dominion.reporting.strategy_pages import write_archived_strategy_pages
+
+    loader = loader or StrategyLoader()
     snapshot = read_snapshot(output_dir / "strategies" / "leaderboard.html")
     results = snapshot["results"] if snapshot else {}
     context_label = snapshot["context_label"] if snapshot else "a cross-board round robin"
@@ -254,10 +257,13 @@ def render_catalog_pages(
             board_index_href="../boards/index.html",
             leaderboard_href="leaderboard.html",
             home_href="../index.html",
+            archive_href="archived-strategies.html" if strategy_names is None and loader.list_retired_strategies() else None,
         ),
         encoding="utf-8",
     )
     written.append(strategy_index)
+    if strategy_names is None:
+        written.extend(write_archived_strategy_pages(strategy_dir, loader))
     for strategy in strategies:
         path = strategy_dir / f"{strategy.slug}.html"
         path.write_text(

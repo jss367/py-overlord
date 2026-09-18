@@ -65,6 +65,21 @@ conditions and decision hooks work unchanged.
 
 ## Board and strategy catalog
 
+Retired strategies are omitted from default tournaments, automatic strategy
+reuse, and active catalog listings. Their factories and aliases still work for
+explicit comparisons, and their historical HTML pages remain available in the
+[strategy archive](reports/strategies/archived-strategies.html). See the
+[retirement review](reports/strategies/strategy-retirement-review.html) for the
+recorded comparisons and replacement choices.
+
+Retirement metadata lives on each factory as
+`@retired_strategy(replacement="Registered Name", reason="Evidence summary")`
+from `dominion.strategy.retirement`. Removing that decorator restores the
+strategy to default discovery. `StrategyLoader.list_strategies(include_retired=True)`
+lists every strategy; `list_retired_strategies()` lists only archived entries.
+Keep baseline opponents and distinct board specialists unless their own
+evaluation supports retirement.
+
 Generate linked HTML pages for every board and registered strategy:
 
 ```

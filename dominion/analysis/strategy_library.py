@@ -129,7 +129,7 @@ def _iter_strategy_factories(
                 logger.debug("Skipping strategy module %s: %s", module_name, exc)
                 continue
             for name, obj in inspect.getmembers(module, inspect.isfunction):
-                if not name.startswith("create_"):
+                if not name.startswith("create_") or getattr(obj, "retirement", None):
                     continue
                 spec = f"{module_name}:{name}"
                 yield spec, obj
