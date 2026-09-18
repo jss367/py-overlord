@@ -198,6 +198,45 @@ def test_governor_upgrade_with_an_empty_hand_does_not_become_the_draw_mode():
     assert state.trash == [], "nothing trashed"
 
 
+def test_governor_asks_each_player_about_their_own_deck():
+    """Trash and gain decisions must be posed to the responder, not the owner.
+
+    The AI hooks for both read ``state.current_player``, and Governor prompts
+    every player in turn, so without a swap an opponent answers using the
+    Governor owner's deck and priorities.
+    """
+
+    class _RecordingAI(_PickAI):
+        def __init__(self, wants):
+            super().__init__(wants=wants, governor="upgrade")
+            self.seen = []
+
+        def choose_card_to_trash(self, state, choices):
+            self.seen.append(("trash", state.current_player))
+            return self._pick(choices)
+
+        def choose_buy(self, state, choices):
+            self.seen.append(("buy", state.current_player))
+            return self._pick(choices)
+
+    owner = _RecordingAI(["Copper", "Estate"])
+    other = _RecordingAI(["Estate", "Ambassador"])
+    state = _setup([owner, other])
+    player, victim = state.players
+    player.hand = [get_card("Copper")]
+    victim.hand = [get_card("Estate")]
+
+    get_card("Governor").play_effect(state)
+
+    assert owner.seen, "the Governor owner was asked"
+    assert all(who is player for _, who in owner.seen), owner.seen
+    assert other.seen, "the opponent was asked"
+    assert all(who is victim for _, who in other.seen), other.seen
+    # And "on your turn" still reports the real turn holder throughout.
+    assert state.turn_player is player
+    assert state.current_player is player
+
+
 def test_governor_gold_option_gives_opponents_silver():
     state = _setup([_PickAI(governor="gold"), _PickAI()])
     player, victim = state.players
