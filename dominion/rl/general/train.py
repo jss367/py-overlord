@@ -59,7 +59,6 @@ class RecordingTeacher(GeneticAI):
         return self.record(state, choices, "buy", super().choose_buy(state, choices))
 
     def choose_card_to_trash(self, state, choices):
-        choices = list(choices) + ([None] if None not in choices else [])
         return self.record(state, choices, "trash", super().choose_card_to_trash(state, choices))
 
 

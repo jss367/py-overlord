@@ -56,7 +56,7 @@ class TestRandomAI:
         assert result in choices
 
     def test_choose_card_to_trash_returns_valid_choice(self):
-        """choose_card_to_trash should return one of the choices or None."""
+        """Mandatory trashing cannot invent a pass option."""
         random.seed(42)
         ai = RandomAI()
         copper = get_card("Copper")
@@ -64,5 +64,11 @@ class TestRandomAI:
         choices = [copper, estate]
 
         result = ai.choose_card_to_trash(None, choices)
-        # Can return a card from choices or None
-        assert result in choices or result is None
+        assert result in choices
+
+    def test_trash_only_passes_when_effect_offers_none(self, monkeypatch):
+        monkeypatch.setattr(random, "choice", lambda choices: choices[-1])
+        ai = RandomAI()
+        gold = get_card("Gold")
+        assert ai.choose_card_to_trash(None, [gold]) is gold
+        assert ai.choose_card_to_trash(None, [gold, None]) is None

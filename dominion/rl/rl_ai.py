@@ -68,5 +68,4 @@ class RLAI(AI):
         return self._request_decision("buy", state, choices)
 
     def choose_card_to_trash(self, state: GameState, choices: list[Card]) -> Optional[Card]:
-        # The engine's Chapel menu omits None, although stopping is legal.
-        return self._request_decision("trash", state, list(choices) + ([None] if None not in choices else []))
+        return self._request_decision("trash", state, choices)

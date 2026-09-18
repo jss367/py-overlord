@@ -23,7 +23,7 @@ class Chapel(Card):
                 break
 
             # Let AI choose a card to trash
-            card_to_trash = player.ai.choose_card_to_trash(game_state, player.hand)
+            card_to_trash = player.ai.choose_card_to_trash(game_state, player.hand + [None])
 
             if card_to_trash:
                 player.hand.remove(card_to_trash)

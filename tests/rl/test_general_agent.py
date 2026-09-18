@@ -122,13 +122,35 @@ def test_turn_cap_is_truncation_not_victory():
 
 
 def test_chapel_menu_allows_stopping_without_trashing():
+    state = setup_state()
     ai = RLAI()
     gold = get_card("Gold")
+    state.players[0].ai = ai
+    state.players[0].hand = [gold]
     ai.action_queue.put(None)
-    assert ai.choose_card_to_trash(None, [gold]) is None
+    get_card("Chapel").play_effect(state)
     decision, _, choices = ai.choice_queue.get_nowait()
     assert decision == "trash"
     assert choices == [gold, None]
+    assert state.players[0].hand == [gold]
+    assert not state.trash
+
+
+@pytest.mark.parametrize("card_name", ["Rats", "Temple"])
+def test_mandatory_trash_effects_do_not_offer_pass(card_name):
+    state = setup_state()
+    ai = RLAI()
+    estate = get_card("Estate")
+    state.players[0].ai = ai
+    state.players[0].hand = [estate]
+    ai.action_queue.put(estate)
+    get_card(card_name).play_effect(state)
+    decision, _, choices = ai.choice_queue.get_nowait()
+    assert decision == "trash" and choices == [estate]
+    assert estate in state.trash
+    from dominion.rl.action_encoder import ActionEncoder
+    encoder = ActionEncoder([card_name])
+    assert not encoder.get_action_mask(choices)[encoder.pass_action_index]
 
 
 def test_score_tiebreak_uses_turns_taken():
@@ -164,6 +186,7 @@ def test_policy_respects_legal_choices_and_actual_card_instances():
     assert not state._all_decision_hooks_pure()
     silver = get_card("Silver")
     assert ai.choose_buy(state, [silver]) is silver
+    assert ai.choose_card_to_trash(state, [silver]) is silver
     assert ai.choose_action(state, [None]) is None
     state.original_kingdom_pile_names.add("King's Court")
     with pytest.raises(ValueError, match="ten distinct"):

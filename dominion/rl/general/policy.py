@@ -97,7 +97,7 @@ class GeneralAI(AI):
         return self.decide(state, choices, "buy")
 
     def choose_card_to_trash(self, state, choices):
-        return self.decide(state, list(choices) + ([None] if None not in choices else []), "trash")
+        return self.decide(state, choices, "trash")
 
 
 def save_checkpoint(path, policy, metadata, optimizer=None):

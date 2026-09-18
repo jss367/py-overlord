@@ -39,6 +39,5 @@ class RandomAI(AI):
         return random.choice(choices)
 
     def choose_card_to_trash(self, state: GameState, choices: list[Card]) -> Optional[Card]:
-        """Randomly choose a card to trash, or None to skip."""
-        # Add None as option to allow skipping trash
-        return random.choice(choices + [None])
+        """Sample the effect's legal menu, including pass only when offered."""
+        return random.choice(choices)
