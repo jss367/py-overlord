@@ -8,20 +8,14 @@ class Inventor(Card):
         super().__init__(
             name="Inventor",
             cost=CardCost(coins=4),
-            stats=CardStats(actions=1),
+            stats=CardStats(),
             types=[CardType.ACTION],
         )
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        from ..registry import get_card
-
         choices = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-
-            card = get_card(name)
+        for _name, card, _count in game_state._iter_gainable_supply_cards():
 
             # Inventor should respect existing cost modifiers (including other
             # Inventors played earlier in the turn). ``get_card_cost`` applies the
@@ -32,15 +26,16 @@ class Inventor(Card):
 
             # Cards with potion costs cannot be gained by Inventor, matching the
             # official Workshop-style rules text.
-            if card.cost.potions > 0:
+            if card.cost.potions > 0 or card.cost.debt > 0:
                 continue
 
             choices.append(card)
 
         if choices:
             chosen = player.ai.choose_buy(game_state, choices)
-            gain = chosen if chosen else max(choices, key=lambda c: (c.cost.coins, c.name))
-            game_state.supply[gain.name] -= 1
-            game_state.gain_card(player, gain)
+            gain = chosen if chosen in choices else max(choices, key=lambda c: (c.cost.coins, c.name))
+            gained = game_state.take_top_supply_card(game_state.supply_pile_key(gain.name))
+            if gained is not None:
+                game_state.gain_card(player, gained)
 
         player.cost_reduction += 1

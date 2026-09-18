@@ -511,6 +511,9 @@ class GameState:
                 )
             )
             return False
+        harbor_pending = getattr(player, "harbor_village_pending", 0)
+        player.harbor_village_pending = 0
+        coins_before_action = player.coins
         player.actions_this_turn += 1
         player.actions_played += 1
         if shared_play_hooks:
@@ -552,6 +555,8 @@ class GameState:
                 # rulebook ("it stays set aside, even if it has instructions on
                 # it that would move it").
                 self._resolve_action_text(player, card)
+        if harbor_pending and player.coins > coins_before_action:
+            player.coins += harbor_pending
         training_pile = getattr(player, "training_pile", None)
         if training_pile and self.supply_pile_key(card.name) == self.supply_pile_key(training_pile):
             player.coins += 1
@@ -2229,6 +2234,7 @@ class GameState:
             # Track coins before play for Harbor Village bonus
             coins_before_action = player.coins
             harbor_pending = getattr(player, "harbor_village_pending", 0)
+            player.harbor_village_pending = 0
 
             # Training token: +$1 when playing a card from the trained pile
             training_pile = getattr(player, "training_pile", None)
@@ -2415,11 +2421,10 @@ class GameState:
                     )
 
             # Harbor Village bonus: +$1 if the action gave +$
-            if harbor_pending > 0 and choice.name != "Harbor Village":
+            if harbor_pending > 0:
                 coins_gained = player.coins - coins_before_action
                 if coins_gained > 0:
-                    player.coins += 1
-                player.harbor_village_pending = max(0, harbor_pending - 1)
+                    player.coins += harbor_pending
 
             # Plunder Inspiring trait: after playing, may play an Action you
             # don't already have a copy of in play.
@@ -2750,6 +2755,11 @@ class GameState:
             }
             self.log_callback(("action", player.ai.name, f"plays {choice}", context))
 
+            # Villa gained by Anvil (or another Treasure) returns to Actions
+            # after the current Treasure has finished resolving.
+            if self.phase == "action":
+                return
+
         self.phase = "buy"
 
     def handle_buy_phase(self):
@@ -2815,7 +2825,7 @@ class GameState:
             # Play the new Action phase (with whatever Actions remain), then a
             # fresh Treasure/Buy phase — start-of-Buy effects fire again —
             # and keep buying with the coins already accumulated.
-            if self.phase == "action":
+            while self.phase == "action":
                 self.handle_action_phase()
                 self.handle_treasure_phase()
 
@@ -3324,14 +3334,6 @@ class GameState:
                 if chosen in player.in_play:
                     player.in_play.remove(chosen)
                 player.deck.append(chosen)
-
-        # Plunder Pendant: +$1 per differently-named Treasure in play per Pendant.
-        # Calculated before any hand-mutating cleanup hooks fire.
-        pendants_in_play = [c for c in player.in_play if c.name == "Pendant"]
-        if pendants_in_play:
-            distinct_treasures = {c.name for c in player.in_play if c.is_treasure}
-            for _ in pendants_in_play:
-                player.coins += len(distinct_treasures)
 
         # Duration cards remain in play until their lingering effects finish.
         durations_to_keep = self._cards_retained_in_play(player)

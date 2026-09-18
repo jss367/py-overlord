@@ -672,7 +672,8 @@ def test_artificer_only_offers_the_exposed_card_of_a_split_pile():
 
     assert player.deck and player.deck[-1].name == "Rocks"
     assert state.supply["Rocks"] == 4
-    assert len(player.hand) == 0
+    # Rocks gained outside the Buy phase gains its Silver into hand.
+    assert [card.name for card in player.hand] == ["Silver"]
 
 
 def test_knight_attack_uses_the_attackers_cost_reduction():

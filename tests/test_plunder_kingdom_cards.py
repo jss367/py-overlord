@@ -319,12 +319,7 @@ def test_pendant_adds_one_per_distinct_treasure_in_play():
         get_card("Gold"),
     ]
     pre_coins = player.coins
-    # Trigger the pendant cleanup logic in handle_cleanup_phase manually.
-    pendants = [c for c in player.in_play if c.name == "Pendant"]
-    distinct = {c.name for c in player.in_play if c.is_treasure}
-    for _ in pendants:
-        player.coins += len(distinct)
-    # 4 distinct treasures (Pendant, Copper, Silver, Gold) * 1 Pendant = +4.
+    player.in_play[0].on_play(state)
     assert player.coins - pre_coins == 4
 
 

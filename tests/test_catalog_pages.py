@@ -180,6 +180,9 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "boards/nested/other-board.html",
         "boards/sample-board.html",
         "strategies/big-money.html",
+        "strategies/ninja-watchtower-figurine-strategy-guide.html",
+        "strategies/ten-strongest-unused-cards.html",
+        "strategies/recruiter-kitsune-strategy-guide.html",
         "strategies/groundskeeper-margrave-strategy-guide.html",
         "strategies/sentry-hunting-party-strategy-guide.html",
         "strategies/minion-courtier-strategy-guide.html",
@@ -303,6 +306,8 @@ def test_catalog_replaces_a_stale_leaderboard_placeholder(tmp_path):
         ("port-moresby-strategy-guide.html", "Port Moresby Strategy Search Guide"),
         ("kolkata-strategy-guide.html", "Kolkata Strategy Search Guide"),
         ("first-game-strategy-guide.html", "First Game Strategy Search Guide"),
+        ("ninja-watchtower-figurine-strategy-guide.html",
+         "Ninja, Watchtower and Figurine: Museum Colony Strategy Guide"),
     ],
 )
 def test_catalog_writes_curated_strategy_guide_to_clean_output(tmp_path, filename, title):

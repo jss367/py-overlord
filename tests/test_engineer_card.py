@@ -57,7 +57,7 @@ def test_engineer_gains_selected_card_without_trashing():
     assert engineer not in state.trash
 
 
-def test_engineer_can_trash_for_two_additional_gains():
+def test_engineer_can_trash_for_one_additional_gain():
     ai = EngineerTestAI(["Silver", "Village", "Workshop"], trash_engineer=True)
     state, player = _make_state(ai)
 
@@ -68,10 +68,10 @@ def test_engineer_can_trash_for_two_additional_gains():
 
     engineer.play_effect(state)
 
-    assert [card.name for card in player.discard] == ["Silver", "Village", "Workshop"]
+    assert [card.name for card in player.discard] == ["Silver", "Village"]
     assert state.supply["Silver"] == 4
     assert state.supply["Village"] == 4
-    assert state.supply["Workshop"] == 4
+    assert state.supply["Workshop"] == 5
     assert engineer not in player.in_play
     assert state.trash and state.trash[-1] is engineer
 
