@@ -84,15 +84,67 @@ BASELINES = [
 ]
 
 
+def rank_policies(results, *, both_sides=False):
+    """Rank by mean score, retaining encounter order for equal scores."""
+    grouped = {}
+    for result in results:
+        sides = [(result["a"], result["rate"])]
+        if both_sides:
+            sides.append((result["b"], 1 - result["rate"]))
+        for spec, rate in sides:
+            key = json.dumps(spec, sort_keys=True)
+            grouped.setdefault(key, []).append(rate)
+    return [json.loads(key) for key in sorted(
+        grouped, key=lambda key: statistics.mean(grouped[key]), reverse=True
+    )]
+
+
+def validation_policies(refined, finalists):
+    """Freeze the winner, close challengers, original finalists and baselines."""
+    best = refined[0]
+    return [best, refined[1], finalists[0], finalists[1],
+            BASELINES[0], BASELINES[1], BASELINES[2],
+            dict(best, silks=1), dict(best, second="Silver")]
+
+
+def write_json(path, data):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + "\n")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--stage", choices=["screen", "final", "refine", "validate"], default="screen")
+    parser.add_argument("--stage", choices=["screen", "final", "refine", "validate", "rank-final", "rank-refine"], default="screen")
     parser.add_argument("--games", type=int, default=80)
     parser.add_argument("--seed", type=int, default=170000)
     parser.add_argument("--workers", type=int, default=6)
-    parser.add_argument("--output", type=Path, default=Path("scripts/data/stables_ninja_museum_screen.json"))
+    parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--input", type=Path)
+    parser.add_argument("--final-ranked", type=Path,
+                        help="Finalist ranking to use when selecting validation opponents")
+    parser.add_argument("--policies-output", type=Path,
+                        help="Write validation policies during rank-refine")
     args = parser.parse_args()
+    if args.stage != "screen" and args.input is None:
+        parser.error("--input is required outside the screen stage")
+    if args.output is None:
+        suffix = {"rank-final": "final_ranked", "rank-refine": "refine_ranked",
+                  "validate": "validation"}.get(args.stage, args.stage)
+        args.output = Path(f"scripts/data/stables_ninja_museum_{suffix}.json")
+    if args.stage.startswith("rank-"):
+        if args.stage == "rank-refine" and (args.final_ranked is None or args.policies_output is None):
+            parser.error("rank-refine requires --final-ranked and --policies-output")
+        data = json.loads(args.input.read_text())
+        expected_stage = "final" if args.stage == "rank-final" else "refine"
+        if data["stage"] != expected_stage:
+            parser.error(f"{args.stage} requires results from {expected_stage}")
+        ranked = rank_policies(data["results"], both_sides=args.stage == "rank-final")
+        write_json(args.output, ranked)
+        if args.stage == "rank-refine":
+            finalists = json.loads(args.final_ranked.read_text())
+            write_json(args.policies_output, validation_policies(ranked, finalists))
+        print(f"Ranked {len(ranked)} policies into {args.output}")
+        return
     if args.games < 4 or args.games % 2:
         parser.error("--games must be an even number >= 4")
     if args.stage == "screen":
@@ -119,11 +171,7 @@ def main():
                  for s in unique.values() for j,b in enumerate(ranked[:2])]
     elif args.stage == "final":
         data = json.loads(args.input.read_text())["results"]
-        grouped = {}
-        for r in data:
-            key = json.dumps(r["a"], sort_keys=True)
-            grouped.setdefault(key, []).append(r["rate"])
-        specs = [json.loads(k) for k in sorted(grouped, key=lambda k: statistics.mean(grouped[k]), reverse=True)[:8]] + BASELINES
+        specs = rank_policies(data)[:8] + BASELINES
         tasks = [(a,b,args.games,args.seed) for a,b in itertools.combinations(specs,2)]
     else:
         specs = json.loads(args.input.read_text())
