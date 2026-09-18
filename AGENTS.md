@@ -18,7 +18,8 @@ For a hand-authored guide:
    runnable strategies are discovered separately by `StrategyLoader`.
 3. Run `PYTHONPATH=. python scripts/render_catalog.py` to publish the guide
    under `reports/strategies/` and link it from the strategy index. Follow
-   the leaderboard preservation instructions in `CLAUDE.md`.
+   the catalog maintenance instructions in `CLAUDE.md`; saved standings and
+   card ranks are preserved automatically.
 4. Verify the source and published guide match and the index links to it.
    Link the published HTML in the final response.
 

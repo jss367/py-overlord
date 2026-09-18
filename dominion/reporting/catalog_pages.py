@@ -33,6 +33,7 @@ from dominion.reporting.strategy_pages import (
 )
 from dominion.simulation.strategy_battle import canonical_landmark_name, canonical_way_name
 from dominion.strategy.strategy_loader import StrategyLoader
+from dominion.reporting.tournament_state import read_snapshot, tournament_fingerprint, tournament_notice
 
 
 def _relative_href(target: Path, source: Path) -> str:
@@ -229,6 +230,10 @@ def render_catalog_pages(
 ) -> list[Path]:
     """Write reciprocal board and strategy pages and return created paths."""
 
+    snapshot = read_snapshot(output_dir / "strategies" / "leaderboard.html")
+    results = snapshot["results"] if snapshot else {}
+    context_label = snapshot["context_label"] if snapshot else "a cross-board round robin"
+    notice = tournament_notice(snapshot, tournament_fingerprint())
     strategies = collect_rendered_strategies(loader, names=strategy_names)
     boards = collect_rendered_boards(boards_root, paths=board_paths)
     strategies, boards = _link_catalog(strategies, boards)
@@ -265,16 +270,22 @@ def render_catalog_pages(
         written.append(path)
 
     usage = strategy_dir / "card-strategy-usage.html"
-    usage.write_text(render_card_usage(strategies), encoding="utf-8")
+    usage.write_text(render_card_usage(
+        strategies, results, context_label=context_label, results_notice=notice, loader=loader,
+    ), encoding="utf-8")
     written.append(usage)
 
     leaderboard = strategy_dir / "leaderboard.html"
     leaderboard.write_text(
         render_strategy_leaderboard(
-            {},
+            results,
             card_usage_href="card-strategy-usage.html",
             index_href="index.html",
             board_index_href="../boards/index.html",
+            context_label=context_label,
+            saved_tournament=snapshot,
+            results_notice=notice,
+            loader=loader,
         ),
         encoding="utf-8",
     )
@@ -307,5 +318,13 @@ def render_catalog_pages(
         encoding="utf-8",
     )
     written.append(home)
+
+    # These directories are the published catalog. Remove pages for deleted or
+    # renamed strategies, boards, and guides so clean and in-place builds agree.
+    expected = set(written)
+    for directory in (strategy_dir, board_dir):
+        for path in directory.rglob("*.html"):
+            if path not in expected:
+                path.unlink()
 
     return written

@@ -274,7 +274,7 @@ def test_catalog_home_page_links_every_section(tmp_path):
     assert "1 board<" in html
 
 
-def test_catalog_replaces_a_stale_leaderboard_placeholder(tmp_path):
+def test_catalog_refuses_to_overwrite_unrecognized_tournament_results(tmp_path):
     boards_root = tmp_path / "boards"
     board = _write_board(boards_root / "simple.txt", "Village\n")
     output = tmp_path / "site"
@@ -283,17 +283,14 @@ def test_catalog_replaces_a_stale_leaderboard_placeholder(tmp_path):
     leaderboard.parent.mkdir()
     leaderboard.write_text("completed tournament", encoding="utf-8")
 
-    written = render_catalog_pages(
-        output,
-        boards_root=boards_root,
-        board_paths=[board],
-        strategy_names=["Big Money"],
-    )
-
-    html = leaderboard.read_text(encoding="utf-8")
-    assert "completed tournament" not in html
-    assert "No tournament results yet" in html
-    assert leaderboard in written
+    with pytest.raises(ValueError, match="refusing to overwrite"):
+        render_catalog_pages(
+            output,
+            boards_root=boards_root,
+            board_paths=[board],
+            strategy_names=["Big Money"],
+        )
+    assert leaderboard.read_text(encoding="utf-8") == "completed tournament"
 
 
 @pytest.mark.parametrize(
