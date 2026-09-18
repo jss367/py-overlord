@@ -139,6 +139,7 @@ def render_card_usage(
     strategy_link_prefix: str = "",
     context_label: str = "a cross-board round robin",
     loader: StrategyLoader | None = None,
+    results_notice: str = "",
 ) -> str:
     rows = collect_card_usage(strategies, results, loader=loader)
     total = len({item.display_name for item in strategies})
@@ -203,7 +204,7 @@ def render_card_usage(
   <p>Each card counts once per strategy that explicitly names it in a gain, action, trash, exile,
   treasure priority, or Way rule. References in conditions and custom decision code, automatic gains,
   and curated guides are excluded. A reference does not mean the card was bought or helped win.</p>
-  <p id="card-rank-note">{rank_note} The ranked-strategy count shows the sample behind each median.</p>
+  <p id="card-rank-note">{rank_note} The ranked-strategy count shows the sample behind each median.{' ' + escape(results_notice) if results_notice else ''}</p>
   <div class="usage-controls">
     <div><label for="card-search">Find a card or strategy</label><br>
     <input class="search" id="card-search" type="search" placeholder="Search cards or strategies"></div>

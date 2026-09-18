@@ -1108,8 +1108,12 @@ def render_strategy_leaderboard(
     context_label: str = "a cross-board round robin",
     card_usage_href: str | None = None,
     loader: StrategyLoader | None = None,
+    saved_tournament: dict | None = None,
+    results_notice: str = "",
 ) -> str:
     """Render tournament results as part of the strategy catalog experience."""
+
+    from dominion.reporting.tournament_state import snapshot_markup
 
     loader = loader or StrategyLoader()
     ranked = sorted(results.items(), key=_leaderboard_sort_key)
@@ -1196,10 +1200,12 @@ def render_strategy_leaderboard(
   <p class="hero-description">Ranked by simulated win rate. Results reflect <strong>{escape(context_label)}</strong>; compare strategies on the same board before drawing broad conclusions.</p>
 </header>
 {podium}
+{f'<p class="empty-state" role="status">{escape(results_notice)}</p>' if results_notice else ''}
 <section class="section">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">#</span><h2>Full standings</h2></div>
   {standings}
 </section>
+{snapshot_markup(saved_tournament)}
 """
     return _page_shell(
         "Strategy Leaderboard",
