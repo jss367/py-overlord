@@ -187,14 +187,13 @@ python -m dominion.rl.general.evaluate \
   --output .context/general-dominion-evaluation.json
 ```
 
-The reinforcement learning test suite passes all 64 tests. The full repository
-run passed 3,045 tests and failed
+The reinforcement learning test suite passes all 78 tests. The full repository
+run passed 3,061 tests and failed
 `TestCustomConditionSignatures::test_copy_and_worker_roundtrip_preserve_signature`.
 The same failure reproduced in an unchanged checkout (3,033 tests passed), while
 all 31 tests in that file pass independently. This existing serialization/test-order
-issue was left outside the general-agent change. The targeted suite also covers
-the final adapter fixes and the additional regression tests added after the full
-run. Ruff's required checks and catalog validation pass.
+issue was left outside the general-agent change. The suite covers the review fixes for mandatory trash menus, the engine turn
+cap, and value bootstrapping without leakage between episodes. Ruff's required checks and catalog validation pass.
 
 The final [held-out benchmark](../scripts/data/general_dominion_evaluation.json)
 contains 1,440 games: twelve unseen kingdoms, twenty seed pairs per kingdom,
@@ -213,3 +212,7 @@ does not establish superiority to that teacher, hand-tuned specialists, or
 strong human players. This is one training seed; variation between independent
 training runs has not been measured. The test kingdoms have now been evaluated
 and should not guide further model tuning.
+
+After the review fixes, replaying the same checkpoint reproduced every one of
+the 1,440 game outcomes and all aggregate scores exactly; the checked-in report
+records the updated evaluation-source fingerprint.
