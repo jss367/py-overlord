@@ -56,20 +56,32 @@ def match(task):
 
 
 def candidates():
+    """Sample the policy space, including the deck's own economy.
+
+    The first pass of this search pinned ``silvers``/``golds``/``platinums``/
+    ``province_at``/``money`` at their defaults, so every policy it scored was
+    locked to two Platinums, one Gold and two Silvers and greened on the first
+    affordable Colony. That capped what any draw engine could ever pay for,
+    and it hid a better money buy order. They are sampled here.
+    """
     specs = [{}]
     for opening, second in itertools.product(("Ninja", "Silk Merchant", "Conclave"), ("Catapult", "Watchtower", "Silver")):
         specs.append(dict(opening=opening, second=second))
     rng = random.Random(17092026)
-    for _ in range(62):
-        specs.append(dict(opening=rng.choice(["Ninja", "Silk Merchant", "Conclave"]),
-                          second=rng.choice(["Catapult", "Watchtower", "Silver"]),
-                          stables=rng.choice([0, 2, 3, 4, 5, 6]), silks=rng.choice([0, 1, 2, 4, 6]),
-                          villages=rng.choice([1, 2, 3]), ninjas=rng.choice([0, 1, 1, 2]),
-                          catapults=rng.choice([0, 1, 1, 2]), watchtowers=rng.choice([0, 1, 2]),
-                          conclaves=rng.choice([0, 1, 2, 4]), innkeepers=rng.choice([0, 0, 1]),
-                          figurines=rng.choice([0, 1, 3]), pendants=rng.choice([0, 1, 3, 5]),
-                          green_turn=rng.choice([14, 17, 20, 25]), credit=rng.choice([True, False]),
-                          curse_silver=rng.choice([True, False]), keep_copper=rng.choice([1, 3, 5])))
+    for _ in range(230):
+        specs.append(dict(opening=rng.choice(["Ninja", "Silk Merchant", "Conclave", "Watchtower", "Silver"]),
+                          second=rng.choice(["Catapult", "Watchtower", "Silver", "Harbor Village"]),
+                          stables=rng.choice([0, 1, 2, 3, 4, 5, 6]), silks=rng.choice([0, 1, 2, 3, 4, 6]),
+                          villages=rng.choice([0, 1, 2, 3, 4]), ninjas=rng.choice([0, 1, 1, 2]),
+                          catapults=rng.choice([0, 0, 1, 2]), watchtowers=rng.choice([0, 1, 1, 2]),
+                          conclaves=rng.choice([0, 1, 2, 3, 4]), innkeepers=rng.choice([0, 0, 1, 2]),
+                          figurines=rng.choice([0, 1, 2, 3, 4, 6]), pendants=rng.choice([0, 1, 2, 3, 5]),
+                          silvers=rng.choice([0, 2, 3, 4, 6, 8]), golds=rng.choice([0, 1, 2, 3, 4, 6]),
+                          platinums=rng.choice([0, 1, 2, 3, 4]), province_at=rng.choice([0, 2, 4, 6]),
+                          money=rng.choice([True, False]),
+                          green_turn=rng.choice([12, 14, 17, 20, 25]), credit=rng.choice([True, False]),
+                          curse_silver=rng.choice([True, False]), keep_copper=rng.choice([1, 3, 5, 7]),
+                          ninja_first=rng.choice([True, False])))
     return specs
 
 
@@ -81,7 +93,58 @@ BASELINES = [
     dict(opening="Silk Merchant", second="Catapult", stables=0, silks=6, villages=4),
     dict(opening="Ninja", second="Watchtower", stables=0, silks=0, villages=0,
          catapults=0, conclaves=0, figurines=6, pendants=5, silvers=3, golds=2),
+    # Hand-proposed seed, like the six-Figurine baseline above it. Buying Gold
+    # ahead of the last Figurine was found by hand before the sweep could reach
+    # it, because it needs two fields to move at once.
+    dict(opening="Ninja", second="Watchtower", stables=0, silks=1, villages=0,
+         catapults=0, conclaves=0, figurines=3, pendants=5, silvers=3, golds=2,
+         money=True),
 ]
+
+# The policy this search published on 2026-09-17, kept as a fixed yardstick so
+# every later run reports how much it moved.
+SUPERSEDED = dict(opening="Ninja", second="Watchtower", stables=0, silks=0, villages=0,
+                  catapults=0, conclaves=0, figurines=3, pendants=5, silvers=3, golds=2)
+
+# The Stables engine that the 2026-09-17 search called its strongest. That run
+# reported SUPERSEDED beating it 72.3%, measured while the Action ordering
+# played Watchtower ahead of Stables. The ``regression`` stage replays the same
+# pairing so the corrected number stays checkable.
+PREVIOUS_ENGINE = dict(catapults=1, conclaves=1, credit=False, curse_silver=False,
+                       figurines=1, green_turn=25, innkeepers=0, keep_copper=1,
+                       ninjas=1, opening="Conclave", pendants=0, second="Watchtower",
+                       silks=2, stables=3, villages=3, watchtowers=2)
+
+
+# Every field the policy class exposes, so nothing stays pinned by omission.
+REFINE_SWEEP = {
+    "opening": ["Ninja", "Silk Merchant", "Conclave", "Watchtower", "Silver"],
+    "second": ["Watchtower", "Catapult", "Silver", "Harbor Village"],
+    "figurines": [0, 1, 2, 3, 4, 5, 6, 8],
+    "pendants": [0, 1, 2, 3, 5, 8],
+    "stables": [0, 1, 2, 3, 4], "silks": [0, 1, 2, 3],
+    "conclaves": [0, 1, 2], "villages": [0, 1, 2, 3],
+    "ninjas": [0, 1, 2], "catapults": [0, 1], "watchtowers": [0, 1, 2],
+    "innkeepers": [0, 1],
+    "silvers": [0, 2, 3, 4, 6, 8], "golds": [0, 1, 2, 3, 4, 6],
+    "platinums": [0, 1, 2, 3, 4], "province_at": [0, 2, 4, 6],
+    "money": [False, True], "keep_copper": [1, 3, 5, 7],
+    "curse_silver": [False, True],
+    "credit": [False, True], "ninja_first": [False, True],
+    "green_turn": [12, 17, 22, 27], "museum": [False, True],
+}
+
+
+def stalled_specs(results):
+    """Specs that hit the turn cap in any game.
+
+    Mutual Catapult trashing can leave both decks unable to buy anything, so a
+    wide screen samples a few policies that never reach a normal ending. They
+    are disqualified rather than tolerated: no truncated game may influence a
+    published number, and a policy that can stall is not one to recommend.
+    """
+    return {json.dumps(r["a"], sort_keys=True) for r in results
+            if r["totals"]["truncated"]}
 
 
 def rank_policies(results, *, both_sides=False):
@@ -100,11 +163,63 @@ def rank_policies(results, *, both_sides=False):
 
 
 def validation_policies(refined, finalists):
-    """Freeze the winner, close challengers, original finalists and baselines."""
-    best = refined[0]
-    return [best, refined[1], finalists[0], finalists[1],
-            BASELINES[0], BASELINES[1], BASELINES[2],
-            dict(best, silks=1), dict(best, second="Silver")]
+    """The field that decides the published policy.
+
+    An earlier version of this search froze ``refined[0]`` and only then
+    measured it. A coordinate sweep at a few hundred games per variant ranks
+    partly on noise, so the frozen policy was not reliably the best one in its
+    own shortlist. The winner is now decided by the ``validate`` round robin
+    over this field, and re-measured on fresh seeds by ``confirm``.
+    """
+    field = [*refined[:5], finalists[0], SUPERSEDED,
+             BASELINES[0], BASELINES[1], BASELINES[2]]
+    unique = {json.dumps(spec, sort_keys=True): spec for spec in field}
+    return list(unique.values())
+
+
+def class_defaults():
+    """The policy class's own defaults, so an ablation reverts to real values."""
+    import inspect
+    return {name: param.default
+            for name, param in inspect.signature(StablesNinjaMuseum).parameters.items()
+            if param.default is not inspect.Parameter.empty}
+
+
+def is_engine(spec):
+    """A policy that buys Stables or Harbor Village, using the class defaults."""
+    return spec.get("stables", 4) > 0 or spec.get("villages", 2) > 0
+
+
+def round_robin_ranking(results):
+    """Average score rate per policy across every pairing it appeared in."""
+    rates = {}
+    for result in results:
+        for spec, rate in ((result["a"], result["rate"]),
+                           (result["b"], 1 - result["rate"])):
+            rates.setdefault(json.dumps(spec, sort_keys=True), []).append(rate)
+    return sorted(((statistics.mean(v), json.loads(k)) for k, v in rates.items()),
+                  key=lambda pair: -pair[0])
+
+
+def run_matches(tasks, workers):
+    results = []
+    with ProcessPoolExecutor(max_workers=workers) as pool:
+        for r in pool.map(match, tasks):
+            results.append(r)
+            if len(results) % 10 == 0:
+                print(f"{len(results)}/{len(tasks)} matchups", flush=True)
+    return results
+
+
+def report_truncation(results, stage):
+    truncated = sum(r["totals"]["truncated"] for r in results)
+    if truncated and stage != "screen":
+        # Only the screen tolerates stalls, and its stalled specs are then
+        # disqualified, so no published comparison contains a truncated game.
+        raise RuntimeError(f"{truncated} truncated games require inspection")
+    if truncated:
+        print(f"{truncated} screened games hit the turn cap; those policies are "
+              f"disqualified at the next stage")
 
 
 def write_json(path, data):
@@ -114,10 +229,15 @@ def write_json(path, data):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--stage", choices=["screen", "final", "refine", "validate", "rank-final", "rank-refine"], default="screen")
+    parser.add_argument("--stage", choices=["screen", "final", "refine", "validate",
+                                            "confirm", "engines", "ablate", "regression",
+                                            "rank-final", "rank-refine"],
+                        default="screen")
     parser.add_argument("--games", type=int, default=80)
     parser.add_argument("--seed", type=int, default=170000)
     parser.add_argument("--workers", type=int, default=6)
+    parser.add_argument("--rounds", type=int, default=3,
+                        help="Coordinate-ascent rounds for the refine stage.")
     parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--input", type=Path)
     parser.add_argument("--final-ranked", type=Path,
@@ -125,11 +245,17 @@ def main():
     parser.add_argument("--policies-output", type=Path,
                         help="Write validation policies during rank-refine")
     args = parser.parse_args()
-    if args.stage != "screen" and args.input is None:
+    if args.stage == "engines" and args.final_ranked is None:
+        parser.error("engines requires --final-ranked")
+    if args.stage != "screen" and args.stage != "regression" and args.input is None:
         parser.error("--input is required outside the screen stage")
     if args.output is None:
         suffix = {"rank-final": "final_ranked", "rank-refine": "refine_ranked",
-                  "validate": "validation"}.get(args.stage, args.stage)
+                  "validate": "validation",
+                  "confirm": "confirmation",
+                  "engines": "engines",
+                  "ablate": "ablation",
+                  "regression": "regression"}.get(args.stage, args.stage)
         args.output = Path(f"scripts/data/stables_ninja_museum_{suffix}.json")
     if args.stage.startswith("rank-"):
         if args.stage == "rank-refine" and (args.final_ranked is None or args.policies_output is None):
@@ -150,42 +276,87 @@ def main():
     if args.stage == "screen":
         tasks = [(s, b, args.games, args.seed + j*10000) for s in candidates() for j,b in enumerate([{}, BASELINES[1]])]
     elif args.stage == "refine":
+        # Iterated coordinate ascent. One sweep from a single base can only
+        # reach policies that differ from it in one field, so the previous
+        # version of this search could never combine two separate improvements.
+        # Every round scores against the same two opponents, which keeps rates
+        # comparable across rounds for the ranking stage.
         ranked = json.loads(args.input.read_text())
-        best = ranked[0]
-        variants = [best]
-        for key, values in {
-            "opening": ["Ninja", "Silk Merchant", "Conclave", "Figurine"],
-            "second": ["Watchtower", "Catapult", "Silver"],
-            "figurines": [2, 3, 4, 5, 6, 8, 10],
-            "pendants": [0, 1, 2, 3, 5, 8],
-            "stables": [0, 1, 2, 3],
-            "silks": [0, 1, 2], "conclaves": [0, 1, 2],
-            "villages": [0, 1, 2], "ninjas": [0, 1, 2],
-            "catapults": [0, 1], "watchtowers": [0, 1],
-            "credit": [False, True], "ninja_first": [False, True],
-            "green_turn": [12, 17, 22, 27], "museum": [False, True],
-        }.items():
-            variants += [dict(best, **{key: v}) for v in values]
-        unique = {json.dumps(v, sort_keys=True): v for v in variants}
-        tasks = [(s, b, args.games, args.seed + j*10000)
-                 for s in unique.values() for j,b in enumerate(ranked[:2])]
+        opponents = ranked[:2]
+        base, seen, results = ranked[0], set(), []
+        for rnd in range(args.rounds):
+            variants = {json.dumps(base, sort_keys=True): base}
+            for key, values in REFINE_SWEEP.items():
+                for value in values:
+                    cand = dict(base, **{key: value})
+                    variants.setdefault(json.dumps(cand, sort_keys=True), cand)
+            fresh = [v for k, v in variants.items() if k not in seen]
+            seen.update(variants)
+            tasks = [(spec, opponent, args.games, args.seed + j*10000)
+                     for spec in fresh for j, opponent in enumerate(opponents)]
+            print(f"refine round {rnd}: {len(fresh)} new variants, "
+                  f"{len(tasks)} matchups", flush=True)
+            if not tasks:
+                break
+            results += run_matches(tasks, args.workers)
+            ranking = rank_policies(results)
+            if ranking[0] == base:
+                print(f"refine converged after round {rnd}", flush=True)
+                break
+            base = ranking[0]
+        write_json(args.output, dict(stage="refine", results=results))
+        report_truncation(results, args.stage)
+        print(f"Saved {len(results)} matchups / {sum(r['games'] for r in results)} "
+              f"games to {args.output}")
+        return
     elif args.stage == "final":
         data = json.loads(args.input.read_text())["results"]
-        specs = rank_policies(data)[:8] + BASELINES
+        stalled = stalled_specs(data)
+        ranked = [s for s in rank_policies(data)
+                  if json.dumps(s, sort_keys=True) not in stalled]
+        if stalled:
+            print(f"Disqualified {len(stalled)} screened policies that hit the turn cap")
+        specs = ranked[:8] + BASELINES
         tasks = [(a,b,args.games,args.seed) for a,b in itertools.combinations(specs,2)]
-    else:
+    elif args.stage == "validate":
         specs = json.loads(args.input.read_text())
-        tasks = [(specs[0], b, args.games, args.seed) for b in specs[1:]]
-    results = []
-    with ProcessPoolExecutor(max_workers=args.workers) as pool:
-        for r in pool.map(match, tasks):
-            results.append(r)
-            if len(results) % 10 == 0:
-                print(f"{len(results)}/{len(tasks)} matchups", flush=True)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(dict(stage=args.stage, results=results), indent=2)+"\n")
-    if any(r["totals"]["truncated"] for r in results):
-        raise RuntimeError("Truncated games require inspection")
+        tasks = [(a, b, args.games, args.seed)
+                 for a, b in itertools.combinations(specs, 2)]
+    elif args.stage == "regression":
+        tasks = [(SUPERSEDED, PREVIOUS_ENGINE, args.games, args.seed)]
+    elif args.stage == "ablate":
+        # One field at a time: a multi-field "variant" cannot attribute its
+        # result to any single setting.
+        data = json.loads(args.input.read_text())
+        if data["stage"] != "validate":
+            parser.error("ablate requires results from validate")
+        winner = round_robin_ranking(data["results"])[0][1]
+        defaults = class_defaults()
+        tasks = [(winner, dict(winner, **{key: defaults[key]}), args.games, args.seed)
+                 for key in sorted(winner) if winner[key] != defaults.get(key)]
+        print(f"Reverting {len(tasks)} fields of the winner one at a time")
+    elif args.stage == "engines":
+        data = json.loads(args.input.read_text())
+        if data["stage"] != "validate":
+            parser.error("engines requires results from validate")
+        winner = round_robin_ranking(data["results"])[0][1]
+        finalists = json.loads(args.final_ranked.read_text())
+        engines = [spec for spec in finalists if is_engine(spec)][:3]
+        print(f"Winner vs the {len(engines)} strongest engine finalists")
+        tasks = [(winner, spec, args.games, args.seed) for spec in engines]
+    else:
+        data = json.loads(args.input.read_text())
+        if data["stage"] != "validate":
+            parser.error("confirm requires results from validate")
+        ranking = round_robin_ranking(data["results"])
+        winner = ranking[0][1]
+        print(f"Round-robin winner {ranking[0][0]*100:.1f}%: "
+              f"{json.dumps(winner, sort_keys=True)}")
+        tasks = [(winner, spec, args.games, args.seed)
+                 for _, spec in ranking[1:]]
+    results = run_matches(tasks, args.workers)
+    write_json(args.output, dict(stage=args.stage, results=results))
+    report_truncation(results, args.stage)
     print(f"Saved {len(results)} matchups / {sum(r['games'] for r in results)} games to {args.output}")
 
 

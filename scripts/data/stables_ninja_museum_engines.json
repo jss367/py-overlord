@@ -1,0 +1,182 @@
+{
+  "stage": "engines",
+  "results": [
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 3,
+        "golds": 2,
+        "green_turn": 22,
+        "money": true,
+        "opening": "Ninja",
+        "pendants": 5,
+        "platinums": 3,
+        "second": "Watchtower",
+        "silks": 1,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "watchtowers": 0
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 4,
+        "credit": true,
+        "curse_silver": true,
+        "figurines": 1,
+        "golds": 2,
+        "green_turn": 20,
+        "innkeepers": 1,
+        "keep_copper": 7,
+        "money": false,
+        "ninja_first": false,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 3,
+        "platinums": 2,
+        "province_at": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "silvers": 3,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 1
+      },
+      "games": 4000,
+      "seed": 990000,
+      "rate": 0.67325,
+      "paired_ci95": [
+        0.6589196724847843,
+        0.6875803275152157
+      ],
+      "totals": {
+        "wins": 2693,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 96859,
+        "score": 346422,
+        "opponent_score": 313838,
+        "museum_points": 109526
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 3,
+        "golds": 2,
+        "green_turn": 22,
+        "money": true,
+        "opening": "Ninja",
+        "pendants": 5,
+        "platinums": 3,
+        "second": "Watchtower",
+        "silks": 1,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "watchtowers": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 2,
+        "credit": false,
+        "curse_silver": true,
+        "figurines": 0,
+        "golds": 4,
+        "green_turn": 25,
+        "innkeepers": 1,
+        "keep_copper": 1,
+        "money": true,
+        "ninja_first": false,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 5,
+        "platinums": 4,
+        "province_at": 2,
+        "second": "Watchtower",
+        "silks": 1,
+        "silvers": 0,
+        "stables": 1,
+        "villages": 1,
+        "watchtowers": 2
+      },
+      "games": 4000,
+      "seed": 990000,
+      "rate": 0.751,
+      "paired_ci95": [
+        0.7376672973602558,
+        0.7643327026397442
+      ],
+      "totals": {
+        "wins": 3004,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 94547,
+        "score": 363791,
+        "opponent_score": 307898,
+        "museum_points": 105548
+      }
+    },
+    {
+      "a": {
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 3,
+        "golds": 2,
+        "green_turn": 22,
+        "money": true,
+        "opening": "Ninja",
+        "pendants": 5,
+        "platinums": 3,
+        "second": "Watchtower",
+        "silks": 1,
+        "silvers": 3,
+        "stables": 0,
+        "villages": 0,
+        "watchtowers": 0
+      },
+      "b": {
+        "catapults": 0,
+        "conclaves": 2,
+        "credit": true,
+        "curse_silver": false,
+        "figurines": 3,
+        "golds": 6,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 3,
+        "money": false,
+        "ninja_first": true,
+        "ninjas": 1,
+        "opening": "Ninja",
+        "pendants": 3,
+        "platinums": 2,
+        "province_at": 0,
+        "second": "Catapult",
+        "silks": 1,
+        "silvers": 2,
+        "stables": 2,
+        "villages": 3,
+        "watchtowers": 1
+      },
+      "games": 4000,
+      "seed": 990000,
+      "rate": 0.77775,
+      "paired_ci95": [
+        0.7651600549124051,
+        0.790339945087595
+      ],
+      "totals": {
+        "wins": 3111,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 97690,
+        "score": 365284,
+        "opponent_score": 298387,
+        "museum_points": 107244
+      }
+    }
+  ]
+}

@@ -288,7 +288,7 @@
 <header class="hero">
   <p class="eyebrow">Dominion strategy</p>
   <h1>Ninja Watchtower Figurine Money</h1>
-  <p class="hero-description">Open Ninja and Watchtower, build three Figurines, then diverse Treasures and Platinum; score Colonies and collect Museum diversity late.</p>
+  <p class="hero-description">Open Ninja and Watchtower, take Gold ahead of the last Figurine, then diverse Treasures and Platinum; score Colonies and collect Museum diversity late.</p>
 
   <div class="hero-links"><strong>Compatible boards</strong><span class="chip-list"><a class="board-chip" href="../boards/stables-ninja-museum.html">Stables Ninja Museum</a></span></div>
   <details class="technical-details">
@@ -309,24 +309,51 @@
   <table class="priority-table">
     <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
     <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+    p = self.params
     available = {c.name: c for c in choices if c is not None}
-    names = [&quot;Harbor Village&quot;]
-    if self.params[&quot;ninja_first&quot;]:
-        names.append(&quot;Ninja&quot;)
-    if &quot;Conclave&quot; in available and any(
+    conclave_ready = &quot;Conclave&quot; in available and any(
         c.is_action and c.name != &quot;Conclave&quot;
         and not any(x.name == c.name for x in player.in_play)
         for c in player.hand
-    ):
+    )
+    # Stables and Conclave only refund the Action when they have something
+    # to work with, so the terminal/non-terminal split is hand-dependent.
+    stables_ready = any(c.is_treasure for c in player.hand)
+    spare = player.actions &gt; 1
+    names = [&quot;Harbor Village&quot;]
+    if p[&quot;ninja_first&quot;] and spare:
+        names.append(&quot;Ninja&quot;)
+    if conclave_ready:
         names.append(&quot;Conclave&quot;)
+    if spare and len(player.hand) &lt;= 5:
+        # A small hand draws more off Watchtower, so with Actions to spare
+        # it goes before the cards that refill the hand.
+        names.append(&quot;Watchtower&quot;)
+    if stables_ready:
+        names.append(&quot;Stables&quot;)
+    names.append(&quot;Innkeeper&quot;)
     if len(player.hand) &lt;= 5:
         names.append(&quot;Watchtower&quot;)
-    if any(c.is_treasure for c in player.hand):
-        names.append(&quot;Stables&quot;)
-    names += [&quot;Innkeeper&quot;, &quot;Silk Merchant&quot;, &quot;Ninja&quot;]
+    names += [&quot;Silk Merchant&quot;, &quot;Ninja&quot;]
     if self.choose_trash(state, player, player.hand) is not None:
         names.append(&quot;Catapult&quot;)
     names.append(&quot;Conclave&quot;)
+    return self.pick(choices, names)
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose action to play with conclave</span></td><td data-label="What it does">Conclave refunds the Action, so it should cash in a terminal.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action_to_play_with_conclave(self, state, player, choices):
+    &quot;&quot;&quot;Conclave refunds the Action, so it should cash in a terminal.
+
+    The generic default ranks by printed +Cards, which is zero for the
+    two cards on this board that actually draw.
+    &quot;&quot;&quot;
+    names = []
+    # Conclave takes its target out of hand before playing it.
+    if len(player.hand) - 1 &lt;= 5:
+        names.append(&quot;Watchtower&quot;)
+    names.append(&quot;Silk Merchant&quot;)
+    if any(c.is_treasure for c in player.hand):
+        names.append(&quot;Stables&quot;)
+    names += [&quot;Ninja&quot;, &quot;Harbor Village&quot;, &quot;Innkeeper&quot;, &quot;Catapult&quot;, &quot;Watchtower&quot;]
     return self.pick(choices, names)
 </code></pre></details></td></tr>
 <tr><td data-label="Hook"><span class="behavior-name">Choose treasure to discard for stables</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_treasure_to_discard_for_stables(self, state, player, choices):

@@ -4,7 +4,8 @@ from dominion.cards.registry import get_card
 from dominion.events.registry import get_event
 from dominion.game.game_state import GameState
 from dominion.landmarks.registry import get_landmark
-from dominion.strategy.strategies.stables_ninja_museum import KINGDOM, StablesNinjaMuseum
+from dominion.strategy.strategies.stables_ninja_museum import (
+    KINGDOM, StablesNinjaMuseum, create_ninja_watchtower_figurine_money)
 
 
 def make_state():
@@ -175,3 +176,78 @@ def test_strategy_declares_the_museum_landmark_it_scores_on():
 
     assert "Museum" in refs.landmarks
     assert "Museum" in landscape_names(refs)
+
+
+def test_stables_goes_before_watchtower_on_the_last_action():
+    """Watchtower is terminal, so leading with it strands the rest of the hand.
+
+    The board search scored every engine policy while this was reversed, which
+    cost the Stables decks a Stables play on any turn that drew both cards.
+    """
+    state, p = make_state()
+    p.actions = 1
+    p.hand = [get_card(n) for n in ("Watchtower", "Stables", "Copper")]
+    choices = [c for c in p.hand if c.is_action]
+    assert p.ai.strategy.choose_action(state, p, choices).name == "Stables"
+
+
+def test_watchtower_leads_when_there_are_actions_to_spare():
+    """With a spare Action the smaller hand draws more off Watchtower."""
+    state, p = make_state()
+    p.actions = 2
+    p.hand = [get_card(n) for n in ("Watchtower", "Stables", "Copper")]
+    choices = [c for c in p.hand if c.is_action]
+    assert p.ai.strategy.choose_action(state, p, choices).name == "Watchtower"
+
+
+def test_stables_is_not_preferred_without_a_treasure_to_discard():
+    state, p = make_state()
+    p.actions = 1
+    p.hand = [get_card(n) for n in ("Watchtower", "Stables", "Estate")]
+    choices = [c for c in p.hand if c.is_action]
+    assert p.ai.strategy.choose_action(state, p, choices).name == "Watchtower"
+
+
+def test_conclave_target_comes_from_the_strategy_not_printed_plus_cards():
+    """Watchtower and Stables draw from a custom effect, so their printed
+    ``+Cards`` is zero and the generic default can never pick them."""
+    state, p = make_state()
+    p.hand = [get_card(n) for n in ("Watchtower", "Ninja")]
+    choices = list(p.hand)
+    assert p.ai.choose_action_to_play_with_conclave(state, p, choices).name == "Watchtower"
+
+
+def test_conclave_consults_the_strategy_hook():
+    """Guards the wiring: the hook was unreachable, so Conclave ignored it."""
+    state, p = make_state()
+
+    class AlwaysNinja(StablesNinjaMuseum):
+        def choose_action_to_play_with_conclave(self, state, player, choices):
+            return next((c for c in choices if c.name == "Ninja"), None)
+
+    p.ai = GeneticAI(AlwaysNinja())
+    p.hand = [get_card(n) for n in ("Watchtower", "Ninja")]
+    play(state, p, "Conclave")
+    assert "Ninja" in [c.name for c in p.in_play]
+    assert [c.name for c in p.hand] == ["Watchtower"]
+
+
+def test_published_policy_buys_nothing_that_refunds_an_action():
+    """Why the Action-ordering fix cannot cost the published money deck.
+
+    The fix only reorders cards that refund an Action. This policy buys none of
+    them, so its choices are the same before and after.
+    """
+    params = create_ninja_watchtower_figurine_money().params
+    assert all(params[name] == 0 for name in
+               ("stables", "villages", "innkeepers", "conclaves"))
+
+
+def test_published_policy_action_choice_ignores_spare_actions():
+    state, p = make_state()
+    strategy = create_ninja_watchtower_figurine_money()
+    p.hand = [get_card(n) for n in ("Watchtower", "Ninja", "Copper")]
+    choices = [c for c in p.hand if c.is_action]
+    for actions in (1, 2, 3):
+        p.actions = actions
+        assert strategy.choose_action(state, p, choices).name == "Watchtower"

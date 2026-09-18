@@ -212,6 +212,14 @@ class AI(ABC):
 
         if not choices:
             return None
+        hook = getattr(getattr(self, "strategy", None),
+                       "choose_action_to_play_with_conclave", None)
+        if hook is not None:
+            choice = hook(state, player, choices)
+            if choice in choices:
+                return choice
+        # Printed +Cards understates cards that draw from a custom effect, so
+        # this default is only a fallback for strategies without a hook.
         return max(choices, key=lambda c: (c.stats.cards, c.cost.coins, c.name))
 
     def choose_imp_action(

@@ -1,0 +1,54 @@
+{
+  "stage": "regression",
+  "results": [
+    {
+      "a": {
+        "opening": "Ninja",
+        "second": "Watchtower",
+        "stables": 0,
+        "silks": 0,
+        "villages": 0,
+        "catapults": 0,
+        "conclaves": 0,
+        "figurines": 3,
+        "pendants": 5,
+        "silvers": 3,
+        "golds": 2
+      },
+      "b": {
+        "catapults": 1,
+        "conclaves": 1,
+        "credit": false,
+        "curse_silver": false,
+        "figurines": 1,
+        "green_turn": 25,
+        "innkeepers": 0,
+        "keep_copper": 1,
+        "ninjas": 1,
+        "opening": "Conclave",
+        "pendants": 0,
+        "second": "Watchtower",
+        "silks": 2,
+        "stables": 3,
+        "villages": 3,
+        "watchtowers": 2
+      },
+      "games": 4000,
+      "seed": 7710000,
+      "rate": 0.6575,
+      "paired_ci95": [
+        0.6429974237682169,
+        0.672002576231783
+      ],
+      "totals": {
+        "wins": 2630,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 98934,
+        "score": 354308,
+        "opponent_score": 323945,
+        "museum_points": 102176
+      }
+    }
+  ]
+}
