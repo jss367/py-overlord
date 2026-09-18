@@ -18,8 +18,10 @@ class BridgeTroll(Card):
 
         def attack_target(target):
             # "Each other player takes their -$1 token." This is the -$1
-            # token, not the -1 Card token that Borrow and Relic hand out.
-            target.minus_coin_tokens += 1
+            # token, not the -1 Card token that Borrow and Relic hand out,
+            # and each player owns one of it: a second Troll in the same
+            # round does not stack a second penalty.
+            target.take_minus_coin_token()
 
         for other in game_state.players:
             if other is player:

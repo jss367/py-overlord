@@ -329,14 +329,11 @@
     )
 </code></pre></details></td></tr>
 <tr><td data-label="Hook"><span class="behavior-name">Choose trash</span></td><td data-label="What it does">Ranked for Governor&#x27;s upgrade: junk first, then a deliberate trade.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_trash(self, state, player, choices):
-    &quot;&quot;&quot;Ranked for Governor&#x27;s upgrade: junk first, then a deliberate trade.
-
-    Governor asks each player in turn, so this runs for the opponent&#x27;s
-    hand too and must read only ``choices``.
-    &quot;&quot;&quot;
+    &quot;&quot;&quot;Ranked for Governor&#x27;s upgrade: junk first, then a deliberate trade.&quot;&quot;&quot;
     real = [c for c in choices if c is not None]
     if not real:
         return None
+    player = self._owner_of(state, player, choices)
     pick = self.pick(real, self._sheddable(player))
     if pick is not None:
         return pick

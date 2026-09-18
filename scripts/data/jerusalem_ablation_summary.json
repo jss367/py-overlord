@@ -5,10 +5,10 @@
  "matches": 9,
  "games": 2700,
  "truncated": 1,
- "elapsed_seconds": 32.6,
+ "elapsed_seconds": 26.6,
  "ranking": [
   {
-   "rate": 0.7222,
+   "rate": 0.7211,
    "games": 2700,
    "params": {
     "goons": 5,
@@ -49,10 +49,10 @@
    "seed": 700000,
    "wins": 201,
    "ties": 4,
-   "mean_turns_per_player": 25.07,
+   "mean_turns_per_player": 25.01,
    "points": [
-    17.44,
-    -1.21
+    17.38,
+    -1.19
    ],
    "endings": {
     "three piles": 300
@@ -128,7 +128,7 @@
    "mean_turns_per_player": 41.96,
    "points": [
     46.77,
-    4.57
+    4.55
    ],
    "endings": {
     "three piles": 299,
@@ -197,15 +197,15 @@
    }
   },
   {
-   "rate": 0.9767,
+   "rate": 0.97,
    "games": 300,
    "seed": 720000,
-   "wins": 293,
+   "wins": 291,
    "ties": 0,
-   "mean_turns_per_player": 31.88,
+   "mean_turns_per_player": 31.87,
    "points": [
-    74.18,
-    3.43
+    73.96,
+    3.47
    ],
    "endings": {
     "three piles": 300
@@ -273,15 +273,15 @@
    }
   },
   {
-   "rate": 0.525,
+   "rate": 0.5217,
    "games": 300,
    "seed": 730000,
-   "wins": 156,
+   "wins": 155,
    "ties": 3,
-   "mean_turns_per_player": 26.8,
+   "mean_turns_per_player": 26.81,
    "points": [
-    28.41,
-    29.12
+    28.31,
+    29.19
    ],
    "endings": {
     "three piles": 300
@@ -356,7 +356,7 @@
    "ties": 1,
    "mean_turns_per_player": 26.5,
    "points": [
-    29.45,
+    29.44,
     26.1
    ],
    "endings": {
@@ -508,7 +508,7 @@
    "ties": 1,
    "mean_turns_per_player": 24.97,
    "points": [
-    23.13,
+    23.19,
     7.09
    ],
    "endings": {
@@ -582,7 +582,7 @@
    "seed": 770000,
    "wins": 164,
    "ties": 0,
-   "mean_turns_per_player": 26.7,
+   "mean_turns_per_player": 26.69,
    "points": [
     24.48,
     10.04
@@ -658,10 +658,10 @@
    "seed": 780000,
    "wins": 260,
    "ties": 0,
-   "mean_turns_per_player": 32.28,
+   "mean_turns_per_player": 32.27,
    "points": [
-    61.66,
-    9.06
+    61.48,
+    9.05
    ],
    "endings": {
     "three piles": 300

@@ -601,6 +601,25 @@ def test_bridge_troll_reductions_stack_for_the_owner():
     assert state.get_card_cost(p1, province) == province.cost.coins - 2
 
 
+def test_two_bridge_trolls_do_not_stack_the_minus_coin_token():
+    """Each player owns one -$1 token, so a second Troll adds no penalty."""
+    state = _state_with_card("Bridge Troll", n_players=2)
+    p1, p2 = state.players
+    state.current_player_index = state.players.index(p1)
+    p1.buys = 1
+    get_card("Bridge Troll").play_effect(state)
+    get_card("Bridge Troll").play_effect(state)
+    assert p2.minus_coin_tokens == 1
+
+    # The victim's next start phase pays $1 once, not $2.
+    p2.coins = 0
+    state.current_player_index = state.players.index(p2)
+    state.phase = "start"
+    state.handle_start_phase()
+    assert p2.coins == -1
+    assert p2.minus_coin_tokens == 0
+
+
 def test_bridge_troll_hands_out_the_minus_coin_token():
     """"Each other player takes their -$1 token" — not the -1 Card token."""
     state = _state_with_card("Bridge Troll", n_players=2)

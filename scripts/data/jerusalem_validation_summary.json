@@ -5,10 +5,10 @@
  "matches": 10,
  "games": 3000,
  "truncated": 0,
- "elapsed_seconds": 64.6,
+ "elapsed_seconds": 55.7,
  "ranking": [
   {
-   "rate": 0.7903,
+   "rate": 0.7897,
    "games": 3000,
    "params": {
     "goons": 5,
@@ -49,10 +49,10 @@
    "seed": 3000000,
    "wins": 167,
    "ties": 1,
-   "mean_turns_per_player": 37.35,
+   "mean_turns_per_player": 37.39,
    "points": [
-    40.69,
-    28.65
+    40.66,
+    28.72
    ],
    "endings": {
     "three piles": 300
@@ -125,9 +125,9 @@
    "seed": 3010000,
    "wins": 165,
    "ties": 0,
-   "mean_turns_per_player": 27.2,
+   "mean_turns_per_player": 27.21,
    "points": [
-    25.03,
+    25.0,
     25.75
    ],
    "endings": {
@@ -201,10 +201,10 @@
    "seed": 3020000,
    "wins": 157,
    "ties": 1,
-   "mean_turns_per_player": 27.46,
+   "mean_turns_per_player": 27.41,
    "points": [
     25.29,
-    21.91
+    21.86
    ],
    "endings": {
     "three piles": 300
@@ -348,19 +348,19 @@
    }
   },
   {
-   "rate": 0.8967,
+   "rate": 0.8933,
    "games": 300,
    "seed": 3040000,
-   "wins": 269,
+   "wins": 268,
    "ties": 0,
-   "mean_turns_per_player": 34.8,
+   "mean_turns_per_player": 34.7,
    "points": [
-    89.32,
-    41.75
+    89.08,
+    41.9
    ],
    "endings": {
-    "three piles": 99,
-    "Province": 201
+    "three piles": 97,
+    "Province": 203
    },
    "truncated": 0,
    "a": {
@@ -430,14 +430,14 @@
    "seed": 3050000,
    "wins": 294,
    "ties": 0,
-   "mean_turns_per_player": 45.02,
+   "mean_turns_per_player": 44.95,
    "points": [
-    122.3,
-    42.04
+    122.46,
+    42.13
    ],
    "endings": {
-    "three piles": 248,
-    "Province": 52
+    "three piles": 246,
+    "Province": 54
    },
    "truncated": 0,
    "a": {
@@ -583,10 +583,10 @@
    "seed": 3070000,
    "wins": 298,
    "ties": 0,
-   "mean_turns_per_player": 36.2,
+   "mean_turns_per_player": 36.17,
    "points": [
-    75.39,
-    12.71
+    75.14,
+    12.67
    ],
    "endings": {
     "three piles": 282,
@@ -655,15 +655,15 @@
    }
   },
   {
-   "rate": 0.96,
+   "rate": 0.9567,
    "games": 300,
    "seed": 3080000,
-   "wins": 288,
+   "wins": 287,
    "ties": 0,
-   "mean_turns_per_player": 35.68,
+   "mean_turns_per_player": 35.7,
    "points": [
-    95.67,
-    29.62
+    95.82,
+    29.72
    ],
    "endings": {
     "Province": 206,
@@ -710,10 +710,10 @@
    "seed": 3090000,
    "wins": 300,
    "ties": 0,
-   "mean_turns_per_player": 41.16,
+   "mean_turns_per_player": 41.18,
    "points": [
-    127.33,
-    17.01
+    127.39,
+    17.1
    ],
    "endings": {
     "three piles": 300

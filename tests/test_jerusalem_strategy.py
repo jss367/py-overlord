@@ -87,6 +87,39 @@ def test_ambassador_is_not_played_without_a_target_it_will_shed():
     assert strategy.choose_action(state, player, [ambassador, None]) is None
 
 
+def test_trash_policy_measures_the_responder_not_the_current_player():
+    """Governor asks every player, and the hook has no player argument.
+
+    ``GeneticAI.choose_card_to_trash`` passes ``state.current_player``. When
+    this strategy answers an opponent's Governor that is the attacker, so an
+    economy floor read off the attacker's deck would shed a Copper the
+    responder still needs.
+    """
+    strategy = Jerusalem(ambassador=1, copper_floor=3)
+    state = _state(strategy)
+    attacker, responder = state.players
+    # The attacker is Copper-rich; the responder is down to its floor.
+    _deck(attacker, ["Copper"] * 9)
+    _deck(responder, ["Copper"] * 2)
+    copper = get_card("Copper")
+    responder.hand = [copper]
+    state.current_player_index = 0
+
+    # Governor offers opponents an optional trash, so declining is legal.
+    assert strategy.choose_trash(state, attacker, [copper, None]) is None
+    # Reading the attacker's nine Coppers instead would have shed this one.
+    assert strategy._sheddable(attacker) == ["Curse", "Estate", "Copper"]
+
+
+def test_trash_policy_falls_back_to_the_given_player_for_loose_cards():
+    """Cards not in anyone's hand (a revealed pile) keep the old behaviour."""
+    strategy = Jerusalem(ambassador=1, copper_floor=3)
+    state = _state(strategy)
+    player = state.players[0]
+    _deck(player, ["Copper"] * 9)
+    assert strategy.choose_trash(state, player, [get_card("Copper")]).name == "Copper"
+
+
 # ------------------------------------------------------------ Goons and buys
 
 

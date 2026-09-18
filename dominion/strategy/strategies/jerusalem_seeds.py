@@ -172,15 +172,31 @@ class Jerusalem(EnhancedStrategy):
             choices, ["Gold", "Silver", "Ill-Gotten Gains", "Potion", "Copper"]
         )
 
-    def choose_trash(self, state, player, choices):
-        """Ranked for Governor's upgrade: junk first, then a deliberate trade.
+    @staticmethod
+    def _owner_of(state, player, choices):
+        """The player whose hand the offered cards came from.
 
-        Governor asks each player in turn, so this runs for the opponent's
-        hand too and must read only ``choices``.
+        ``GeneticAI.choose_card_to_trash`` has no player argument and passes
+        ``state.current_player``. Governor asks every player in turn, so when
+        this strategy answers an opponent's Governor that is the attacker,
+        not the responder -- and an economy floor measured against the wrong
+        deck sheds Coppers the responder needed. Resolve the owner from the
+        cards themselves and fall back to the argument.
         """
+        offered = [c for c in choices if c is not None]
+        if not offered:
+            return player
+        for candidate in state.players:
+            if any(card in candidate.hand for card in offered):
+                return candidate
+        return player
+
+    def choose_trash(self, state, player, choices):
+        """Ranked for Governor's upgrade: junk first, then a deliberate trade."""
         real = [c for c in choices if c is not None]
         if not real:
             return None
+        player = self._owner_of(state, player, choices)
         pick = self.pick(real, self._sheddable(player))
         if pick is not None:
             return pick

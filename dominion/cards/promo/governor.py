@@ -54,22 +54,27 @@ class Governor(Card):
                 game_state.gain_card(other, get_card("Silver"))
 
     @staticmethod
-    def _exact_upgrade_targets(game_state, trashed, increment):
+    def _exact_upgrade_targets(game_state, chooser, trashed, increment):
         """Supply cards costing exactly ``increment`` more than ``trashed``.
 
         Governor's upgrade is an exact-cost gain, not a "costing up to" gain:
-        $2 more for the player, $1 more for everyone else. Potion costs must
-        match exactly too, since $5 and $2P are different costs.
+        $2 more for the player, $1 more for everyone else. The comparison is
+        against *current* costs for this player, so cost reducers such as
+        Bridge Troll, Highway and a Ferry token move both sides of it. Potion
+        and Debt components must match exactly as well, since $5, $2P and
+        $5D are three different costs.
         """
 
         from ..registry import get_card
 
+        target_coins = game_state.get_card_cost(chooser, trashed) + increment
         return [
             get_card(name)
             for name, count in game_state.supply.items()
             if count > 0
-            and get_card(name).cost.coins == trashed.cost.coins + increment
+            and game_state.get_card_cost(chooser, get_card(name)) == target_coins
             and get_card(name).cost.potions == trashed.cost.potions
+            and get_card(name).cost.debt == trashed.cost.debt
         ]
 
     @staticmethod
@@ -98,7 +103,9 @@ class Governor(Card):
         chooser.hand.remove(to_trash)
         game_state.trash_card(chooser, to_trash)
 
-        targets = Governor._exact_upgrade_targets(game_state, to_trash, increment)
+        targets = Governor._exact_upgrade_targets(
+            game_state, chooser, to_trash, increment
+        )
         if targets:
             gain = chooser.ai.choose_buy(game_state, targets + [None])
             if (

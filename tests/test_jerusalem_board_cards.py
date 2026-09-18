@@ -146,6 +146,39 @@ def test_governor_opponents_may_decline_to_trash():
     assert [c.name for c in state.players[1].hand] == ["Copper"]
 
 
+def test_governor_upgrade_uses_current_costs_not_printed_ones():
+    """A Bridge Troll in play moves both sides of the exact-cost comparison."""
+    trasher = _PickAI(wants=["Estate", "Sea Hag", "Ambassador"], governor="upgrade")
+    state = _setup([trasher, _PickAI(wants=[])])
+    player = state.players[0]
+    player.hand = [get_card("Estate")]
+    player.in_play = [get_card("Bridge Troll")]
+    state.current_player_index = 0
+
+    # Estate now costs $1, so the exact $2-more target is a current $3:
+    # Sea Hag ($4 printed, $3 now), not the $4-now Governor.
+    assert state.get_card_cost(player, get_card("Estate")) == 1
+    assert state.get_card_cost(player, get_card("Sea Hag")) == 3
+
+    get_card("Governor").play_effect(state)
+
+    assert [c.name for c in player.discard] == ["Sea Hag"]
+
+
+def test_governor_upgrade_requires_matching_potion_and_debt():
+    """$5 and $2P are different costs; the upgrade may not cross between them."""
+    trasher = _PickAI(wants=["Silver", "Scrying Pool"], governor="upgrade")
+    state = _setup([trasher, _PickAI(wants=[])])
+    player = state.players[0]
+    player.hand = [get_card("Silver")]
+
+    get_card("Governor").play_effect(state)
+
+    gained = [c.name for c in player.discard]
+    assert "Scrying Pool" not in gained, gained
+    assert all(get_card(n).cost.potions == 0 for n in gained), gained
+
+
 def test_governor_gold_option_gives_opponents_silver():
     state = _setup([_PickAI(governor="gold"), _PickAI()])
     player, victim = state.players

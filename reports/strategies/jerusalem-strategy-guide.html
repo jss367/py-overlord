@@ -69,14 +69,14 @@ h1,h2,h3{font-family:Georgia,serif;line-height:1.15}h1{font-size:clamp(38px,6vw,
 <div class="scroll"><table>
 <thead><tr><th>Removed</th><th>Published deck wins</th><th>Reading</th></tr></thead>
 <tbody>
-<tr><td><strong>Scrying Pool</strong> (8&nbsp;&rarr;&nbsp;0)</td><td>97.7%</td><td>The engine. Without it there is no draw at all.</td></tr>
+<tr><td><strong>Scrying Pool</strong> (8&nbsp;&rarr;&nbsp;0)</td><td>97.0%</td><td>The engine. Without it there is no draw at all.</td></tr>
 <tr><td><strong>Fortress</strong> (5&nbsp;&rarr;&nbsp;0)</td><td>94.3%</td><td>The only village. Scrying Pool draws Actions it then cannot play.</td></tr>
 <tr><td><strong>Ambassador</strong> (1&nbsp;&rarr;&nbsp;0)</td><td>90.8%</td><td>One copy, and removing it still costs the game. The Estates and Curses have to go somewhere.</td></tr>
 <tr><td>Scrying Pool and Potion</td><td>86.7%</td><td>Refunding the Potion recovers a little of the loss, not much.</td></tr>
 <tr><td><strong>Goons</strong> (5&nbsp;&rarr;&nbsp;0)</td><td>67.7%</td><td>The payload. A deck that draws itself but has nothing to spend the buys on finishes these games on &minus;1.2 points against the published deck's 17.4.</td></tr>
 <tr><td>Goons filler buys</td><td>54.7%</td><td>Marginal on win rate, clear on score: 24.5 points against 10.0.</td></tr>
 <tr><td>Bridge Troll (3&nbsp;&rarr;&nbsp;0)</td><td>54.5%</td><td><strong>No measurable effect</strong> at this sample.</td></tr>
-<tr><td>Old Witch (1&nbsp;&rarr;&nbsp;0)</td><td>52.5%</td><td><strong>No measurable effect.</strong></td></tr>
+<tr><td>Old Witch (1&nbsp;&rarr;&nbsp;0)</td><td>52.2%</td><td><strong>No measurable effect.</strong></td></tr>
 <tr><td>Sea Hag (2&nbsp;&rarr;&nbsp;0)</td><td>51.2%</td><td><strong>No measurable effect.</strong></td></tr>
 </tbody></table></div>
 <p><strong>Four piles carry this board.</strong> Scrying Pool, Fortress, Ambassador and Goons are each worth a decisive margin. The three cursers and the Bridge Troll in the published deck are coin flips at 300 games: the winning parameters buy them, and removing them changes nothing measurable. They are in the published strategy because that is the deck the 3,000 validation games measured, not because they were shown to help.</p>
@@ -90,7 +90,7 @@ h1,h2,h3{font-family:Georgia,serif;line-height:1.15}h1{font-size:clamp(38px,6vw,
 </section>
 
 <section aria-labelledby="audit"><h2 id="audit">Simulator work done for this board</h2>
-<p>Every pile here was unused, which means none of them had been exercised by a strategy. A card-by-card audit against the printed rules found five behaviour defects and four decisions the strategy layer could not reach. All are fixed, with tests in <code>tests/test_jerusalem_board_cards.py</code>.</p>
+<p>Every pile here was unused, which means none of them had been exercised by a strategy. A card-by-card audit against the printed rules found eight behaviour defects and four decisions the strategy layer could not reach. All are fixed, with tests in <code>tests/test_jerusalem_board_cards.py</code>, <code>tests/test_adventures_cards.py</code> and <code>tests/test_adventures_events.py</code>. The last two rows were found by review after the first search run; the search was rerun on the corrected simulator and the conclusions are unchanged.</p>
 <div class="scroll"><table>
 <thead><tr><th>Card</th><th>Defect</th><th>Effect</th></tr></thead>
 <tbody>
@@ -99,6 +99,8 @@ h1,h2,h3{font-family:Georgia,serif;line-height:1.15}h1{font-size:clamp(38px,6vw,
 <tr><td>Ill-Gotten Gains</td><td>Granted <strong>+1 Buy</strong> it does not have.</td><td>Straight buff to every Ill-Gotten Gains rush, the archetype most likely to exploit it.</td></tr>
 <tr><td>Governor</td><td>The upgrade gained a card costing <strong>up to</strong> $2 more instead of <strong>exactly</strong> $2 more.</td><td>Turned an exact-cost trade into a free remodel.</td></tr>
 <tr><td>Governor</td><td>Each other player upgraded by <strong>up to $2</strong> instead of <strong>exactly $1</strong>.</td><td>Opponents got the player's own version of the effect rather than the weaker one, roughly doubling what Governor gives away.</td></tr>
+<tr><td>Bridge Troll <span class="muted">(and Ball)</span></td><td>The &minus;$1 token was a counter, so a second Troll stacked a second penalty.</td><td>Each player owns one physical &minus;$1 token; taking it while it is held does nothing. Found by review after the first search run, so the search was rerun &mdash; it moved the headline from 79.03% to 78.97%.</td></tr>
+<tr><td>Governor</td><td>The exact-cost comparison used <strong>printed</strong> costs.</td><td>Cost reducers move both sides of &ldquo;exactly $2 more&rdquo;, and Bridge Troll is on this very board. Debt was ignored entirely. Now compares current costs for the chooser, with Potion and Debt matched exactly.</td></tr>
 <tr><td>Ambassador</td><td>How many copies to return was hardcoded by card name.</td><td>No strategy could return two of a non-junk card, or return zero and hand an opponent a copy. It is now a decision, with the old behaviour as the default.</td></tr>
 </tbody></table></div>
 <p>Four per-card decisions had a hook on the base AI that <code>GeneticAI</code> never forwarded to the strategy, so no strategy could override them: <code>choose_governor_option</code>, <code>choose_card_to_ambassador</code>, <code>choose_ambassador_return_count</code>, and <code>choose_topdeck_or_discard</code> (Scrying Pool's and Spy's reveal). All four are now forwarded. Strategies that define no hook keep the previous defaults unchanged.</p>
