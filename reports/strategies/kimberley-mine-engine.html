@@ -322,7 +322,7 @@
     self.mine_source = chosen.name if chosen else None
     return chosen
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose mine gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_mine_gain(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose mine gain</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_mine_gain(self, state, player, choices):
     p = self.params
     names = []
     if player.count(&quot;Platinum&quot;) &lt; p[&quot;platinums&quot;]:
@@ -337,7 +337,7 @@
         self.mine_gains[f&quot;{getattr(self, &#x27;mine_source&#x27;, &#x27;?&#x27;)} -&gt; {chosen.name}&quot;] += 1
     return chosen
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
     if not getattr(state, &quot;_choosing_main_action_phase&quot;, False):
         # Throne Room / King&#x27;s Court asks which Action to repeat.
         chosen = self.pick(choices, self._multiplier_order(state, player))
@@ -371,7 +371,7 @@
     )
     return self.pick(choices, order)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
     p = self.params
     available = {c.name: c for c in choices if c is not None}
     if not available:

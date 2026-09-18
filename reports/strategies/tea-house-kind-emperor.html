@@ -330,7 +330,7 @@
         choices, names + [&quot;Courier&quot;, &quot;Fortune Hunter&quot;, &quot;Mastermind&quot;, &quot;Mine&quot;]
     )
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
     # Outside the main Action phase, Mastermind offers a free triple play.
     if not getattr(state, &quot;_choosing_main_action_phase&quot;, False) and any(
         c is not None and c.name == &quot;Mastermind&quot; for c in player.duration
