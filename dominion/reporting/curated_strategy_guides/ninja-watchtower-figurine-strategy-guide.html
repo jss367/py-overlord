@@ -66,9 +66,17 @@ a{color:var(--accent)}nav{display:flex;gap:22px;flex-wrap:wrap;font-size:14px}he
 PYTHONPATH=. python scripts/search_stables_ninja_museum.py --stage final \
   --input scripts/data/stables_ninja_museum_screen.json --games 160 --seed 270000 \
   --output scripts/data/stables_ninja_museum_final.json
+PYTHONPATH=. python scripts/search_stables_ninja_museum.py --stage rank-final \
+  --input scripts/data/stables_ninja_museum_final.json \
+  --output scripts/data/stables_ninja_museum_final_ranked.json
 PYTHONPATH=. python scripts/search_stables_ninja_museum.py --stage refine \
   --input scripts/data/stables_ninja_museum_final_ranked.json --games 100 --seed 370000 \
   --output scripts/data/stables_ninja_museum_refine.json
+PYTHONPATH=. python scripts/search_stables_ninja_museum.py --stage rank-refine \
+  --input scripts/data/stables_ninja_museum_refine.json \
+  --final-ranked scripts/data/stables_ninja_museum_final_ranked.json \
+  --output scripts/data/stables_ninja_museum_refine_ranked.json \
+  --policies-output scripts/data/stables_ninja_museum_validation_policies.json
 PYTHONPATH=. python scripts/search_stables_ninja_museum.py --stage validate \
   --input scripts/data/stables_ninja_museum_validation_policies.json --games 1000 --seed 570000 \
   --output scripts/data/stables_ninja_museum_validation.json
