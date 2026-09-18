@@ -37,7 +37,7 @@ body{max-width:920px;margin:40px auto;padding:0 24px;background:#faf8f2;color:#2
 </ul>
 <p>Both Skulk strategy pages now link to Rebuild Rush as a stronger tested alternative and to this evidence. The retirement policy remains a proposal; no strategies are hidden, removed, or certified as universally dominated.</p>
 <h2>Reproduce the comparison</h2>
-<p>From the repository root, save the following as <code>.context/check_rebuild.py</code> and run <code>PYTHONPATH=. python .context/check_rebuild.py</code>. It prints both results and writes a JSON record under <code>.context/</code>.</p>
+<p>From the repository root, run <code>mkdir -p .context</code>, then save the following as <code>.context/check_rebuild.py</code> and run <code>PYTHONPATH=. python .context/check_rebuild.py</code>. It prints both results and writes a JSON record under <code>.context/</code>.</p>
 <details><summary>Show the complete comparison script</summary><pre><code>import json
 import random
 from dominion.ai.genetic_ai import GeneticAI
