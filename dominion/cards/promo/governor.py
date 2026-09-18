@@ -1,4 +1,30 @@
+from contextlib import contextmanager
+
 from ..base_card import Card, CardCost, CardStats, CardType
+
+
+@contextmanager
+def _asking(game_state, chooser):
+    """Pose a question to ``chooser`` as the acting player.
+
+    Governor prompts every player in turn, but the AI hooks for trashing and
+    gaining read ``state.current_player`` to decide whose deck they are
+    reasoning about. Without this swap an opponent answers Governor using the
+    Governor owner's deck counts, buy rules and priorities. ``turn_player``
+    still reports the real turn holder, so "on your turn" effects are
+    unaffected.
+    """
+    old_index = game_state.current_player_index
+    old_turn = game_state.reaction_turn_player_index
+    game_state.reaction_turn_player_index = game_state.players.index(
+        game_state.turn_player
+    )
+    game_state.current_player_index = game_state.players.index(chooser)
+    try:
+        yield
+    finally:
+        game_state.current_player_index = old_index
+        game_state.reaction_turn_player_index = old_turn
 
 
 class Governor(Card):
@@ -93,7 +119,8 @@ class Governor(Card):
         if not chooser.hand:
             return False
         offered = list(chooser.hand) + ([None] if optional else [])
-        to_trash = chooser.ai.choose_card_to_trash(game_state, offered)
+        with _asking(game_state, chooser):
+            to_trash = chooser.ai.choose_card_to_trash(game_state, offered)
         if to_trash not in chooser.hand:
             if optional:
                 return False
@@ -109,7 +136,11 @@ class Governor(Card):
             game_state, chooser, to_trash, increment
         )
         if targets:
-            gain = chooser.ai.choose_buy(game_state, targets + [None])
+            # The shared Allies helper asks as the responder and falls back to
+            # the most expensive target when the answer is not on offer.
+            from ..allies import _rules
+
+            gain = _rules.choose_gain(game_state, chooser, targets)
             if (
                 gain is None
                 or gain.name not in game_state.supply

@@ -1,0 +1,2086 @@
+{
+  "mode": "validate",
+  "board": "boards/suzhou.txt",
+  "games": 8400,
+  "truncated": 0,
+  "elapsed_seconds": 60.45239929202944,
+  "results": [
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 4,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 700000,
+      "wins": 195,
+      "ties": 1,
+      "rate": 0.48875,
+      "mean_turns_per_player": 15.3175,
+      "points": [
+        31.67,
+        32.0275
+      ],
+      "vp_tokens": [
+        10.04,
+        10.1125
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 1.0,
+        "Estate": 0.938,
+        "Duchy": 0.105
+      },
+      "decks": [
+        {
+          "Bridge": 0.988,
+          "Copper": 7.0,
+          "Crossroads": 2.825,
+          "Duchy": 1.863,
+          "Estate": 6.905,
+          "Gold": 0.007,
+          "Great Hall": 3.998,
+          "Groundskeeper": 2.845,
+          "Ironworks": 2.998,
+          "Laboratory": 0.67,
+          "Market": 0.115,
+          "Mill": 4.0,
+          "Province": 0.19,
+          "Silver": 1.317,
+          "Village": 1.992
+        },
+        {
+          "Bridge": 0.985,
+          "Copper": 7.0,
+          "Crossroads": 3.59,
+          "Duchy": 1.893,
+          "Estate": 6.93,
+          "Gold": 0.007,
+          "Great Hall": 4.003,
+          "Groundskeeper": 2.848,
+          "Ironworks": 2.998,
+          "Laboratory": 0.645,
+          "Market": 0.058,
+          "Mill": 4.0,
+          "Province": 0.217,
+          "Silver": 1.103,
+          "Village": 1.995
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 4,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 2,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 701000,
+      "wins": 205,
+      "ties": 1,
+      "rate": 0.51375,
+      "mean_turns_per_player": 15.3025,
+      "points": [
+        32.0525,
+        31.805
+      ],
+      "vp_tokens": [
+        10.5375,
+        10.79
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 1.0,
+        "Estate": 0.96,
+        "Duchy": 0.075
+      },
+      "decks": [
+        {
+          "Bridge": 0.98,
+          "Copper": 7.0,
+          "Crossroads": 2.857,
+          "Duchy": 1.86,
+          "Estate": 6.923,
+          "Gold": 0.01,
+          "Great Hall": 4.053,
+          "Groundskeeper": 2.833,
+          "Ironworks": 3.0,
+          "Laboratory": 0.715,
+          "Market": 0.147,
+          "Mill": 4.0,
+          "Province": 0.16,
+          "Silver": 1.315,
+          "Village": 1.99
+        },
+        {
+          "Bridge": 0.97,
+          "Copper": 7.0,
+          "Crossroads": 1.968,
+          "Duchy": 1.762,
+          "Estate": 6.985,
+          "Great Hall": 3.947,
+          "Groundskeeper": 3.413,
+          "Ironworks": 3.0,
+          "Laboratory": 0.235,
+          "Market": 0.02,
+          "Mill": 4.0,
+          "Province": 0.133,
+          "Silver": 1.48,
+          "Village": 1.988
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 2,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 702000,
+      "wins": 196,
+      "ties": 1,
+      "rate": 0.49125,
+      "mean_turns_per_player": 15.68625,
+      "points": [
+        32.4525,
+        33.1675
+      ],
+      "vp_tokens": [
+        10.835,
+        10.4125
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 1.0,
+        "Estate": 0.915,
+        "Duchy": 0.117
+      },
+      "decks": [
+        {
+          "Bridge": 0.985,
+          "Copper": 7.0,
+          "Crossroads": 2.87,
+          "Duchy": 1.948,
+          "Estate": 6.963,
+          "Gold": 0.01,
+          "Great Hall": 3.672,
+          "Groundskeeper": 2.865,
+          "Ironworks": 2.998,
+          "Laboratory": 0.79,
+          "Market": 0.155,
+          "Mill": 4.0,
+          "Province": 0.19,
+          "Silver": 1.43,
+          "Village": 1.995
+        },
+        {
+          "Bridge": 0.958,
+          "Copper": 7.0,
+          "Crossroads": 1.942,
+          "Duchy": 2.14,
+          "Estate": 6.838,
+          "Great Hall": 4.327,
+          "Groundskeeper": 2.715,
+          "Ironworks": 2.995,
+          "Laboratory": 0.487,
+          "Market": 0.058,
+          "Mill": 4.0,
+          "Province": 0.195,
+          "Silver": 1.552,
+          "Village": 1.985
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 2,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 99,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 703000,
+      "wins": 208,
+      "ties": 0,
+      "rate": 0.52,
+      "mean_turns_per_player": 15.59125,
+      "points": [
+        33.23,
+        32.525
+      ],
+      "vp_tokens": [
+        11.01,
+        10.7025
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 1.0,
+        "Estate": 0.948,
+        "Duchy": 0.083
+      },
+      "decks": [
+        {
+          "Bridge": 0.98,
+          "Copper": 7.0,
+          "Crossroads": 2.833,
+          "Duchy": 2.02,
+          "Estate": 6.997,
+          "Gold": 0.005,
+          "Great Hall": 4.435,
+          "Groundskeeper": 2.885,
+          "Ironworks": 3.0,
+          "Laboratory": 0.787,
+          "Market": 0.15,
+          "Mill": 3.618,
+          "Province": 0.185,
+          "Silver": 1.34,
+          "Village": 1.99
+        },
+        {
+          "Bridge": 0.98,
+          "Copper": 7.0,
+          "Crossroads": 1.952,
+          "Duchy": 1.985,
+          "Estate": 6.87,
+          "Gold": 0.015,
+          "Great Hall": 3.565,
+          "Groundskeeper": 2.913,
+          "Ironworks": 3.0,
+          "Laboratory": 0.88,
+          "Market": 0.152,
+          "Mill": 4.383,
+          "Province": 0.175,
+          "Silver": 1.552,
+          "Village": 1.99
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 0,
+        "ironworks": 0,
+        "bridge": 0,
+        "village": 0,
+        "crossroads": 0,
+        "laboratory": 0,
+        "market": 0,
+        "nobles": 0,
+        "great_hall": 0,
+        "mill": 0,
+        "silver": 99,
+        "gold": 99,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": false,
+        "green_gate": 0,
+        "opening": "Silver"
+      },
+      "games": 400,
+      "seed": 704000,
+      "wins": 357,
+      "ties": 0,
+      "rate": 0.8925,
+      "mean_turns_per_player": 23.92375,
+      "points": [
+        65.1175,
+        46.245
+      ],
+      "vp_tokens": [
+        22.53,
+        0.0
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 331,
+        "Province": 69
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Estate": 0.905,
+        "Duchy": 0.905,
+        "Province": 0.172
+      },
+      "decks": [
+        {
+          "Bridge": 1.0,
+          "Copper": 7.0,
+          "Crossroads": 2.99,
+          "Duchy": 5.485,
+          "Estate": 10.742,
+          "Gold": 0.013,
+          "Great Hall": 8.0,
+          "Groundskeeper": 2.885,
+          "Ironworks": 3.0,
+          "Laboratory": 0.985,
+          "Market": 0.198,
+          "Mill": 4.0,
+          "Province": 0.565,
+          "Silver": 1.897,
+          "Village": 2.0
+        },
+        {
+          "Copper": 7.0,
+          "Duchy": 2.315,
+          "Estate": 3.0,
+          "Gold": 6.905,
+          "Province": 6.05,
+          "Silver": 7.955
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 0,
+        "ironworks": 0,
+        "bridge": 0,
+        "village": 0,
+        "crossroads": 0,
+        "laboratory": 4,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 0,
+        "mill": 0,
+        "silver": 3,
+        "gold": 99,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": false,
+        "green_gate": 0,
+        "opening": "Silver"
+      },
+      "games": 400,
+      "seed": 705000,
+      "wins": 384,
+      "ties": 0,
+      "rate": 0.96,
+      "mean_turns_per_player": 24.71125,
+      "points": [
+        66.5725,
+        42.72
+      ],
+      "vp_tokens": [
+        22.8875,
+        0.0
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 357,
+        "Province": 43
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Duchy": 0.948,
+        "Estate": 0.943,
+        "Province": 0.107
+      },
+      "decks": [
+        {
+          "Bridge": 1.0,
+          "Copper": 7.0,
+          "Crossroads": 2.998,
+          "Duchy": 5.718,
+          "Estate": 10.873,
+          "Gold": 0.035,
+          "Great Hall": 8.0,
+          "Groundskeeper": 2.915,
+          "Ironworks": 3.0,
+          "Laboratory": 1.097,
+          "Market": 0.273,
+          "Mill": 4.0,
+          "Province": 0.61,
+          "Silver": 1.905,
+          "Village": 1.998
+        },
+        {
+          "Copper": 7.0,
+          "Duchy": 2.17,
+          "Estate": 3.0,
+          "Gold": 2.998,
+          "Laboratory": 4.0,
+          "Market": 1.985,
+          "Province": 5.535,
+          "Silver": 3.0
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 0,
+        "ironworks": 4,
+        "bridge": 2,
+        "village": 3,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 10,
+        "duchy": 4,
+        "estate_vp": false,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 706000,
+      "wins": 395,
+      "ties": 0,
+      "rate": 0.9875,
+      "mean_turns_per_player": 20.14125,
+      "points": [
+        49.045,
+        22.4725
+      ],
+      "vp_tokens": [
+        17.825,
+        0.0
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 1.0,
+        "Estate": 0.905,
+        "Duchy": 0.107
+      },
+      "decks": [
+        {
+          "Bridge": 0.993,
+          "Copper": 7.0,
+          "Crossroads": 2.942,
+          "Duchy": 3.515,
+          "Estate": 10.783,
+          "Gold": 0.033,
+          "Great Hall": 3.147,
+          "Groundskeeper": 2.975,
+          "Ironworks": 3.0,
+          "Laboratory": 1.232,
+          "Market": 0.398,
+          "Mill": 4.0,
+          "Province": 0.458,
+          "Silver": 1.683,
+          "Village": 1.995
+        },
+        {
+          "Bridge": 2.0,
+          "Copper": 7.0,
+          "Crossroads": 2.998,
+          "Duchy": 0.265,
+          "Estate": 3.0,
+          "Gold": 2.25,
+          "Great Hall": 4.853,
+          "Ironworks": 4.0,
+          "Laboratory": 1.995,
+          "Market": 1.9,
+          "Mill": 4.0,
+          "Province": 1.637,
+          "Silver": 1.982,
+          "Village": 3.0
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 2,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 1,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 707000,
+      "wins": 339,
+      "ties": 1,
+      "rate": 0.84875,
+      "mean_turns_per_player": 17.76,
+      "points": [
+        47.365,
+        29.615
+      ],
+      "vp_tokens": [
+        16.935,
+        10.2925
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 1.0,
+        "Estate": 0.815,
+        "Duchy": 0.263
+      },
+      "decks": [
+        {
+          "Bridge": 0.985,
+          "Copper": 7.0,
+          "Crossroads": 2.842,
+          "Duchy": 3.167,
+          "Estate": 7.615,
+          "Gold": 0.01,
+          "Great Hall": 7.393,
+          "Groundskeeper": 2.902,
+          "Ironworks": 3.0,
+          "Laboratory": 0.988,
+          "Market": 0.217,
+          "Mill": 4.0,
+          "Province": 0.32,
+          "Silver": 1.302,
+          "Village": 1.995
+        },
+        {
+          "Bridge": 1.0,
+          "Copper": 7.0,
+          "Crossroads": 2.0,
+          "Duchy": 2.447,
+          "Estate": 5.872,
+          "Gold": 0.01,
+          "Great Hall": 0.608,
+          "Groundskeeper": 2.8,
+          "Ironworks": 3.0,
+          "Laboratory": 0.748,
+          "Market": 0.14,
+          "Mill": 4.0,
+          "Province": 0.25,
+          "Silver": 1.992,
+          "Village": 2.0
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 0,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 708000,
+      "wins": 384,
+      "ties": 0,
+      "rate": 0.96,
+      "mean_turns_per_player": 20.95625,
+      "points": [
+        51.99,
+        27.08
+      ],
+      "vp_tokens": [
+        18.5525,
+        0.0
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 397,
+        "Province": 3
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 1.0,
+        "Estate": 0.828,
+        "Duchy": 0.203,
+        "Province": 0.007
+      },
+      "decks": [
+        {
+          "Bridge": 0.983,
+          "Copper": 7.0,
+          "Crossroads": 2.962,
+          "Duchy": 4.025,
+          "Estate": 10.588,
+          "Gold": 0.048,
+          "Great Hall": 3.61,
+          "Groundskeeper": 2.955,
+          "Ironworks": 3.0,
+          "Laboratory": 1.248,
+          "Market": 0.403,
+          "Mill": 4.0,
+          "Province": 0.527,
+          "Silver": 1.768,
+          "Village": 2.0
+        },
+        {
+          "Bridge": 1.0,
+          "Copper": 7.0,
+          "Crossroads": 3.0,
+          "Duchy": 0.465,
+          "Estate": 3.0,
+          "Gold": 2.64,
+          "Great Hall": 4.39,
+          "Ironworks": 3.0,
+          "Laboratory": 1.995,
+          "Market": 1.982,
+          "Mill": 4.0,
+          "Province": 2.382,
+          "Silver": 2.0,
+          "Village": 2.0
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 3,
+        "ironworks": 0,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": ""
+      },
+      "games": 400,
+      "seed": 709000,
+      "wins": 335,
+      "ties": 0,
+      "rate": 0.8375,
+      "mean_turns_per_player": 21.265,
+      "points": [
+        53.245,
+        36.985
+      ],
+      "vp_tokens": [
+        18.4275,
+        12.73
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Estate": 0.917,
+        "Duchy": 0.715,
+        "Mill": 0.412
+      },
+      "decks": [
+        {
+          "Bridge": 1.0,
+          "Copper": 7.0,
+          "Crossroads": 2.982,
+          "Duchy": 4.072,
+          "Estate": 8.428,
+          "Gold": 0.08,
+          "Great Hall": 7.173,
+          "Groundskeeper": 2.973,
+          "Ironworks": 3.0,
+          "Laboratory": 1.298,
+          "Market": 0.46,
+          "Mill": 4.0,
+          "Province": 0.5,
+          "Silver": 1.798,
+          "Village": 2.0
+        },
+        {
+          "Bridge": 1.0,
+          "Copper": 7.0,
+          "Crossroads": 3.0,
+          "Duchy": 3.275,
+          "Estate": 5.405,
+          "Gold": 0.065,
+          "Great Hall": 0.828,
+          "Groundskeeper": 2.975,
+          "Laboratory": 1.242,
+          "Market": 0.285,
+          "Mill": 3.217,
+          "Province": 0.83,
+          "Silver": 1.785,
+          "Village": 2.0
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 0,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 710000,
+      "wins": 278,
+      "ties": 1,
+      "rate": 0.69625,
+      "mean_turns_per_player": 15.85,
+      "points": [
+        34.0225,
+        29.0825
+      ],
+      "vp_tokens": [
+        11.3025,
+        9.5525
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 1.0,
+        "Estate": 0.955,
+        "Duchy": 0.075
+      },
+      "decks": [
+        {
+          "Bridge": 0.975,
+          "Copper": 7.0,
+          "Crossroads": 2.865,
+          "Duchy": 2.127,
+          "Estate": 7.11,
+          "Gold": 0.013,
+          "Great Hall": 4.253,
+          "Groundskeeper": 2.893,
+          "Ironworks": 3.0,
+          "Laboratory": 0.85,
+          "Market": 0.145,
+          "Mill": 4.0,
+          "Province": 0.163,
+          "Silver": 1.385,
+          "Village": 1.998
+        },
+        {
+          "Bridge": 0.965,
+          "Copper": 7.0,
+          "Duchy": 1.542,
+          "Estate": 6.825,
+          "Gold": 0.01,
+          "Great Hall": 3.748,
+          "Groundskeeper": 2.928,
+          "Ironworks": 3.0,
+          "Laboratory": 0.94,
+          "Market": 0.142,
+          "Mill": 4.0,
+          "Province": 0.055,
+          "Silver": 1.812,
+          "Village": 1.988
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 0,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 711000,
+      "wins": 323,
+      "ties": 1,
+      "rate": 0.80875,
+      "mean_turns_per_player": 16.275,
+      "points": [
+        41.16,
+        28.0125
+      ],
+      "vp_tokens": [
+        14.0325,
+        9.465
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 1.0,
+        "Estate": 0.915,
+        "Duchy": 0.14
+      },
+      "decks": [
+        {
+          "Bridge": 0.983,
+          "Copper": 7.0,
+          "Crossroads": 2.77,
+          "Duchy": 2.52,
+          "Estate": 6.188,
+          "Gold": 0.005,
+          "Great Hall": 8.0,
+          "Groundskeeper": 2.812,
+          "Ironworks": 3.0,
+          "Laboratory": 0.703,
+          "Market": 0.1,
+          "Mill": 4.0,
+          "Province": 0.23,
+          "Silver": 1.097,
+          "Village": 1.985
+        },
+        {
+          "Bridge": 0.998,
+          "Copper": 7.0,
+          "Crossroads": 2.953,
+          "Duchy": 1.933,
+          "Estate": 7.58,
+          "Gold": 0.005,
+          "Groundskeeper": 2.87,
+          "Ironworks": 3.0,
+          "Laboratory": 0.905,
+          "Market": 0.195,
+          "Mill": 4.0,
+          "Province": 0.195,
+          "Silver": 1.802,
+          "Village": 2.0
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 0,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 712000,
+      "wins": 263,
+      "ties": 4,
+      "rate": 0.6625,
+      "mean_turns_per_player": 24.47375,
+      "points": [
+        44.4925,
+        37.025
+      ],
+      "vp_tokens": [
+        13.8425,
+        11.165
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Estate": 1.0,
+        "Duchy": 1.0,
+        "Great Hall": 1.0
+      },
+      "decks": [
+        {
+          "Bridge": 1.0,
+          "Copper": 7.0,
+          "Crossroads": 3.0,
+          "Duchy": 4.402,
+          "Estate": 7.287,
+          "Gold": 0.24,
+          "Great Hall": 1.925,
+          "Groundskeeper": 2.998,
+          "Ironworks": 3.0,
+          "Laboratory": 1.667,
+          "Market": 0.875,
+          "Mill": 4.0,
+          "Province": 0.705,
+          "Silver": 1.99,
+          "Village": 2.0
+        },
+        {
+          "Bridge": 1.0,
+          "Copper": 7.0,
+          "Crossroads": 3.0,
+          "Duchy": 3.598,
+          "Estate": 6.713,
+          "Gold": 0.098,
+          "Great Hall": 6.075,
+          "Groundskeeper": 2.915,
+          "Ironworks": 3.0,
+          "Laboratory": 1.175,
+          "Market": 0.497,
+          "Province": 0.38,
+          "Silver": 1.998,
+          "Village": 2.0
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 0,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 713000,
+      "wins": 233,
+      "ties": 4,
+      "rate": 0.5875,
+      "mean_turns_per_player": 15.37625,
+      "points": [
+        32.14,
+        29.2025
+      ],
+      "vp_tokens": [
+        10.51,
+        9.81
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 1.0,
+        "Estate": 0.988,
+        "Duchy": 0.018
+      },
+      "decks": [
+        {
+          "Bridge": 0.983,
+          "Copper": 7.0,
+          "Crossroads": 2.87,
+          "Duchy": 1.85,
+          "Estate": 6.897,
+          "Gold": 0.01,
+          "Great Hall": 3.862,
+          "Groundskeeper": 2.815,
+          "Ironworks": 2.998,
+          "Laboratory": 0.695,
+          "Market": 0.128,
+          "Mill": 4.0,
+          "Province": 0.22,
+          "Silver": 1.333,
+          "Village": 1.995
+        },
+        {
+          "Copper": 7.0,
+          "Crossroads": 2.967,
+          "Duchy": 1.153,
+          "Estate": 7.077,
+          "Great Hall": 4.138,
+          "Groundskeeper": 2.635,
+          "Ironworks": 3.0,
+          "Laboratory": 0.398,
+          "Market": 0.01,
+          "Mill": 4.0,
+          "Province": 0.12,
+          "Silver": 1.72,
+          "Village": 2.0
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 0,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 714000,
+      "wins": 205,
+      "ties": 0,
+      "rate": 0.5125,
+      "mean_turns_per_player": 15.4875,
+      "points": [
+        31.7225,
+        31.285
+      ],
+      "vp_tokens": [
+        10.4425,
+        10.2725
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 1.0,
+        "Estate": 0.945,
+        "Duchy": 0.07
+      },
+      "decks": [
+        {
+          "Bridge": 0.99,
+          "Copper": 7.0,
+          "Crossroads": 2.842,
+          "Duchy": 1.865,
+          "Estate": 6.955,
+          "Gold": 0.01,
+          "Great Hall": 3.995,
+          "Groundskeeper": 2.842,
+          "Ironworks": 3.0,
+          "Laboratory": 0.772,
+          "Market": 0.128,
+          "Mill": 4.0,
+          "Province": 0.122,
+          "Silver": 1.335,
+          "Village": 1.995
+        },
+        {
+          "Bridge": 0.99,
+          "Copper": 7.0,
+          "Crossroads": 2.885,
+          "Duchy": 1.735,
+          "Estate": 6.947,
+          "Gold": 0.045,
+          "Great Hall": 4.005,
+          "Groundskeeper": 2.842,
+          "Ironworks": 3.0,
+          "Market": 0.79,
+          "Mill": 4.0,
+          "Province": 0.142,
+          "Silver": 1.375,
+          "Village": 2.0
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": false,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 715000,
+      "wins": 348,
+      "ties": 0,
+      "rate": 0.87,
+      "mean_turns_per_player": 19.1825,
+      "points": [
+        46.5775,
+        30.35
+      ],
+      "vp_tokens": [
+        16.8275,
+        7.015
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 1.0,
+        "Estate": 0.557,
+        "Duchy": 0.512
+      },
+      "decks": [
+        {
+          "Bridge": 0.995,
+          "Copper": 7.0,
+          "Crossroads": 2.947,
+          "Duchy": 3.285,
+          "Estate": 9.65,
+          "Gold": 0.05,
+          "Great Hall": 3.995,
+          "Groundskeeper": 2.953,
+          "Ironworks": 3.0,
+          "Laboratory": 1.235,
+          "Market": 0.395,
+          "Mill": 4.0,
+          "Province": 0.375,
+          "Silver": 1.68,
+          "Village": 2.0
+        },
+        {
+          "Bridge": 1.0,
+          "Copper": 7.0,
+          "Crossroads": 3.0,
+          "Duchy": 3.215,
+          "Estate": 3.0,
+          "Gold": 0.102,
+          "Great Hall": 4.005,
+          "Groundskeeper": 2.953,
+          "Ironworks": 3.0,
+          "Laboratory": 1.312,
+          "Market": 0.522,
+          "Mill": 4.0,
+          "Province": 0.448,
+          "Silver": 1.992,
+          "Village": 2.0
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 1,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 716000,
+      "wins": 349,
+      "ties": 1,
+      "rate": 0.87375,
+      "mean_turns_per_player": 17.8,
+      "points": [
+        46.9025,
+        28.6625
+      ],
+      "vp_tokens": [
+        16.38,
+        9.7475
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 0.998,
+        "Estate": 0.797,
+        "Duchy": 0.273
+      },
+      "decks": [
+        {
+          "Bridge": 0.985,
+          "Copper": 7.0,
+          "Crossroads": 2.87,
+          "Duchy": 3.237,
+          "Estate": 7.62,
+          "Gold": 0.013,
+          "Great Hall": 7.405,
+          "Groundskeeper": 2.902,
+          "Ironworks": 3.0,
+          "Laboratory": 0.938,
+          "Market": 0.205,
+          "Mill": 4.0,
+          "Province": 0.297,
+          "Silver": 1.343,
+          "Village": 1.988
+        },
+        {
+          "Bridge": 1.0,
+          "Copper": 7.0,
+          "Crossroads": 3.0,
+          "Duchy": 2.31,
+          "Estate": 5.85,
+          "Gold": 0.013,
+          "Great Hall": 0.595,
+          "Groundskeeper": 2.723,
+          "Ironworks": 3.0,
+          "Laboratory": 0.688,
+          "Market": 0.168,
+          "Mill": 3.995,
+          "Province": 0.258,
+          "Silver": 1.998,
+          "Village": 2.0
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 2,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 717000,
+      "wins": 364,
+      "ties": 1,
+      "rate": 0.91125,
+      "mean_turns_per_player": 17.98375,
+      "points": [
+        47.975,
+        28.2825
+      ],
+      "vp_tokens": [
+        17.0125,
+        9.3925
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 400
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 0.995,
+        "Estate": 0.8,
+        "Duchy": 0.273
+      },
+      "decks": [
+        {
+          "Bridge": 0.975,
+          "Copper": 7.0,
+          "Crossroads": 2.86,
+          "Duchy": 3.317,
+          "Estate": 7.678,
+          "Gold": 0.015,
+          "Great Hall": 7.532,
+          "Groundskeeper": 2.915,
+          "Ironworks": 3.0,
+          "Laboratory": 0.953,
+          "Market": 0.182,
+          "Mill": 4.0,
+          "Province": 0.3,
+          "Silver": 1.262,
+          "Village": 1.99
+        },
+        {
+          "Bridge": 1.0,
+          "Copper": 7.0,
+          "Crossroads": 3.0,
+          "Duchy": 2.45,
+          "Estate": 5.697,
+          "Gold": 0.007,
+          "Great Hall": 0.468,
+          "Groundskeeper": 2.745,
+          "Ironworks": 3.0,
+          "Laboratory": 0.635,
+          "Market": 0.128,
+          "Mill": 3.995,
+          "Province": 0.23,
+          "Silver": 2.0,
+          "Village": 2.0
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "registered": "Big Money"
+      },
+      "games": 400,
+      "seed": 718000,
+      "wins": 383,
+      "ties": 0,
+      "rate": 0.9575,
+      "mean_turns_per_player": 27.45125,
+      "points": [
+        73.205,
+        41.46
+      ],
+      "vp_tokens": [
+        23.9,
+        0.0
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 279,
+        "Province": 121
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Estate": 0.868,
+        "Duchy": 0.762,
+        "Province": 0.302
+      },
+      "decks": [
+        {
+          "Bridge": 1.0,
+          "Copper": 7.0,
+          "Crossroads": 2.998,
+          "Duchy": 7.33,
+          "Estate": 10.59,
+          "Gold": 0.007,
+          "Great Hall": 8.0,
+          "Groundskeeper": 2.84,
+          "Ironworks": 3.0,
+          "Laboratory": 0.87,
+          "Market": 0.19,
+          "Mill": 4.0,
+          "Province": 0.787,
+          "Silver": 1.955,
+          "Village": 2.0
+        },
+        {
+          "Copper": 7.53,
+          "Estate": 3.0,
+          "Gold": 10.732,
+          "Province": 6.41,
+          "Silver": 9.55
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "registered": "Big Money Smithy"
+      },
+      "games": 400,
+      "seed": 719000,
+      "wins": 400,
+      "ties": 0,
+      "rate": 1.0,
+      "mean_turns_per_player": 25.36,
+      "points": [
+        56.44,
+        16.025
+      ],
+      "vp_tokens": [
+        15.64,
+        0.0
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 399,
+        "Province": 1
+      },
+      "emptied_piles": {
+        "Estate": 1.0,
+        "Duchy": 1.0,
+        "Great Hall": 1.0,
+        "Province": 0.003
+      },
+      "decks": [
+        {
+          "Bridge": 1.0,
+          "Copper": 7.0,
+          "Crossroads": 3.0,
+          "Duchy": 6.49,
+          "Estate": 3.03,
+          "Gold": 0.233,
+          "Great Hall": 8.0,
+          "Groundskeeper": 2.995,
+          "Ironworks": 3.0,
+          "Laboratory": 1.657,
+          "Market": 0.877,
+          "Mill": 4.0,
+          "Province": 1.05,
+          "Silver": 1.975,
+          "Village": 2.0
+        },
+        {
+          "Copper": 7.0,
+          "Duchy": 1.51,
+          "Estate": 10.97,
+          "Gold": 0.273,
+          "Province": 0.087,
+          "Silver": 6.357
+        }
+      ]
+    },
+    {
+      "a": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "b": {
+        "groundskeeper": 0,
+        "ironworks": 0,
+        "bridge": 2,
+        "village": 1,
+        "crossroads": 2,
+        "laboratory": 4,
+        "market": 1,
+        "nobles": 1,
+        "great_hall": 4,
+        "mill": 99,
+        "silver": 3,
+        "gold": 99,
+        "green": 14,
+        "duchy": 3,
+        "estate_vp": false,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      },
+      "games": 400,
+      "seed": 720000,
+      "wins": 312,
+      "ties": 1,
+      "rate": 0.78125,
+      "mean_turns_per_player": 20.56125,
+      "points": [
+        56.56,
+        43.6125
+      ],
+      "vp_tokens": [
+        19.925,
+        0.0
+      ],
+      "truncated": 0,
+      "endings": {
+        "three piles": 343,
+        "Province": 57
+      },
+      "emptied_piles": {
+        "Great Hall": 1.0,
+        "Mill": 1.0,
+        "Estate": 0.575,
+        "Duchy": 0.34,
+        "Province": 0.142
+      },
+      "decks": [
+        {
+          "Bridge": 1.0,
+          "Copper": 7.0,
+          "Crossroads": 2.953,
+          "Duchy": 4.702,
+          "Estate": 9.945,
+          "Gold": 0.015,
+          "Great Hall": 5.875,
+          "Groundskeeper": 2.917,
+          "Ironworks": 3.0,
+          "Laboratory": 0.98,
+          "Market": 0.215,
+          "Mill": 3.993,
+          "Province": 0.453,
+          "Silver": 1.685,
+          "Village": 2.0
+        },
+        {
+          "Bridge": 2.0,
+          "Copper": 7.0,
+          "Crossroads": 2.0,
+          "Duchy": 0.885,
+          "Estate": 3.0,
+          "Gold": 3.692,
+          "Great Hall": 2.125,
+          "Ironworks": 1.0,
+          "Laboratory": 3.998,
+          "Market": 0.998,
+          "Mill": 4.008,
+          "Nobles": 0.995,
+          "Province": 4.973,
+          "Silver": 2.938,
+          "Village": 1.0
+        }
+      ]
+    }
+  ],
+  "ranking": [
+    {
+      "rate": 0.7695833333333333,
+      "games": 8400,
+      "spec": {
+        "groundskeeper": 3,
+        "ironworks": 3,
+        "bridge": 1,
+        "village": 2,
+        "crossroads": 3,
+        "laboratory": 2,
+        "market": 2,
+        "nobles": 0,
+        "great_hall": 99,
+        "mill": 4,
+        "silver": 2,
+        "gold": 99,
+        "green": 12,
+        "duchy": 4,
+        "estate_vp": true,
+        "green_gate": 0,
+        "opening": "Ironworks"
+      }
+    }
+  ],
+  "winner": {
+    "groundskeeper": 3,
+    "ironworks": 3,
+    "bridge": 1,
+    "village": 2,
+    "crossroads": 3,
+    "laboratory": 2,
+    "market": 2,
+    "nobles": 0,
+    "great_hall": 99,
+    "mill": 4,
+    "silver": 2,
+    "gold": 99,
+    "green": 12,
+    "duchy": 4,
+    "estate_vp": true,
+    "green_gate": 0,
+    "opening": "Ironworks"
+  },
+  "labels": {
+    "{\"bridge\": 1, \"crossroads\": 3, \"duchy\": 4, \"estate_vp\": true, \"gold\": 99, \"great_hall\": 99, \"green\": 12, \"green_gate\": 0, \"groundskeeper\": 0, \"ironworks\": 3, \"laboratory\": 2, \"market\": 2, \"mill\": 4, \"nobles\": 0, \"opening\": \"Ironworks\", \"silver\": 2, \"village\": 2}": "no Groundskeeper",
+    "{\"bridge\": 2, \"crossroads\": 2, \"duchy\": 3, \"estate_vp\": false, \"gold\": 99, \"great_hall\": 4, \"green\": 14, \"green_gate\": 0, \"groundskeeper\": 0, \"ironworks\": 0, \"laboratory\": 4, \"market\": 1, \"mill\": 99, \"nobles\": 1, \"opening\": \"Ironworks\", \"silver\": 3, \"village\": 1}": "best searched Groundskeeper-free plan"
+  }
+}
