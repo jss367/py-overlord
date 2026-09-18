@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jerusalem: Board and Strategy Guide</title>
+<meta name="description" content="A kingdom built from the ten strongest cards no strategy referenced, the card-rules defects the audit found, and a searched Scrying Pool engine validated over 3,000 held-out games.">
+<style>
+:root{color-scheme:light;--paper:#f5f2e9;--ink:#263b32;--muted:#58675d;--line:#d5dbcf;--accent:#895b21}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.65 system-ui,-apple-system,sans-serif}
+main{max-width:1100px;margin:auto;padding:28px clamp(20px,5vw,64px) 70px}nav{display:flex;gap:22px;flex-wrap:wrap;font-size:14px}
+a{color:var(--accent)}header{padding:55px 0 30px;border-bottom:1px solid var(--line)}.eyebrow{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:700}
+h1,h2,h3{font-family:Georgia,serif;line-height:1.15}h1{font-size:clamp(38px,6vw,64px);max-width:800px;margin:15px 0 24px}h2{font-size:31px;margin-top:40px}h3{font-size:23px}.lead{font-size:21px;max-width:780px}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.card{background:#fffdf7;border:1px solid var(--line);border-radius:10px;padding:17px 14px}.card strong{display:block}.card small{display:block;color:var(--muted);margin-top:8px}
+.callout{background:#e5ecdf;border-left:4px solid #638353;padding:20px 25px;border-radius:4px;margin:25px 0}.muted{color:var(--muted);font-size:15px}.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:15px}th,td{text-align:left;padding:13px 12px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#e8ecdf}code{font-size:.87em}pre{overflow:auto;padding:20px;background:#263b32;color:#f5f2e9;border-radius:8px;line-height:1.65}li{margin:9px 0}footer{border-top:1px solid var(--line);margin-top:40px;padding-top:20px;font-size:14px}
+@media(max-width:800px){.cards{grid-template-columns:repeat(2,1fr)}}@media print{body{background:white}main{padding:0}nav{display:none}h2{break-after:avoid}.card,tr{break-inside:avoid}}
+</style>
+</head>
+<body><main>
+<nav><a href="index.html">Strategy catalog</a><a href="../boards/jerusalem.html">View the board</a><a href="jerusalem-scrying-pool-goons.html">The winning strategy</a><a href="ten-strongest-unused-cards.html">Where the ten cards came from</a><a href="card-strategy-usage.html">Card usage report</a></nav>
+<header>
+<p class="eyebrow">A kingdom of unused cards &middot; September 17, 2026</p>
+<h1>Ten cards nobody played.<br>Four of them carry the board.</h1>
+<p class="lead">The kingdom is the ten strongest piles in the catalog that no runnable strategy referenced. The search found a Scrying Pool engine that wins 79% of held-out games &mdash; and found that three of the ten piles do nothing for it, and three more are traps.</p>
+</header>
+
+<section aria-labelledby="board"><h2 id="board">The kingdom</h2>
+<div class="cards">
+<div class="card"><strong>Ambassador</strong><small>$3 &middot; Action&ndash;Attack</small></div>
+<div class="card"><strong>Sea Hag</strong><small>$4 &middot; Action&ndash;Attack</small></div>
+<div class="card"><strong>Fortress</strong><small>$4 &middot; Action</small></div>
+<div class="card"><strong>Governor</strong><small>$5 &middot; Action</small></div>
+<div class="card"><strong>Minion</strong><small>$5 &middot; Action&ndash;Attack</small></div>
+<div class="card"><strong>Old Witch</strong><small>$5 &middot; Action&ndash;Attack</small></div>
+<div class="card"><strong>Ill-Gotten Gains</strong><small>$5 &middot; Treasure</small></div>
+<div class="card"><strong>Bridge Troll</strong><small>$5 &middot; Action&ndash;Attack&ndash;Duration</small></div>
+<div class="card"><strong>Goons</strong><small>$6 &middot; Action&ndash;Attack</small></div>
+<div class="card"><strong>Scrying Pool</strong><small>$2 + Potion &middot; Action&ndash;Attack</small></div>
+</div>
+<p>Two players, the normal basic supply, seven Coppers and three Estates each. No Shelters, Colonies, Platinum, or landscapes. Scrying Pool costs a Potion, so the Alchemy Potion joins the supply; nothing else is added.</p>
+<p>These ten were chosen as the strongest piles with <a href="card-strategy-usage.html">zero strategy references</a> in the catalog, not as a balanced kingdom, and the result shows it. Three separate cursers (Sea Hag, Old Witch, Ill-Gotten Gains) chase a ten-card Curse pile. There is exactly one village, Fortress. There is one trasher, Ambassador, and it is also an attack. The only non-terminal draw is Scrying Pool, behind a Potion, and Governor, which hands the opponent a share of everything it does.</p>
+<div class="callout"><strong>The tension.</strong> Every obvious plan on this board is a money plan: three cursers and a Goons make a perfectly good Big Money deck, and that deck is what the engines have to beat. The board's only real engine runs on a $2-plus-Potion card that does nothing until the deck is almost all Actions.</div>
+</section>
+
+<section aria-labelledby="strategy"><h2 id="strategy">The recommendation: Scrying Pool, Fortress and Goons</h2>
+<div class="callout"><strong>Open Potion. Buy one Ambassador and use it on Estates and Curses only. Fill the deck with Scrying Pools over Fortresses until it draws itself, then add Goons and spend every buy.</strong> This policy won a fourteen-entrant round robin at <strong>71.6%</strong> over 1,040 games, then scored <strong>79.8%</strong> across 3,000 further games on fresh shuffle seeds against ten opponents, beating every one of them.</div>
+<p><a href="jerusalem-scrying-pool-goons.html">Open the runnable strategy</a>.</p>
+
+<h3>Opening and buying</h3>
+<ol>
+<li><strong>Potion first, on turn 1 or 2.</strong> Across 60 traced games the Potion arrived on turn 1.6 and the first Ambassador on turn 2.6. One Potion is enough and a second is worse: the refine sweep scored three Potions at 0.403 against one Potion at 0.680.</li>
+<li><strong>One Ambassador, not three.</strong> It returns Estates and Curses. Removing it entirely costs the deck 90.7% of a 300-game head-to-head, so the single copy is load-bearing &mdash; but it is a thinner, not a plan.</li>
+<li><strong>Keep three Coppers, as a flat reserve.</strong> The economy floor is the difference between a thin deck and a broke one, and the cliff is sharp: an effective reserve of two instead of three turns this into a 7% policy, because two Coppers and a Silver cannot reach the $5 the engine is built on. Without it the Ambassador deck shrinks to six or seven cards, cannot reach $5, and scores nothing; that failure is reproduced below.</li>
+<li><strong>Scrying Pools over Fortresses, eight to five.</strong> Scrying Pool reveals the run of Actions on top of the deck and puts all of them in hand, so every Action added makes every Pool draw further. Fortress is the only village and never leaves the deck.</li>
+<li><strong>Goons late, then buy everything.</strong> Goons first appears around turn 22 in traced games. Each one in play turns every buy into a victory token, and the deck spends its spare buys on Estates and then Coppers.</li>
+<li><strong>Green only when four Provinces are gone.</strong> There is no turn-count trigger. Greening on a turn counter instead scored 0.45 or worse on every setting tried, against 0.573 for the Province-count rule.</li>
+</ol>
+
+<h3>Playing the deck</h3>
+<p>Fortress first, then Scrying Pool, then the terminals. Scrying Pool's reveal is used as a filter: on your own deck it discards anything that is not an Action, because a Copper on top both misses the draw and stops it. On the opponent's deck it does the reverse and discards their best card. Setting that policy to &ldquo;discard only junk&rdquo; instead cost 0.448 against 0.573.</p>
+<p>Ambassador is never played with nothing to return. Revealing a card the deck intends to keep hands the opponent a free copy of it, so a hand with no Estate, Curse or spare Copper simply plays something else.</p>
+
+<h3>What the winning deck looks like</h3>
+<p>Averaged over the validation games it finished with about 5.3 Scrying Pools, 5.1 Fortresses, 3.9 Goons, 2.2 Bridge Trolls, 1.8 Sea Hags, one Old Witch, one Ambassador, one Potion and one Silver, alongside 15.1 Coppers and 9.0 Estates bought as Goons fodder. It buys no Gold at all. Games ran about 27 to 45 turns depending on the opponent, and 2,523 of the 3,000 validation games ended on three empty piles rather than on an emptied Province pile.</p>
+</section>
+
+<section aria-labelledby="ablations"><h2 id="ablations">Which of the ten piles actually matter</h2>
+<p>Each row is a one-field ablation: the published parameters with a single count set to zero and nothing else touched, played against the unmodified deck over 300 seat-balanced games. The rate is the <em>published</em> deck's win rate, so higher means the removed card mattered more.</p>
+<div class="scroll"><table>
+<thead><tr><th>Removed</th><th>Published deck wins</th><th>Reading</th></tr></thead>
+<tbody>
+<tr><td><strong>Scrying Pool</strong> (8&nbsp;&rarr;&nbsp;0)</td><td>98.7%</td><td>The engine. Without it there is no draw at all.</td></tr>
+<tr><td><strong>Fortress</strong> (5&nbsp;&rarr;&nbsp;0)</td><td>95.0%</td><td>The only village. Scrying Pool draws Actions it then cannot play.</td></tr>
+<tr><td><strong>Ambassador</strong> (1&nbsp;&rarr;&nbsp;0)</td><td>90.7%</td><td>One copy, and removing it still costs the game. The Estates and Curses have to go somewhere.</td></tr>
+<tr><td>Scrying Pool and Potion</td><td>87.3%</td><td>Refunding the Potion recovers a little of the loss, not much.</td></tr>
+<tr><td><strong>Goons</strong> (5&nbsp;&rarr;&nbsp;0)</td><td>71.0%</td><td>The payload. A deck that draws itself but has nothing to spend the buys on finishes these games on &minus;1.2 points against the published deck's 17.9.</td></tr>
+<tr><td>Goons filler buys</td><td>55.3%</td><td>Marginal on win rate, clear on score: 24.5 points against 11.0.</td></tr>
+<tr><td>Bridge Troll (3&nbsp;&rarr;&nbsp;0)</td><td>57.0%</td><td><strong>No measurable effect</strong> at this sample.</td></tr>
+<tr><td>Old Witch (1&nbsp;&rarr;&nbsp;0)</td><td>52.5%</td><td><strong>No measurable effect.</strong></td></tr>
+<tr><td>Sea Hag (2&nbsp;&rarr;&nbsp;0)</td><td>50.2%</td><td><strong>No measurable effect.</strong></td></tr>
+</tbody></table></div>
+<div class="callout"><strong>These rows were remeasured after two methodology bugs.</strong> The first ablation run set a card's acquisition target to zero but left the <code>opening</code> and <code>first_five</code> knobs alone &mdash; and those buy a card on turns 1&ndash;2 whatever the target is. The "Old Witch removed" row therefore still opened with an Old Witch, and the no-Potion row still bought the Potion. Removals now redirect any opening knob naming the removed card to Silver. Separately, the deck's Copper reserve was read two different ways by the card Ambassador named and the number of copies it returned; making them agree changed the deck's behaviour enough to require a full revalidation. Both are fixed, and the figures above are from the rerun. The ordering did not change.</div>
+<p><strong>Four piles carry this board.</strong> Scrying Pool, Fortress, Ambassador and Goons are each worth a decisive margin. The three cursers and the Bridge Troll in the published deck are coin flips at 300 games: the winning parameters buy them, and removing them changes nothing measurable. They are in the published strategy because that is the deck the 3,000 validation games measured, not because they were shown to help.</p>
+<div class="callout"><strong>Three of the ten are traps.</strong> <strong>Governor</strong> is the clearest: every setting of it scored worse than none, from 0.445 for a single copy down to 0.263 for three. Its draw, its Gold, and its upgrade all give the opponent a weaker copy of the same thing, and against a money deck that gift is worth more to them than the card is to you. <strong>Ill-Gotten Gains</strong> rushes were the weakest archetype in the round robin at 4.1%, and <strong>Minion</strong> never beat the leader on any sweep. All three were rejected by the search, not omitted from it, and all three are still listed as unreferenced in the <a href="card-strategy-usage.html">card usage report</a> after this work.</div>
+</section>
+
+<section aria-labelledby="money"><h2 id="money">The money plan, and why it loses</h2>
+<p>The board's natural money deck is Sea Hag plus Old Witch to empty the Curse pile, two Goons for points per buy, and otherwise Silver, Gold and immediate Provinces. It is <a href="jerusalem-curse-goons-money.html">registered as a runnable strategy</a> because it is the yardstick the engine had to clear, and because it was the best thing found before the engine was reachable at all.</p>
+<p>It is genuinely good against the obvious alternatives. It beats plain Old Witch money, it beats Big Money, and it beat every hand-built engine tried early in this work. Against the published engine it wins 1.7% of 300 games.</p>
+<p>The reason is buys. A money deck converts $8 into one Province; the Scrying Pool deck draws most of its cards and converts one turn into a Province plus five or six scored buys under Goons. The money deck's final scores cluster around 52 points and the engine's around 131.</p>
+</section>
+
+<section aria-labelledby="audit"><h2 id="audit">Simulator work done for this board</h2>
+<p>Every pile here was unused, which means none of them had been exercised by a strategy. A card-by-card audit against the printed rules found nine behaviour defects and four decisions the strategy layer could not reach. All are fixed, with tests in <code>tests/test_jerusalem_board_cards.py</code>, <code>tests/test_adventures_cards.py</code> and <code>tests/test_adventures_events.py</code>. The last two rows were found by review after the first search run; the search was rerun on the corrected simulator and the conclusions are unchanged.</p>
+<div class="scroll"><table>
+<thead><tr><th>Card</th><th>Defect</th><th>Effect</th></tr></thead>
+<tbody>
+<tr><td>Bridge Troll</td><td>The attack handed out the <strong>&minus;1 Card token</strong>. The card gives the &minus;$1 token.</td><td>Wrong attack entirely: victims lost a card from their next hand instead of a coin.</td></tr>
+<tr><td>Bridge Troll</td><td>&ldquo;Cards cost $1 less <strong>on your turn</strong>&rdquo; was applied on every player's turn.</td><td>A Duration Troll stays in play through the opponent's turn, so it was discounting their buys too &mdash; a gift to the player it attacks.</td></tr>
+<tr><td>Ill-Gotten Gains</td><td>Granted <strong>+1 Buy</strong> it does not have.</td><td>Straight buff to every Ill-Gotten Gains rush, the archetype most likely to exploit it.</td></tr>
+<tr><td>Governor</td><td>The upgrade gained a card costing <strong>up to</strong> $2 more instead of <strong>exactly</strong> $2 more.</td><td>Turned an exact-cost trade into a free remodel.</td></tr>
+<tr><td>Governor</td><td>Each other player upgraded by <strong>up to $2</strong> instead of <strong>exactly $1</strong>.</td><td>Opponents got the player's own version of the effect rather than the weaker one, roughly doubling what Governor gives away.</td></tr>
+<tr><td>Governor</td><td>Choosing the trash mode with an empty hand silently resolved as <strong>+3 Cards</strong>.</td><td>The Governor's own trash is mandatory when able ("may" appears only in the other-players clause), and an empty hand simply does nothing. Falling back to the draw mode also handed each opponent a card they were not entitled to.</td></tr>
+<tr><td>Bridge Troll <span class="muted">(and Ball)</span></td><td>The &minus;$1 token was a counter, so a second Troll stacked a second penalty.</td><td>Each player owns one physical &minus;$1 token; taking it while it is held does nothing. Found by review after the first search run, so the search was rerun &mdash; it moved the headline by 0.1 points.</td></tr>
+<tr><td>Governor</td><td>The exact-cost comparison used <strong>printed</strong> costs.</td><td>Cost reducers move both sides of &ldquo;exactly $2 more&rdquo;, and Bridge Troll is on this very board. Debt was ignored entirely. Now compares current costs for the chooser, with Potion and Debt matched exactly.</td></tr>
+<tr><td>Ambassador</td><td>How many copies to return was hardcoded by card name.</td><td>No strategy could return two of a non-junk card, or return zero and hand an opponent a copy. It is now a decision, with the old behaviour as the default.</td></tr>
+</tbody></table></div>
+<p>Four per-card decisions had a hook on the base AI that <code>GeneticAI</code> never forwarded to the strategy, so no strategy could override them: <code>choose_governor_option</code>, <code>choose_card_to_ambassador</code>, <code>choose_ambassador_return_count</code>, and <code>choose_topdeck_or_discard</code> (Scrying Pool's and Spy's reveal). All four are now forwarded. Strategies that define no hook keep the previous defaults unchanged.</p>
+</section>
+
+<section aria-labelledby="method"><h2 id="method">How the search ran, and where it went wrong first</h2>
+<p>The pipeline is a broad screen, then one-field sweeps, then combinations of the sweeps' winners, then a round robin, then held-out validation. Every stage plays each shuffle seed from both starting seats.</p>
+<div class="scroll"><table>
+<thead><tr><th>Stage</th><th>Games</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>Broad screen &mdash; 198 candidates against a four-policy panel</td><td>31,680</td><td>Best 0.700, a Scrying Pool engine</td></tr>
+<tr><td>Refine &mdash; one axis at a time around the top three</td><td>41,800</td><td>Thirteen single changes beat the leader</td></tr>
+<tr><td>Combine &mdash; 42 subsets of those thirteen changes</td><td>6,720</td><td>Best 0.944 against the panel</td></tr>
+<tr><td>Round robin &mdash; ten combinations and the four panel policies</td><td>7,280</td><td>Winner 71.6% over 1,040 games</td></tr>
+<tr><td>Validation &mdash; fresh seeds, ten opponents</td><td>3,000</td><td><strong>79.8%</strong>, winning all ten pairings</td></tr>
+<tr><td>Ablation &mdash; one pile removed at a time</td><td>2,700</td><td>Four piles load-bearing, three neutral</td></tr>
+</tbody></table></div>
+<h3>Three things that nearly buried the answer</h3>
+<p>Each of these made the winning plan look worthless, and each is a search-harness bug rather than a fact about Dominion. They are recorded because the failure modes are general.</p>
+<ol>
+<li><strong>A default that added cards nobody asked for.</strong> The parameter defaults carried three Governors, so every plan written as &ldquo;defaults plus these cards&rdquo; silently contained the one card that ruins this board. The Scrying Pool panel entry scored 0.150 against plain money with them and 0.700 without. Kingdom counts now default to zero, so a plan contains exactly the piles it names.</li>
+<li><strong>Knobs that did nothing.</strong> Two acquisition orders listed Silver and Gold before the kingdom cards. With unlimited Silver and Gold targets, nothing after them was ever bought, so four parameters read as tuned while having no effect &mdash; four probes returned rates identical to the baseline. Silver and Gold now close every order.</li>
+<li><strong>A thinner with no floor.</strong> Ambassador returned Coppers without limit, so the deck thinned itself from twelve cards to six, could no longer reach $5, and finished games with 0 points and no treasure at all. The floor keeps three Coppers flat. It must be a single number, because it governs both which card Ambassador names and how many copies it returns; when those disagreed the deck named Copper and returned none of it, spending an action to hand the opponent a free Copper.</li>
+</ol>
+<p>The final combination stage also overfits its panel, and that is visible in the record: the combination ranked first against the panel at 0.944 is the published winner, but the runner-up at 0.938 loses to it head-to-head. The round robin and the held-out validation exist to catch exactly that, and the published choice is the one that survived both.</p>
+<p class="muted">These are simulator comparisons, not a proof of optimal Dominion play. Opponent selection, the policies' tactical defaults, and finite samples limit the conclusion. The three neutral piles above are neutral <em>at 300 games</em>; a larger sample could separate them.</p>
+<p>Records: <a href="../../scripts/data/jerusalem_search_summary.json">broad screen</a>, <a href="../../scripts/data/jerusalem_refine_summary.json">one-field sweeps</a>, <a href="../../scripts/data/jerusalem_combine_summary.json">combinations</a>, <a href="../../scripts/data/jerusalem_tournament_summary.json">round robin</a>, <a href="../../scripts/data/jerusalem_validation_summary.json">validation</a>, and <a href="../../scripts/data/jerusalem_ablation_summary.json">ablations</a>.</p>
+</section>
+
+<section aria-labelledby="reproduction"><h2 id="reproduction">Reproduce the experiments</h2>
+<p>Run these from the repository root, in order. Each stage reads the previous stage's record.</p>
+<pre><code>PYTHONPATH=. python scripts/search_jerusalem.py search \
+    --games 40 --output .context/jerusalem-search.json
+
+PYTHONPATH=. python scripts/search_jerusalem.py refine \
+    --input .context/jerusalem-search.json \
+    --games 40 --finalists 3 --output .context/jerusalem-refine.json
+
+PYTHONPATH=. python scripts/search_jerusalem.py combine \
+    --input .context/jerusalem-search.json \
+    --refine-input .context/jerusalem-refine.json \
+    --games 40 --output .context/jerusalem-combine.json
+
+PYTHONPATH=. python scripts/search_jerusalem.py tournament \
+    --input .context/jerusalem-combine.json \
+    --games 80 --finalists 10 --output .context/jerusalem-tournament.json
+
+PYTHONPATH=. python scripts/search_jerusalem.py validate \
+    --input .context/jerusalem-combine.json \
+    --games 300 --output .context/jerusalem-validation.json
+
+PYTHONPATH=. python scripts/search_jerusalem.py ablate \
+    --input .context/jerusalem-combine.json \
+    --games 300 --output .context/jerusalem-ablation.json</code></pre>
+<p>To play the published strategy against any other registered entrant on this board:</p>
+<pre><code>python compare_all_strategies.py --board boards/jerusalem.txt --games 40</code></pre>
+<p>Because every pile here was unused, most registered strategies reference a card this board does not have and the tool excludes them. The substantive comparisons are the round robin and the validation above.</p>
+</section>
+
+<footer><p class="muted">Part of the <a href="index.html">Dominion strategy catalog</a>. Board definition: <code>boards/jerusalem.txt</code>. Strategy source: <code>dominion/strategy/strategies/jerusalem_seeds.py</code>. Search harness: <code>scripts/search_jerusalem.py</code>.</p></footer>
+</main></body>
+</html>

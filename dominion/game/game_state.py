@@ -3064,22 +3064,23 @@ class GameState:
         if self.has_pile_token(player, card.name, "-$2 cost"):
             cost -= 2
 
-        # Adventures Bridge Troll: while in play, all cards cost $1 less for
-        # ALL players (the effect is global until the owner's next turn
-        # cleanup). Scan every player's in_play and duration zones.
-        bt_count = 0
-        for tracker in self.players:
+        # Adventures Bridge Troll: "While this is in play, cards cost $1 less
+        # on your turn." A Troll stays in play through the opponent's turn as
+        # a Duration, but only discounts on its owner's turn, so count the
+        # current player's copies alone.
+        owner = self.turn_player if self.players else None
+        if owner is not None:
             # Every duration entry is one active reduction (a Throne Roomed
             # Troll is queued twice). A Troll still in in_play that is also
             # queued in duration is the same physical card, not a second one.
-            bt_count += sum(1 for c in tracker.duration if c.name == "Bridge Troll")
+            bt_count = sum(1 for c in owner.duration if c.name == "Bridge Troll")
             bt_count += sum(
                 1
-                for c in tracker.in_play
-                if c.name == "Bridge Troll" and c not in tracker.duration
+                for c in owner.in_play
+                if c.name == "Bridge Troll" and c not in owner.duration
             )
-        if bt_count:
-            cost -= bt_count
+            if bt_count:
+                cost -= bt_count
 
         return max(0, cost)
 
@@ -3555,8 +3556,9 @@ class GameState:
         cards_to_draw += getattr(player, "farrier_pending_draw", 0)
         player.farrier_pending_draw = 0
 
-        # Adventures: -1 Card tokens (Borrow, Relic, Bridge Troll). Each token
-        # removes one card from the next end-of-turn draw and is then removed.
+        # Adventures: -1 Card tokens (Borrow, Relic). Each token removes one
+        # card from the next end-of-turn draw and is then removed. Bridge
+        # Troll hands out the -$1 token instead and is not a source here.
         minus_tokens = getattr(player, "minus_card_tokens", 0)
         if minus_tokens > 0:
             cards_to_draw = max(0, cards_to_draw - minus_tokens)

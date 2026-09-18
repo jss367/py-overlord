@@ -25,9 +25,11 @@ class Governor(Card):
             elif choice == "gold":
                 self._do_gold_option(game_state, player)
             else:
-                handled = self._do_upgrade_option(game_state, player)
-                if not handled:
-                    self._do_cards_option(game_state, player)
+                # "Trash a card from your hand" is mandatory for the Governor
+                # when able, and choosing it with an empty hand simply does
+                # nothing -- it does not become the +3 Cards mode. Each other
+                # player still gets their optional upgrade either way.
+                self._do_upgrade_option(game_state, player)
 
         for choice in select_modes(game_state, player, self, options, [choice]):
             resolve(choice)
@@ -53,60 +55,81 @@ class Governor(Card):
                 game_state.supply["Silver"] -= 1
                 game_state.gain_card(other, get_card("Silver"))
 
-    def _do_upgrade_option(self, game_state, player):
-        if not player.hand:
-            return False
-        to_trash = player.ai.choose_card_to_trash(game_state, list(player.hand))
-        if not to_trash or to_trash not in player.hand:
-            return False
-        player.hand.remove(to_trash)
-        game_state.trash_card(player, to_trash)
+    @staticmethod
+    def _exact_upgrade_targets(game_state, chooser, trashed, increment):
+        """Supply cards costing exactly ``increment`` more than ``trashed``.
+
+        Governor's upgrade is an exact-cost gain, not a "costing up to" gain:
+        $2 more for the player, $1 more for everyone else. The comparison is
+        against *current* costs for this player, so cost reducers such as
+        Bridge Troll, Highway and a Ferry token move both sides of it. Potion
+        and Debt components must match exactly as well, since $5, $2P and
+        $5D are three different costs.
+        """
 
         from ..registry import get_card
 
-        max_cost = to_trash.cost.coins + 2
-        affordable = [
+        target_coins = game_state.get_card_cost(chooser, trashed) + increment
+        return [
             get_card(name)
             for name, count in game_state.supply.items()
             if count > 0
-            and get_card(name).cost.coins <= max_cost
-            and get_card(name).cost.potions <= to_trash.cost.potions
+            and game_state.get_card_cost(chooser, get_card(name)) == target_coins
+            and get_card(name).cost.potions == trashed.cost.potions
+            and get_card(name).cost.debt == trashed.cost.debt
         ]
-        if affordable:
-            gain = player.ai.choose_buy(game_state, affordable + [None])
+
+    @staticmethod
+    def _upgrade_one(game_state, chooser, increment, *, optional):
+        """Trash a card from ``chooser``'s hand and gain the exact upgrade.
+
+        The Governor's own trash is mandatory; every other player "may" trash,
+        so an AI naming nothing skips their upgrade. Returns True when a card
+        was trashed.
+        """
+
+        from ..registry import get_card
+
+        if not chooser.hand:
+            return False
+        offered = list(chooser.hand) + ([None] if optional else [])
+        to_trash = chooser.ai.choose_card_to_trash(game_state, offered)
+        if to_trash not in chooser.hand:
+            if optional:
+                return False
+            # Mandatory: an AI that named nothing still has to give something up.
+            to_trash = min(
+                chooser.hand,
+                key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
+            )
+        chooser.hand.remove(to_trash)
+        game_state.trash_card(chooser, to_trash)
+
+        targets = Governor._exact_upgrade_targets(
+            game_state, chooser, to_trash, increment
+        )
+        if targets:
+            gain = chooser.ai.choose_buy(game_state, targets + [None])
             if (
                 gain is None
                 or gain.name not in game_state.supply
                 or game_state.supply[gain.name] <= 0
             ):
-                gain = affordable[0]
+                gain = max(targets, key=lambda c: (c.is_action, c.name))
             game_state.supply[gain.name] -= 1
-            game_state.gain_card(player, get_card(gain.name))
+            game_state.gain_card(chooser, get_card(gain.name))
+        return True
 
+    def _do_upgrade_option(self, game_state, player):
+        """Resolve the upgrade mode for the Governor, then for everyone else.
+
+        The Governor's own trash is mandatory when their hand is non-empty;
+        only the other players "may" decline. An empty hand trashes nothing
+        and gains nothing, and the other players' upgrades still happen.
+        """
+        self._upgrade_one(game_state, player, 2, optional=False)
         for other in game_state.players:
-            if other is player or not other.hand:
+            if other is player:
                 continue
-            other_trash = other.ai.choose_card_to_trash(game_state, list(other.hand))
-            if not other_trash or other_trash not in other.hand:
-                continue
-            other.hand.remove(other_trash)
-            game_state.trash_card(other, other_trash)
-            max_other_cost = other_trash.cost.coins + 2
-            gains = [
-                get_card(name)
-                for name, count in game_state.supply.items()
-                if count > 0
-                and get_card(name).cost.coins <= max_other_cost
-                and get_card(name).cost.potions <= other_trash.cost.potions
-            ]
-            if gains:
-                selection = other.ai.choose_buy(game_state, gains + [None])
-                if (
-                    selection is None
-                    or selection.name not in game_state.supply
-                    or game_state.supply[selection.name] <= 0
-                ):
-                    selection = gains[0]
-                game_state.supply[selection.name] -= 1
-                game_state.gain_card(other, get_card(selection.name))
+            self._upgrade_one(game_state, other, 1, optional=True)
         return True
