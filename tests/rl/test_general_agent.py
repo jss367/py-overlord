@@ -153,6 +153,65 @@ def test_engine_turn_cap_truncates_training_without_a_winning_reward(max_turns):
         env.close()
 
 
+@pytest.mark.parametrize("seat", [0, 1])
+@pytest.mark.parametrize("max_turns", [1, 100, 150])
+def test_truncation_returns_next_real_decision_after_opponent_turn(seat, max_turns):
+    board = kingdom_splits()["train"][0]
+    encoder = GeneralEncoder()
+    env = DominionEnv(board, PassingAI(), max_turns=max_turns, state_encoder=encoder)
+    try:
+        env.reset(seed=1, options={"seat": seat})
+        env.game_state.turn_number = min(max_turns, 100)
+        opponent = env.game_state.players[1 - seat]
+        previous_opponent_turns = opponent.turns_taken
+        for _ in range(30):
+            obs, reward, terminated, truncated, info = env.step(env.action_encoder.pass_action_index)
+            if terminated or truncated:
+                break
+        assert truncated and not terminated and reward == 0
+        assert env.game_state.current_player_index == seat
+        assert env.game_state.phase != "start"
+        assert opponent.turns_taken == previous_opponent_turns + 1
+        assert info["decision_type"] in ("action", "treasure", "buy", "trash")
+        assert obs[-4:].sum() == 1
+        np.testing.assert_array_equal(
+            obs, encoder.encode_decision(env.game_state, seat, info["decision_type"]))
+        # Truncation leaves the engine suspended at this exact decision;
+        # close must cancel it without executing an unrecorded agent action.
+        thread = env._game_thread
+        assert thread.is_alive()
+        env.close()
+        assert not thread.is_alive()
+    finally:
+        env.close()
+
+
+@pytest.mark.parametrize("max_turns", [1, 100, 150])
+def test_natural_end_before_post_cap_decision_is_terminal(max_turns):
+    cap = min(max_turns, 100)
+
+    class EndingOpponent(PassingAI):
+        def choose_buy(self, state, choices):
+            if state.turn_number > cap:
+                state.supply["Province"] = 0
+            return None
+
+    board = kingdom_splits()["train"][0]
+    env = DominionEnv(board, EndingOpponent(), max_turns=max_turns)
+    try:
+        env.reset(seed=1, options={"seat": 1})
+        env.game_state.turn_number = cap
+        env.game_state.players[1].vp_tokens = 10
+        for _ in range(30):
+            _, reward, terminated, truncated, info = env.step(env.action_encoder.pass_action_index)
+            if terminated or truncated:
+                break
+        assert terminated and not truncated and reward == 1
+        assert not info["decision_type"]
+    finally:
+        env.close()
+
+
 @pytest.mark.parametrize("max_turns", [100, 150])
 def test_engine_turn_cap_receives_no_evaluation_credit(monkeypatch, max_turns):
     original = GameState.initialize_game

@@ -110,8 +110,12 @@ the turn cap is reported separately and earns no evaluation credit; it is never
 counted as a win or tie. Both the requested limit and the engine's 100-turn
 safety cap are detected; a natural ending on the same boundary takes priority.
 During PPO a capped episode emits zero reward but bootstraps its value target
-from the final observation before reset. Advantage propagation stops at every
-episode boundary, and only natural termination suppresses value bootstrapping.
+from the next actual agent decision before reset, advancing through an intervening
+opponent turn when necessary. If the game ends naturally before that decision,
+its terminal reward is used instead. The training environment may advance beyond
+the safety-cap boundary only to obtain this decision; evaluation still stops at
+the boundary. Advantage propagation stops at every episode boundary, and only
+natural termination suppresses value bootstrapping.
 Engine exceptions propagate as errors instead of silently becoming results.
 
 JSON reports include individual games, seeds, seats, scores, turn caps, the
@@ -187,13 +191,14 @@ python -m dominion.rl.general.evaluate \
   --output .context/general-dominion-evaluation.json
 ```
 
-The latest full repository run passes all 3,063 tests, including all 79
+The latest full repository run passes all 3,072 tests, including all 88
 reinforcement learning tests. Earlier runs intermittently failed
 `TestCustomConditionSignatures::test_copy_and_worker_roundtrip_preserve_signature`,
 which also failed in an unchanged checkout and passed independently; that
 pre-existing serialization issue did not recur in the final run. The suite
 covers the review fixes for mandatory trash menus, the engine turn cap, and
-value bootstrapping without leakage between episodes, while preserving legacy
+value bootstrapping from actual decisions without leakage between episodes,
+while preserving legacy
 optional trashing in the random opponent. Ruff's required checks and catalog
 validation pass.
 

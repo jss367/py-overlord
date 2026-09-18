@@ -3869,7 +3869,7 @@ class GameState:
             return choice
         return None
 
-    def is_game_over(self) -> bool:
+    def is_game_over(self, *, ignore_turn_limit: bool = False) -> bool:
         """Check if the game is over.
 
         The game ends if:
@@ -3877,6 +3877,9 @@ class GameState:
         2. Colony pile is empty, when Colonies are in the supply
         3. Any three supply piles are empty
         4. Maximum turns (100) reached to prevent infinite games
+
+        ``ignore_turn_limit`` allows the RL environment to reach its next
+        decision for value bootstrapping; ordinary games retain the safety cap.
 
         Returns:
             bool: True if the game is over, False otherwise
@@ -3962,8 +3965,8 @@ class GameState:
             self.log_callback("Game over: Three piles depleted")
             return True
 
-        # 4. Hard turn limit
-        if self.turn_number > GAME_TURN_LIMIT:
+        # 4. Hard turn limit (training may advance to its next decision).
+        if not ignore_turn_limit and self.turn_number > GAME_TURN_LIMIT:
             self._update_final_metrics()
             self.log_callback("Game over: Maximum turns reached")
             return True

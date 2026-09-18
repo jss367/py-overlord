@@ -17,13 +17,21 @@ from dominion.rl.rl_ai import GameCancelled, RLAI
 from dominion.rl.state_encoder import StateEncoder
 
 
+class _TrainingGameState(GameState):
+    """Let the environment enforce its cap at a real policy decision."""
+
+    def is_game_over(self) -> bool:
+        return super().is_game_over(ignore_turn_limit=True)
+
+
 class DominionEnv(gym.Env):
     """One active game per process (the rules engine uses Python's global RNG).
 
     ``kingdoms`` varies the board each episode while ``vocabulary`` keeps action
     indices fixed. A callable opponent receives the current kingdom and must
     return a fresh AI. Existing single-board callers retain their old interface.
-    Time limits abort at turn boundaries and award zero, never a spurious win.
+    Time limits stop at the next policy decision and award zero. Natural game
+    endings before that decision retain their ordinary terminal reward.
     """
 
     metadata = {"render_modes": []}
@@ -56,6 +64,7 @@ class DominionEnv(gym.Env):
         self._current_decision_type = ""
         self._game_done = False
         self._truncated = False
+        self._truncate_at_next_decision = False
         self._game_error = None
 
     def reset(self, *, seed=None, options=None):
@@ -80,10 +89,11 @@ class DominionEnv(gym.Env):
         elif callable(opponent):
             opponent = opponent(self.kingdom_cards)
         ais = [self.rl_ai, opponent] if self.player_index == 0 else [opponent, self.rl_ai]
-        self.game_state = GameState(players=[], supply={})
+        self.game_state = _TrainingGameState(players=[], supply={})
         self.game_state.log_callback = lambda msg: None
         self.game_state.initialize_game(ais, [get_card(n) for n in self.kingdom_cards])
         self._game_done = self._truncated = False
+        self._truncate_at_next_decision = False
         self._game_error = None
         self._game_thread = threading.Thread(target=self._run_game, daemon=True)
         self._game_thread.start()
@@ -113,9 +123,13 @@ class DominionEnv(gym.Env):
     def _run_game(self):
         try:
             while True:
-                terminated, self._truncated = episode_status(self.game_state, self.max_turns)
-                if terminated or self._truncated:
+                terminated, capped = episode_status(self.game_state, self.max_turns)
+                if terminated:
                     break
+                # Finish the transition to the next decision, including the
+                # opponent turn when needed. The value function is trained
+                # on decision observations, not arbitrary turn boundaries.
+                self._truncate_at_next_decision |= capped
                 if self.rl_ai.cancelled:
                     break
                 self.game_state.play_turn()
@@ -141,6 +155,8 @@ class DominionEnv(gym.Env):
         else:
             self._current_decision_type = decision_type
             self._current_choices = choices
+            if self._truncate_at_next_decision:
+                self._game_done = self._truncated = True
 
     def _get_observation(self):
         encode_decision = getattr(self.state_encoder, "encode_decision", None)
@@ -150,7 +166,7 @@ class DominionEnv(gym.Env):
 
     def _get_info(self):
         mask = self.action_encoder.get_action_mask(self._current_choices)
-        if self._game_done:
+        if self._game_done and not self._current_choices:
             mask[self.action_encoder.pass_action_index] = True
         return {"action_mask": mask, "decision_type": self._current_decision_type,
                 "seat": self.player_index, "kingdom": list(self.kingdom_cards)}
