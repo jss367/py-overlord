@@ -62,6 +62,7 @@ class _LegacyStandings(HTMLParser):
         self.cells = None
         self.cell = None
         self.cards = []
+        self.landscapes = []
         self.context = "a previously saved tournament"
         self.in_context = False
         self.in_description = False
@@ -76,6 +77,7 @@ class _LegacyStandings(HTMLParser):
         if tag == "tr" and "leaderboard-row" in attrs.get("class", "").split():
             self.cells = []
             self.cards = list(filter(None, attrs.get("data-cards", "").split("|")))
+            self.landscapes = list(filter(None, attrs.get("data-landscapes", "").split("|")))
         if tag == "td" and self.cells is not None:
             self.cell = ""
 
@@ -94,17 +96,24 @@ class _LegacyStandings(HTMLParser):
             self.cells.append(self.cell.strip())
             self.cell = None
         if tag == "tr" and self.cells is not None:
-            if len(self.cells) != 7:
+            # Reports predating the Landscapes column end at the cards cell;
+            # anything the row gains after it is read from the data attributes.
+            if len(self.cells) not in (7, 8):
                 raise ValueError("Cannot recover saved leaderboard rows; original report was preserved.")
-            _, name, description, record, _, games, _ = self.cells
+            _, name, description, record, _, games = self.cells[:6]
             wins, losses = map(int, record.split("-"))
             games = int(games)
-            self.results[name] = {
+            recovered = {
                 "wins": wins, "losses": losses, "games": games,
                 "win_rate": wins / games * 100 if games else 0,
                 "description": "" if description == "No description" else description,
                 "cards": self.cards,
             }
+            # Omitted rather than empty, so recovering a landscape-free report
+            # reproduces exactly what the tournament recorded.
+            if self.landscapes:
+                recovered["landscapes"] = self.landscapes
+            self.results[name] = recovered
             self.cells = None
 
 

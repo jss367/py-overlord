@@ -30,6 +30,10 @@ class StablesNinjaMuseum(EnhancedStrategy):
                            keep_copper=keep_copper, money=money, museum=museum,
                            ninja_first=ninja_first)
         self.credit_target = None
+        # Museum scores diversity at game end and is never gained, so nothing
+        # in the priority lists names it; the searched buy order below only
+        # makes sense on a board that has it.
+        self.landscapes = ["Museum"]
         self.action_priority = [PriorityRule(n) for n in KINGDOM]
         self.gain_priority = [PriorityRule(n) for n in (*KINGDOM, "Platinum", "Colony", "Province", "Gold", "Silver", "Credit")]
         self.treasure_priority = [PriorityRule(n) for n in

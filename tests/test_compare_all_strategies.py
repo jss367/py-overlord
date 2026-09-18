@@ -1,7 +1,11 @@
 from compare_all_strategies import _missing_board_components
 import pytest
 from dominion.boards.loader import BoardConfig
-from dominion.simulation.strategy_battle import StrategyBattle, StrategyBoardReferences
+from dominion.simulation.strategy_battle import (
+    StrategyBattle,
+    StrategyBoardReferences,
+    landscape_names,
+)
 
 
 def test_board_compatibility_canonicalizes_parametric_way_names():
@@ -69,3 +73,42 @@ def test_failed_pairing_preserves_existing_reports(tmp_path, monkeypatch):
         main()
     assert output.read_text() == "previous standings"
     assert usage.read_text() == "previous card ranks"
+
+
+def test_landscape_names_flattens_every_landscape_kind_canonically():
+    refs = StrategyBoardReferences(
+        kingdom_cards=["Temple"],
+        events=["Seaway"],
+        projects=["Sewers"],
+        ways=["Way of the Mouse (Moat)"],
+        landmarks=["Obelisk (Temple)", "Museum"],
+        allies=["City-state"],
+    )
+
+    assert landscape_names(refs) == [
+        "Seaway", "Sewers", "Way of the Mouse", "Obelisk", "Museum", "City-state",
+    ]
+
+
+def test_landscape_names_are_absent_from_the_card_list():
+    """The leaderboard filter reads cards and landscapes from separate keys."""
+
+    battle = StrategyBattle()
+    refs = battle._split_board_references({"Village", "Museum", "Seaway"})
+
+    assert refs.kingdom_cards == ["Village"]
+    assert landscape_names(refs) == ["Seaway", "Museum"]
+
+
+def test_tournament_metadata_records_landscapes_beside_cards():
+    battle = StrategyBattle()
+    strategy = battle.strategy_loader.get_strategy("Ninja Watchtower Figurine Money")
+    try:
+        refs = battle._split_board_references(
+            battle._extract_cards_from_strategy(strategy)
+        )
+    finally:
+        battle.close()
+
+    assert "Museum" in landscape_names(refs)
+    assert "Museum" not in refs.kingdom_cards

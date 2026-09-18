@@ -153,3 +153,25 @@ def test_figurine_strategy_can_choose_a_more_expensive_action():
     assert [c.name for c in p.hand] == ["Watchtower"]
     assert [c.name for c in p.discard] == ["Ninja"]
     assert (p.coins, p.buys) == (1, 2)
+
+
+def test_strategy_declares_the_museum_landmark_it_scores_on():
+    """Nothing gains or plays Museum, so only an explicit declaration carries it.
+
+    Without this the board search's own kingdom loses its Landmark when the
+    strategy is played outside the search script, and the catalog cannot show
+    that anything uses Museum at all.
+    """
+
+    from dominion.simulation.strategy_battle import StrategyBattle, landscape_names
+
+    battle = StrategyBattle()
+    try:
+        refs = battle._split_board_references(
+            battle._extract_cards_from_strategy(StablesNinjaMuseum())
+        )
+    finally:
+        battle.close()
+
+    assert "Museum" in refs.landmarks
+    assert "Museum" in landscape_names(refs)

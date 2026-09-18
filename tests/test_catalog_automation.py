@@ -196,3 +196,20 @@ def test_invalid_snapshot_is_not_silently_discarded(tmp_path):
     path.write_text('<script type="application/json" id="saved-tournament-results">broken</script>')
     with pytest.raises(json.JSONDecodeError):
         read_snapshot(path)
+
+
+def test_legacy_recovery_keeps_the_landscapes_a_row_was_indexed_by(tmp_path):
+    """A recovered report must not lose Museum and become unfilterable again."""
+
+    path = tmp_path / "leaderboard.html"
+    results = {
+        "Ninja Watchtower Figurine Money": {
+            "wins": 2, "losses": 1, "games": 3, "win_rate": 2 / 3 * 100,
+            "description": "Colony and Museum scoring",
+            "cards": ["Ninja", "Watchtower"],
+            "landscapes": ["Credit", "Museum"],
+        }
+    }
+    path.write_text(render_strategy_leaderboard(results))
+
+    assert read_snapshot(path)["results"] == results

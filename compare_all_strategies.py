@@ -10,6 +10,7 @@ from dominion.simulation.strategy_battle import (
     StrategyBoardReferences,
     canonical_landmark_name,
     canonical_way_name,
+    landscape_names,
 )
 from dominion.reporting.html_report import generate_leaderboard_html
 from dominion.reporting.tournament_state import tournament_fingerprint
@@ -104,6 +105,7 @@ def _run_full_battle(
         all_meta[name] = {
             "wins": 0, "losses": 0, "games": 0,
             "cards": kingdom_cards,
+            "landscapes": landscape_names(refs),
             "description": desc,
         }
 

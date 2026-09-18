@@ -399,6 +399,11 @@ class EnhancedStrategy:
         self.bounty_hunter_exile_priority: list[PriorityRule] = []
         self.treasure_priority: list[PriorityRule] = []
         self.way_policy: list[WayRule] = []
+        # Landscapes the strategy is built around but never names in a rule.
+        # A passive Landmark like Museum scores at game end and is never
+        # gained, played or trashed, so listing it here is the only way the
+        # board it needs travels with the strategy.
+        self.landscapes: list[str] = []
         self._decision_trace_callback = None
 
     # ------------------------------------------------------------------
