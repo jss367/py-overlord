@@ -2791,6 +2791,12 @@ class AI(ABC):
             return None
         return min(choices, key=lambda c: (c.cost.coins, c.is_action, c.name))
 
+    def choose_action_to_discard_for_figurine(
+        self, state: GameState, player: PlayerState, choices: list[Card]
+    ) -> Optional[Card]:
+        """Choose Figurine's optional discard; return None to keep all Actions."""
+        return min(choices, key=lambda c: (c.cost.coins, c.name), default=None)
+
     def choose_treasure_to_discard_for_stables(
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Card | None:

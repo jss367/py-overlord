@@ -1108,8 +1108,12 @@ def render_strategy_leaderboard(
     context_label: str = "a cross-board round robin",
     card_usage_href: str | None = None,
     loader: StrategyLoader | None = None,
+    saved_tournament: dict | None = None,
+    results_notice: str = "",
 ) -> str:
     """Render tournament results as part of the strategy catalog experience."""
+
+    from dominion.reporting.tournament_state import snapshot_markup
 
     loader = loader or StrategyLoader()
     ranked = sorted(results.items(), key=_leaderboard_sort_key)
@@ -1196,10 +1200,12 @@ def render_strategy_leaderboard(
   <p class="hero-description">Ranked by simulated win rate. Results reflect <strong>{escape(context_label)}</strong>; compare strategies on the same board before drawing broad conclusions.</p>
 </header>
 {podium}
+{f'<p class="empty-state" role="status">{escape(results_notice)}</p>' if results_notice else ''}
 <section class="section">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">#</span><h2>Full standings</h2></div>
   {standings}
 </section>
+{snapshot_markup(saved_tournament)}
 """
     return _page_shell(
         "Strategy Leaderboard",
@@ -1398,8 +1404,8 @@ def _leaderboard_filters(cards: Iterable[str], expansions: Iterable[str], *, tot
       <div class="filter-controls">
         <input class="search filter-input" id="leaderboard-card-input" list="leaderboard-card-options" placeholder="Type a card name, e.g. Torturer" autocomplete="off">
         <datalist id="leaderboard-card-options">{options}</datalist>
-        <button type="submit" class="filter-button" data-mode="without">Hide strategies using it</button>
-        <button type="button" class="filter-button filter-button-with" data-mode="with">Show only strategies using it</button>
+        <button type="submit" class="filter-button filter-button-with" data-mode="with">Show only strategies using it</button>
+        <button type="button" class="filter-button" data-mode="without">Hide strategies using it</button>
       </div>
     </form>
   </div>{expansion_block}
@@ -1573,8 +1579,8 @@ _LEADERBOARD_FILTER_SCRIPT = """
     apply();
   }
 
-  cardForm.addEventListener('submit', (event) => { event.preventDefault(); addCard('without'); });
-  cardForm.querySelector('[data-mode="with"]').addEventListener('click', () => addCard('with'));
+  cardForm.addEventListener('submit', (event) => { event.preventDefault(); addCard('with'); });
+  cardForm.querySelector('[data-mode="without"]').addEventListener('click', () => addCard('without'));
 
   for (const button of expansionButtons) {
     button.addEventListener('click', () => {

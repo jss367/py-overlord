@@ -33,7 +33,7 @@ a{color:var(--accent)}nav{display:flex;gap:22px;flex-wrap:wrap;font-size:14px}he
 <h2>Turn sequencing that matters</h2>
 <ul><li><strong>Watchtower versus Ninja:</strong> with only one Action, you often must choose. The tested policy plays Watchtower first when the hand has five or fewer cards, otherwise Ninja. It does not assume it can play both every turn. Ninja may be played from the deck, but still consumes an Action. Watchtower does not block Ninja’s discard attack.</li>
 <li><strong>Play Figurines before the money they might draw, and Pendant last.</strong> Figurine draws two cards; discarding an Action is optional and gives one coin and one Buy. Extra Figurines can draw other Figurines and Treasures. Pendant counts the different Treasure names already in play, including Pendant itself. Additional copies do not add names.</li>
-<li><strong>Keep Watchtower in hand when its reaction matters.</strong> It can trash a newly gained Curse or topdeck a useful gain. Once played, it cannot provide that hand reaction. Figurine’s discard also gives up the reaction for that turn; decline it when protection or topdecking is worth more than the coin and Buy.</li>
+<li><strong>Keep Watchtower in hand when its reaction matters.</strong> It can trash a newly gained Curse or topdeck a useful gain. Once played, it cannot provide that hand reaction. Figurine’s discard also gives up the reaction for that turn; decline it when protection or topdecking is worth more than the coin and Buy. This is advice for adaptive play: the recorded policy always discards the cheapest available Action, breaking equal-cost ties by name. The simulator exposes a strategy hook for choosing another Action or declining, but that alternative policy was not included in the recorded results.</li>
 <li><strong>If you pivot into Actions:</strong> Harbor Village supplies Actions; putting Conclave or Catapult immediately after it also earns its coin bonus. Conclave can play an Action from hand with a name not already in play, then supplies an Action. These are useful tactical options, but the tested larger engines lost to the Treasure plan.</li></ul>
 <p>Card timing follows the <a href="https://dominionleague.org/img/uploads/15-plunder-rulebook.pdf">Plunder rulebook</a> and the <a href="https://www.riograndegames.com/wp-content/uploads/2024/04/DomRisingSunRules.pdf">Rising Sun rulebook</a>. The sequencing recommendation is an inference from those rules and the local comparisons.</p>
 <h2>Catapult, Credit and Museum</h2>
@@ -66,9 +66,17 @@ a{color:var(--accent)}nav{display:flex;gap:22px;flex-wrap:wrap;font-size:14px}he
 PYTHONPATH=. python scripts/search_stables_ninja_museum.py --stage final \
   --input scripts/data/stables_ninja_museum_screen.json --games 160 --seed 270000 \
   --output scripts/data/stables_ninja_museum_final.json
+PYTHONPATH=. python scripts/search_stables_ninja_museum.py --stage rank-final \
+  --input scripts/data/stables_ninja_museum_final.json \
+  --output scripts/data/stables_ninja_museum_final_ranked.json
 PYTHONPATH=. python scripts/search_stables_ninja_museum.py --stage refine \
   --input scripts/data/stables_ninja_museum_final_ranked.json --games 100 --seed 370000 \
   --output scripts/data/stables_ninja_museum_refine.json
+PYTHONPATH=. python scripts/search_stables_ninja_museum.py --stage rank-refine \
+  --input scripts/data/stables_ninja_museum_refine.json \
+  --final-ranked scripts/data/stables_ninja_museum_final_ranked.json \
+  --output scripts/data/stables_ninja_museum_refine_ranked.json \
+  --policies-output scripts/data/stables_ninja_museum_validation_policies.json
 PYTHONPATH=. python scripts/search_stables_ninja_museum.py --stage validate \
   --input scripts/data/stables_ninja_museum_validation_policies.json --games 1000 --seed 570000 \
   --output scripts/data/stables_ninja_museum_validation.json
