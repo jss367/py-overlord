@@ -74,6 +74,20 @@ CURATED_STRATEGY_GUIDES = (
         source_label="Recorded card-usage audit and seat-balanced repository simulations",
     ),
     CuratedStrategyGuide(
+        filename="suzhou-groundskeeper-strategy-guide.html",
+        display_name="Suzhou: A Board Built for Groundskeeper",
+        description=(
+            "A kingdom designed so Groundskeeper is the best card on it, the "
+            "searched engine that exploits it, one-field ablations, and "
+            "reproducible commands."
+        ),
+        kingdom_cards=(
+            "Crossroads", "Great Hall", "Mill", "Village", "Bridge",
+            "Ironworks", "Groundskeeper", "Laboratory", "Market", "Nobles",
+        ),
+        source_label="Printed-rule card audit and seat-balanced repository simulations",
+    ),
+    CuratedStrategyGuide(
         filename="recruiter-kitsune-strategy-guide.html",
         display_name="Recruiter and Kitsune with Great Leader: Strategy Guide",
         description=(

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suzhou: A Board Built for Groundskeeper</title>
+<meta name="description" content="A kingdom designed so Groundskeeper is the best card on it, the searched engine that exploits it, one-field ablations, and reproducible commands.">
+<style>
+:root{color-scheme:light;--paper:#f5f2e9;--ink:#263b32;--line:#d5dbcf;--accent:#79521d}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.65 system-ui,-apple-system,sans-serif}main{max-width:1100px;margin:auto;padding:28px clamp(20px,5vw,60px) 70px}nav{display:flex;gap:22px;flex-wrap:wrap;font-size:14px}a{color:var(--accent)}header{padding:40px 0 25px;border-bottom:1px solid var(--line)}h1,h2,h3{font-family:Georgia,serif;line-height:1.2}h1{font-size:clamp(36px,6vw,58px)}h2{font-size:30px;margin-top:38px}.lead{font-size:21px}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.card{background:#fffdf7;border:1px solid var(--line);border-radius:10px;padding:16px}.card strong,.card small{display:block}.card small{margin-top:8px;color:#58675d}.callout{background:#e5ecdf;border-left:4px solid #638353;padding:20px 24px;margin:24px 0}.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:15px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#e5ecdf}pre{overflow:auto;background:#263b32;color:#f5f2e9;padding:20px;font-size:13px}li{margin:10px 0}footer{border-top:1px solid var(--line);margin-top:35px;padding-top:20px;font-size:14px}@media(max-width:780px){.cards{grid-template-columns:repeat(2,1fr)}}
+</style></head><body><main>
+<nav><a href="index.html">Strategy catalog</a><a href="../boards/suzhou.html">Board</a><a href="suzhou-groundskeeper-engine.html">Runnable recommendation</a></nav>
+<header><p>Board design and strategy search · September 17, 2026</p><h1>Suzhou: a board built for Groundskeeper</h1>
+<p class="lead">Groundskeeper is a cantrip that pays a victory-point token for every Victory card gained while it is in play. The question this board was cut to answer is what a kingdom has to look like before that is the best card on it, and what the deck that exploits it actually buys.</p></header>
+
+<h2>How the board was designed</h2>
+<p>Groundskeeper needs three things at once, and most kingdoms supply at most two:</p>
+<ul>
+<li><strong>Victory cards that do not clog the deck.</strong> Great Hall and Mill are cantrips, so a deck can hold all sixteen of them and still draw. Estate is dead weight, but it is $2 and its token does not care.</li>
+<li><strong>Several Victory gains per turn.</strong> Ironworks hands them out during the Action phase, after the Groundskeepers are already in play. Bridge and Market pay for more of them in the Buy phase.</li>
+<li><strong>Depth.</strong> Great Hall, Mill, Nobles, Estate and Duchy put forty Victory cards in reach of a deck that wants them by the handful, on top of the eight Provinces.</li>
+</ul>
+<p>The harder half of the design was what to leave out. An earlier cut of this board carried Gardens and Silk Road, and it failed in exploratory play before any of the recorded stages below: a deck that gained Great Halls and Silk Roads by the fistful beat every Groundskeeper plan tested against it, <em>without ever buying a Groundskeeper</em>, because those two cards pay for mass gaining by themselves. Suzhou deliberately contains no Victory card that scales with the deck. Every green card here is worth one, two, three or six flat points, so gaining them by the handful is a mediocre plan — unless the tokens are turning each one into three or four points, which is the entire thesis of the board.</p>
+
+<h2>The board</h2>
+<div class="cards">
+<div class="card"><strong>Crossroads</strong><small>$2 · Action</small></div>
+<div class="card"><strong>Great Hall</strong><small>$3 · Action, Victory</small></div>
+<div class="card"><strong>Mill</strong><small>$4 · Action, Victory</small></div>
+<div class="card"><strong>Village</strong><small>$3 · Action</small></div>
+<div class="card"><strong>Bridge</strong><small>$4 · Action</small></div>
+<div class="card"><strong>Ironworks</strong><small>$4 · Action</small></div>
+<div class="card"><strong>Groundskeeper</strong><small>$5 · Action</small></div>
+<div class="card"><strong>Laboratory</strong><small>$5 · Action</small></div>
+<div class="card"><strong>Market</strong><small>$5 · Action</small></div>
+<div class="card"><strong>Nobles</strong><small>$6 · Action, Victory</small></div>
+</div>
+<p>Two players, normal seven-Copper and three-Estate starting decks, eight Provinces, eight Duchies, eight Estates. Kingdom Victory piles (Great Hall, Mill, Nobles) hold eight copies each; the Action piles hold ten. No Colony, Platinum, Potion, Shelters, events, projects, ways, landmarks or allies. <a href="../../boards/suzhou.txt">Download the board definition</a>.</p>
+<p>Crossroads is the piece that ties the board together in the other direction: it draws one card per Victory card in hand, so the green the Groundskeepers are paying for is also what powers the draw that plays them.</p>
+
+<h2>Best strategy found</h2>
+<div class="callout"><strong>Three Groundskeepers, three Ironworks, and every cheap Victory pile on the board.</strong> The frozen plan scored <strong>96.0%</strong> against its own one-field ablation with no Groundskeeper, <strong>78.1%</strong> against the best Groundskeeper-free plan the same search could build, and <strong>95.8%</strong> against the catalog's Big Money, over 400 games each. About a third of its final score is tokens.</div>
+<ol>
+<li><strong>Open Ironworks — on the first turn that affords it — then buy Groundskeeper at every $5 until you have three.</strong> Ironworks is the gain per turn; Groundskeeper is the multiplier on it. Nothing else competes for those dollars early. A fourth and fifth copy were searched and are close but not better: in the refinement stage the best plan at each target scored 54.2% with one Groundskeeper, 66.7% with two, 76.0% with three, 70.8% with four, 68.8% with five, and 35.9% with none.</li>
+<li><strong>Take the main buy of each turn for the engine, and spend every spare Buy on green.</strong> This is the rule that matters most and the easiest to get wrong. A $5 hand that buys a $3 Great Hall has thrown two dollars away; the same hand buys a Groundskeeper and then, on a Market's or Bridge's extra Buy, an Estate.</li>
+<li><strong>Gain green with Ironworks from the first turn it can.</strong> Waiting for a Groundskeeper to be in play before a gainer takes green was tested at one and at two copies and lost both times (87.4% and 91.1% for the plan that does not wait). The cheap Victory piles are contested, and being early to them beats being efficient with them.</li>
+<li><strong>Play Groundskeepers and Bridge before Ironworks, every turn.</strong> The tokens only count gains made while the Groundskeeper is in play, and Bridge drops what Ironworks can reach by a dollar per copy.</li>
+<li><strong>Turn to Province and Duchy after twelve turns, or once four Provinces remain.</strong> In practice the deck buys under half a Province a game: against the Groundskeeper-free yardstick the Great Hall and Mill piles emptied in every game, 86% of games ended on three piles, and only 14% ran the Province pile out.</li>
+<li><strong>Buy Estates with leftover Buys once a Groundskeeper is out.</strong> An Estate is one point and a token per Groundskeeper in play — four points for $2 in a mature turn. The same plan with that rule switched off loses 87.0% of its games to the plan that keeps it.</li>
+</ol>
+<p>A representative finished deck, averaged over 400 games against the Groundskeeper-free yardstick: 2.9 Groundskeepers, 3.0 Ironworks, 4.0 Mills, 5.9 Great Halls, 9.9 Estates, 4.7 Duchies, 3.0 Crossroads, 2.0 Villages, 1.0 Bridge, 1.0 Laboratory, 1.7 Silvers, 7 Coppers, and 0.45 Provinces — about 45 cards, 19.9 of its 56.6 points from tokens. The plan carries targets for Laboratory and Market that it rarely finishes buying, which is why zeroing Laboratory changes little (below).</p>
+
+<h3>How to play the key cards</h3>
+<p><strong>Groundskeeper</strong> is a cantrip, so it is never wrong to play it; play it early in the turn, because only gains made afterwards score. <strong>Ironworks</strong> is played after the draw and after Bridge, and it is skipped entirely when the piles it could reach hold nothing the deck wants — otherwise it starts handing the deck Silver. <strong>Crossroads</strong> leads the turn when the hand already holds two Victory cards, or when it is the only way to get more Actions; the +3 Actions arrives only on the first copy each turn. <strong>Mill</strong> discards two dead cards for $2, and only dead ones: two Estates for two coins is a good trade in this deck, two Coppers is a wash. <strong>Nobles</strong> takes +3 Cards unless the hand is holding a stranded Bridge or Crossroads.</p>
+
+<h2>Search evidence</h2>
+<p>Five stages, all seat-balanced and re-seeded per game pair: 63,168 games in total, nine of which hit the 120-turn limit.</p>
+<div class="scroll"><table><caption>Search stages. Every recorded match stores both parameter dictionaries and its seed.</caption><thead><tr><th>Stage</th><th>Candidates</th><th>Games</th><th>What it establishes</th></tr></thead><tbody>
+<tr><td>Broad screen</td><td>168</td><td>16,128</td><td>Named theories plus a seeded random sweep, each against a four-policy panel. Every one of the top eight bought at least two Groundskeepers; the best Groundskeeper-free candidate placed 24th.</td></tr>
+<tr><td>Groundskeeper-free screen</td><td>92</td><td>8,832</td><td>The same screen restricted to plans with no Groundskeeper, to build the yardstick the winner has to beat rather than assuming Big Money is the best alternative.</td></tr>
+<tr><td>Refinement</td><td>173</td><td>16,608</td><td>One-field sweeps around the screen's leaders.</td></tr>
+<tr><td>Finalist round robin</td><td>12</td><td>13,200</td><td>200 games per pairing among the eight refined leaders and the four panel policies. Refinement converged hard: all eight leaders are the same deck plan differing in one or two fields, so this stage separates siblings, not strategies.</td></tr>
+<tr><td>Validation</td><td>1</td><td>8,400</td><td>The frozen winner against 21 opponents on fresh seeds, 400 games each.</td></tr>
+</tbody></table></div>
+
+<h3>Independent validation</h3>
+<p>The round-robin winner was frozen before these games were played, and none of them were used to retune it. Score counts ties as half a win.</p>
+<div class="scroll"><table><caption>Frozen recommendation against each validation opponent, 400 games each.</caption><thead><tr><th>Opponent</th><th>Wins / ties / losses</th><th>Score</th></tr></thead><tbody>
+<tr><td>Existing catalog: Big Money Smithy</td><td>400 / 0 / 0</td><td>100.0%</td></tr>
+<tr><td>Ironworks green engine, no Groundskeeper</td><td>395 / 0 / 5</td><td>98.8%</td></tr>
+<tr><td>Laboratory money</td><td>384 / 0 / 16</td><td>96.0%</td></tr>
+<tr><td><strong>The same plan with no Groundskeeper (one field changed)</strong></td><td>384 / 0 / 16</td><td><strong>96.0%</strong></td></tr>
+<tr><td>Existing catalog: Big Money</td><td>383 / 0 / 17</td><td>95.8%</td></tr>
+<tr><td>Winner, but gainers wait for two Groundskeepers</td><td>364 / 1 / 35</td><td>91.1%</td></tr>
+<tr><td>Money panel baseline</td><td>357 / 0 / 43</td><td>89.2%</td></tr>
+<tr><td>Winner, but gainers wait for one Groundskeeper</td><td>349 / 1 / 50</td><td>87.4%</td></tr>
+<tr><td>Winner that does not buy Estates with spare Buys</td><td>348 / 0 / 52</td><td>87.0%</td></tr>
+<tr><td>Finalist with two Crossroads, waiting for one Groundskeeper</td><td>339 / 1 / 60</td><td>84.9%</td></tr>
+<tr><td>Winner with no Ironworks (deck cap and opener both cleared)</td><td>335 / 0 / 65</td><td>83.8%</td></tr>
+<tr><td>Winner with no Great Hall</td><td>323 / 1 / 76</td><td>80.9%</td></tr>
+<tr><td><strong>Best Groundskeeper-free plan the search could build</strong></td><td>312 / 1 / 87</td><td><strong>78.1%</strong></td></tr>
+<tr><td>Winner with no Crossroads</td><td>278 / 1 / 121</td><td>69.6%</td></tr>
+<tr><td>Winner with no Mill</td><td>263 / 4 / 133</td><td>66.2%</td></tr>
+<tr><td>Winner with no Bridge</td><td>233 / 4 / 163</td><td>58.8%</td></tr>
+<tr><td>Finalist that empties the Mill pile</td><td>208 / 0 / 192</td><td>52.0%</td></tr>
+<tr><td>Finalist with four Groundskeepers and two Crossroads</td><td>205 / 1 / 194</td><td>51.4%</td></tr>
+<tr><td>Winner with no Laboratory</td><td>205 / 0 / 195</td><td>51.2%</td></tr>
+<tr><td>Finalist that greens from turn ten</td><td>196 / 1 / 203</td><td>49.1%</td></tr>
+<tr><td>Finalist with a fourth Crossroads</td><td>195 / 1 / 204</td><td>48.9%</td></tr>
+</tbody></table></div>
+<p>Each ablation row changes one claim, not necessarily one field: the no-Ironworks row clears the opening buy along with the deck cap, because this plan opens on Ironworks and the opening rule would otherwise buy a copy the cap has forbidden. Read the bottom of that table as carefully as the top. <strong>Laboratory is nearly free-floating in this plan</strong> — removing it is close to a coin flip, because the deck rarely finishes buying its two copies before the game ends. Several sibling finalists are statistically indistinguishable from the winner; it was chosen on its average across the whole finalist field, not because it dominates every relative. What the table does establish is the claim the board was built to test: with the Groundskeeper target set to zero and nothing else changed, the same deck wins 4.0% of the time.</p>
+<p>Games against the Groundskeeper-free yardstick averaged 20.6 turns per player. The Great Hall and Mill piles emptied in every one of them, Estate in 58%, Duchy in 34%, and 14% ran the Province pile out. Plan for a three-pile ending on cheap green, not for a Province race.</p>
+
+<h2>Rules corrected before every reported experiment</h2>
+<p>Each of the ten piles was audited against its printed text before the search ran. Four implementations were wrong, and three of them would have changed this board's result:</p>
+<ul>
+<li><strong>Crossroads</strong> drew three cards unconditionally and gave <em>+1 Action per Victory card revealed</em> plus a first-play +1 Buy. The printed card is the other way round: +1 Card per Victory card revealed, and +3 Actions the first time it is played each turn. <a href="https://www.riograndegames.com/wp-content/uploads/2022/03/Dominion-Rules-Hinterlands.pdf">Hinterlands rules</a>.</li>
+<li><strong>Ironworks</strong> never asked the player what to gain; it always took the most expensive Action available. The choice is now routed through the strategy, uses the current (Bridge-reduced) cost, and still gains something when a strategy declines, because the gain is not optional. <a href="https://www.riograndegames.com/wp-content/uploads/2022/03/Dominion-Rules-Intrigue.pdf">Intrigue rules</a>.</li>
+<li><strong>Mill</strong> always discarded two cards for $2 by a fixed rule, even when the two cheapest cards in hand were a Gold and a Province. The discard is optional and is now the player's decision.</li>
+<li><strong>Kingdom Victory piles</strong> held ten copies. In a two-player game they hold eight (twelve with three or more players); Feodum and the Castles already overrode this, every other Victory card did not. On this board that is the difference between 30 and 24 cheap Victory cards in the supply.</li>
+</ul>
+
+<h2>Reproduce and inspect</h2>
+<p>Run from the repository root. The search defaults to six worker processes; use <code>--workers 1</code> for serial execution. Each stage writes every match's parameter dictionaries, seed, deck composition and ending type.</p>
+<pre><code>PYTHONPATH=. python scripts/search_suzhou.py search --games 24 --output .context/suzhou-search.json
+PYTHONPATH=. python scripts/search_suzhou.py nogk --games 24 --output .context/suzhou-nogk.json
+PYTHONPATH=. python scripts/search_suzhou.py refine --input .context/suzhou-search.json --games 24 --output .context/suzhou-refine.json
+PYTHONPATH=. python scripts/search_suzhou.py tournament --input .context/suzhou-refine.json --finalists 8 --games 200 --output .context/suzhou-finals.json
+PYTHONPATH=. python scripts/search_suzhou.py validate --input .context/suzhou-finals.json --yardstick .context/suzhou-nogk.json --games 400 --output .context/suzhou-validate.json</code></pre>
+<p>Records: <a href="../../scripts/data/suzhou_search_summary.json">broad screen</a> · <a href="../../scripts/data/suzhou_nogk_summary.json">Groundskeeper-free screen</a> · <a href="../../scripts/data/suzhou_refine_summary.json">refinement</a> · <a href="../../scripts/data/suzhou_tournament.json">finalist round robin</a> · <a href="../../scripts/data/suzhou_validation.json">independent validation</a>. The three screen files record every candidate's rating; the round robin and validation files record every match.</p>
+<p><strong>Limits.</strong> This is a finite comparison between implemented policies on one two-player board. The search varies deck targets, the opening card (one card, bought on whichever of the first two turns affords it), greening speed, the gain gate and the spare-Buy rule; it does not search over all legal play, and the simulator's card implementations are the ones described above. "Best found" means best in the tested family, not optimal.</p>
+<footer><a href="../../dominion/strategy/strategies/suzhou_groundskeeper.py">Strategy source</a> · <a href="../../scripts/search_suzhou.py">Search harness</a> · <a href="../../tests/test_suzhou_board_rules.py">Rules regression tests</a>. Best found in the tested policy family; no claim of a uniquely optimal Dominion strategy.</footer>
+</main></body></html>
