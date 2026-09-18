@@ -70,7 +70,8 @@ class RecruiterKitsune(EnhancedStrategy):
         pick = self.pick(choices, ["Curse", "Estate", "Copper", "Silver"])
         if pick:
             return pick
-        if not choices:
+        # Optional trash effects include None; keep valuable cards when allowed.
+        if not choices or None in choices:
             return None
         counts = Counter(c.name for c in player.all_cards())
         return min(choices, key=lambda c: (c.name in {"Province", "Duchy"}, counts[c.name] <= 1, c.cost.coins))

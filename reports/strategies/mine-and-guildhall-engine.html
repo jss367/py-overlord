@@ -476,7 +476,7 @@
         names.append(p[&quot;opening&quot;])
     if counts[&quot;Silver&quot;] &lt; p[&quot;silvers&quot;]:
         names.append(&quot;Silver&quot;)
-    if not state.supply[&quot;Tea House&quot;] and state.supply[&quot;Province&quot;] &lt;= 5:
+    if not state.supply.get(&quot;Tea House&quot;, 0) and state.supply[&quot;Province&quot;] &lt;= 5:
         names.append(&quot;Duchy&quot;)
     if p[&quot;copper_buys&quot;] and guild and player.buys &gt; 1 and counts[&quot;Copper&quot;] &lt; 7:
         names.append(&quot;Copper&quot;)

@@ -140,7 +140,10 @@ def _run_full_battle(
             stats["win_rate"] = 0.0
 
     if skipped_pairings:
-        print(f"Skipped {skipped_pairings} of {total_pairings} pairings due to setup or runtime errors.")
+        raise RuntimeError(
+            f"Skipped {skipped_pairings} of {total_pairings} pairings due to setup or runtime errors. "
+            "Incomplete results cannot be ranked; existing reports were not changed."
+        )
 
     return aggregated
 
