@@ -27,22 +27,27 @@ that is how the loader finds it). Do not add a lookup table anywhere else.
 `reports/strategies/index.html`, `reports/boards/index.html`, and one page per
 strategy and board. It runs in a couple of seconds.
 
-The generated pages under `reports/strategies/` and `reports/boards/` are
-committed. Regenerate them whenever a strategy or board changes. Continuous
-integration compares a clean regeneration with the committed pages and rejects
-stale catalogs. Other content under `reports/` remains ignored.
+The generated pages under `reports/strategies/` and `reports/boards/`, plus
+`reports/index.html`, are committed. Regenerate them whenever a strategy or board
+changes. These catalog directories are renderer-owned; regeneration removes
+obsolete HTML pages. Put custom reports elsewhere under `reports/`.
 
-`reports/strategies/leaderboard.html` is the one exception. It holds tournament
-standings written by `compare_all_strategies.py`, and a plain catalog render
-deliberately resets it to an empty placeholder (see
-`test_catalog_replaces_a_stale_leaderboard_placeholder`). CI excludes it from the
-staleness diff, so committing the placeholder silently unpublishes the standings
-and nothing fails. Unless you actually reran the tournament, discard that file
-after regenerating:
+Catalog regeneration preserves tournament standings and their embedded result
+data in `reports/strategies/leaderboard.html`, and rebuilds card usage ranks from
+those results. Do not restore the old leaderboard after rendering: that would
+discard updated presentation and freshness notices. Simulation input changes
+mark results as outdated; guide and presentation edits do not. Legacy standings
+are migrated with unknown freshness, never silently treated as a new tournament.
 
-```
-git checkout -- reports/strategies/leaderboard.html
-```
+Run `python scripts/install_catalog_hook.py` once to enable automatic updates.
+The pre-commit hook builds from staged sources, updates changed reports, and
+stops so you can review and stage them. It does not stage files or overwrite
+unstaged report edits. Existing hooks are preserved. Shared Git hook directories
+also cover other worktrees whose branches contain the hook script.
+
+`python scripts/check_catalog.py` compares a clean regeneration seeded with saved
+tournament results against every committed catalog page, including standings
+and card ranks. CI runs the same check and rejects stale catalogs.
 
 ## Checks before opening a PR
 

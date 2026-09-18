@@ -101,13 +101,51 @@ from the catalog. Unranked strategies
 are excluded from medians but still count toward catalog usage. The default
 cross-board tournament updates the catalog's card usage page; board-specific
 or custom output files get a separate companion beside their leaderboard.
-Regenerating the catalog resets both the leaderboard and card usage ranks.
+Regenerating the catalog preserves saved tournament results and rebuilds card
+usage ranks from them. New strategies remain unranked until they participate in
+a tournament. Reports show an outdated-results notice when strategies, boards,
+simulation code, or dependency declarations change. Guide and presentation
+changes do not invalidate standings. Older standings are recovered from their
+published table and labeled as having unknown freshness until a new tournament
+is run. Future tournaments embed their results and input fingerprint in the
+leaderboard HTML; keep that file with the other generated pages.
 
 The generated home page at `reports/index.html` and the board and strategy
 catalog under `reports/boards/` and `reports/strategies/` are committed so they
-can be browsed directly from a checkout. Regenerate it after changing a board or strategy. Continuous
-integration regenerates the catalog in a temporary directory and fails if the
-committed pages are stale.
+can be browsed directly from a checkout. The board and strategy report directories
+are managed by the renderer: obsolete HTML pages are removed during regeneration.
+Keep custom reports elsewhere under `reports/`.
+
+Install automatic updates once, using the Python environment with this project's
+dependencies installed:
+
+```bash
+python scripts/install_catalog_hook.py
+```
+
+The pre-commit hook runs when staged changes affect catalog inputs or reports.
+It renders from a temporary copy of the staged files, preserving unfinished
+source edits. If generated pages change, it updates the working copies and stops
+the commit with a list of files to review and stage. Retry the commit after
+staging them. The hook never stages files itself and refuses to overwrite
+unstaged report edits. Unrelated commits skip regeneration.
+
+The installer respects Git's configured hooks directory and preserves an
+existing pre-commit hook, printing the command to add to it instead. It records
+the current Python executable, so rerun installation if that environment moves.
+When Git shares hooks between worktrees, installation covers those worktrees;
+branches without the catalog hook script are skipped.
+
+Manual regeneration remains available with
+`PYTHONPATH=. python scripts/render_catalog.py`. To check without changing files:
+
+```bash
+python scripts/check_catalog.py
+```
+
+Continuous integration runs this same check against a clean regeneration seeded
+with the saved tournament results. It checks every generated page, including
+the leaderboard and card ranks, and fails if the committed catalog is stale.
 
 ## Documentation formats and migration status
 

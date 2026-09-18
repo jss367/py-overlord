@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>When to Retire a Strategy: Rebuild Comparison</title>
+<style>
+body{max-width:920px;margin:40px auto;padding:0 24px;background:#faf8f2;color:#263b32;font:17px/1.65 system-ui,sans-serif}h1,h2{line-height:1.2}a{color:#805821}table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:12px;border-bottom:1px solid #ccc}pre{overflow:auto;padding:20px;background:#eaece5;font-size:13px}.note{padding:18px;background:#e5ecdf}footer{margin:40px 0;font-size:14px}
+</style>
+</head>
+<body>
+<nav><a href="index.html">Strategy catalog</a></nav>
+<h1>When to Retire a Strategy: Rebuild Comparison</h1>
+<p>September 17, 2026 · Repository simulator evidence and a proposed catalog policy</p>
+<p class="note"><strong>Keep runnable strategies for research and benchmarks; curate which ones are recommended.</strong> Rebuild Rush is a stronger head-to-head candidate than either Skulk Rebuild implementation in the tested setup. These results do not establish complete dominance or justify deleting the alternatives.</p>
+<h2>What the comparison establishes</h2>
+<p><a href="rebuild-rush.html">Rebuild Rush</a> references only Rebuild beyond the basic supply. <a href="skulk-rebuild.html">Skulk Rebuild</a> and <a href="skulk-rebuild-improved.html">Skulk Rebuild Improved</a> reference Forager, Rebuild, and Skulk. The subset condition holds for their declared kingdom cards; none declares landscapes.</p>
+<p>Rebuild Rush buys up to two Rebuilds; the other policies buy up to three and include Forager and Skulk purchases. These are comparisons of the existing implementations, not proof that every possible Skulk/Rebuild plan is inferior.</p>
+<table>
+<caption>Rebuild Rush results: 400 games against each opponent</caption>
+<thead><tr><th>Opponent</th><th>Wins</th><th>Losses</th><th>Ties</th><th>Score, ties worth half</th></tr></thead>
+<tbody><tr><td>Skulk Rebuild</td><td>260</td><td>139</td><td>1</td><td>65.1%</td></tr>
+<tr><td>Skulk Rebuild Improved</td><td>314</td><td>82</td><td>4</td><td>79.0%</td></tr></tbody>
+</table>
+<p>Both comparisons used the same fixed three-pile kingdom: Forager, Rebuild, and Skulk, plus the normal basic supply. Each player started with seven Coppers and three Estates. No landscapes, Shelters, Colonies, or cost modifiers were added. This is a minimal comparison supply, not a complete ten-pile kingdom.</p>
+<p>Seeds 2026091700 through 2026091899 were each played twice, swapping the strategies’ seats. A tie means equal victory points and equal turns taken. The runner records ties explicitly instead of treating the battle helper’s seat-order fallback as a win. Games used the local simulator; different kingdoms, starting cards, opponents, or simulator changes may change the ranking.</p>
+<h2>Why head-to-head wins are not complete dominance</h2>
+<p>A strategy can beat another directly yet perform worse against a third opponent. Even a perfect sampled head-to-head record would not prove universal superiority. The useful replacement criterion is whether the simpler strategy is at least as effective against relevant opponents on the same supported boards and game settings, with some clear advantage.</p>
+<p>The card subset establishes broader declared availability; it does not establish that performance criterion. No catalog-wide dominance audit or common-opponent comparison was performed here. The historical reason the stronger policy was missed was not investigated.</p>
+<h2>Recommended catalog policy</h2>
+<ul>
+<li><strong>Retain implementations and stable links.</strong> Older policies remain useful as regression opponents, search seeds, and records of rejected ideas.</li>
+<li><strong>Mark candidates separately from confirmed replacements.</strong> These results support a “stronger tested alternative” link from both Skulk entries to Rebuild Rush.</li>
+<li><strong>Before hiding an entry from default recommendations, compare both policies against the same opponent panel on fixed compatible boards.</strong> Include relevant starting-card and landscape settings, both starting seats, fresh seeds, and uncertainty estimates. Require evidence that any performance loss is smaller than a stated practical tolerance; a nonsignificant difference alone is insufficient.</li>
+<li><strong>Record the scope of replacement.</strong> A “superseded on these tested boards” label should name the replacement, evidence, date, and settings. Preserve an option to browse all strategies.</li>
+<li><strong>Reserve deletion for duplicates or invalid implementations with no research value.</strong> A low leaderboard position or losing matchup alone is insufficient.</li>
+</ul>
+<p>Both Skulk strategy pages now link to Rebuild Rush as a stronger tested alternative and to this evidence. The retirement policy remains a proposal; no strategies are hidden, removed, or certified as universally dominated.</p>
+<h2>Reproduce the comparison</h2>
+<p>From the repository root, run <code>mkdir -p .context</code>, then save the following as <code>.context/check_rebuild.py</code> and run <code>PYTHONPATH=. python .context/check_rebuild.py</code>. It prints both results and writes a JSON record under <code>.context/</code>.</p>
+<details><summary>Show the complete comparison script</summary><pre><code>import json
+import random
+from dominion.ai.genetic_ai import GeneticAI
+from dominion.simulation.strategy_battle import StrategyBattle
+
+class TieAwareBattle(StrategyBattle):
+    def _select_winner(self, players):
+        keys = [(p.get_victory_points(), -p.turns_taken) for p in players]
+        self.tied = keys[0] == keys[1]
+        return super()._select_winner(players)
+
+battle = TieAwareBattle(log_frequency=0, log_folder=&#x27;.context/rebuild-games&#x27;)
+kingdom = [&#x27;Forager&#x27;, &#x27;Rebuild&#x27;, &#x27;Skulk&#x27;]
+results = []
+for opponent in [&#x27;SkulkRebuild&#x27;, &#x27;SkulkRebuildImproved&#x27;]:
+    counts = dict(wins=0, losses=0, ties=0)
+    example_loss = None
+    for i in range(400):
+        seed = 2026091700 + i // 2
+        random.seed(seed)
+        a = GeneticAI(battle.strategy_loader.get_strategy(&#x27;Rebuild Rush&#x27;))
+        b = GeneticAI(battle.strategy_loader.get_strategy(opponent))
+        seats = (a, b) if i % 2 == 0 else (b, a)
+        winner, scores, _, turns = battle.run_game(*seats, kingdom)
+        outcome = &#x27;ties&#x27; if battle.tied else &#x27;wins&#x27; if winner is a else &#x27;losses&#x27;
+        counts[outcome] += 1
+        if outcome == &#x27;losses&#x27; and example_loss is None:
+            example_loss = dict(seed=seed, rebuild_rush_seat=1 if i % 2 == 0 else 2, scores={&#x27;Rebuild Rush&#x27;: scores[a.name], opponent: scores[b.name]})
+    row = dict(opponent=opponent, games=400, **counts, example_loss=example_loss)
+    results.append(row)
+    print(json.dumps(row), flush=True)
+with open(&#x27;.context/rebuild-comparison.json&#x27;, &#x27;w&#x27;) as f:
+    json.dump(dict(kingdom=kingdom, starting_cards=&#x27;7 Copper, 3 Estate&#x27;, seeds=&#x27;2026091700..2026091899, each played in both seats&#x27;, results=results), f, indent=2)
+</code></pre></details>
+<footer>Implementation references: <code>dominion/strategy/strategies/calibration_known_best.py</code>, <code>skulk_rebuild.py</code>, <code>skulk_rebuild_improved.py</code>, and <code>dominion/simulation/strategy_battle.py</code>. The two originally linked strategy pages in the bozeman-v1 workspace matched the pages in this workspace at inspection.</footer>
+</body>
+</html>

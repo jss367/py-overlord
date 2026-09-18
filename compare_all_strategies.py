@@ -12,6 +12,7 @@ from dominion.simulation.strategy_battle import (
     canonical_way_name,
 )
 from dominion.reporting.html_report import generate_leaderboard_html
+from dominion.reporting.tournament_state import tournament_fingerprint
 from dominion.reporting.strategy_links import board_display_name
 
 
@@ -176,6 +177,7 @@ def main() -> None:
 
     board_config = load_board(args.board) if args.board else None
 
+    input_fingerprint = tournament_fingerprint()
     results = run_full_battle(
         num_games=args.games,
         use_shelters=args.use_shelters,
@@ -196,7 +198,9 @@ def main() -> None:
         if args.board
         else "a cross-board round robin"
     )
-    generate_leaderboard_html(results, output, context_label=context_label)
+    generate_leaderboard_html(
+        results, output, context_label=context_label, input_fingerprint=input_fingerprint,
+    )
     print(f"Leaderboard written to {output}")
 
 
