@@ -237,6 +237,67 @@ def test_natural_ending_wins_over_cap_on_the_same_boundary(max_turns):
     assert episode_status(state, max_turns) == (True, False)
 
 
+@pytest.mark.parametrize("max_turns", [1, 100, 150])
+def test_fleet_round_finishes_after_crossing_turn_cap(max_turns):
+    from dominion.projects.fleet import Fleet
+
+    state = setup_state()
+    state.turn_number = min(max_turns, 100) + 1
+    state.supply["Province"] = 0
+    for player in state.players:
+        player.ai = PassingAI()
+        player.projects.append(Fleet())
+    before = [p.turns_taken for p in state.players]
+    assert episode_status(state, max_turns) == (False, False)
+    assert state.fleet_extra_round_active
+    for _ in range(30):
+        terminated, truncated = episode_status(state, max_turns)
+        assert not truncated
+        if terminated:
+            break
+        state.play_turn()
+    assert terminated
+    assert [p.turns_taken for p in state.players] == [n + 1 for n in before]
+    assert not state.fleet_extra_players
+
+
+@pytest.mark.parametrize("max_turns", [1, 100, 150])
+@pytest.mark.parametrize("end_after_cap", [False, True])
+def test_training_finishes_fleet_even_when_truncation_was_pending(max_turns, end_after_cap):
+    from dominion.projects.fleet import Fleet
+
+    cap = min(max_turns, 100)
+
+    class EndingOpponent(PassingAI):
+        def choose_buy(self, state, choices):
+            if state.turn_number > cap:
+                state.supply["Province"] = 0
+            return None
+
+    board = kingdom_splits()["train"][0]
+    env = DominionEnv(board, EndingOpponent(), max_turns=max_turns)
+    try:
+        env.reset(seed=1, options={"seat": 1})
+        state = env.game_state
+        state.turn_number = cap
+        if not end_after_cap:
+            state.supply["Province"] = 0
+        for player in state.players:
+            player.projects.append(Fleet())
+        before = [p.turns_taken for p in state.players]
+        for _ in range(60):
+            _, _, terminated, truncated, _ = env.step(env.action_encoder.pass_action_index)
+            assert not truncated
+            if terminated:
+                break
+        assert terminated and state.fleet_extra_round_active
+        assert not state.fleet_extra_players
+        assert state.players[1].turns_taken == before[1] + 1
+        assert state.players[0].turns_taken == before[0] + 1 + end_after_cap
+    finally:
+        env.close()
+
+
 def test_chapel_menu_allows_stopping_without_trashing():
     state = setup_state()
     ai = RLAI()

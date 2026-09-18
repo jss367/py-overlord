@@ -130,6 +130,8 @@ class DominionEnv(gym.Env):
                 # opponent turn when needed. The value function is trained
                 # on decision observations, not arbitrary turn boundaries.
                 self._truncate_at_next_decision |= capped
+                if self.game_state.fleet_extra_round_active:
+                    self._truncate_at_next_decision = False
                 if self.rl_ai.cancelled:
                     break
                 self.game_state.play_turn()
@@ -202,5 +204,6 @@ def episode_status(state, max_turns):
     natural_end = ended and (state._normal_game_end_reached() or state.fleet_extra_round_active)
     if natural_end:
         return True, False
-    capped = state.phase == "start" and state.turn_number > min(max_turns, GAME_TURN_LIMIT)
+    capped = (not state.fleet_extra_round_active and state.phase == "start"
+              and state.turn_number > min(max_turns, GAME_TURN_LIMIT))
     return ended and not capped, capped

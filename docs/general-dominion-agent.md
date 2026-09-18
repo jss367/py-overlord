@@ -108,7 +108,8 @@ Scores are wins plus half of ties divided by all scheduled games. Normal games
 use victory points and then fewer turns taken as the tiebreak. A game that hits
 the turn cap is reported separately and earns no evaluation credit; it is never
 counted as a win or tie. Both the requested limit and the engine's 100-turn
-safety cap are detected; a natural ending on the same boundary takes priority.
+safety cap are detected; a natural ending on the same boundary takes priority,
+including completing any required Fleet extra round.
 During PPO a capped episode emits zero reward but bootstraps its value target
 from the next actual agent decision before reset, advancing through an intervening
 opponent turn when necessary. If the game ends naturally before that decision,
@@ -191,7 +192,7 @@ python -m dominion.rl.general.evaluate \
   --output .context/general-dominion-evaluation.json
 ```
 
-The latest full repository run passes all 3,072 tests, including all 88
+The latest full repository run passes all 3,081 tests, including all 97
 reinforcement learning tests. Earlier runs intermittently failed
 `TestCustomConditionSignatures::test_copy_and_worker_roundtrip_preserve_signature`,
 which also failed in an unchanged checkout and passed independently; that
