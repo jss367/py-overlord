@@ -79,14 +79,15 @@ class AI(ABC):
     def should_trash_engineer_for_extra_gains(
         self, state: GameState, player: PlayerState, engineer: Card
     ) -> bool:
-        """Decide whether to trash Engineer to gain two additional cards.
+        """Decide whether to trash Engineer to gain one additional card.
 
         The default behaviour is conservative and keeps the Engineer in play,
         ensuring existing AIs retain their previous behaviour unless they
         explicitly opt in to the extra gains.
         """
 
-        return False
+        hook = getattr(getattr(self, "strategy", None), "should_trash_engineer_for_extra_gains", None)
+        return hook(state, player, engineer) if hook else False
 
     def choose_mountain_pass_bid(
         self,
@@ -964,6 +965,9 @@ class AI(ABC):
         Default: top-deck the most valuable Action so it's drawn next
         turn, otherwise the cheapest junk. Mirrors the Pilgrim heuristic.
         """
+        hook = getattr(getattr(self, "strategy", None), "choose_card_to_topdeck_for_courtyard", None)
+        if hook:
+            return hook(state, player, choices)
         return self.choose_card_to_topdeck_from_hand(
             state, player, choices, reason="courtyard"
         )
@@ -1722,8 +1726,8 @@ class AI(ABC):
     ) -> list[str]:
         """Pick two of Kitsune's four options.
 
-        Default heuristic: prefer cursing opponents, then +$2, then +1
-        Action, falling back to gaining a Silver.
+        Default heuristic: prefer cursing opponents, then +$2, then +2
+        Actions, falling back to gaining a Silver.
         """
         priority = ["curse", "coins", "action", "silver"]
         ordered = [opt for opt in priority if opt in options]
@@ -2606,6 +2610,9 @@ class AI(ABC):
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Card | None:
         """Counterfeit: pick a Treasure to play twice and trash, or None."""
+        hook = getattr(getattr(self, "strategy", None), "should_replay_treasure_with_counterfeit", None)
+        if hook:
+            return hook(state, player, choices)
         if not choices:
             return None
         # Prefer to trash Copper; otherwise highest-coin treasure.
