@@ -15,7 +15,36 @@ import sys
 
 from dominion.boards.loader import BoardConfig, load_board
 from dominion.simulation.strategy_battle import StrategyBattle
+from dominion.reporting.tournament_state import tournament_fingerprint
 from compare_all_strategies import _missing_board_components
+
+
+def source_provenance():
+    """Identify the checkout, runtime, and actual simulation inputs, including edits."""
+    digest = hashlib.sha256(tournament_fingerprint().encode())
+    digest.update(Path(__file__).read_bytes())
+    return {
+        "source_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+        "python_version": sys.version.split()[0],
+        "source_fingerprint": digest.hexdigest(),
+    }
+
+
+def validate_provenance(saved, current, label):
+    for field in ("source_revision", "python_version", "source_fingerprint"):
+        if saved.get(field) != current[field]:
+            raise ValueError(
+                f"{label}: {field} is missing or differs from the current experiment; "
+                "use fresh output paths and rerun both stages from the same source and Python version"
+            )
+
+
+def save_report(path, report, provenance):
+    # Detect edits during a pairing as well as changes between invocations.
+    validate_provenance(provenance, source_provenance(), "Source changed during evaluation")
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_text(json.dumps(report, indent=2) + "\n")
+    temporary.replace(path)
 
 
 def cohorts():
@@ -51,19 +80,31 @@ def main():
     args = parser.parse_args()
     if args.stage == "validate" and not args.screen:
         parser.error("--stage validate requires --screen")
+    if args.stage == "screen" and args.screen:
+        parser.error("--screen is only valid with --stage validate")
     if args.workers < 2:
         parser.error("Use at least two workers for reproducible per-game seeding")
     games = 200 if args.stage == "screen" else 1000
     screen = json.loads(args.screen.read_text()) if args.screen else None
     if screen and (screen["stage"] != "screen" or screen["games_per_pairing"] != 200):
         parser.error("--screen must contain the 200-game screening results")
+    provenance = source_provenance()
+    if screen:
+        try:
+            validate_provenance(screen, provenance, "Screening results")
+        except ValueError as error:
+            parser.error(str(error))
     report = {
         "stage": args.stage, "games_per_pairing": games,
-        "source_revision": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
-        "python_version": sys.version.split()[0], "results": [],
+        **provenance, "results": [],
     }
     if args.output.exists():
-        report.update(json.loads(args.output.read_text()))
+        saved = json.loads(args.output.read_text())
+        try:
+            validate_provenance(saved, provenance, "Saved output")
+        except ValueError as error:
+            parser.error(str(error))
+        report.update(saved)
         if report["stage"] != args.stage or report["games_per_pairing"] != games:
             parser.error("Existing output belongs to a different stage")
     args.output.parent.mkdir(parents=True, exist_ok=True)
@@ -102,11 +143,9 @@ def main():
                     "win_rate": result["strategy1_wins"] / games,
                 }
                 report["results"].append(row)
-                temporary = args.output.with_suffix(".tmp")
-                temporary.write_text(json.dumps(report, indent=2) + "\n")
-                temporary.replace(args.output)
+                save_report(args.output, report, provenance)
                 print(f"{label}: {candidate} vs {opponent}: {row['wins']}/{games}", flush=True)
-    args.output.write_text(json.dumps(report, indent=2) + "\n")
+    save_report(args.output, report, provenance)
 
 
 if __name__ == "__main__":
