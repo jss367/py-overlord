@@ -444,6 +444,32 @@ def test_strategy_leaderboard_rows_carry_card_and_expansion_filter_data():
     assert "querySelectorAll('.leaderboard-row')" in html
 
 
+def test_strategy_leaderboard_card_filter_submits_as_show_only():
+    html = render_strategy_leaderboard(
+        {
+            "Torture Campaign": {
+                "wins": 9,
+                "losses": 1,
+                "win_rate": 90.0,
+                "description": "Torturer engine.",
+                "cards": ["Torturer"],
+            }
+        }
+    )
+
+    # Pressing Enter in the card box submits the form, so the submit button has
+    # to be the "show only" one; hiding is the deliberate, clicked choice.
+    assert (
+        '<button type="submit" class="filter-button filter-button-with" '
+        'data-mode="with">Show only strategies using it</button>'
+    ) in html
+    assert (
+        '<button type="button" class="filter-button" data-mode="without">'
+        "Hide strategies using it</button>"
+    ) in html
+    assert "event.preventDefault(); addCard('with');" in html
+
+
 def test_strategy_leaderboard_without_results_has_no_filter_panel():
     html = render_strategy_leaderboard({})
 

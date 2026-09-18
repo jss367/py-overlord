@@ -183,6 +183,12 @@ class GeneticAI(AI):
             return hook(state, player, choices)
         return super().choose_card_to_trash_for_rogue_attack(state, player, choices)
 
+    def choose_action_to_discard_for_figurine(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_action_to_discard_for_figurine", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_action_to_discard_for_figurine(state, player, choices)
+
     def choose_treasure_to_discard_for_stables(self, state, player, choices):
         hook = getattr(self.strategy, "choose_treasure_to_discard_for_stables", None)
         if hook is not None:

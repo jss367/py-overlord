@@ -91,8 +91,8 @@ class CustomBoardStrategy4(EnhancedStrategy):
 
 
 @retired_strategy(
-    replacement="Custom Board Strategy3",
-    reason="Won 0 of 1,000 confirmation games with Estates and 0 of 1,000 with Shelters against the retained engine; no qualifying opponent-panel advantage.",
+    replacement="Big Money",
+    reason="Won 0 of 1,000 confirmation games with Estates and 0 of 1,000 with Shelters against the historical engine; no qualifying opponent-panel advantage.",
     display_name="Collection with Looting",
 )
 def create_custom_board_strategy4() -> EnhancedStrategy:

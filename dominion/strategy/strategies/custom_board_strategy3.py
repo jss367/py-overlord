@@ -1,4 +1,5 @@
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+from dominion.strategy.retirement import retired_strategy
 
 
 class CustomBoardStrategy3(EnhancedStrategy):
@@ -50,5 +51,10 @@ class CustomBoardStrategy3(EnhancedStrategy):
         ]
 
 
+@retired_strategy(
+    replacement="Big Money",
+    reason="Removed from the active pool in PR #373 after losing to Big Money; retained only to reproduce historical comparisons.",
+    display_name="Historical Patrician and Collection Engine",
+)
 def create_custom_board_strategy3() -> EnhancedStrategy:
     return CustomBoardStrategy3()

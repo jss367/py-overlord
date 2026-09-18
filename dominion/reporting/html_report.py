@@ -411,11 +411,16 @@ def generate_leaderboard_html(
     *,
     verbose: bool = False,
     context_label: str = "a cross-board round robin",
+    input_fingerprint: str | None = None,
 ) -> None:
     """Create a catalog-styled HTML leaderboard report for many strategies."""
     from dominion.reporting.card_usage import render_card_usage
     from dominion.reporting.strategy_pages import collect_rendered_strategies, render_strategy_leaderboard
+    from dominion.reporting.tournament_state import make_snapshot, tournament_fingerprint, tournament_notice
 
+    current_fingerprint = tournament_fingerprint()
+    snapshot = make_snapshot(results, context_label, input_fingerprint or current_fingerprint)
+    notice = tournament_notice(snapshot, current_fingerprint)
     strategy_link_prefix = _strategy_link_prefix(output_path)
     index_href = f"{strategy_link_prefix}/index.html"
     board_index_href = os.path.relpath(
@@ -438,6 +443,7 @@ def generate_leaderboard_html(
             strategy_link_prefix=strategy_link_prefix,
             context_label=context_label,
             loader=loader,
+            results_notice=notice,
         )
         output_path.with_name(usage_filename).write_text(usage, encoding="utf-8")
     html = render_strategy_leaderboard(
@@ -448,6 +454,8 @@ def generate_leaderboard_html(
         board_index_href=board_index_href,
         context_label=context_label,
         loader=loader,
+        saved_tournament=snapshot,
+        results_notice=notice,
     )
     output_path.write_text(html)
     if verbose:
