@@ -26,9 +26,11 @@ def test_selected_policy_has_readable_instructions_before_static_details():
     strategy = create_ninja_watchtower_figurine_money()
     page = page_for(strategy)
     gain = page.split('class="section section-gain"', 1)[1].split('</section>', 1)[0]
-    assert "your first Ninja, then your first Watchtower" in gain
+    # The published policy leaves ``watchtowers`` at 0, so the opening buy is
+    # the only Watchtower and no replacement rule appears.
+    assert "Your first Ninja." in gain
     assert "Figurine while you own fewer than 3 copies" in gain
-    assert "Province when 4 or fewer Colonies remain, or from your turn 17" in gain
+    assert "Province when 4 or fewer Colonies remain, or from your turn 22" in gain
     assert "For Museum" in gain
     assert gain.index("Figurine while") < gain.index('class="technical-details"')
     assert "No list condition" not in gain.split('class="technical-details"', 1)[0]
@@ -48,11 +50,13 @@ def test_configured_figurine_limit_matches_real_purchase_decisions(cap):
     assert any(f"Figurine while you own fewer than {cap} " in step for step in instructions.steps)
     player = PlayerState(ai=None, turns_taken=3)
     state = GameState(players=[player], supply={"Colony": 8, "Province": 8})
-    choices = [get_card("Figurine"), get_card("Gold")]
+    # Silver, not Gold: the published policy sets ``money``, which puts Gold
+    # above Figurine outright, so a Figurine/Gold pair cannot show the cap.
+    choices = [get_card("Figurine"), get_card("Silver")]
     player.deck = [get_card("Figurine") for _ in range(cap - 1)]
     assert strategy.choose_gain(state, player, choices).name == "Figurine"
     player.deck.append(get_card("Figurine"))
-    assert strategy.choose_gain(state, player, choices).name == "Gold"
+    assert strategy.choose_gain(state, player, choices).name == "Silver"
 
 
 def test_configured_scoring_thresholds_match_real_purchase_decisions():

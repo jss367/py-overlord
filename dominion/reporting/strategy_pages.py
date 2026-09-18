@@ -69,7 +69,11 @@ CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
         filename="ninja-watchtower-figurine-strategy-guide.html",
         display_name="Ninja, Watchtower and Figurine: Museum Colony Strategy Guide",
-        description="A reproducible search comparing Treasure draw, Stables engines, attacks and Museum scoring with Platinum and Colony.",
+        description=(
+            "A reproducible search over 488,000 games comparing Treasure draw, "
+            "Stables engines, attacks and Museum scoring with Platinum and Colony "
+            "-- plus a one-field ablation of every setting in the published policy."
+        ),
         kingdom_cards=("Catapult", "Watchtower", "Conclave", "Harbor Village", "Innkeeper",
                        "Ninja", "Silk Merchant", "Figurine", "Pendant", "Stables"),
         source_label="Seat-balanced simulations, held-out validation and official card rules",

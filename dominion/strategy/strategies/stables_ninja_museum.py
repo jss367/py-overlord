@@ -45,24 +45,51 @@ class StablesNinjaMuseum(EnhancedStrategy):
         return next((available[n] for n in names if n in available), None)
 
     def choose_action(self, state, player, choices):
+        p = self.params
         available = {c.name: c for c in choices if c is not None}
-        names = ["Harbor Village"]
-        if self.params["ninja_first"]:
-            names.append("Ninja")
-        if "Conclave" in available and any(
+        conclave_ready = "Conclave" in available and any(
             c.is_action and c.name != "Conclave"
             and not any(x.name == c.name for x in player.in_play)
             for c in player.hand
-        ):
+        )
+        # Stables and Conclave only refund the Action when they have something
+        # to work with, so the terminal/non-terminal split is hand-dependent.
+        stables_ready = any(c.is_treasure for c in player.hand)
+        spare = player.actions > 1
+        names = ["Harbor Village"]
+        if p["ninja_first"] and spare:
+            names.append("Ninja")
+        if conclave_ready:
             names.append("Conclave")
+        if spare and len(player.hand) <= 5:
+            # A small hand draws more off Watchtower, so with Actions to spare
+            # it goes before the cards that refill the hand.
+            names.append("Watchtower")
+        if stables_ready:
+            names.append("Stables")
+        names.append("Innkeeper")
         if len(player.hand) <= 5:
             names.append("Watchtower")
-        if any(c.is_treasure for c in player.hand):
-            names.append("Stables")
-        names += ["Innkeeper", "Silk Merchant", "Ninja"]
+        names += ["Silk Merchant", "Ninja"]
         if self.choose_trash(state, player, player.hand) is not None:
             names.append("Catapult")
         names.append("Conclave")
+        return self.pick(choices, names)
+
+    def choose_action_to_play_with_conclave(self, state, player, choices):
+        """Conclave refunds the Action, so it should cash in a terminal.
+
+        The generic default ranks by printed +Cards, which is zero for the
+        two cards on this board that actually draw.
+        """
+        names = []
+        # Conclave takes its target out of hand before playing it.
+        if len(player.hand) - 1 <= 5:
+            names.append("Watchtower")
+        names.append("Silk Merchant")
+        if any(c.is_treasure for c in player.hand):
+            names.append("Stables")
+        names += ["Ninja", "Harbor Village", "Innkeeper", "Catapult", "Watchtower"]
         return self.pick(choices, names)
 
     def choose_treasure_to_discard_for_stables(self, state, player, choices):
@@ -173,14 +200,22 @@ class StablesNinjaMuseum(EnhancedStrategy):
 
 
 def create_ninja_watchtower_figurine_money() -> EnhancedStrategy:
-    """Best policy selected by the recorded board search, before validation."""
+    """Policy selected by the recorded board search's round robin.
+
+    ``money`` and ``silks`` are the two settings that carry it; the recorded
+    ablation shows ``platinums``, ``green_turn``, ``watchtowers``, ``pendants``
+    and ``silvers`` are worth about half a point each at most. They are kept as
+    selected so the published policy is exactly the one the search scored.
+    """
     strategy = StablesNinjaMuseum(
-        opening="Ninja", second="Watchtower", stables=0, silks=0, villages=0,
+        opening="Ninja", second="Watchtower", stables=0, silks=1, villages=0,
         catapults=0, conclaves=0, figurines=3, pendants=5, silvers=3, golds=2,
+        money=True, platinums=3, green_turn=22, watchtowers=0,
     )
     strategy.name = "Ninja Watchtower Figurine Money"
     strategy.description = (
-        "Open Ninja and Watchtower, build three Figurines, then diverse Treasures "
-        "and Platinum; score Colonies and collect Museum diversity late."
+        "Open Ninja and Watchtower, take Gold ahead of the last Figurine, then "
+        "diverse Treasures and Platinum; score Colonies and collect Museum "
+        "diversity late."
     )
     return strategy

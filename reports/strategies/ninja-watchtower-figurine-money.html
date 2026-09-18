@@ -288,7 +288,7 @@
 <header class="hero">
   <p class="eyebrow">Dominion strategy</p>
   <h1>Ninja Watchtower Figurine Money</h1>
-  <p class="hero-description">Open Ninja and Watchtower, build three Figurines, then diverse Treasures and Platinum; score Colonies and collect Museum diversity late.</p>
+  <p class="hero-description">Open Ninja and Watchtower, take Gold ahead of the last Figurine, then diverse Treasures and Platinum; score Colonies and collect Museum diversity late.</p>
 
   <div class="hero-links"><strong>Compatible boards</strong><span class="chip-list"><a class="board-chip" href="../boards/stables-ninja-museum.html">Stables Ninja Museum</a></span></div>
   <details class="technical-details">
@@ -309,24 +309,51 @@
   <table class="priority-table">
     <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
     <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does"><a href="#instructions-action">Read the action instructions below.</a><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+    p = self.params
     available = {c.name: c for c in choices if c is not None}
-    names = [&quot;Harbor Village&quot;]
-    if self.params[&quot;ninja_first&quot;]:
-        names.append(&quot;Ninja&quot;)
-    if &quot;Conclave&quot; in available and any(
+    conclave_ready = &quot;Conclave&quot; in available and any(
         c.is_action and c.name != &quot;Conclave&quot;
         and not any(x.name == c.name for x in player.in_play)
         for c in player.hand
-    ):
+    )
+    # Stables and Conclave only refund the Action when they have something
+    # to work with, so the terminal/non-terminal split is hand-dependent.
+    stables_ready = any(c.is_treasure for c in player.hand)
+    spare = player.actions &gt; 1
+    names = [&quot;Harbor Village&quot;]
+    if p[&quot;ninja_first&quot;] and spare:
+        names.append(&quot;Ninja&quot;)
+    if conclave_ready:
         names.append(&quot;Conclave&quot;)
+    if spare and len(player.hand) &lt;= 5:
+        # A small hand draws more off Watchtower, so with Actions to spare
+        # it goes before the cards that refill the hand.
+        names.append(&quot;Watchtower&quot;)
+    if stables_ready:
+        names.append(&quot;Stables&quot;)
+    names.append(&quot;Innkeeper&quot;)
     if len(player.hand) &lt;= 5:
         names.append(&quot;Watchtower&quot;)
-    if any(c.is_treasure for c in player.hand):
-        names.append(&quot;Stables&quot;)
-    names += [&quot;Innkeeper&quot;, &quot;Silk Merchant&quot;, &quot;Ninja&quot;]
+    names += [&quot;Silk Merchant&quot;, &quot;Ninja&quot;]
     if self.choose_trash(state, player, player.hand) is not None:
         names.append(&quot;Catapult&quot;)
     names.append(&quot;Conclave&quot;)
+    return self.pick(choices, names)
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose action to play with conclave</span></td><td data-label="What it does">Conclave refunds the Action, so it should cash in a terminal.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action_to_play_with_conclave(self, state, player, choices):
+    &quot;&quot;&quot;Conclave refunds the Action, so it should cash in a terminal.
+
+    The generic default ranks by printed +Cards, which is zero for the
+    two cards on this board that actually draw.
+    &quot;&quot;&quot;
+    names = []
+    # Conclave takes its target out of hand before playing it.
+    if len(player.hand) - 1 &lt;= 5:
+        names.append(&quot;Watchtower&quot;)
+    names.append(&quot;Silk Merchant&quot;)
+    if any(c.is_treasure for c in player.hand):
+        names.append(&quot;Stables&quot;)
+    names += [&quot;Ninja&quot;, &quot;Harbor Village&quot;, &quot;Innkeeper&quot;, &quot;Catapult&quot;, &quot;Watchtower&quot;]
     return self.pick(choices, names)
 </code></pre></details></td></tr>
 <tr><td data-label="Hook"><span class="behavior-name">Choose treasure to discard for stables</span></td><td data-label="What it does"><p>Choose whether and what to discard for Stables.</p><ol class="decision-instructions"><li>Discard nothing if both your deck and discard pile are empty.</li><li>Otherwise discard the first available Treasure in this order: Copper, Rocks, Silver, Figurine, Pendant, Gold, Platinum.</li></ol><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_treasure_to_discard_for_stables(self, state, player, choices):
@@ -440,7 +467,7 @@
 
 <section class="section section-gain">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Decisions</h2></div>
-  <div id="instructions-gain"><p>On your first two turns, try your first Ninja, then your first Watchtower. Do not buy Credit. Otherwise take Silver if available, or pass. After turn two, take the first available option below; purchases must also be affordable.</p><ol class="decision-instructions"><li>Colony whenever available.</li><li>Province when 4 or fewer Colonies remain, or from your turn 17.</li><li>Duchy when two or fewer Colonies or two or fewer Provinces remain.</li><li>Platinum while you own fewer than 2 copies.</li><li>Your first Ninja.</li><li>Your first Watchtower.</li><li>Figurine while you own fewer than 3 copies.</li><li>Gold while you own fewer than 2 copies.</li><li>Pendant while you own fewer than 5 copies.</li><li>Silver while you own fewer than 3 copies.</li><li>For Museum, when two or fewer Colonies or two or fewer Provinces remain, or from your turn 17, collect missing card names in this order: Catapult, Watchtower, Conclave, Harbor Village, Innkeeper, Ninja, Silk Merchant, Figurine, Pendant, Stables, Rocks, Gold, Silver, Estate, Copper, Curse. Include kingdom cards skipped during the earlier buying steps.</li><li>Estate when two or fewer Colonies or two or fewer Provinces remain. Otherwise pass.</li></ol></div><p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
+  <div id="instructions-gain"><p>On your first two turns, try your first Ninja, then your first Watchtower. Do not buy Credit. Otherwise take Silver if available, or pass. After turn two, take the first available option below; purchases must also be affordable.</p><ol class="decision-instructions"><li>Colony whenever available.</li><li>Province when 4 or fewer Colonies remain, or from your turn 22.</li><li>Duchy when two or fewer Colonies or two or fewer Provinces remain.</li><li>Platinum while you own fewer than 3 copies.</li><li>Your first Ninja.</li><li>Gold while you own fewer than 2 copies.</li><li>Silk Merchant while you own fewer than 1 copy.</li><li>Figurine while you own fewer than 3 copies.</li><li>Gold while you own fewer than 2 copies.</li><li>Pendant while you own fewer than 5 copies.</li><li>Silver while you own fewer than 3 copies.</li><li>For Museum, when two or fewer Colonies or two or fewer Provinces remain, or from your turn 22, collect missing card names in this order: Catapult, Watchtower, Conclave, Harbor Village, Innkeeper, Ninja, Silk Merchant, Figurine, Pendant, Stables, Rocks, Gold, Silver, Estate, Copper, Curse. Include kingdom cards skipped during the earlier buying steps.</li><li>Estate when two or fewer Colonies or two or fewer Provinces remain. Otherwise pass.</li></ol></div><p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
   <table class="priority-table">
     <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
     <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Catapult, Action, Attack card"><span>Catapult</span><span class="type-marker marker-attack" title="Attack" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
