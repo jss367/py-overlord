@@ -31,6 +31,8 @@ class PPOTrainer:
         ppo_epochs: int = 10,
         batch_size: int = 64,
         device: str = "cpu",
+        policy=None,
+        seed: int | None = None,
     ):
         self.env = env
         self.gamma = gamma
@@ -45,17 +47,17 @@ class PPOTrainer:
         self.device = torch.device(device)
 
         # Create policy network
-        self.policy = MLPPolicy(
+        self.policy = (policy if policy is not None else MLPPolicy(
             obs_size=env.observation_space.shape[0],
             action_size=env.action_space.n,
-        ).to(self.device)
+        )).to(self.device)
 
         self.optimizer = Adam(self.policy.parameters(), lr=lr)
 
         # Current state
         self._obs: Optional[np.ndarray] = None
         self._info: Optional[dict] = None
-        self._reset_env()
+        self._obs, self._info = self.env.reset(seed=seed)
 
         # Stats
         self._episode_rewards: list[float] = []
@@ -165,7 +167,7 @@ class PPOTrainer:
         returns_t = torch.FloatTensor(returns).to(self.device)
 
         # Normalize advantages
-        advantages_t = (advantages_t - advantages_t.mean()) / (advantages_t.std() + 1e-8)
+        advantages_t = (advantages_t - advantages_t.mean()) / (advantages_t.std(unbiased=False) + 1e-8)
 
         total_policy_loss = 0.0
         total_value_loss = 0.0

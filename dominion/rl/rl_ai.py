@@ -8,6 +8,13 @@ from dominion.cards.base_card import Card
 from dominion.game.game_state import GameState
 
 
+class GameCancelled(Exception):
+    """Internal signal used to stop a game waiting for an agent decision."""
+
+
+_CANCEL = object()
+
+
 class _RLStrategy:
     """Strategy metadata used by GameState logging."""
     name = "RL Agent"
@@ -30,6 +37,11 @@ class RLAI(AI):
         # Queues for env <-> game thread communication
         self.choice_queue: queue.Queue = queue.Queue()
         self.action_queue: queue.Queue = queue.Queue()
+        self.cancelled = False
+
+    def cancel(self) -> None:
+        self.cancelled = True
+        self.action_queue.put(_CANCEL)
 
     @property
     def name(self) -> str:
@@ -38,8 +50,13 @@ class RLAI(AI):
     def _request_decision(self, decision_type: str, state: GameState,
                           choices: list) -> Optional[Card]:
         """Put choices on queue and wait for env to provide action."""
+        if self.cancelled:
+            raise GameCancelled()
         self.choice_queue.put((decision_type, state, choices))
-        return self.action_queue.get()
+        result = self.action_queue.get()
+        if result is _CANCEL or self.cancelled:
+            raise GameCancelled()
+        return result
 
     def choose_action(self, state: GameState, choices: list[Optional[Card]]) -> Optional[Card]:
         return self._request_decision("action", state, choices)
@@ -51,4 +68,5 @@ class RLAI(AI):
         return self._request_decision("buy", state, choices)
 
     def choose_card_to_trash(self, state: GameState, choices: list[Card]) -> Optional[Card]:
-        return self._request_decision("trash", state, choices)
+        # The engine's Chapel menu omits None, although stopping is legal.
+        return self._request_decision("trash", state, list(choices) + ([None] if None not in choices else []))

@@ -65,6 +65,11 @@ conditions and decision hooks work unchanged.
 
 ## Board and strategy catalog
 
+For a single learned player trained across multiple kingdoms, see
+[Training a Dominion agent across kingdoms](docs/general-dominion-agent.md).
+It includes imitation and league training, versioned checkpoints, and evaluation
+on withheld kingdoms from a supported fifteen-card pool.
+
 Retired strategies are omitted from default tournaments, automatic strategy
 reuse, and active catalog listings. Their factories and aliases still work for
 explicit comparisons, and their historical HTML pages remain available in the

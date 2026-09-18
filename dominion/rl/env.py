@@ -1,9 +1,9 @@
-"""Gymnasium environment for Dominion."""
+"""Decision-level Gymnasium environment backed by the Dominion rules engine."""
 
 import queue
 import random
 import threading
-from typing import Any, Optional
+from typing import Any
 
 import gymnasium as gym
 import numpy as np
@@ -13,205 +13,163 @@ from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.rl.action_encoder import ActionEncoder
 from dominion.rl.random_ai import RandomAI
-from dominion.rl.rl_ai import RLAI
+from dominion.rl.rl_ai import GameCancelled, RLAI
 from dominion.rl.state_encoder import StateEncoder
 
 
 class DominionEnv(gym.Env):
-    """Gymnasium environment for training RL agents on Dominion.
+    """One active game per process (the rules engine uses Python's global RNG).
 
-    The agent plays as player 0 against an opponent (default: RandomAI).
-    The game runs in a background thread; each step() corresponds to one
-    decision point (action, treasure, or buy choice).
-
-    Observations are encoded game states. Actions are card choices.
-    Reward is +1 for win, -1 for loss, 0 otherwise.
+    ``kingdoms`` varies the board each episode while ``vocabulary`` keeps action
+    indices fixed. A callable opponent receives the current kingdom and must
+    return a fresh AI. Existing single-board callers retain their old interface.
+    Time limits abort at turn boundaries and award zero, never a spurious win.
     """
 
     metadata = {"render_modes": []}
 
-    def __init__(
-        self,
-        kingdom_cards: list[str],
-        opponent_ai: Optional[Any] = None,
-        max_turns: int = 100,
-    ):
+    def __init__(self, kingdom_cards: list[str], opponent_ai: Any = None,
+                 max_turns: int = 100, *, kingdoms=None, vocabulary=None,
+                 state_encoder=None, randomize_seats: bool = False):
         super().__init__()
-
+        if max_turns < 1:
+            raise ValueError("max_turns must be positive")
         self.kingdom_cards = list(kingdom_cards)
-        self._opponent_factory = opponent_ai  # AI instance or None
+        self.kingdoms = [list(k) for k in (kingdoms or [kingdom_cards])]
+        self._opponent_factory = opponent_ai
         self.max_turns = max_turns
-
-        # Encoders
-        self.state_encoder = StateEncoder(kingdom_cards)
-        self.action_encoder = ActionEncoder(kingdom_cards)
-
-        # Gym spaces
+        self.randomize_seats = randomize_seats
+        self.player_index = 0
+        vocabulary = list(vocabulary or kingdom_cards)
+        if any(not set(k) <= set(vocabulary) for k in self.kingdoms):
+            raise ValueError("Every kingdom must fit the action vocabulary")
+        self.state_encoder = state_encoder or StateEncoder(vocabulary)
+        self.action_encoder = ActionEncoder(vocabulary)
         self.observation_space = spaces.Box(
-            low=-np.inf,
-            high=np.inf,
-            shape=(self.state_encoder.observation_size,),
-            dtype=np.float32,
-        )
+            low=-np.inf, high=np.inf,
+            shape=(self.state_encoder.observation_size,), dtype=np.float32)
         self.action_space = spaces.Discrete(self.action_encoder.action_size)
-
-        # Game state (set during reset)
-        self.game_state: Optional[GameState] = None
-        self.rl_ai: Optional[RLAI] = None
-        self._game_thread: Optional[threading.Thread] = None
-        self._current_choices: list = []
-        self._current_decision_type: str = ""
+        self.game_state = None
+        self.rl_ai = None
+        self._game_thread = None
+        self._current_choices = []
+        self._current_decision_type = ""
         self._game_done = False
-        self._game_error: Optional[Exception] = None
-
-    def reset(
-        self,
-        *,
-        seed: Optional[int] = None,
-        options: Optional[dict] = None,
-    ) -> tuple[np.ndarray, dict]:
-        super().reset(seed=seed)
-
-        if seed is not None:
-            random.seed(seed)
-            np.random.seed(seed)
-
-        # Clean up previous game thread
-        if self._game_thread is not None and self._game_thread.is_alive():
-            # Unblock the game thread so it can exit
-            if self.rl_ai is not None:
-                self.rl_ai.action_queue.put(None)
-            self._game_thread.join(timeout=5)
-
-        # Create fresh AIs
-        self.rl_ai = RLAI(name="RLAgent")
-        opponent = RandomAI() if self._opponent_factory is None else self._opponent_factory
-
-        # Set up game
-        self.game_state = GameState(players=[], supply={})
-        # Suppress default logging
-        self.game_state.log_callback = lambda msg: None
-        kingdom_card_objects = [get_card(name) for name in self.kingdom_cards]
-        self.game_state.initialize_game(
-            [self.rl_ai, opponent],
-            kingdom_card_objects,
-        )
-
-        self._game_done = False
+        self._truncated = False
         self._game_error = None
 
-        # Start game in background thread
+    def reset(self, *, seed=None, options=None):
+        self.close()
+        super().reset(seed=seed)
+        options = options or {}
+        kingdom = options.get("kingdom")
+        if kingdom is not None and list(kingdom) not in self.kingdoms:
+            raise ValueError("Requested kingdom is not in this environment's split")
+        self.kingdom_cards = list(kingdom if kingdom is not None else
+                                  self.kingdoms[int(self.np_random.integers(len(self.kingdoms)))])
+        self.player_index = int(options.get("seat", self.np_random.integers(2)
+                                           if self.randomize_seats else 0))
+        if self.player_index not in (0, 1):
+            raise ValueError("seat must be 0 or 1")
+        game_seed = int(seed if seed is not None else self.np_random.integers(2**32))
+        random.seed(game_seed)
+        self.rl_ai = RLAI(name="RLAgent")
+        opponent = self._opponent_factory
+        if opponent is None:
+            opponent = RandomAI()
+        elif callable(opponent):
+            opponent = opponent(self.kingdom_cards)
+        ais = [self.rl_ai, opponent] if self.player_index == 0 else [opponent, self.rl_ai]
+        self.game_state = GameState(players=[], supply={})
+        self.game_state.log_callback = lambda msg: None
+        self.game_state.initialize_game(ais, [get_card(n) for n in self.kingdom_cards])
+        self._game_done = self._truncated = False
+        self._game_error = None
         self._game_thread = threading.Thread(target=self._run_game, daemon=True)
         self._game_thread.start()
-
-        # Wait for first decision point
         self._wait_for_decision()
+        return self._get_observation(), self._get_info()
 
-        obs = self._get_observation()
-        info = self._get_info()
-        return obs, info
-
-    def _find_choice_card(self, action: int) -> Optional[Any]:
-        """Find the actual card object from choices that matches the action index.
-
-        The game engine uses object identity for hand.remove(), so we must
-        return the exact card instance from the choices list, not a new one.
-        """
+    def _find_choice_card(self, action):
         if action == self.action_encoder.pass_action_index:
             return None
-        target_name = self.action_encoder.all_cards[action]
-        for choice in self._current_choices:
-            if choice is not None and choice.name == target_name:
-                return choice
-        return None
+        name = self.action_encoder.all_cards[action]
+        return next(c for c in self._current_choices if c is not None and c.name == name)
 
-    def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:
+    def step(self, action):
+        if self.game_state is None or self._game_thread is None:
+            raise RuntimeError("Call reset before step")
         if self._game_done:
-            # Game already over
-            obs = self._get_observation()
-            return obs, 0.0, True, False, self._get_info()
-
-        # Validate action against mask
+            return self._get_observation(), 0.0, not self._truncated, self._truncated, self._get_info()
         mask = self.action_encoder.get_action_mask(self._current_choices)
-        if not mask[action]:
-            # Invalid action - pick first valid one
-            valid_actions = np.where(mask)[0]
-            action = valid_actions[0]
-
-        # Find the actual card object from the choices list (not a new instance)
-        card = self._find_choice_card(action)
-
-        # Send action to game thread
-        self.rl_ai.action_queue.put(card)
-
-        # Wait for next decision point or game end
+        if not isinstance(action, (int, np.integer)) or not 0 <= action < len(mask) or not mask[action]:
+            raise ValueError(f"Illegal action index: {action}")
+        self.rl_ai.action_queue.put(self._find_choice_card(action))
         self._wait_for_decision()
+        reward = self._calculate_reward() if self._game_done and not self._truncated else 0.0
+        return (self._get_observation(), reward, self._game_done and not self._truncated,
+                self._truncated, self._get_info())
 
-        # Check termination
-        terminated = self._game_done
-        truncated = not terminated and self.game_state.turn_number > self.max_turns
-
-        # Calculate reward
-        reward = 0.0
-        if terminated or truncated:
-            reward = self._calculate_reward()
-
-        obs = self._get_observation()
-        info = self._get_info()
-        return obs, reward, terminated, truncated, info
-
-    def _run_game(self) -> None:
-        """Run the game loop in a background thread."""
+    def _run_game(self):
         try:
             while not self.game_state.is_game_over():
                 if self.game_state.turn_number > self.max_turns:
+                    self._truncated = True
+                    break
+                if self.rl_ai.cancelled:
                     break
                 self.game_state.play_turn()
-        except Exception as e:
-            self._game_error = e
+        except GameCancelled:
+            pass
+        except Exception as exc:
+            self._game_error = exc
         finally:
-            # Signal that the game is done
             self.rl_ai.choice_queue.put(("done", None, None))
 
-    def _wait_for_decision(self) -> None:
-        """Block until the RL agent needs to make a decision or game ends."""
+    def _wait_for_decision(self):
         try:
-            decision_type, state, choices = self.rl_ai.choice_queue.get(timeout=30)
-        except queue.Empty:
-            self._game_done = True
-            return
-
+            decision_type, _, choices = self.rl_ai.choice_queue.get(timeout=30)
+        except queue.Empty as exc:
+            self.close()
+            raise TimeoutError("Game engine did not produce a decision") from exc
         if decision_type == "done":
             self._game_done = True
-            return
-
-        self._current_decision_type = decision_type
-        self._current_choices = choices
-
-    def _get_observation(self) -> np.ndarray:
-        return self.state_encoder.encode(self.game_state, player_index=0)
-
-    def _get_info(self) -> dict:
-        if self._game_done:
-            # Return all-valid mask when game is over
-            mask = np.ones(self.action_encoder.action_size, dtype=bool)
+            self._current_choices = []
+            self._current_decision_type = ""
+            if self._game_error is not None:
+                raise RuntimeError("Dominion game engine failed") from self._game_error
         else:
-            mask = self.action_encoder.get_action_mask(self._current_choices)
-        return {"action_mask": mask}
+            self._current_decision_type = decision_type
+            self._current_choices = choices
 
-    def _calculate_reward(self) -> float:
-        rl_player = self.game_state.players[0]
-        opponent = self.game_state.players[1]
-        rl_vp = rl_player.get_victory_points()
-        opp_vp = opponent.get_victory_points()
-        if rl_vp > opp_vp:
-            return 1.0
-        elif rl_vp < opp_vp:
-            return -1.0
-        return 0.0
+    def _get_observation(self):
+        encode_decision = getattr(self.state_encoder, "encode_decision", None)
+        if encode_decision:
+            return encode_decision(self.game_state, self.player_index, self._current_decision_type)
+        return self.state_encoder.encode(self.game_state, self.player_index)
 
-    def close(self) -> None:
-        if self._game_thread is not None and self._game_thread.is_alive():
-            if self.rl_ai is not None:
-                self.rl_ai.action_queue.put(None)
+    def _get_info(self):
+        mask = self.action_encoder.get_action_mask(self._current_choices)
+        if self._game_done:
+            mask[self.action_encoder.pass_action_index] = True
+        return {"action_mask": mask, "decision_type": self._current_decision_type,
+                "seat": self.player_index, "kingdom": list(self.kingdom_cards)}
+
+    def _calculate_reward(self):
+        return game_reward(self.game_state, self.player_index)
+
+    def close(self):
+        if self._game_thread is not None:
+            if self._game_thread.is_alive():
+                self.rl_ai.cancel()
             self._game_thread.join(timeout=5)
+            if self._game_thread.is_alive():
+                raise RuntimeError("Game thread failed to stop; refusing to start another game")
+            self._game_thread = None
+
+
+def game_reward(state, player_index):
+    """Official two-player result, including fewer-turns tiebreak."""
+    scores = [(p.get_victory_points(), -p.turns_taken) for p in state.players]
+    ours, theirs = scores[player_index], scores[1 - player_index]
+    return float((ours > theirs) - (ours < theirs))
