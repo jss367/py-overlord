@@ -120,10 +120,17 @@ def test_rocks_trash_gains_silver_to_hand_and_buy_gain_topdecks_it():
 def test_figurine_discard_is_optional():
     state, p = make_state()
     p.hand = [get_card("Watchtower")]
-    p.ai.choose_action_to_discard_for_figurine = lambda *args: None
+    class PreserveWatchtower(StablesNinjaMuseum):
+        def choose_action_to_discard_for_figurine(self, state, player, choices):
+            assert [c.name for c in choices] == ["Watchtower"]
+            self.asked = True
+            return None
+    strategy = PreserveWatchtower()
+    p.ai = GeneticAI(strategy)
     play(state, p, "Figurine")
     assert [c.name for c in p.hand] == ["Watchtower"]
     assert (p.coins, p.buys) == (0, 1)
+    assert strategy.asked
 
 
 def test_rocks_gained_on_an_opponents_buy_phase_gains_silver_to_hand():
@@ -133,3 +140,16 @@ def test_rocks_gained_on_an_opponents_buy_phase_gains_silver_to_hand():
     state.phase = "buy"
     state.gain_card(opponent, get_card("Rocks"))
     assert [c.name for c in opponent.hand] == ["Silver"]
+
+
+def test_figurine_strategy_can_choose_a_more_expensive_action():
+    state, p = make_state()
+    class PreserveWatchtower(StablesNinjaMuseum):
+        def choose_action_to_discard_for_figurine(self, state, player, choices):
+            return next(c for c in choices if c.name == "Ninja")
+    p.ai = GeneticAI(PreserveWatchtower())
+    p.hand = [get_card("Watchtower"), get_card("Ninja")]
+    play(state, p, "Figurine")
+    assert [c.name for c in p.hand] == ["Watchtower"]
+    assert [c.name for c in p.discard] == ["Ninja"]
+    assert (p.coins, p.buys) == (1, 2)
