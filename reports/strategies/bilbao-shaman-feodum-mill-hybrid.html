@@ -308,13 +308,13 @@
   <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
   <table class="priority-table">
     <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
-    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose trash</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_trash(self, state, player, choices):
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose trash</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_trash(self, state, player, choices):
     return self._pick_trash(state, player, choices)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Should trash with hermit</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def should_trash_with_hermit(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Should trash with hermit</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def should_trash_with_hermit(self, state, player, choices):
     return self._pick_trash(state, player, choices, via_hermit=True)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose hermit gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_hermit_gain(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose hermit gain</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_hermit_gain(self, state, player, choices):
     p = self.params
     names = {c.name: c for c in choices}
     if &quot;Shaman&quot; in names and player.count_in_deck(&quot;Shaman&quot;) &lt; p[&quot;shamans&quot;]:
@@ -330,7 +330,7 @@
         return feodum
     return None
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose anvil gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_gain(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose anvil gain</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_gain(self, state, player, choices):
     if self.params[&quot;anvil_gain&quot;] == &quot;feodum&quot;:
         feodum = next((c for c in choices if c.name == &quot;Feodum&quot;), None)
         if feodum is not None and self._fodder_gate(state, player):
@@ -341,7 +341,7 @@
         state, player, choices, super().choose_gain, _anvil_discard
     )
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
     if (
         self.params[&quot;madman&quot;]
         and getattr(state, &quot;phase&quot;, None) == &quot;buy&quot;
@@ -360,7 +360,7 @@
         pick = next((c for c in choices if c is not None and c.name == &quot;Copper&quot;), None)
     return pick
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose anvil treasure to discard</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_treasure_to_discard(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose anvil treasure to discard</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_anvil_treasure_to_discard(self, state, player, choices):
     return _anvil_discard(player, choices)
 </code></pre></details></td></tr></tbody>
   </table>

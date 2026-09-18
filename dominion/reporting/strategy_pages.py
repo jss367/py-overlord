@@ -18,6 +18,7 @@ from dominion.landmarks.registry import LANDMARK_TYPES
 from dominion.projects.registry import PROJECT_TYPES
 from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.ways.registry import WAY_TYPES
+from dominion.reporting.strategy_instructions import DecisionInstructions, decision_instructions
 from dominion.reporting.strategy_links import PageLink, strategy_slug
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
 from dominion.strategy.strategy_loader import StrategyLoader
@@ -777,16 +778,18 @@ def _condition_detail(condition) -> str:
 _DECISION_HOOK_PREFIXES = ("choose_", "should_")
 
 
-def _overridden_decision_hooks(strategy) -> list[tuple[str, str, str]]:
-    """Describe decision methods a strategy defines below ``EnhancedStrategy``.
+@dataclass(frozen=True)
+class CustomBehavior:
+    name: str
+    description: str
+    source: str
+    instructions: DecisionInstructions | None
 
-    Some strategies override Python hooks (for example an Anvil gain policy)
-    that the priority tables cannot express, so pages list them explicitly.
-    Returns ``(label, description, source)`` triples, most-derived class first.
-    """
 
-    hooks: list[tuple[str, str, str]] = []
-    seen: set[str] = set()
+def _overridden_decision_hooks(strategy) -> list[CustomBehavior]:
+    """Collect the most-derived implementation and explanation of each hook."""
+    hooks = []
+    seen = set()
     for klass in type(strategy).__mro__:
         if klass is EnhancedStrategy:
             break
@@ -799,29 +802,49 @@ def _overridden_decision_hooks(strategy) -> list[tuple[str, str, str]]:
                 continue
             seen.add(name)
             doc = inspect.getdoc(func) or ""
-            description = (
-                " ".join(doc.split("\n\n")[0].split())
-                if doc
-                else "See the source for details."
-            )
+            description = " ".join(doc.split("\n\n")[0].split())
             try:
                 source = textwrap.dedent(inspect.getsource(func))
             except (OSError, TypeError):
                 source = "Source unavailable"
-            hooks.append((_humanize_identifier(name), description, source))
+            hooks.append(CustomBehavior(name, description, source, decision_instructions(strategy, name)))
     return hooks
+
+
+def missing_decision_descriptions(strategy) -> list[str]:
+    """Return custom hooks with neither explicit instructions nor a docstring."""
+    return [
+        hook.name for hook in _overridden_decision_hooks(strategy)
+        if not hook.instructions and not hook.description
+    ]
+
+
+def _instructions_markup(instructions: DecisionInstructions) -> str:
+    return (
+        f'<p>{escape(instructions.introduction)}</p><ol class="decision-instructions">'
+        + "".join(f"<li>{escape(step)}</li>" for step in instructions.steps)
+        + "</ol>"
+    )
 
 
 def _custom_behavior_rows(strategy) -> str:
     rows = []
-    for label, description, source in _overridden_decision_hooks(strategy):
+    for hook in _overridden_decision_hooks(strategy):
+        if hook.instructions:
+            kind = hook.name.removeprefix("choose_")
+            if kind in {"gain", "action", "trash", "treasure"}:
+                explanation = f'<a href="#instructions-{kind}">Read the {kind} instructions below.</a>'
+            else:
+                explanation = _instructions_markup(hook.instructions)
+        else:
+            explanation = escape(hook.description or "Readable instructions are missing. See the source for details.")
         rows.append(
             "<tr>"
-            f'<td data-label="Hook"><span class="behavior-name">{escape(label)}</span></td>'
-            f'<td data-label="What it does">{escape(description)}'
+            f'<td data-label="Hook"><span class="behavior-name">{escape(_humanize_identifier(hook.name))}</span></td>'
+            f'<td data-label="What it does">{explanation}'
             '<details class="condition-detail">'
             '<summary><span class="condition">Source</span></summary>'
-            f"<pre><code>{escape(source)}</code></pre>"
+            f"<pre><code>{escape(hook.source)}</code></pre>"
             "</details></td>"
             "</tr>"
         )
@@ -1057,7 +1080,12 @@ def _decision_priority_section(strategy, kind, title, icon, references=None) -> 
   </table>"""
     if custom:
         title = f"{title} Decisions"
-        content = (
+        instructions = decision_instructions(strategy, f"choose_{kind}")
+        explanation = (
+            f'<div id="instructions-{kind}">{_instructions_markup(instructions)}</div>'
+            if instructions else ""
+        )
+        content = explanation + (
             '<p class="section-note">Custom decision logic controls these choices. '
             'The static list alone does not describe the order or conditions used '
             'during play; it may supply references or fallback choices. '

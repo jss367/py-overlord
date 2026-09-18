@@ -308,7 +308,7 @@
   <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
   <table class="priority-table">
     <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
-    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
     p = self.params
     names = [&quot;Fortress&quot;]
     # Ambassador is only worth an action while the hand holds something
@@ -323,7 +323,7 @@
     names += [&quot;Old Witch&quot;, &quot;Goons&quot;, &quot;Bridge Troll&quot;, &quot;Sea Hag&quot;]
     return self.pick(choices, names)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose treasure</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_treasure(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose treasure</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_treasure(self, state, player, choices):
     return self.pick(
         choices, [&quot;Gold&quot;, &quot;Silver&quot;, &quot;Ill-Gotten Gains&quot;, &quot;Potion&quot;, &quot;Copper&quot;]
     )
@@ -348,7 +348,7 @@
         key=lambda c: (c.name in _ENGINE_PIECES, c.is_victory, c.cost.coins, c.name),
     )
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose governor option</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_governor_option(self, state, player, options):
+<tr><td data-label="Hook"><span class="behavior-name">Choose governor option</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_governor_option(self, state, player, options):
     mode = self.params[&quot;governor_mode&quot;]
     if mode != &quot;auto&quot;:
         return mode
@@ -363,7 +363,7 @@
         return &quot;gold&quot;
     return &quot;cards&quot;
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose minion mode</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_minion_mode(self, state, player):
+<tr><td data-label="Hook"><span class="behavior-name">Choose minion mode</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_minion_mode(self, state, player):
     mode = self.params[&quot;minion_mode&quot;]
     if mode != &quot;auto&quot;:
         return mode
@@ -372,10 +372,10 @@
         return &quot;discard&quot;
     return &quot;coins&quot;
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose card to ambassador</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_to_ambassador(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose card to ambassador</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_to_ambassador(self, state, player, choices):
     return self.pick(choices, self._sheddable(player))
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose ambassador return count</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_ambassador_return_count(self, state, player, revealed, maximum):
+<tr><td data-label="Hook"><span class="behavior-name">Choose ambassador return count</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_ambassador_return_count(self, state, player, revealed, maximum):
     if revealed.name not in _JUNK:
         return min(1, maximum)
     if revealed.name != &quot;Copper&quot;:
@@ -401,7 +401,7 @@
         return not revealed.is_action
     return revealed.name in _JUNK
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose cards to discard</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_cards_to_discard(self, state, player, choices, count, reason=None):
+<tr><td data-label="Hook"><span class="behavior-name">Choose cards to discard</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_cards_to_discard(self, state, player, choices, count, reason=None):
     ranked = sorted(
         [c for c in choices if c is not None],
         key=lambda c: (
@@ -413,7 +413,7 @@
     )
     return ranked[:count]
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
     p = self.params
     available = {c.name: c for c in choices if c is not None}
     if not available:

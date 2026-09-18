@@ -308,7 +308,7 @@
   <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
   <table class="priority-table">
     <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
-    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
     available = {c.name for c in choices if c is not None}
     names = [&quot;University&quot;]
     if any(c.is_victory for c in player.hand):
@@ -325,12 +325,12 @@
     names += [&quot;Hill Fort&quot;, &quot;Stronghold&quot;, &quot;Counting House&quot;, &quot;Tent&quot;, &quot;Fishmonger&quot;]
     return self.pick(choices, names)
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose bauble options</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_bauble_options(self, state, player, options, count):
+<tr><td data-label="Hook"><span class="behavior-name">Choose bauble options</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_bauble_options(self, state, player, options, count):
     if self.params[&quot;guild&quot;] and player.favors &lt; 1:
         return [&quot;coin&quot;, &quot;favor&quot;]
     return [&quot;coin&quot;, &quot;buy&quot;]
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose allies option</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_allies_option(self, state, player, reason, options, default):
+<tr><td data-label="Hook"><span class="behavior-name">Choose allies option</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_allies_option(self, state, player, reason, options, default):
     if reason == &quot;rotate_pile&quot;:
         return (
             &quot;Tent&quot;
@@ -347,7 +347,7 @@
         )
     return default
 </code></pre></details></td></tr>
-<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
+<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does">Readable instructions are missing. See the source for details.<details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
     p = self.params
     cards = list(player.all_cards())
     c = Counter(card.name for card in cards)
