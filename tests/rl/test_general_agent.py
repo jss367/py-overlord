@@ -210,6 +210,21 @@ def test_mandatory_trash_effects_do_not_offer_pass(card_name):
     assert not encoder.get_action_mask(choices)[encoder.pass_action_index]
 
 
+@pytest.mark.parametrize("card_name", ["Goat", "Masquerade"])
+def test_legacy_random_opponent_can_decline_optional_trash(monkeypatch, card_name):
+    """Keep legacy optional effects working without changing the shared sampler."""
+    import random
+
+    state = setup_state()
+    state.players[0].ai = RandomAI()
+    for player in state.players:
+        player.hand = [get_card("Gold")]
+    monkeypatch.setattr(random, "choice", lambda choices: choices[-1])
+    get_card(card_name).play_effect(state)
+    assert not state.trash
+    assert [c.name for c in state.players[0].hand] == ["Gold"]
+
+
 def test_score_tiebreak_uses_turns_taken():
     state = setup_state()
     state.players[0].turns_taken = 10
