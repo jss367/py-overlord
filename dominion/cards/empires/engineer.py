@@ -5,7 +5,7 @@ class Engineer(Card):
     def __init__(self):
         super().__init__(
             name="Engineer",
-            cost=CardCost(coins=4),
+            cost=CardCost(debt=4),
             stats=CardStats(),
             types=[CardType.ACTION],
         )
@@ -16,7 +16,8 @@ class Engineer(Card):
         def affordable_cards() -> list[Card]:
             cards: list[Card] = []
             for _name, candidate, _count in game_state._iter_gainable_supply_cards():
-                if candidate.cost.coins <= 4:
+                if (game_state.get_card_cost(player, candidate) <= 4
+                        and candidate.cost.potions == 0 and candidate.cost.debt == 0):
                     cards.append(candidate)
             cards.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
             return cards
@@ -27,13 +28,12 @@ class Engineer(Card):
             choice = player.ai.choose_buy(game_state, choices)
             if choice not in choices:
                 choice = choices[0]
-            game_state.supply[choice.name] -= 1
-            game_state.gain_card(player, choice)
+            gained = game_state.take_top_supply_card(game_state.supply_pile_key(choice.name))
+            if gained is not None:
+                game_state.gain_card(player, gained)
             return choice
 
         choices = affordable_cards()
-        if not choices:
-            return
         gain_from_choices(choices)
 
         if self not in player.in_play:
@@ -47,8 +47,4 @@ class Engineer(Card):
         player.in_play.remove(self)
         game_state.trash_card(player, self)
 
-        for _ in range(2):
-            extra_choices = affordable_cards()
-            if not extra_choices:
-                break
-            gain_from_choices(extra_choices)
+        gain_from_choices(affordable_cards())
