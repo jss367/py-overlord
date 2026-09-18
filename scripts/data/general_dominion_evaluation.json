@@ -13948,7 +13948,7 @@
   "split": "test",
   "checkpoint": "checkpoints/general-dominion-v1/validated.pt",
   "checkpoint_sha256": "61667a473342c7f6420c0d49d33b49204d3c2cd141a3ad93d58c7136db1751ee",
-  "evaluation_source_fingerprint": "ab6bd01177b2098c6ee11b67bd2b9b6932969205c4588f091dee2f91cc5bfe7e",
+  "evaluation_source_fingerprint": "af5683c8c99075a4197c406f3bfc4f7e9560c2a24bc5022aa47c820a3ded71c8",
   "engine_losing_purchase_filter": false,
   "training_metadata": {
     "created_utc": "2026-09-18T16:18:01.248430+00:00",
