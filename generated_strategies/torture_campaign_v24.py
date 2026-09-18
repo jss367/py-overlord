@@ -1,4 +1,5 @@
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+from dominion.strategy.retirement import retired_strategy
 
 
 class TortureCampaignV24(EnhancedStrategy):
@@ -99,5 +100,10 @@ class TortureCampaignV24(EnhancedStrategy):
         ]
 
 
+@retired_strategy(
+    replacement="Torture Campaign V25",
+    reason="Won 286 of 1,000 confirmation games against version 25; no qualifying advantage on the tested opponent panel.",
+    display_name="Torturer and Inn Family, Version 24",
+)
 def create_torture_campaign_v24() -> EnhancedStrategy:
     return TortureCampaignV24()

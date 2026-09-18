@@ -153,11 +153,18 @@ class StrategyLoader:
         if strategy_factory is None:
             return None
 
-        for display_name in self.list_strategies():
+        for display_name in self.list_strategies(include_retired=True):
             if self.strategies.get(display_name) is strategy_factory:
                 return display_name
         return None
 
-    def list_strategies(self) -> list[str]:
-        """Return display names only (deduplicated, sorted)."""
-        return sorted(self._display_names)
+    def list_strategies(self, *, include_retired: bool = False) -> list[str]:
+        """List active display names; explicit lookup also resolves retired factories."""
+        return sorted(
+            name for name in self._display_names
+            if include_retired or not getattr(self.strategies[name], "retirement", None)
+        )
+
+    def list_retired_strategies(self) -> list[str]:
+        """Return archived names for historical reports and opt-in evaluation."""
+        return sorted(set(self.list_strategies(include_retired=True)) - set(self.list_strategies()))

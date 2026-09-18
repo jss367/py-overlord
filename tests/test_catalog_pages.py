@@ -180,6 +180,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "boards/nested/other-board.html",
         "boards/sample-board.html",
         "strategies/big-money.html",
+        "strategies/strategy-retirement-review.html",
         "strategies/ninja-watchtower-figurine-strategy-guide.html",
         "strategies/ten-strongest-unused-cards.html",
         "strategies/recruiter-kitsune-strategy-guide.html",

@@ -16,6 +16,7 @@ from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.reporting.strategy_links import PageLink, strategy_slug
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
 from dominion.strategy.strategy_loader import StrategyLoader
+from dominion.strategy.retirement import Retirement
 
 
 @dataclass(frozen=True)
@@ -27,6 +28,7 @@ class RenderedStrategy:
     factory_name: str
     references: dict[str, list[str]]
     compatible_boards: tuple[PageLink, ...] = field(default_factory=tuple)
+    retirement: Retirement | None = None
 
 
 @dataclass(frozen=True)
@@ -41,6 +43,13 @@ class CuratedStrategyGuide:
 
 
 CURATED_STRATEGY_GUIDES = (
+    CuratedStrategyGuide(
+        filename="strategy-retirement-review.html",
+        display_name="Strategy Retirement Review: Confirmed Replacements and Archive",
+        description="Fresh comparisons on fixed boards identify redundant strategies to archive while preserving benchmarks, competitive variants, and historical links.",
+        kingdom_cards=("Torturer", "Inn", "Patrician", "Collection", "Village", "Smithy"),
+        source_label="Seeded simulations, confirmation matches, and reproducible evidence",
+    ),
     CuratedStrategyGuide(
         filename="ninja-watchtower-figurine-strategy-guide.html",
         display_name="Ninja, Watchtower and Figurine: Museum Colony Strategy Guide",
@@ -1343,6 +1352,7 @@ def collect_rendered_strategies(
                 strategy=strategy,
                 source_path=source_path,
                 factory_name=factory_name,
+                retirement=getattr(loader.get_strategy_factory(resolved_name), "retirement", None),
                 references={
                     "Kingdom Cards": [
                         name for name in refs.kingdom_cards if name not in excluded
@@ -1959,6 +1969,17 @@ def render_strategy_page(
     leaderboard_href: str | None = None,
 ) -> str:
     strategy = item.strategy
+    display_name = (item.retirement.display_name if item.retirement else None) or item.display_name
+    retirement_notice = ""
+    if item.retirement:
+        replacement_href = f"{strategy_slug(item.retirement.replacement)}.html"
+        retirement_notice = (
+            '  <p class="hero-description"><strong>Archived strategy.</strong> '
+            f'{escape(item.retirement.reason)} Retained replacement: '
+            f'<a href="{escape(replacement_href)}">{escape(item.retirement.replacement)}</a>. '
+            '<a href="strategy-retirement-review.html">Read the evaluation evidence</a>. '
+            'Available for explicit comparisons; excluded from default tournaments.</p>\n'
+        )
     references = "".join(
         f"<dt>{escape(label)}</dt><dd>{_reference_list(values, label)}</dd>"
         for label, values in item.references.items()
@@ -2008,8 +2029,8 @@ def render_strategy_page(
 <nav><a href="{escape(index_href)}">Strategy index</a>{leaderboard_nav}{guide_nav}</nav>
 <header class="hero">
   <p class="eyebrow">Dominion strategy</p>
-  <h1>{escape(item.display_name)}</h1>
-  <p class="hero-description">{escape(_audience_description(strategy))}</p>
+  <h1>{escape(display_name)}</h1>
+{retirement_notice}  <p class="hero-description">{escape(_audience_description(strategy))}</p>
 {_tags_markup(_strategy_tags(item))}
   <div class="hero-links"><strong>Compatible boards</strong>{_page_link_list(item.compatible_boards)}</div>
   <details class="technical-details">
@@ -2037,7 +2058,7 @@ def render_strategy_page(
   </table>
 </section>
 """
-    return _page_shell(f"{item.display_name} Strategy", body)
+    return _page_shell(f"{display_name} Strategy", body)
 
 
 def render_strategy_index(
@@ -2048,6 +2069,7 @@ def render_strategy_index(
     board_index_href: str | None = None,
     leaderboard_href: str | None = None,
     home_href: str | None = None,
+    archive_href: str | None = None,
 ) -> str:
     rows = []
     for guide in curated_guides:
@@ -2092,9 +2114,10 @@ def render_strategy_index(
     )
     card_nav = f'<a href="{escape(card_usage_href)}">Card strategy usage</a>' if card_usage_href else ""
     home_nav = f'<a href="{escape(home_href)}">Home</a>' if home_href else ""
+    archive_nav = f'<a href="{escape(archive_href)}">Archived strategies</a>' if archive_href else ""
     navigation = (
-        f"<nav>{home_nav}{board_nav}{leaderboard_nav}{card_nav}</nav>"
-        if home_nav or board_nav or leaderboard_nav or card_nav
+        f"<nav>{home_nav}{board_nav}{leaderboard_nav}{card_nav}{archive_nav}</nav>"
+        if home_nav or board_nav or leaderboard_nav or card_nav or archive_nav
         else ""
     )
     body = f"""
@@ -2142,6 +2165,32 @@ def write_curated_strategy_guides(output_dir: Path) -> list[Path]:
     return written
 
 
+def write_archived_strategy_pages(output_dir: Path, loader: StrategyLoader | None = None) -> list[Path]:
+    """Preserve historical URLs without listing retired entrants as active strategies."""
+    loader = loader or StrategyLoader()
+    items = collect_rendered_strategies(loader, names=loader.list_retired_strategies())
+    if not items:
+        (output_dir / "archived-strategies.html").unlink(missing_ok=True)
+        return []
+    written = []
+    links = []
+    for item in items:
+        path = output_dir / f"{item.slug}.html"
+        path.write_text(render_strategy_page(item, leaderboard_href="leaderboard.html"), encoding="utf-8")
+        written.append(path)
+        label = item.retirement.display_name or item.display_name
+        links.append(f'<li><a href="{escape(item.slug)}.html">{escape(label)}</a></li>')
+    index = output_dir / "archived-strategies.html"
+    index.write_text(_page_shell("Archived Strategies", (
+        '<nav><a href="index.html">Active strategy index</a></nav>'
+        '<h1>Archived Strategies</h1><p>Preserved for reproduction and explicit comparisons. '
+        '<a href="strategy-retirement-review.html">Read the retirement review</a>.</p>'
+        f'<ul>{"".join(links)}</ul>'
+    )), encoding="utf-8")
+    written.append(index)
+    return written
+
+
 def render_strategy_pages(
     output_dir: Path,
     *,
@@ -2153,12 +2202,16 @@ def render_strategy_pages(
     output_dir.mkdir(parents=True, exist_ok=True)
     from dominion.reporting.card_usage import render_card_usage
 
+    loader = loader or StrategyLoader()
     items = collect_rendered_strategies(loader, names=names)
     written = write_curated_strategy_guides(output_dir)
 
     index_path = output_dir / "index.html"
     index_path.write_text(
-        render_strategy_index(items, curated_guides=CURATED_STRATEGY_GUIDES, card_usage_href="card-strategy-usage.html"),
+        render_strategy_index(
+            items, curated_guides=CURATED_STRATEGY_GUIDES, card_usage_href="card-strategy-usage.html",
+            archive_href="archived-strategies.html" if names is None and loader.list_retired_strategies() else None,
+        ),
         encoding="utf-8",
     )
     written.append(index_path)
@@ -2171,4 +2224,6 @@ def render_strategy_pages(
         path.write_text(render_strategy_page(item), encoding="utf-8")
         written.append(path)
 
+    if names is None:
+        written.extend(write_archived_strategy_pages(output_dir, loader))
     return written

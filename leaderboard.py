@@ -41,7 +41,8 @@ BASE_SUPPLY = {
 def _find_factory(module):
     """Find the create_* factory function in a module."""
     for name in dir(module):
-        if name.startswith("create_") and callable(getattr(module, name)):
+        if (name.startswith("create_") and callable(getattr(module, name))
+                and not getattr(getattr(module, name), "retirement", None)):
             return name, getattr(module, name)
     return None, None
 

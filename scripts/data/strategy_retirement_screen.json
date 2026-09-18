@@ -1,0 +1,558 @@
+{
+  "stage": "screen",
+  "games_per_pairing": 200,
+  "source_revision": "0c260353d464dd96567483052acb40a46e4703c0",
+  "python_version": "3.14.3",
+  "results": [
+    {
+      "key": [
+        "screen",
+        "Torturer and Inn",
+        "Torture Campaign V3",
+        "Torture Campaign V25"
+      ],
+      "cohort": "Torturer and Inn",
+      "candidate": "Torture Campaign V3",
+      "opponent": "Torture Campaign V25",
+      "seed": 13691074275800472548,
+      "board": {
+        "kingdom_cards": [
+          "Patrician",
+          "Emporium",
+          "Acting Troupe",
+          "Snowy Village",
+          "Taskmaster",
+          "Trader",
+          "Trail",
+          "First Mate",
+          "Inn",
+          "Patrol",
+          "Torturer"
+        ],
+        "events": [
+          "Ride"
+        ],
+        "projects": [],
+        "ways": [
+          "Way of the Butterfly"
+        ],
+        "landmarks": [],
+        "allies": [],
+        "traits": {},
+        "prophecy": null,
+        "card_cost_reduction": 0
+      },
+      "use_shelters": false,
+      "games": 200,
+      "wins": 31,
+      "win_rate": 0.155
+    },
+    {
+      "key": [
+        "screen",
+        "Torturer and Inn",
+        "Torture Campaign V4",
+        "Torture Campaign V25"
+      ],
+      "cohort": "Torturer and Inn",
+      "candidate": "Torture Campaign V4",
+      "opponent": "Torture Campaign V25",
+      "seed": 2319715593365246029,
+      "board": {
+        "kingdom_cards": [
+          "Patrician",
+          "Emporium",
+          "Acting Troupe",
+          "Snowy Village",
+          "Taskmaster",
+          "Trader",
+          "Trail",
+          "First Mate",
+          "Inn",
+          "Patrol",
+          "Torturer"
+        ],
+        "events": [
+          "Ride"
+        ],
+        "projects": [],
+        "ways": [
+          "Way of the Butterfly"
+        ],
+        "landmarks": [],
+        "allies": [],
+        "traits": {},
+        "prophecy": null,
+        "card_cost_reduction": 0
+      },
+      "use_shelters": false,
+      "games": 200,
+      "wins": 1,
+      "win_rate": 0.005
+    },
+    {
+      "key": [
+        "screen",
+        "Torturer and Inn",
+        "Torture Campaign V5",
+        "Torture Campaign V25"
+      ],
+      "cohort": "Torturer and Inn",
+      "candidate": "Torture Campaign V5",
+      "opponent": "Torture Campaign V25",
+      "seed": 4672444196168251829,
+      "board": {
+        "kingdom_cards": [
+          "Patrician",
+          "Emporium",
+          "Acting Troupe",
+          "Snowy Village",
+          "Taskmaster",
+          "Trader",
+          "Trail",
+          "First Mate",
+          "Inn",
+          "Patrol",
+          "Torturer"
+        ],
+        "events": [
+          "Ride"
+        ],
+        "projects": [],
+        "ways": [
+          "Way of the Butterfly"
+        ],
+        "landmarks": [],
+        "allies": [],
+        "traits": {},
+        "prophecy": null,
+        "card_cost_reduction": 0
+      },
+      "use_shelters": false,
+      "games": 200,
+      "wins": 3,
+      "win_rate": 0.015
+    },
+    {
+      "key": [
+        "screen",
+        "Torturer and Inn",
+        "Torture Campaign V6",
+        "Torture Campaign V25"
+      ],
+      "cohort": "Torturer and Inn",
+      "candidate": "Torture Campaign V6",
+      "opponent": "Torture Campaign V25",
+      "seed": 63846246342348561,
+      "board": {
+        "kingdom_cards": [
+          "Patrician",
+          "Emporium",
+          "Acting Troupe",
+          "Snowy Village",
+          "Taskmaster",
+          "Trader",
+          "Trail",
+          "First Mate",
+          "Inn",
+          "Patrol",
+          "Torturer"
+        ],
+        "events": [
+          "Ride"
+        ],
+        "projects": [],
+        "ways": [
+          "Way of the Butterfly"
+        ],
+        "landmarks": [],
+        "allies": [],
+        "traits": {},
+        "prophecy": null,
+        "card_cost_reduction": 0
+      },
+      "use_shelters": false,
+      "games": 200,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    {
+      "key": [
+        "screen",
+        "Torturer and Inn",
+        "Torture Campaign V22",
+        "Torture Campaign V25"
+      ],
+      "cohort": "Torturer and Inn",
+      "candidate": "Torture Campaign V22",
+      "opponent": "Torture Campaign V25",
+      "seed": 3307625862670703857,
+      "board": {
+        "kingdom_cards": [
+          "Patrician",
+          "Emporium",
+          "Acting Troupe",
+          "Snowy Village",
+          "Taskmaster",
+          "Trader",
+          "Trail",
+          "First Mate",
+          "Inn",
+          "Patrol",
+          "Torturer"
+        ],
+        "events": [
+          "Ride"
+        ],
+        "projects": [],
+        "ways": [
+          "Way of the Butterfly"
+        ],
+        "landmarks": [],
+        "allies": [],
+        "traits": {},
+        "prophecy": null,
+        "card_cost_reduction": 0
+      },
+      "use_shelters": false,
+      "games": 200,
+      "wins": 86,
+      "win_rate": 0.43
+    },
+    {
+      "key": [
+        "screen",
+        "Torturer and Inn",
+        "Torture Campaign V24",
+        "Torture Campaign V25"
+      ],
+      "cohort": "Torturer and Inn",
+      "candidate": "Torture Campaign V24",
+      "opponent": "Torture Campaign V25",
+      "seed": 17530045226427816517,
+      "board": {
+        "kingdom_cards": [
+          "Patrician",
+          "Emporium",
+          "Acting Troupe",
+          "Snowy Village",
+          "Taskmaster",
+          "Trader",
+          "Trail",
+          "First Mate",
+          "Inn",
+          "Patrol",
+          "Torturer"
+        ],
+        "events": [
+          "Ride"
+        ],
+        "projects": [],
+        "ways": [
+          "Way of the Butterfly"
+        ],
+        "landmarks": [],
+        "allies": [],
+        "traits": {},
+        "prophecy": null,
+        "card_cost_reduction": 0
+      },
+      "use_shelters": false,
+      "games": 200,
+      "wins": 50,
+      "win_rate": 0.25
+    },
+    {
+      "key": [
+        "screen",
+        "Torturer and Inn",
+        "Torture Campaign V26",
+        "Torture Campaign V25"
+      ],
+      "cohort": "Torturer and Inn",
+      "candidate": "Torture Campaign V26",
+      "opponent": "Torture Campaign V25",
+      "seed": 8841214736180497461,
+      "board": {
+        "kingdom_cards": [
+          "Patrician",
+          "Emporium",
+          "Acting Troupe",
+          "Snowy Village",
+          "Taskmaster",
+          "Trader",
+          "Trail",
+          "First Mate",
+          "Inn",
+          "Patrol",
+          "Torturer"
+        ],
+        "events": [
+          "Ride"
+        ],
+        "projects": [],
+        "ways": [
+          "Way of the Butterfly"
+        ],
+        "landmarks": [],
+        "allies": [],
+        "traits": {},
+        "prophecy": null,
+        "card_cost_reduction": 0
+      },
+      "use_shelters": false,
+      "games": 200,
+      "wins": 78,
+      "win_rate": 0.39
+    },
+    {
+      "key": [
+        "screen",
+        "Torturer and Inn",
+        "Torture Campaign V27",
+        "Torture Campaign V25"
+      ],
+      "cohort": "Torturer and Inn",
+      "candidate": "Torture Campaign V27",
+      "opponent": "Torture Campaign V25",
+      "seed": 3703481230554740019,
+      "board": {
+        "kingdom_cards": [
+          "Patrician",
+          "Emporium",
+          "Acting Troupe",
+          "Snowy Village",
+          "Taskmaster",
+          "Trader",
+          "Trail",
+          "First Mate",
+          "Inn",
+          "Patrol",
+          "Torturer"
+        ],
+        "events": [
+          "Ride"
+        ],
+        "projects": [],
+        "ways": [
+          "Way of the Butterfly"
+        ],
+        "landmarks": [],
+        "allies": [],
+        "traits": {},
+        "prophecy": null,
+        "card_cost_reduction": 0
+      },
+      "use_shelters": false,
+      "games": 200,
+      "wins": 101,
+      "win_rate": 0.505
+    },
+    {
+      "key": [
+        "screen",
+        "Patrician and Collection",
+        "Custom Board Strategy2",
+        "Custom Board Strategy3"
+      ],
+      "cohort": "Patrician and Collection",
+      "candidate": "Custom Board Strategy2",
+      "opponent": "Custom Board Strategy3",
+      "seed": 3818491130660362633,
+      "board": {
+        "kingdom_cards": [
+          "Collection",
+          "Emporium",
+          "Forager",
+          "Miser",
+          "Modify",
+          "Patrician",
+          "Rats",
+          "Rebuild",
+          "Skulk",
+          "Snowy Village"
+        ],
+        "events": [
+          "Looting"
+        ],
+        "projects": [
+          "Sewers"
+        ],
+        "ways": [],
+        "landmarks": [],
+        "allies": [],
+        "traits": {},
+        "prophecy": null,
+        "card_cost_reduction": 0
+      },
+      "use_shelters": false,
+      "games": 200,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    {
+      "key": [
+        "screen",
+        "Patrician and Collection",
+        "Custom Board Strategy4",
+        "Custom Board Strategy3"
+      ],
+      "cohort": "Patrician and Collection",
+      "candidate": "Custom Board Strategy4",
+      "opponent": "Custom Board Strategy3",
+      "seed": 4882885798911651542,
+      "board": {
+        "kingdom_cards": [
+          "Collection",
+          "Emporium",
+          "Forager",
+          "Miser",
+          "Modify",
+          "Patrician",
+          "Rats",
+          "Rebuild",
+          "Skulk",
+          "Snowy Village"
+        ],
+        "events": [
+          "Looting"
+        ],
+        "projects": [
+          "Sewers"
+        ],
+        "ways": [],
+        "landmarks": [],
+        "allies": [],
+        "traits": {},
+        "prophecy": null,
+        "card_cost_reduction": 0
+      },
+      "use_shelters": false,
+      "games": 200,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    {
+      "key": [
+        "screen",
+        "Patrician and Collection with Shelters",
+        "Custom Board Strategy2",
+        "Custom Board Strategy3"
+      ],
+      "cohort": "Patrician and Collection with Shelters",
+      "candidate": "Custom Board Strategy2",
+      "opponent": "Custom Board Strategy3",
+      "seed": 14396774183336976387,
+      "board": {
+        "kingdom_cards": [
+          "Collection",
+          "Emporium",
+          "Forager",
+          "Miser",
+          "Modify",
+          "Patrician",
+          "Rats",
+          "Rebuild",
+          "Skulk",
+          "Snowy Village"
+        ],
+        "events": [
+          "Looting"
+        ],
+        "projects": [
+          "Sewers"
+        ],
+        "ways": [],
+        "landmarks": [],
+        "allies": [],
+        "traits": {},
+        "prophecy": null,
+        "card_cost_reduction": 0
+      },
+      "use_shelters": true,
+      "games": 200,
+      "wins": 1,
+      "win_rate": 0.005
+    },
+    {
+      "key": [
+        "screen",
+        "Patrician and Collection with Shelters",
+        "Custom Board Strategy4",
+        "Custom Board Strategy3"
+      ],
+      "cohort": "Patrician and Collection with Shelters",
+      "candidate": "Custom Board Strategy4",
+      "opponent": "Custom Board Strategy3",
+      "seed": 13442485619623999737,
+      "board": {
+        "kingdom_cards": [
+          "Collection",
+          "Emporium",
+          "Forager",
+          "Miser",
+          "Modify",
+          "Patrician",
+          "Rats",
+          "Rebuild",
+          "Skulk",
+          "Snowy Village"
+        ],
+        "events": [
+          "Looting"
+        ],
+        "projects": [
+          "Sewers"
+        ],
+        "ways": [],
+        "landmarks": [],
+        "allies": [],
+        "traits": {},
+        "prophecy": null,
+        "card_cost_reduction": 0
+      },
+      "use_shelters": true,
+      "games": 200,
+      "wins": 0,
+      "win_rate": 0.0
+    },
+    {
+      "key": [
+        "screen",
+        "Village and Smithy",
+        "Strategy20250615 102030",
+        "Chapel Witch"
+      ],
+      "cohort": "Village and Smithy",
+      "candidate": "Strategy20250615 102030",
+      "opponent": "Chapel Witch",
+      "seed": 5051624765793329070,
+      "board": {
+        "kingdom_cards": [
+          "Chapel",
+          "Festival",
+          "Laboratory",
+          "Market",
+          "Mine",
+          "Moat",
+          "Smithy",
+          "Village",
+          "Witch",
+          "Workshop"
+        ],
+        "events": [],
+        "projects": [],
+        "ways": [],
+        "landmarks": [],
+        "allies": [],
+        "traits": {},
+        "prophecy": null,
+        "card_cost_reduction": 0
+      },
+      "use_shelters": false,
+      "games": 200,
+      "wins": 0,
+      "win_rate": 0.0
+    }
+  ]
+}

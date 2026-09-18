@@ -1,4 +1,5 @@
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
+from dominion.strategy.retirement import retired_strategy
 
 
 class Strategy20250615_102030(EnhancedStrategy):
@@ -50,5 +51,10 @@ class Strategy20250615_102030(EnhancedStrategy):
             PriorityRule('Copper', lambda _s, me: me.count_in_deck('Silver') + me.count_in_deck('Gold') >= 3),
         ]
 
+@retired_strategy(
+    replacement="Chapel Witch",
+    reason="Won 0 of 1,000 confirmation games against Chapel Witch and none against either tested panel opponent.",
+    display_name="Generated Village and Smithy Engine",
+)
 def create_strategy20250615_102030() -> EnhancedStrategy:
     return Strategy20250615_102030()
