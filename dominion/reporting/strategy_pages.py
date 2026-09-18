@@ -1388,8 +1388,8 @@ def _leaderboard_filters(cards: Iterable[str], expansions: Iterable[str], *, tot
       <div class="filter-controls">
         <input class="search filter-input" id="leaderboard-card-input" list="leaderboard-card-options" placeholder="Type a card name, e.g. Torturer" autocomplete="off">
         <datalist id="leaderboard-card-options">{options}</datalist>
-        <button type="submit" class="filter-button" data-mode="without">Hide strategies using it</button>
-        <button type="button" class="filter-button filter-button-with" data-mode="with">Show only strategies using it</button>
+        <button type="submit" class="filter-button filter-button-with" data-mode="with">Show only strategies using it</button>
+        <button type="button" class="filter-button" data-mode="without">Hide strategies using it</button>
       </div>
     </form>
   </div>{expansion_block}
@@ -1563,8 +1563,8 @@ _LEADERBOARD_FILTER_SCRIPT = """
     apply();
   }
 
-  cardForm.addEventListener('submit', (event) => { event.preventDefault(); addCard('without'); });
-  cardForm.querySelector('[data-mode="with"]').addEventListener('click', () => addCard('with'));
+  cardForm.addEventListener('submit', (event) => { event.preventDefault(); addCard('with'); });
+  cardForm.querySelector('[data-mode="without"]').addEventListener('click', () => addCard('without'));
 
   for (const button of expansionButtons) {
     button.addEventListener('click', () => {
