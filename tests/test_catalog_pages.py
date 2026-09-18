@@ -181,6 +181,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "boards/sample-board.html",
         "strategies/big-money.html",
         "strategies/ten-strongest-unused-cards.html",
+        "strategies/strategy-retirement-and-rebuild-comparison.html",
         "strategies/recruiter-kitsune-strategy-guide.html",
         "strategies/groundskeeper-margrave-strategy-guide.html",
         "strategies/sentry-hunting-party-strategy-guide.html",
