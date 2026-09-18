@@ -807,28 +807,31 @@ class Enlarge(Card):
 
 
 class Figurine(Card):
-    """$5 Treasure: $1 +1 Buy. On discard from play: may discard Action for +1 Card +1 Action."""
+    """$5 Treasure: +2 Cards; may discard an Action for +1 Buy and +$1."""
 
     def __init__(self):
         super().__init__(
             name="Figurine",
             cost=CardCost(coins=5),
-            stats=CardStats(coins=1, buys=1),
+            stats=CardStats(cards=2),
             types=[CardType.TREASURE],
         )
 
     def play_effect(self, game_state):
-        pass
-
-    def react_to_discard(self, game_state, player):
-        actions_in_hand = [c for c in player.hand if c.is_action]
-        if not actions_in_hand:
+        player = game_state.current_player
+        actions = [c for c in player.hand if c.is_action]
+        if not actions:
             return
-        choice = min(actions_in_hand, key=lambda c: (c.cost.coins, c.name))
+        hook = getattr(player.ai, "choose_action_to_discard_for_figurine", None)
+        choice = hook(game_state, player, actions) if hook else min(
+            actions, key=lambda c: (c.cost.coins, c.name)
+        )
+        if choice is None or choice not in actions:
+            return
         player.hand.remove(choice)
         game_state.discard_card(player, choice)
-        game_state.draw_cards(player, 1)
-        player.actions += 1
+        player.buys += 1
+        player.coins += 1
 
 
 class Frigate(Card):
@@ -904,7 +907,7 @@ class MiningRoad(Card):
 
 
 class Pendant(Card):
-    """$5 Treasure: At start of cleanup, +$1 per differently-named Treasure in play."""
+    """$5 Treasure: +$1 per differently named Treasure in play when played."""
 
     def __init__(self):
         super().__init__(
@@ -915,7 +918,10 @@ class Pendant(Card):
         )
 
     def play_effect(self, game_state):
-        pass
+        player = game_state.current_player
+        player.coins += len({
+            c.name for c in player.in_play if game_state.is_treasure(c)
+        })
 
 
 class Quartermaster(Card):
