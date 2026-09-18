@@ -1,0 +1,34 @@
+# Suzhou: a kingdom built so that Groundskeeper is the best card on the board.
+#
+# Groundskeeper scores a VP token for every Victory card gained while it is in
+# play, so it wants three things: cheap Victory cards that do not clog the
+# deck, ways to gain several of them per turn, and enough draw to play several
+# Groundskeepers before those gains happen.
+#
+# Great Hall and Mill are cantrip Victory cards, so greening costs the deck no
+# speed, and Crossroads draws one card per Victory card in hand, so the green
+# cards feed the engine that gains more of them. Ironworks hands out Victory
+# cards during the Action phase, after the Groundskeepers are already in play;
+# Bridge and Market add the extra Buys (and the price break) that turn one turn
+# into three or four Victory gains.
+#
+# Five Victory piles beyond Province -- Great Hall, Mill, Nobles, Estate and
+# Duchy -- keep 40 Victory cards in reach of a deck that wants to gain them by
+# the handful.
+#
+# Deliberately absent: Gardens, Silk Road and every other Victory card that
+# pays for mass gaining by itself. On this board a gained Estate is worth one
+# point plus one per Groundskeeper in play, so the tokens are the whole
+# payload and a deck that skips Groundskeeper has nothing to gain them for.
+#
+# Two players; no Colony, Platinum, Potion, Shelters, or landscapes.
+Crossroads
+Great Hall
+Mill
+Village
+Bridge
+Ironworks
+Groundskeeper
+Laboratory
+Market
+Nobles

@@ -2,7 +2,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Mill(Card):
-    """Mill provides small cycling and a discard for coins option."""
+    """+1 Card, +1 Action. You may discard 2 cards, for +$2."""
 
     def __init__(self):
         super().__init__(
@@ -17,26 +17,30 @@ class Mill(Card):
         if len(player.hand) < 2:
             return
 
-        # Simple heuristic: discard junky cards first to trigger the +2 coins.
-        priority = []
-        for card in player.hand:
-            score = 2
-            if card.name == "Curse":
-                score = 0
-            elif card.is_victory and card.name != "Mill":
-                score = 1
-            elif card.name == "Copper":
-                score = 3
-            elif card.is_treasure:
-                score = 4
-            priority.append((score, card))
+        # The discard is optional and costs two cards for two coins, so it is
+        # the player's call, not a fixed rule. A short answer declines.
+        chosen = player.ai.choose_cards_to_discard(
+            game_state, player, list(player.hand), 2, reason="mill"
+        )
 
-        priority.sort(key=lambda item: (item[0], item[1].name))
-        discards = [card for _, card in priority[:2]]
+        # Mill is two discards or none, so both cards are resolved to distinct
+        # cards still in hand before either one leaves it. Discarding first and
+        # counting afterwards would spend a card for no coins when a strategy
+        # answers with a duplicate or a card it has already played.
+        discards = []
+        remaining = list(player.hand)
+        for card in chosen:
+            match = next((c for c in remaining if c is card), None)
+            if match is None:
+                continue
+            remaining.remove(match)
+            discards.append(match)
+            if len(discards) == 2:
+                break
+        if len(discards) < 2:
+            return
 
         for card in discards:
             player.hand.remove(card)
             game_state.discard_card(player, card)
-
-        if len(discards) == 2:
-            player.coins += 2
+        player.coins += 2

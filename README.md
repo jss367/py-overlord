@@ -157,6 +157,11 @@ See the [publishing workflow](AGENTS.md#publish-strategy-guides-as-html).
 Runnable strategies remain Python. Repository instructions, developer references,
 and design plans may remain Markdown.
 
+The [Suzhou guide](reports/strategies/suzhou-groundskeeper-strategy-guide.html)
+documents a kingdom designed so that Groundskeeper is the best card on it, the
+searched engine that exploits it, four corrected card implementations, and the
+one-field ablations that test the claim.
+
 The [Recruiter and Kitsune guide](reports/strategies/recruiter-kitsune-strategy-guide.html)
 covers the user-selected kingdom with Great Leader, corrected card interactions,
 and a reproducible strategy search with independent validation.

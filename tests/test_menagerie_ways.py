@@ -325,6 +325,24 @@ def test_way_of_the_chameleon_swaps_imperative_draw():
     assert len(p1.hand) == 0
 
 
+def test_way_of_the_chameleon_swaps_crossroads_per_victory_draw():
+    """Crossroads' "+1 Card per Victory card revealed" is a +Cards
+    instruction, so the whole variable count swaps to +$."""
+    state, p1 = _state(
+        "Way of the Chameleon",
+        kingdom=[get_card("Village"), get_card("Crossroads")],
+    )
+    p1.actions = 1
+    p1.hand = [get_card("Crossroads"), get_card("Estate"), get_card("Estate")]
+    p1.deck = [get_card("Copper")] * 10
+    state.phase = "action"
+    state.handle_action_phase()
+
+    assert p1.coins == 2
+    # Two Estates still in hand, nothing drawn in their place.
+    assert sorted(c.name for c in p1.hand) == ["Estate", "Estate"]
+
+
 def test_way_of_the_chameleon_does_not_swap_vassal_played_card():
     """When Vassal is played as Way of the Chameleon and reveals/plays an
     Action via its side effect, the *Vassal's* +$2 swaps to +2 Cards (the Way
