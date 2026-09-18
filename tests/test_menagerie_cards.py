@@ -130,8 +130,69 @@ def test_discarding_exiled_village_green_triggers_discard_reaction():
     assert len(p1.hand) == 1
     assert p1.actions == 2
     assert p1.exile == []
-    # Gained copy + exiled copy both end up in the discard pile.
-    assert sum(1 for c in p1.discard if c.name == "Village Green") == 2
+    # The gained copy stays discarded; the exiled copy reacts into play.
+    assert sum(1 for c in p1.discard if c.name == "Village Green") == 1
+    assert sum(1 for c in p1.in_play if c.name == "Village Green") == 1
+
+
+def test_village_green_reaction_cannot_redraw_itself_during_sir_michael(monkeypatch):
+    state, attacker, target = _two_player_state()
+    greens = [get_card("Village Green") for _ in range(4)]
+    target.hand = greens.copy()
+    target.deck = []
+    target.discard = []
+    target.in_play = []
+    draws = []
+    original_draw = state.draw_cards
+
+    def bounded_draw(player, count):
+        draws.append(count)
+        assert len(draws) <= 4, "Discard reaction is redrawing itself"
+        return original_draw(player, count)
+
+    monkeypatch.setattr(state, "draw_cards", bounded_draw)
+    get_card("Sir Michael")._do_extra(state)
+    assert len(target.hand) == 3
+    assert len(target.in_play) == 1
+    assert not target.discard
+    assert state.current_player is attacker
+    assert target.actions_played == 1
+
+
+def test_village_green_reaction_offers_a_way(monkeypatch):
+    from dominion.ways.registry import get_way
+
+    state, _, target = _two_player_state()
+    otter = get_way("Way of the Otter")
+    state.ways = [otter]
+    monkeypatch.setattr(target.ai, "choose_way", lambda *args: otter)
+    target.hand = []
+    target.deck = [get_card("Gold"), get_card("Silver")]
+    green = get_card("Village Green")
+    state.discard_card(target, green)
+    assert len(target.hand) == 2
+    assert green in target.in_play
+    assert green not in target.discard
+
+
+def test_village_green_replays_keep_each_deferred_effect(monkeypatch):
+    state, player, _ = _two_player_state()
+    decisions = iter([False, False, True])
+    monkeypatch.setattr(player.ai, "should_play_village_green_now", lambda *args: next(decisions))
+    player.hand = []
+    player.deck = [get_card("Copper") for _ in range(3)]
+    player.actions = 0
+    green = get_card("Village Green")
+    player.in_play = [green]
+    for _ in range(3):
+        state.play_action_indirectly(player, green)
+    assert len(player.hand) == 1
+    assert player.actions == 2
+    assert player.duration == [green, green]
+    state.do_duration_phase()
+    assert len(player.hand) == 3
+    assert player.actions == 6
+    assert not player.duration
 
 
 def test_gaining_copper_leaves_bounty_hunter_fodder_in_exile():

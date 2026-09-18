@@ -231,7 +231,7 @@ class MineGuildhall(TeaHouseEmperor):
             names.append(p["opening"])
         if counts["Silver"] < p["silvers"]:
             names.append("Silver")
-        if not state.supply["Tea House"] and state.supply["Province"] <= 5:
+        if not state.supply.get("Tea House", 0) and state.supply["Province"] <= 5:
             names.append("Duchy")
         if p["copper_buys"] and guild and player.buys > 1 and counts["Copper"] < 7:
             names.append("Copper")
