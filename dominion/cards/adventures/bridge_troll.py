@@ -17,7 +17,9 @@ class BridgeTroll(Card):
         player = game_state.current_player
 
         def attack_target(target):
-            target.minus_card_tokens += 1
+            # "Each other player takes their -$1 token." This is the -$1
+            # token, not the -1 Card token that Borrow and Relic hand out.
+            target.minus_coin_tokens += 1
 
         for other in game_state.players:
             if other is player:

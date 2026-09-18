@@ -62,6 +62,34 @@ class GeneticAI(AI):
             return hook(state, player)
         return super().choose_minion_mode(state, player)
 
+    # ---- Jerusalem board hooks (Governor / Ambassador / Scrying Pool) ----
+
+    def choose_governor_option(self, state, player, options):
+        hook = getattr(self.strategy, "choose_governor_option", None)
+        if hook is not None:
+            return hook(state, player, options)
+        return super().choose_governor_option(state, player, options)
+
+    def choose_card_to_ambassador(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_card_to_ambassador", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_card_to_ambassador(state, player, choices)
+
+    def choose_ambassador_return_count(self, state, player, revealed, maximum):
+        hook = getattr(self.strategy, "choose_ambassador_return_count", None)
+        if hook is not None:
+            return hook(state, player, revealed, maximum)
+        return super().choose_ambassador_return_count(state, player, revealed, maximum)
+
+    def choose_topdeck_or_discard(self, state, chooser, target, revealed, *, is_self):
+        hook = getattr(self.strategy, "choose_topdeck_or_discard", None)
+        if hook is not None:
+            return hook(state, chooser, target, revealed, is_self=is_self)
+        return super().choose_topdeck_or_discard(
+            state, chooser, target, revealed, is_self=is_self
+        )
+
     def choose_courtier_options(self, state, player, options, num_choices):
         hook = getattr(self.strategy, "choose_courtier_options", None)
         if hook is not None:

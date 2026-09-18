@@ -202,6 +202,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "strategies/port-moresby-strategy-guide.html",
         "strategies/kolkata-strategy-guide.html",
         "strategies/first-game-strategy-guide.html",
+        "strategies/jerusalem-strategy-guide.html",
         "strategies/index.html",
         "strategies/card-strategy-usage.html",
         "strategies/leaderboard.html",
@@ -306,6 +307,7 @@ def test_catalog_refuses_to_overwrite_unrecognized_tournament_results(tmp_path):
         ("first-game-strategy-guide.html", "First Game Strategy Search Guide"),
         ("ninja-watchtower-figurine-strategy-guide.html",
          "Ninja, Watchtower and Figurine: Museum Colony Strategy Guide"),
+        ("jerusalem-strategy-guide.html", "Jerusalem: Board and Strategy Guide"),
     ],
 )
 def test_catalog_writes_curated_strategy_guide_to_clean_output(tmp_path, filename, title):
