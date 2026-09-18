@@ -9,10 +9,15 @@ from shutil import copyfile
 import textwrap
 from typing import Any, Iterable, Mapping
 
+from dominion.allies.registry import ALLY_TYPES
 from dominion.cards.base_card import CardType
 from dominion.cards.dark_ages.ruins import RUIN_VARIANT_NAMES
 from dominion.cards.registry import get_all_card_names, get_card
+from dominion.events.registry import EVENT_TYPES
+from dominion.landmarks.registry import LANDMARK_TYPES
+from dominion.projects.registry import PROJECT_TYPES
 from dominion.simulation.strategy_battle import StrategyBattle
+from dominion.ways.registry import WAY_TYPES
 from dominion.reporting.strategy_links import PageLink, strategy_slug
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
 from dominion.strategy.strategy_loader import StrategyLoader
@@ -941,6 +946,34 @@ def _landscape_chip(name: str, kind: str) -> str:
     return f'<span class="landscape-chip landscape-{css_kind}">{escape(name)}</span>'
 
 
+def _landscape_kind(name: str) -> str:
+    """Bucket a bare landscape name so its chip is coloured like its kind."""
+
+    for kind, registry in (
+        ("Events", EVENT_TYPES),
+        ("Projects", PROJECT_TYPES),
+        ("Ways", WAY_TYPES),
+        ("Landmarks", LANDMARK_TYPES),
+        ("Allies", ALLY_TYPES),
+    ):
+        if name in registry:
+            return kind
+    return "Landscapes"
+
+
+def _mixed_landscape_list(values: Iterable[str]) -> str:
+    """Render landscapes of assorted kinds as one chip list."""
+
+    items = list(values)
+    if not items:
+        return '<span class="empty">None</span>'
+    return (
+        '<span class="chip-list">'
+        + "".join(_landscape_chip(value, _landscape_kind(value)) for value in items)
+        + "</span>"
+    )
+
+
 def _typed_value_list(values: Iterable[str], kind: str) -> str:
     items = list(values)
     if not items:
@@ -1162,6 +1195,7 @@ def render_strategy_leaderboard(
 
     rows = []
     all_cards: set[str] = set()
+    all_landscapes: set[str] = set()
     all_expansions: set[str] = set()
     for rank, (name, stats) in enumerate(ranked, 1):
         wins = int(stats.get("wins", 0))
@@ -1169,18 +1203,21 @@ def render_strategy_leaderboard(
         games = int(stats.get("games", wins + losses))
         win_rate = float(stats.get("win_rate", 0))
         cards = list(stats.get("cards", []) or [])
+        landscapes = list(stats.get("landscapes", []) or [])
         expansions = sorted({
             expansion
             for expansion in (card_expansion(card) for card in cards)
             if expansion
         })
         all_cards.update(cards)
+        all_landscapes.update(landscapes)
         all_expansions.update(expansions)
         description = escape(str(stats.get("description", "") or ""))
         description_markup = description or '<span class="empty">No description</span>'
         rows.append(
             '<tr class="leaderboard-row" '
             f'data-cards="{escape("|".join(cards))}" '
+            f'data-landscapes="{escape("|".join(landscapes))}" '
             f'data-expansions="{escape("|".join(expansions))}" '
             f'data-win-rate="{win_rate:.1f}" data-record="{wins}-{losses}">'
             f'<td data-label="Rank"><span class="rank-badge">{rank}</span></td>'
@@ -1191,15 +1228,16 @@ def render_strategy_leaderboard(
             f'<div class="rate-track" aria-hidden="true"><span style="width: {max(0, min(100, win_rate)):.1f}%"></span></div></td>'
             f'<td data-label="Games">{games}</td>'
             f'<td data-label="Kingdom cards">{_typed_value_list(cards, "Kingdom Cards")}</td>'
+            f'<td data-label="Landscapes">{_mixed_landscape_list(landscapes)}</td>'
             "</tr>"
         )
 
     if rows:
         standings = f"""
-{_leaderboard_filters(all_cards, all_expansions, total=len(rows))}
+{_leaderboard_filters(all_cards, all_landscapes, all_expansions, total=len(rows))}
 <div class="table-scroll">
   <table class="leaderboard-table" id="leaderboard-table">
-    <thead><tr><th>#</th><th>Strategy</th><th>Description</th><th>Record</th><th>Win rate</th><th>Games</th><th>Kingdom cards used</th></tr></thead>
+    <thead><tr><th>#</th><th>Strategy</th><th>Description</th><th>Record</th><th>Win rate</th><th>Games</th><th>Kingdom cards used</th><th>Landscapes used</th></tr></thead>
     <tbody>{''.join(rows)}</tbody>
   </table>
 </div>
@@ -1403,11 +1441,24 @@ def collect_rendered_strategies(
     return rendered
 
 
-def _leaderboard_filters(cards: Iterable[str], expansions: Iterable[str], *, total: int) -> str:
-    """Render the card and expansion filter panel shown above full standings."""
+def _leaderboard_filters(
+    cards: Iterable[str],
+    landscapes: Iterable[str],
+    expansions: Iterable[str],
+    *,
+    total: int,
+) -> str:
+    """Render the card and expansion filter panel shown above full standings.
+
+    Cards and landscapes share one input: from a player's side "does anything
+    here use Museum?" is the same question as "does anything here use
+    Torturer?", and splitting them would only make the asker guess which box
+    a name belongs in.
+    """
 
     options = "".join(
-        f'<option value="{escape(card)}"></option>' for card in sorted(set(cards))
+        f'<option value="{escape(name)}"></option>'
+        for name in sorted(set(cards) | set(landscapes))
     )
     toggles = "".join(
         f'<button type="button" class="expansion-toggle" data-expansion="{escape(expansion)}" '
@@ -1428,9 +1479,9 @@ def _leaderboard_filters(cards: Iterable[str], expansions: Iterable[str], *, tot
 <section class="leaderboard-filters" id="leaderboard-filters" aria-label="Filter standings">
   <div class="filter-block">
     <form class="filter-form" id="leaderboard-card-form">
-      <label class="eyebrow" for="leaderboard-card-input">Filter by card</label>
+      <label class="eyebrow" for="leaderboard-card-input">Filter by card or landscape</label>
       <div class="filter-controls">
-        <input class="search filter-input" id="leaderboard-card-input" list="leaderboard-card-options" placeholder="Type a card name, e.g. Torturer" autocomplete="off">
+        <input class="search filter-input" id="leaderboard-card-input" list="leaderboard-card-options" placeholder="Type a card or landscape, e.g. Torturer or Museum" autocomplete="off">
         <datalist id="leaderboard-card-options">{options}</datalist>
         <button type="submit" class="filter-button filter-button-with" data-mode="with">Show only strategies using it</button>
         <button type="button" class="filter-button" data-mode="without">Hide strategies using it</button>
@@ -1460,6 +1511,7 @@ _LEADERBOARD_FILTER_SCRIPT = """
   const cardInput = document.getElementById('leaderboard-card-input');
   const knownCards = Array.from(document.querySelectorAll('#leaderboard-card-options option')).map((option) => option.value);
   const expansionButtons = Array.from(document.querySelectorAll('.expansion-toggle'));
+  const known = { card: knownCards, expansion: expansionButtons.map((button) => button.dataset.expansion) };
 
   const KINDS = ['card', 'expansion'];
   const MODES = ['without', 'with'];
@@ -1471,7 +1523,9 @@ _LEADERBOARD_FILTER_SCRIPT = """
   const split = (value) => (value ? value.split('|') : []);
   const entries = rows.map((row) => ({
     row,
-    card: new Set(split(row.dataset.cards)),
+    // Cards and landscapes share the 'card' filter, so Museum and Torturer
+    // are both answerable from the one input.
+    card: new Set([...split(row.dataset.cards), ...split(row.dataset.landscapes)]),
     expansion: new Set(split(row.dataset.expansions)),
   }));
 
@@ -1504,7 +1558,11 @@ _LEADERBOARD_FILTER_SCRIPT = """
     const params = new URLSearchParams(location.hash.replace(/^#/, ''));
     for (const kind of KINDS) {
       for (const mode of MODES) {
-        state[kind][mode] = new Set(params.getAll(paramKey(kind, mode)).filter(Boolean));
+        // A hand-typed link says '#with=museum'; match it to 'Museum' rather
+        // than silently filtering to nothing.
+        state[kind][mode] = new Set(
+          params.getAll(paramKey(kind, mode)).map((value) => canonical(kind, value)).filter(Boolean)
+        );
       }
     }
   }
@@ -1592,15 +1650,15 @@ _LEADERBOARD_FILTER_SCRIPT = """
     writeHash();
   }
 
-  function canonicalCard(value) {
+  function canonical(kind, value) {
     const trimmed = value.trim();
     if (!trimmed) return null;
     const query = trimmed.toLowerCase();
-    return knownCards.find((card) => card.toLowerCase() === query) || trimmed;
+    return known[kind].find((name) => name.toLowerCase() === query) || trimmed;
   }
 
   function addCard(mode) {
-    const name = canonicalCard(cardInput.value);
+    const name = canonical('card', cardInput.value);
     if (!name) return;
     add('card', mode, name);
     cardInput.value = '';
@@ -1646,7 +1704,7 @@ _LEADERBOARD_STYLES = """
     .podium-rate { color: var(--accent-dark); font-family: Georgia, "Times New Roman", serif; font-size: 2rem; line-height: 1; }
     .podium-rank-1 { border-color: #b9932f; box-shadow: inset 0 4px 0 var(--treasure), var(--shadow); }
     .table-scroll { overflow-x: auto; padding-bottom: 4px; }
-    .leaderboard-table { min-width: 920px; }
+    .leaderboard-table { min-width: 1060px; }
     .leaderboard-table td:first-child { width: 54px; }
     .leaderboard-table td:nth-child(2) { font-weight: 800; min-width: 170px; }
     .leaderboard-description { color: #5d554a; font-size: .83rem; max-width: 300px; }

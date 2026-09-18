@@ -86,6 +86,25 @@ def canonical_landmark_name(landmark: str) -> str:
     return _WAY_PARAM_RE.sub("", landmark)
 
 
+def landscape_names(refs: StrategyBoardReferences) -> list[str]:
+    """Canonical names of every landscape a strategy references.
+
+    Events, Projects, Ways, Landmarks and Allies are split out of
+    ``kingdom_cards`` because they are not cards, so anything that indexes a
+    strategy by the names it uses — the leaderboard filter, for one — has to
+    ask for them separately or it will never see a Museum or an Obelisk.
+    """
+
+    names = [
+        *refs.events,
+        *refs.projects,
+        *(canonical_way_name(way) for way in refs.ways),
+        *(canonical_landmark_name(landmark) for landmark in refs.landmarks),
+        *refs.allies,
+    ]
+    return list(dict.fromkeys(names))
+
+
 # Set up module-level logger
 logger = logging.getLogger(__name__)
 
@@ -183,6 +202,8 @@ class StrategyBattle:
                 references.add(card_name)
             if way_name:
                 references.add(way_name)
+
+        references.update(getattr(strat, "landscapes", None) or [])
 
         return references
 

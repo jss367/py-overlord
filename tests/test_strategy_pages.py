@@ -431,10 +431,10 @@ def test_strategy_leaderboard_rows_carry_card_and_expansion_filter_data():
     )
 
     assert (
-        'class="leaderboard-row" data-cards="Inn|Torturer" '
+        'class="leaderboard-row" data-cards="Inn|Torturer" data-landscapes="" '
         'data-expansions="Hinterlands|Intrigue" data-win-rate="90.0" data-record="9-1"'
     ) in html
-    assert 'data-cards="Gold|Province" data-expansions="Base"' in html
+    assert 'data-cards="Gold|Province" data-landscapes="" data-expansions="Base"' in html
     # The filter panel offers every card and expansion seen in the standings.
     assert 'id="leaderboard-card-form"' in html
     assert '<option value="Torturer"></option>' in html
@@ -497,3 +497,53 @@ def test_rendered_kingdom_cards_exclude_auxiliary_piles():
     kingdom = rendered.references["Kingdom Cards"]
     assert not {"Ruins", "Abandoned Mine", "Survivors", "Disciple", "Teacher"} & set(kingdom)
     assert "Cultist" in kingdom and "Peasant" in kingdom
+
+
+def test_strategy_leaderboard_indexes_landscapes_alongside_cards():
+    """Museum is a Landmark, so a card-only index can never answer "#with=Museum"."""
+
+    html = render_strategy_leaderboard(
+        {
+            "Museum Colony": {
+                "wins": 9,
+                "losses": 1,
+                "win_rate": 90.0,
+                "description": "Diverse Treasures for Museum points.",
+                "cards": ["Ninja", "Watchtower"],
+                "landscapes": ["Credit", "Museum"],
+            },
+        }
+    )
+
+    assert 'data-cards="Ninja|Watchtower" data-landscapes="Credit|Museum"' in html
+    # One input covers both, so Museum is offered for completion next to Ninja.
+    assert '<option value="Museum"></option>' in html
+    assert '<option value="Ninja"></option>' in html
+    assert "Filter by card or landscape" in html
+    # Filtering by Museum has to match the row, so both sets feed one index.
+    assert (
+        "new Set([...split(row.dataset.cards), ...split(row.dataset.landscapes)])"
+        in html
+    )
+    # Each landscape is chipped by its own kind.
+    assert '<span class="landscape-chip landscape-landmark">Museum</span>' in html
+    assert '<span class="landscape-chip landscape-event">Credit</span>' in html
+
+
+def test_strategy_leaderboard_matches_hand_typed_filter_names_case_insensitively():
+    html = render_strategy_leaderboard(
+        {
+            "Museum Colony": {
+                "wins": 9,
+                "losses": 1,
+                "win_rate": 90.0,
+                "cards": ["Ninja"],
+                "landscapes": ["Museum"],
+            },
+        }
+    )
+
+    assert (
+        "params.getAll(paramKey(kind, mode)).map((value) => canonical(kind, value))"
+        in html
+    )
