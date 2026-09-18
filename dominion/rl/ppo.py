@@ -73,6 +73,9 @@ class PPOTrainer:
         actions_list = []
         rewards_list = []
         dones_list = []
+        terminated_list = []
+        truncated_list = []
+        truncated_values_list = []
         log_probs_list = []
         values_list = []
         masks_list = []
@@ -97,8 +100,20 @@ class PPOTrainer:
             next_obs, reward, terminated, truncated, info = self.env.step(action_np)
             done = terminated or truncated
 
+            # A time limit is an episode boundary, not a terminal game state.
+            # Capture its value before reset replaces the observation.
+            truncated_value = 0.0
+            if truncated and not terminated:
+                with torch.no_grad():
+                    final_obs = torch.as_tensor(next_obs, dtype=torch.float32, device=self.device).unsqueeze(0)
+                    _, final_value = self.policy(final_obs)
+                    truncated_value = final_value.item()
+
             rewards_list.append(reward)
             dones_list.append(done)
+            terminated_list.append(terminated)
+            truncated_list.append(truncated)
+            truncated_values_list.append(truncated_value)
             self._current_episode_reward += reward
 
             if done:
@@ -114,6 +129,9 @@ class PPOTrainer:
             "actions": np.array(actions_list),
             "rewards": np.array(rewards_list),
             "dones": np.array(dones_list),
+            "terminated": np.array(terminated_list),
+            "truncated": np.array(truncated_list),
+            "truncated_values": np.array(truncated_values_list),
             "log_probs": np.array(log_probs_list),
             "values": np.array(values_list),
             "masks": np.array(masks_list),
@@ -122,10 +140,12 @@ class PPOTrainer:
     def compute_advantages(
         self, rollout: dict[str, Any]
     ) -> tuple[np.ndarray, np.ndarray]:
-        """Compute GAE advantages and returns."""
+        """Bootstrap through time limits without propagating GAE across resets."""
         rewards = rollout["rewards"]
         dones = rollout["dones"]
         values = rollout["values"]
+        terminated = rollout["terminated"]
+        truncated = rollout["truncated"]
 
         advantages = np.zeros_like(rewards)
         returns = np.zeros_like(rewards)
@@ -139,14 +159,17 @@ class PPOTrainer:
         # GAE computation (reversed)
         gae = 0.0
         for t in reversed(range(len(rewards))):
-            if t == len(rewards) - 1:
+            if truncated[t]:
+                next_value = rollout["truncated_values"][t]
+            elif t == len(rewards) - 1:
                 next_value = last_value
             else:
                 next_value = values[t + 1]
 
-            next_non_terminal = 1.0 - float(dones[t])
+            next_non_terminal = 1.0 - float(terminated[t])
+            same_episode = 1.0 - float(dones[t])
             delta = rewards[t] + self.gamma * next_value * next_non_terminal - values[t]
-            gae = delta + self.gamma * self.gae_lambda * next_non_terminal * gae
+            gae = delta + self.gamma * self.gae_lambda * same_episode * gae
             advantages[t] = gae
             returns[t] = advantages[t] + values[t]
 
