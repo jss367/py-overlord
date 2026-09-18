@@ -282,8 +282,9 @@ class Ball(Event):
 
     def on_buy(self, game_state, player) -> None:
         # -$1 token: queue a $1 penalty for the start of the player's
-        # next turn (applied in GameState.handle_start_phase).
-        player.minus_coin_tokens += 1
+        # next turn (applied in GameState.handle_start_phase). One token
+        # per player, so buying two Balls in a turn still costs $1.
+        player.take_minus_coin_token()
         # Gain 2 cards costing up to $4 each.
         for _ in range(2):
             candidates = []

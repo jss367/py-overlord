@@ -60,6 +60,20 @@ CURATED_STRATEGY_GUIDES = (
         source_label="Seat-balanced simulations, held-out validation and official card rules",
     ),
     CuratedStrategyGuide(
+        filename="jerusalem-strategy-guide.html",
+        display_name="Jerusalem: Board and Strategy Guide",
+        description=(
+            "The ten strongest previously unused piles, six card-rules defects the "
+            "audit found, and a searched Scrying Pool engine validated at 79% over "
+            "3,000 held-out games -- plus the three piles that do nothing for it."
+        ),
+        kingdom_cards=(
+            "Goons", "Sea Hag", "Governor", "Ambassador", "Minion", "Old Witch",
+            "Scrying Pool", "Fortress", "Ill-Gotten Gains", "Bridge Troll",
+        ),
+        source_label="Recorded card-usage audit and seat-balanced repository simulations",
+    ),
+    CuratedStrategyGuide(
         filename="recruiter-kitsune-strategy-guide.html",
         display_name="Recruiter and Kitsune with Great Leader: Strategy Guide",
         description=(

@@ -38,12 +38,13 @@ class Ambassador(Card):
         copies = [c for c in player.hand if c.name == choice.name]
         return_count = min(2, len(copies))
 
-        # Decide how many to return — default heuristic returns as many as possible
-        # if the card is junk (Curse, Estate, Copper); otherwise just one.
-        if choice.name in {"Curse", "Estate", "Copper", "Hovel", "Overgrown Estate"}:
-            actual_return = return_count
-        else:
-            actual_return = min(1, return_count)
+        # "Return up to 2 copies of it": how many is the player's choice, so
+        # ask the AI and clamp. The default policy returns every copy of junk
+        # and a single copy of anything else.
+        actual_return = player.ai.choose_ambassador_return_count(
+            game_state, player, choice, return_count
+        )
+        actual_return = max(0, min(return_count, int(actual_return)))
 
         # Return chosen copies to the Supply
         for _ in range(actual_return):

@@ -1,0 +1,14 @@
+# Jerusalem: the ten strongest cards that no registered strategy referenced.
+# Three cursers (Sea Hag, Old Witch, Ill-Gotten Gains), one village (Fortress),
+# one trasher/attack (Ambassador), and Scrying Pool draw behind a Potion.
+# Two players; normal Copper/Estate starts; no Colony, Platinum, or Shelters.
+Goons
+Sea Hag
+Governor
+Ambassador
+Minion
+Old Witch
+Scrying Pool
+Fortress
+Ill-Gotten Gains
+Bridge Troll

@@ -205,6 +205,17 @@ def test_ball_does_not_deduct_coin_this_turn():
     assert len(player.discard) == 2
 
 
+def test_two_balls_do_not_stack_the_minus_coin_token():
+    """One physical -$1 token per player, so two Ball buys still cost $1."""
+    state = _new_state()
+    player = state.players[0]
+    player.coins = 10
+    ball = get_event("Ball")
+    ball.on_buy(state, player)
+    ball.on_buy(state, player)
+    assert player.minus_coin_tokens == 1
+
+
 def test_ball_minus_coin_token_applies_at_next_turn_start():
     """After Ball is bought, the player's next handle_start_phase must
     apply the -$1 and clear the pending token."""
