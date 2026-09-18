@@ -25,9 +25,11 @@ class Governor(Card):
             elif choice == "gold":
                 self._do_gold_option(game_state, player)
             else:
-                handled = self._do_upgrade_option(game_state, player)
-                if not handled:
-                    self._do_cards_option(game_state, player)
+                # "Trash a card from your hand" is mandatory for the Governor
+                # when able, and choosing it with an empty hand simply does
+                # nothing -- it does not become the +3 Cards mode. Each other
+                # player still gets their optional upgrade either way.
+                self._do_upgrade_option(game_state, player)
 
         for choice in select_modes(game_state, player, self, options, [choice]):
             resolve(choice)
@@ -119,8 +121,13 @@ class Governor(Card):
         return True
 
     def _do_upgrade_option(self, game_state, player):
-        if not self._upgrade_one(game_state, player, 2, optional=False):
-            return False
+        """Resolve the upgrade mode for the Governor, then for everyone else.
+
+        The Governor's own trash is mandatory when their hand is non-empty;
+        only the other players "may" decline. An empty hand trashes nothing
+        and gains nothing, and the other players' upgrades still happen.
+        """
+        self._upgrade_one(game_state, player, 2, optional=False)
         for other in game_state.players:
             if other is player:
                 continue

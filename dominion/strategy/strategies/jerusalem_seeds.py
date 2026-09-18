@@ -127,22 +127,30 @@ class Jerusalem(EnhancedStrategy):
     def _junk_in(cards):
         return sum(1 for c in cards if c.name in _JUNK)
 
-    def _sheddable(self, player):
-        """Junk names this deck is currently willing to give up.
+    def _copper_floor(self, player):
+        """The number of Coppers this deck refuses to return: a hard reserve.
 
-        Copper is economy until the deck has replaced it. Shedding below the
-        floor is how an Ambassador deck talks itself down to six cards and
-        never buys anything again, so the floor counts Coppers actually left.
+        Shedding past it is how an Ambassador deck talks itself down to six
+        cards and never buys anything again. The reserve is flat rather than
+        discounted by the Treasures the deck has bought, because the same
+        number has to govern both which card Ambassador names and how many
+        copies it returns -- naming Copper and then returning none of it
+        spends an action to hand the opponent a free Copper.
+
+        The plan is genuinely sensitive to this number: on a deck holding one
+        Silver and no Gold, an effective reserve of two instead of three
+        turns a 93% policy into a 7% one, because two Coppers and a Silver
+        cannot reach the $5 the engine is built on.
         """
+        return max(0, self.params["copper_floor"])
+
+    def _sheddable(self, player):
+        """Junk names this deck is currently willing to give up."""
         names = ["Curse", "Estate"]
         if not self.params["ambassador_curse"]:
             names = ["Estate"]
-        bought = sum(
-            1 for c in player.all_cards()
-            if c.is_treasure and c.name not in {"Copper", "Potion"}
-        )
-        floor = max(0, self.params["copper_floor"] - bought)
-        if sum(1 for c in player.all_cards() if c.name == "Copper") > floor:
+        coppers = sum(1 for c in player.all_cards() if c.name == "Copper")
+        if coppers > self._copper_floor(player):
             names.append("Copper")
         return names
 
@@ -245,9 +253,13 @@ class Jerusalem(EnhancedStrategy):
             return min(1, maximum)
         if revealed.name != "Copper":
             return min(self.params["ambassador_max"], maximum)
-        # Never cross the economy floor in a single return.
-        spare = sum(1 for c in player.all_cards() if c.name == "Copper") - (
-            self.params["copper_floor"]
+        # Never cross the economy floor in a single return. This must use the
+        # same adjusted floor as _sheddable: a raw floor here can name Copper
+        # as sheddable and then return zero copies, wasting the Ambassador and
+        # handing the opponent a free Copper.
+        spare = (
+            sum(1 for c in player.all_cards() if c.name == "Copper")
+            - self._copper_floor(player)
         )
         return max(0, min(self.params["ambassador_max"], maximum, spare))
 
@@ -398,7 +410,7 @@ class Jerusalem(EnhancedStrategy):
 def create_jerusalem_scrying_pool_goons() -> EnhancedStrategy:
     """Search winner: Scrying Pool draw, Fortress villages, Goons payload.
 
-    Validated at 79.0% across 3,000 held-out games against ten opponents.
+    Validated at 79.8% across 3,000 held-out games against ten opponents.
     """
     strategy = Jerusalem(
         scrying_pool=8, potion=1, fortress=5, goons=5, ambassador=1,

@@ -7,7 +7,11 @@ which parameter set currently wins.
 from dominion.ai.genetic_ai import GeneticAI
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
-from dominion.strategy.strategies.jerusalem_seeds import DEFAULTS, Jerusalem
+from dominion.strategy.strategies.jerusalem_seeds import (
+    CARD_KEYS,
+    DEFAULTS,
+    Jerusalem,
+)
 from tests.test_jerusalem_board_cards import BOARD
 
 
@@ -57,14 +61,56 @@ def test_ambassador_sheds_copper_once_the_deck_has_spares():
     assert strategy.choose_ambassador_return_count(state, player, copper, 2) == 2
 
 
-def test_ambassador_floor_falls_as_bought_treasure_replaces_copper():
-    """Two Silvers have already replaced two Coppers of economy."""
+def test_the_copper_reserve_is_flat_and_not_discounted_by_bought_treasure():
+    """Buying Silver does not license shedding another Copper.
+
+    The reserve has to be one number: it governs both which card Ambassador
+    names and how many copies it returns, and those disagreeing is what makes
+    the deck name Copper and then return none of it.
+    """
     strategy = Jerusalem(ambassador=1, copper_floor=3)
     state = _state(strategy)
     player = state.players[0]
-    _deck(player, ["Copper", "Copper", "Silver", "Silver"])
+    _deck(player, ["Copper", "Copper", "Copper", "Silver", "Silver"])
     copper = get_card("Copper")
-    assert strategy.choose_card_to_ambassador(state, player, [copper]) is copper
+
+    assert strategy._copper_floor(player) == 3
+    assert strategy.choose_card_to_ambassador(state, player, [copper]) is None
+    assert strategy.choose_ambassador_return_count(state, player, copper, 2) == 0
+
+
+def test_ambassador_return_count_uses_the_same_floor_as_the_choice():
+    """Naming Copper and then returning zero wastes the Ambassador.
+
+    The selection and the count must read the same reserve. When they
+    disagreed, three Coppers plus a Silver at a reserve of three selected
+    Copper and returned none of it -- spending an action to hand the
+    opponent a free Copper.
+    """
+    strategy = Jerusalem(ambassador=1, copper_floor=3)
+    state = _state(strategy)
+    player = state.players[0]
+    _deck(player, ["Copper", "Copper", "Copper", "Silver"])
+    copper = get_card("Copper")
+
+    assert strategy._copper_floor(player) == 3
+    assert strategy.choose_card_to_ambassador(state, player, [copper]) is None
+    assert strategy.choose_ambassador_return_count(state, player, copper, 2) == 0
+
+
+def test_ambassador_never_names_a_card_it_would_return_zero_of():
+    """The selection and the count must agree for every Copper total."""
+    strategy = Jerusalem(ambassador=1, copper_floor=4)
+    state = _state(strategy)
+    player = state.players[0]
+    copper = get_card("Copper")
+    for coppers in range(0, 8):
+        for silvers in range(0, 3):
+            _deck(player, ["Copper"] * coppers + ["Silver"] * silvers)
+            named = strategy.choose_card_to_ambassador(state, player, [copper])
+            count = strategy.choose_ambassador_return_count(state, player, copper, 2)
+            if named is copper:
+                assert count >= 1, (coppers, silvers, count)
 
 
 def test_ambassador_always_sheds_curses_and_estates():
@@ -268,3 +314,37 @@ def test_published_winner_buys_only_the_piles_it_names():
         "Old Witch", "Scrying Pool", "Fortress", "Bridge Troll", "Potion",
         "Silver",
     }, sorted(named)
+
+
+def test_ablation_specs_actually_remove_the_card():
+    """Zeroing a count is not enough: the opening knobs buy cards anyway.
+
+    ``choose_gain`` buys ``opening`` and ``first_five`` on turns 1-2 whatever
+    the acquisition target is, so an "Old Witch removed" row that keeps
+    ``first_five="Old Witch"`` still opens with one and measures nothing.
+    """
+    import json
+    from pathlib import Path
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from scripts.search_jerusalem import ablations, without
+
+    winner = dict(DEFAULTS, old_witch=1, scrying_pool=8, potion=1, goons=5,
+                  opening="Potion", first_five="Old Witch", build="pool")
+
+    stripped = without(winner, "old_witch")
+    assert stripped["old_witch"] == 0
+    assert stripped["first_five"] == "Silver", stripped["first_five"]
+
+    stripped = without(winner, "scrying_pool", "potion")
+    assert stripped["potion"] == 0
+    assert stripped["opening"] == "Silver", stripped["opening"]
+
+    for row in ablations(winner):
+        removed = [k for k in ("old_witch", "goons", "scrying_pool")
+                   if winner.get(k) and not row.get(k)]
+        for key in removed:
+            name = next(n for n, p in CARD_KEYS.items() if p == key)
+            assert row["opening"] != name, json.dumps(row, sort_keys=True)
+            assert row["first_five"] != name, json.dumps(row, sort_keys=True)

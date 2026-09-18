@@ -5,10 +5,10 @@
  "matches": 9,
  "games": 2700,
  "truncated": 1,
- "elapsed_seconds": 26.6,
+ "elapsed_seconds": 26.8,
  "ranking": [
   {
-   "rate": 0.7211,
+   "rate": 0.7307,
    "games": 2700,
    "params": {
     "goons": 5,
@@ -44,15 +44,15 @@
  ],
  "results": [
   {
-   "rate": 0.6767,
+   "rate": 0.71,
    "games": 300,
    "seed": 700000,
-   "wins": 201,
-   "ties": 4,
-   "mean_turns_per_player": 25.01,
+   "wins": 213,
+   "ties": 0,
+   "mean_turns_per_player": 24.54,
    "points": [
-    17.38,
-    -1.19
+    17.86,
+    -1.17
    ],
    "endings": {
     "three piles": 300
@@ -120,15 +120,15 @@
    }
   },
   {
-   "rate": 0.9433,
+   "rate": 0.95,
    "games": 300,
    "seed": 710000,
-   "wins": 283,
+   "wins": 285,
    "ties": 0,
-   "mean_turns_per_player": 41.96,
+   "mean_turns_per_player": 40.4,
    "points": [
-    46.77,
-    4.55
+    51.39,
+    5.87
    ],
    "endings": {
     "three piles": 299,
@@ -197,15 +197,15 @@
    }
   },
   {
-   "rate": 0.97,
+   "rate": 0.9867,
    "games": 300,
    "seed": 720000,
-   "wins": 291,
+   "wins": 296,
    "ties": 0,
-   "mean_turns_per_player": 31.87,
+   "mean_turns_per_player": 31.91,
    "points": [
-    73.96,
-    3.47
+    79.37,
+    3.0
    ],
    "endings": {
     "three piles": 300
@@ -273,15 +273,15 @@
    }
   },
   {
-   "rate": 0.5217,
+   "rate": 0.525,
    "games": 300,
    "seed": 730000,
-   "wins": 155,
-   "ties": 3,
-   "mean_turns_per_player": 26.81,
+   "wins": 157,
+   "ties": 1,
+   "mean_turns_per_player": 26.83,
    "points": [
-    28.31,
-    29.19
+    33.3,
+    30.29
    ],
    "endings": {
     "three piles": 300
@@ -336,7 +336,7 @@
     "estate": 3,
     "green_first": false,
     "opening": "Potion",
-    "first_five": "Old Witch",
+    "first_five": "Silver",
     "build": "pool",
     "governor_mode": "auto",
     "minion_mode": "auto",
@@ -349,15 +349,15 @@
    }
   },
   {
-   "rate": 0.5117,
+   "rate": 0.5017,
    "games": 300,
    "seed": 740000,
-   "wins": 153,
-   "ties": 1,
-   "mean_turns_per_player": 26.5,
+   "wins": 149,
+   "ties": 3,
+   "mean_turns_per_player": 26.24,
    "points": [
-    29.44,
-    26.1
+    29.46,
+    26.98
    ],
    "endings": {
     "three piles": 300
@@ -425,15 +425,15 @@
    }
   },
   {
-   "rate": 0.9083,
+   "rate": 0.9067,
    "games": 300,
    "seed": 750000,
    "wins": 272,
-   "ties": 1,
-   "mean_turns_per_player": 24.49,
+   "ties": 0,
+   "mean_turns_per_player": 23.62,
    "points": [
-    37.47,
-    3.17
+    36.05,
+    4.26
    ],
    "endings": {
     "three piles": 300
@@ -501,15 +501,15 @@
    }
   },
   {
-   "rate": 0.545,
+   "rate": 0.57,
    "games": 300,
    "seed": 760000,
-   "wins": 163,
-   "ties": 1,
-   "mean_turns_per_player": 24.97,
+   "wins": 170,
+   "ties": 2,
+   "mean_turns_per_player": 24.6,
    "points": [
-    23.19,
-    7.09
+    21.98,
+    5.41
    ],
    "endings": {
     "three piles": 300
@@ -577,15 +577,15 @@
    }
   },
   {
-   "rate": 0.5467,
+   "rate": 0.5533,
    "games": 300,
    "seed": 770000,
-   "wins": 164,
+   "wins": 166,
    "ties": 0,
-   "mean_turns_per_player": 26.69,
+   "mean_turns_per_player": 26.3,
    "points": [
-    24.48,
-    10.04
+    24.55,
+    11.0
    ],
    "endings": {
     "three piles": 300
@@ -653,15 +653,15 @@
    }
   },
   {
-   "rate": 0.8667,
+   "rate": 0.8733,
    "games": 300,
    "seed": 780000,
-   "wins": 260,
+   "wins": 262,
    "ties": 0,
-   "mean_turns_per_player": 32.27,
+   "mean_turns_per_player": 30.36,
    "points": [
-    61.48,
-    9.05
+    60.55,
+    8.91
    ],
    "endings": {
     "three piles": 300
@@ -715,7 +715,7 @@
     "duchy": 3,
     "estate": 3,
     "green_first": false,
-    "opening": "Potion",
+    "opening": "Silver",
     "first_five": "Old Witch",
     "build": "pool",
     "governor_mode": "auto",

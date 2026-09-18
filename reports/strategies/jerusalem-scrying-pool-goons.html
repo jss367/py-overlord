@@ -380,9 +380,13 @@
         return min(1, maximum)
     if revealed.name != &quot;Copper&quot;:
         return min(self.params[&quot;ambassador_max&quot;], maximum)
-    # Never cross the economy floor in a single return.
-    spare = sum(1 for c in player.all_cards() if c.name == &quot;Copper&quot;) - (
-        self.params[&quot;copper_floor&quot;]
+    # Never cross the economy floor in a single return. This must use the
+    # same adjusted floor as _sheddable: a raw floor here can name Copper
+    # as sheddable and then return zero copies, wasting the Ambassador and
+    # handing the opponent a free Copper.
+    spare = (
+        sum(1 for c in player.all_cards() if c.name == &quot;Copper&quot;)
+        - self._copper_floor(player)
     )
     return max(0, min(self.params[&quot;ambassador_max&quot;], maximum, spare))
 </code></pre></details></td></tr>

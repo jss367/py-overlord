@@ -179,6 +179,25 @@ def test_governor_upgrade_requires_matching_potion_and_debt():
     assert all(get_card(n).cost.potions == 0 for n in gained), gained
 
 
+def test_governor_upgrade_with_an_empty_hand_does_not_become_the_draw_mode():
+    """Choosing the trash mode with nothing to trash does nothing.
+
+    It must not silently resolve as "+3 Cards", which would also hand each
+    opponent a card they are not entitled to.
+    """
+    state = _setup([_PickAI(governor="upgrade"), _PickAI()])
+    player, victim = state.players
+    player.deck = [get_card("Copper") for _ in range(5)]
+    victim.deck = [get_card("Copper") for _ in range(5)]
+    player.hand = []
+    victim.hand = [get_card("Copper")]
+
+    get_card("Governor").play_effect(state)
+
+    assert player.hand == [], "no draw for the Governor"
+    assert state.trash == [], "nothing trashed"
+
+
 def test_governor_gold_option_gives_opponents_silver():
     state = _setup([_PickAI(governor="gold"), _PickAI()])
     player, victim = state.players

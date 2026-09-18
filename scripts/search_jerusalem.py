@@ -18,7 +18,11 @@ from dominion.ai.genetic_ai import GeneticAI
 from dominion.boards.loader import load_board
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
-from dominion.strategy.strategies.jerusalem_seeds import DEFAULTS, Jerusalem
+from dominion.strategy.strategies.jerusalem_seeds import (
+    CARD_KEYS,
+    DEFAULTS,
+    Jerusalem,
+)
 from dominion.strategy.strategy_loader import StrategyLoader
 
 
@@ -222,17 +226,45 @@ def combinations_to_try(leader, moves, *, subsets=18, seed=4242):
     ])
 
 
+#: Cards named by the opening knobs, so zeroing a count can leave the card
+#: in the deck. ``opening`` and ``first_five`` are bought on turns 1-2
+#: regardless of the acquisition target.
+_OPENING_KEYS = ("opening", "first_five")
+
+
+def without(winner, *keys):
+    """The winner with ``keys`` zeroed, and the card genuinely removed.
+
+    Setting a count to zero is not enough on its own: ``choose_gain`` still
+    buys ``opening`` and ``first_five`` on turns 1-2 whatever the target is,
+    so an "Old Witch removed" row that keeps ``first_five="Old Witch"``
+    still opens with one. Any opening knob naming a removed card is
+    redirected to Silver, which every plan can buy and no row is measuring.
+    """
+    spec = dict(winner)
+    removed = set()
+    for key in keys:
+        spec[key] = 0
+        removed.update(
+            name for name, param in CARD_KEYS.items() if param == key
+        )
+    for knob in _OPENING_KEYS:
+        if spec[knob] in removed:
+            spec[knob] = "Silver"
+    return spec
+
+
 def ablations(winner):
-    """One-field changes from the winner, so each row isolates one card."""
+    """One-card removals from the winner, so each row isolates one pile."""
     rows = []
     for key in ("goons", "governor", "fortress", "minion", "scrying_pool",
                 "igg", "old_witch", "sea_hag", "ambassador", "bridge_troll"):
         if winner.get(key):
-            rows.append(winner | {key: 0})
+            rows.append(without(winner, key))
     if winner.get("goons"):
         rows.append(winner | {"goons_filler": False})
     if winner.get("scrying_pool"):
-        rows.append(winner | {"potion": 0, "scrying_pool": 0})
+        rows.append(without(winner, "scrying_pool", "potion"))
     return unique(rows)
 
 
