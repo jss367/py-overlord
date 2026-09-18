@@ -1572,6 +1572,23 @@ class AI(ABC):
                     return c
         return None
 
+    def choose_ambassador_return_count(
+        self,
+        state: GameState,
+        player: PlayerState,
+        revealed: Card,
+        maximum: int,
+    ) -> int:
+        """How many copies of the revealed card to return to the Supply.
+
+        Ambassador returns "up to 2" copies, and returning zero is legal --
+        that is how the attack is used purely to hand an opponent a card.
+        Default: shed every copy of junk, keep all but one of anything else.
+        """
+
+        junk = {"Curse", "Estate", "Copper", "Hovel", "Overgrown Estate"}
+        return maximum if revealed.name in junk else min(1, maximum)
+
     def choose_pile_to_embargo(
         self, state: GameState, player: PlayerState
     ) -> Optional[str]:

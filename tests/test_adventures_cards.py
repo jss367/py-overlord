@@ -567,35 +567,69 @@ def test_bridge_troll_reduces_costs():
     assert cost_with_troll == max(0, initial_cost - 1)
 
 
-def test_bridge_troll_reduction_is_global():
-    """Bridge Troll's cost reduction applies to ALL players' purchases
-    while it remains in play (the effect is global until the owner's
-    next-turn cleanup), not just the owner's."""
+def test_bridge_troll_reduction_applies_only_on_the_owners_turn():
+    """"While this is in play, cards cost $1 less on your turn."
+
+    A Bridge Troll stays in play through the opponent's turn as a Duration,
+    but it must not discount that opponent's buys.
+    """
     state = _state_with_card("Bridge Troll", n_players=2)
     p1, p2 = state.players
-    # p2 has a Bridge Troll in their duration zone — p1 should still get
-    # the cost reduction on their own buys.
-    bt = get_card("Bridge Troll")
-    p2.duration = [bt]
+    p2.duration = [get_card("Bridge Troll")]
     province = get_card("Province")
-    cost_for_p1 = state.get_card_cost(p1, province)
-    assert cost_for_p1 == province.cost.coins - 1, (
-        "Opponent's Bridge Troll must reduce p1's costs (the effect is global)"
+    state.current_player_index = state.players.index(p1)
+    assert state.get_card_cost(p1, province) == province.cost.coins, (
+        "An opponent's Bridge Troll must not discount p1's buys"
+    )
+    state.current_player_index = state.players.index(p2)
+    assert state.get_card_cost(p2, province) == province.cost.coins - 1, (
+        "The owner still gets the discount on their own turn"
     )
 
 
-def test_bridge_troll_reductions_stack_globally():
-    """Two opponents each with a Bridge Troll in play should stack: -$2
-    on a Province for the buyer, regardless of who owns each Troll."""
+def test_bridge_troll_reductions_stack_for_the_owner():
+    """Two Trolls owned by the player whose turn it is stack to -$2."""
     ais = [ChooseFirstActionAI() for _ in range(3)]
     state = GameState(players=[])
     state.initialize_game(ais, [get_card("Bridge Troll"), get_card("Province")])
-    p1, p2, p3 = state.players
-    p2.duration = [get_card("Bridge Troll")]
-    p3.in_play = [get_card("Bridge Troll")]
+    p1, p2, _p3 = state.players
+    state.current_player_index = state.players.index(p1)
+    p1.duration = [get_card("Bridge Troll")]
+    p1.in_play = [get_card("Bridge Troll")]
+    p2.in_play = [get_card("Bridge Troll")]
     province = get_card("Province")
-    cost_for_p1 = state.get_card_cost(p1, province)
-    assert cost_for_p1 == province.cost.coins - 2
+    assert state.get_card_cost(p1, province) == province.cost.coins - 2
+
+
+def test_two_bridge_trolls_do_not_stack_the_minus_coin_token():
+    """Each player owns one -$1 token, so a second Troll adds no penalty."""
+    state = _state_with_card("Bridge Troll", n_players=2)
+    p1, p2 = state.players
+    state.current_player_index = state.players.index(p1)
+    p1.buys = 1
+    get_card("Bridge Troll").play_effect(state)
+    get_card("Bridge Troll").play_effect(state)
+    assert p2.minus_coin_tokens == 1
+
+    # The victim's next start phase pays $1 once, not $2.
+    p2.coins = 0
+    state.current_player_index = state.players.index(p2)
+    state.phase = "start"
+    state.handle_start_phase()
+    assert p2.coins == -1
+    assert p2.minus_coin_tokens == 0
+
+
+def test_bridge_troll_hands_out_the_minus_coin_token():
+    """"Each other player takes their -$1 token" — not the -1 Card token."""
+    state = _state_with_card("Bridge Troll", n_players=2)
+    p1, p2 = state.players
+    state.current_player_index = state.players.index(p1)
+    p1.buys = 1
+    get_card("Bridge Troll").play_effect(state)
+    assert p2.minus_coin_tokens == 1
+    assert p2.minus_card_tokens == 0
+    assert p1.buys == 2, "+1 Buy now"
 
 
 def test_champion_immunity_and_action_bonus():

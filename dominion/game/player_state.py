@@ -177,8 +177,10 @@ class PlayerState:
     distant_lands_played: int = 0
     # Adventures: -1 Card tokens on deck reduce next end-of-turn redraw.
     minus_card_tokens: int = 0
-    # Adventures Ball: each Ball buy queues a -$1 token applied at the
-    # start of the player's next turn (then cleared).
+    # Adventures: the -$1 token (Ball, Bridge Troll). Each player owns one
+    # physical token, so this is 0 or 1 -- taking it again while it is
+    # already held does nothing. Applied and cleared at the start of the
+    # holder's next turn.
     minus_coin_tokens: int = 0
     # Adventures Champion: persistent Action-immunity giver.
     champions_in_play: int = 0
@@ -220,6 +222,14 @@ class PlayerState:
     # Cornucopia & Guilds 2E — Farmhands on-gain set-aside: cards queued to
     # be played at the start of the next turn.
     farmhands_set_aside: list[Card] = field(default_factory=list)
+
+    def take_minus_coin_token(self) -> None:
+        """Take the -$1 token, which each player owns exactly one of.
+
+        Dominion hands out one physical token per player, so a second
+        Bridge Troll or Ball before the token is spent adds nothing.
+        """
+        self.minus_coin_tokens = 1
 
     def initialize(
         self,

@@ -6,7 +6,7 @@ class IllGottenGains(Card):
         super().__init__(
             name="Ill-Gotten Gains",
             cost=CardCost(coins=5),
-            stats=CardStats(coins=1, buys=1),
+            stats=CardStats(coins=1),
             types=[CardType.TREASURE],
         )
 
