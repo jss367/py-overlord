@@ -8,7 +8,7 @@ import torch
 
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
-from dominion.rl.env import DominionEnv, game_reward
+from dominion.rl.env import DominionEnv, episode_status, game_reward
 from dominion.rl.general.encoding import CARD_POOL, GeneralEncoder, kingdom_splits, validate_splits
 from dominion.rl.general.evaluate import evaluate_policy, play_game, summarize
 from dominion.rl.general.opponents import make_opponent
@@ -16,6 +16,7 @@ from dominion.rl.general.policy import GeneralAI, GeneralPolicy, load_checkpoint
 from dominion.rl.general.train import collect_examples, imitate, OpponentLeague
 from dominion.rl.ppo import PPOTrainer
 from dominion.rl.rl_ai import RLAI
+from dominion.rl.random_ai import RandomAI
 
 
 def setup_state():
@@ -119,6 +120,62 @@ def test_turn_cap_is_truncation_not_victory():
         env.close()
     finally:
         env.close()
+
+
+class PassingAI(RandomAI):
+    """Leave every pile untouched so only the safety cap ends the game."""
+
+    def choose_action(self, state, choices):
+        return None
+
+    def choose_treasure(self, state, choices):
+        return None
+
+    def choose_buy(self, state, choices):
+        return None
+
+
+@pytest.mark.parametrize("max_turns", [100, 150])
+def test_engine_turn_cap_truncates_training_without_a_winning_reward(max_turns):
+    board = kingdom_splits()["train"][0]
+    env = DominionEnv(board, PassingAI(), max_turns=max_turns)
+    try:
+        env.reset(seed=1)
+        env.game_state.turn_number = 100
+        env.game_state.players[0].vp_tokens = 10
+        for _ in range(30):
+            _, reward, terminated, truncated, _ = env.step(env.action_encoder.pass_action_index)
+            if terminated or truncated:
+                break
+        assert truncated and not terminated and reward == 0
+        assert env.game_state.turn_number == 101
+    finally:
+        env.close()
+
+
+@pytest.mark.parametrize("max_turns", [100, 150])
+def test_engine_turn_cap_receives_no_evaluation_credit(monkeypatch, max_turns):
+    original = GameState.initialize_game
+
+    def start_near_cap(state, *args, **kwargs):
+        original(state, *args, **kwargs)
+        state.turn_number = 100
+        state.players[0].vp_tokens = 10
+
+    monkeypatch.setattr(GameState, "initialize_game", start_near_cap)
+    board = kingdom_splits()["test"][0]
+    game = play_game(board, PassingAI(), PassingAI(), 1, 0, max_turns)
+    assert game["turns"] == 101
+    assert game["truncated"] and game["reward"] is None
+    assert summarize([game])["score_rate"] == 0
+
+
+@pytest.mark.parametrize("max_turns", [1, 100, 150])
+def test_natural_ending_wins_over_cap_on_the_same_boundary(max_turns):
+    state = setup_state()
+    state.turn_number = min(max_turns, 100) + 1
+    state.supply["Province"] = 0
+    assert episode_status(state, max_turns) == (True, False)
 
 
 def test_chapel_menu_allows_stopping_without_trashing():

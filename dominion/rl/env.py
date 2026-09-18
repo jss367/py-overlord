@@ -10,7 +10,7 @@ import numpy as np
 from gymnasium import spaces
 
 from dominion.cards.registry import get_card
-from dominion.game.game_state import GameState
+from dominion.game.game_state import GAME_TURN_LIMIT, GameState
 from dominion.rl.action_encoder import ActionEncoder
 from dominion.rl.random_ai import RandomAI
 from dominion.rl.rl_ai import GameCancelled, RLAI
@@ -112,9 +112,9 @@ class DominionEnv(gym.Env):
 
     def _run_game(self):
         try:
-            while not self.game_state.is_game_over():
-                if self.game_state.turn_number > self.max_turns:
-                    self._truncated = True
+            while True:
+                terminated, self._truncated = episode_status(self.game_state, self.max_turns)
+                if terminated or self._truncated:
                     break
                 if self.rl_ai.cancelled:
                     break
@@ -173,3 +173,18 @@ def game_reward(state, player_index):
     scores = [(p.get_victory_points(), -p.turns_taken) for p in state.players]
     ours, theirs = scores[player_index], scores[1 - player_index]
     return float((ours > theirs) - (ours < theirs))
+
+
+def episode_status(state, max_turns):
+    """Separate rule endings from both harness and engine safety caps.
+
+    A genuine game ending takes precedence when the final cleanup also
+    advances past the turn limit. Fleet must finish its extra round before
+    a depleted pile is treated as a completed game.
+    """
+    ended = state.is_game_over()
+    natural_end = ended and (state._normal_game_end_reached() or state.fleet_extra_round_active)
+    if natural_end:
+        return True, False
+    capped = state.phase == "start" and state.turn_number > min(max_turns, GAME_TURN_LIMIT)
+    return ended and not capped, capped

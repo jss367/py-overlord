@@ -18,6 +18,7 @@ from dominion.game.player_state import PlayerState
 # exception handler scores as -inf — so the GA naturally selects against
 # pathological genomes instead of hanging the worker process.
 PHASE_STEP_LIMIT = 10000
+GAME_TURN_LIMIT = 100
 
 
 class PhaseStepLimitExceeded(RuntimeError):
@@ -3896,7 +3897,7 @@ class GameState:
         # to a Fleet player's start phase between this player's buy and
         # cleanup phases, dropping their pending Donate.
         mid_turn = self.phase != "start" and (
-            normal_end or self.fleet_extra_round_active or self.turn_number > 100
+            normal_end or self.fleet_extra_round_active or self.turn_number > GAME_TURN_LIMIT
         )
         if mid_turn:
             return False
@@ -3962,7 +3963,7 @@ class GameState:
             return True
 
         # 4. Hard turn limit
-        if self.turn_number > 100:
+        if self.turn_number > GAME_TURN_LIMIT:
             self._update_final_metrics()
             self.log_callback("Game over: Maximum turns reached")
             return True

@@ -11,7 +11,7 @@ import torch
 
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
-from dominion.rl.env import game_reward
+from dominion.rl.env import episode_status, game_reward
 from dominion.rl.general.encoding import source_fingerprint, validate_kingdom
 from dominion.rl.general.opponents import BASELINES, make_opponent
 from dominion.rl.general.policy import GeneralAI, load_checkpoint
@@ -24,9 +24,11 @@ def play_game(kingdom, agent, opponent, seed, seat, max_turns=100):
     state.log_callback = lambda msg: None
     ais = [agent, opponent] if seat == 0 else [opponent, agent]
     state.initialize_game(ais, [get_card(n) for n in kingdom])
-    while not state.is_game_over() and state.turn_number <= max_turns:
+    while True:
+        terminated, truncated = episode_status(state, max_turns)
+        if terminated or truncated:
+            break
         state.play_turn()
-    truncated = not state.is_game_over()
     return {"reward": None if truncated else game_reward(state, seat),
             "truncated": truncated,
             "vp": state.players[seat].get_victory_points(),
