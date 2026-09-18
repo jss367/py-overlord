@@ -1,4 +1,5 @@
 from compare_all_strategies import _missing_board_components
+import pytest
 from dominion.boards.loader import BoardConfig
 from dominion.simulation.strategy_battle import StrategyBattle, StrategyBoardReferences
 
@@ -44,3 +45,27 @@ def test_only_obelisk_is_treated_as_parametric_landmark_reference():
 
     assert refs.landmarks == []
     assert refs.kingdom_cards == ["Bandit Fort (Village)"]
+
+
+def test_failed_pairing_preserves_existing_reports(tmp_path, monkeypatch):
+    import sys
+    from compare_all_strategies import main
+
+    output = tmp_path / "leaderboard.html"
+    usage = tmp_path / "card-strategy-usage.html"
+    output.write_text("previous standings")
+    usage.write_text("previous card ranks")
+    monkeypatch.setattr(sys, "argv", ["compare_all_strategies.py", "--output", str(output)])
+    monkeypatch.setattr(
+        "dominion.strategy.strategy_loader.StrategyLoader.list_strategies",
+        lambda self: ["Big Money", "Chapel Witch"],
+    )
+
+    def fail_pairing(self, *args):
+        raise KeyError("Tea House")
+
+    monkeypatch.setattr(StrategyBattle, "run_battle", fail_pairing)
+    with pytest.raises(RuntimeError, match="Incomplete results cannot be ranked"):
+        main()
+    assert output.read_text() == "previous standings"
+    assert usage.read_text() == "previous card ranks"

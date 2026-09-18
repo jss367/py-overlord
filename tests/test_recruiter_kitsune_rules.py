@@ -151,6 +151,19 @@ def test_engineer_and_counterfeit_strategy_hooks_are_used():
     assert player.ai.should_replay_treasure_with_counterfeit(state, player, player.hand) is None
 
 
+def test_recruiter_policy_handles_optional_and_mandatory_trashing():
+    from dominion.strategy.strategies.recruiter_kitsune import RecruiterKitsune
+
+    strategy = RecruiterKitsune()
+    state, player = state_and_player()
+    gold, copper = get_card("Gold"), get_card("Copper")
+    player.hand = [gold, copper]
+    assert strategy.choose_trash(state, player, [gold, None]) is None
+    assert strategy.choose_trash(state, player, [None]) is None
+    assert strategy.choose_trash(state, player, [gold, copper, None]) is copper
+    assert strategy.choose_trash(state, player, [gold]) is gold
+
+
 def test_published_strategy_matches_frozen_tournament_winner():
     import json
     from pathlib import Path

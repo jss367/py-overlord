@@ -773,6 +773,18 @@ def test_mastermind_mine_upgrades_then_recycles_gold_for_three_coffers():
     assert mine in player.in_play and mastermind in player.in_play
 
 
+def test_mine_guildhall_can_buy_after_tea_house_leaves_the_supply():
+    from generated_strategies.mine_guildhall import MineGuildhall
+
+    strategy = MineGuildhall()
+    state, player = setup("Mine", ai=GeneticAI(strategy))
+    # Divine Wind can remove Tea House while basic victory piles remain.
+    state.supply.pop("Tea House", None)
+    state.supply["Province"] = 5
+    duchy = get_card("Duchy")
+    assert strategy.choose_gain(state, player, [duchy, None]) is duchy
+
+
 def test_mine_upgrade_selection_does_not_change_treasure_play_order():
     from generated_strategies.mine_guildhall import MineGuildhall
 
