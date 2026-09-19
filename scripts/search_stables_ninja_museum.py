@@ -2,6 +2,8 @@
 import argparse
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
+import functools
+import inspect
 import itertools
 import json
 from pathlib import Path
@@ -143,8 +145,7 @@ def stalled_specs(results):
     are disqualified rather than tolerated: no truncated game may influence a
     published number, and a policy that can stall is not one to recommend.
     """
-    return {json.dumps(r["a"], sort_keys=True) for r in results
-            if r["totals"]["truncated"]}
+    return {spec_key(r["a"]) for r in results if r["totals"]["truncated"]}
 
 
 def rank_policies(results, *, both_sides=False):
@@ -155,8 +156,7 @@ def rank_policies(results, *, both_sides=False):
         if both_sides:
             sides.append((result["b"], 1 - result["rate"]))
         for spec, rate in sides:
-            key = json.dumps(spec, sort_keys=True)
-            grouped.setdefault(key, []).append(rate)
+            grouped.setdefault(spec_key(spec), []).append(rate)
     return [json.loads(key) for key in sorted(
         grouped, key=lambda key: statistics.mean(grouped[key]), reverse=True
     )]
@@ -173,16 +173,31 @@ def validation_policies(refined, finalists):
     """
     field = [*refined[:5], finalists[0], SUPERSEDED,
              BASELINES[0], BASELINES[1], BASELINES[2]]
-    unique = {json.dumps(spec, sort_keys=True): spec for spec in field}
+    unique = {spec_key(spec): normalize(spec) for spec in field}
     return list(unique.values())
 
 
+@functools.cache
 def class_defaults():
     """The policy class's own defaults, so an ablation reverts to real values."""
-    import inspect
     return {name: param.default
             for name, param in inspect.signature(StablesNinjaMuseum).parameters.items()
             if param.default is not inspect.Parameter.empty}
+
+
+def normalize(spec):
+    """Fill in class defaults so equivalent specs compare equal.
+
+    Two specs that differ only in whether a field is spelled out are the same
+    policy. Left unnormalized they survive deduplication as separate entrants,
+    and the round robin then schedules the winner against itself and averages
+    a guaranteed 50% into its own score.
+    """
+    return {**class_defaults(), **spec}
+
+
+def spec_key(spec):
+    return json.dumps(normalize(spec), sort_keys=True)
 
 
 def is_engine(spec):
@@ -196,7 +211,7 @@ def round_robin_ranking(results):
     for result in results:
         for spec, rate in ((result["a"], result["rate"]),
                            (result["b"], 1 - result["rate"])):
-            rates.setdefault(json.dumps(spec, sort_keys=True), []).append(rate)
+            rates.setdefault(spec_key(spec), []).append(rate)
     return sorted(((statistics.mean(v), json.loads(k)) for k, v in rates.items()),
                   key=lambda pair: -pair[0])
 
@@ -211,12 +226,21 @@ def run_matches(tasks, workers):
     return results
 
 
-def report_truncation(results, stage):
+def report_truncation(results, stage, output):
+    """Reject turn-capped games before they reach an evidence file.
+
+    Only the screen tolerates stalls, and its stalled specs are then
+    disqualified, so no published comparison contains a truncated game. A
+    rejected run is parked next to its output rather than discarded, so the
+    games are still there to inspect without looking like retained evidence.
+    """
     truncated = sum(r["totals"]["truncated"] for r in results)
     if truncated and stage != "screen":
-        # Only the screen tolerates stalls, and its stalled specs are then
-        # disqualified, so no published comparison contains a truncated game.
-        raise RuntimeError(f"{truncated} truncated games require inspection")
+        write_json(output.with_suffix(".rejected.json"),
+                   dict(stage=stage, rejected=True, results=results))
+        raise RuntimeError(
+            f"{truncated} truncated games require inspection; results parked at "
+            f"{output.with_suffix('.rejected.json')}")
     if truncated:
         print(f"{truncated} screened games hit the turn cap; those policies are "
               f"disqualified at the next stage")
@@ -285,11 +309,11 @@ def main():
         opponents = ranked[:2]
         base, seen, results = ranked[0], set(), []
         for rnd in range(args.rounds):
-            variants = {json.dumps(base, sort_keys=True): base}
+            variants = {spec_key(base): base}
             for key, values in REFINE_SWEEP.items():
                 for value in values:
                     cand = dict(base, **{key: value})
-                    variants.setdefault(json.dumps(cand, sort_keys=True), cand)
+                    variants.setdefault(spec_key(cand), cand)
             fresh = [v for k, v in variants.items() if k not in seen]
             seen.update(variants)
             tasks = [(spec, opponent, args.games, args.seed + j*10000)
@@ -304,16 +328,15 @@ def main():
                 print(f"refine converged after round {rnd}", flush=True)
                 break
             base = ranking[0]
+        report_truncation(results, args.stage, args.output)
         write_json(args.output, dict(stage="refine", results=results))
-        report_truncation(results, args.stage)
         print(f"Saved {len(results)} matchups / {sum(r['games'] for r in results)} "
               f"games to {args.output}")
         return
     elif args.stage == "final":
         data = json.loads(args.input.read_text())["results"]
         stalled = stalled_specs(data)
-        ranked = [s for s in rank_policies(data)
-                  if json.dumps(s, sort_keys=True) not in stalled]
+        ranked = [s for s in rank_policies(data) if spec_key(s) not in stalled]
         if stalled:
             print(f"Disqualified {len(stalled)} screened policies that hit the turn cap")
         specs = ranked[:8] + BASELINES
@@ -355,8 +378,8 @@ def main():
         tasks = [(winner, spec, args.games, args.seed)
                  for _, spec in ranking[1:]]
     results = run_matches(tasks, args.workers)
+    report_truncation(results, args.stage, args.output)
     write_json(args.output, dict(stage=args.stage, results=results))
-    report_truncation(results, args.stage)
     print(f"Saved {len(results)} matchups / {sum(r['games'] for r in results)} games to {args.output}")
 
 
