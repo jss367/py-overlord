@@ -1,0 +1,1077 @@
+[
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 4,
+      "envoy": 1,
+      "farm": 1,
+      "ghost": 2,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "games": 1000,
+    "seed": 20010000,
+    "wins": 557,
+    "ties": 0,
+    "rate": 0.557,
+    "turns": 21.485,
+    "scores": [
+      31.568,
+      29.802
+    ],
+    "tokens": [
+      14.362,
+      11.615
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 3.61,
+        "Copper": 4.03,
+        "Curse": 2.97,
+        "Duchy": 1.92,
+        "Estate": 3.56,
+        "Fishmonger": 5.01,
+        "Gold": 0.56,
+        "Merchant Ship": 0.01,
+        "Province": 1.81,
+        "Silver": 2.33,
+        "Sleigh": 1.38,
+        "Swindler": 2.0,
+        "Tent": 1.71,
+        "Village": 4.8
+      },
+      {
+        "Collection": 3.45,
+        "Copper": 4.16,
+        "Curse": 2.84,
+        "Duchy": 1.93,
+        "Estate": 3.52,
+        "Fishmonger": 3.99,
+        "Ghost Town": 1.97,
+        "Gold": 0.23,
+        "Imperial Envoy": 0.96,
+        "Merchant Ship": 0.01,
+        "Province": 1.95,
+        "Silver": 1.58,
+        "Sleigh": 1.32,
+        "Swindler": 2.01,
+        "Tent": 1.44,
+        "Village": 3.08
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 4,
+      "envoy": 1,
+      "farm": 1,
+      "ghost": 4,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "games": 1000,
+    "seed": 20020000,
+    "wins": 562,
+    "ties": 1,
+    "rate": 0.5625,
+    "turns": 21.872,
+    "scores": [
+      32.729,
+      30.754
+    ],
+    "tokens": [
+      14.182,
+      9.559
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 3.52,
+        "Copper": 3.91,
+        "Curse": 3.09,
+        "Duchy": 2.24,
+        "Estate": 3.67,
+        "Fishmonger": 4.82,
+        "Gold": 0.47,
+        "Merchant Ship": 0.01,
+        "Province": 1.87,
+        "Silver": 2.51,
+        "Sleigh": 1.02,
+        "Swindler": 1.97,
+        "Tent": 1.72,
+        "Village": 5.06
+      },
+      {
+        "Collection": 3.44,
+        "Copper": 4.12,
+        "Curse": 2.88,
+        "Duchy": 2.05,
+        "Estate": 3.57,
+        "Fishmonger": 3.74,
+        "Ghost Town": 3.81,
+        "Gold": 0.15,
+        "Imperial Envoy": 0.96,
+        "Merchant Ship": 0.01,
+        "Province": 2.39,
+        "Silver": 1.37,
+        "Sleigh": 0.89,
+        "Swindler": 1.98,
+        "Tent": 1.42,
+        "Village": 2.53
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 4,
+      "envoy": 1,
+      "farm": 1,
+      "green": 99,
+      "swindler": 2,
+      "village": 2
+    },
+    "games": 1000,
+    "seed": 20030000,
+    "wins": 581,
+    "ties": 1,
+    "rate": 0.5815,
+    "turns": 19.801,
+    "scores": [
+      26.675,
+      22.99
+    ],
+    "tokens": [
+      13.438,
+      18.831
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 3.75,
+        "Copper": 4.22,
+        "Curse": 2.78,
+        "Duchy": 1.12,
+        "Estate": 3.13,
+        "Fishmonger": 4.41,
+        "Gold": 0.47,
+        "Province": 1.59,
+        "Silver": 2.03,
+        "Sleigh": 1.95,
+        "Swindler": 2.13,
+        "Tent": 1.58,
+        "Village": 4.3
+      },
+      {
+        "Collection": 3.65,
+        "Copper": 4.17,
+        "Curse": 2.83,
+        "Duchy": 1.24,
+        "Estate": 3.25,
+        "Fishmonger": 5.18,
+        "Gold": 0.34,
+        "Imperial Envoy": 0.99,
+        "Province": 0.0,
+        "Silver": 1.92,
+        "Sleigh": 3.33,
+        "Swindler": 2.25,
+        "Tent": 1.49,
+        "Village": 3.79
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 4,
+      "envoy": 1,
+      "farm": 1,
+      "ghost": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "games": 1000,
+    "seed": 20040000,
+    "wins": 582,
+    "ties": 0,
+    "rate": 0.582,
+    "turns": 21.386,
+    "scores": [
+      31.487,
+      28.7
+    ],
+    "tokens": [
+      14.434,
+      12.472
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 3.65,
+        "Copper": 4.0,
+        "Curse": 3.0,
+        "Duchy": 1.85,
+        "Estate": 3.5,
+        "Fishmonger": 4.95,
+        "Gold": 0.53,
+        "Merchant Ship": 0.01,
+        "Province": 1.83,
+        "Silver": 2.23,
+        "Sleigh": 1.68,
+        "Swindler": 2.03,
+        "Tent": 1.61,
+        "Village": 4.69
+      },
+      {
+        "Collection": 3.51,
+        "Copper": 4.04,
+        "Curse": 2.96,
+        "Duchy": 1.8,
+        "Estate": 3.52,
+        "Fishmonger": 4.24,
+        "Ghost Town": 0.99,
+        "Gold": 0.22,
+        "Imperial Envoy": 0.96,
+        "Merchant Ship": 0.01,
+        "Province": 1.71,
+        "Silver": 1.8,
+        "Sleigh": 1.65,
+        "Swindler": 2.05,
+        "Tent": 1.46,
+        "Village": 3.18
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 4,
+      "envoy": 1,
+      "farm": 1,
+      "green": 16,
+      "swindler": 2,
+      "village": 2
+    },
+    "games": 1000,
+    "seed": 20050000,
+    "wins": 593,
+    "ties": 0,
+    "rate": 0.593,
+    "turns": 20.599,
+    "scores": [
+      29.306,
+      25.926
+    ],
+    "tokens": [
+      14.502,
+      15.374
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 3.74,
+        "Copper": 4.19,
+        "Curse": 2.81,
+        "Duchy": 1.37,
+        "Estate": 3.34,
+        "Fishmonger": 4.79,
+        "Gold": 0.51,
+        "Province": 1.7,
+        "Silver": 2.07,
+        "Sleigh": 2.17,
+        "Swindler": 2.09,
+        "Tent": 1.57,
+        "Village": 4.43
+      },
+      {
+        "Collection": 3.6,
+        "Copper": 4.1,
+        "Curse": 2.9,
+        "Duchy": 1.51,
+        "Estate": 3.41,
+        "Fishmonger": 4.72,
+        "Gold": 0.26,
+        "Imperial Envoy": 0.97,
+        "Province": 0.92,
+        "Silver": 1.97,
+        "Sleigh": 2.38,
+        "Swindler": 2.1,
+        "Tent": 1.5,
+        "Village": 3.56
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 4,
+      "envoy": 1,
+      "farm": 1,
+      "fish": 3,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "games": 1000,
+    "seed": 20060000,
+    "wins": 611,
+    "ties": 2,
+    "rate": 0.612,
+    "turns": 21.152,
+    "scores": [
+      30.798,
+      26.495
+    ],
+    "tokens": [
+      14.617,
+      12.616
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 3.71,
+        "Copper": 4.24,
+        "Curse": 2.76,
+        "Duchy": 1.59,
+        "Estate": 3.44,
+        "Fishmonger": 4.89,
+        "Gold": 0.52,
+        "Merchant Ship": 0.0,
+        "Province": 1.79,
+        "Silver": 2.15,
+        "Sleigh": 2.01,
+        "Swindler": 2.08,
+        "Tent": 1.57,
+        "Village": 4.65
+      },
+      {
+        "Collection": 3.53,
+        "Copper": 4.13,
+        "Curse": 2.87,
+        "Duchy": 1.68,
+        "Estate": 3.52,
+        "Fishmonger": 4.57,
+        "Gold": 0.27,
+        "Imperial Envoy": 0.97,
+        "Merchant Ship": 0.0,
+        "Province": 1.37,
+        "Silver": 2.01,
+        "Sleigh": 2.1,
+        "Swindler": 2.09,
+        "Tent": 1.52,
+        "Village": 3.33
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 4,
+      "envoy": 1,
+      "farm": 1,
+      "gold": 2,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "games": 1000,
+    "seed": 20070000,
+    "wins": 597,
+    "ties": 0,
+    "rate": 0.597,
+    "turns": 21.212,
+    "scores": [
+      30.954,
+      27.138
+    ],
+    "tokens": [
+      14.604,
+      12.838
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 3.7,
+        "Copper": 4.19,
+        "Curse": 2.81,
+        "Duchy": 1.63,
+        "Estate": 3.42,
+        "Fishmonger": 5.06,
+        "Gold": 0.55,
+        "Merchant Ship": 0.0,
+        "Province": 1.81,
+        "Silver": 2.14,
+        "Sleigh": 1.91,
+        "Swindler": 2.07,
+        "Tent": 1.58,
+        "Village": 4.63
+      },
+      {
+        "Collection": 3.54,
+        "Copper": 4.18,
+        "Curse": 2.82,
+        "Duchy": 1.7,
+        "Estate": 3.5,
+        "Fishmonger": 4.22,
+        "Gold": 0.29,
+        "Imperial Envoy": 0.97,
+        "Merchant Ship": 0.01,
+        "Province": 1.42,
+        "Silver": 2.06,
+        "Sleigh": 1.95,
+        "Swindler": 2.07,
+        "Tent": 1.49,
+        "Village": 3.33
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 3,
+      "envoy": 1,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "games": 1000,
+    "seed": 20080000,
+    "wins": 600,
+    "ties": 0,
+    "rate": 0.6,
+    "turns": 22.079,
+    "scores": [
+      33.191,
+      28.657
+    ],
+    "tokens": [
+      15.548,
+      13.295
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 3.8,
+        "Copper": 4.06,
+        "Curse": 2.94,
+        "Duchy": 1.82,
+        "Estate": 3.55,
+        "Fishmonger": 5.12,
+        "Gold": 0.54,
+        "Merchant Ship": 0.01,
+        "Province": 1.93,
+        "Silver": 2.26,
+        "Sleigh": 2.62,
+        "Swindler": 2.13,
+        "Tent": 1.55,
+        "Village": 4.28
+      },
+      {
+        "Collection": 2.79,
+        "Copper": 4.02,
+        "Curse": 2.98,
+        "Duchy": 1.72,
+        "Estate": 3.64,
+        "Fishmonger": 4.29,
+        "Gold": 0.46,
+        "Imperial Envoy": 0.96,
+        "Merchant Ship": 0.0,
+        "Province": 1.59,
+        "Silver": 2.29,
+        "Sleigh": 2.39,
+        "Swindler": 2.13,
+        "Tent": 1.56,
+        "Village": 3.57
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 4,
+      "envoy": 1,
+      "farm": 1,
+      "green": 12,
+      "ship": 1,
+      "swindler": 2,
+      "village": 2
+    },
+    "games": 1000,
+    "seed": 20090000,
+    "wins": 646,
+    "ties": 1,
+    "rate": 0.6465,
+    "turns": 22.11,
+    "scores": [
+      33.578,
+      28.395
+    ],
+    "tokens": [
+      14.821,
+      12.318
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 3.69,
+        "Copper": 4.15,
+        "Curse": 2.85,
+        "Duchy": 1.82,
+        "Estate": 3.55,
+        "Fishmonger": 5.14,
+        "Gold": 0.57,
+        "Merchant Ship": 0.01,
+        "Province": 2.1,
+        "Silver": 2.25,
+        "Sleigh": 1.71,
+        "Swindler": 2.04,
+        "Tent": 1.61,
+        "Village": 4.84
+      },
+      {
+        "Collection": 3.48,
+        "Copper": 4.11,
+        "Curse": 2.9,
+        "Duchy": 1.96,
+        "Estate": 3.63,
+        "Fishmonger": 3.97,
+        "Gold": 0.21,
+        "Imperial Envoy": 0.96,
+        "Merchant Ship": 0.85,
+        "Province": 1.58,
+        "Silver": 2.1,
+        "Sleigh": 1.63,
+        "Swindler": 2.04,
+        "Tent": 1.49,
+        "Village": 3.02
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 0,
+      "envoy": 0,
+      "village": 0,
+      "swindler": 0,
+      "fish": 0,
+      "silver": 99,
+      "gold": 99,
+      "green": 0,
+      "farm": 0,
+      "opening": "Silver"
+    },
+    "games": 1000,
+    "seed": 20100000,
+    "wins": 870,
+    "ties": 0,
+    "rate": 0.87,
+    "turns": 21.68,
+    "scores": [
+      47.726,
+      31.73
+    ],
+    "tokens": [
+      16.096,
+      0.0
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 4.0,
+        "Copper": 7.0,
+        "Duchy": 2.43,
+        "Estate": 4.86,
+        "Fishmonger": 4.33,
+        "Gold": 0.54,
+        "Province": 3.25,
+        "Silver": 1.29,
+        "Sleigh": 0.11,
+        "Swindler": 2.0,
+        "Village": 8.76
+      },
+      {
+        "Copper": 3.75,
+        "Curse": 3.25,
+        "Duchy": 2.36,
+        "Estate": 3.59,
+        "Fishmonger": 0.02,
+        "Gold": 4.91,
+        "Merchant Ship": 0.04,
+        "Province": 4.05,
+        "Silver": 5.92,
+        "Tent": 2.36
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 0,
+      "envoy": 1,
+      "village": 0,
+      "swindler": 0,
+      "fish": 0,
+      "silver": 99,
+      "gold": 99,
+      "green": 0,
+      "farm": 0,
+      "opening": "Silver",
+      "first_five": "Imperial Envoy"
+    },
+    "games": 1000,
+    "seed": 20110000,
+    "wins": 867,
+    "ties": 0,
+    "rate": 0.867,
+    "turns": 22.241,
+    "scores": [
+      48.869,
+      32.567
+    ],
+    "tokens": [
+      16.454,
+      0.0
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 4.0,
+        "Copper": 7.0,
+        "Duchy": 2.54,
+        "Estate": 4.93,
+        "Fishmonger": 4.53,
+        "Gold": 0.59,
+        "Province": 3.31,
+        "Silver": 1.33,
+        "Sleigh": 0.09,
+        "Swindler": 2.0,
+        "Village": 8.91
+      },
+      {
+        "Copper": 3.78,
+        "Curse": 3.22,
+        "Duchy": 2.84,
+        "Estate": 4.09,
+        "Fishmonger": 0.03,
+        "Gold": 4.02,
+        "Imperial Envoy": 0.9,
+        "Merchant Ship": 0.06,
+        "Province": 3.87,
+        "Silver": 6.12,
+        "Tent": 2.21
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 0,
+      "envoy": 0,
+      "village": 0,
+      "swindler": 1,
+      "fish": 0,
+      "silver": 99,
+      "gold": 99,
+      "green": 0,
+      "farm": 0,
+      "opening": "Swindler"
+    },
+    "games": 1000,
+    "seed": 20120000,
+    "wins": 774,
+    "ties": 0,
+    "rate": 0.774,
+    "turns": 23.392,
+    "scores": [
+      44.73,
+      32.482
+    ],
+    "tokens": [
+      14.786,
+      0.0
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 3.87,
+        "Copper": 5.27,
+        "Curse": 1.73,
+        "Duchy": 3.01,
+        "Estate": 4.78,
+        "Fishmonger": 4.16,
+        "Gold": 0.56,
+        "Merchant Ship": 0.03,
+        "Province": 2.98,
+        "Silver": 1.85,
+        "Sleigh": 0.09,
+        "Swindler": 1.95,
+        "Tent": 1.08,
+        "Village": 7.66
+      },
+      {
+        "Copper": 3.85,
+        "Curse": 3.15,
+        "Duchy": 2.26,
+        "Estate": 3.62,
+        "Fishmonger": 0.02,
+        "Gold": 5.12,
+        "Merchant Ship": 0.04,
+        "Province": 4.21,
+        "Silver": 6.65,
+        "Swindler": 0.93,
+        "Tent": 1.99
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {},
+    "games": 1000,
+    "seed": 20130000,
+    "wins": 867,
+    "ties": 1,
+    "rate": 0.8675,
+    "turns": 24.798,
+    "scores": [
+      46.42,
+      28.897
+    ],
+    "tokens": [
+      19.422,
+      8.768
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 3.9,
+        "Copper": 5.0,
+        "Curse": 2.0,
+        "Duchy": 2.11,
+        "Estate": 3.99,
+        "Fishmonger": 7.02,
+        "Gold": 0.78,
+        "Merchant Ship": 0.0,
+        "Province": 3.11,
+        "Silver": 2.0,
+        "Sleigh": 3.41,
+        "Swindler": 2.07,
+        "Tent": 1.25,
+        "Village": 4.9
+      },
+      {
+        "Collection": 2.6,
+        "Copper": 3.82,
+        "Curse": 3.18,
+        "Duchy": 2.6,
+        "Estate": 4.53,
+        "Fishmonger": 2.18,
+        "Gold": 0.79,
+        "Imperial Envoy": 1.89,
+        "Merchant Ship": 0.01,
+        "Province": 1.83,
+        "Silver": 2.34,
+        "Sleigh": 0.78,
+        "Swindler": 1.02,
+        "Tent": 1.81,
+        "Village": 2.91
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 4,
+      "envoy": 3,
+      "village": 5,
+      "farm": 1,
+      "green": 99,
+      "gold": 0
+    },
+    "games": 1000,
+    "seed": 20140000,
+    "wins": 836,
+    "ties": 0,
+    "rate": 0.836,
+    "turns": 23.168,
+    "scores": [
+      40.013,
+      21.875
+    ],
+    "tokens": [
+      19.001,
+      15.899
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 3.94,
+        "Copper": 4.95,
+        "Curse": 2.05,
+        "Duchy": 1.0,
+        "Estate": 3.33,
+        "Fishmonger": 6.09,
+        "Gold": 0.81,
+        "Province": 2.79,
+        "Silver": 1.92,
+        "Sleigh": 3.94,
+        "Swindler": 2.26,
+        "Tent": 1.29,
+        "Village": 4.74
+      },
+      {
+        "Collection": 3.07,
+        "Copper": 3.91,
+        "Curse": 3.09,
+        "Duchy": 1.83,
+        "Estate": 3.52,
+        "Fishmonger": 3.55,
+        "Imperial Envoy": 2.84,
+        "Merchant Ship": 0.0,
+        "Province": 0.01,
+        "Silver": 1.89,
+        "Sleigh": 3.31,
+        "Swindler": 1.36,
+        "Tent": 1.77,
+        "Village": 3.09
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 0,
+      "envoy": 0,
+      "farm": 0,
+      "green": 12,
+      "swindler": 2,
+      "village": 2,
+      "first_five": "Imperial Envoy"
+    },
+    "games": 1000,
+    "seed": 20150000,
+    "wins": 978,
+    "ties": 0,
+    "rate": 0.978,
+    "turns": 26.35,
+    "scores": [
+      45.586,
+      20.171
+    ],
+    "tokens": [
+      17.267,
+      0.0
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 3.8,
+        "Copper": 3.89,
+        "Curse": 3.11,
+        "Duchy": 3.14,
+        "Estate": 4.16,
+        "Fishmonger": 6.79,
+        "Gold": 0.65,
+        "Merchant Ship": 0.02,
+        "Province": 2.98,
+        "Silver": 3.04,
+        "Sleigh": 1.04,
+        "Swindler": 1.94,
+        "Tent": 1.51,
+        "Village": 5.46
+      },
+      {
+        "Copper": 3.82,
+        "Curse": 3.18,
+        "Duchy": 1.48,
+        "Estate": 4.21,
+        "Fishmonger": 1.01,
+        "Gold": 1.96,
+        "Merchant Ship": 0.01,
+        "Province": 2.45,
+        "Silver": 3.13,
+        "Swindler": 1.93,
+        "Tent": 1.61,
+        "Village": 1.7
+      }
+    ]
+  },
+  {
+    "a": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 2,
+      "village": 2
+    },
+    "b": {
+      "collection": 4,
+      "envoy": 0,
+      "farm": 1,
+      "green": 12,
+      "swindler": 0,
+      "village": 2,
+      "opening": "Silver"
+    },
+    "games": 1000,
+    "seed": 20160000,
+    "wins": 810,
+    "ties": 0,
+    "rate": 0.81,
+    "turns": 19.795,
+    "scores": [
+      40.186,
+      29.858
+    ],
+    "tokens": [
+      17.877,
+      13.916
+    ],
+    "truncated": 0,
+    "decks": [
+      {
+        "Collection": 4.0,
+        "Copper": 7.0,
+        "Curse": 0.0,
+        "Duchy": 0.84,
+        "Estate": 3.51,
+        "Fishmonger": 4.97,
+        "Gold": 0.68,
+        "Province": 2.71,
+        "Silver": 1.41,
+        "Sleigh": 3.41,
+        "Swindler": 2.22,
+        "Tent": 0.01,
+        "Village": 5.84
+      },
+      {
+        "Collection": 3.61,
+        "Copper": 3.96,
+        "Curse": 3.04,
+        "Duchy": 2.14,
+        "Estate": 3.87,
+        "Fishmonger": 4.74,
+        "Gold": 0.46,
+        "Merchant Ship": 0.01,
+        "Province": 1.45,
+        "Silver": 1.79,
+        "Sleigh": 2.92,
+        "Swindler": 0.28,
+        "Tent": 1.97,
+        "Village": 3.04
+      }
+    ]
+  }
+]

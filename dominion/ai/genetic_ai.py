@@ -44,6 +44,18 @@ class GeneticAI(AI):
 
         return self.strategy.choose_gain(state, state.current_player, choices)
 
+    def choose_swindler_replacement(self, state, player, target, choices):
+        hook = getattr(self.strategy, "choose_swindler_replacement", None)
+        if hook is not None:
+            return hook(state, player, target, choices)
+        return super().choose_swindler_replacement(state, player, target, choices)
+
+    def name_card_for_mystic(self, state, player):
+        hook = getattr(self.strategy, "name_card_for_mystic", None)
+        if hook is not None:
+            return hook(state, player)
+        return super().name_card_for_mystic(state, player)
+
     def choose_mastermind_action(self, state, player, choices):
         hook = getattr(self.strategy, "choose_mastermind_action", None)
         if hook is not None:

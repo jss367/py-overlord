@@ -152,6 +152,7 @@ def test_render_strategy_pages_writes_index_and_strategy_page(tmp_path):
         "first-game-strategy-guide.html",
         "jerusalem-strategy-guide.html",
         "hunting-grounds-ghost-ship-strategy-guide.html",
+        "collection-swindler-strategy-guide.html",
     }
 
     index = (tmp_path / "index.html").read_text(encoding="utf-8")
@@ -211,6 +212,7 @@ def test_render_strategy_pages_resolves_alias_names(tmp_path):
         "first-game-strategy-guide.html",
         "jerusalem-strategy-guide.html",
         "hunting-grounds-ghost-ship-strategy-guide.html",
+        "collection-swindler-strategy-guide.html",
     }
 
     page = (tmp_path / "big-money.html").read_text(encoding="utf-8")

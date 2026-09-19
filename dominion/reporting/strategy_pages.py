@@ -50,6 +50,13 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="collection-swindler-strategy-guide.html",
+        display_name="Collection and Swindler: Strategy Guide",
+        description="A searched Collection scoring rush, followed by a dedicated 92,000-game Village and Imperial Envoy challenge with independent validation.",
+        kingdom_cards=("Fishmonger", "Sleigh", "Tent", "Ghost Town", "Swindler", "Village", "Collection", "Imperial Envoy", "Merchant Ship", "Mystic"),
+        source_label="User-selected kingdom, official rules and seat-balanced simulations",
+    ),
+    CuratedStrategyGuide(
         filename="hunting-grounds-ghost-ship-strategy-guide.html",
         display_name="Hunting Grounds and Ghost Ship: Ten Previously Unused Cards",
         description="A kingdom verified against current and historical strategy sources, with searched purchase priorities and independent simulation results.",

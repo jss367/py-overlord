@@ -1,0 +1,11 @@
+# Two players, standard starting decks; no landscapes or Colony.
+Fishmonger
+Sleigh
+Tent
+Ghost Town
+Swindler
+Village
+Collection
+Imperial Envoy
+Merchant Ship
+Mystic
