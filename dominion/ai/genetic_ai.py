@@ -62,6 +62,24 @@ class GeneticAI(AI):
             return hook(state, player)
         return super().choose_minion_mode(state, player)
 
+    def choose_card_to_topdeck_from_hand(self, state, player, choices, reason=None):
+        hook = getattr(self.strategy, "choose_card_to_topdeck_from_hand", None)
+        if hook is not None:
+            return hook(state, player, choices, reason=reason)
+        return super().choose_card_to_topdeck_from_hand(state, player, choices, reason=reason)
+
+    def choose_card_to_raze(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_card_to_raze", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_card_to_raze(state, player, choices)
+
+    def choose_card_to_keep_from_raze(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_card_to_keep_from_raze", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_card_to_keep_from_raze(state, player, choices)
+
     # ---- Jerusalem board hooks (Governor / Ambassador / Scrying Pool) ----
 
     def choose_governor_option(self, state, player, options):

@@ -50,6 +50,14 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="hunting-grounds-ghost-ship-strategy-guide.html",
+        display_name="Hunting Grounds and Ghost Ship: Ten Previously Unused Cards",
+        description="A kingdom verified against current and historical strategy sources, with searched purchase priorities and independent simulation results.",
+        kingdom_cards=("Farming Village", "Hunting Grounds", "Menagerie", "Raze",
+                       "Apprentice", "Woodcutter", "Ghost Ship", "Cache", "Quarry", "Bishop"),
+        source_label="Historical usage audit, seat-balanced search and held-out validation",
+    ),
+    CuratedStrategyGuide(
         filename="strategy-retirement-review.html",
         display_name="Strategy Retirement Review: Confirmed Replacements and Archive",
         description="Fresh comparisons on fixed boards identify redundant strategies to archive while preserving benchmarks, competitive variants, and historical links.",

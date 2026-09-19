@@ -205,6 +205,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "strategies/kolkata-strategy-guide.html",
         "strategies/first-game-strategy-guide.html",
         "strategies/jerusalem-strategy-guide.html",
+        "strategies/hunting-grounds-ghost-ship-strategy-guide.html",
         "strategies/index.html",
         "strategies/card-strategy-usage.html",
         "strategies/leaderboard.html",
