@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Hunting Grounds and Ghost Ship: Ten Previously Unused Cards</title><style>
+:root{--ink:#193c43;--paper:#f5f3eb;--accent:#9b492e;--line:#c5d2ce}*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.65 system-ui,sans-serif}
+main{max-width:1120px;margin:auto;padding:28px 26px 65px}a{color:var(--accent)}nav{display:flex;gap:24px;flex-wrap:wrap;font-size:14px}
+header{padding:32px 0;border-bottom:1px solid var(--line)}h1,h2{font-family:Georgia,serif;line-height:1.12}h1{font-size:clamp(36px,6vw,62px);max-width:950px}h2{margin-top:42px;font-size:30px}.lead{font-size:21px;max-width:900px}.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.card{background:#fffdf7;padding:17px;border:1px solid var(--line);border-radius:9px}.card strong,.card small,.card span{display:block}.card span{font-size:14px;margin-top:8px}.card small{color:var(--accent)}
+.callout{border-left:5px solid #357b76;background:#e1ede6;padding:22px 26px;margin:28px 0}.metrics{display:flex;gap:30px;flex-wrap:wrap}.metrics strong{font-size:29px;display:block}.metrics span{font-size:14px}li{margin:8px 0}.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:15px}td,th{border-bottom:1px solid var(--line);padding:12px;text-align:left;vertical-align:top}th{background:#e1ede6}pre{padding:20px;background:var(--ink);color:white;overflow:auto;border-radius:8px;font-size:13px}summary{cursor:pointer;font-size:14px}details{margin:10px 0}footer{font-size:14px;border-top:1px solid var(--line);padding-top:20px;margin-top:45px}.muted{color:#537078}
+@media(max-width:800px){.cards{grid-template-columns:repeat(2,1fr)}}@media print{nav{display:none}body{background:white}.card,tr{break-inside:avoid}}
+</style></head>
+<body><main><nav><a href="index.html">Strategy catalog</a><a href="../boards/hunting-grounds-ghost-ship.html">Board details</a><a href="hunting-grounds-ghost-ship.html">Runnable strategy</a></nav>
+<header><p class="eyebrow">New kingdom · September 19, 2026</p><h1>Hunting Grounds and Ghost Ship</h1><p class="lead">Ten cards never referenced by a strategy in the audited repository sources or available history, and the strongest policy found in a reproducible search.</p></header>
+<h2>The ten-card kingdom</h2><div class="cards"><div class="card"><small>$4</small><strong>Farming Village</strong><span>Extra actions and a useful card; supports multiple terminal draw cards.</span></div><div class="card"><small>$6</small><strong>Hunting Grounds</strong><span>Four-card draw; a Duchy or three Estates when trashed.</span></div><div class="card"><small>$3</small><strong>Menagerie</strong><span>Cheap nonterminal draw, strongest with no duplicate names in hand.</span></div><div class="card"><small>$2</small><strong>Raze</strong><span>Early thinning; can trash itself once its work is done.</span></div><div class="card"><small>$5</small><strong>Apprentice</strong><span>Trashes one card and draws according to its coin cost.</span></div><div class="card"><small>$3</small><strong>Woodcutter</strong><span>Two coins and an extra buy, at the cost of an Action.</span></div><div class="card"><small>$5</small><strong>Ghost Ship</strong><span>Draws two and forces opponents to put cards back until they hold three.</span></div><div class="card"><small>$5</small><strong>Cache</strong><span>Three-coin Treasure that also gains two Coppers when gained.</span></div><div class="card"><small>$4</small><strong>Quarry</strong><span>One coin and a two-coin discount on Actions while in play.</span></div><div class="card"><small>$4</small><strong>Bishop</strong><span>Trashes for victory tokens and lets opponents trash too.</span></div></div>
+<p>Two players, standard seven-Copper / three-Estate starting decks. Use eight Provinces and Duchies, and ten of each kingdom card. No Shelters, Colony, Platinum, Potion, or landscapes. This kingdom includes cards from first editions.</p>
+<h2>The recommendation</h2><div class="callout"><strong>2 Raze, 2 Ghost Ship, 1 Hunting Grounds.</strong> Add Farming Villages according to the action-support rule below, then build treasure income. Raze removes starting junk; Ghost Ship supplies draw and repeated attacks; Hunting Grounds helps recover from small hands.</div>
+<div class="metrics"><div><strong>73,720</strong><span>total search and validation games</span></div><div><strong>94.3%</strong><span>score rate against treasure-only money</span></div><div><strong>11,000</strong><span>games on fresh validation seeds</span></div></div>
+<p>This is the <strong>best tested policy</strong> in this search, not a proof of optimal Dominion play. Its lowest validation result was 48.7% against 2 Ghost Ship, 2 Raze, 1 Hunting Grounds, with an approximate paired 95% interval of 46.2%–51.2%. Close alternatives may be statistically indistinguishable.</p>
+<h2>How to play it</h2>
+<p><strong>On a $4/$3 split, open Raze / Raze. On a $5/$2 split, open Ghost Ship / Raze.</strong></p>
+<p><strong>Opening preference: Ghost Ship.</strong> On either of your first two turns, prefer your first copy when affordable. If it is unavailable or already owned, follow the priorities below. This is a preference, not a guarantee about the opening split.</p>
+<ol><li>Take Province from your turn <strong>12</strong>, or whenever four or fewer Provinces remain.</li>
+<li>Take Duchy at <strong>4</strong> or fewer Provinces remaining; Estate at one or fewer. These scoring buys take precedence over more deck building.</li>
+<li>After the opening preference, add Farming Village while its count is below <strong>1 × max(0, terminal cards − 1)</strong>. Count Hunting Grounds, Ghost Ship, Woodcutter and Bishop as terminal cards. Recalculate after each gain.</li>
+<li>Next take the first affordable unmet ownership target, in this order:<ol><li><strong>Raze: up to 2</strong> owned at a time.</li><li><strong>Ghost Ship: up to 2</strong> owned at a time.</li><li><strong>Hunting Grounds: up to 1</strong> owned at a time.</li></ol>Raze is no longer bought once you have no Estates and at most 2 Coppers.</li>
+<li>Then Gold up to <strong>2</strong> copies, then Silver up to <strong>99</strong>. A limit of 99 is effectively uncapped. Otherwise pass; do not buy Copper or early Estates.</li></ol>
+<p><strong>Action order:</strong> Farming Village, Raze, Apprentice, Menagerie, Ghost Ship, Hunting Grounds, Woodcutter, Bishop. Use only cards you own. Skip Apprentice without acceptable junk; skip Bishop unless it can trash junk or its enabled fodder rule has a Hunting Grounds, Cache or Gold available.</p>
+<p><strong>Trashing:</strong> Curse, then Estate, then Copper only while you own more than 2 and your deck contains more than $5 in printed Treasure value. Raze trashes itself once no eligible junk remains. This money threshold prevents thinning from destroying your purchasing power. Accept an opponent’s Bishop trash using the same limits. The tested fodder setting is <strong>enabled</strong>; when enabled and no junk is eligible, a mandatory trash can use Hunting Grounds, then Cache, then Gold.</p>
+<p><strong>Against Ghost Ship:</strong> put Victory cards and weak Treasures back first. Try to retain your last Farming Village alongside Hunting Grounds or Ghost Ship; Menagerie also helps rebuild a reduced hand. The simulation uses the same defense for all opponents, rather than giving only the recommended strategy a favorable response.</p>
+<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Raze&quot;,
+      2
+    ],
+    [
+      &quot;Ghost Ship&quot;,
+      2
+    ],
+    [
+      &quot;Hunting Grounds&quot;,
+      1
+    ]
+  ],
+  &quot;opening&quot;: &quot;Ghost Ship&quot;,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 2,
+  &quot;green&quot;: 12,
+  &quot;duchy&quot;: 4,
+  &quot;village_ratio&quot;: 1,
+  &quot;copper_floor&quot;: 2,
+  &quot;bishop_fodder&quot;: true,
+  &quot;draw_first&quot;: false
+}</pre></details>
+<h2>Why these cards, and what to skip</h2>
+<p>Ghost Ship attacks the opponent’s current hand while improving yours. Farming Village lets the deck play multiple terminal draw cards, and Hunting Grounds provides the larger refill. Raze offers cheap thinning without permanently occupying an Action slot. This combination rose above the larger engines and plain money plans in the tested field.</p>
+<p>Do not assume every pile belongs in your deck. The search tried one-, two- and four-copy plans for every kingdom pile, as well as mixed decks. Cache’s extra Coppers can undermine thinning; Quarry discounts Actions but does not help buy Provinces; Woodcutter needs enough draw and money to justify its extra buy. Bishop offers a real alternative scoring route, but also gives the opponent free trashing. Menagerie and Apprentice were tested as support, with the published ownership targets recording what actually survived selection.</p>
+<p>Rules checked against the publisher’s <a href="https://www.riograndegames.com/wp-content/uploads/2013/02/Seaside.pdf">Seaside rules</a>, <a href="https://www.riograndegames.com/wp-content/uploads/2022/03/Dominion-Rules-DarkAges.pdf">Dark Ages rules</a>, <a href="https://www.riograndegames.com/wp-content/uploads/2013/02/Dominion-Alchemy-Rules.pdf">Alchemy rules</a>, <a href="https://www.riograndegames.com/wp-content/uploads/2022/03/Dominion-Rules-Adventures.pdf">Adventures rules</a>, and <a href="https://www.riograndegames.com/wp-content/uploads/2022/03/Dominion-Rules-Prosperity.pdf">Prosperity rules</a>. In particular, trashing a full-cost Hunting Grounds with Bishop gives four victory tokens plus its Duchy reward; Apprentice trashing an Estate draws two cards. These interactions have integration tests.</p>
+<h2>Independent validation</h2><p>Each pairing below uses 1,000 games on seeds unused by screening, the tournament or tuning. Each seed is played in both seats. A tie earns half a point; equal scores use the fewer-turns tiebreaker. Intervals use the mean and standard error of paired-seed scores. They are descriptive, not corrected for multiple comparisons.</p>
+<div class="scroll"><table><thead><tr><th>Opponent</th><th>Score rate</th><th>Approximate 95% interval</th><th>Wins / ties / losses</th></tr></thead><tbody><tr><td>2 Raze, 2 Ghost Ship, 1 Hunting Grounds<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Raze&quot;,
+      2
+    ],
+    [
+      &quot;Ghost Ship&quot;,
+      2
+    ],
+    [
+      &quot;Hunting Grounds&quot;,
+      1
+    ]
+  ],
+  &quot;opening&quot;: &quot;Ghost Ship&quot;,
+  &quot;village_ratio&quot;: 1,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 2,
+  &quot;green&quot;: 12,
+  &quot;duchy&quot;: 4,
+  &quot;copper_floor&quot;: 4,
+  &quot;bishop_fodder&quot;: true,
+  &quot;draw_first&quot;: false
+}</pre></details></td><td>52.6%</td><td>49.9%–55.3%</td><td>526 / 0 / 474</td></tr><tr><td>4 Ghost Ship<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Ghost Ship&quot;,
+      4
+    ]
+  ],
+  &quot;opening&quot;: &quot;Raze&quot;,
+  &quot;village_ratio&quot;: 0.5,
+  &quot;silver&quot;: 5,
+  &quot;gold&quot;: 99,
+  &quot;green&quot;: 12,
+  &quot;duchy&quot;: 2,
+  &quot;copper_floor&quot;: 0,
+  &quot;bishop_fodder&quot;: true,
+  &quot;draw_first&quot;: false
+}</pre></details></td><td>60.7%</td><td>57.8%–63.6%</td><td>607 / 0 / 393</td></tr><tr><td>4 Ghost Ship<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Ghost Ship&quot;,
+      4
+    ]
+  ],
+  &quot;opening&quot;: &quot;Raze&quot;,
+  &quot;village_ratio&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 4,
+  &quot;green&quot;: 8,
+  &quot;duchy&quot;: 2,
+  &quot;copper_floor&quot;: 2,
+  &quot;bishop_fodder&quot;: false,
+  &quot;draw_first&quot;: false
+}</pre></details></td><td>60.9%</td><td>58.0%–63.8%</td><td>609 / 0 / 391</td></tr><tr><td>Treasure-only money<details><summary>Exact policy settings</summary><pre>{}</pre></details></td><td>94.3%</td><td>92.9%–95.7%</td><td>943 / 0 / 57</td></tr><tr><td>2 Ghost Ship<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Ghost Ship&quot;,
+      2
+    ]
+  ]
+}</pre></details></td><td>69.9%</td><td>67.1%–72.7%</td><td>699 / 0 / 301</td></tr><tr><td>2 Hunting Grounds<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Hunting Grounds&quot;,
+      2
+    ]
+  ]
+}</pre></details></td><td>73.7%</td><td>71.0%–76.4%</td><td>737 / 0 / 263</td></tr><tr><td>1 Raze, 1 Apprentice, 1 Ghost Ship, 3 Hunting Grounds, 1 Woodcutter<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Raze&quot;,
+      1
+    ],
+    [
+      &quot;Apprentice&quot;,
+      1
+    ],
+    [
+      &quot;Ghost Ship&quot;,
+      1
+    ],
+    [
+      &quot;Hunting Grounds&quot;,
+      3
+    ],
+    [
+      &quot;Woodcutter&quot;,
+      1
+    ]
+  ],
+  &quot;village_ratio&quot;: 1,
+  &quot;silver&quot;: 3,
+  &quot;green&quot;: 10
+}</pre></details></td><td>88.0%</td><td>86.0%–90.0%</td><td>880 / 0 / 120</td></tr><tr><td>1 Bishop, 3 Hunting Grounds, 1 Woodcutter<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Bishop&quot;,
+      1
+    ],
+    [
+      &quot;Hunting Grounds&quot;,
+      3
+    ],
+    [
+      &quot;Woodcutter&quot;,
+      1
+    ]
+  ],
+  &quot;village_ratio&quot;: 1,
+  &quot;bishop_fodder&quot;: true,
+  &quot;silver&quot;: 4
+}</pre></details></td><td>79.2%</td><td>76.8%–81.6%</td><td>792 / 0 / 208</td></tr><tr><td>4 Ghost Ship, 2 Raze, 1 Hunting Grounds<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Ghost Ship&quot;,
+      4
+    ],
+    [
+      &quot;Raze&quot;,
+      2
+    ],
+    [
+      &quot;Hunting Grounds&quot;,
+      1
+    ]
+  ],
+  &quot;opening&quot;: &quot;Ghost Ship&quot;,
+  &quot;village_ratio&quot;: 1,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 2,
+  &quot;green&quot;: 12,
+  &quot;duchy&quot;: 4,
+  &quot;copper_floor&quot;: 4,
+  &quot;bishop_fodder&quot;: true,
+  &quot;draw_first&quot;: false
+}</pre></details></td><td>53.5%</td><td>50.8%–56.2%</td><td>535 / 0 / 465</td></tr><tr><td>2 Raze, 2 Ghost Ship, 1 Hunting Grounds<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Raze&quot;,
+      2
+    ],
+    [
+      &quot;Ghost Ship&quot;,
+      2
+    ],
+    [
+      &quot;Hunting Grounds&quot;,
+      1
+    ]
+  ],
+  &quot;opening&quot;: &quot;Ghost Ship&quot;,
+  &quot;village_ratio&quot;: 1,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 2,
+  &quot;green&quot;: 12,
+  &quot;duchy&quot;: 4,
+  &quot;copper_floor&quot;: 4,
+  &quot;bishop_fodder&quot;: false,
+  &quot;draw_first&quot;: false
+}</pre></details></td><td>53.1%</td><td>50.5%–55.7%</td><td>531 / 0 / 469</td></tr><tr><td>2 Ghost Ship, 2 Raze, 1 Hunting Grounds<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Ghost Ship&quot;,
+      2
+    ],
+    [
+      &quot;Raze&quot;,
+      2
+    ],
+    [
+      &quot;Hunting Grounds&quot;,
+      1
+    ]
+  ],
+  &quot;opening&quot;: &quot;Ghost Ship&quot;,
+  &quot;village_ratio&quot;: 1,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 2,
+  &quot;green&quot;: 12,
+  &quot;duchy&quot;: 4,
+  &quot;copper_floor&quot;: 4,
+  &quot;bishop_fodder&quot;: true,
+  &quot;draw_first&quot;: false
+}</pre></details></td><td>48.7%</td><td>46.2%–51.2%</td><td>487 / 0 / 513</td></tr></tbody></table></div>
+<h2>Search and limits</h2><p>145 candidates faced five fixed opponents for 40 games per pairing (29,000 games). The top eight played a complete round robin at 240 games per pairing (6,720 games). Then 54 variants of the tournament winner faced the top three finalists and two baseline opponents at 100 games per pairing (27,000 games). The strongest average tuning result was frozen before validation (11,000 games).</p>
+<p>The search varies opening preference, target order and counts, village support, money limits, Province and Duchy timing, Copper retention, draw order and Bishop fodder. It does not search every possible conditional policy, score-aware ending, card-play ordering or opponent-specific counter. Results apply to this two-player setup and this simulator.</p>
+<p>The 160-round safeguard was reached in 5 screening games, 0 tournament games, 0 tuning games and 0 validation games. Any candidate involved in an incomplete screening or tuning match is excluded from selection; tournament candidates with incomplete matches are excluded too. Raw results retain these flags for inspection. Existing simulator heuristics remain for untuned decisions, including Hunting Grounds’ preference for a Duchy.</p>
+<details><summary>Eight-policy tournament results</summary><div class="scroll"><table><thead><tr><th>Place</th><th>Policy</th><th>Score rate</th></tr></thead><tbody><tr><td>1</td><td>2 Raze, 2 Ghost Ship, 1 Hunting Grounds<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Raze&quot;,
+      2
+    ],
+    [
+      &quot;Ghost Ship&quot;,
+      2
+    ],
+    [
+      &quot;Hunting Grounds&quot;,
+      1
+    ]
+  ],
+  &quot;opening&quot;: &quot;Ghost Ship&quot;,
+  &quot;village_ratio&quot;: 1,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 2,
+  &quot;green&quot;: 12,
+  &quot;duchy&quot;: 4,
+  &quot;copper_floor&quot;: 4,
+  &quot;bishop_fodder&quot;: true,
+  &quot;draw_first&quot;: false
+}</pre></details></td><td>56.2%</td></tr><tr><td>2</td><td>4 Ghost Ship<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Ghost Ship&quot;,
+      4
+    ]
+  ],
+  &quot;opening&quot;: &quot;Raze&quot;,
+  &quot;village_ratio&quot;: 0.5,
+  &quot;silver&quot;: 5,
+  &quot;gold&quot;: 99,
+  &quot;green&quot;: 12,
+  &quot;duchy&quot;: 2,
+  &quot;copper_floor&quot;: 0,
+  &quot;bishop_fodder&quot;: true,
+  &quot;draw_first&quot;: false
+}</pre></details></td><td>54.0%</td></tr><tr><td>3</td><td>4 Ghost Ship<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Ghost Ship&quot;,
+      4
+    ]
+  ],
+  &quot;opening&quot;: &quot;Raze&quot;,
+  &quot;village_ratio&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 4,
+  &quot;green&quot;: 8,
+  &quot;duchy&quot;: 2,
+  &quot;copper_floor&quot;: 2,
+  &quot;bishop_fodder&quot;: false,
+  &quot;draw_first&quot;: false
+}</pre></details></td><td>52.6%</td></tr><tr><td>4</td><td>2 Ghost Ship<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Ghost Ship&quot;,
+      2
+    ]
+  ],
+  &quot;opening&quot;: &quot;Raze&quot;,
+  &quot;village_ratio&quot;: 1,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 4,
+  &quot;green&quot;: 8,
+  &quot;duchy&quot;: 4,
+  &quot;copper_floor&quot;: 0,
+  &quot;bishop_fodder&quot;: true,
+  &quot;draw_first&quot;: false
+}</pre></details></td><td>51.1%</td></tr><tr><td>5</td><td>4 Ghost Ship<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Ghost Ship&quot;,
+      4
+    ]
+  ],
+  &quot;opening&quot;: &quot;Raze&quot;,
+  &quot;village_ratio&quot;: 0,
+  &quot;silver&quot;: 5,
+  &quot;gold&quot;: 4,
+  &quot;green&quot;: 8,
+  &quot;duchy&quot;: 4,
+  &quot;copper_floor&quot;: 2,
+  &quot;bishop_fodder&quot;: true,
+  &quot;draw_first&quot;: true
+}</pre></details></td><td>51.1%</td></tr><tr><td>6</td><td>4 Ghost Ship<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Ghost Ship&quot;,
+      4
+    ]
+  ],
+  &quot;opening&quot;: &quot;Ghost Ship&quot;,
+  &quot;village_ratio&quot;: 0.5,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 99,
+  &quot;green&quot;: 8,
+  &quot;duchy&quot;: 4,
+  &quot;copper_floor&quot;: 2,
+  &quot;bishop_fodder&quot;: true,
+  &quot;draw_first&quot;: false
+}</pre></details></td><td>49.5%</td></tr><tr><td>7</td><td>4 Ghost Ship<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Ghost Ship&quot;,
+      4
+    ]
+  ],
+  &quot;opening&quot;: &quot;Ghost Ship&quot;
+}</pre></details></td><td>48.7%</td></tr><tr><td>8</td><td>2 Ghost Ship<details><summary>Exact policy settings</summary><pre>{
+  &quot;targets&quot;: [
+    [
+      &quot;Ghost Ship&quot;,
+      2
+    ]
+  ],
+  &quot;opening&quot;: &quot;Ghost Ship&quot;
+}</pre></details></td><td>36.7%</td></tr></tbody></table></div></details>
+<h2>What “never used” means here</h2><p>Before adding this strategy, the audit checked all <strong>143 active and retired strategy factories</strong>, exact string literals in all <strong>82 strategy modules</strong>, and additions/removals in locally available Git history for both strategy directories. None of the ten chosen cards had a match. Ironmonger and Remodel were rejected because older strategies had used them. This does not claim that no Dominion player elsewhere has used these cards.</p>
+<p>Baseline revision: <code>931ba583d39a598ac743d893ef923915c6c08273</code>. <a href="../../scripts/data/hunting_grounds_ghost_ship_provenance.json">Read the recorded provenance and audit commands</a>.</p>
+<h2>Reproduce the result</h2><pre>PYTHONPATH=. python scripts/search_hunting_grounds_ghost_ship.py screen
+PYTHONPATH=. python scripts/search_hunting_grounds_ghost_ship.py tournament
+PYTHONPATH=. python scripts/search_hunting_grounds_ghost_ship.py refine
+PYTHONPATH=. python scripts/search_hunting_grounds_ghost_ship.py validate
+PYTHONPATH=. python scripts/render_catalog.py
+python scripts/check_catalog.py
+pytest -q tests/test_hunting_grounds_ghost_ship.py</pre>
+<p>The script defaults to six worker processes; use <code>--workers 1</code> to run sequentially or <code>--output-dir PATH</code> for a separate result directory. Search seeds and the game limit are fixed in the script.</p>
+<footer><a href="../../boards/hunting_grounds_ghost_ship.txt">Board source</a> · <a href="../../dominion/strategy/strategies/hunting_grounds_ghost_ship.py">Runnable strategy source</a> · <a href="../../scripts/search_hunting_grounds_ghost_ship.py">Search script</a><br>Evidence: <a href="../../scripts/data/hunting_grounds_ghost_ship/screen.json">Screen results</a> · <a href="../../scripts/data/hunting_grounds_ghost_ship/tournament.json">Tournament results</a> · <a href="../../scripts/data/hunting_grounds_ghost_ship/refine.json">Refine results</a> · <a href="../../scripts/data/hunting_grounds_ghost_ship/validate.json">Validate results</a></footer></main></body></html>

@@ -144,9 +144,66 @@ def _stables_ninja_museum(strategy) -> dict[str, DecisionInstructions]:
     }
 
 
+def _hunting_grounds_ghost_ship(strategy) -> dict[str, DecisionInstructions]:
+    p = strategy.params
+    gains = [
+        f"Province from your turn {p['green']}, or with four or fewer Provinces remaining.",
+        f"Duchy with {p['duchy']} or fewer Provinces remaining; Estate with one or fewer.",
+        f"On your first two turns, your first {p['opening']}.",
+    ]
+    if p["village_ratio"]:
+        gains.append(
+            "Farming Village while its count is below "
+            f"{p['village_ratio']} times your combined Hunting Grounds, Ghost Ship, "
+            "Woodcutter and Bishop count minus one (minimum zero)."
+        )
+    gains.extend(f"{n} while you own fewer than {cap}." for n, cap in p["targets"] if cap)
+    gains.extend([
+        f"Gold while you own fewer than {p['gold']}; then Silver while you own fewer than {p['silver']}.",
+        "Otherwise pass. Skip Raze purchases once you have no Estates and your Copper count is at or below its retention threshold.",
+    ])
+    actions = [rule.card_name for rule in strategy.action_priority]
+    if p["draw_first"] and "Hunting Grounds" in actions and "Ghost Ship" in actions:
+        actions.remove("Hunting Grounds")
+        actions.insert(actions.index("Ghost Ship"), "Hunting Grounds")
+    return {
+        "choose_gain": DecisionInstructions("Take the first available option; purchases must be affordable.", tuple(gains)),
+        "choose_action": DecisionInstructions(
+            "Play Actions in this order. Skip Apprentice without an acceptable junk target. "
+            "Skip Bishop too, unless its fodder option is enabled and Hunting Grounds, Cache or Gold is in hand.",
+            tuple(actions) or ("No planned Action purchases.",),
+        ),
+        "choose_card_to_raze": DecisionInstructions(
+            "Apply the trashing thresholds below, then trash Raze itself.",
+            ("Prefer Curse, then Estate, then eligible Copper; otherwise select Raze.",),
+        ),
+        "choose_card_to_keep_from_raze": DecisionInstructions(
+            "Keep one of the cards Raze reveals.",
+            ("Use the Action priorities first; otherwise prefer printed coin value, then cost.",),
+        ),
+        "choose_card_to_topdeck_from_hand": DecisionInstructions(
+            "Put the lowest-value card back first; break ties by cost, then name. The same defense is used by all tested opponents.",
+            (
+                "Victory cards and Curse, then Copper, then Quarry and trashers with no acceptable junk.",
+                "Silver; then Woodcutter and duplicate Farming Villages; then Gold and Cache.",
+                "Trashers with junk; then your last Farming Village; keep Hunting Grounds, Ghost Ship and Menagerie longest.",
+            ),
+        ),
+        "choose_trash": DecisionInstructions(
+            "Trash Curse, then Estate, then eligible Copper. On an opponent's Bishop turn, use your own deck counts and otherwise decline.",
+            (
+                f"Copper is eligible only above {p['copper_floor']} copies and with more than $5 total printed Treasure value in your deck.",
+                "With fodder enabled, next try Hunting Grounds, Cache, then Gold; otherwise a mandatory choice takes the cheapest non-Victory card first.",
+                "Raze uses the junk rules, then trashes itself. Apprentice is never deliberately played without junk to trash.",
+            ),
+        ),
+    }
+
+
 # Keys identify the class that implements the hook, including its module.
 # StrategyLoader imports modules afresh, so Python class identity is not stable.
 _PROVIDERS = {
+    "dominion.strategy.strategies.hunting_grounds_ghost_ship.HuntingGroundsPolicy": _hunting_grounds_ghost_ship,
     "dominion.strategy.strategies.stables_ninja_museum.StablesNinjaMuseum": _stables_ninja_museum,
 }
 

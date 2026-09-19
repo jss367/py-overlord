@@ -1,0 +1,61 @@
+{
+  "revision": "931ba583d39a598ac743d893ef923915c6c08273",
+  "definition": "No references in any current runnable strategy (including retired), no exact string literals anywhere in strategy modules, and no matching additions/removals in locally available Git history of those directories. Not a claim about strategies outside this repository.",
+  "strategy_count": 143,
+  "source_module_count": 82,
+  "cards": [
+    "Farming Village",
+    "Hunting Grounds",
+    "Menagerie",
+    "Raze",
+    "Apprentice",
+    "Woodcutter",
+    "Ghost Ship",
+    "Cache",
+    "Quarry",
+    "Bishop"
+  ],
+  "catalog_references": {
+    "Farming Village": [],
+    "Hunting Grounds": [],
+    "Menagerie": [],
+    "Raze": [],
+    "Apprentice": [],
+    "Woodcutter": [],
+    "Ghost Ship": [],
+    "Cache": [],
+    "Quarry": [],
+    "Bishop": []
+  },
+  "source_literal_references": {
+    "Farming Village": [],
+    "Hunting Grounds": [],
+    "Menagerie": [],
+    "Raze": [],
+    "Apprentice": [],
+    "Woodcutter": [],
+    "Ghost Ship": [],
+    "Cache": [],
+    "Quarry": [],
+    "Bishop": []
+  },
+  "local_history_matches": {
+    "Farming Village": [],
+    "Hunting Grounds": [],
+    "Menagerie": [],
+    "Raze": [],
+    "Apprentice": [],
+    "Woodcutter": [],
+    "Ghost Ship": [],
+    "Cache": [],
+    "Quarry": [],
+    "Bishop": []
+  },
+  "excluded_historical_cards": [
+    "Ironmonger",
+    "Remodel"
+  ],
+  "history_command": "git log --all --format=%H -S \"CARD NAME\" -- dominion/strategy generated_strategies",
+  "source_audit": "AST string literals from all .py files in the two strategy directories at revision; catalog includes retired factories.",
+  "additional_history_scope": "The same zero-match history check also passed for all of dominion/strategy, including shared strategy infrastructure."
+}
