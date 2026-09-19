@@ -12,7 +12,7 @@ class Swindler(Card):
 
     def play_effect(self, game_state):
         """Each other player trashes top card; attacker chooses same-cost replacement."""
-        from ..registry import get_card
+        from ..allies._rules import candidates, effective_cost
 
         player = game_state.current_player
 
@@ -22,30 +22,24 @@ class Swindler(Card):
                 return
             card = drawn[0]
             target.hand.remove(card)
-            trashed_cost = card.cost.coins
+            trashed_cost = effective_cost(game_state, card)
             game_state.trash_card(target, card)
-
-            # Find cards in supply with the same cost
-            options = []
-            for name, count in game_state.supply.items():
-                if count <= 0:
-                    continue
-                candidate = get_card(name)
-                if candidate.cost.coins == trashed_cost and candidate.cost.potions == 0:
-                    options.append(candidate)
-
+            options = candidates(
+                game_state,
+                predicate=lambda c: effective_cost(game_state, c) == trashed_cost,
+            )
             if not options:
                 return
-
-            # Attacker chooses what the target gains
-            choice = player.ai.choose_buy(game_state, options)
-            if choice is None or choice.name not in game_state.supply:
-                # Default to worst option for opponent (Curse if available, else cheapest VP)
+            choice = player.ai.choose_swindler_replacement(
+                game_state, player, target, options
+            )
+            if choice not in options:
                 choice = options[0]
-
-            if game_state.supply.get(choice.name, 0) > 0:
-                game_state.supply[choice.name] -= 1
-                game_state.gain_card(target, choice)
+            gained = game_state.take_top_supply_card(
+                game_state.supply_pile_key(choice.name)
+            )
+            if gained is not None:
+                game_state.gain_card(target, gained)
 
         for other in game_state.players:
             if other is player:

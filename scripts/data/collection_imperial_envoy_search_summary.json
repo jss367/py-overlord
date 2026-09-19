@@ -1,0 +1,3833 @@
+{
+  "board": "boards/collection_imperial_envoy.txt",
+  "assumptions": "Two players, standard Copper/Estate start; no landscapes, Platinum or Colony; full Forts pile.",
+  "date": "2026-09-19",
+  "stages": {
+    "screen": {
+      "matches": 805,
+      "games": 19320,
+      "truncated": 0,
+      "ranking": [
+        {
+          "score": 0.8833333333333332,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "swindler": 2,
+            "farm": 1,
+            "village": 2,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.8,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "swindler": 2,
+            "farm": 1,
+            "village": 2,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.7666666666666666,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "swindler": 0,
+            "farm": 1,
+            "village": 2,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.725,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "swindler": 1,
+            "farm": 1,
+            "village": 2,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.7166666666666667,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "swindler": 0,
+            "farm": 1,
+            "village": 2,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.7083333333333334,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 2,
+            "sleigh": 0,
+            "fish": 1,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 1,
+            "silver": 1,
+            "gold": 99,
+            "green": 99,
+            "farm": 1,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.7083333333333333,
+          "parameters": {
+            "collection": 4,
+            "envoy": 3,
+            "village": 5,
+            "farm": 1,
+            "green": 99,
+            "gold": 0
+          }
+        },
+        {
+          "score": 0.7083333333333333,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "swindler": 2,
+            "farm": 2,
+            "village": 2,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.6916666666666667,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "swindler": 1,
+            "farm": 1,
+            "village": 2,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.6833333333333333,
+          "parameters": {
+            "collection": 3,
+            "envoy": 1,
+            "swindler": 1,
+            "village": 0,
+            "ghost": 4,
+            "sleigh": 0,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 2,
+            "forts": 3,
+            "silver": 2,
+            "gold": 0,
+            "green": 99,
+            "farm": 1,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.6583333333333333,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "swindler": 2,
+            "farm": 1,
+            "village": 4,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.65,
+          "parameters": {
+            "collection": 4,
+            "envoy": 3,
+            "swindler": 2,
+            "farm": 1,
+            "village": 4,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.6166666666666667,
+          "parameters": {
+            "collection": 4,
+            "envoy": 3,
+            "swindler": 1,
+            "farm": 1,
+            "village": 4,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.6083333333333333,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "swindler": 0,
+            "farm": 1,
+            "village": 4,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.5916666666666667,
+          "parameters": {
+            "collection": 3,
+            "envoy": 1,
+            "swindler": 2,
+            "village": 4,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 1,
+            "mystic": 1,
+            "ship": 2,
+            "forts": 0,
+            "silver": 2,
+            "gold": 0,
+            "green": 12,
+            "farm": 0,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.5833333333333333,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "swindler": 1,
+            "farm": 1,
+            "village": 4,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.575,
+          "parameters": {
+            "collection": 0,
+            "envoy": 0,
+            "village": 0,
+            "swindler": 1,
+            "fish": 0,
+            "silver": 99,
+            "gold": 99,
+            "green": 0,
+            "farm": 0,
+            "opening": "Swindler"
+          }
+        },
+        {
+          "score": 0.575,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "swindler": 2,
+            "farm": 2,
+            "village": 4,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.575,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "swindler": 0,
+            "farm": 2,
+            "village": 2,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.55,
+          "parameters": {
+            "collection": 4,
+            "envoy": 3,
+            "swindler": 0,
+            "farm": 1,
+            "village": 4,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.5416666666666667,
+          "parameters": {
+            "collection": 4,
+            "envoy": 3,
+            "swindler": 2,
+            "farm": 2,
+            "village": 4,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.5250000000000001,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "swindler": 1,
+            "farm": 2,
+            "village": 2,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.5166666666666667,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "swindler": 0,
+            "farm": 2,
+            "village": 4,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.5166666666666667,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "swindler": 1,
+            "farm": 2,
+            "village": 4,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.5083333333333334,
+          "parameters": {}
+        },
+        {
+          "score": 0.4916666666666667,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "swindler": 2,
+            "farm": 2,
+            "village": 2,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.4666666666666667,
+          "parameters": {
+            "collection": 4,
+            "envoy": 3,
+            "swindler": 0,
+            "farm": 2,
+            "village": 4,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.45,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "swindler": 2,
+            "farm": 0,
+            "village": 2,
+            "green": 0
+          }
+        },
+        {
+          "score": 0.425,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "swindler": 2,
+            "farm": 0,
+            "village": 2,
+            "green": 0
+          }
+        },
+        {
+          "score": 0.425,
+          "parameters": {
+            "collection": 5,
+            "envoy": 1,
+            "swindler": 2,
+            "village": 4,
+            "ghost": 2,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 2,
+            "silver": 99,
+            "gold": 0,
+            "green": 8,
+            "farm": 0,
+            "opening": "Silver",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.425,
+          "parameters": {
+            "collection": 5,
+            "envoy": 3,
+            "swindler": 1,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 0,
+            "silver": 2,
+            "gold": 0,
+            "green": 8,
+            "farm": 1,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.4166666666666667,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "swindler": 0,
+            "farm": 2,
+            "village": 2,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.4166666666666667,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "swindler": 1,
+            "farm": 2,
+            "village": 2,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.4166666666666667,
+          "parameters": {
+            "collection": 4,
+            "envoy": 3,
+            "swindler": 1,
+            "farm": 2,
+            "village": 4,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.39166666666666666,
+          "parameters": {
+            "collection": 4,
+            "envoy": 3,
+            "swindler": 2,
+            "farm": 0,
+            "village": 4,
+            "green": 0
+          }
+        },
+        {
+          "score": 0.39166666666666666,
+          "parameters": {
+            "collection": 5,
+            "envoy": 4,
+            "swindler": 1,
+            "village": 4,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 1,
+            "forts": 1,
+            "silver": 1,
+            "gold": 0,
+            "green": 99,
+            "farm": 2,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.38333333333333336,
+          "parameters": {
+            "collection": 5,
+            "envoy": 3,
+            "swindler": 2,
+            "village": 2,
+            "ghost": 4,
+            "sleigh": 0,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 0,
+            "forts": 0,
+            "silver": 2,
+            "gold": 2,
+            "green": 8,
+            "farm": 2,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.37500000000000006,
+          "parameters": {
+            "collection": 0,
+            "envoy": 1,
+            "village": 0,
+            "swindler": 0,
+            "fish": 0,
+            "silver": 99,
+            "gold": 99,
+            "green": 0,
+            "farm": 0,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.35833333333333334,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "swindler": 2,
+            "farm": 0,
+            "village": 4,
+            "green": 0
+          }
+        },
+        {
+          "score": 0.3583333333333333,
+          "parameters": {
+            "collection": 5,
+            "envoy": 1,
+            "swindler": 2,
+            "village": 2,
+            "ghost": 2,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 1,
+            "ship": 2,
+            "forts": 0,
+            "silver": 2,
+            "gold": 2,
+            "green": 0,
+            "farm": 3,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.3583333333333333,
+          "parameters": {
+            "collection": 3,
+            "envoy": 3,
+            "swindler": 2,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 0,
+            "silver": 1,
+            "gold": 99,
+            "green": 0,
+            "farm": 2,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.35,
+          "parameters": {
+            "collection": 3,
+            "envoy": 1,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 4,
+            "sleigh": 1,
+            "fish": 3,
+            "mystic": 1,
+            "ship": 0,
+            "forts": 3,
+            "silver": 1,
+            "gold": 2,
+            "green": 12,
+            "farm": 1,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.32500000000000007,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "swindler": 1,
+            "farm": 0,
+            "village": 2,
+            "green": 0
+          }
+        },
+        {
+          "score": 0.31666666666666665,
+          "parameters": {
+            "collection": 3,
+            "envoy": 1,
+            "swindler": 2,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 3,
+            "mystic": 1,
+            "ship": 1,
+            "forts": 0,
+            "silver": 3,
+            "gold": 2,
+            "green": 12,
+            "farm": 0,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.3,
+          "parameters": {
+            "collection": 5,
+            "envoy": 3,
+            "swindler": 1,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 3,
+            "silver": 1,
+            "gold": 99,
+            "green": 99,
+            "farm": 3,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.29999999999999993,
+          "parameters": {
+            "collection": 3,
+            "envoy": 1,
+            "swindler": 2,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 1,
+            "mystic": 1,
+            "ship": 1,
+            "forts": 2,
+            "silver": 2,
+            "gold": 2,
+            "green": 12,
+            "farm": 3,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.29166666666666663,
+          "parameters": {
+            "collection": 3,
+            "envoy": 4,
+            "swindler": 2,
+            "village": 6,
+            "ghost": 4,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 1,
+            "forts": 3,
+            "silver": 2,
+            "gold": 99,
+            "green": 12,
+            "farm": 1,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.275,
+          "parameters": {
+            "collection": 3,
+            "envoy": 2,
+            "swindler": 1,
+            "village": 6,
+            "ghost": 4,
+            "sleigh": 0,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 0,
+            "silver": 3,
+            "gold": 99,
+            "green": 8,
+            "farm": 0,
+            "opening": "Silver",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.27499999999999997,
+          "parameters": {
+            "collection": 3,
+            "envoy": 2,
+            "swindler": 2,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 2,
+            "forts": 0,
+            "silver": 1,
+            "gold": 2,
+            "green": 12,
+            "farm": 2,
+            "opening": "Swindler",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.2666666666666667,
+          "parameters": {
+            "collection": 5,
+            "envoy": 2,
+            "swindler": 1,
+            "village": 4,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 1,
+            "silver": 2,
+            "gold": 0,
+            "green": 99,
+            "farm": 1,
+            "opening": "Swindler",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.26666666666666666,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "swindler": 0,
+            "farm": 0,
+            "village": 2,
+            "green": 0
+          }
+        },
+        {
+          "score": 0.26666666666666666,
+          "parameters": {
+            "collection": 5,
+            "envoy": 2,
+            "swindler": 1,
+            "village": 6,
+            "ghost": 2,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 0,
+            "silver": 2,
+            "gold": 2,
+            "green": 12,
+            "farm": 2,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.26666666666666666,
+          "parameters": {
+            "collection": 3,
+            "envoy": 3,
+            "swindler": 1,
+            "village": 4,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 1,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 3,
+            "silver": 2,
+            "gold": 2,
+            "green": 12,
+            "farm": 3,
+            "opening": "Silver",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.25833333333333336,
+          "parameters": {
+            "collection": 0,
+            "envoy": 0,
+            "village": 0,
+            "swindler": 0,
+            "fish": 0,
+            "silver": 99,
+            "gold": 99,
+            "green": 0,
+            "farm": 0,
+            "opening": "Silver"
+          }
+        },
+        {
+          "score": 0.25833333333333336,
+          "parameters": {
+            "collection": 4,
+            "envoy": 3,
+            "swindler": 0,
+            "farm": 0,
+            "village": 4,
+            "green": 0
+          }
+        },
+        {
+          "score": 0.25833333333333336,
+          "parameters": {
+            "collection": 5,
+            "envoy": 1,
+            "swindler": 2,
+            "village": 0,
+            "ghost": 2,
+            "sleigh": 1,
+            "fish": 1,
+            "mystic": 1,
+            "ship": 0,
+            "forts": 0,
+            "silver": 1,
+            "gold": 0,
+            "green": 0,
+            "farm": 0,
+            "opening": "Silver",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.2583333333333333,
+          "parameters": {
+            "collection": 2,
+            "envoy": 2,
+            "swindler": 2,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 2,
+            "forts": 0,
+            "silver": 2,
+            "gold": 0,
+            "green": 12,
+            "farm": 2,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.25000000000000006,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "swindler": 0,
+            "farm": 0,
+            "village": 2,
+            "green": 0
+          }
+        },
+        {
+          "score": 0.2416666666666667,
+          "parameters": {
+            "collection": 3,
+            "envoy": 2,
+            "swindler": 1,
+            "village": 4,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 1,
+            "mystic": 1,
+            "ship": 2,
+            "forts": 0,
+            "silver": 1,
+            "gold": 0,
+            "green": 8,
+            "farm": 0,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.24166666666666664,
+          "parameters": {
+            "collection": 5,
+            "envoy": 2,
+            "swindler": 1,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 2,
+            "forts": 0,
+            "silver": 99,
+            "gold": 0,
+            "green": 8,
+            "farm": 3,
+            "opening": "Silver",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.23333333333333334,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "swindler": 1,
+            "farm": 0,
+            "village": 4,
+            "green": 0
+          }
+        },
+        {
+          "score": 0.23333333333333334,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "swindler": 1,
+            "farm": 0,
+            "village": 2,
+            "green": 0
+          }
+        },
+        {
+          "score": 0.225,
+          "parameters": {
+            "collection": 5,
+            "envoy": 3,
+            "swindler": 1,
+            "village": 0,
+            "ghost": 2,
+            "sleigh": 0,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 0,
+            "silver": 3,
+            "gold": 99,
+            "green": 0,
+            "farm": 2,
+            "opening": "Swindler",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.225,
+          "parameters": {
+            "collection": 0,
+            "envoy": 3,
+            "swindler": 0,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 1,
+            "forts": 0,
+            "silver": 1,
+            "gold": 99,
+            "green": 12,
+            "farm": 2,
+            "opening": "Swindler",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.225,
+          "parameters": {
+            "collection": 3,
+            "envoy": 1,
+            "swindler": 1,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 0,
+            "silver": 1,
+            "gold": 0,
+            "green": 12,
+            "farm": 2,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.2166666666666667,
+          "parameters": {
+            "collection": 4,
+            "envoy": 3,
+            "swindler": 1,
+            "farm": 0,
+            "village": 4,
+            "green": 0
+          }
+        },
+        {
+          "score": 0.20833333333333334,
+          "parameters": {
+            "collection": 2,
+            "envoy": 4,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 4,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 3,
+            "ship": 0,
+            "forts": 1,
+            "silver": 1,
+            "gold": 2,
+            "green": 99,
+            "farm": 2,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.20833333333333331,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "swindler": 0,
+            "farm": 0,
+            "village": 4,
+            "green": 0
+          }
+        },
+        {
+          "score": 0.20833333333333331,
+          "parameters": {
+            "collection": 5,
+            "envoy": 1,
+            "swindler": 2,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 3,
+            "silver": 2,
+            "gold": 99,
+            "green": 8,
+            "farm": 2,
+            "opening": "Sleigh",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.2,
+          "parameters": {
+            "collection": 3,
+            "envoy": 4,
+            "swindler": 1,
+            "village": 2,
+            "ghost": 4,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 3,
+            "ship": 0,
+            "forts": 0,
+            "silver": 3,
+            "gold": 0,
+            "green": 99,
+            "farm": 2,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.19166666666666668,
+          "parameters": {
+            "collection": 3,
+            "envoy": 2,
+            "swindler": 2,
+            "village": 0,
+            "ghost": 2,
+            "sleigh": 0,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 2,
+            "silver": 99,
+            "gold": 0,
+            "green": 0,
+            "farm": 3,
+            "opening": "Sleigh",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.19166666666666665,
+          "parameters": {
+            "collection": 0,
+            "envoy": 3,
+            "swindler": 2,
+            "village": 4,
+            "ghost": 4,
+            "sleigh": 1,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 0,
+            "silver": 99,
+            "gold": 99,
+            "green": 8,
+            "farm": 1,
+            "opening": "Silver",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.19166666666666665,
+          "parameters": {
+            "collection": 5,
+            "envoy": 4,
+            "swindler": 1,
+            "village": 0,
+            "ghost": 4,
+            "sleigh": 0,
+            "fish": 1,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 0,
+            "silver": 3,
+            "gold": 0,
+            "green": 12,
+            "farm": 2,
+            "opening": "Sleigh",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.16666666666666669,
+          "parameters": {
+            "collection": 5,
+            "envoy": 3,
+            "swindler": 1,
+            "village": 2,
+            "ghost": 2,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 3,
+            "ship": 0,
+            "forts": 3,
+            "silver": 3,
+            "gold": 0,
+            "green": 8,
+            "farm": 1,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.16666666666666669,
+          "parameters": {
+            "collection": 3,
+            "envoy": 2,
+            "swindler": 0,
+            "village": 0,
+            "ghost": 4,
+            "sleigh": 0,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 0,
+            "forts": 0,
+            "silver": 1,
+            "gold": 99,
+            "green": 0,
+            "farm": 2,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.15833333333333335,
+          "parameters": {
+            "collection": 3,
+            "envoy": 3,
+            "swindler": 1,
+            "village": 4,
+            "ghost": 2,
+            "sleigh": 0,
+            "fish": 1,
+            "mystic": 1,
+            "ship": 2,
+            "forts": 1,
+            "silver": 2,
+            "gold": 99,
+            "green": 8,
+            "farm": 3,
+            "opening": "Sleigh",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.15833333333333333,
+          "parameters": {
+            "collection": 0,
+            "envoy": 3,
+            "swindler": 2,
+            "village": 4,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 2,
+            "forts": 0,
+            "silver": 3,
+            "gold": 0,
+            "green": 0,
+            "farm": 1,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.15,
+          "parameters": {
+            "collection": 2,
+            "envoy": 4,
+            "swindler": 0,
+            "village": 6,
+            "ghost": 4,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 0,
+            "forts": 3,
+            "silver": 3,
+            "gold": 2,
+            "green": 12,
+            "farm": 0,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.15,
+          "parameters": {
+            "collection": 3,
+            "envoy": 2,
+            "swindler": 0,
+            "village": 4,
+            "ghost": 4,
+            "sleigh": 0,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 0,
+            "forts": 0,
+            "silver": 2,
+            "gold": 0,
+            "green": 12,
+            "farm": 2,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.15,
+          "parameters": {
+            "collection": 3,
+            "envoy": 3,
+            "swindler": 0,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 3,
+            "mystic": 3,
+            "ship": 2,
+            "forts": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 0,
+            "farm": 1,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.15,
+          "parameters": {
+            "collection": 0,
+            "envoy": 1,
+            "swindler": 2,
+            "village": 2,
+            "ghost": 2,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 3,
+            "ship": 2,
+            "forts": 3,
+            "silver": 2,
+            "gold": 99,
+            "green": 0,
+            "farm": 0,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.14166666666666666,
+          "parameters": {
+            "collection": 2,
+            "envoy": 2,
+            "swindler": 2,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 3,
+            "mystic": 1,
+            "ship": 1,
+            "forts": 2,
+            "silver": 2,
+            "gold": 2,
+            "green": 0,
+            "farm": 0,
+            "opening": "Swindler",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.14166666666666666,
+          "parameters": {
+            "collection": 3,
+            "envoy": 1,
+            "swindler": 1,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 0,
+            "mystic": 3,
+            "ship": 2,
+            "forts": 0,
+            "silver": 3,
+            "gold": 99,
+            "green": 8,
+            "farm": 0,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.14166666666666666,
+          "parameters": {
+            "collection": 3,
+            "envoy": 2,
+            "swindler": 2,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 0,
+            "silver": 1,
+            "gold": 99,
+            "green": 0,
+            "farm": 2,
+            "opening": "Swindler",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.1375,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "swindler": 2,
+            "village": 6,
+            "ghost": 4,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 1,
+            "ship": 2,
+            "forts": 1,
+            "silver": 99,
+            "gold": 2,
+            "green": 99,
+            "farm": 1,
+            "opening": "Tent",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.13333333333333336,
+          "parameters": {
+            "collection": 0,
+            "envoy": 4,
+            "swindler": 2,
+            "village": 6,
+            "ghost": 2,
+            "sleigh": 0,
+            "fish": 3,
+            "mystic": 1,
+            "ship": 0,
+            "forts": 3,
+            "silver": 3,
+            "gold": 99,
+            "green": 0,
+            "farm": 2,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.13333333333333336,
+          "parameters": {
+            "collection": 2,
+            "envoy": 2,
+            "swindler": 2,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 0,
+            "silver": 1,
+            "gold": 0,
+            "green": 8,
+            "farm": 2,
+            "opening": "Sleigh",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.13333333333333336,
+          "parameters": {
+            "collection": 5,
+            "envoy": 1,
+            "swindler": 1,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 0,
+            "farm": 0,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.13333333333333333,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 4,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 1,
+            "forts": 0,
+            "silver": 3,
+            "gold": 0,
+            "green": 8,
+            "farm": 3,
+            "opening": "Swindler",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.125,
+          "parameters": {
+            "collection": 5,
+            "envoy": 2,
+            "swindler": 1,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 0,
+            "ship": 1,
+            "forts": 3,
+            "silver": 2,
+            "gold": 99,
+            "green": 99,
+            "farm": 1,
+            "opening": "Swindler",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.12499999999999997,
+          "parameters": {
+            "collection": 2,
+            "envoy": 2,
+            "swindler": 0,
+            "village": 4,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 0,
+            "silver": 1,
+            "gold": 2,
+            "green": 99,
+            "farm": 2,
+            "opening": "Tent",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.10833333333333332,
+          "parameters": {
+            "collection": 3,
+            "envoy": 1,
+            "swindler": 1,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 1,
+            "forts": 2,
+            "silver": 99,
+            "gold": 0,
+            "green": 0,
+            "farm": 2,
+            "opening": "Tent",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.10833333333333332,
+          "parameters": {
+            "collection": 5,
+            "envoy": 4,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 4,
+            "sleigh": 0,
+            "fish": 0,
+            "mystic": 3,
+            "ship": 0,
+            "forts": 0,
+            "silver": 3,
+            "gold": 99,
+            "green": 12,
+            "farm": 0,
+            "opening": "Swindler",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.1,
+          "parameters": {
+            "collection": 2,
+            "envoy": 4,
+            "swindler": 1,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 1,
+            "mystic": 3,
+            "ship": 1,
+            "forts": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 12,
+            "farm": 0,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.1,
+          "parameters": {
+            "collection": 5,
+            "envoy": 2,
+            "swindler": 1,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 1,
+            "silver": 2,
+            "gold": 0,
+            "green": 0,
+            "farm": 0,
+            "opening": "Tent",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.1,
+          "parameters": {
+            "collection": 3,
+            "envoy": 4,
+            "swindler": 2,
+            "village": 4,
+            "ghost": 2,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 3,
+            "ship": 2,
+            "forts": 1,
+            "silver": 2,
+            "gold": 0,
+            "green": 99,
+            "farm": 1,
+            "opening": "Tent",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.09999999999999999,
+          "parameters": {
+            "collection": 2,
+            "envoy": 4,
+            "swindler": 2,
+            "village": 0,
+            "ghost": 2,
+            "sleigh": 1,
+            "fish": 1,
+            "mystic": 1,
+            "ship": 1,
+            "forts": 1,
+            "silver": 2,
+            "gold": 0,
+            "green": 8,
+            "farm": 2,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.09166666666666667,
+          "parameters": {
+            "collection": 3,
+            "envoy": 3,
+            "swindler": 1,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 3,
+            "silver": 99,
+            "gold": 0,
+            "green": 99,
+            "farm": 3,
+            "opening": "Tent",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.09166666666666667,
+          "parameters": {
+            "collection": 2,
+            "envoy": 2,
+            "swindler": 2,
+            "village": 6,
+            "ghost": 2,
+            "sleigh": 0,
+            "fish": 3,
+            "mystic": 1,
+            "ship": 1,
+            "forts": 0,
+            "silver": 3,
+            "gold": 2,
+            "green": 99,
+            "farm": 3,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.09166666666666666,
+          "parameters": {
+            "collection": 5,
+            "envoy": 1,
+            "swindler": 1,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 3,
+            "ship": 0,
+            "forts": 1,
+            "silver": 1,
+            "gold": 0,
+            "green": 0,
+            "farm": 1,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.08333333333333334,
+          "parameters": {
+            "collection": 3,
+            "envoy": 3,
+            "swindler": 2,
+            "village": 4,
+            "ghost": 2,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 1,
+            "silver": 99,
+            "gold": 0,
+            "green": 8,
+            "farm": 0,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.08333333333333334,
+          "parameters": {
+            "collection": 0,
+            "envoy": 1,
+            "swindler": 0,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 1,
+            "forts": 0,
+            "silver": 99,
+            "gold": 99,
+            "green": 8,
+            "farm": 2,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.08333333333333334,
+          "parameters": {
+            "collection": 5,
+            "envoy": 4,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 2,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 1,
+            "ship": 0,
+            "forts": 0,
+            "silver": 1,
+            "gold": 2,
+            "green": 12,
+            "farm": 2,
+            "opening": "Silver",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.075,
+          "parameters": {
+            "collection": 5,
+            "envoy": 1,
+            "swindler": 0,
+            "village": 0,
+            "ghost": 4,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 0,
+            "silver": 1,
+            "gold": 99,
+            "green": 0,
+            "farm": 2,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.06666666666666668,
+          "parameters": {
+            "collection": 5,
+            "envoy": 3,
+            "swindler": 1,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 0,
+            "forts": 0,
+            "silver": 3,
+            "gold": 99,
+            "green": 8,
+            "farm": 2,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.06666666666666667,
+          "parameters": {
+            "collection": 5,
+            "envoy": 1,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 4,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 3,
+            "ship": 2,
+            "forts": 1,
+            "silver": 2,
+            "gold": 99,
+            "green": 8,
+            "farm": 3,
+            "opening": "Tent",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.06666666666666667,
+          "parameters": {
+            "collection": 0,
+            "envoy": 4,
+            "swindler": 2,
+            "village": 4,
+            "ghost": 4,
+            "sleigh": 0,
+            "fish": 1,
+            "mystic": 3,
+            "ship": 0,
+            "forts": 1,
+            "silver": 99,
+            "gold": 2,
+            "green": 0,
+            "farm": 1,
+            "opening": "Sleigh",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.06666666666666667,
+          "parameters": {
+            "collection": 2,
+            "envoy": 2,
+            "swindler": 1,
+            "village": 4,
+            "ghost": 4,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 1,
+            "silver": 2,
+            "gold": 2,
+            "green": 8,
+            "farm": 2,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.06666666666666667,
+          "parameters": {
+            "collection": 3,
+            "envoy": 1,
+            "swindler": 1,
+            "village": 4,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 2,
+            "silver": 1,
+            "gold": 99,
+            "green": 12,
+            "farm": 1,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.058333333333333334,
+          "parameters": {
+            "collection": 3,
+            "envoy": 4,
+            "swindler": 2,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 3,
+            "ship": 0,
+            "forts": 1,
+            "silver": 1,
+            "gold": 0,
+            "green": 0,
+            "farm": 2,
+            "opening": "Silver",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.05833333333333333,
+          "parameters": {
+            "collection": 5,
+            "envoy": 2,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 1,
+            "forts": 3,
+            "silver": 3,
+            "gold": 2,
+            "green": 8,
+            "farm": 0,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.05833333333333333,
+          "parameters": {
+            "collection": 0,
+            "envoy": 4,
+            "swindler": 0,
+            "village": 6,
+            "ghost": 2,
+            "sleigh": 0,
+            "fish": 1,
+            "mystic": 1,
+            "ship": 1,
+            "forts": 1,
+            "silver": 99,
+            "gold": 99,
+            "green": 0,
+            "farm": 2,
+            "opening": "Swindler",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.05833333333333333,
+          "parameters": {
+            "collection": 5,
+            "envoy": 1,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 0,
+            "silver": 99,
+            "gold": 99,
+            "green": 0,
+            "farm": 1,
+            "opening": "Silver",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.05,
+          "parameters": {
+            "collection": 0,
+            "envoy": 2,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 2,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 0,
+            "silver": 1,
+            "gold": 99,
+            "green": 8,
+            "farm": 1,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.05,
+          "parameters": {
+            "collection": 3,
+            "envoy": 2,
+            "swindler": 0,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 0,
+            "silver": 2,
+            "gold": 0,
+            "green": 99,
+            "farm": 1,
+            "opening": "Sleigh",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.05,
+          "parameters": {
+            "collection": 5,
+            "envoy": 2,
+            "swindler": 1,
+            "village": 2,
+            "ghost": 2,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 1,
+            "silver": 2,
+            "gold": 99,
+            "green": 99,
+            "farm": 0,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.049999999999999996,
+          "parameters": {
+            "collection": 3,
+            "envoy": 3,
+            "swindler": 2,
+            "village": 0,
+            "ghost": 4,
+            "sleigh": 1,
+            "fish": 3,
+            "mystic": 3,
+            "ship": 2,
+            "forts": 1,
+            "silver": 3,
+            "gold": 99,
+            "green": 99,
+            "farm": 3,
+            "opening": "Tent",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.049999999999999996,
+          "parameters": {
+            "collection": 5,
+            "envoy": 3,
+            "swindler": 1,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 1,
+            "forts": 1,
+            "silver": 3,
+            "gold": 0,
+            "green": 0,
+            "farm": 1,
+            "opening": "Sleigh",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.041666666666666664,
+          "parameters": {
+            "collection": 5,
+            "envoy": 4,
+            "swindler": 1,
+            "village": 0,
+            "ghost": 4,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 3,
+            "ship": 2,
+            "forts": 2,
+            "silver": 3,
+            "gold": 2,
+            "green": 99,
+            "farm": 1,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.03333333333333333,
+          "parameters": {
+            "collection": 2,
+            "envoy": 2,
+            "swindler": 1,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 3,
+            "ship": 0,
+            "forts": 0,
+            "silver": 99,
+            "gold": 0,
+            "green": 12,
+            "farm": 3,
+            "opening": "Swindler",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.03333333333333333,
+          "parameters": {
+            "collection": 5,
+            "envoy": 4,
+            "swindler": 2,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 2,
+            "silver": 1,
+            "gold": 2,
+            "green": 12,
+            "farm": 0,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.03333333333333333,
+          "parameters": {
+            "collection": 0,
+            "envoy": 3,
+            "swindler": 2,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 3,
+            "ship": 2,
+            "forts": 3,
+            "silver": 99,
+            "gold": 0,
+            "green": 0,
+            "farm": 0,
+            "opening": "Swindler",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.03333333333333333,
+          "parameters": {
+            "collection": 5,
+            "envoy": 3,
+            "swindler": 0,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 1,
+            "mystic": 1,
+            "ship": 0,
+            "forts": 2,
+            "silver": 2,
+            "gold": 0,
+            "green": 12,
+            "farm": 2,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.025,
+          "parameters": {
+            "collection": 5,
+            "envoy": 3,
+            "swindler": 0,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 3,
+            "mystic": 3,
+            "ship": 2,
+            "forts": 0,
+            "silver": 1,
+            "gold": 2,
+            "green": 8,
+            "farm": 2,
+            "opening": "Sleigh",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.025,
+          "parameters": {
+            "collection": 5,
+            "envoy": 3,
+            "swindler": 1,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 0,
+            "silver": 2,
+            "gold": 2,
+            "green": 12,
+            "farm": 3,
+            "opening": "Tent",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.025,
+          "parameters": {
+            "collection": 2,
+            "envoy": 4,
+            "swindler": 0,
+            "village": 6,
+            "ghost": 4,
+            "sleigh": 1,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 1,
+            "silver": 3,
+            "gold": 99,
+            "green": 8,
+            "farm": 1,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.025,
+          "parameters": {
+            "collection": 0,
+            "envoy": 1,
+            "swindler": 0,
+            "village": 6,
+            "ghost": 4,
+            "sleigh": 1,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 2,
+            "forts": 2,
+            "silver": 99,
+            "gold": 2,
+            "green": 0,
+            "farm": 2,
+            "opening": "Tent",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.025,
+          "parameters": {
+            "collection": 0,
+            "envoy": 3,
+            "swindler": 1,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 1,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 2,
+            "silver": 1,
+            "gold": 99,
+            "green": 12,
+            "farm": 2,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.025,
+          "parameters": {
+            "collection": 3,
+            "envoy": 3,
+            "swindler": 1,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 1,
+            "mystic": 1,
+            "ship": 1,
+            "forts": 1,
+            "silver": 2,
+            "gold": 2,
+            "green": 8,
+            "farm": 0,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.016666666666666666,
+          "parameters": {
+            "collection": 2,
+            "envoy": 4,
+            "swindler": 0,
+            "village": 0,
+            "ghost": 2,
+            "sleigh": 1,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 1,
+            "silver": 99,
+            "gold": 99,
+            "green": 0,
+            "farm": 2,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.016666666666666666,
+          "parameters": {
+            "collection": 2,
+            "envoy": 4,
+            "swindler": 0,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 3,
+            "mystic": 1,
+            "ship": 0,
+            "forts": 2,
+            "silver": 3,
+            "gold": 0,
+            "green": 99,
+            "farm": 2,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.008333333333333333,
+          "parameters": {
+            "collection": 2,
+            "envoy": 4,
+            "swindler": 1,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 1,
+            "ship": 0,
+            "forts": 2,
+            "silver": 99,
+            "gold": 2,
+            "green": 0,
+            "farm": 2,
+            "opening": "Sleigh",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.008333333333333333,
+          "parameters": {
+            "collection": 5,
+            "envoy": 3,
+            "swindler": 2,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 0,
+            "ship": 1,
+            "forts": 3,
+            "silver": 2,
+            "gold": 99,
+            "green": 12,
+            "farm": 3,
+            "opening": "Sleigh",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.008333333333333333,
+          "parameters": {
+            "collection": 3,
+            "envoy": 3,
+            "swindler": 0,
+            "village": 0,
+            "ghost": 2,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 3,
+            "ship": 0,
+            "forts": 2,
+            "silver": 2,
+            "gold": 0,
+            "green": 12,
+            "farm": 3,
+            "opening": "Silver",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.008333333333333333,
+          "parameters": {
+            "collection": 3,
+            "envoy": 4,
+            "swindler": 0,
+            "village": 4,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 0,
+            "silver": 3,
+            "gold": 0,
+            "green": 0,
+            "farm": 2,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.008333333333333333,
+          "parameters": {
+            "collection": 0,
+            "envoy": 3,
+            "swindler": 2,
+            "village": 6,
+            "ghost": 2,
+            "sleigh": 1,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 99,
+            "farm": 1,
+            "opening": "Sleigh",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.008333333333333333,
+          "parameters": {
+            "collection": 0,
+            "envoy": 3,
+            "swindler": 2,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 3,
+            "ship": 0,
+            "forts": 3,
+            "silver": 3,
+            "gold": 0,
+            "green": 99,
+            "farm": 1,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.008333333333333333,
+          "parameters": {
+            "collection": 5,
+            "envoy": 4,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 4,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 1,
+            "silver": 3,
+            "gold": 0,
+            "green": 12,
+            "farm": 2,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.008333333333333333,
+          "parameters": {
+            "collection": 3,
+            "envoy": 4,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 3,
+            "mystic": 1,
+            "ship": 1,
+            "forts": 1,
+            "silver": 3,
+            "gold": 99,
+            "green": 99,
+            "farm": 2,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.008333333333333333,
+          "parameters": {
+            "collection": 5,
+            "envoy": 2,
+            "swindler": 1,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 1,
+            "ship": 1,
+            "forts": 1,
+            "silver": 99,
+            "gold": 0,
+            "green": 99,
+            "farm": 3,
+            "opening": "Tent",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.008333333333333333,
+          "parameters": {
+            "collection": 5,
+            "envoy": 2,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 1,
+            "mystic": 3,
+            "ship": 0,
+            "forts": 3,
+            "silver": 3,
+            "gold": 2,
+            "green": 0,
+            "farm": 3,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 0,
+            "envoy": 4,
+            "swindler": 1,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 1,
+            "ship": 0,
+            "forts": 3,
+            "silver": 1,
+            "gold": 0,
+            "green": 8,
+            "farm": 0,
+            "opening": "Sleigh",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "swindler": 0,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 3,
+            "ship": 2,
+            "forts": 2,
+            "silver": 2,
+            "gold": 2,
+            "green": 0,
+            "farm": 2,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 5,
+            "envoy": 1,
+            "swindler": 0,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 3,
+            "ship": 1,
+            "forts": 3,
+            "silver": 99,
+            "gold": 99,
+            "green": 12,
+            "farm": 1,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "swindler": 2,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 1,
+            "forts": 2,
+            "silver": 2,
+            "gold": 0,
+            "green": 99,
+            "farm": 0,
+            "opening": "Tent",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 0,
+            "envoy": 3,
+            "swindler": 2,
+            "village": 4,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 1,
+            "silver": 1,
+            "gold": 0,
+            "green": 8,
+            "farm": 0,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 0,
+            "envoy": 3,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 3,
+            "ship": 2,
+            "forts": 0,
+            "silver": 3,
+            "gold": 2,
+            "green": 8,
+            "farm": 3,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 5,
+            "envoy": 3,
+            "swindler": 0,
+            "village": 0,
+            "ghost": 2,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 1,
+            "forts": 0,
+            "silver": 3,
+            "gold": 0,
+            "green": 99,
+            "farm": 0,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 0,
+            "envoy": 1,
+            "swindler": 0,
+            "village": 2,
+            "ghost": 2,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 3,
+            "silver": 3,
+            "gold": 0,
+            "green": 0,
+            "farm": 0,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 2,
+            "envoy": 2,
+            "swindler": 1,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 0,
+            "silver": 99,
+            "gold": 99,
+            "green": 99,
+            "farm": 3,
+            "opening": "Tent",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "swindler": 1,
+            "village": 2,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 1,
+            "forts": 0,
+            "silver": 2,
+            "gold": 2,
+            "green": 0,
+            "farm": 3,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 3,
+            "envoy": 4,
+            "swindler": 0,
+            "village": 4,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 1,
+            "ship": 2,
+            "forts": 2,
+            "silver": 1,
+            "gold": 2,
+            "green": 99,
+            "farm": 0,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "swindler": 0,
+            "village": 4,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 1,
+            "forts": 3,
+            "silver": 99,
+            "gold": 99,
+            "green": 99,
+            "farm": 3,
+            "opening": "Swindler",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 0,
+            "envoy": 4,
+            "swindler": 0,
+            "village": 4,
+            "ghost": 4,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 1,
+            "ship": 2,
+            "forts": 1,
+            "silver": 3,
+            "gold": 2,
+            "green": 8,
+            "farm": 0,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "swindler": 2,
+            "village": 4,
+            "ghost": 0,
+            "sleigh": 1,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 0,
+            "silver": 2,
+            "gold": 2,
+            "green": 99,
+            "farm": 0,
+            "opening": "Tent",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 2,
+            "envoy": 2,
+            "swindler": 0,
+            "village": 6,
+            "ghost": 4,
+            "sleigh": 0,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 0,
+            "forts": 2,
+            "silver": 2,
+            "gold": 2,
+            "green": 8,
+            "farm": 3,
+            "opening": "Sleigh",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 0,
+            "envoy": 3,
+            "swindler": 1,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 0,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 3,
+            "silver": 1,
+            "gold": 2,
+            "green": 99,
+            "farm": 3,
+            "opening": "Swindler",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 2,
+            "envoy": 2,
+            "swindler": 0,
+            "village": 4,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 1,
+            "ship": 0,
+            "forts": 1,
+            "silver": 2,
+            "gold": 0,
+            "green": 8,
+            "farm": 0,
+            "opening": "Sleigh",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 0,
+            "envoy": 2,
+            "swindler": 0,
+            "village": 0,
+            "ghost": 4,
+            "sleigh": 1,
+            "fish": 3,
+            "mystic": 0,
+            "ship": 2,
+            "forts": 3,
+            "silver": 2,
+            "gold": 0,
+            "green": 8,
+            "farm": 1,
+            "opening": "Silver",
+            "first_five": "Imperial Envoy"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 0,
+            "envoy": 2,
+            "swindler": 0,
+            "village": 6,
+            "ghost": 0,
+            "sleigh": 2,
+            "fish": 1,
+            "mystic": 3,
+            "ship": 1,
+            "forts": 3,
+            "silver": 3,
+            "gold": 0,
+            "green": 0,
+            "farm": 2,
+            "opening": "Silver",
+            "first_five": "Collection"
+          }
+        },
+        {
+          "score": 0.0,
+          "parameters": {
+            "collection": 0,
+            "envoy": 4,
+            "swindler": 2,
+            "village": 0,
+            "ghost": 0,
+            "sleigh": 0,
+            "fish": 1,
+            "mystic": 3,
+            "ship": 0,
+            "forts": 2,
+            "silver": 3,
+            "gold": 2,
+            "green": 99,
+            "farm": 2,
+            "opening": "Tent",
+            "first_five": "Imperial Envoy"
+          }
+        }
+      ]
+    },
+    "refinement": {
+      "matches": 476,
+      "games": 19040,
+      "truncated": 0,
+      "ranking": [
+        {
+          "score": 0.7821428571428573,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "ghost": 2,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.75,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 99,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.7499999999999999,
+          "parameters": {
+            "collection": 4,
+            "envoy": 0,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.7142857142857144,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "ghost": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.7071428571428572,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 16,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.7000000000000001,
+          "parameters": {
+            "collection": 3,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.7000000000000001,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "ship": 1,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.7000000000000001,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "gold": 2,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6964285714285714,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "ghost": 4,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.692857142857143,
+          "parameters": {
+            "cheap_first": false,
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6857142857142858,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "fish": 3,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.682142857142857,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "forts": 0,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6785714285714286,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "opening": "Swindler",
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6749999999999999,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "ship": 0,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6714285714285715,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "mystic": 0,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6714285714285715,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "first_five": "Collection",
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6678571428571429,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "silver": 2,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6678571428571428,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 4
+          }
+        },
+        {
+          "score": 0.6678571428571428,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 6
+          }
+        },
+        {
+          "score": 0.6678571428571428,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "ghost": 0,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6642857142857144,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 1
+          }
+        },
+        {
+          "score": 0.6607142857142857,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "sleigh": 0,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6607142857142857,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "gold": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6571428571428571,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6535714285714286,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6535714285714286,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "silver": 1,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6464285714285715,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 3
+          }
+        },
+        {
+          "score": 0.6464285714285715,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "opening": "Silver",
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6446428571428571,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "fish": 0,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6428571428571429,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "fish": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6428571428571429,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "gold": 0,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6428571428571429,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "gold": 99,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6392857142857142,
+          "parameters": {
+            "collection": 5,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6357142857142858,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "silver": 0,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6339285714285714,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 3,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6321428571428571,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "silver": 99,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6285714285714287,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 8,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6285714285714287,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "mystic": 1,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6142857142857142,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "ship": 2,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6089285714285715,
+          "parameters": {
+            "collection": 6,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6071428571428571,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 0,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6053571428571428,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 0
+          }
+        },
+        {
+          "score": 0.6,
+          "parameters": {
+            "collection": 8,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.6,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "mystic": 2,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.5928571428571429,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "farm": 1,
+            "first_five": "Collection",
+            "fish": 1,
+            "forts": 1,
+            "ghost": 2,
+            "gold": 99,
+            "green": 99,
+            "mystic": 0,
+            "opening": "Swindler",
+            "ship": 0,
+            "silver": 1,
+            "sleigh": 0,
+            "swindler": 0,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.5910714285714286,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 1,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.5857142857142857,
+          "parameters": {
+            "collection": 4,
+            "envoy": 2,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.5839285714285715,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "first_five": "Imperial Envoy",
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.5714285714285714,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 0,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.5624999999999999,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "forts": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.5535714285714286,
+          "parameters": {
+            "collection": 1,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.5535714285714286,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "forts": 3,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.5535714285714285,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 1,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.5517857142857143,
+          "parameters": {
+            "collection": 2,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 0,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.5392857142857143,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 2,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.5285714285714286,
+          "parameters": {
+            "collection": 4,
+            "envoy": 3,
+            "farm": 1,
+            "gold": 0,
+            "green": 99,
+            "village": 5
+          }
+        },
+        {
+          "score": 0.5285714285714286,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "forts": 2,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.5142857142857143,
+          "parameters": {
+            "collection": 2,
+            "envoy": 3,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 4
+          }
+        },
+        {
+          "score": 0.5071428571428571,
+          "parameters": {
+            "cheap_first": true,
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.5017857142857143,
+          "parameters": {
+            "collection": 3,
+            "envoy": 1,
+            "farm": 1,
+            "first_five": "Collection",
+            "fish": 0,
+            "forts": 3,
+            "ghost": 4,
+            "gold": 0,
+            "green": 99,
+            "mystic": 1,
+            "opening": "Tent",
+            "ship": 2,
+            "silver": 2,
+            "sleigh": 0,
+            "swindler": 1,
+            "village": 0
+          }
+        },
+        {
+          "score": 0.47500000000000003,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "sleigh": 1,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.4660714285714285,
+          "parameters": {
+            "collection": 4,
+            "envoy": 3,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 4
+          }
+        },
+        {
+          "score": 0.43571428571428567,
+          "parameters": {
+            "collection": 4,
+            "envoy": 3,
+            "farm": 1,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.41428571428571426,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "opening": "Tent",
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.37678571428571433,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 3,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.3607142857142857,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "sleigh": 2,
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.35000000000000003,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 1,
+            "green": 12,
+            "opening": "Sleigh",
+            "swindler": 2,
+            "village": 2
+          }
+        },
+        {
+          "score": 0.30892857142857144,
+          "parameters": {
+            "collection": 4,
+            "envoy": 1,
+            "farm": 0,
+            "green": 12,
+            "swindler": 2,
+            "village": 2
+          }
+        }
+      ]
+    }
+  },
+  "winner_parameters": {
+    "collection": 4,
+    "envoy": 0,
+    "village": 2,
+    "swindler": 2,
+    "ghost": 0,
+    "sleigh": 0,
+    "fish": 1,
+    "mystic": 0,
+    "ship": 0,
+    "forts": 0,
+    "silver": 2,
+    "gold": 2,
+    "green": 12,
+    "duchy": 3,
+    "farm": 1,
+    "opening": "Swindler",
+    "first_five": "Collection",
+    "cheap_first": false
+  },
+  "tournament_games": 21000,
+  "validation_games": 16000,
+  "total_games": 75360,
+  "validation_mean_score": 37.1135,
+  "validation_mean_tokens": 15.7131875,
+  "limitations": [
+    "Finite parameter search; not a proof of optimal Dominion play.",
+    "Two-player Province game only.",
+    "Fixed tactical defaults; no comprehensive multi-card endgame planning.",
+    "Repeated screening parameter sets can describe the same policy; finalist entrants are deduplicated by complete parameters."
+  ]
+}

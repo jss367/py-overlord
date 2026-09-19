@@ -2652,6 +2652,13 @@ class AI(ABC):
         """Cultist: chain another Cultist from hand if possible."""
         return True
 
+    def choose_swindler_replacement(self, state, player, target, choices):
+        """Choose a weak replacement for the opponent, independently of buying."""
+        return min(choices, key=lambda c: (
+            0 if c.name == "Curse" else 1 if c.is_victory else 2,
+            c.stats.cards + c.stats.actions + c.stats.coins, c.name,
+        )) if choices else None
+
     def name_card_for_mystic(
         self, state: GameState, player: PlayerState
     ) -> str:

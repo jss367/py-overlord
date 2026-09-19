@@ -200,9 +200,48 @@ def _hunting_grounds_ghost_ship(strategy) -> dict[str, DecisionInstructions]:
     }
 
 
+def _collection_imperial_envoy(strategy) -> dict[str, DecisionInstructions]:
+    p = strategy.params
+    steps = [
+        f"Province from your turn {p['green']}, or with two or fewer Provinces left.",
+        f"Duchy with {p['duchy']} or fewer Provinces left; Estate with one or fewer.",
+        f"On your first two turns, your first {p['opening']}.",
+        f"If neither Collection nor Imperial Envoy is owned, prefer {p['first_five']} if its target is positive.",
+        f"Swindler up to {p['swindler']} owned copies.",
+        f"Imperial Envoy up to {p['envoy']} copies, requiring at least as many Villages plus Ghost Towns as existing Envoys before buying another.",
+        f"Collection up to {p['collection']} copies.",
+        f"Village up to {p['village']} copies, only while its existing count is no greater than the combined Envoy, Swindler, Sleigh and Merchant Ship count.",
+        f"Mystic up to {p['mystic']}; Merchant Ship up to {p['ship']}; Ghost Town up to {p['ghost']}; Sleigh up to {p['sleigh']}.",
+    ]
+    if p['forts']:
+        steps.append("Your first Tent, then Stronghold, Hill Fort and Garrison up to two each, when exposed.")
+    if p['farm']:
+        order = "Fishmonger, Sleigh, Village, Swindler, Tent" if p['cheap_first'] else "Village, Fishmonger, Sleigh, Swindler, Tent"
+        steps.append(f"With at least {p['farm']} Collections played this turn, buy Actions without a copy cap in this order: {order}.")
+    steps.extend([
+        f"Gold up to {p['gold']}; Silver up to {p['silver']}; Fishmonger up to {p['fish']}.",
+        "With three or fewer Provinces left, Duchy then Estate. Otherwise pass.",
+    ])
+    return {
+        "choose_gain": DecisionInstructions("Take the first eligible, available card; purchases must be affordable. Counts include attack gains. Zero targets skip a card.", tuple(steps)),
+        "choose_allies_option": DecisionInstructions("Forts rotation.", (
+            "Do not rotate." if not p['forts'] else "Rotate with Tent until " + {1: "Garrison", 2: "Hill Fort", 3: "Stronghold"}[p['forts']] + " is exposed.",
+            "Use the simulator's supplied defaults for other Allies decisions.",
+        )),
+        "name_card_for_mystic": DecisionInstructions("Name the most common card in the remaining deck, including Copper.", (
+            "Infer composition from owned cards minus visible zones; do not inspect hidden order. If the deck is empty, use the discard composition. Break ties alphabetically.",
+        )),
+        "choose_swindler_replacement": DecisionInstructions("Give the opponent the first legal exposed card in this order.", (
+            "Curse, Estate, Duchy, Tent, Silver, Fishmonger, Merchant Ship, Mystic, Swindler, Ghost Town, Village, Garrison, Hill Fort, Sleigh, Gold, Stronghold, Imperial Envoy, Collection, Province, Copper.",
+            "If none of those is offered, choose the first offered card.",
+        )),
+    }
+
+
 # Keys identify the class that implements the hook, including its module.
 # StrategyLoader imports modules afresh, so Python class identity is not stable.
 _PROVIDERS = {
+    "dominion.strategy.strategies.collection_imperial_envoy.CollectionImperialEnvoy": _collection_imperial_envoy,
     "dominion.strategy.strategies.hunting_grounds_ghost_ship.HuntingGroundsPolicy": _hunting_grounds_ghost_ship,
     "dominion.strategy.strategies.stables_ninja_museum.StablesNinjaMuseum": _stables_ninja_museum,
 }
