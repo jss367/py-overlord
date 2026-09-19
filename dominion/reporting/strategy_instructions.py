@@ -76,12 +76,14 @@ def _stables_ninja_museum(strategy) -> dict[str, DecisionInstructions]:
 
     actions = ["Harbor Village."]
     if p["ninja_first"]:
-        actions.append("Ninja.")
+        actions.append("Ninja, while you have an Action to spare.")
     actions += [
         "Conclave if your hand has an Action other than Conclave whose name is not already in play.",
-        "Watchtower if your hand has five or fewer cards.",
+        "Watchtower if your hand has five or fewer cards and you have an Action to spare.",
         "Stables if your hand contains a Treasure.",
-        "Innkeeper, then Silk Merchant, then Ninja.",
+        "Innkeeper.",
+        "Watchtower if your hand has five or fewer cards.",
+        "Silk Merchant, then Ninja.",
         "Catapult if your hand contains a card selected by the trashing instructions below.",
         "Conclave. Otherwise play no Action.",
     ]
@@ -99,7 +101,11 @@ def _stables_ninja_museum(strategy) -> dict[str, DecisionInstructions]:
             tuple(gains),
         ),
         "choose_action": DecisionInstructions(
-            "For each Action choice, use the first available option in this order.", tuple(actions),
+            "For each Action choice, use the first available option in this order. "
+            "\u201cAn Action to spare\u201d means more than one Action remaining: on your "
+            "last Action, anything that refunds one is played before a terminal, so "
+            "Watchtower drops below Stables and Innkeeper.",
+            tuple(actions),
         ),
         "choose_trash": DecisionInstructions(
             "Trash the first eligible card in this order.", tuple(trash),

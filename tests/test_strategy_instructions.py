@@ -85,7 +85,8 @@ def test_alternate_configuration_changes_instructions_and_escapes_text():
     assert "use Credit" in gain.introduction
     assert not any("For Museum" in step for step in gain.steps)
     assert gain.steps.index("Gold while you own fewer than 1 copy.") < gain.steps.index("Stables while you own fewer than 4 copies.")
-    assert decision_instructions(strategy, "choose_action").steps[1] == "Ninja."
+    assert decision_instructions(strategy, "choose_action").steps[1] == (
+        "Ninja, while you have an Action to spare.")
     trash = decision_instructions(strategy, "choose_trash")
     assert "Rocks, then Silver" in trash.steps[1]
     assert "Copper while you own more than 1 copy." in trash.steps
@@ -113,3 +114,27 @@ def test_inherited_hook_keeps_instructions_but_an_override_does_not():
     assert "Readable instructions are missing" in page_for(Changed())
     assert missing_decision_descriptions(Documented()) == []
     assert "Always decline the offered gain." in page_for(Documented())
+
+
+def test_action_instructions_track_the_spare_action_branch():
+    """Guards the drift this file exists to catch.
+
+    The published ordering claim and the code that implements it have to agree
+    about where Watchtower sits relative to the cards that refund an Action.
+    """
+    strategy = StablesNinjaMuseum()
+    steps = decision_instructions(strategy, "choose_action").steps
+    assert steps.index("Stables if your hand contains a Treasure.") < steps.index(
+        "Watchtower if your hand has five or fewer cards.")
+    assert steps.index("Watchtower if your hand has five or fewer cards and you "
+                       "have an Action to spare.") < steps.index(
+        "Stables if your hand contains a Treasure.")
+
+    player = PlayerState(ai=None, turns_taken=5)
+    state = GameState(players=[player], supply={})
+    player.hand = [get_card(n) for n in ("Watchtower", "Stables", "Copper")]
+    choices = [c for c in player.hand if c.is_action]
+    player.actions = 1
+    assert strategy.choose_action(state, player, choices).name == "Stables"
+    player.actions = 2
+    assert strategy.choose_action(state, player, choices).name == "Watchtower"
