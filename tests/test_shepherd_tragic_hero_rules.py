@@ -174,3 +174,31 @@ def test_search_pairs_both_seats_and_is_reproducible():
     assert first["rate"] == 0.5
     assert first["paired_scores"] == [0.5, 0.5]
     assert first["truncated"] == 0
+
+
+
+def test_magic_lamp_does_not_count_astrolabe_trashed_by_counterfeit():
+    state, player = setup()
+    lamp, counterfeit, astrolabe = map(get_card, ["Magic Lamp", "Counterfeit", "Astrolabe"])
+    player.ai.should_replay_treasure_with_counterfeit = lambda *_: astrolabe
+    player.hand = [astrolabe]
+    player.in_play = [counterfeit] + [get_card(n) for n in ["Copper", "Silver", "Gold"]]
+    counterfeit.on_play(state)
+    assert astrolabe in player.duration
+    assert astrolabe in state.trash
+    player.in_play.append(lamp)
+    lamp.on_play(state)
+    assert lamp not in state.trash
+    assert state.supply["Wish"] == 12
+
+
+@pytest.mark.parametrize("zone", ["hand", "deck", "discard", "exile", "tavern_mat"])
+def test_magic_lamp_does_not_count_duration_moved_to_another_zone(zone):
+    state, player = setup()
+    lamp, guardian = map(get_card, ["Magic Lamp", "Guardian"])
+    player.in_play = [lamp] + [get_card(n) for n in ["Copper", "Silver", "Gold", "Shepherd"]]
+    player.duration = [guardian]
+    getattr(player, zone).append(guardian)
+    lamp.on_play(state)
+    assert lamp not in state.trash
+    assert state.supply["Wish"] == 12
