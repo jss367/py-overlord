@@ -402,6 +402,18 @@ class EnhancedStrategy:
         self._decision_trace_callback = None
 
     # ------------------------------------------------------------------
+    def _eval_condition(self, rule, state, player, list_name):
+        """Evaluate a priority condition with context and its original cause."""
+        if rule.condition is None:
+            return True
+        try:
+            return bool(rule.condition(state, player))
+        except Exception as exc:
+            raise StrategyDecisionError(
+                f"Strategy {self.name!r}: {list_name} condition for "
+                f"{rule.card!r} failed"
+            ) from exc
+
     def _choose_from_priority(
         self,
         priority: list[PriorityRule],
@@ -421,17 +433,7 @@ class EnhancedStrategy:
                 if card is None or not _rule_matches_card(rule.card, card):
                     continue
 
-                cond = rule.condition
-                if cond is None:
-                    passes = True
-                else:
-                    try:
-                        passes = bool(cond(state, player))
-                    except Exception as exc:
-                        raise StrategyDecisionError(
-                            f"Strategy {self.name!r}: {list_name} condition for "
-                            f"{rule.card!r} failed"
-                        ) from exc
+                passes = self._eval_condition(rule, state, player, list_name)
 
                 if passes:
                     # Mark the rule as having fired at least once. The
@@ -657,8 +659,7 @@ class EnhancedStrategy:
             card_obj = get_card(rule.card)
             if card_obj is None or card_obj.cost.coins != target_cost:
                 continue
-            cond = rule.condition
-            if cond is None or (callable(cond) and cond(state, player)):
+            if self._eval_condition(rule, state, player, "gain"):
                 return rule.card
         return None
 
@@ -667,8 +668,7 @@ class EnhancedStrategy:
         for i, rule in enumerate(self.gain_priority):
             if rule.card != card_name:
                 continue
-            cond = rule.condition
-            if cond is None or (callable(cond) and cond(state, player)):
+            if self._eval_condition(rule, state, player, "gain"):
                 return i
         return float("inf")
 

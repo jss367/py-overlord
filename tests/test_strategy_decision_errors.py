@@ -109,3 +109,36 @@ def test_trainer_rejects_broken_policy_and_preserves_other_evaluations(
         trainer.close()
     assert fitness[0] == float("-inf")
     assert fitness[1] != float("-inf")
+
+
+@pytest.mark.parametrize("decision", ["action", "gain", "way", "priority_index"])
+def test_butterfly_condition_failure_keeps_context_and_original_cause(decision):
+    strategy = EnhancedStrategy()
+    strategy.name = "Broken Butterfly policy"
+    strategy.gain_priority = [PriorityRule("Duchy", _broken)]
+    state, player = _state(strategy)
+    state.supply["Duchy"] = 8
+    state.ways = [get_way("Way of the Butterfly")]
+    trail = get_card("Trail")
+    with pytest.raises(
+        StrategyDecisionError, match="Broken Butterfly policy.*gain.*Duchy"
+    ) as error:
+        if decision == "priority_index":
+            strategy._gain_priority_index("Duchy", state, player)
+        elif decision == "way":
+            strategy.choose_way(state, player, trail, state.ways)
+        else:
+            getattr(strategy, f"choose_{decision}")(state, player, [trail])
+    assert isinstance(error.value.__cause__, ValueError)
+    assert str(error.value.__cause__) == "missing strategy parameter"
+
+
+def test_butterfly_skips_false_condition_and_accepts_unconditional_target():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [
+        PriorityRule("Duchy", lambda *_: False), PriorityRule("Duchy")
+    ]
+    state, player = _state(strategy)
+    state.supply["Duchy"] = 8
+    assert strategy._best_butterfly_target(state, player, 5) == "Duchy"
+    assert strategy._gain_priority_index("Duchy", state, player) == 1
