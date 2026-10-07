@@ -571,3 +571,205 @@ def test_standard_counter_preserves_mapping_and_rejects_unserializable_attribute
     captured.minimum = 4
     with pytest.raises(UnsupportedConditionFingerprint, match="Counter attribute state.*_source"):
         condition_signature(predicate)
+
+
+@pytest.mark.parametrize("name", ["ref", "reference", "mutable", "set", "frozenset"])
+@pytest.mark.parametrize("location", ["argument", "global", "class"])
+def test_graph_markers_cannot_collide_with_user_names(name, location):
+    if location == "argument":
+        namespace = {}
+        exec(f"def predicate({name}, player): return player.coins >= 4", namespace)
+        predicate = namespace["predicate"]
+    elif location == "global":
+        namespace = {name: [4]}
+        exec(f"def predicate(state, player): return player.coins >= {name}[0]", namespace)
+        predicate = namespace["predicate"]
+    else:
+        class Gate:
+            pass
+        setattr(Gate, name, [4])
+        namespace = {"Gate": Gate}
+        exec(f"def predicate(state, player): return player.coins >= Gate.{name}[0]", namespace)
+        predicate = namespace["predicate"]
+    expected = condition_signature(predicate)
+    assert predicate(None, SimpleNamespace(coins=6))
+    for _ in range(3):
+        predicate = cloudpickle.loads(cloudpickle.dumps(predicate))
+        assert condition_signature(predicate) == expected
+
+
+def test_three_argument_mutable_name_is_not_a_node_marker():
+    predicate = lambda mutable, marker, value: bool(value)
+    expected = condition_signature(predicate)
+    assert condition_signature(cloudpickle.loads(cloudpickle.dumps(predicate))) == expected
+
+
+@pytest.mark.parametrize("registered", [False, True])
+def test_dynamic_modules_require_explicit_source(registered):
+    import sys
+    from types import ModuleType
+
+    for threshold in [4, 8]:
+        policy = ModuleType("fingerprint_dynamic_policy")
+        policy.minimum = threshold
+        if registered:
+            sys.modules[policy.__name__] = policy
+        try:
+            predicate = lambda state, player: player.coins >= policy.minimum
+            with pytest.raises(UnsupportedConditionFingerprint, match="Dynamic modules"):
+                condition_signature(predicate)
+            predicate._source = f"dynamic policy minimum={threshold}"
+            assert condition_signature(predicate) == ("source", predicate._source)
+        finally:
+            if registered:
+                del sys.modules[policy.__name__]
+
+
+@pytest.mark.parametrize("attribute", ["__annotations__", "__name__", "__qualname__", "__module__", "__doc__"])
+def test_special_function_metadata_distinguishes_policies(attribute):
+    def factory(threshold):
+        def helper(state, player):
+            value = getattr(helper, attribute)
+            minimum = value["minimum"] if attribute == "__annotations__" else int(value)
+            return player.coins >= minimum
+        setattr(helper, attribute, {"minimum": threshold} if attribute == "__annotations__" else str(threshold))
+        return lambda state, player: helper(state, player)
+
+    first, second = factory(4), factory(8)
+    assert first(None, SimpleNamespace(coins=6))
+    assert not second(None, SimpleNamespace(coins=6))
+    assert condition_signature(first) != condition_signature(second)
+    for predicate in [first, second]:
+        expected = condition_signature(predicate)
+        assert condition_signature(deepcopy(predicate)) == expected
+        for _ in range(3):
+            predicate = cloudpickle.loads(cloudpickle.dumps(predicate))
+            assert condition_signature(predicate) == expected
+
+
+@pytest.mark.parametrize("kind", ["datetime", "date", "time", "timedelta", "decimal", "fraction", "range", "slice"])
+def test_supported_opaque_values_preserve_alias_topology(kind):
+    import datetime
+    from decimal import Decimal
+    from fractions import Fraction
+
+    factories = {
+        "datetime": lambda: datetime.datetime(2026, 10, 7),
+        "date": lambda: datetime.date(2026, 10, 7),
+        "time": lambda: datetime.time(12, 34),
+        "timedelta": lambda: datetime.timedelta(days=4),
+        "decimal": lambda: Decimal("4.25"),
+        "fraction": lambda: Fraction(17, 4),
+        "range": lambda: range(4),
+        "slice": lambda: slice(4),
+    }
+    def predicate(shared):
+        a = factories[kind]()
+        b = a if shared else factories[kind]()
+        return lambda state, player: a is b
+
+    first, second = predicate(True), predicate(False)
+    assert first(None, None) and not second(None, None)
+    assert condition_signature(first) != condition_signature(second)
+    for value in [first, second]:
+        expected = condition_signature(value)
+        for _ in range(3):
+            value = cloudpickle.loads(cloudpickle.dumps(value))
+            assert condition_signature(value) == expected
+
+
+@pytest.mark.parametrize("kind", ["object", "memoryview", "iterator", "generator", "mappingproxy", "datetime_subclass", "reducer"])
+def test_unsupported_leaf_families_require_explicit_source(kind):
+    import datetime
+    from types import MappingProxyType
+
+    class CustomDate(datetime.date):
+        pass
+
+    class Reduced:
+        def __init__(self):
+            self.minimum = 4
+
+        def __getstate__(self):
+            return {}
+
+    values = {
+        "object": lambda: object(),
+        "memoryview": lambda: memoryview(b"policy"),
+        "iterator": lambda: iter([4]),
+        "generator": lambda: (i for i in [4]),
+        "mappingproxy": lambda: MappingProxyType({"minimum": 4}),
+        "datetime_subclass": lambda: CustomDate(2026, 10, 7),
+        "reducer": Reduced,
+    }
+    value = values[kind]()
+    predicate = lambda state, player: bool(value)
+    with pytest.raises(UnsupportedConditionFingerprint):
+        condition_signature(predicate)
+    predicate._source = f"declared policy {kind} parameter=4"
+    assert condition_signature(predicate) == ("source", predicate._source)
+
+
+
+def test_supported_extension_nested_state_preserves_cross_value_aliases():
+    def factory(shared):
+        minimum = [4]
+        selection = slice(minimum if shared else [4], None)
+        return lambda state, player: selection.start is minimum
+
+    first, second = factory(True), factory(False)
+    assert first(None, None) and not second(None, None)
+    assert condition_signature(first) != condition_signature(second)
+    for predicate in [first, second]:
+        expected = condition_signature(predicate)
+        for _ in range(3):
+            predicate = cloudpickle.loads(cloudpickle.dumps(predicate))
+            assert condition_signature(predicate) == expected
+
+
+def test_custom_timezone_requires_source():
+    import datetime
+
+    class Offset(datetime.tzinfo):
+        def utcoffset(self, value):
+            return datetime.timedelta(hours=4)
+
+    value = datetime.datetime(2026, 10, 7, tzinfo=Offset())
+    predicate = lambda state, player: value.hour == player.coins
+    with pytest.raises(UnsupportedConditionFingerprint, match="timezone"):
+        condition_signature(predicate)
+
+
+
+def test_imported_module_remains_supported():
+    import math
+    predicate = lambda state, player: math.floor(player.coins) >= 4
+    expected = condition_signature(predicate)
+    assert condition_signature(cloudpickle.loads(cloudpickle.dumps(predicate))) == expected
+
+
+def test_function_metadata_aliases_remain_distinct():
+    def factory(shared):
+        def helper():
+            pass
+        helper.__name__ = "a custom long function name".encode().decode()
+        name = helper.__name__ if shared else helper.__name__.encode().decode()
+        return lambda state, player: helper.__name__ is name
+    first, second = factory(True), factory(False)
+    assert first(None, None) and not second(None, None)
+    for predicate in [first, second]:
+        with pytest.raises(UnsupportedConditionFingerprint, match="metadata identity"):
+            condition_signature(predicate)
+
+
+@pytest.mark.parametrize("kind", [staticmethod, classmethod])
+def test_descriptor_custom_attributes_are_not_discarded(kind):
+    def factory(threshold):
+        descriptor = kind(lambda: None)
+        descriptor.minimum = threshold
+        return lambda state, player: player.coins >= descriptor.minimum
+    first, second = factory(4), factory(8)
+    assert first(None, SimpleNamespace(coins=6)) and not second(None, SimpleNamespace(coins=6))
+    for predicate in [first, second]:
+        with pytest.raises(UnsupportedConditionFingerprint, match="descriptor attributes"):
+            condition_signature(predicate)

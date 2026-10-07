@@ -9,16 +9,23 @@ These fingerprints are not a cross-version checkpoint format.
 """
 
 from collections import Counter
+import datetime
+from decimal import Decimal
+from fractions import Fraction
 import dis
 from enum import Enum, EnumType
 from functools import partial
 import hashlib
 import json
+import re
 import sys
 import types
 
-import cloudpickle
 
+_EXTENSION_TYPES = {
+    datetime.date, datetime.datetime, datetime.time, datetime.timedelta,
+    datetime.timezone, Decimal, Fraction, range, slice, re.Pattern,
+}
 
 
 class UnsupportedConditionFingerprint(ValueError):
@@ -35,6 +42,8 @@ def _check_supported_type(value):
     )
     if (
         metaclass is not type and not standard_enum
+        and cls not in _EXTENSION_TYPES
+        and not (isinstance(value, type) and value in _EXTENSION_TYPES)
     ) or (
         isinstance(value, type) and issubclass(value, type)
         and value not in {type, EnumType}
@@ -42,6 +51,35 @@ def _check_supported_type(value):
         raise UnsupportedConditionFingerprint(
             "Custom metaclasses require an explicit predicate _source signature "
             "covering behavior-controlling state"
+        )
+    if cls is types.ModuleType and (
+        sys.modules.get(value.__name__) is not value or value.__spec__ is None
+    ):
+        raise UnsupportedConditionFingerprint(
+            "Dynamic modules require an explicit predicate _source signature"
+        )
+    if cls in {datetime.datetime, datetime.time} and (
+        value.tzinfo is not None and type(value.tzinfo) is not datetime.timezone
+    ):
+        raise UnsupportedConditionFingerprint(
+            "Custom timezone state requires an explicit predicate _source signature"
+        )
+    if cls is types.FunctionType and getattr(value, "__type_params__", ()):
+        raise UnsupportedConditionFingerprint(
+            "Generic function type parameters require an explicit predicate _source signature"
+        )
+    if cls in {staticmethod, classmethod}:
+        if any(
+            name not in {"__module__", "__name__", "__qualname__", "__doc__", "__annotations__", "__type_params__"}
+            or item != getattr(value.__func__, name, None)
+            for name, item in value.__dict__.items()
+        ):
+            raise UnsupportedConditionFingerprint(
+                "Custom descriptor attributes are not transported; use an explicit predicate _source signature"
+            )
+    if cls is property and value.__doc__ != getattr(value.fget, "__doc__", None):
+        raise UnsupportedConditionFingerprint(
+            "Custom property documentation requires an explicit predicate _source signature"
         )
     if isinstance(value, Enum) and standard_enum:
         return
@@ -53,6 +91,7 @@ def _check_supported_type(value):
     builtins = (
         int, float, complex, str, bytes, bytearray, tuple, list, dict, set,
         frozenset, partial, staticmethod, classmethod, property, types.ModuleType,
+        *tuple(_EXTENSION_TYPES),
     )
     if isinstance(value, builtins) and cls not in builtins and cls not in {bool, Counter}:
         raise UnsupportedConditionFingerprint(
@@ -109,7 +148,8 @@ def _freeze(value, active, references=None, scalar_aliases=False, identity_obser
         references = {}
     mutable = isinstance(value, (
         list, tuple, dict, set, frozenset, bytearray, types.FunctionType, types.MethodType,
-        types.BuiltinFunctionType, partial,
+        types.BuiltinFunctionType, types.MethodWrapperType, partial,
+        staticmethod, classmethod, property, *tuple(_EXTENSION_TYPES),
     )) or (scalar_aliases and isinstance(value, (str, bytes))) or (isinstance(value, type) and not _importable_symbol(value)) or (
         not isinstance(value, (
             type, types.ModuleType, types.FunctionType, types.MethodType,
@@ -123,13 +163,22 @@ def _freeze(value, active, references=None, scalar_aliases=False, identity_obser
     if mutable:
         identity = id(value)
         if identity in references:
-            return ("reference", references[identity][0])
+            return {"reference": references[identity][0]}
         marker = len(references)
         # Retain objects too: synthesized slot-state dictionaries can otherwise
         # be freed and their IDs reused during a later sibling's traversal.
         references[identity] = (marker, value)
-        return ("mutable", marker, _freeze_value(value, active, references, scalar_aliases, identity_observers))
+        return {"mutable": marker, "value": _freeze_value(value, active, references, scalar_aliases, identity_observers)}
     return _freeze_value(value, active, references, scalar_aliases, identity_observers)
+
+
+def _function_metadata(value, freeze):
+    """Preserved function attributes that live outside its attribute dictionary."""
+    _check_supported_type(value)
+    return (
+        "metadata", value.__name__, value.__qualname__, value.__module__,
+        value.__doc__, freeze(value.__annotations__),
+    )
 
 
 def _freeze_value(value, active, references, scalar_aliases, identity_observers):
@@ -171,11 +220,11 @@ def _freeze_value(value, active, references, scalar_aliases, identity_observers)
         if isinstance(value, (staticmethod, classmethod)):
             return (type(value).__name__, freeze(value.__func__))
         if isinstance(value, property):
-            return ("property", freeze(value.fget), freeze(value.fset), freeze(value.fdel))
-        if isinstance(value, types.BuiltinFunctionType):
+            return ("property", freeze(value.fget), freeze(value.fset), freeze(value.fdel), freeze(value.__doc__))
+        if isinstance(value, (types.BuiltinFunctionType, types.MethodWrapperType)):
             if (
                 identity_observers is not None
-                and value.__module__ in {"builtins", "operator", "_operator"}
+                and getattr(value, "__module__", None) in {"builtins", "operator", "_operator"}
                 and value.__name__ in {"id", "is_", "is_not"}
             ):
                 identity_observers.append(True)
@@ -184,6 +233,16 @@ def _freeze_value(value, active, references, scalar_aliases, identity_observers)
                 return ("bound-builtin", value.__name__, freeze(owner))
             return ("symbol", _symbol(value))
         if isinstance(value, types.CodeType):
+            instructions = list(dis.get_instructions(value))
+            if any(i.opname == "LOAD_ATTR" and i.argval in {
+                "__name__", "__qualname__", "__module__", "__doc__"
+            } for i in instructions) and any(
+                i.opname == "IS_OP" or i.argval in {"id", "is_", "is_not"}
+                for i in instructions if isinstance(i.argval, (str, int, type(None)))
+            ):
+                raise UnsupportedConditionFingerprint(
+                    "Function metadata identity is not transport stable; use an explicit predicate _source signature"
+                )
             if identity_observers is not None:
                 previous = None
                 for instruction in dis.get_instructions(value):
@@ -237,7 +296,7 @@ def _freeze_value(value, active, references, scalar_aliases, identity_observers)
                 frozen = (
                     ("runtime-function", _symbol(dependency),
                      freeze(dependency.__defaults__), freeze(dependency.__kwdefaults__),
-                     freeze(dependency.__dict__))
+                     freeze(dependency.__dict__), _function_metadata(dependency, freeze))
                     if isinstance(dependency, types.FunctionType)
                     and dependency.__module__ != value.__module__
                     and _importable_symbol(dependency)
@@ -252,6 +311,7 @@ def _freeze_value(value, active, references, scalar_aliases, identity_observers)
                 closure,
                 globals_used,
                 freeze(value.__dict__),
+                _function_metadata(value, freeze),
             )
         if isinstance(value, types.MethodType):
             return ("method", freeze(value.__func__), freeze(value.__self__))
@@ -276,10 +336,44 @@ def _freeze_value(value, active, references, scalar_aliases, identity_observers)
                 [(freeze(key), freeze(item)) for key, item in value.items()],
             )
         if isinstance(value, (set, frozenset)):
-            return (type(value).__name__, [freeze(item) for item in value])
+            return {"unordered": type(value).__name__, "members": [freeze(item) for item in value]}
+        if type(value) is bytearray:
+            return ("bytearray", value.hex())
+        if type(value) in _EXTENSION_TYPES:
+            # Encode nested policy values through the same graph, never through
+            # independent pickle blobs that would hide aliases (e.g. slice.start).
+            if type(value) is slice:
+                state = [value.start, value.stop, value.step]
+            elif type(value) is range:
+                state = [value.start, value.stop, value.step]
+            elif type(value) is re.Pattern:
+                state = [value.pattern, value.flags]
+            elif type(value) is Decimal:
+                state = list(value.as_tuple())
+            elif type(value) is Fraction:
+                state = [value.numerator, value.denominator]
+            elif type(value) is datetime.timedelta:
+                state = [value.days, value.seconds, value.microseconds]
+            elif type(value) is datetime.timezone:
+                state = [value.utcoffset(None), value.tzname(None)]
+            else:
+                state = []
+                if isinstance(value, datetime.date):
+                    state.extend([value.year, value.month, value.day])
+                if isinstance(value, (datetime.datetime, datetime.time)):
+                    state.extend([value.hour, value.minute, value.second,
+                                  value.microsecond, value.fold, value.tzinfo])
+            return ("extension", _symbol(type(value)), [freeze(item) for item in state])
         if hasattr(value, "__dict__") or any(
             "__slots__" in cls.__dict__ for cls in type(value).__mro__
         ):
+            if any(
+                getattr(type(value), name, None) is not getattr(object, name)
+                for name in ("__getstate__", "__reduce__", "__reduce_ex__")
+            ) and type(value) is not types.SimpleNamespace:
+                raise UnsupportedConditionFingerprint(
+                    "Custom object state reducers require an explicit predicate _source signature"
+                )
             call = getattr(type(value), "__call__", None)
             return (
                 "object",
@@ -287,10 +381,10 @@ def _freeze_value(value, active, references, scalar_aliases, identity_observers)
                 freeze(value.__getstate__()),
                 freeze(call) if isinstance(call, types.FunctionType) else None,
             )
-        # Extension values such as compiled regexes and NumPy scalars have
-        # their own pickle reducers. Serialize each opaque leaf separately,
-        # so its memo cannot depend on sharing elsewhere in the predicate.
-        return ("opaque", cloudpickle.dumps(value).hex())
+        raise UnsupportedConditionFingerprint(
+            f"Unsupported captured type {type(value).__module__}.{type(value).__qualname__} "
+            "requires an explicit predicate _source signature"
+        )
     finally:
         del active[identity]
 
@@ -306,13 +400,15 @@ def _canonical_graph(frozen):
     nodes = {}
 
     def extract(value):
+        if isinstance(value, dict):
+            if "mutable" in value:
+                marker = value["mutable"]
+                nodes[marker] = extract(value["value"])
+                return {"ref": marker}
+            if "reference" in value:
+                return {"ref": value["reference"]}
+            return {"unordered": value["unordered"], "members": extract(value["members"])}
         if isinstance(value, (list, tuple)):
-            if len(value) == 3 and value[0] == "mutable":
-                marker = value[1]
-                nodes[marker] = extract(value[2])
-                return ("ref", marker)
-            if len(value) == 2 and value[0] == "reference":
-                return ("ref", value[1])
             return tuple(extract(item) for item in value)
         return value
 
@@ -324,31 +420,28 @@ def _canonical_graph(frozen):
         return json.dumps(value, ensure_ascii=True, separators=(",", ":"))
 
     def unordered(value):
-        return (
-            len(value) == 2 and value[0] in {"set", "frozenset"}
-            and isinstance(value[1], tuple)
-        )
+        return isinstance(value, dict) and "unordered" in value
 
     def render(value, labels):
+        if unordered(value):
+            return {"unordered": value["unordered"], "members": sorted(
+                (render(item, labels) for item in value["members"]), key=dump
+            )}
+        if isinstance(value, dict):
+            return {"ref": labels[value["ref"]]}
         if not isinstance(value, tuple):
             return value
-        if len(value) == 2 and value[0] == "ref":
-            return ("ref", labels[value[1]])
-        if unordered(value):
-            return (value[0], sorted((render(item, labels) for item in value[1]), key=dump))
         return tuple(render(item, labels) for item in value)
 
     incoming = [[] for _ in graph]
 
     def edges(value, source, path=()):
-        if not isinstance(value, tuple):
-            return
-        if len(value) == 2 and value[0] == "ref":
-            incoming[value[1]].append((source, path))
-        elif unordered(value):
-            for item in value[1]:
+        if unordered(value):
+            for item in value["members"]:
                 edges(item, source, path + ("member",))
-        else:
+        elif isinstance(value, dict):
+            incoming[value["ref"]].append((source, path))
+        elif isinstance(value, tuple):
             for position, item in enumerate(value):
                 edges(item, source, path + (position,))
 

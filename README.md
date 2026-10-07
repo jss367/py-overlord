@@ -28,8 +28,8 @@ decision statistics cannot be mistaken for a successful run.
 Predicate signatures conservatively describe structure within the current
 runtime; they do not prove that two arbitrary Python functions are equivalent.
 Source-tagged rules use their declared source. Custom predicates include code,
-defaults, closures, referenced globals, function/partial attributes, and local
-class/instance state. Containers and callables retain reference topology,
+defaults, annotations and preserved function metadata, closures, referenced
+globals, function/partial attributes, and local class/instance state. Containers and callables retain reference topology,
 including unordered cycles. Strings and bytes also retain aliases when reachable
 code observes identity with `is`, `id`, or `operator.is_`/`is_not`; value-only code
 ignores incidental scalar sharing. Numeric scalars use value identity because
@@ -44,6 +44,22 @@ signature that includes every behavior-controlling parameter. Exact standard-lib
 (their pickle reducer drops attribute state);
 standard imported enums remain shared runtime symbols. Fingerprints are not a cross-version
 checkpoint format.
+
+Structural encoding accepts exact built-in scalars/containers, Python functions
+and bound methods, partials, method descriptors, local classes with the standard
+metaclass, and plain objects using default object serialization (including
+`SimpleNamespace`). Imported modules must be the registered module with an import
+specification; dynamic modules require an explicit source signature. Opaque
+values are restricted to exact `datetime` date/time/datetime/timedelta/timezone,
+`Decimal`, `Fraction`, `range`, `slice`, and compiled regex types. They retain
+reference topology; datetime/time values require a standard fixed-offset timezone.
+Unknown extension types, custom object reducers, generic function type
+parameters, and identity tests on function names/documentation require explicit
+source signatures. Custom descriptor attributes are rejected because their
+serialization discards them; put policy state in the underlying function instead. Imported symbols assume the same shared runtime, rather than independent mutable module snapshots. Code-location
+reflection, custom annotation evaluators, and other dynamic introspection are
+outside this structural contract. Internal graph markers use a distinct data
+type so arbitrary user names cannot be mistaken for graph edges.
 
 ## Running strategies
 
