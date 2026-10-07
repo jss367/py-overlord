@@ -165,3 +165,41 @@ def test_callable_class_closure_parameters_remain_distinct():
     assert condition_signature(first) == condition_signature(
         cloudpickle.loads(cloudpickle.dumps(first))
     )
+
+
+@pytest.mark.parametrize("method_kind", ["static", "class", "property"])
+def test_captured_local_class_behavior_remains_distinct_after_transport(method_kind):
+    def factory(minimum):
+        class Gate:
+            @staticmethod
+            def static_gate(player):
+                return player.coins >= minimum
+
+            @classmethod
+            def class_gate(cls, player):
+                return player.coins >= minimum
+
+            @property
+            def threshold(self):
+                return minimum
+
+        if method_kind == "static":
+            return lambda state, player: Gate.static_gate(player)
+        if method_kind == "class":
+            return lambda state, player: Gate.class_gate(player)
+        return lambda state, player: player.coins >= Gate().threshold
+
+    first = factory(4)
+    assert first(None, SimpleNamespace(coins=6))
+    assert not factory(8)(None, SimpleNamespace(coins=6))
+    expected = condition_signature(first)
+    assert expected != condition_signature(factory(8))
+    assert expected == condition_signature(factory(4))
+    assert expected == condition_signature(deepcopy(first))
+    with ProcessPoolExecutor(
+        max_workers=1, mp_context=multiprocessing.get_context("spawn")
+    ) as pool:
+        for _ in range(3):
+            first = cloudpickle.loads(cloudpickle.dumps(first))
+            assert condition_signature(first) == expected
+        assert pool.submit(_worker_signature, cloudpickle.dumps(first)).result(timeout=20) == expected

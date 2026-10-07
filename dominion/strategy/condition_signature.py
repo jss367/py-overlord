@@ -11,6 +11,7 @@ import dis
 from functools import partial
 import hashlib
 import json
+import sys
 import types
 
 import cloudpickle
@@ -30,6 +31,16 @@ def condition_signature(condition) -> tuple | None:
 
 def _symbol(value):
     return (value.__module__, value.__qualname__)
+
+
+def _importable_type(value):
+    """Only shared runtime classes can safely use symbol identity."""
+    current = sys.modules.get(value.__module__)
+    for name in value.__qualname__.split("."):
+        if current is None or name == "<locals>":
+            return False
+        current = vars(current).get(name)
+    return current is value
 
 
 def _global_names(code):
@@ -58,7 +69,7 @@ def _freeze(value, active):
         return ("ellipsis",)
     if isinstance(value, types.ModuleType):
         return ("module", value.__name__)
-    if isinstance(value, type):
+    if isinstance(value, type) and _importable_type(value):
         return ("symbol", _symbol(value))
 
     identity = id(value)
@@ -67,6 +78,21 @@ def _freeze(value, active):
     active[identity] = len(active)
     try:
         freeze = lambda item: _freeze(item, active)
+        if isinstance(value, type):
+            # Local/by-value classes can share names but capture different
+            # method parameters. Descriptor wrappers must expose their code.
+            attributes = []
+            for name, item in sorted(vars(value).items()):
+                if name in {"__dict__", "__weakref__", "__module__", "__qualname__", "__firstlineno__"}:
+                    continue
+                if isinstance(item, (types.MemberDescriptorType, types.GetSetDescriptorType)):
+                    continue
+                attributes.append((name, freeze(item)))
+            return ("class", value.__name__, freeze(value.__bases__), attributes)
+        if isinstance(value, (staticmethod, classmethod)):
+            return (type(value).__name__, freeze(value.__func__))
+        if isinstance(value, property):
+            return ("property", freeze(value.fget), freeze(value.fset), freeze(value.fdel))
         if isinstance(value, types.BuiltinFunctionType):
             owner = getattr(value, "__self__", None)
             if owner is not None and not isinstance(owner, types.ModuleType):
