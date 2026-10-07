@@ -8,7 +8,9 @@ signature. Imported code uses shared runtime symbols; callable state is retained
 These fingerprints are not a cross-version checkpoint format.
 """
 
+from collections import Counter
 import dis
+from enum import Enum, EnumType
 from functools import partial
 import hashlib
 import json
@@ -17,6 +19,46 @@ import types
 
 import cloudpickle
 
+
+
+class UnsupportedConditionFingerprint(ValueError):
+    """A captured custom type needs a declared source signature."""
+
+
+def _check_supported_type(value):
+    """Reject custom dispatch/state that the structural encoder cannot model."""
+    cls = type(value)
+    metaclass = cls if isinstance(value, type) else type(cls)
+    standard_enum = (
+        metaclass is EnumType
+        and _importable_symbol(value if isinstance(value, type) else cls)
+    )
+    if (
+        metaclass is not type and not standard_enum
+    ) or (
+        isinstance(value, type) and issubclass(value, type)
+        and value not in {type, EnumType}
+    ):
+        raise UnsupportedConditionFingerprint(
+            "Custom metaclasses require an explicit predicate _source signature "
+            "covering behavior-controlling state"
+        )
+    if isinstance(value, Enum) and standard_enum:
+        return
+    if cls is Counter and value.__dict__:
+        raise UnsupportedConditionFingerprint(
+            "Counter attribute state is not preserved by pickle; use a serializable "
+            "policy representation with an explicit predicate _source signature"
+        )
+    builtins = (
+        int, float, complex, str, bytes, bytearray, tuple, list, dict, set,
+        frozenset, partial, staticmethod, classmethod, property, types.ModuleType,
+    )
+    if isinstance(value, builtins) and cls not in builtins and cls not in {bool, Counter}:
+        raise UnsupportedConditionFingerprint(
+            f"Captured subclass {cls.__module__}.{cls.__qualname__} requires an "
+            "explicit predicate _source signature covering behavior-controlling state"
+        )
 
 def condition_signature(condition) -> tuple | None:
     """Identify a predicate without depending on pickle's object memo."""
@@ -62,6 +104,7 @@ def _global_names(code):
 
 def _freeze(value, active, references=None, scalar_aliases=False, identity_observers=None):
     """Capture containers and callables as nodes; ignore scalar memoization."""
+    _check_supported_type(value)
     if references is None:
         references = {}
     mutable = isinstance(value, (
@@ -91,13 +134,15 @@ def _freeze(value, active, references=None, scalar_aliases=False, identity_obser
 
 def _freeze_value(value, active, references, scalar_aliases, identity_observers):
     """Build JSON values with active recursion and graph-reference tracking."""
-    if value is None or isinstance(value, (bool, int, str)):
+    if isinstance(value, Enum):
+        return ("runtime-enum", _symbol(type(value)), value.name)
+    if value is None or type(value) in {bool, int, str}:
         return (type(value).__name__, value)
-    if isinstance(value, float):
+    if type(value) is float:
         return ("float", value.hex())
-    if isinstance(value, complex):
+    if type(value) is complex:
         return ("complex", value.real.hex(), value.imag.hex())
-    if isinstance(value, bytes):
+    if type(value) is bytes:
         return ("bytes", value.hex())
     if value is Ellipsis:
         return ("ellipsis",)
@@ -220,6 +265,11 @@ def _freeze_value(value, active, references, scalar_aliases, identity_observers)
             )
         if isinstance(value, (tuple, list)):
             return (type(value).__name__, [freeze(item) for item in value])
+        if type(value) is Counter:
+            return (
+                "counter",
+                [(freeze(key), freeze(item)) for key, item in value.items()],
+            )
         if isinstance(value, dict):
             return (
                 "dict",

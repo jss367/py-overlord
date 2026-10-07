@@ -37,7 +37,13 @@ pickle does not preserve their object identity. Reflection and dynamically
 generated identity tests need an explicit source signature. Imported symbols use the shared runtime's module and qualified name;
 interpreter-generated class bookkeeping is excluded. If serialization changes
 observable reference topology, the transported predicate can have a different
-signature. Fingerprints are not a cross-version checkpoint format.
+signature. Custom metaclasses and subclasses of the supported scalar, container,
+partial, descriptor and module types are rejected with
+`UnsupportedConditionFingerprint`; they must declare a predicate `_source`
+signature that includes every behavior-controlling parameter. Exact standard-library `Counter` values are supported without custom attributes
+(their pickle reducer drops attribute state);
+standard imported enums remain shared runtime symbols. Fingerprints are not a cross-version
+checkpoint format.
 
 ## Running strategies
 

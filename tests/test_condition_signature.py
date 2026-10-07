@@ -10,7 +10,7 @@ from types import SimpleNamespace
 import cloudpickle
 import pytest
 
-from dominion.strategy.condition_signature import condition_signature
+from dominion.strategy.condition_signature import UnsupportedConditionFingerprint, condition_signature
 
 
 def _matching_names(names):
@@ -483,3 +483,91 @@ def test_cross_module_global_helpers_include_attribute_state():
     assert not second(None, SimpleNamespace(coins=6))
     assert condition_signature(first) != condition_signature(second)
     assert condition_signature(first) == condition_signature(cloudpickle.loads(cloudpickle.dumps(first)))
+
+
+
+@pytest.mark.parametrize("capture", ["class", "instance", "metaclass"])
+def test_custom_metaclass_requires_explicit_source_signature(capture):
+    def factory(minimum):
+        class Meta(type):
+            @property
+            def minimum(cls):
+                return minimum
+        class Gate(metaclass=Meta):
+            pass
+        if capture == "class":
+            return lambda state, player: player.coins >= Gate.minimum
+        if capture == "instance":
+            gate = Gate()
+            return lambda state, player: player.coins >= type(gate).minimum
+        return lambda state, player: Meta
+
+    for minimum in [4, 8]:
+        predicate = factory(minimum)
+        with pytest.raises(UnsupportedConditionFingerprint, match="metaclass.*_source"):
+            condition_signature(predicate)
+        predicate._source = f"custom metaclass {capture} minimum={minimum}"
+        assert condition_signature(predicate) == ("source", predicate._source)
+        assert condition_signature(predicate) == condition_signature(cloudpickle.loads(cloudpickle.dumps(predicate)))
+
+
+@pytest.mark.parametrize("base,initial", [
+    (str, "same text"), (bytes, b"same bytes"), (int, 1), (float, 1.0),
+    (complex, 1j), (bytearray, b"same bytes"), (tuple, [1]), (list, [1]),
+    (dict, {}), (set, [1]), (frozenset, [1]),
+])
+def test_stateful_builtin_subclasses_require_explicit_source_signature(base, initial):
+    class Stateful(base):
+        pass
+    def factory(minimum):
+        captured = Stateful(initial)
+        captured.minimum = minimum
+        return lambda state, player: player.coins >= captured.minimum
+
+    low, high = factory(4), factory(8)
+    assert low(None, SimpleNamespace(coins=6))
+    assert not high(None, SimpleNamespace(coins=6))
+    for predicate, minimum in [(low, 4), (high, 8)]:
+        for _ in range(3):
+            with pytest.raises(UnsupportedConditionFingerprint, match="subclass.*_source"):
+                condition_signature(predicate)
+            predicate = cloudpickle.loads(cloudpickle.dumps(predicate))
+        predicate._source = f"{base.__name__} subclass minimum={minimum}"
+        assert condition_signature(predicate) == ("source", predicate._source)
+
+
+def test_standard_imported_enums_remain_supported():
+    from dominion.cards.base_card import CardType
+    kind = CardType.ACTION
+    predicate = lambda state, player: kind in player.types
+    assert condition_signature(predicate) == condition_signature(cloudpickle.loads(cloudpickle.dumps(predicate)))
+
+
+
+@pytest.mark.parametrize("kind", ["partial", "staticmethod", "classmethod", "property", "module"])
+def test_custom_callable_descriptor_and_module_subclasses_require_source(kind):
+    from types import ModuleType
+    base = {"partial": partial, "staticmethod": staticmethod, "classmethod": classmethod,
+            "property": property, "module": ModuleType}[kind]
+    class Stateful(base):
+        pass
+    if kind == "partial":
+        captured = Stateful(_minimum_coins, minimum=4)
+    elif kind == "module":
+        captured = Stateful("custom_policy")
+    else:
+        captured = Stateful(lambda *_: True)
+    captured.minimum = 4
+    predicate = lambda state, player: captured.minimum <= player.coins
+    with pytest.raises(UnsupportedConditionFingerprint, match="subclass.*_source"):
+        condition_signature(predicate)
+
+
+def test_standard_counter_preserves_mapping_and_rejects_unserializable_attributes():
+    from collections import Counter
+    captured = Counter({"Copper": 3})
+    predicate = lambda state, player: captured["Copper"] + player.coins >= 4
+    assert condition_signature(predicate) == condition_signature(cloudpickle.loads(cloudpickle.dumps(predicate)))
+    captured.minimum = 4
+    with pytest.raises(UnsupportedConditionFingerprint, match="Counter attribute state.*_source"):
+        condition_signature(predicate)
