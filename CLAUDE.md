@@ -53,5 +53,5 @@ and card ranks. CI runs the same check and rejects stale catalogs.
 
 ```
 pytest -q
-python -m ruff check . --select E9,F63,F7,F82
+python -m ruff check .
 ```

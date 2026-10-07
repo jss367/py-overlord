@@ -889,7 +889,6 @@ class AI(ABC):
         if not choices:
             return None
 
-        priority_pile_drainers = {"Settlers", "Student", "Conjurer", "Sorcerer"}
         for name in ("Student", "Conjurer", "Sorcerer", "Settlers"):
             for c in choices:
                 if c.name == name:

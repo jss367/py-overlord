@@ -290,7 +290,6 @@ def test_pickaxe_no_loot_for_cheap_trash():
     copper = get_card("Copper")
     player.hand = [pickaxe, copper]
     player.coins = 0
-    hand_count_before = len(player.hand) - 1  # minus pickaxe
 
     player.hand.remove(pickaxe)
     player.in_play.append(pickaxe)
@@ -517,7 +516,6 @@ def test_way_of_the_mouse_applies_set_aside_effect():
     way = WayOfTheMouse(set_aside_card_name="Village")
 
     # Village gives +1 Card, +2 Actions
-    village_card = get_card("Village")
     player.deck = [get_card("Copper"), get_card("Silver")]
     player.actions = 0
     player.hand = []

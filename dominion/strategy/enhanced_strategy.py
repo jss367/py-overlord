@@ -1,11 +1,4 @@
-"""Minimal strategy framework used by the tests.
-
-The original project had a much more feature rich implementation, but for the
-purposes of the tests bundled with this kata we only require a light-weight
-definition of :class:`EnhancedStrategy` and :class:`PriorityRule` along with a
-few helper constructors.  The strategy creation functions at the bottom of this
-file build on these classes.
-"""
+"""Ordered card priorities, reusable conditions, and strategy decision hooks."""
 
 from dataclasses import dataclass
 from typing import Callable, Iterable, Optional, ClassVar
@@ -14,6 +7,10 @@ from dominion.cards.base_card import Card
 from dominion.ai import tactical_defaults
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
+
+
+class StrategyDecisionError(RuntimeError):
+    """A strategy condition or decision observer failed during evaluation."""
 
 
 def _rule_matches_card(rule_card: str, card: Card) -> bool:
@@ -40,12 +37,10 @@ def _rules_cover_card(rules: Iterable["PriorityRule"], card: Card) -> bool:
 
 @dataclass
 class PriorityRule:
-    """Represents a single priority rule.
+    """A card preference with an optional callable condition.
 
-    The ``condition`` field is stored as a simple string; the surrounding code
-    does not evaluate these expressions so there is no need for a full parser
-    here.  Helper static methods are provided to build commonly used
-    conditions.
+    Built-in condition factories attach a source expression for reporting and
+    strategy export; execution always calls the condition itself.
     """
 
     card: str
@@ -432,8 +427,11 @@ class EnhancedStrategy:
                 else:
                     try:
                         passes = bool(cond(state, player))
-                    except Exception:
-                        passes = False
+                    except Exception as exc:
+                        raise StrategyDecisionError(
+                            f"Strategy {self.name!r}: {list_name} condition for "
+                            f"{rule.card!r} failed"
+                        ) from exc
 
                 if passes:
                     # Mark the rule as having fired at least once. The
@@ -445,8 +443,11 @@ class EnhancedStrategy:
                     if callback is not None:
                         try:
                             callback(list_name, rule, card, state, player)
-                        except Exception:
-                            pass
+                        except Exception as exc:
+                            raise StrategyDecisionError(
+                                f"Strategy {self.name!r}: {list_name} decision "
+                                f"observer for {rule.card!r} failed"
+                            ) from exc
                     return card
 
         return None
@@ -609,8 +610,11 @@ class EnhancedStrategy:
                 try:
                     if not cond(state, player):
                         continue
-                except Exception:
-                    continue
+                except Exception as exc:
+                    raise StrategyDecisionError(
+                        f"Strategy {self.name!r}: Way condition for "
+                        f"{rule.card_name!r} / {rule.way_name!r} failed"
+                    ) from exc
             for w in ways:
                 if w is not None and getattr(w, "name", None) == rule.way_name:
                     return w

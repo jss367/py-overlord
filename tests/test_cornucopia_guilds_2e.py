@@ -4,9 +4,7 @@ Covers seven new kingdom cards (Carnival, Farmhands, Farrier, Ferryman,
 Footpad, Infirmary, Shop) and one new Joust Reward (Courser).
 """
 
-from typing import Optional
 
-from dominion.cards.base_card import Card
 from dominion.cards.cornucopia.joust import REWARD_CARD_NAMES
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState

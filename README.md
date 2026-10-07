@@ -2,6 +2,31 @@
 
 Requires Python 3.14 or newer.
 
+## Development
+
+Install the package with its development and reinforcement-learning dependencies:
+
+```bash
+python -m pip install -e '.[dev,rl]'
+pytest -q
+python -m ruff check .
+python scripts/ensure_pytest_collection.py
+python scripts/check_catalog.py
+```
+
+CI runs the reinforcement-learning tests as well as the core simulator tests.
+For local work without reinforcement learning, install `.[dev]`; tests under
+`tests/rl/` are omitted when Torch or Gymnasium is unavailable. Ruff's shared
+configuration enables all Pyflakes checks, including unused and shadowed names.
+
+Strategy conditions must return a truth value or raise an error. A broken
+condition raises `StrategyDecisionError` with its strategy and rule context;
+training rejects the failed evaluation instead of silently trying the next
+rule. Decision-observer failures also invalidate an evaluation, so incomplete
+decision statistics cannot be mistaken for a successful run.
+
+## Running strategies
+
 To battle strategies:
 
 ```

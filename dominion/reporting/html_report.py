@@ -319,7 +319,6 @@ def generate_sweep_report(
         if not detailed:
             continue
 
-        turns = [g["turns"] for g in detailed]
         margins = [g["margin"] for g in detailed]
 
         # Game length histogram

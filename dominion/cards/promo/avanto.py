@@ -1,4 +1,4 @@
-from ..base_card import Card, CardCost, CardStats, CardType
+from ..base_card import CardCost, CardStats, CardType
 from ..split_pile import BottomSplitPileCard
 
 

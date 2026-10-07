@@ -1,13 +1,12 @@
 """Tests for the newly implemented Dominion Base Set cards (and Moat reaction)."""
 
-from typing import Optional
 
 from dominion.cards.base_card import Card
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
 
-from tests.utils import ChooseFirstActionAI, DummyAI
+from tests.utils import ChooseFirstActionAI
 
 
 def _make_state(num_players: int = 1, ai_class=ChooseFirstActionAI) -> GameState:

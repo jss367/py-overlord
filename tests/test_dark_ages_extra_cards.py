@@ -1,11 +1,8 @@
 """Tests for Wandering Minstrel, Market Square, Feodum, Hunting Grounds, Samurai."""
 
-from typing import Optional
 
-from dominion.cards.base_card import Card
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
-from dominion.game.player_state import PlayerState
 
 from tests.utils import ChooseFirstActionAI, DummyAI
 

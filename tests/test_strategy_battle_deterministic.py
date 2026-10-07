@@ -43,5 +43,3 @@ def test_seeded_battle_winrates_and_reproducibility(seed_rng, pair):
     first = run_once()
     second = run_once()
     assert first == second
-
-    winrate = first / games

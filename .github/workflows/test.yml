@@ -18,8 +18,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -e .
+        pip install -e '.[dev,rl]'
+    - name: Verify reinforcement-learning dependencies
+      run: python -c "import gymnasium; import torch"
     - name: Verify pytest collects all tests
       run: python scripts/ensure_pytest_collection.py
     - name: Verify board and strategy catalog is current

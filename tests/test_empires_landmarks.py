@@ -1,6 +1,5 @@
 """Tests for Empires Landmarks (20 landmarks)."""
 
-import random
 
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
@@ -103,7 +102,7 @@ def test_aqueduct_moves_vp_on_treasure_and_victory_gain():
 
 def test_arena_setup_pool_six_per_player():
     landmark = Arena()
-    state = _make_game([landmark], num_players=3)
+    _make_game([landmark], num_players=3)
     assert landmark.vp_pool == 18
 
 
@@ -416,7 +415,7 @@ def test_wolf_den_neg_three_per_singleton_card():
 
 def test_baths_setup_pool_six_per_player():
     landmark = Baths()
-    state = _make_game([landmark], num_players=3)
+    _make_game([landmark], num_players=3)
     assert landmark.vp_pool == 18
 
 
@@ -475,7 +474,7 @@ def test_baths_unaffected_by_out_of_turn_forced_gains():
     """
     landmark = Baths()
     state = _make_game([landmark])
-    attacker, defender = state.players[0], state.players[1]
+    defender = state.players[1]
     # Out-of-turn forced gain on attacker's turn.
     state.current_player_index = 0
     state.gain_card(defender, get_card("Curse"))

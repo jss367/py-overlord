@@ -27,7 +27,6 @@ class Idol(Card):
             game_state.receive_boon(player)
         else:
             # Even: each other player gains a Curse
-            from ..registry import get_card
 
             for other in game_state.players:
                 if other is player:

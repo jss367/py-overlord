@@ -1,6 +1,6 @@
 """Approaching Army Prophecy."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from .base_prophecy import Prophecy
 from .registry import register

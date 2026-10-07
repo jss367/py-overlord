@@ -658,7 +658,6 @@ def test_merchant_camp_topdecks_when_played_via_way():
     from dominion.cards.registry import get_card as _get_card
     from dominion.game.game_state import GameState
     from dominion.ways.registry import get_way
-    from tests.utils import ChooseFirstActionAI
 
     class WayPickerAI(ChooseFirstActionAI):
         def choose_way(self, state, card, ways):

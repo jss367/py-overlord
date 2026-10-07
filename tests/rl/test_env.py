@@ -1,7 +1,6 @@
 """Tests for DominionEnv Gym environment."""
 
 import numpy as np
-import pytest
 import gymnasium as gym
 from dominion.rl.env import DominionEnv
 from dominion.rl.state_encoder import PHASE1_KINGDOM

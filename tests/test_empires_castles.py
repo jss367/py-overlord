@@ -1,6 +1,5 @@
 """Tests for Empires Castles 8-pile."""
 
-import pytest
 
 from dominion.cards.empires.castles import (
     CASTLE_ORDER,

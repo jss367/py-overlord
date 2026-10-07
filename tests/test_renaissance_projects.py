@@ -21,7 +21,7 @@ from dominion.projects import (
     SinisterPlot,
     StarChart,
 )
-from tests.utils import BuyEventAI, ChooseFirstActionAI, DummyAI, TrashFirstAI
+from tests.utils import ChooseFirstActionAI, DummyAI
 
 
 def make_state(project, kingdom: str = "Village", n: int = 1):

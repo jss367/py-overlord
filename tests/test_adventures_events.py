@@ -300,7 +300,6 @@ def test_ball_does_not_gain_ferryman_set_aside_pile():
 
 
 def test_raid_minus_card_tokens_and_silvers():
-    state = _new_state()
     state2 = GameState(players=[])
     ai1 = ChooseFirstActionAI()
     ai2 = ChooseFirstActionAI()

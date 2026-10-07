@@ -6,7 +6,7 @@ from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
 from dominion.projects.fleet import Fleet
 
-from tests.utils import DummyAI, BuyEventAI
+from tests.utils import BuyEventAI
 
 
 def _make_game(events, num_players=2):

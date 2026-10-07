@@ -1,7 +1,6 @@
 """Tests for RandomAI opponent."""
 
 import random
-import pytest
 from dominion.rl.random_ai import RandomAI
 from dominion.cards.registry import get_card
 

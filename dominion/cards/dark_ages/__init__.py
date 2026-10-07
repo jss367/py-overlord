@@ -27,6 +27,9 @@ from .procession import Procession
 from .sage import Sage
 
 __all__ = [
+    'RUIN_VARIANT_CLASSES',
+    'RUIN_VARIANT_NAMES',
+
     'Beggar',
     'Feodum',
     'Forager',

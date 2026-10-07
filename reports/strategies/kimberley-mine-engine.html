@@ -382,7 +382,6 @@
     counts = Counter(c.name for c in player.all_cards())
     has_sewers = any(x.name == &quot;Sewers&quot; for x in player.projects)
     colonies = state.supply.get(&quot;Colony&quot;, 0)
-    provinces = state.supply.get(&quot;Province&quot;, 8)
     names = []
     late = colonies &lt;= p[&quot;province_colonies&quot;] or player.turns_taken &gt;= p[&quot;green_turn&quot;]
     if counts[&quot;Platinum&quot;] or late or player.turns_taken &gt;= 8:

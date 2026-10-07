@@ -1,8 +1,6 @@
 """Tests for the Plunder Traits infrastructure (15 traits)."""
 
-import random
 
-import pytest
 
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
@@ -122,7 +120,6 @@ def test_rich_gains_silver_on_gain():
 def test_nearby_gives_extra_buy_on_buy():
     state = _make_state()
     apply_trait(state, "Nearby", "Village")
-    player = state.current_player
     # Simulate the Nearby check: the buy phase increments buys.
     # Direct test of the trait state.
     assert state.pile_traits.get("Village") == "Nearby"
@@ -229,7 +226,6 @@ def test_shy_discards_and_draws_at_start_of_turn():
     player.hand = [get_card("Village"), get_card("Copper")]
     player.deck = [get_card("Gold"), get_card("Silver"), get_card("Estate")]
     player.discard = []
-    pre_hand = len(player.hand)
     state._handle_shy_start_of_turn(player)
     # Village discarded, drew 2 → hand size: started with 2, -1 (Village), +2 = 3.
     assert len(player.hand) == 3

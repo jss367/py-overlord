@@ -2,7 +2,6 @@
 
 from typing import Optional
 
-from dominion.cards.base_card import Card
 from dominion.cards.cornucopia.prizes import PRIZE_CARD_NAMES
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
