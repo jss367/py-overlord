@@ -25,6 +25,20 @@ training rejects the failed evaluation instead of silently trying the next
 rule. Decision-observer failures also invalidate an evaluation, so incomplete
 decision statistics cannot be mistaken for a successful run.
 
+Predicate signatures conservatively describe structure within the current
+runtime; they do not prove that two arbitrary Python functions are equivalent.
+Source-tagged rules use their declared source. Custom predicates include code,
+defaults, closures, referenced globals, function/partial attributes, and local
+class/instance state. Containers and callables retain reference topology,
+including unordered cycles. Strings and bytes also retain aliases when reachable
+code observes identity with `is`, `id`, or `operator.is_`/`is_not`; value-only code
+ignores incidental scalar sharing. Numeric scalars use value identity because
+pickle does not preserve their object identity. Reflection and dynamically
+generated identity tests need an explicit source signature. Imported symbols use the shared runtime's module and qualified name;
+interpreter-generated class bookkeeping is excluded. If serialization changes
+observable reference topology, the transported predicate can have a different
+signature. Fingerprints are not a cross-version checkpoint format.
+
 ## Running strategies
 
 To battle strategies:

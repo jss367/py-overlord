@@ -42,7 +42,14 @@ def test_equal_captured_strings_do_not_depend_on_pickle_memo_sharing():
     shared = _matching_names([name, name])
     copied = _matching_names([name, separate])
     assert cloudpickle.dumps(shared) != cloudpickle.dumps(copied)
+    # A value-only predicate does not observe incidental scalar aliases.
     assert condition_signature(shared) == condition_signature(copied)
+    for predicate in [shared, copied]:
+        expected = condition_signature(predicate)
+        assert condition_signature(deepcopy(predicate)) == expected
+        for _ in range(3):
+            predicate = cloudpickle.loads(cloudpickle.dumps(predicate))
+            assert condition_signature(predicate) == expected
 
 
 @pytest.mark.parametrize(
@@ -234,7 +241,7 @@ def test_callable_local_object_includes_helper_method_closure():
 
 
 @pytest.mark.parametrize("container", [list, dict, set, lambda: frozenset({1}), lambda: tuple([1])])
-def test_mutable_closure_alias_topology_affects_identity_and_survives_transport(container):
+def test_captured_container_alias_topology_survives_transport(container):
     def factory(shared):
         a = container()
         b = a if shared else container()
@@ -392,3 +399,87 @@ def test_canonical_graph_distinguishes_equal_degree_cycle_topologies():
         for _ in range(4):
             predicate = cloudpickle.loads(cloudpickle.dumps(predicate))
             assert condition_signature(predicate) == expected
+
+
+
+@pytest.mark.parametrize("scalar_factory", [
+    lambda: "a dynamically created captured string with several words".encode().decode(),
+    lambda: bytes(bytearray(b"a dynamically created captured bytes value")),
+])
+@pytest.mark.parametrize("observer", ["is", "id", "operator"])
+def test_memoized_scalar_alias_behavior_and_transport_are_preserved(scalar_factory, observer):
+    def factory(shared):
+        a = scalar_factory()
+        b = a if shared else scalar_factory()
+        if observer == "id":
+            return lambda state, player: id(a) == id(b)
+        if observer == "operator":
+            from operator import is_ as compare
+            return lambda state, player: compare(a, b)
+        return lambda state, player: a is b
+
+    shared, separate = factory(True), factory(False)
+    assert shared(None, None) and not separate(None, None)
+    assert condition_signature(shared) != condition_signature(separate)
+    with ProcessPoolExecutor(
+        max_workers=1, mp_context=multiprocessing.get_context("spawn")
+    ) as pool:
+        for predicate in [shared, separate]:
+            expected = condition_signature(predicate)
+            assert condition_signature(deepcopy(predicate)) == expected
+            for _ in range(3):
+                predicate = cloudpickle.loads(cloudpickle.dumps(predicate))
+                assert condition_signature(predicate) == expected
+            assert pool.submit(_worker_signature, cloudpickle.dumps(predicate)).result(timeout=20) == expected
+
+
+@pytest.mark.parametrize("kind", ["function", "partial"])
+def test_callable_attribute_state_controls_identity_and_survives_transport(kind):
+    def factory(threshold):
+        if kind == "function":
+            def helper(player):
+                return player.coins >= helper.threshold
+            decision = lambda state, player: helper(player)
+        else:
+            def read_attribute(state, player, *, policy):
+                return player.coins >= policy.threshold
+            helper = partial(read_attribute, policy=None)
+            helper.keywords["policy"] = helper
+            decision = lambda state, player: helper(state, player)
+        helper.threshold = threshold
+        # Self-referencing attribute state exercises graph cycles as well.
+        helper.policy = helper
+        return decision
+
+    first, second = factory(4), factory(8)
+    assert first(None, SimpleNamespace(coins=6))
+    assert not second(None, SimpleNamespace(coins=6))
+    assert condition_signature(first) != condition_signature(second)
+    with ProcessPoolExecutor(
+        max_workers=1, mp_context=multiprocessing.get_context("spawn")
+    ) as pool:
+        expected = condition_signature(first)
+        for _ in range(3):
+            first = cloudpickle.loads(cloudpickle.dumps(first))
+            assert condition_signature(first) == expected
+        assert pool.submit(_worker_signature, cloudpickle.dumps(first)).result(timeout=20) == expected
+
+
+
+def test_cross_module_global_helpers_include_attribute_state():
+    def helper_factory(threshold):
+        def helper(player):
+            return player.coins >= helper.threshold
+        helper.threshold = threshold
+        return helper
+
+    def factory(threshold):
+        namespace = {"__name__": "other_policy_module", "helper": helper_factory(threshold)}
+        exec("def predicate(state, player): return helper(player)", namespace)
+        return namespace["predicate"]
+
+    first, second = factory(4), factory(8)
+    assert first(None, SimpleNamespace(coins=6))
+    assert not second(None, SimpleNamespace(coins=6))
+    assert condition_signature(first) != condition_signature(second)
+    assert condition_signature(first) == condition_signature(cloudpickle.loads(cloudpickle.dumps(first)))

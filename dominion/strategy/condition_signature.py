@@ -1,11 +1,11 @@
 """Structural fingerprints for custom rule predicates.
 
-Pickle is a transport format: its memo records object sharing, so equal scalar
-closure values can produce different bytes after copying or a worker round
-trip. Freeze function code and captured values before hashing instead, retaining
-reference topology for captured containers and callables. Imported symbols are
-identified by module and qualified name within the current evaluation runtime;
-these fingerprints are not a cross-version checkpoint format.
+Canonicalize code, captured state and the supported reference graph. Containers
+and callables preserve aliases. Strings/bytes also preserve aliases when
+reachable code explicitly observes identity; value-only code ignores scalar
+memoization. Numeric identity and dynamic reflection require an explicit source
+signature. Imported code uses shared runtime symbols; callable state is retained.
+These fingerprints are not a cross-version checkpoint format.
 """
 
 import dis
@@ -25,7 +25,11 @@ def condition_signature(condition) -> tuple | None:
     source = getattr(condition, "_source", None)
     if source is not None:
         return ("source", source)
-    frozen = _canonical_graph(_freeze(condition, {}))
+    identity_observers = []
+    frozen = _freeze(condition, {}, identity_observers=identity_observers)
+    if identity_observers:
+        frozen = _freeze(condition, {}, scalar_aliases=True)
+    frozen = _canonical_graph(frozen)
     encoded = json.dumps(frozen, ensure_ascii=True, separators=(",", ":"))
     return ("callable", hashlib.sha256(encoded.encode()).digest())
 
@@ -34,8 +38,8 @@ def _symbol(value):
     return (value.__module__, value.__qualname__)
 
 
-def _importable_type(value):
-    """Only shared runtime classes can safely use symbol identity."""
+def _importable_symbol(value):
+    """Only shared runtime symbols can safely use module/name identity."""
     current = sys.modules.get(value.__module__)
     for name in value.__qualname__.split("."):
         if current is None or name == "<locals>":
@@ -56,14 +60,14 @@ def _global_names(code):
     return names
 
 
-def _freeze(value, active, references=None):
+def _freeze(value, active, references=None, scalar_aliases=False, identity_observers=None):
     """Capture containers and callables as nodes; ignore scalar memoization."""
     if references is None:
         references = {}
     mutable = isinstance(value, (
         list, tuple, dict, set, frozenset, bytearray, types.FunctionType, types.MethodType,
         types.BuiltinFunctionType, partial,
-    )) or (isinstance(value, type) and not _importable_type(value)) or (
+    )) or (scalar_aliases and isinstance(value, (str, bytes))) or (isinstance(value, type) and not _importable_symbol(value)) or (
         not isinstance(value, (
             type, types.ModuleType, types.FunctionType, types.MethodType,
             types.BuiltinFunctionType, types.CodeType, staticmethod, classmethod,
@@ -81,11 +85,11 @@ def _freeze(value, active, references=None):
         # Retain objects too: synthesized slot-state dictionaries can otherwise
         # be freed and their IDs reused during a later sibling's traversal.
         references[identity] = (marker, value)
-        return ("mutable", marker, _freeze_value(value, active, references))
-    return _freeze_value(value, active, references)
+        return ("mutable", marker, _freeze_value(value, active, references, scalar_aliases, identity_observers))
+    return _freeze_value(value, active, references, scalar_aliases, identity_observers)
 
 
-def _freeze_value(value, active, references):
+def _freeze_value(value, active, references, scalar_aliases, identity_observers):
     """Build JSON values with active recursion and graph-reference tracking."""
     if value is None or isinstance(value, (bool, int, str)):
         return (type(value).__name__, value)
@@ -99,7 +103,7 @@ def _freeze_value(value, active, references):
         return ("ellipsis",)
     if isinstance(value, types.ModuleType):
         return ("module", value.__name__)
-    if isinstance(value, type) and _importable_type(value):
+    if isinstance(value, type) and _importable_symbol(value):
         return ("symbol", _symbol(value))
 
     identity = id(value)
@@ -107,13 +111,13 @@ def _freeze_value(value, active, references):
         return ("cycle", active[identity])
     active[identity] = len(active)
     try:
-        freeze = lambda item: _freeze(item, active, references)
+        freeze = lambda item: _freeze(item, active, references, scalar_aliases, identity_observers)
         if isinstance(value, type):
             # Local/by-value classes can share names but capture different
             # method parameters. Descriptor wrappers must expose their code.
             attributes = []
             for name, item in sorted(vars(value).items()):
-                if name in {"__dict__", "__weakref__", "__module__", "__qualname__", "__firstlineno__", "__slotnames__"}:
+                if name in {"__dict__", "__weakref__", "__module__", "__qualname__", "__firstlineno__", "__slotnames__", "__static_attributes__"}:
                     continue
                 if isinstance(item, (types.MemberDescriptorType, types.GetSetDescriptorType)):
                     continue
@@ -124,11 +128,36 @@ def _freeze_value(value, active, references):
         if isinstance(value, property):
             return ("property", freeze(value.fget), freeze(value.fset), freeze(value.fdel))
         if isinstance(value, types.BuiltinFunctionType):
+            if (
+                identity_observers is not None
+                and value.__module__ in {"builtins", "operator", "_operator"}
+                and value.__name__ in {"id", "is_", "is_not"}
+            ):
+                identity_observers.append(True)
             owner = getattr(value, "__self__", None)
             if owner is not None and not isinstance(owner, types.ModuleType):
                 return ("bound-builtin", value.__name__, freeze(owner))
             return ("symbol", _symbol(value))
         if isinstance(value, types.CodeType):
+            if identity_observers is not None:
+                previous = None
+                for instruction in dis.get_instructions(value):
+                    if (
+                        instruction.opname == "IS_OP"
+                        and not (
+                            previous is not None and (
+                                (previous.opname == "LOAD_CONST" and previous.argval is None)
+                                # Python 3.14's optimized any/all guards compare
+                                # builtins with compiler-owned common constants.
+                                or previous.opname == "LOAD_COMMON_CONSTANT"
+                            )
+                        )
+                    ) or (
+                        instruction.opname in {"LOAD_GLOBAL", "LOAD_NAME", "LOAD_ATTR"}
+                        and instruction.argval in {"id", "is_", "is_not"}
+                    ):
+                        identity_observers.append(True)
+                    previous = instruction
             return (
                 "code",
                 value.co_code.hex(),
@@ -161,9 +190,12 @@ def _freeze_value(value, active, references):
                 # defined alongside the predicate can have distinct code or
                 # captured parameters, even when their names are identical.
                 frozen = (
-                    ("symbol", _symbol(dependency))
+                    ("runtime-function", _symbol(dependency),
+                     freeze(dependency.__defaults__), freeze(dependency.__kwdefaults__),
+                     freeze(dependency.__dict__))
                     if isinstance(dependency, types.FunctionType)
                     and dependency.__module__ != value.__module__
+                    and _importable_symbol(dependency)
                     else freeze(dependency)
                 )
                 globals_used.append((name, frozen))
@@ -174,6 +206,7 @@ def _freeze_value(value, active, references):
                 freeze(value.__kwdefaults__),
                 closure,
                 globals_used,
+                freeze(value.__dict__),
             )
         if isinstance(value, types.MethodType):
             return ("method", freeze(value.__func__), freeze(value.__self__))
@@ -183,6 +216,7 @@ def _freeze_value(value, active, references):
                 freeze(value.func),
                 freeze(value.args),
                 freeze(value.keywords),
+                freeze(value.__dict__),
             )
         if isinstance(value, (tuple, list)):
             return (type(value).__name__, [freeze(item) for item in value])
