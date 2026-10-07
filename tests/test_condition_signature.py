@@ -233,7 +233,7 @@ def test_callable_local_object_includes_helper_method_closure():
         assert pool.submit(_worker_signature, cloudpickle.dumps(first)).result(timeout=20) == expected
 
 
-@pytest.mark.parametrize("container", [list, dict, set])
+@pytest.mark.parametrize("container", [list, dict, set, lambda: frozenset({1}), lambda: tuple([1])])
 def test_mutable_closure_alias_topology_affects_identity_and_survives_transport(container):
     def factory(shared):
         a = container()
@@ -320,3 +320,75 @@ def test_unordered_identity_hashed_objects_have_stable_reference_markers(contain
             predicate = cloudpickle.loads(cloudpickle.dumps(predicate))
             assert condition_signature(predicate) == expected
         assert pool.submit(_worker_signature, cloudpickle.dumps(predicate)).result(timeout=20) == expected
+
+
+
+def test_equal_unordered_members_with_external_alias_have_stable_graph_labels():
+    class Limit:
+        def __init__(self, limit):
+            self.limit = limit
+
+    def factory(extra_alias):
+        anchor = Limit(4)
+        limits = {anchor, *(Limit(4) for _ in range(5))}
+        selected = anchor if extra_alias else Limit(4)
+        return lambda state, player: selected in limits
+
+    included, excluded = factory(True), factory(False)
+    assert included(None, None) and not excluded(None, None)
+    assert condition_signature(included) != condition_signature(excluded)
+    with ProcessPoolExecutor(
+        max_workers=1, mp_context=multiprocessing.get_context("spawn")
+    ) as pool:
+        for predicate in [included, excluded]:
+            expected = condition_signature(predicate)
+            for _ in range(8):
+                predicate = cloudpickle.loads(cloudpickle.dumps(predicate))
+                assert condition_signature(predicate) == expected
+            assert pool.submit(_worker_signature, cloudpickle.dumps(predicate)).result(timeout=20) == expected
+
+
+def test_unordered_reference_graph_distinguishes_cycles_and_shared_edges():
+    class Node:
+        pass
+
+    def factory(shared):
+        nodes = [Node() for _ in range(4)]
+        for i, node in enumerate(nodes):
+            node.next = nodes[(i + 1) % len(nodes)]
+        if shared:
+            nodes[1].next = nodes[0]
+        captured = set(nodes)
+        return lambda state, player: any(node.next.next is node for node in captured)
+
+    first, second = factory(True), factory(False)
+    assert first(None, None) and not second(None, None)
+    assert condition_signature(first) != condition_signature(second)
+    for predicate in [first, second]:
+        expected = condition_signature(predicate)
+        for _ in range(5):
+            predicate = cloudpickle.loads(cloudpickle.dumps(predicate))
+            assert condition_signature(predicate) == expected
+
+
+
+def test_canonical_graph_distinguishes_equal_degree_cycle_topologies():
+    class Node:
+        pass
+
+    def factory(cycle_size):
+        nodes = [Node() for _ in range(6)]
+        for start in range(0, 6, cycle_size):
+            for i in range(cycle_size):
+                nodes[start + i].next = nodes[start + (i + 1) % cycle_size]
+        captured = frozenset(nodes)
+        return lambda state, player: any(node.next.next.next is node for node in captured)
+
+    triangles, hexagon = factory(3), factory(6)
+    assert triangles(None, None) and not hexagon(None, None)
+    assert condition_signature(triangles) != condition_signature(hexagon)
+    for predicate in [triangles, hexagon]:
+        expected = condition_signature(predicate)
+        for _ in range(4):
+            predicate = cloudpickle.loads(cloudpickle.dumps(predicate))
+            assert condition_signature(predicate) == expected
