@@ -154,41 +154,27 @@ header{padding:32px 0;border-bottom:1px solid var(--line)}h1,h2{font-family:Geor
 }</pre></details></td><td><strong>59.0%</strong></td><td>56.9%–61.0%</td><td>1,179 / 0 / 821</td></tr></tbody></table></div>
 <h2>Additional controls for the selected plan</h2>
 <p>The selected plan is the challenger in every row. The first and third comparisons use 2,000 games each; the money comparison uses 1,000. Removing Cobbler while retaining the other purchase settings checks whether those other settings alone account for the improvement.</p>
-<div class="scroll"><table><thead><tr><th>Comparison</th><th>Selected plan’s score rate</th><th>Approximate 95% interval</th><th>Wins / ties / losses</th></tr></thead><tbody><tr><td>Selected plan versus the original one-Shepherd Cobbler control<details><summary>Exact settings</summary><pre>{
+<div class="scroll"><table><thead><tr><th>Comparison</th><th>Selected plan’s score rate</th><th>Approximate 95% interval</th><th>Wins / ties / losses</th></tr></thead><tbody><tr><td>Selected plan versus the original one-Shepherd Cobbler control<details><summary>Opponent settings</summary><pre>{
+  &quot;shepherd&quot;: 1,
+  &quot;hero&quot;: 1,
+  &quot;monastery&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;estate&quot;: 3,
+  &quot;cobbler&quot;: 1
+}</pre></details></td><td><strong>74.2%</strong></td><td>72.2%–76.1%</td><td>1,483 / 0 / 517</td></tr><tr><td>Selected plan versus treasure-only money<details><summary>Opponent settings</summary><pre>{
+  &quot;shepherd&quot;: 0,
+  &quot;hero&quot;: 0,
+  &quot;monastery&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 99,
+  &quot;opening&quot;: &quot;Silver&quot;
+}</pre></details></td><td><strong>92.5%</strong></td><td>90.9%–94.1%</td><td>925 / 0 / 75</td></tr><tr><td>Selected plan versus identical purchase settings with Cobbler removed<details><summary>Opponent settings</summary><pre>{
   &quot;shepherd&quot;: 1,
   &quot;hero&quot;: 2,
   &quot;monastery&quot;: 0,
   &quot;silver&quot;: 99,
   &quot;estate&quot;: 3,
-  &quot;cobbler&quot;: 2,
-  &quot;cobbler_shepherds&quot;: 4,
-  &quot;cobbler_estates&quot;: 5,
-  &quot;cobbler_silver&quot;: 0,
-  &quot;cobbler_adaptive&quot;: true,
-  &quot;priority&quot;: &quot;night&quot;,
-  &quot;opening&quot;: &quot;Tragic Hero&quot;,
-  &quot;monastery_timing&quot;: &quot;spare&quot;
-}</pre></details></td><td><strong>74.2%</strong></td><td>72.2%–76.1%</td><td>1,483 / 0 / 517</td></tr><tr><td>Selected plan versus treasure-only money<details><summary>Exact settings</summary><pre>{
-  &quot;shepherd&quot;: 1,
-  &quot;hero&quot;: 2,
-  &quot;monastery&quot;: 0,
-  &quot;silver&quot;: 99,
-  &quot;estate&quot;: 3,
-  &quot;cobbler&quot;: 2,
-  &quot;cobbler_shepherds&quot;: 4,
-  &quot;cobbler_estates&quot;: 5,
-  &quot;cobbler_silver&quot;: 0,
-  &quot;cobbler_adaptive&quot;: true,
-  &quot;priority&quot;: &quot;night&quot;,
-  &quot;opening&quot;: &quot;Tragic Hero&quot;,
-  &quot;monastery_timing&quot;: &quot;spare&quot;
-}</pre></details></td><td><strong>92.5%</strong></td><td>90.9%–94.1%</td><td>925 / 0 / 75</td></tr><tr><td>Selected plan versus identical purchase settings with Cobbler removed<details><summary>Exact settings</summary><pre>{
-  &quot;shepherd&quot;: 1,
-  &quot;hero&quot;: 2,
-  &quot;monastery&quot;: 0,
-  &quot;silver&quot;: 99,
-  &quot;estate&quot;: 3,
-  &quot;cobbler&quot;: 2,
+  &quot;cobbler&quot;: 0,
   &quot;cobbler_shepherds&quot;: 4,
   &quot;cobbler_estates&quot;: 5,
   &quot;cobbler_silver&quot;: 0,

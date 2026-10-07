@@ -557,3 +557,37 @@ def test_strategy_leaderboard_matches_hand_typed_filter_names_case_insensitively
         "params.getAll(paramKey(kind, mode)).map((value) => canonical(kind, value))"
         in html
     )
+
+
+def test_new_strategy_pages_link_their_curated_guides():
+    for slug, filename in [
+        ("cobbler-shepherd-growth", "cobbler-shepherd-strategy-comparison.html"),
+        ("shepherd-tragic-hero-best-found", "shepherd-tragic-hero-strategy-guide.html"),
+    ]:
+        strategy = EnhancedStrategy()
+        item = RenderedStrategy(
+            display_name=slug, slug=slug, strategy=strategy,
+            source_path="", factory_name="", references={},
+        )
+        assert f'href="{filename}"' in render_strategy_page(item)
+
+
+def test_cobbler_guide_control_settings_match_saved_opponents():
+    import html
+    import json
+    from pathlib import Path
+    import re
+
+    root = Path(__file__).resolve().parents[1]
+    source = root / "dominion/reporting/curated_strategy_guides/cobbler-shepherd-strategy-comparison.html"
+    section = source.read_text().split("<h2>Additional controls", 1)[1].split("<h2>Search scope", 1)[0]
+    settings = [
+        json.loads(html.unescape(block))
+        for block in re.findall(r"<summary>Opponent settings</summary><pre>(.*?)</pre>", section, re.S)
+    ]
+    results = json.loads((root / "scripts/data/cobbler_shepherd_validation.json").read_text())
+    assert settings == [
+        next(row["b"] for row in results if row["seed"] == seed)
+        for seed in [140000000, 140010000, 140020000]
+    ]
+    assert settings[2]["cobbler"] == 0
