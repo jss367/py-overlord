@@ -203,3 +203,70 @@ def test_captured_local_class_behavior_remains_distinct_after_transport(method_k
             first = cloudpickle.loads(cloudpickle.dumps(first))
             assert condition_signature(first) == expected
         assert pool.submit(_worker_signature, cloudpickle.dumps(first)).result(timeout=20) == expected
+
+
+
+def test_callable_local_object_includes_helper_method_closure():
+    def factory(minimum):
+        class Gate:
+            def check(self, player):
+                return player.coins >= minimum
+
+            def __call__(self, state, player):
+                return self.check(player)
+
+        return Gate()
+
+    first = factory(4)
+    assert first(None, SimpleNamespace(coins=6))
+    assert not factory(8)(None, SimpleNamespace(coins=6))
+    expected = condition_signature(first)
+    assert expected != condition_signature(factory(8))
+    assert expected == condition_signature(factory(4))
+    assert expected == condition_signature(deepcopy(first))
+    with ProcessPoolExecutor(
+        max_workers=1, mp_context=multiprocessing.get_context("spawn")
+    ) as pool:
+        for _ in range(3):
+            first = cloudpickle.loads(cloudpickle.dumps(first))
+            assert condition_signature(first) == expected
+        assert pool.submit(_worker_signature, cloudpickle.dumps(first)).result(timeout=20) == expected
+
+
+@pytest.mark.parametrize("container", [list, dict, set])
+def test_mutable_closure_alias_topology_affects_identity_and_survives_transport(container):
+    def factory(shared):
+        a = container()
+        b = a if shared else container()
+        return lambda state, player: a is b
+
+    shared, separate = factory(True), factory(False)
+    assert shared(None, None) and not separate(None, None)
+    assert condition_signature(shared) != condition_signature(separate)
+    with ProcessPoolExecutor(
+        max_workers=1, mp_context=multiprocessing.get_context("spawn")
+    ) as pool:
+        for predicate in [shared, separate]:
+            expected = condition_signature(predicate)
+            assert condition_signature(deepcopy(predicate)) == expected
+            for _ in range(3):
+                predicate = cloudpickle.loads(cloudpickle.dumps(predicate))
+                assert condition_signature(predicate) == expected
+            assert pool.submit(_worker_signature, cloudpickle.dumps(predicate)).result(timeout=20) == expected
+
+
+def test_mutable_aliases_across_nested_containers_and_cycles_remain_distinct():
+    def factory(shared):
+        a = []
+        a.append(a)
+        b = a if shared else []
+        if not shared:
+            b.append(b)
+        captured = {"a": [a], "b": [b]}
+        return lambda state, player: captured["a"][0] is captured["b"][0]
+
+    assert condition_signature(factory(True)) != condition_signature(factory(False))
+    for shared in [True, False]:
+        predicate = factory(shared)
+        assert condition_signature(predicate) == condition_signature(deepcopy(predicate))
+        assert condition_signature(predicate) == condition_signature(cloudpickle.loads(cloudpickle.dumps(predicate)))

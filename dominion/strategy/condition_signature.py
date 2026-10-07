@@ -1,8 +1,9 @@
 """Structural fingerprints for custom rule predicates.
 
 Pickle is a transport format: its memo records object sharing, so equal closure
-values can produce different bytes after copying or a worker round trip. Freeze
-function code and captured values before hashing instead. Imported symbols are
+immutable values can produce different bytes after copying or a worker round
+trip. Freeze function code and captured values before hashing instead, retaining
+reference topology for mutable captured values. Imported symbols are
 identified by module and qualified name within the current evaluation runtime;
 these fingerprints are not a cross-version checkpoint format.
 """
@@ -55,8 +56,34 @@ def _global_names(code):
     return names
 
 
-def _freeze(value, active):
-    """Build JSON values, retaining cycles but ignoring incidental aliasing."""
+def _freeze(value, active, references=None):
+    """Preserve mutable aliases while ignoring immutable transport memoization."""
+    if references is None:
+        references = {}
+    mutable = isinstance(value, (list, dict, set, bytearray)) or (
+        not isinstance(value, (
+            type, types.ModuleType, types.FunctionType, types.MethodType,
+            types.BuiltinFunctionType, types.CodeType, staticmethod, classmethod,
+            property, partial,
+        ))
+        and (hasattr(value, "__dict__") or any(
+            "__slots__" in cls.__dict__ for cls in type(value).__mro__
+        ))
+    )
+    if mutable:
+        identity = id(value)
+        if identity in references:
+            return ("reference", references[identity][0])
+        marker = len(references)
+        # Retain objects too: synthesized slot-state dictionaries can otherwise
+        # be freed and their IDs reused during a later sibling's traversal.
+        references[identity] = (marker, value)
+        return ("mutable", marker, _freeze_value(value, active, references))
+    return _freeze_value(value, active, references)
+
+
+def _freeze_value(value, active, references):
+    """Build JSON values with active recursion and mutable-reference tracking."""
     if value is None or isinstance(value, (bool, int, str)):
         return (type(value).__name__, value)
     if isinstance(value, float):
@@ -77,13 +104,13 @@ def _freeze(value, active):
         return ("cycle", active[identity])
     active[identity] = len(active)
     try:
-        freeze = lambda item: _freeze(item, active)
+        freeze = lambda item: _freeze(item, active, references)
         if isinstance(value, type):
             # Local/by-value classes can share names but capture different
             # method parameters. Descriptor wrappers must expose their code.
             attributes = []
             for name, item in sorted(vars(value).items()):
-                if name in {"__dict__", "__weakref__", "__module__", "__qualname__", "__firstlineno__"}:
+                if name in {"__dict__", "__weakref__", "__module__", "__qualname__", "__firstlineno__", "__slotnames__"}:
                     continue
                 if isinstance(item, (types.MemberDescriptorType, types.GetSetDescriptorType)):
                     continue
@@ -172,7 +199,7 @@ def _freeze(value, active):
             call = getattr(type(value), "__call__", None)
             return (
                 "object",
-                _symbol(type(value)),
+                freeze(type(value)),
                 freeze(value.__getstate__()),
                 freeze(call) if isinstance(call, types.FunctionType) else None,
             )
