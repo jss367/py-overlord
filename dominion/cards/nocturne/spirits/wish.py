@@ -1,4 +1,4 @@
-"""Wish — non-supply Action-Spirit, $0."""
+"""Wish — non-supply Action, $0."""
 
 from ...base_card import Card, CardCost, CardStats, CardType
 
@@ -11,7 +11,7 @@ class Wish(Card):
             name="Wish",
             cost=CardCost(coins=0),
             stats=CardStats(actions=1),
-            types=[CardType.ACTION, CardType.SPIRIT],
+            types=[CardType.ACTION],
         )
 
     def starting_supply(self, game_state) -> int:
@@ -25,8 +25,9 @@ class Wish(Card):
 
         player = game_state.current_player
         # Return Wish to its non-supply pile
-        if self in player.in_play:
-            player.in_play.remove(self)
+        if self not in player.in_play:
+            return
+        player.in_play.remove(self)
         game_state.supply["Wish"] = game_state.supply.get("Wish", 0) + 1
 
         # Gain a card costing up to $6 to hand

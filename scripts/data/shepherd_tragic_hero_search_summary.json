@@ -1,0 +1,540 @@
+{
+  "champion": {
+    "shepherd": 1,
+    "hero": 1,
+    "monastery": 0,
+    "cave": 0,
+    "hound": 0,
+    "exorcist": 0,
+    "cobbler": 0,
+    "crypt": 0,
+    "guardian": 0,
+    "herbalist": 0,
+    "silver": 99,
+    "gold": 99,
+    "green": 0,
+    "duchy": 3,
+    "estate": 3,
+    "keep_estates": true,
+    "extra_estates": 0,
+    "opening": "Shepherd",
+    "priority": "draw",
+    "imps": 2,
+    "ghosts": 0,
+    "cave_mode": 0,
+    "crypt_min": 2,
+    "monastery_timing": "early"
+  },
+  "stages": {
+    "First broad search": {
+      "games": 20096,
+      "matches": 628,
+      "truncated": 0,
+      "top_policies": [
+        [
+          0.8203125,
+          {
+            "hero": 1,
+            "shepherd": 1,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": true
+          }
+        ],
+        [
+          0.7890625,
+          {
+            "hero": 1,
+            "shepherd": 0,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": false
+          }
+        ],
+        [
+          0.765625,
+          {
+            "shepherd": 1,
+            "hero": 0,
+            "monastery": 0,
+            "monastery_timing": "early",
+            "cave": 0,
+            "hound": 2,
+            "exorcist": 0,
+            "cobbler": 2,
+            "crypt": 0,
+            "guardian": 1,
+            "herbalist": 0,
+            "silver": 5,
+            "gold": 99,
+            "green": 8,
+            "duchy": 3,
+            "estate": 2,
+            "extra_estates": 8,
+            "opening": "Silver",
+            "priority": "money",
+            "keep_estates": false,
+            "cave_mode": 0,
+            "imps": 3,
+            "ghosts": 0
+          }
+        ],
+        [
+          0.7421875,
+          {
+            "hero": 1,
+            "shepherd": 2,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": true
+          }
+        ],
+        [
+          0.734375,
+          {
+            "hero": 2,
+            "shepherd": 1,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": true
+          }
+        ],
+        [
+          0.7265625,
+          {
+            "shepherd": 3,
+            "hero": 3,
+            "monastery": 1,
+            "monastery_timing": "spare",
+            "cave": 0,
+            "hound": 0,
+            "exorcist": 0,
+            "cobbler": 1,
+            "crypt": 0,
+            "guardian": 0,
+            "herbalist": 0,
+            "silver": 3,
+            "gold": 3,
+            "green": 8,
+            "duchy": 2,
+            "estate": 3,
+            "extra_estates": 8,
+            "opening": "Shepherd",
+            "priority": "money",
+            "keep_estates": false,
+            "cave_mode": 0,
+            "imps": 3,
+            "ghosts": 0
+          }
+        ],
+        [
+          0.71875,
+          {
+            "hero": 2,
+            "shepherd": 0,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": false
+          }
+        ],
+        [
+          0.7109375,
+          {
+            "shepherd": 0,
+            "hero": 2,
+            "monastery": 0,
+            "silver": 99,
+            "gold": 99,
+            "opening": "Tragic Hero"
+          }
+        ],
+        [
+          0.69921875,
+          {
+            "shepherd": 1,
+            "hero": 1,
+            "monastery": 0,
+            "monastery_timing": "spare",
+            "cave": 2,
+            "hound": 0,
+            "exorcist": 0,
+            "cobbler": 0,
+            "crypt": 1,
+            "guardian": 1,
+            "herbalist": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 0,
+            "duchy": 3,
+            "estate": 1,
+            "extra_estates": 5,
+            "opening": "Shepherd",
+            "priority": "night",
+            "keep_estates": false,
+            "cave_mode": 1,
+            "imps": 3,
+            "ghosts": 1
+          }
+        ],
+        [
+          0.6953125,
+          {
+            "shepherd": 6,
+            "hero": 1,
+            "monastery": 0,
+            "monastery_timing": "early",
+            "cave": 1,
+            "hound": 0,
+            "exorcist": 0,
+            "cobbler": 0,
+            "crypt": 0,
+            "guardian": 0,
+            "herbalist": 0,
+            "silver": 2,
+            "gold": 3,
+            "green": 0,
+            "duchy": 2,
+            "estate": 3,
+            "extra_estates": 0,
+            "opening": "Shepherd",
+            "priority": "money",
+            "keep_estates": true,
+            "cave_mode": 1,
+            "imps": 3,
+            "ghosts": 0
+          }
+        ]
+      ]
+    },
+    "Second broad search": {
+      "games": 20096,
+      "matches": 628,
+      "truncated": 0,
+      "top_policies": [
+        [
+          0.8125,
+          {
+            "hero": 1,
+            "shepherd": 1,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": true
+          }
+        ],
+        [
+          0.7734375,
+          {
+            "hero": 2,
+            "shepherd": 1,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": true
+          }
+        ],
+        [
+          0.7734375,
+          {
+            "shepherd": 2,
+            "hero": 3,
+            "monastery": 1,
+            "monastery_timing": "spare",
+            "cave": 0,
+            "hound": 0,
+            "exorcist": 0,
+            "cobbler": 0,
+            "crypt": 1,
+            "guardian": 0,
+            "herbalist": 0,
+            "silver": 5,
+            "gold": 3,
+            "green": 8,
+            "duchy": 4,
+            "estate": 2,
+            "extra_estates": 0,
+            "opening": "Tragic Hero",
+            "priority": "money",
+            "keep_estates": true,
+            "cave_mode": 0,
+            "imps": 1,
+            "ghosts": 1
+          }
+        ],
+        [
+          0.765625,
+          {
+            "hero": 1,
+            "shepherd": 0,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": false
+          }
+        ],
+        [
+          0.734375,
+          {
+            "shepherd": 2,
+            "hero": 1,
+            "monastery": 0,
+            "monastery_timing": "spare",
+            "cave": 0,
+            "hound": 0,
+            "exorcist": 0,
+            "cobbler": 0,
+            "crypt": 1,
+            "guardian": 0,
+            "herbalist": 0,
+            "silver": 2,
+            "gold": 5,
+            "green": 10,
+            "duchy": 4,
+            "estate": 2,
+            "extra_estates": 8,
+            "opening": "Exorcist",
+            "priority": "money",
+            "keep_estates": false,
+            "cave_mode": 0,
+            "imps": 3,
+            "ghosts": 0
+          }
+        ],
+        [
+          0.7265625,
+          {
+            "hero": 1,
+            "shepherd": 2,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": true
+          }
+        ],
+        [
+          0.7265625,
+          {
+            "shepherd": 3,
+            "hero": 0,
+            "monastery": 0,
+            "monastery_timing": "early",
+            "cave": 0,
+            "hound": 1,
+            "exorcist": 0,
+            "cobbler": 2,
+            "crypt": 1,
+            "guardian": 1,
+            "herbalist": 1,
+            "silver": 2,
+            "gold": 5,
+            "green": 0,
+            "duchy": 3,
+            "estate": 3,
+            "extra_estates": 8,
+            "opening": "Silver",
+            "priority": "money",
+            "keep_estates": false,
+            "cave_mode": 0,
+            "imps": 3,
+            "ghosts": 1
+          }
+        ],
+        [
+          0.703125,
+          {
+            "shepherd": 6,
+            "hero": 3,
+            "monastery": 1,
+            "monastery_timing": "spare",
+            "cave": 1,
+            "hound": 0,
+            "exorcist": 0,
+            "cobbler": 2,
+            "crypt": 0,
+            "guardian": 0,
+            "herbalist": 1,
+            "silver": 3,
+            "gold": 5,
+            "green": 0,
+            "duchy": 2,
+            "estate": 2,
+            "extra_estates": 5,
+            "opening": "Silver",
+            "priority": "money",
+            "keep_estates": true,
+            "cave_mode": 1,
+            "imps": 3,
+            "ghosts": 1
+          }
+        ],
+        [
+          0.6953125,
+          {
+            "shepherd": 0,
+            "hero": 2,
+            "monastery": 0,
+            "silver": 99,
+            "gold": 99,
+            "opening": "Tragic Hero"
+          }
+        ],
+        [
+          0.69140625,
+          {
+            "hero": 2,
+            "shepherd": 0,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": false
+          }
+        ]
+      ]
+    },
+    "Focused tuning": {
+      "games": 22080,
+      "matches": 552,
+      "truncated": 0,
+      "top_policies": [
+        [
+          0.5875,
+          {
+            "hero": 1,
+            "shepherd": 1,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": true,
+            "crypt": 2
+          }
+        ],
+        [
+          0.5875,
+          {
+            "hero": 1,
+            "shepherd": 1,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": true,
+            "estate": 3
+          }
+        ],
+        [
+          0.5875,
+          {
+            "hero": 1,
+            "shepherd": 1,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": true,
+            "opening": "Monastery"
+          }
+        ],
+        [
+          0.58125,
+          {
+            "hero": 2,
+            "shepherd": 1,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": true
+          }
+        ],
+        [
+          0.58125,
+          {
+            "hero": 1,
+            "shepherd": 1,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": true,
+            "green": 8
+          }
+        ],
+        [
+          0.5770833333333333,
+          {
+            "hero": 1,
+            "shepherd": 1,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": false
+          }
+        ],
+        [
+          0.575,
+          {
+            "hero": 1,
+            "shepherd": 1,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": true,
+            "estate": 2
+          }
+        ],
+        [
+          0.56875,
+          {
+            "hero": 1,
+            "shepherd": 2,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": true,
+            "opening": "Tragic Hero"
+          }
+        ],
+        [
+          0.5625,
+          {
+            "hero": 1,
+            "shepherd": 1,
+            "monastery": 0,
+            "silver": 99,
+            "keep_estates": true,
+            "extra_estates": 8
+          }
+        ],
+        [
+          0.5625,
+          {
+            "shepherd": 1,
+            "hero": 0,
+            "monastery": 0,
+            "monastery_timing": "early",
+            "cave": 0,
+            "hound": 2,
+            "exorcist": 0,
+            "cobbler": 2,
+            "crypt": 0,
+            "guardian": 1,
+            "herbalist": 0,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "duchy": 3,
+            "estate": 2,
+            "extra_estates": 8,
+            "opening": "Silver",
+            "priority": "money",
+            "keep_estates": false,
+            "cave_mode": 0,
+            "imps": 3,
+            "ghosts": 0
+          }
+        ]
+      ]
+    },
+    "Finalist round robin": {
+      "games": 18000,
+      "matches": 45,
+      "truncated": 0
+    },
+    "Independent validation": {
+      "games": 8000,
+      "matches": 8,
+      "truncated": 0
+    },
+    "Support-card comparisons": {
+      "games": 6600,
+      "matches": 11,
+      "truncated": 0
+    }
+  },
+  "games": 94872,
+  "assumptions": "Two players; Province game; no landscapes; five Coppers, Magic Lamp, Pasture, three Estates.",
+  "selection": "Highest mean score in the finalist round robin; validation seeds were not used to select the champion."
+}

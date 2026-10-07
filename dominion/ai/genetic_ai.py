@@ -44,6 +44,49 @@ class GeneticAI(AI):
 
         return self.strategy.choose_gain(state, state.current_player, choices)
 
+    # Board-specific Nocturne decisions, with the normal AI as fallback.
+    def choose_night(self, state, choices):
+        hook = getattr(self.strategy, "choose_night", None)
+        if hook is not None:
+            return hook(state, state.current_player, choices)
+        return super().choose_night(state, choices)
+
+    def choose_card_to_gain_to_hand(self, state, player, choices, max_cost):
+        hook = getattr(self.strategy, "choose_card_to_gain_to_hand", None)
+        if hook is not None:
+            return hook(state, player, choices, max_cost)
+        return super().choose_card_to_gain_to_hand(state, player, choices, max_cost)
+
+    def choose_card_to_gain_for_exorcist(self, state, player, trashed, choices):
+        hook = getattr(self.strategy, "choose_card_to_gain_for_exorcist", None)
+        if hook is not None:
+            return hook(state, player, trashed, choices)
+        return super().choose_card_to_gain_for_exorcist(state, player, trashed, choices)
+
+    def choose_cards_to_trash_for_monastery(self, state, player, choices, count):
+        hook = getattr(self.strategy, "choose_cards_to_trash_for_monastery", None)
+        if hook is not None:
+            return hook(state, player, choices, count)
+        return super().choose_cards_to_trash_for_monastery(state, player, choices, count)
+
+    def choose_secret_cave_discards(self, state, player):
+        hook = getattr(self.strategy, "choose_secret_cave_discards", None)
+        if hook is not None:
+            return hook(state, player)
+        return super().choose_secret_cave_discards(state, player)
+
+    def choose_treasures_to_set_aside_for_crypt(self, state, player, treasures):
+        hook = getattr(self.strategy, "choose_treasures_to_set_aside_for_crypt", None)
+        if hook is not None:
+            return hook(state, player, treasures)
+        return super().choose_treasures_to_set_aside_for_crypt(state, player, treasures)
+
+    def choose_imp_action(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_imp_action", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_imp_action(state, player, choices)
+
     def choose_swindler_replacement(self, state, player, target, choices):
         hook = getattr(self.strategy, "choose_swindler_replacement", None)
         if hook is not None:

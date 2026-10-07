@@ -22,7 +22,7 @@ class Imp(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        in_play_names = {c.name for c in player.in_play}
+        in_play_names = {c.name for c in player.in_play + player.duration}
         choices = [
             c for c in player.hand
             if c.is_action and c.name not in in_play_names

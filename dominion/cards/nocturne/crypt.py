@@ -8,7 +8,7 @@ class Crypt(Card):
         super().__init__(
             name="Crypt",
             cost=CardCost(coins=5),
-            stats=CardStats(actions=1),
+            stats=CardStats(),
             types=[CardType.NIGHT, CardType.DURATION],
         )
         self.set_aside: list = []
@@ -16,7 +16,7 @@ class Crypt(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        treasures = [card for card in player.hand if card.is_treasure]
+        treasures = [card for card in player.in_play if card.is_treasure]
 
         selected: list = []
         if treasures:
@@ -31,7 +31,7 @@ class Crypt(Card):
                     selected.append(card)
 
             for card in selected:
-                player.hand.remove(card)
+                player.in_play.remove(card)
 
         # Extend instead of replacing so Throne Room style effects work.
         if selected:

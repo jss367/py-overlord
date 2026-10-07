@@ -50,6 +50,22 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="cobbler-shepherd-strategy-comparison.html",
+        display_name="Cobbler and Shepherd: Strategy Comparison",
+        description="A focused test of gaining extra Shepherds with Cobbler, including purchase timing, hand-aware gains, Estate fuel and independent validation against the original recommendation.",
+        kingdom_cards=("Faithful Hound", "Guardian", "Herbalist", "Monastery", "Secret Cave",
+                       "Exorcist", "Shepherd", "Cobbler", "Crypt", "Tragic Hero"),
+        source_label="Focused search and seat-balanced repository simulations",
+    ),
+    CuratedStrategyGuide(
+        filename="shepherd-tragic-hero-strategy-guide.html",
+        display_name="Shepherd and Tragic Hero: Strategy Guide",
+        description="The original draw-and-money study for this Night-card kingdom, with rule corrections and validation; see the Cobbler and Shepherd comparison for the updated recommendation.",
+        kingdom_cards=("Faithful Hound", "Guardian", "Herbalist", "Monastery", "Secret Cave",
+                       "Exorcist", "Shepherd", "Cobbler", "Crypt", "Tragic Hero"),
+        source_label="Official card rules and seat-balanced repository simulations",
+    ),
+    CuratedStrategyGuide(
         filename="collection-swindler-strategy-guide.html",
         display_name="Collection and Swindler: Strategy Guide",
         description="A searched Collection scoring rush, followed by a dedicated 92,000-game Village and Imperial Envoy challenge with independent validation.",

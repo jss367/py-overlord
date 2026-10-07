@@ -6,8 +6,8 @@ from ...base_card import Card, CardCost, CardStats, CardType
 class Ghost(Card):
     """Reveal cards until you reveal an Action.
 
-    Set it aside, discard the rest. At the start of each of the next two
-    turns, play that Action.
+    Set it aside, discard the rest. At the start of your next turn,
+    play that Action twice.
     """
 
     def __init__(self):
@@ -17,6 +17,8 @@ class Ghost(Card):
             stats=CardStats(),
             types=[CardType.NIGHT, CardType.DURATION, CardType.SPIRIT],
         )
+
+        self.set_aside = []
 
     def starting_supply(self, game_state) -> int:
         return 6
@@ -42,17 +44,20 @@ class Ghost(Card):
             game_state.discard_card(player, card)
         if action_card is None:
             return
-        # Schedule two plays at the start of the next two turns.
-        player.ghost_pending_actions.append((action_card, 2))
-        # Persist Ghost in duration so it sticks until plays complete.
+        self.set_aside.append(action_card)
         self.duration_persistent = True
         if self not in player.duration:
             player.duration.append(self)
 
     def on_duration(self, game_state):
-        # No additional effect — Ghost's plays are scheduled via the player's
-        # ghost_pending_actions list (handled at start of turn). Stay in
-        # play while plays remain.
+        from ...allies._rules import retain_multiplier
+
         player = game_state.current_player
-        any_pending = any(plays > 0 for _, plays in player.ghost_pending_actions)
-        self.duration_persistent = any_pending
+        actions = list(self.set_aside)
+        self.set_aside.clear()
+        self.duration_persistent = False
+        for action in actions:
+            player.in_play.append(action)
+            for _ in range(2):
+                game_state.play_action_indirectly(player, action)
+            retain_multiplier(player, self, action)

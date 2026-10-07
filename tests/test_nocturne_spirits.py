@@ -82,10 +82,12 @@ def test_ghost_sets_aside_action_for_two_plays():
     # Ghost moved to duration
     assert ghost in player.duration
     # Village queued for 2 plays
-    assert player.ghost_pending_actions
-    action_card, plays = player.ghost_pending_actions[0]
-    assert action_card is village
-    assert plays == 2
+    assert ghost.set_aside == [village]
+    player.actions = 0
+    ghost.on_duration(state)
+    assert player.actions == 4
+    assert not ghost.set_aside
+    assert village in player.in_play
 
 
 def test_bat_trashes_and_swaps_to_vampire():

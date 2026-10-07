@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cobbler Shepherd Growth Strategy</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas: #f4f0e6;
+      --surface: #fffdf8;
+      --surface-raised: #ffffff;
+      --border: #d9d0bd;
+      --border-strong: #b7aa91;
+      --text: #28231d;
+      --muted: #72695d;
+      --accent: #245f73;
+      --accent-dark: #174555;
+      --shadow: 0 12px 30px rgb(64 48 28 / 8%);
+      --action: #f3ebdd;
+      --treasure: #eadca9;
+      --victory: #83b96c;
+      --curse: #9270ac;
+      --reaction: #5b8fc4;
+      --attack: #b85d55;
+      --duration: #de914a;
+      --night: #45434a;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      background:
+        radial-gradient(circle at top left, rgb(232 198 90 / 12%), transparent 28rem),
+        var(--canvas);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      margin: 0 auto;
+      max-width: 1180px;
+      min-height: 100vh;
+      padding: 28px 28px 64px;
+    }
+    a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+    a:hover { color: var(--accent-dark); }
+    h1, h2 { font-family: Georgia, "Times New Roman", serif; }
+    h1 { font-size: clamp(2.15rem, 5vw, 3.45rem); letter-spacing: -.035em; line-height: 1.05; margin: 0; }
+    h2 { font-size: 1.45rem; margin: 0; }
+    p { margin: .6rem 0; }
+    nav { align-items: center; display: flex; gap: 16px; margin-bottom: 18px; }
+    nav a, .back-link { font-size: .9rem; font-weight: 700; text-decoration: none; }
+    nav a::before, .back-link::before { content: "← "; }
+    .muted, .empty { color: var(--muted); }
+    .eyebrow { color: var(--accent); font-size: .72rem; font-weight: 800; letter-spacing: .14em; margin-bottom: 8px; text-transform: uppercase; }
+    .hero {
+      background: linear-gradient(135deg, rgb(255 255 255 / 92%), rgb(255 253 248 / 86%));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 26px;
+      overflow: hidden;
+      padding: clamp(24px, 5vw, 44px);
+      position: relative;
+    }
+    .hero::after {
+      background: linear-gradient(180deg, var(--treasure), #b98a27);
+      content: "";
+      inset: 0 0 0 auto;
+      position: absolute;
+      width: 6px;
+    }
+    .hero-description { color: #51483e; font-size: 1.05rem; margin: 14px 0 0; max-width: 760px; }
+    .hero-links { align-items: center; display: flex; flex-wrap: wrap; gap: 10px 14px; margin-top: 20px; }
+    .hero-links strong { color: var(--muted); font-size: .76rem; letter-spacing: .06em; text-transform: uppercase; }
+    .section { margin-top: 30px; }
+    .section-heading { align-items: center; display: flex; gap: 10px; margin-bottom: 10px; }
+    .section-icon {
+      align-items: center;
+      background: var(--section-color, var(--accent));
+      border-radius: 9px;
+      color: #fff;
+      display: inline-flex;
+      font-size: .9rem;
+      font-weight: 900;
+      height: 30px;
+      justify-content: center;
+      width: 30px;
+    }
+    .section-gain { --section-color: #5f9251; }
+    .section-action { --section-color: #9b815a; }
+    .section-trash { --section-color: #a65b54; }
+    .section-treasure { --section-color: #bd8c24; }
+    .section-way { --section-color: #518ea6; }
+    .section-custom { --section-color: #7b6aa8; }
+    .section-note { color: var(--muted, #666); margin: 0 0 10px; }
+    .behavior-name { font-weight: 600; }
+    .meta {
+      display: grid;
+      gap: 12px 24px;
+      grid-template-columns: minmax(120px, max-content) 1fr;
+      margin: 16px 0 0;
+    }
+    .meta dt { color: var(--muted); font-size: .75rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+    .meta dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+    .technical-details {
+      background: rgb(255 255 255 / 55%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-top: 18px;
+      padding: 0 16px;
+    }
+    .technical-details > summary { color: var(--muted); cursor: pointer; font-size: .86rem; font-weight: 750; padding: 12px 0; }
+    .technical-details[open] > summary { border-bottom: 1px solid var(--border); }
+    .technical-details .meta { padding-bottom: 16px; }
+    table {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-collapse: separate;
+      border-radius: 12px;
+      border-spacing: 0;
+      box-shadow: 0 4px 14px rgb(64 48 28 / 5%);
+      margin: 0;
+      overflow: hidden;
+      width: 100%;
+    }
+    th, td {
+      border-bottom: 1px solid #e8e1d4;
+      padding: 11px 14px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    th { background: #eee8dc; color: #675d50; font-size: .71rem; letter-spacing: .07em; position: sticky; text-transform: uppercase; top: 0; }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:hover td, table tr:not(:first-child):hover td { background: #fffcf4; }
+    td:first-child { width: 68px; }
+    .priority-number {
+      align-items: center;
+      background: #f3efe7;
+      border: 1px solid #9d9384;
+      border-radius: 50%;
+      color: #5f574c;
+      display: inline-flex;
+      font-size: .78rem;
+      font-weight: 800;
+      height: 27px;
+      justify-content: center;
+      width: 27px;
+    }
+    .chip-list { align-items: center; display: flex; flex-wrap: wrap; gap: 7px; }
+    .card-chip, .landscape-chip, .board-chip, .strategy-link-chip, .tag {
+      align-items: center;
+      border: 1px solid rgb(48 41 31 / 22%);
+      border-radius: 999px;
+      color: #28231d;
+      display: inline-flex;
+      font-size: .8rem;
+      font-weight: 750;
+      gap: 5px;
+      line-height: 1.1;
+      min-height: 27px;
+      padding: 5px 10px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .card-chip.type-action { background: var(--action); }
+    .card-chip.type-treasure { background: var(--treasure); }
+    .card-chip.type-victory { background: var(--victory); }
+    .card-chip.type-curse { background: var(--curse); color: #fff; }
+    .card-chip.type-night { background: var(--night); color: #fff; }
+    .card-chip.type-other, .card-chip.card-unknown { background: #e9e4da; }
+    .card-chip.card-copper { background: #c88758; }
+    .card-chip.card-silver { background: #d7d9da; }
+    .card-chip.card-gold { background: #e7bd42; }
+    .card-chip.card-platinum {
+      background: linear-gradient(135deg, #f4f7f7, #c6d8dd 48%, #e5eef0);
+      border-color: #91aeb5;
+    }
+    .type-marker { border: 1px solid rgb(0 0 0 / 22%); border-radius: 50%; height: 8px; width: 8px; }
+    .marker-attack { background: var(--attack); }
+    .marker-reaction { background: var(--reaction); }
+    .marker-duration { background: var(--duration); }
+    .marker-action { background: var(--action); }
+    .marker-treasure { background: var(--treasure); }
+    .marker-victory { background: var(--victory); }
+    .marker-curse { background: var(--curse); }
+    .marker-night { background: var(--night); }
+    .marker-reserve, .marker-traveller { background: #b89563; }
+    .marker-liaison { background: #8a72a7; }
+    .marker-omen { background: #6a94a2; }
+    .landscape-chip { border-radius: 7px; }
+    .landscape-event { background: #dedbd3; }
+    .landscape-project { background: #e6a99f; }
+    .landscape-way { background: #9dc8d7; }
+    .landscape-landmark { background: #8caf72; }
+    .landscape-ally { background: #ddc99a; }
+    .landscape-trait { background: #c8b08c; }
+    .landscape-prophecy { background: #a8c9cf; }
+    .board-chip { background: #e8f0ef; border-color: #b4cbc7; color: #245f73; }
+    .board-chip::before { content: "▦"; font-size: .72rem; }
+    .strategy-link-chip { background: #f0eadc; border-color: #d6c7a9; color: #6b5327; }
+    .strategy-link-chip::before { content: "♟"; font-size: .72rem; }
+    .coin-badge {
+      align-items: center;
+      background: var(--treasure);
+      border: 2px solid #9d7620;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 2px rgb(255 255 255 / 38%);
+      display: inline-flex;
+      font-size: .78rem;
+      font-weight: 900;
+      height: 29px;
+      justify-content: center;
+      width: 29px;
+    }
+    .condition {
+      background: #edf1f2;
+      border: 1px solid #d3dfe1;
+      border-radius: 999px;
+      color: #334e57;
+      display: inline-block;
+      font-size: .79rem;
+      font-weight: 650;
+      line-height: 1.25;
+      padding: 5px 9px;
+    }
+    .condition-always { background: #f2efe9; border-color: #ded7ca; color: var(--muted); }
+    .condition-detail summary { cursor: pointer; list-style-position: outside; }
+    .condition-detail summary::marker { color: #8da1a7; font-size: .72rem; }
+    .condition-detail pre { margin: 7px 0 0; max-width: 720px; }
+    .condition-detail code { background: #282b2d; border-radius: 7px; color: #f3eee4; display: block; font-size: .73rem; overflow-wrap: anywhere; padding: 8px 10px; white-space: pre-wrap; }
+    .search {
+      background: var(--surface-raised);
+      border: 1px solid var(--border-strong);
+      border-radius: 999px;
+      box-shadow: 0 3px 10px rgb(64 48 28 / 5%);
+      color: var(--text);
+      font: inherit;
+      margin: 20px 0 22px;
+      padding: 11px 16px;
+      width: min(520px, 100%);
+    }
+    .search:focus { border-color: var(--accent); outline: 3px solid rgb(36 95 115 / 15%); }
+    .catalog-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); }
+    .strategy-card, .board-card {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 5px 16px rgb(64 48 28 / 5%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+      padding: 20px;
+      transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+    }
+    .strategy-card:hover, .board-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow); transform: translateY(-2px); }
+    .strategy-card h2, .board-card h2 { font-size: 1.22rem; line-height: 1.2; }
+    .strategy-card h2 a, .board-card h2 a { color: var(--text); text-decoration: none; }
+    .strategy-card p, .board-card p { color: #5d554a; font-size: .88rem; margin: 0; }
+    .card-footer { align-items: center; border-top: 1px solid #ece5d9; color: var(--muted); display: flex; flex-wrap: wrap; font-size: .75rem; gap: 8px 14px; margin-top: auto; padding-top: 12px; }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { background: #f0ede6; border: 0; color: #655c50; font-size: .68rem; letter-spacing: .04em; min-height: 22px; padding: 4px 8px; text-transform: uppercase; }
+    .empty-state { background: rgb(255 255 255 / 55%); border: 1px dashed var(--border-strong); border-radius: 12px; color: var(--muted); padding: 18px; }
+    @media (max-width: 680px) {
+      body { padding: 18px 14px 44px; }
+      .hero { border-radius: 14px; }
+      .meta { grid-template-columns: 1fr; gap: 3px; }
+      .meta dd + dt { margin-top: 9px; }
+      .priority-table { background: transparent; border: 0; box-shadow: none; overflow: visible; }
+      .priority-table thead { clip: rect(0 0 0 0); clip-path: inset(50%); height: 1px; overflow: hidden; position: absolute; white-space: nowrap; width: 1px; }
+      .priority-table tbody, .priority-table tr, .priority-table td { display: block; width: 100%; }
+      .priority-table tr { background: var(--surface-raised); border: 1px solid var(--border); border-radius: 11px; box-shadow: 0 3px 10px rgb(64 48 28 / 5%); margin-bottom: 10px; overflow: hidden; padding: 9px 12px; }
+      .priority-table td { border: 0; padding: 6px 0 6px 92px; position: relative; }
+      .priority-table td::before { color: var(--muted); content: attr(data-label); font-size: .68rem; font-weight: 800; left: 0; letter-spacing: .05em; position: absolute; text-transform: uppercase; top: 9px; }
+      .priority-table td[colspan] { padding-left: 0; text-align: center; }
+      .priority-table td[colspan]::before { content: none; }
+    }
+    @media print {
+      body { background: #fff; max-width: none; padding: 0; }
+      .hero, table, .strategy-card, .board-card { box-shadow: none; }
+      .search, script { display: none; }
+      .condition-detail code { color: #000; background: #eee; }
+    }
+  </style>
+</head>
+<body>
+
+<nav><a href="index.html">Strategy index</a><a href="leaderboard.html">Leaderboard</a></nav>
+<header class="hero">
+  <p class="eyebrow">Dominion strategy</p>
+  <h1>Cobbler Shepherd Growth</h1>
+  <p class="hero-description">Two Cobblers gain Shepherds when the hand needs draw, up to four owned; otherwise gain Estates up to five, then Silver. Maintain two Tragic Heroes. Switch to scoring at three Provinces remaining. See the Cobbler and Shepherd comparison guide for held-out results.</p>
+
+  <div class="hero-links"><strong>Compatible boards</strong><span class="chip-list"><a class="board-chip" href="../boards/shepherd-tragic-hero.html">Shepherd Tragic Hero</a></span></div>
+  <details class="technical-details">
+    <summary>Implementation details and referenced components</summary>
+    <dl class="meta">
+      <dt>Internal name</dt><dd>Cobbler Shepherd Growth</dd>
+      <dt>Version</dt><dd>1.0</dd>
+      <dt>Source</dt><dd>dominion/strategy/strategies/cobbler_shepherd.py</dd>
+      <dt>Factory</dt><dd>create_cobbler_shepherd_growth</dd>
+      <dt>Kingdom Cards</dt><dd><span class="chip-list"><span class="card-chip type-night" aria-label="Cobbler, Night, Duration card"><span>Cobbler</span><span class="type-marker marker-duration" title="Duration" aria-hidden="true"></span></span><span class="card-chip type-treasure" aria-label="Magic Lamp, Treasure, Heirloom card"><span>Magic Lamp</span></span><span class="card-chip type-victory" aria-label="Pasture, Treasure, Victory, Heirloom card"><span>Pasture</span><span class="type-marker marker-treasure" title="Treasure" aria-hidden="true"></span></span><span class="card-chip type-action" aria-label="Shepherd, Action card"><span>Shepherd</span></span><span class="card-chip type-action" aria-label="Tragic Hero, Action card"><span>Tragic Hero</span></span></span></dd><dt>Events</dt><dd><span class="empty">None</span></dd><dt>Projects</dt><dd><span class="empty">None</span></dd><dt>Ways</dt><dd><span class="empty">None</span></dd><dt>Landmarks</dt><dd><span class="empty">None</span></dd><dt>Allies</dt><dd><span class="empty">None</span></dd>
+    </dl>
+  </details>
+</header>
+
+<section class="section section-custom">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">ƒ</span><h2>Custom Behaviors</h2></div>
+  <p class="section-note">Decision hooks this strategy overrides in Python. They can bypass or reinterpret the priority tables below.</p>
+  <table class="priority-table">
+    <thead><tr><th>Hook</th><th>What it does</th></tr></thead>
+    <tbody><tr><td data-label="Hook"><span class="behavior-name">Choose action</span></td><td data-label="What it does"><a href="#instructions-action">Read the action instructions below.</a><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_action(self, state, player, choices):
+    names = [&quot;Wish&quot;, &quot;Will-o&#x27;-Wisp&quot;]
+    if any(c.is_victory for c in player.hand):
+        names.append(&quot;Shepherd&quot;)
+    names += [
+        &quot;Secret Cave&quot;,
+        &quot;Shepherd&quot;,
+        &quot;Imp&quot;,
+        &quot;Tragic Hero&quot;,
+        &quot;Faithful Hound&quot;,
+        &quot;Herbalist&quot;,
+    ]
+    return self.pick(choices, names)
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose imp action</span></td><td data-label="What it does"><p>Take the first legal option in this order.</p><ol class="decision-instructions"><li>Wish, Will-o&#x27;-Wisp, Shepherd when holding a Victory card, Secret Cave, Shepherd, Imp, Tragic Hero, Faithful Hound, Herbalist.</li></ol><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_imp_action(self, state, player, choices):
+    return self.choose_action(state, player, choices)
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose gain</span></td><td data-label="What it does"><a href="#instructions-gain">Read the gain instructions below.</a><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_gain(self, state, player, choices):
+    p = self.params
+    c = Counter(card.name for card in player.all_cards())
+    provinces = state.supply.get(&quot;Province&quot;, 8)
+    names = []
+    if player.turns_taken &gt;= p[&quot;green&quot;] or provinces &lt;= 4:
+        names.append(&quot;Province&quot;)
+    if provinces &lt;= p[&quot;duchy&quot;]:
+        names.append(&quot;Duchy&quot;)
+    if provinces &lt;= p[&quot;estate&quot;]:
+        names.append(&quot;Estate&quot;)
+    opening_key = {
+        &quot;Shepherd&quot;: &quot;shepherd&quot;,
+        &quot;Tragic Hero&quot;: &quot;hero&quot;,
+        &quot;Monastery&quot;: &quot;monastery&quot;,
+        &quot;Exorcist&quot;: &quot;exorcist&quot;,
+        &quot;Silver&quot;: &quot;silver&quot;,
+    }.get(p[&quot;opening&quot;])
+    if (
+        player.turns_taken &lt;= 2
+        and not c[p[&quot;opening&quot;]]
+        and opening_key
+        and p[opening_key] &gt; 0
+    ):
+        names.append(p[&quot;opening&quot;])
+    if (
+        c[&quot;Monastery&quot;] &lt; p[&quot;monastery&quot;]
+        and player.turns_taken &lt;= 8
+        and p[&quot;monastery_timing&quot;] == &quot;early&quot;
+    ):
+        names.append(&quot;Monastery&quot;)
+    targets = [
+        (&quot;Shepherd&quot;, &quot;shepherd&quot;),
+        (&quot;Tragic Hero&quot;, &quot;hero&quot;),
+        (&quot;Cobbler&quot;, &quot;cobbler&quot;),
+        (&quot;Exorcist&quot;, &quot;exorcist&quot;),
+        (&quot;Crypt&quot;, &quot;crypt&quot;),
+        (&quot;Secret Cave&quot;, &quot;cave&quot;),
+        (&quot;Faithful Hound&quot;, &quot;hound&quot;),
+        (&quot;Guardian&quot;, &quot;guardian&quot;),
+        (&quot;Herbalist&quot;, &quot;herbalist&quot;),
+    ]
+    if p[&quot;priority&quot;] == &quot;night&quot;:
+        targets.sort(key=lambda t: t[0] not in {&quot;Cobbler&quot;, &quot;Exorcist&quot;, &quot;Crypt&quot;})
+    elif p[&quot;priority&quot;] == &quot;cave&quot;:
+        targets.sort(key=lambda t: t[0] not in {&quot;Secret Cave&quot;, &quot;Faithful Hound&quot;})
+    elif p[&quot;priority&quot;] == &quot;money&quot; and c[&quot;Gold&quot;] &lt; p[&quot;gold&quot;]:
+        names.append(&quot;Gold&quot;)
+    for name, key in targets:
+        cap = p[key]
+        if name == &quot;Crypt&quot; and c[&quot;Gold&quot;] == 0:
+            continue
+        if (
+            name == &quot;Shepherd&quot;
+            and c[name]
+            and c[name] * 2 &gt; sum(x.is_victory for x in player.all_cards())
+        ):
+            continue
+        if c[name] &lt; cap:
+            names.append(name)
+    if c[&quot;Gold&quot;] &lt; p[&quot;gold&quot;]:
+        names.append(&quot;Gold&quot;)
+    if c[&quot;Silver&quot;] &lt; p[&quot;silver&quot;]:
+        names.append(&quot;Silver&quot;)
+    if (
+        c[&quot;Monastery&quot;] &lt; p[&quot;monastery&quot;]
+        and player.turns_taken &lt;= 12
+        and p[&quot;monastery_timing&quot;] == &quot;spare&quot;
+    ):
+        names.append(&quot;Monastery&quot;)
+    if c[&quot;Estate&quot;] &lt; p[&quot;extra_estates&quot;] and c[&quot;Shepherd&quot;]:
+        names.append(&quot;Estate&quot;)
+    return self.pick(choices, names)
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose card to gain to hand</span></td><td data-label="What it does"><p>Cobbler has separate free-gain targets; purchased Shepherds use the buying target.</p><ol class="decision-instructions"><li>At 3 or fewer Provinces remaining, gain Estate first.</li><li>Before the draw target, gain Silver until 0 owned.</li><li>Gain Shepherd until 4 owned. Only do this when holding a Victory card and no Shepherd.</li><li>Then gain Estate until 5 owned.</li><li>Otherwise take Silver, Estate, Shepherd, then Copper, in that order.</li><li>Wishes use the ordinary buying priorities, with Gold, Silver, Estate, Copper as fallback.</li></ol><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_to_gain_to_hand(self, state, player, choices, max_cost):
+    p = self.params
+    # Cobbler is the only gain-to-hand effect capped at $4 on this board.
+    # Wishes retain the original $6 gain policy.
+    if max_cost != 4 or p[&quot;cobbler_shepherds&quot;] is None:
+        return self.choose_gain(state, player, choices) or self.pick(
+            choices, [&quot;Gold&quot;, &quot;Silver&quot;, &quot;Estate&quot;, &quot;Copper&quot;]
+        )
+    owned = Counter(card.name for card in player.all_cards())
+    names = []
+    if state.supply.get(&quot;Province&quot;, 8) &lt;= p[&quot;estate&quot;]:
+        names.append(&quot;Estate&quot;)
+    if owned[&quot;Silver&quot;] &lt; p[&quot;cobbler_silver&quot;]:
+        names.append(&quot;Silver&quot;)
+    target = p[&quot;cobbler_shepherds&quot;]
+    need_shepherd = owned[&quot;Shepherd&quot;] &lt; target
+    if p[&quot;cobbler_adaptive&quot;]:
+        need_shepherd &amp;= any(card.is_victory for card in player.hand) and not any(
+            card.name == &quot;Shepherd&quot; for card in player.hand
+        )
+    if need_shepherd:
+        names.append(&quot;Shepherd&quot;)
+    if owned[&quot;Estate&quot;] &lt; p[&quot;cobbler_estates&quot;]:
+        names.append(&quot;Estate&quot;)
+    names += [&quot;Silver&quot;, &quot;Estate&quot;, &quot;Shepherd&quot;, &quot;Copper&quot;]
+    return self.pick(choices, names)
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose treasure</span></td><td data-label="What it does"><a href="#instructions-treasure">Read the treasure instructions below.</a><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_treasure(self, state, player, choices):
+    c = Counter(card.name for card in player.all_cards())
+    available = list(choices)
+    if (
+        any(x.name == &quot;Exorcist&quot; for x in player.hand)
+        and c[&quot;Imp&quot;] &lt; self.params[&quot;imps&quot;]
+        and c[&quot;Silver&quot;] &gt;= 1
+    ):
+        silvers = [x for x in player.hand if x.name == &quot;Silver&quot;]
+        if silvers:
+            available = [x for x in available if x is not silvers[0]]
+    # Give Lamp a chance to see singleton Treasures before duplicate plays.
+    played = {x.name for x in player.in_play + player.duration}
+    if any(x.name == &quot;Magic Lamp&quot; for x in available):
+        first = [
+            x for x in available if x.name not in played and x.name != &quot;Magic Lamp&quot;
+        ]
+        if first:
+            return self.pick(first, [&quot;Gold&quot;, &quot;Silver&quot;, &quot;Pasture&quot;, &quot;Copper&quot;])
+        return self.pick(available, [&quot;Magic Lamp&quot;])
+    return self.pick(available, [&quot;Gold&quot;, &quot;Silver&quot;, &quot;Pasture&quot;, &quot;Copper&quot;])
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose night</span></td><td data-label="What it does"><p>Play Night cards in this order.</p><ol class="decision-instructions"><li>Guardian, Cobbler, Exorcist only with an eligible trash target, Monastery, Crypt, Ghost.</li></ol><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_night(self, state, player, choices):
+    names = [&quot;Guardian&quot;, &quot;Cobbler&quot;]
+    if self.choose_trash(state, player, list(player.hand)) is not None:
+        names.append(&quot;Exorcist&quot;)
+    names += [&quot;Monastery&quot;, &quot;Crypt&quot;, &quot;Ghost&quot;]
+    return self.pick(choices, names)
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose trash</span></td><td data-label="What it does"><a href="#instructions-trash">Read the trash instructions below.</a><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_trash(self, state, player, choices):
+    c = Counter(card.name for card in player.all_cards())
+    names = [&quot;Curse&quot;]
+    if not self.params[&quot;keep_estates&quot;] and state.supply.get(&quot;Province&quot;, 8) &gt; 3:
+        names.append(&quot;Estate&quot;)
+    if c[&quot;Imp&quot;] &lt; self.params[&quot;imps&quot;]:
+        names += [&quot;Silver&quot;, &quot;Secret Cave&quot;]
+    if c[&quot;Ghost&quot;] &lt; self.params[&quot;ghosts&quot;]:
+        names += [&quot;Cobbler&quot;, &quot;Crypt&quot;, &quot;Tragic Hero&quot;, &quot;Gold&quot;]
+    names += [&quot;Copper&quot;]
+    # Spare Estates can become Wisps without exhausting Shepherd fuel.
+    if c[&quot;Estate&quot;] &gt; max(3 if self.params[&quot;keep_estates&quot;] else 0, c[&quot;Shepherd&quot;]):
+        names.append(&quot;Estate&quot;)
+    return self.pick(choices, names)
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose card to gain for exorcist</span></td><td data-label="What it does"><p>Choose a legal Spirit.</p><ol class="decision-instructions"><li>Ghost first until 0 owned; otherwise Imp, Will-o&#x27;-Wisp, Ghost.</li></ol><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_card_to_gain_for_exorcist(self, state, player, trashed, choices):
+    c = Counter(card.name for card in player.all_cards())
+    names = [&quot;Imp&quot;, &quot;Will-o&#x27;-Wisp&quot;, &quot;Ghost&quot;]
+    if c[&quot;Ghost&quot;] &lt; self.params[&quot;ghosts&quot;]:
+        names.insert(0, &quot;Ghost&quot;)
+    return self.pick(choices, names)
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose cards to trash for monastery</span></td><td data-label="What it does"><p>Estate retention is enabled.</p><ol class="decision-instructions"><li>Trash Curse, then Copper. Trash Copper only when owned Gold and Silver provide at least three coins in total.</li><li>With retention disabled and more than three Provinces left, trash Estates after Copper. Stop when eligible junk runs out.</li></ol><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_cards_to_trash_for_monastery(self, state, player, choices, count):
+    p = self.params
+    c = Counter(card.name for card in player.all_cards())
+    junk = [x for x in choices if x.name == &quot;Curse&quot;]
+    junk += [x for x in choices if x.name == &quot;Copper&quot;]
+    if not p[&quot;keep_estates&quot;] and state.supply.get(&quot;Province&quot;, 8) &gt; 3:
+        junk += [x for x in choices if x.name == &quot;Estate&quot;]
+    # Keep enough economy to avoid trashing into a stalled deck.
+    if c[&quot;Gold&quot;] * 3 + c[&quot;Silver&quot;] * 2 &lt; 3:
+        junk = [x for x in junk if x.name != &quot;Copper&quot;]
+    return junk[:count]
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose secret cave discards</span></td><td data-label="What it does"><p>Discard three eligible cards if available; otherwise decline.</p><ol class="decision-instructions"><li>Eligible cards are Faithful Hound, Curse, Estate, Duchy and Province, in hand order.</li></ol><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_secret_cave_discards(self, state, player):
+    junk = [
+        x
+        for x in player.hand
+        if x.name in {&quot;Faithful Hound&quot;, &quot;Curse&quot;, &quot;Estate&quot;, &quot;Duchy&quot;, &quot;Province&quot;}
+    ]
+    if self.params[&quot;cave_mode&quot;]:
+        junk += [x for x in player.hand if x.name == &quot;Copper&quot;]
+    return junk[:3] if len(junk) &gt;= 3 else []
+</code></pre></details></td></tr>
+<tr><td data-label="Hook"><span class="behavior-name">Choose treasures to set aside for crypt</span></td><td data-label="What it does"><p>Set aside eligible played Treasures.</p><ol class="decision-instructions"><li>Set aside each Treasure with printed coin value at least 2; return the most expensive available Treasure each turn.</li></ol><details class="condition-detail"><summary><span class="condition">Source</span></summary><pre><code>def choose_treasures_to_set_aside_for_crypt(self, state, player, treasures):
+    return [x for x in treasures if x.stats.coins &gt;= self.params[&quot;crypt_min&quot;]]
+</code></pre></details></td></tr></tbody>
+  </table>
+</section>
+
+<section class="section section-gain">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">↓</span><h2>Gain Decisions</h2></div>
+  <div id="instructions-gain"><p>Take the first affordable available option; targets count cards currently owned, so replace trashed Tragic Heroes.</p><ol class="decision-instructions"><li>Province from your turn 0, or with four or fewer Provinces left.</li><li>Duchy at 3 or fewer Provinces; Estate at 3 or fewer.</li><li>On turns one and two, prefer your first Tragic Hero if its ownership target is positive.</li><li>Cobbler up to 2 owned.</li><li>Shepherd up to 1 owned.</li><li>Tragic Hero up to 2 owned.</li><li>Require at least one Gold before buying Crypt. Additional Shepherds require at least twice as many Victory cards as Shepherds currently owned.</li><li>Gold up to 99 owned, then Silver up to 99 owned.</li><li>Estate up to 0 owned if you own Shepherd. Otherwise pass.</li></ol></div><p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card or Event</th><th>Condition</th></tr></thead>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Province, Victory card"><span>Province</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Duchy, Victory card"><span>Duchy</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Estate, Victory card"><span>Estate</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">6</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Shepherd, Action card"><span>Shepherd</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">7</span></td><td data-label="Card"><span class="card-chip type-night" aria-label="Cobbler, Night, Duration card"><span>Cobbler</span><span class="type-marker marker-duration" title="Duration" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">8</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Tragic Hero, Action card"><span>Tragic Hero</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr></tbody>
+  </table></details>
+</section>
+<section class="section section-action">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">A</span><h2>Action Decisions</h2></div>
+  <div id="instructions-action"><p>Take the first legal option in this order.</p><ol class="decision-instructions"><li>Wish, Will-o&#x27;-Wisp, Shepherd when holding a Victory card, Secret Cave, Shepherd, Imp, Tragic Hero, Faithful Hound, Herbalist.</li></ol></div><p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Wish, Action card"><span>Wish</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Shepherd, Action card"><span>Shepherd</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-action" aria-label="Tragic Hero, Action card"><span>Tragic Hero</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr></tbody>
+  </table></details>
+</section>
+<section class="section section-trash">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">×</span><h2>Trash Decisions</h2></div>
+  <div id="instructions-trash"><p>Exorcist uses the first available target below.</p><ol class="decision-instructions"><li>Curse; Estate only if Estate retention is disabled and more than three Provinces remain.</li><li>Silver, then Secret Cave, while you have fewer than 2 Imps.</li><li>Cobbler, Crypt, Tragic Hero, then Gold while you have fewer than 0 Ghosts.</li><li>Copper; then an Estate above both the Shepherd count and the retained floor (three with retention enabled, otherwise zero). Otherwise skip.</li></ol></div><p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
+    <tbody><tr><td colspan="3" class="empty">None</td></tr></tbody>
+  </table></details>
+</section>
+<section class="section section-treasure">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">$</span><h2>Treasure Decisions</h2></div>
+  <div id="instructions-treasure"><p>Play Gold, Silver, Pasture, Copper, then Magic Lamp.</p><ol class="decision-instructions"><li>With Exorcist in hand and fewer than 2 Imps, reserve one Silver for trashing.</li><li>When holding Magic Lamp, first play one of each other available Treasure name not already in play; play Lamp before duplicate Treasures.</li></ol></div><p class="section-note">Custom decision logic controls these choices. The static list alone does not describe the order or conditions used during play; it may supply references or fallback choices. See Custom Behaviors for the decision logic.</p><details class="technical-details"><summary>Static list for implementation reference</summary><p>A missing list condition does not mean this card is always chosen. The custom logic may limit, reorder, or skip it.</p>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card</th><th>Condition</th></tr></thead>
+    <tbody><tr><td data-label="Priority"><span class="priority-number">1</span></td><td data-label="Card"><span class="card-chip type-treasure card-gold" aria-label="Gold, Treasure card"><span>Gold</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">2</span></td><td data-label="Card"><span class="card-chip type-treasure card-silver" aria-label="Silver, Treasure card"><span>Silver</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">3</span></td><td data-label="Card"><span class="card-chip type-victory" aria-label="Pasture, Treasure, Victory, Heirloom card"><span>Pasture</span><span class="type-marker marker-treasure" title="Treasure" aria-hidden="true"></span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">4</span></td><td data-label="Card"><span class="card-chip type-treasure card-copper" aria-label="Copper, Treasure card"><span>Copper</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr>
+<tr><td data-label="Priority"><span class="priority-number">5</span></td><td data-label="Card"><span class="card-chip type-treasure" aria-label="Magic Lamp, Treasure, Heirloom card"><span>Magic Lamp</span></span></td><td data-label="Condition"><span class="condition">No list condition</span></td></tr></tbody>
+  </table></details>
+</section>
+
+<section class="section section-way">
+  <div class="section-heading"><span class="section-icon" aria-hidden="true">W</span><h2>Way Policy</h2></div>
+  <table class="priority-table">
+    <thead><tr><th>#</th><th>Card</th><th>Way</th><th>Condition</th></tr></thead>
+    <tbody><tr><td colspan="4" class="empty">None</td></tr></tbody>
+  </table>
+</section>
+
+</body>
+</html>

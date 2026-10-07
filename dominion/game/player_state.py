@@ -603,6 +603,7 @@ class PlayerState:
             self.summon_set_aside,
             self.farmhands_set_aside,
             self.deliver_set_aside,
+            getattr(self, "hound_set_aside", []),
         ]
         game_state = getattr(self, "game_state", None)
         if game_state is not None:

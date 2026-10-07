@@ -1,12 +1,14 @@
 """Magic Lamp — Secret Cave's Heirloom."""
 
+from collections import Counter
+
 from ...base_card import Card, CardCost, CardStats, CardType
 
 
 class MagicLamp(Card):
     """$1 Treasure-Heirloom.
 
-    When you play this, if 6+ differently-named cards in play, trash this
+    When you play this, if 6+ cards have exactly one copy in play, trash this
     and gain 3 Wishes from the Wish pile.
     """
 
@@ -23,8 +25,8 @@ class MagicLamp(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        unique_names = {c.name for c in player.in_play}
-        if len(unique_names) < 6:
+        counts = Counter(c.name for c in dict.fromkeys(player.in_play + player.duration))
+        if sum(count == 1 for count in counts.values()) < 6 or self not in player.in_play:
             return
         if self in player.in_play:
             player.in_play.remove(self)

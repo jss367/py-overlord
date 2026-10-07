@@ -238,9 +238,101 @@ def _collection_imperial_envoy(strategy) -> dict[str, DecisionInstructions]:
     }
 
 
+def _shepherd_tragic_hero(strategy) -> dict[str, DecisionInstructions]:
+    p = strategy.params
+    targets = [("Shepherd", "shepherd"), ("Tragic Hero", "hero"),
+               ("Cobbler", "cobbler"), ("Exorcist", "exorcist"),
+               ("Crypt", "crypt"), ("Secret Cave", "cave"),
+               ("Faithful Hound", "hound"), ("Guardian", "guardian"),
+               ("Herbalist", "herbalist")]
+    if p["priority"] == "night":
+        targets.sort(key=lambda t: t[0] not in {"Cobbler", "Exorcist", "Crypt"})
+    elif p["priority"] == "cave":
+        targets.sort(key=lambda t: t[0] not in {"Secret Cave", "Faithful Hound"})
+    buys = [
+        f"Province from your turn {p['green']}, or with four or fewer Provinces left.",
+        f"Duchy at {p['duchy']} or fewer Provinces; Estate at {p['estate']} or fewer.",
+        f"On turns one and two, prefer your first {p['opening']} if its ownership target is positive.",
+    ]
+    if p["monastery"] and p["monastery_timing"] == "early":
+        buys.append(f"Through turn eight, Monastery up to {p['monastery']} owned.")
+    if p["priority"] == "money":
+        buys.append(f"Gold up to {p['gold']} owned.")
+    buys += [f"{name} up to {p[key]} owned." for name, key in targets if p[key]]
+    buys += [
+        "Require at least one Gold before buying Crypt. Additional Shepherds require at least twice as many Victory cards as Shepherds currently owned.",
+        f"Gold up to {p['gold']} owned, then Silver up to {p['silver']} owned.",
+    ]
+    if p["monastery"] and p["monastery_timing"] == "spare":
+        buys.append(f"Through turn twelve, Monastery up to {p['monastery']} owned.")
+    buys.append(f"Estate up to {p['extra_estates']} owned if you own Shepherd. Otherwise pass.")
+    actions = DecisionInstructions("Take the first legal option in this order.", (
+        "Wish, Will-o'-Wisp, Shepherd when holding a Victory card, Secret Cave, Shepherd, Imp, Tragic Hero, Faithful Hound, Herbalist.",
+    ))
+    return {
+        "choose_gain": DecisionInstructions("Take the first affordable available option; targets count cards currently owned, so replace trashed Tragic Heroes.", tuple(buys)),
+        "choose_action": actions,
+        "choose_imp_action": actions,
+        "choose_card_to_gain_to_hand": (
+            _cobbler_shepherd(strategy)["choose_card_to_gain_to_hand"]
+            if p["cobbler_shepherds"] is not None
+            else DecisionInstructions("Use the buying priorities for Cobbler and Wish.", (
+                "If no target remains, take Gold, Silver, Estate, then Copper, in that order.",
+            ))
+        ),
+        "choose_treasure": DecisionInstructions("Play Gold, Silver, Pasture, Copper, then Magic Lamp.", (
+            f"With Exorcist in hand and fewer than {p['imps']} Imps, reserve one Silver for trashing.",
+            "When holding Magic Lamp, first play one of each other available Treasure name not already in play; play Lamp before duplicate Treasures.",
+        )),
+        "choose_night": DecisionInstructions("Play Night cards in this order.", (
+            "Guardian, Cobbler, Exorcist only with an eligible trash target, Monastery, Crypt, Ghost.",
+        )),
+        "choose_trash": DecisionInstructions("Exorcist uses the first available target below.", (
+            "Curse; Estate only if Estate retention is disabled and more than three Provinces remain.",
+            f"Silver, then Secret Cave, while you have fewer than {p['imps']} Imps.",
+            f"Cobbler, Crypt, Tragic Hero, then Gold while you have fewer than {p['ghosts']} Ghosts.",
+            "Copper; then an Estate above both the Shepherd count and the retained floor (three with retention enabled, otherwise zero). Otherwise skip.",
+        )),
+        "choose_card_to_gain_for_exorcist": DecisionInstructions("Choose a legal Spirit.", (
+            f"Ghost first until {p['ghosts']} owned; otherwise Imp, Will-o'-Wisp, Ghost.",
+        )),
+        "choose_cards_to_trash_for_monastery": DecisionInstructions(f"Estate retention is {'enabled' if p['keep_estates'] else 'disabled'}.", (
+            "Trash Curse, then Copper. Trash Copper only when owned Gold and Silver provide at least three coins in total.",
+            "With retention disabled and more than three Provinces left, trash Estates after Copper. Stop when eligible junk runs out.",
+        )),
+        "choose_secret_cave_discards": DecisionInstructions("Discard three eligible cards if available; otherwise decline.", (
+            "Eligible cards are Faithful Hound, Curse, Estate, Duchy and Province, in hand order." + (" Add Coppers after those cards." if p['cave_mode'] else ""),
+        )),
+        "choose_treasures_to_set_aside_for_crypt": DecisionInstructions("Set aside eligible played Treasures.", (
+            f"Set aside each Treasure with printed coin value at least {p['crypt_min']}; return the most expensive available Treasure each turn.",
+        )),
+    }
+
+
+def _cobbler_shepherd(strategy) -> dict[str, DecisionInstructions]:
+    p = strategy.params
+    steps = [
+        f"At {p['estate']} or fewer Provinces remaining, gain Estate first.",
+        f"Before the draw target, gain Silver until {p['cobbler_silver']} owned.",
+        f"Gain Shepherd until {p['cobbler_shepherds']} owned."
+        + (" Only do this when holding a Victory card and no Shepherd."
+           if p['cobbler_adaptive'] else ""),
+        f"Then gain Estate until {p['cobbler_estates']} owned.",
+        "Otherwise take Silver, Estate, Shepherd, then Copper, in that order.",
+        "Wishes use the ordinary buying priorities, with Gold, Silver, Estate, Copper as fallback.",
+    ]
+    return {
+        "choose_card_to_gain_to_hand": DecisionInstructions(
+            "Cobbler has separate free-gain targets; purchased Shepherds use the buying target.",
+            tuple(steps),
+        ),
+    }
+
+
 # Keys identify the class that implements the hook, including its module.
 # StrategyLoader imports modules afresh, so Python class identity is not stable.
 _PROVIDERS = {
+    "dominion.strategy.strategies.shepherd_tragic_hero.ShepherdTragicHero": _shepherd_tragic_hero,
     "dominion.strategy.strategies.collection_imperial_envoy.CollectionImperialEnvoy": _collection_imperial_envoy,
     "dominion.strategy.strategies.hunting_grounds_ghost_ship.HuntingGroundsPolicy": _hunting_grounds_ghost_ship,
     "dominion.strategy.strategies.stables_ninja_museum.StablesNinjaMuseum": _stables_ninja_museum,

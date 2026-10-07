@@ -1,0 +1,12 @@
+# User-selected kingdom. Two players, Provinces, no landscapes.
+# Starting deck: five Coppers, Magic Lamp, Pasture, three Estates.
+Faithful Hound
+Guardian
+Herbalist
+Monastery
+Secret Cave
+Exorcist
+Shepherd
+Cobbler
+Crypt
+Tragic Hero
