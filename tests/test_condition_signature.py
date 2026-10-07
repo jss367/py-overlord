@@ -270,3 +270,53 @@ def test_mutable_aliases_across_nested_containers_and_cycles_remain_distinct():
         predicate = factory(shared)
         assert condition_signature(predicate) == condition_signature(deepcopy(predicate))
         assert condition_signature(predicate) == condition_signature(cloudpickle.loads(cloudpickle.dumps(predicate)))
+
+
+
+@pytest.mark.parametrize("callable_kind", ["function", "partial", "method"])
+def test_captured_callable_alias_topology_survives_copy_and_worker_transport(callable_kind):
+    def helper_factory():
+        if callable_kind == "function":
+            return lambda player: player.coins >= 4
+        if callable_kind == "partial":
+            return partial(_minimum_coins, minimum=4)
+        return _Threshold(4).__call__
+
+    def factory(shared):
+        a = helper_factory()
+        b = a if shared else helper_factory()
+        return lambda state, player: a is b
+
+    shared, separate = factory(True), factory(False)
+    assert shared(None, None) and not separate(None, None)
+    assert condition_signature(shared) != condition_signature(separate)
+    with ProcessPoolExecutor(
+        max_workers=1, mp_context=multiprocessing.get_context("spawn")
+    ) as pool:
+        for predicate in [shared, separate]:
+            expected = condition_signature(predicate)
+            assert condition_signature(deepcopy(predicate)) == expected
+            for _ in range(3):
+                predicate = cloudpickle.loads(cloudpickle.dumps(predicate))
+                assert condition_signature(predicate) == expected
+            assert pool.submit(_worker_signature, cloudpickle.dumps(predicate)).result(timeout=20) == expected
+
+
+@pytest.mark.parametrize("container", [set, frozenset])
+def test_unordered_identity_hashed_objects_have_stable_reference_markers(container):
+    class Limit:
+        def __init__(self, limit):
+            self.limit = limit
+
+    limits = container(Limit(n) for n in range(12))
+    predicate = lambda state, player: any(item.limit == player.coins for item in limits)
+    expected = condition_signature(predicate)
+    assert predicate(None, SimpleNamespace(coins=4))
+    with ProcessPoolExecutor(
+        max_workers=1, mp_context=multiprocessing.get_context("spawn")
+    ) as pool:
+        for _ in range(12):
+            assert condition_signature(deepcopy(predicate)) == expected
+            predicate = cloudpickle.loads(cloudpickle.dumps(predicate))
+            assert condition_signature(predicate) == expected
+        assert pool.submit(_worker_signature, cloudpickle.dumps(predicate)).result(timeout=20) == expected

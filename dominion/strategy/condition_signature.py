@@ -1,9 +1,9 @@
 """Structural fingerprints for custom rule predicates.
 
-Pickle is a transport format: its memo records object sharing, so equal closure
-immutable values can produce different bytes after copying or a worker round
+Pickle is a transport format: its memo records object sharing, so equal immutable
+closure values can produce different bytes after copying or a worker round
 trip. Freeze function code and captured values before hashing instead, retaining
-reference topology for mutable captured values. Imported symbols are
+reference topology for mutable and callable captured values. Imported symbols are
 identified by module and qualified name within the current evaluation runtime;
 these fingerprints are not a cross-version checkpoint format.
 """
@@ -57,10 +57,13 @@ def _global_names(code):
 
 
 def _freeze(value, active, references=None):
-    """Preserve mutable aliases while ignoring immutable transport memoization."""
+    """Preserve mutable/callable aliases, ignoring immutable transport memoization."""
     if references is None:
         references = {}
-    mutable = isinstance(value, (list, dict, set, bytearray)) or (
+    mutable = isinstance(value, (
+        list, dict, set, bytearray, types.FunctionType, types.MethodType,
+        types.BuiltinFunctionType, partial,
+    )) or (isinstance(value, type) and not _importable_type(value)) or (
         not isinstance(value, (
             type, types.ModuleType, types.FunctionType, types.MethodType,
             types.BuiltinFunctionType, types.CodeType, staticmethod, classmethod,
@@ -191,7 +194,15 @@ def _freeze_value(value, active, references):
         if isinstance(value, (set, frozenset)):
             return (
                 type(value).__name__,
-                sorted((freeze(item) for item in value), key=repr),
+                [
+                    freeze(item)
+                    for item in sorted(
+                        value,
+                        # Preview each member against the same reference state;
+                        # only the canonical traversal assigns lasting markers.
+                        key=lambda item: repr(_freeze(item, dict(active), dict(references))),
+                    )
+                ],
             )
         if hasattr(value, "__dict__") or any(
             "__slots__" in cls.__dict__ for cls in type(value).__mro__
