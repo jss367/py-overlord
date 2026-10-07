@@ -192,7 +192,7 @@ class AI(ABC):
         trashed: Card,
         choices: list[Card],
     ) -> Optional[Card]:
-        """Choose Action card to gain (cheaper than ``trashed``, non-Victory)."""
+        """Choose a cheaper card from the Exorcist Spirit piles."""
 
         if not choices:
             return None
@@ -1371,7 +1371,7 @@ class AI(ABC):
     ) -> list[Card]:
         """Select treasures to set aside when playing Crypt.
 
-        The default behaviour is conservative: keep all treasures in hand.
+        The default behaviour is conservative: leave all Treasures in play.
         """
 
         return []

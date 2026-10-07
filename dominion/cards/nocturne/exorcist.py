@@ -1,8 +1,6 @@
 """Exorcist — $4 Night.
 
-Trash a card from hand. Gain a cheaper non-Victory Action card.
-(Original card text gains a Spirit, but per the spec we gain a cheaper
-non-Victory Action.)
+Trash a card from hand. Gain a cheaper card from one of the Spirit piles.
 """
 
 from ..base_card import Card, CardCost, CardStats, CardType
@@ -35,22 +33,17 @@ class Exorcist(Card):
         player.hand.remove(trashed)
         game_state.trash_card(player, trashed)
 
-        # Gain a cheaper non-victory Action
+        # Gain only from the three Spirit piles, which are not buyable.
         options = []
-        for name, count in game_state.supply.items():
+        for name in self.nocturne_piles:
+            count = game_state.supply.get(name, 0)
             if count <= 0:
                 continue
             try:
                 card = get_card(name)
             except ValueError:
                 continue
-            if card.is_victory:
-                continue
-            if not card.is_action:
-                continue
             if card.cost.coins >= trashed.cost.coins:
-                continue
-            if not card.may_be_bought(game_state):
                 continue
             options.append(card)
         if not options:

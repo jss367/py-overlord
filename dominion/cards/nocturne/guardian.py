@@ -16,6 +16,14 @@ class Guardian(Card):
             types=[CardType.NIGHT, CardType.DURATION],
         )
 
+    def on_gain(self, game_state, player):
+        super().on_gain(game_state, player)
+        for zone in (player.discard, player.deck):
+            if self in zone:
+                zone.remove(self)
+        if self not in player.hand:
+            player.hand.append(self)
+
     def play_effect(self, game_state):
         player = game_state.current_player
         if self in player.in_play:

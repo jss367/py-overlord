@@ -19,7 +19,7 @@ class TragicHero(Card):
 
         if self in player.in_play:
             player.in_play.remove(self)
-        game_state.trash_card(player, self)
+            game_state.trash_card(player, self)
 
         from ..registry import get_card
 
@@ -42,12 +42,4 @@ class TragicHero(Card):
             return
 
         game_state.supply[choice.name] -= 1
-        gained = game_state.gain_card(player, choice)
-
-        if gained:
-            if gained in player.discard:
-                player.discard.remove(gained)
-            elif gained in player.deck:
-                player.deck.remove(gained)
-            if gained not in player.hand:
-                player.hand.append(gained)
+        game_state.gain_card(player, choice)

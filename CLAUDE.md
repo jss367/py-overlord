@@ -21,6 +21,17 @@ To add a strategy, drop a module in one of those directories with a
 `create_<name>() -> EnhancedStrategy` factory (the return annotation is required;
 that is how the loader finds it). Do not add a lookup table anywhere else.
 
+## Strategy search coverage
+
+Search results are limited by the decisions the policy can express. When a
+kingdom includes gainers, separate purchase priorities from free-gain priorities
+and consider the destination and current hand. Include clean combinations of
+synergistic cards before adding unrelated support. Vary interacting settings
+together during refinement, and retain promising strategy families even when
+they are outside the first screen's leaders. Select the recommendation before
+evaluating it on fresh, seat-balanced validation games. Preserve reproduction
+commands for earlier results when changing the search space.
+
 ## Keep the committed board and strategy catalog current
 
 `PYTHONPATH=. python scripts/render_catalog.py` rebuilds

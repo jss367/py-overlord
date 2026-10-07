@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Cobbler and Shepherd: Strategy Comparison</title><style>
+:root{--ink:#193c43;--paper:#f5f3eb;--accent:#9b492e;--line:#c5d2ce}*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.65 system-ui,sans-serif}
+main{max-width:1120px;margin:auto;padding:28px 26px 65px}a{color:var(--accent)}nav{display:flex;gap:24px;flex-wrap:wrap;font-size:14px}
+header{padding:32px 0;border-bottom:1px solid var(--line)}h1,h2{font-family:Georgia,serif;line-height:1.12}h1{font-size:clamp(36px,6vw,62px);max-width:950px}h2{margin-top:42px;font-size:30px}.lead{font-size:21px;max-width:900px}.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.card{background:#fffdf7;padding:17px;border:1px solid var(--line);border-radius:9px}.card strong,.card small,.card span{display:block}.card span{font-size:14px;margin-top:8px}.card small{color:var(--accent)}
+.callout{border-left:5px solid #357b76;background:#e1ede6;padding:22px 26px;margin:28px 0}.metrics{display:flex;gap:30px;flex-wrap:wrap}.metrics strong{font-size:29px;display:block}.metrics span{font-size:14px}li{margin:8px 0}.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:15px}td,th{border-bottom:1px solid var(--line);padding:12px;text-align:left;vertical-align:top}th{background:#e1ede6}pre{padding:20px;background:var(--ink);color:white;overflow:auto;border-radius:8px;font-size:13px}summary{cursor:pointer;font-size:14px}details{margin:10px 0}footer{font-size:14px;border-top:1px solid var(--line);padding-top:20px;margin-top:45px}.muted{color:#537078}
+@media(max-width:800px){.cards{grid-template-columns:repeat(2,1fr)}}@media print{nav{display:none}body{background:white}.card,tr{break-inside:avoid}}
+</style></head>
+<body><main><nav><a href="index.html">Strategy catalog</a><a href="shepherd-tragic-hero-strategy-guide.html">Original search</a><a href="cobbler-shepherd-growth.html">Runnable Cobbler strategy</a></nav>
+<header><p class="eyebrow">Focused follow-up · October 7, 2026</p><h1>Cobbler can turn spare Estates into reliable draw</h1><p class="lead">Buying Cobbler and using its free gains for extra Shepherds improves on the original one-Shepherd, one-Tragic-Hero recommendation in this simulator.</p></header>
+<p><strong>Kingdom:</strong> Faithful Hound, Guardian, Herbalist, Monastery, Secret Cave, Exorcist, Shepherd, Cobbler, Crypt, Tragic Hero. Two players, eight Provinces, no landscapes. Both players begin with five Coppers, Magic Lamp, Pasture and three Estates.</p>
+<div class="callout"><strong>Updated recommendation: build two Cobblers, and let the hand guide their gains.</strong> The candidate selected before validation scored <strong>72.5%</strong> against the original recommendation in 2,000 fresh games (approximate 95% interval 70.5%–74.4%). It won 1,449, tied 0, and lost 551.</div>
+<div class="metrics"><div><strong>59,120</strong><span>additional simulation games</span></div><div><strong>121</strong><span>initial candidate policies</span></div><div><strong>0</strong><span>games stopped at the turn limit</span></div></div>
+<p>The earlier Cobbler comparison retained a one-Shepherd target and reused purchase priorities for free gains. This follow-up separates those decisions. The new plan is a validated improvement against the old recommendation; it is not proven optimal, and small differences between the finalists remain uncertain.</p>
+<h2>How to play the selected plan</h2>
+<ol>
+<li><strong>Open Shepherd / Silver on a four-coin / three-coin split; Tragic Hero / pass on five / two.</strong> The latter opening is a deliberate difference from the original recommendation.</li>
+<li><strong>Buy Province whenever affordable.</strong> At three or fewer Provinces, prefer Duchy, then Estate, over further building.</li>
+<li>Otherwise buy the first affordable unmet target in this order: <strong>two Cobblers, one purchased Shepherd, two Tragic Heroes, Gold, Silver.</strong> Counts are current ownership, so replace trashed Heroes. The opening preference takes precedence on turns one and two. Free Shepherds satisfy the one-Shepherd purchase target.</li>
+<li><strong>For each Cobbler gain:</strong> with three or fewer Provinces left, take Estate. Earlier, gain Shepherd if you own fewer than four, hold at least one Victory card (including Pasture), and have no Shepherd in hand. If that condition is false, take Estate until you own five, then Silver. Reassess the hand after each gain when both Cobblers resolve.</li>
+<li>Play Shepherd before Tragic Hero; retain Estates. The tested policy discards all available Victory cards with Shepherd. Play Cobblers during the Night phase. Wishes retain the ordinary purchase priorities for their gains.</li>
+</ol>
+<p><strong>Why it plausibly helps:</strong> Cobbler can put a Shepherd directly into a hand that already has fuel for it, while saving purchases for economy and other targets. Free Estates support Shepherd and score with Pasture. This is an interpretation of the tested policy, not an isolated measurement of each mechanism. The selected deck averaged 3.16 Shepherds, 8.26 Estates and 1.98 Cobblers at game end against the original plan. A cap of four does not mean blindly gaining four.</p>
+<p>The gain-to-hand and Duration behavior was checked against the <a href="https://www.riograndegames.com/wp-content/uploads/2022/03/Dominion-Rules-Nocturne.pdf">publisher’s Nocturne rules</a> and local regression tests. No card-rule changes were needed for this follow-up.</p>
+<details><summary>Complete selected policy settings</summary><pre>{
+  &quot;shepherd&quot;: 1,
+  &quot;hero&quot;: 2,
+  &quot;monastery&quot;: 0,
+  &quot;cave&quot;: 0,
+  &quot;hound&quot;: 0,
+  &quot;exorcist&quot;: 0,
+  &quot;cobbler&quot;: 2,
+  &quot;crypt&quot;: 0,
+  &quot;guardian&quot;: 0,
+  &quot;herbalist&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 99,
+  &quot;green&quot;: 0,
+  &quot;duchy&quot;: 3,
+  &quot;estate&quot;: 3,
+  &quot;keep_estates&quot;: true,
+  &quot;extra_estates&quot;: 0,
+  &quot;opening&quot;: &quot;Tragic Hero&quot;,
+  &quot;priority&quot;: &quot;night&quot;,
+  &quot;imps&quot;: 2,
+  &quot;ghosts&quot;: 0,
+  &quot;cave_mode&quot;: 0,
+  &quot;crypt_min&quot;: 2,
+  &quot;monastery_timing&quot;: &quot;spare&quot;,
+  &quot;cobbler_shepherds&quot;: 4,
+  &quot;cobbler_estates&quot;: 5,
+  &quot;cobbler_silver&quot;: 0,
+  &quot;cobbler_adaptive&quot;: true
+}</pre></details>
+<h2>Fresh comparisons against the original recommendation</h2>
+<p>All rows below use 2,000 games against the original one-Shepherd, one-Tragic-Hero plan. Percentages are from the <strong>Cobbler variant’s perspective</strong>; above 50% favors Cobbler. The first four policies were selected from refinement before validation; the remaining five are fixed controls. “Hand-aware” means only gaining a Shepherd when holding a Victory card and no Shepherd, subject to the ownership cap.</p>
+<div class="scroll"><table><thead><tr><th>Cobbler variant</th><th>Score rate</th><th>Approximate 95% interval</th><th>Wins / ties / losses</th></tr></thead><tbody><tr><td>Selected before validation: 2 Cobbler; up to 4 Shepherds; hand-aware gains; 2 Tragic Hero; Cobbler before Hero; free Estates up to 5<details><summary>Exact settings</summary><pre>{
+  &quot;shepherd&quot;: 1,
+  &quot;hero&quot;: 2,
+  &quot;monastery&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;estate&quot;: 3,
+  &quot;cobbler&quot;: 2,
+  &quot;cobbler_shepherds&quot;: 4,
+  &quot;cobbler_estates&quot;: 5,
+  &quot;cobbler_silver&quot;: 0,
+  &quot;cobbler_adaptive&quot;: true,
+  &quot;priority&quot;: &quot;night&quot;,
+  &quot;opening&quot;: &quot;Tragic Hero&quot;,
+  &quot;monastery_timing&quot;: &quot;spare&quot;
+}</pre></details></td><td><strong>72.5%</strong></td><td>70.5%–74.4%</td><td>1,449 / 0 / 551</td></tr><tr><td>2 Cobbler; up to 3 Shepherds; hand-aware gains; 2 Tragic Hero; Cobbler before Hero; free Estates up to 8<details><summary>Exact settings</summary><pre>{
+  &quot;shepherd&quot;: 1,
+  &quot;hero&quot;: 2,
+  &quot;monastery&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;estate&quot;: 3,
+  &quot;cobbler&quot;: 2,
+  &quot;cobbler_shepherds&quot;: 3,
+  &quot;cobbler_estates&quot;: 8,
+  &quot;cobbler_silver&quot;: 0,
+  &quot;cobbler_adaptive&quot;: true,
+  &quot;priority&quot;: &quot;night&quot;,
+  &quot;opening&quot;: &quot;Tragic Hero&quot;,
+  &quot;monastery_timing&quot;: &quot;spare&quot;
+}</pre></details></td><td><strong>67.0%</strong></td><td>64.9%–69.0%</td><td>1,339 / 0 / 661</td></tr><tr><td>1 Cobbler; up to 4 Shepherds; hand-aware gains; 1 Tragic Hero; Cobbler before Hero; 1 Silver before free Shepherds<details><summary>Exact settings</summary><pre>{
+  &quot;shepherd&quot;: 1,
+  &quot;hero&quot;: 1,
+  &quot;monastery&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;estate&quot;: 3,
+  &quot;cobbler&quot;: 1,
+  &quot;cobbler_shepherds&quot;: 4,
+  &quot;priority&quot;: &quot;night&quot;,
+  &quot;cobbler_adaptive&quot;: true,
+  &quot;cobbler_silver&quot;: 1
+}</pre></details></td><td><strong>61.5%</strong></td><td>59.4%–63.6%</td><td>1,230 / 0 / 770</td></tr><tr><td>2 Cobbler; up to 3 Shepherds; hand-aware gains; 2 Tragic Hero; Cobbler before Hero; free Estates up to 5<details><summary>Exact settings</summary><pre>{
+  &quot;shepherd&quot;: 1,
+  &quot;hero&quot;: 2,
+  &quot;monastery&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;estate&quot;: 3,
+  &quot;cobbler&quot;: 2,
+  &quot;cobbler_shepherds&quot;: 3,
+  &quot;cobbler_estates&quot;: 5,
+  &quot;cobbler_silver&quot;: 0,
+  &quot;cobbler_adaptive&quot;: true,
+  &quot;priority&quot;: &quot;night&quot;,
+  &quot;opening&quot;: &quot;Tragic Hero&quot;,
+  &quot;monastery_timing&quot;: &quot;spare&quot;
+}</pre></details></td><td><strong>67.6%</strong></td><td>65.5%–69.7%</td><td>1,352 / 0 / 648</td></tr><tr><td>Original Cobbler control: one Shepherd; ordinary buying priorities for free gains<details><summary>Exact settings</summary><pre>{
+  &quot;shepherd&quot;: 1,
+  &quot;hero&quot;: 1,
+  &quot;monastery&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;estate&quot;: 3,
+  &quot;cobbler&quot;: 1
+}</pre></details></td><td><strong>51.5%</strong></td><td>49.6%–53.5%</td><td>1,031 / 0 / 969</td></tr><tr><td>1 Cobbler; up to 3 Shepherds; fixed Shepherd target; 1 Tragic Hero; Hero before Cobbler<details><summary>Exact settings</summary><pre>{
+  &quot;shepherd&quot;: 1,
+  &quot;hero&quot;: 1,
+  &quot;monastery&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;estate&quot;: 3,
+  &quot;cobbler&quot;: 1,
+  &quot;cobbler_shepherds&quot;: 3
+}</pre></details></td><td><strong>59.3%</strong></td><td>57.3%–61.3%</td><td>1,186 / 0 / 814</td></tr><tr><td>1 Cobbler; up to 3 Shepherds; fixed Shepherd target; 1 Tragic Hero; Cobbler before Hero<details><summary>Exact settings</summary><pre>{
+  &quot;shepherd&quot;: 1,
+  &quot;hero&quot;: 1,
+  &quot;monastery&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;estate&quot;: 3,
+  &quot;cobbler&quot;: 1,
+  &quot;cobbler_shepherds&quot;: 3,
+  &quot;priority&quot;: &quot;night&quot;
+}</pre></details></td><td><strong>57.0%</strong></td><td>54.9%–59.1%</td><td>1,140 / 0 / 860</td></tr><tr><td>2 Cobbler; up to 3 Shepherds; fixed Shepherd target; 1 Tragic Hero; Cobbler before Hero<details><summary>Exact settings</summary><pre>{
+  &quot;shepherd&quot;: 1,
+  &quot;hero&quot;: 1,
+  &quot;monastery&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;estate&quot;: 3,
+  &quot;cobbler&quot;: 2,
+  &quot;cobbler_shepherds&quot;: 3,
+  &quot;priority&quot;: &quot;night&quot;
+}</pre></details></td><td><strong>56.2%</strong></td><td>54.2%–58.3%</td><td>1,125 / 0 / 875</td></tr><tr><td>1 Cobbler; up to 6 Shepherds; fixed Shepherd target; 1 Tragic Hero; Cobbler before Hero<details><summary>Exact settings</summary><pre>{
+  &quot;shepherd&quot;: 1,
+  &quot;hero&quot;: 1,
+  &quot;monastery&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;estate&quot;: 3,
+  &quot;cobbler&quot;: 1,
+  &quot;cobbler_shepherds&quot;: 6,
+  &quot;priority&quot;: &quot;night&quot;
+}</pre></details></td><td><strong>59.0%</strong></td><td>56.9%–61.0%</td><td>1,179 / 0 / 821</td></tr></tbody></table></div>
+<h2>Additional controls for the selected plan</h2>
+<p>The selected plan is the challenger in every row. The first and third comparisons use 2,000 games each; the money comparison uses 1,000. Removing Cobbler while retaining the other purchase settings checks whether those other settings alone account for the improvement.</p>
+<div class="scroll"><table><thead><tr><th>Comparison</th><th>Selected plan’s score rate</th><th>Approximate 95% interval</th><th>Wins / ties / losses</th></tr></thead><tbody><tr><td>Selected plan versus the original one-Shepherd Cobbler control<details><summary>Opponent settings</summary><pre>{
+  &quot;shepherd&quot;: 1,
+  &quot;hero&quot;: 1,
+  &quot;monastery&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;estate&quot;: 3,
+  &quot;cobbler&quot;: 1
+}</pre></details></td><td><strong>74.2%</strong></td><td>72.2%–76.1%</td><td>1,483 / 0 / 517</td></tr><tr><td>Selected plan versus treasure-only money<details><summary>Opponent settings</summary><pre>{
+  &quot;shepherd&quot;: 0,
+  &quot;hero&quot;: 0,
+  &quot;monastery&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;gold&quot;: 99,
+  &quot;opening&quot;: &quot;Silver&quot;
+}</pre></details></td><td><strong>92.5%</strong></td><td>90.9%–94.1%</td><td>925 / 0 / 75</td></tr><tr><td>Selected plan versus identical purchase settings with Cobbler removed<details><summary>Opponent settings</summary><pre>{
+  &quot;shepherd&quot;: 1,
+  &quot;hero&quot;: 2,
+  &quot;monastery&quot;: 0,
+  &quot;silver&quot;: 99,
+  &quot;estate&quot;: 3,
+  &quot;cobbler&quot;: 0,
+  &quot;cobbler_shepherds&quot;: 4,
+  &quot;cobbler_estates&quot;: 5,
+  &quot;cobbler_silver&quot;: 0,
+  &quot;cobbler_adaptive&quot;: true,
+  &quot;priority&quot;: &quot;night&quot;,
+  &quot;opening&quot;: &quot;Tragic Hero&quot;,
+  &quot;monastery_timing&quot;: &quot;spare&quot;
+}</pre></details></td><td><strong>74.6%</strong></td><td>72.7%–76.4%</td><td>1,491 / 0 / 509</td></tr></tbody></table></div>
+<h2>Search scope and limits</h2>
+<p>The screen tested 121 policies for 120 games each (14,520 games), followed by 72 policies for 300 games each (21,600 games). Independent validation added 23,000 games. Variations covered one or two Cobblers; Shepherd gain caps from one to ten; buying zero, one or two initial Shepherds; zero, one or two Heroes; Cobbler purchase priority; hand-aware versus fixed gains; free Estate targets; minimum Silver counts; scoring thresholds; openings; and an optional late-priority Monastery.</p>
+<p>The refinement winner was fixed before validation, avoiding selection on its reported held-out score. Each random seed is played in both seats. Score rate counts a tie as half a win and uses the fewer-turns tiebreaker. Intervals use variation between paired-seed scores and are not adjusted for the many comparisons. Candidates were optimized against the original recommendation, so this is not a new all-strategy round robin. The experiments use fixed play rules and do not optimize every endgame or three-pile finish.</p>
+<p>Evidence: <a href="../../scripts/data/cobbler_shepherd_search_summary.json">complete search and refinement summary</a>; <a href="../../scripts/data/cobbler_shepherd_validation.json">validation results, seeds, paired scores and final decks</a>. The <a href="shepherd-tragic-hero-strategy-guide.html">original guide</a> preserves the earlier 94,872-game study.</p>
+<h2>Search policy improvements</h2>
+<p>The shared kingdom policy now separates purchase targets from Cobbler gain targets and can inspect the hand before gaining. The general search explicitly includes 96 clean Cobbler–Shepherd combinations, varies related settings together during refinement, and preserves a free-gain candidate when the top four candidates favor other approaches. Initial comparisons now use 96 games per opponent and refinement uses 80, instead of the original 32 and 40. These changes broaden future searches; the results above remain the independently validated focused study.</p>
+<p>The original guide’s reproduction commands use <code>--legacy-policy-space</code> to preserve the earlier candidate generation, refinement and sample sizes. The focused commands below continue to reproduce the saved Cobbler study with the shared policy.</p>
+<h2>Reproduce the comparison</h2>
+<pre>PYTHONPATH=. python scripts/search_cobbler_shepherd.py screen --output .context/cobbler-shepherd-screen.json
+PYTHONPATH=. python scripts/search_cobbler_shepherd.py refine --input .context/cobbler-shepherd-screen.json --output .context/cobbler-shepherd-refine.json
+PYTHONPATH=. python scripts/search_cobbler_shepherd.py validate --input .context/cobbler-shepherd-refine.json --output .context/cobbler-shepherd-validation.json
+PYTHONPATH=. python scripts/render_catalog.py</pre>
+<footer>Focused follow-up to the Shepherd and Tragic Hero search. Results describe this exact kingdom and tested policies.</footer></main></body></html>

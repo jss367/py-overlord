@@ -61,7 +61,7 @@ def test_tragic_hero_trashes_and_gains_treasure():
     player.hand.remove(tragic)
     player.in_play.append(tragic)
     tragic.on_play(state)
-    assert any(card.name == "Gold" for card in player.hand)
+    assert any(card.name == "Gold" for card in player.discard)
     assert tragic in state.trash
     assert tragic not in player.in_play
 

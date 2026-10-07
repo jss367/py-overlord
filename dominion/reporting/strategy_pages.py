@@ -46,9 +46,28 @@ class CuratedStrategyGuide:
     description: str
     kingdom_cards: tuple[str, ...]
     source_label: str
+    strategy_slugs: tuple[str, ...] = ()
 
 
 CURATED_STRATEGY_GUIDES = (
+    CuratedStrategyGuide(
+        filename="cobbler-shepherd-strategy-comparison.html",
+        strategy_slugs=("cobbler-shepherd-growth",),
+        display_name="Cobbler and Shepherd: Strategy Comparison",
+        description="A focused test of gaining extra Shepherds with Cobbler, including purchase timing, hand-aware gains, Estate fuel and independent validation against the original recommendation.",
+        kingdom_cards=("Faithful Hound", "Guardian", "Herbalist", "Monastery", "Secret Cave",
+                       "Exorcist", "Shepherd", "Cobbler", "Crypt", "Tragic Hero"),
+        source_label="Focused search and seat-balanced repository simulations",
+    ),
+    CuratedStrategyGuide(
+        filename="shepherd-tragic-hero-strategy-guide.html",
+        strategy_slugs=("shepherd-tragic-hero-best-found",),
+        display_name="Shepherd and Tragic Hero: Strategy Guide",
+        description="The original draw-and-money study for this Night-card kingdom, with rule corrections and validation; see the Cobbler and Shepherd comparison for the updated recommendation.",
+        kingdom_cards=("Faithful Hound", "Guardian", "Herbalist", "Monastery", "Secret Cave",
+                       "Exorcist", "Shepherd", "Cobbler", "Crypt", "Tragic Hero"),
+        source_label="Official card rules and seat-balanced repository simulations",
+    ),
     CuratedStrategyGuide(
         filename="collection-swindler-strategy-guide.html",
         display_name="Collection and Swindler: Strategy Guide",
@@ -2172,7 +2191,8 @@ def render_strategy_page(
     guide_nav = "".join(
         f'<a href="{escape(guide.filename)}">Read the strategy guide</a>'
         for guide in CURATED_STRATEGY_GUIDES
-        if guide.filename == f"{item.slug}-strategy-guide.html"
+        if item.slug in guide.strategy_slugs
+        or guide.filename == f"{item.slug}-strategy-guide.html"
     )
     alternative_note = ""
     if item.slug in {"skulk-rebuild", "skulk-rebuild-improved"}:
