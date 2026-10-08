@@ -743,6 +743,69 @@ def test_recording_teacher_does_not_record_declines_or_empty_menus(source, empty
     assert [c.name for c in player.discard] == (["Silver"] if source == "Workshop" and not empty else [])
 
 
+@pytest.mark.parametrize("scenario", ["decline", "success", "replacement", "empty", "failed", "topdeck", "trash", "trader"])
+def test_anvil_teacher_records_only_successful_final_gain_with_pre_gain_snapshot(scenario, monkeypatch):
+    from types import SimpleNamespace
+    from dominion.ai.genetic_ai import GeneticAI
+    from dominion.rl.action_encoder import ActionEncoder
+    from dominion.rl.general.encoding import CARD_POOL
+    from dominion.rl.general.train import RecordingTeacher
+
+    strategy = EnhancedStrategy()
+    strategy.free_gain_priority = [PriorityRule("Silver")]
+    if scenario == "trader":
+        strategy.free_gain_priority = [PriorityRule("Village")]
+    if scenario in {"topdeck", "trash"}:
+        strategy.choose_watchtower_reaction = lambda *args: scenario
+    if scenario in {"replacement", "empty"}:
+        strategy.choose_anvil_option = lambda state, player, treasures, choices: (treasures[0], get_card("Silver"))
+    teacher = RecordingTeacher.__new__(RecordingTeacher)
+    GeneticAI.__init__(teacher, strategy)
+    teacher.examples = []
+    teacher.actions = ActionEncoder(list(CARD_POOL))
+    teacher.encoder = SimpleNamespace(encode_decision=lambda state, seat, decision: {
+        "discard": tuple(c.name for c in state.players[seat].discard),
+        "supply": state.supply.copy(),
+    })
+    names = ("Silver",) if scenario == "empty" else ("Silver", "Village", "Curse")
+    state, player = make_state(names=names)
+    player.ai = teacher
+    treasure = "Gold" if scenario == "decline" else "Silver" if scenario in {"replacement", "empty"} else "Copper"
+    player.hand = [get_card(treasure)]
+    if scenario in {"topdeck", "trash"}:
+        player.hand.append(get_card("Watchtower"))
+    if scenario == "trader":
+        player.hand.append(get_card("Trader"))
+        teacher.should_reveal_trader = lambda *args, **kwargs: True
+    if scenario in {"replacement", "empty"}:
+        state.pile_traits["Silver"] = "Friendly"
+        state.supply["Silver"] = 1
+    if scenario == "failed":
+        monkeypatch.setattr("dominion.cards.gain_decisions.gain_selected", lambda *args: None)
+
+    get_card("Anvil").play_effect(state)
+
+    if scenario in {"decline", "empty", "failed", "trader"}:
+        assert teacher.examples == []
+        if scenario == "decline":
+            assert [c.name for c in player.hand] == ["Gold"]
+            assert not player.discard
+        if scenario == "trader":
+            assert state.supply["Village"] == 10 and state.supply["Silver"] == 9
+            assert player.discard[-1].name == "Silver"
+        return
+    assert len(teacher.examples) == 1
+    observation, mask, target, decision = teacher.examples[0]
+    gained = "Village" if scenario == "replacement" else "Silver"
+    assert decision == "buy"
+    assert target == teacher.actions.card_to_action(get_card(gained))
+    assert mask[target]
+    assert observation["supply"][gained] == 10 and state.supply[gained] == 9
+    assert observation["discard"] == (("Silver", "Silver") if scenario == "replacement" else ("Copper",))
+    destination = player.deck if scenario == "topdeck" else state.trash if scenario == "trash" else player.discard
+    assert destination[-1].name == gained
+
+
 @pytest.mark.parametrize("invalid", [None, get_card("Gold")])
 def test_base_remodel_invalid_trash_hook_uses_pair_fallback(invalid):
     class Probe(DummyAI):

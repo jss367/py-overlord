@@ -203,6 +203,12 @@ GeneticAI instead honors the strategy's contextual free-gain hook and separate
 preferences. The imitation teacher records that contextual choice and both
 choices of a joint Remodel pair, preserving its strategy policy and the existing
 checkpoint decision vocabulary.
+Anvil's provisional target is not a teacher example. After the exchange is
+accepted and discard reactions resolve, the teacher snapshots the final legal
+menu and pre-gain observation. It appends that example only after the matching
+gain succeeds, so a rejected exchange, empty menu, failed gain, or replaced gain
+does not produce a phantom target. Successful topdeck/trash reactions still
+count as gains; the example does not expose the post-gain observation.
 
 ```python
 strategy.free_gain_priority = [
@@ -238,11 +244,16 @@ and [Plunder](https://www.riograndegames.com/wp-content/uploads/2022/08/DomPlund
 Reproduction:
 
 ```sh
-PYTHONPATH=. python scripts/evaluate_free_gain_tactics.py --pairs 100 --seed 391000 --workers 4 --output scripts/data/free_gain_tactics_evaluation-2026-10-08-adapters.json
-PYTHONPATH=. python scripts/render_free_gain_tactics_guide.py
+PYTHONPATH=. python scripts/evaluate_free_gain_tactics.py --pairs 100 --seed 391000 --workers 4 --output .context/free_gain_tactics_reproduction.json
+PYTHONPATH=. python scripts/render_free_gain_tactics_guide.py --results .context/free_gain_tactics_reproduction.json --output .context/free_gain_tactics_reproduction.html
 ```
 
-The dated [October 8 adapter-compatibility rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-adapters.json)
+The evaluator refuses existing output paths before starting games and creates
+the output exclusively. If the local reproduction output already exists,
+choose a fresh filename. These commands preserve all committed raw outcomes
+and render a separate HTML copy from the newly produced data.
+
+The dated [October 8 recording/discovery rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-recording.json)
 uses the merged reviewed simulation inputs and covers 13,200 games: 100 seeds × two seats × two policies × 33 comparisons.
 Controls reproduce the previous decisions using the same corrected rules;
 opponents use current policies. Four representative kingdoms compare inherited
@@ -258,8 +269,10 @@ Nine comparison records changed in the first rerun. That
 [first October 8 rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08.json)
 is also retained unchanged. Export-only fixes subsequently changed the broad
 source fingerprint; the [export-round-trip rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json)
-is retained unchanged as well. The final adapter-compatibility rerun identifies
-the sources after restoring direct AI selector control and teacher recording.
+is retained unchanged as well. The [adapter-compatibility rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-adapters.json)
+is also retained. The final recording/discovery rerun identifies sources after
+final-gain teacher recording and reusable-strategy reference collection, plus
+the evaluator's output-preservation guard.
 The panel uses GeneticAI strategies rather than learned/random adapters; its
 results do not measure learned-policy or random-agent performance. The guide is generated from the final
 rerun data, not relabeled historical results. Python exports and worker serialization preserve `free_gain_priority` as `None`,
@@ -267,6 +280,8 @@ rerun data, not relabeled historical results. Python exports and worker serializ
 use the shared Python serializer while retaining their existing factory name.
 Dynamic boards now also discover
 cards referenced only in `free_gain_priority`; explicit boards remain authoritative.
+Reusable-strategy discovery includes the same field when scoring references,
+missing targets and seed overlap, including rules used only for free gains.
 
 Findings, every comparison, uncertainty, regressions, and reproduction details
 are published in the [Free Gains and Quartermaster Tactical Policy Evaluation](../reports/strategies/free-gains-and-quartermaster-policy-evaluation.html).

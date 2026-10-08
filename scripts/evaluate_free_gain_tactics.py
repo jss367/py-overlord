@@ -187,10 +187,12 @@ def main():
     parser.add_argument("--pairs", type=int, default=100)
     parser.add_argument("--seed", type=int, default=391000)
     parser.add_argument("--workers", type=int, default=4)
-    parser.add_argument("--output", type=Path, default=Path("scripts/data/free_gain_tactics_evaluation.json"))
+    parser.add_argument("--output", type=Path, default=Path(".context/free_gain_tactics_reproduction.json"))
     args = parser.parse_args()
     if args.pairs < 2:
         parser.error("--pairs must be at least 2")
+    if args.output.exists():
+        parser.error("Output already exists; choose a fresh --output path to preserve prior outcomes")
     fingerprint = tournament_fingerprint()
     tasks = []
     opponents = ["big_money", "big_money_smithy", "village_smithy_lab"]
@@ -209,12 +211,15 @@ def main():
     if tournament_fingerprint() != fingerprint:
         raise RuntimeError("Simulation sources changed during evaluation; rerun before saving results")
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(dict(seed=args.seed, pairs=args.pairs,
+    payload = json.dumps(dict(seed=args.seed, pairs=args.pairs,
         turn_limit=TURN_LIMIT, source_fingerprint=fingerprint,
         evaluator_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         python_version=platform.python_version(), confidence="95% approximate Wilson intervals with seed-pair variance bound for rates; paired normal intervals for differences; unadjusted exploratory comparisons",
         common_rules="Both policies use corrected componentwise costs, replay queues, and current opponents.",
-        results=results), indent=2) + "\n")
+        results=results), indent=2) + "\n"
+    # Exclusive creation also protects an output created during the run.
+    with args.output.open("x") as output:
+        output.write(payload)
 
 
 if __name__ == "__main__":

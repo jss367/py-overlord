@@ -51,4 +51,11 @@ class Anvil(Card):
             from ..gain_decisions import choose_free_gain
             target = choose_free_gain(game_state, player,
                 gain_menu(game_state, player, CardCost(coins=4)), "Anvil", choice)
-        gain_selected(game_state, player, target)
+        prepare_record = getattr(player.ai, "prepare_anvil_gain_record", None)
+        commit_record = None
+        if target is not None and prepare_record is not None:
+            commit_record = prepare_record(game_state, player,
+                gain_menu(game_state, player, CardCost(coins=4)), target)
+        gained = gain_selected(game_state, player, target)
+        if gained is not None and commit_record is not None:
+            commit_record(gained)

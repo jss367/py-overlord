@@ -39,15 +39,20 @@ class RecordingTeacher(GeneticAI):
         self.examples = examples
 
     def record(self, state, choices, decision, choice):
+        example = self._recording_example(state, choices, decision, choice)
+        if example is not None:
+            self.examples.append(example)
+        return choice
+
+    def _recording_example(self, state, choices, decision, choice):
         mask = self.actions.get_action_mask(choices)
         target = self.actions.card_to_action(choice)
         if not mask[target]:
             raise ValueError(f"Teacher chose an illegal {decision} action")
         if mask.sum() > 1:
             seat = next(i for i, p in enumerate(state.players) if p.ai is self)
-            self.examples.append((self.encoder.encode_decision(state, seat, decision),
-                                  mask, target, decision))
-        return choice
+            return (self.encoder.encode_decision(state, seat, decision), mask, target, decision)
+        return None
 
     def choose_action(self, state, choices):
         return self.record(state, choices, "action", super().choose_action(state, choices))
@@ -64,9 +69,20 @@ class RecordingTeacher(GeneticAI):
         if not choices:
             return None
         choice = super().choose_free_gain(state, player, choices, context)
+        if context.source == "Anvil":
+            return choice  # Provisional until discard reactions and gain resolve.
         if not any(c.name == getattr(choice, "name", None) for c in choices):
             return choice  # Optional decline or invalid response; effect validates.
         return self.record(state, choices, "buy", choice)
+
+    def prepare_anvil_gain_record(self, state, player, choices, choice):
+        # Snapshot the actual post-discard menu before gaining changes the
+        # observation. Commit only the successful, matching final gain.
+        example = self._recording_example(state, choices, "buy", choice)
+        def commit(gained):
+            if example is not None and getattr(gained, "name", None) == choice.name:
+                self.examples.append(example)
+        return commit
 
     def choose_remodel_option(self, state, player, options):
         # The strategy's joint pair hook bypasses both separate AI selectors.
