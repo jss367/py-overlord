@@ -200,15 +200,16 @@ no purchase occurs, and neither coins nor buys filter or pay for the gain.
 Empty menus request no decision. Mandatory effects validate the response and
 fall back to a legal gain if the selector declines or returns an invalid card.
 GeneticAI instead honors the strategy's contextual free-gain hook and separate
-preferences. The imitation teacher records that contextual choice and both
-choices of a joint Remodel pair, preserving its strategy policy and the existing
-checkpoint decision vocabulary.
-Anvil's provisional target is not a teacher example. After the exchange is
-accepted and discard reactions resolve, the teacher snapshots the final legal
-menu and pre-gain observation. It appends that example only after the matching
-gain succeeds, so a rejected exchange, empty menu, failed gain, or replaced gain
-does not produce a phantom target. Successful topdeck/trash reactions still
-count as gains; the example does not expose the post-gain observation.
+preferences. Teacher selectors propose choices without recording free gains or
+joint Remodel pairs. The validated executor snapshots the final legal gain
+menu and pre-gain observation after trash/discard reactions, and commits only
+a successful matching gain. Workshop, Remodel, Anvil and Quartermaster all use
+this contract. Remodel snapshots its physical trash before execution and commits
+it after trashing succeeds; a Fortress returning to hand still counts as trashed.
+Legacy trash selection during pair planning cannot duplicate that example.
+Empty menus, failed gains and Trader replacement produce no phantom gain label.
+Watchtower topdeck/trash still count as successful gains. Quartermaster taking a
+stored card produces no gain example. No checkpoint decision vocabulary changes.
 
 ```python
 strategy.free_gain_priority = [
@@ -253,7 +254,7 @@ the output exclusively. If the local reproduction output already exists,
 choose a fresh filename. These commands preserve all committed raw outcomes
 and render a separate HTML copy from the newly produced data.
 
-The dated [October 8 policy-propagation audit rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-policy-audit.json)
+The dated [October 8 committed-action recording rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-committed-recording.json)
 uses the merged reviewed simulation inputs and covers 13,200 games: 100 seeds × two seats × two policies × 33 comparisons.
 Controls reproduce the previous decisions using the same corrected rules;
 opponents use current policies. Four representative kingdoms compare inherited
@@ -275,7 +276,10 @@ final-gain teacher recording and reusable-strategy reference collection, plus
 the evaluator's output-preservation guard. The
 [recording/discovery rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-recording.json)
 is also preserved; the final audit rerun identifies the nullable policy's
-identity, crossover, normalization/pruning and publication consumers.
+identity, crossover, normalization/pruning and publication consumers. That
+[policy-propagation audit rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-policy-audit.json)
+is preserved unchanged. The current rerun identifies the committed-action
+recording contract; all 33 fixed-policy comparison records match the prior panel.
 The panel uses GeneticAI strategies rather than learned/random adapters; its
 results do not measure learned-policy or random-agent performance. The guide is generated from the final
 rerun data, not relabeled historical results. Python exports and worker serialization preserve `free_gain_priority` as `None`,

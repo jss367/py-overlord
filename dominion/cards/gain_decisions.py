@@ -39,12 +39,20 @@ def choose_free_gain(state, player, choices, source, sacrificed=None):
     )
 
 
-def gain_selected(state, player, card):
+def gain_selected(state, player, card, *, choices=None, source=None, sacrificed=None, destination="discard"):
     if card is None:
         return None
     pile = state.supply_pile_key(card.name)
     # Revalidate the exposed member before mutating the physical pile.
     if state.top_supply_card(pile) != card.name:
         return None
+    prepare = getattr(player.ai, "prepare_free_gain_record", None)
+    commit = None
+    if prepare is not None and source is not None and choices is not None:
+        context = FreeGainContext.build(state, player, source, destination, sacrificed=sacrificed)
+        commit = prepare(state, player, choices, card, context)
     gained = state.take_top_supply_card(pile)
-    return state.gain_card(player, gained) if gained is not None else None
+    actual = state.gain_card(player, gained) if gained is not None else None
+    if actual is not None and commit is not None:
+        commit(actual)
+    return actual

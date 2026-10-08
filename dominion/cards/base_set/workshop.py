@@ -19,4 +19,4 @@ class Workshop(Card):
         choices = gain_menu(game_state, player, CardCost(coins=4))
         gain_selected(game_state, player, choose_free_gain(
             game_state, player, choices, "Workshop"
-        ))
+        ), choices=choices, source="Workshop")

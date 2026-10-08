@@ -37,8 +37,12 @@ class Remodel(Card):
         trashed, target = pair
         if trashed is None:
             return
+        prepare = getattr(player.ai, "prepare_remodel_trash_record", None)
+        commit_trash = prepare(game_state, player, list(player.hand), trashed) if prepare else None
         player.hand.remove(trashed)
         game_state.trash_card(player, trashed)
+        if commit_trash is not None:
+            commit_trash(trashed)
         # Follow instructions in order: trash/reactions, then check the
         # trashed card's current cost and the available replacement gains.
         limit = self._limit(game_state, player, trashed)
@@ -46,7 +50,7 @@ class Remodel(Card):
         target = resolve_gain(target, choices) or choose_free_gain(
             game_state, player, choices, "Remodel", trashed
         )
-        gain_selected(game_state, player, target)
+        gain_selected(game_state, player, target, choices=choices, source="Remodel", sacrificed=trashed)
 
     @staticmethod
     def _limit(state, player, card):

@@ -2082,7 +2082,8 @@ class GameState:
                     FreeGainContext.build(self, player, "Quartermaster", "quartermaster"))
             else:
                 pick = next(c for c in candidates if c.name == pick.name)
-            gained = gain_selected(self, player, pick)
+            gained = gain_selected(self, player, pick, choices=candidates,
+                                   source="Quartermaster", destination="quartermaster")
             if gained is None:
                 continue
             if gained in player.discard:

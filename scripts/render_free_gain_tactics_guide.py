@@ -18,7 +18,7 @@ LABELS = {
 }
 
 
-def render(data, historical, previous=None, exports=None, adapters=None, recording=None):
+def render(data, historical, previous=None, exports=None, adapters=None, recording=None, policy_audit=None):
     def rate(value, interval):
         return f'{value * 100:.1f}%<small>{interval[0] * 100:.1f}%–{interval[1] * 100:.1f}%</small>'
 
@@ -82,10 +82,18 @@ def render(data, historical, previous=None, exports=None, adapters=None, recordi
     recording_note = (
         '<p>The <a href="../../scripts/data/free_gain_tactics_evaluation-2026-10-08-recording.json">recording/discovery rerun</a>'
         f' remains unchanged with fingerprint <code>{escape(recording["source_fingerprint"])}</code>.'
-        ' The current policy-propagation audit rerun identifies nullable free-gain identity, whole-policy'
+        ' The subsequent policy-propagation audit rerun identified nullable free-gain identity, whole-policy'
         ' crossover, normalization/pruning, baseline-panel deduplication and publication consumers.'
         ' This fixed-policy panel does not test league training or genetic search quality.</p>'
         if recording is not None else ''
+    )
+    policy_audit_note = (
+        '<p>The <a href="../../scripts/data/free_gain_tactics_evaluation-2026-10-08-policy-audit.json">policy-propagation audit rerun</a>'
+        f' remains unchanged with fingerprint <code>{escape(policy_audit["source_fingerprint"])}</code>.'
+        ' The current rerun identifies committed-action teacher recording across Workshop, Remodel, Anvil and'
+        ' Quartermaster. Its 33 fixed-policy comparison records reproduce the previous panel; this does not'
+        ' evaluate imitation training or learned-policy performance.</p>'
+        if policy_audit is not None else ''
     )
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -97,11 +105,12 @@ def render(data, historical, previous=None, exports=None, adapters=None, recordi
 <div class="note"><strong>Dated rerun: October 8, 2026.</strong> {games:,} games across {len(results)} comparisons, {data['pairs']} seed pairs each, four local CPU workers, no model inference. {truncated} games reached the {data['turn_limit']}-round limit. This run uses the merged rules and reviewed fixes. Previous and updated <em>policy arms</em> share the same rerun engine; neither column is the old experiment.</div>
 <h2>Run identity and preserved historical evidence</h2>
 <p>Rerun simulation input fingerprint: <code>{fresh}</code>. Evaluator SHA-256: <code>{escape(data['evaluator_sha256'])}</code>. Python {escape(data['python_version'])}. The fingerprint covers non-reporting Dominion Python, generated strategies, boards and the tournament configuration files; it identifies inputs, not statistical certainty.</p>
-<p>The <a href="../../scripts/data/free_gain_tactics_evaluation.json">original raw outcomes</a> remain byte-for-byte unchanged. Their fingerprint <code>{old}</code> matches the original PR tree <code>4fc860b5b559d85192a97f8535f8a1da31f455f2</code>. They are historical evidence, not results for the reviewed merged tree. All tables and findings below are rendered from the distinct <a href="../../scripts/data/free_gain_tactics_evaluation-2026-10-08-policy-audit.json">October 8 policy-propagation audit rerun</a>.</p>
+<p>The <a href="../../scripts/data/free_gain_tactics_evaluation.json">original raw outcomes</a> remain byte-for-byte unchanged. Their fingerprint <code>{old}</code> matches the original PR tree <code>4fc860b5b559d85192a97f8535f8a1da31f455f2</code>. They are historical evidence, not results for the reviewed merged tree. All tables and findings below are rendered from the distinct <a href="../../scripts/data/free_gain_tactics_evaluation-2026-10-08-committed-recording.json">October 8 committed-action recording rerun</a>.</p>
 {previous_note}
 {export_note}
 {adapter_note}
 {recording_note}
+{policy_audit_note}
 <p>Since the original run, reviewed inputs changed in exposed-card gain removal, physical-pile endgame context, shared Action/Way resolution and pending bonuses, Anvil validation, opponent trashing/storage defaults, and dynamic board discovery. These can affect legality, choices, random-state progression or opponents. The diagnostic and Port Moresby boards are explicit, so the new free-gain discovery fix does not itself change those boards. Fingerprint changes outside this panel are not evidence that each result changed.</p>
 <h2>Practical findings from this rerun</h2><ul>{''.join(findings)}</ul>
 <p>Registered Port Moresby strategy changes range from {min(r['delta'] for r in registered) * 100:+.1f} to {max(r['delta'] for r in registered) * 100:+.1f} percentage points. Consult each paired interval below; do not promote a plan on a point estimate alone.</p>
@@ -131,15 +140,16 @@ python scripts/check_catalog.py</code></pre>
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--results', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08-policy-audit.json'))
+    parser.add_argument('--results', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08-committed-recording.json'))
     parser.add_argument('--historical', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation.json'))
     parser.add_argument('--previous', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08.json'))
     parser.add_argument('--exports', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json'))
     parser.add_argument('--adapters', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08-adapters.json'))
     parser.add_argument('--recording', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08-recording.json'))
+    parser.add_argument('--policy-audit', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08-policy-audit.json'))
     parser.add_argument('--output', type=Path, default=Path('dominion/reporting/curated_strategy_guides/free-gains-and-quartermaster-policy-evaluation.html'))
     args = parser.parse_args()
-    args.output.write_text(render(json.loads(args.results.read_text()), json.loads(args.historical.read_text()), json.loads(args.previous.read_text()), json.loads(args.exports.read_text()), json.loads(args.adapters.read_text()), json.loads(args.recording.read_text())))
+    args.output.write_text(render(json.loads(args.results.read_text()), json.loads(args.historical.read_text()), json.loads(args.previous.read_text()), json.loads(args.exports.read_text()), json.loads(args.adapters.read_text()), json.loads(args.recording.read_text()), json.loads(args.policy_audit.read_text())))
 
 
 if __name__ == '__main__':

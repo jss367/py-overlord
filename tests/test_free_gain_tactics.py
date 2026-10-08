@@ -711,6 +711,8 @@ def test_recording_teacher_keeps_independent_free_gain_policy_and_records(source
         teacher = cloudpickle.loads(cloudpickle.dumps(teacher))
         # A serialized closure has its own list; expose it through a fresh spy.
         teacher.record = lambda state, choices, decision, choice: (recorded.append((decision, choice.name)), choice)[1]
+    teacher.prepare_free_gain_record = lambda state, player, choices, choice, context: lambda gained: teacher.record(state, choices, "buy", gained)
+    teacher.prepare_remodel_trash_record = lambda state, player, choices, choice: lambda trashed: teacher.record(state, choices, "trash", trashed)
     state, player = make_state(names=("Silver", "Village"))
     player.ai = teacher
     player.hand = [get_card("Estate")]
@@ -734,6 +736,10 @@ def test_recording_teacher_does_not_record_declines_or_empty_menus(source, empty
     def unexpected_record(*args):
         pytest.fail("A declined or empty-menu gain is not a legal card training target")
     teacher.record = unexpected_record
+    from dominion.rl.action_encoder import ActionEncoder
+    from dominion.rl.general.encoding import CARD_POOL
+    teacher.actions = ActionEncoder(list(CARD_POOL))
+    teacher.examples = []
     state, player = make_state(names=() if empty else ("Silver",))
     player.ai = teacher
     copper = get_card("Copper")
@@ -781,7 +787,7 @@ def test_anvil_teacher_records_only_successful_final_gain_with_pre_gain_snapshot
         state.pile_traits["Silver"] = "Friendly"
         state.supply["Silver"] = 1
     if scenario == "failed":
-        monkeypatch.setattr("dominion.cards.gain_decisions.gain_selected", lambda *args: None)
+        monkeypatch.setattr(state, "gain_card", lambda *args, **kwargs: None)
 
     get_card("Anvil").play_effect(state)
 
