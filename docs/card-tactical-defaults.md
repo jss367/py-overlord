@@ -279,7 +279,13 @@ resources cannot make an Action playable. Hybrids remain in hand while their
 Treasure or Night play phase is still available. The baseline avoids saving pure
 junk under optional Gear, and preserves this turn when the final Province/Colony can be bought. It does not model
 special card text, draw order, landscapes, multiple purchases or three-pile
-endings. A strategy can override either dedicated storage decision.
+endings. The baseline also projects known pending pile-token, Champion,
+Prophecy and Ally resource bonuses. Scoped play context identifies the actual
+played card, including Way proxies and unresolved enclosing plays; forecasts
+never apply bonuses early. Harbor Village uses the current caller's existing
+bonus timing. Future Action support includes these known external Action bonuses
+as well as printed Actions. Pending draws, optional reactions and extra buys are
+not forecast. A strategy can override either dedicated storage decision.
 
 Card-conservation and retention corrections are separately tracked in
 [#398 — Fix lost set-aside cards when Gear or Haven is replayed](https://github.com/jss367/py-overlord/issues/398).

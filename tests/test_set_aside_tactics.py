@@ -437,3 +437,125 @@ def test_copied_set_aside_effect_initializes_per_card_storage(name):
     assert player.hand == [gold, silver]
     assert owner.set_aside == []
     assert not owner.duration_persistent
+
+
+
+def bonus_play(state, player, card, entry):
+    state.phase = "action"
+    if entry == "main":
+        player.ai.strategy.action_priority = [PriorityRule(card.name)]
+        player.hand.insert(0, card)
+        state.handle_action_phase()
+    else:
+        play(state, player, card)
+    assert getattr(state, "_pending_play_context", None) is None
+    assert getattr(state, "_decision_play_context", None) is None
+
+
+@pytest.mark.parametrize("entry", ["main", "helper"])
+@pytest.mark.parametrize("legacy", [False, True])
+@pytest.mark.parametrize("name", ["Gear", "Haven"])
+def test_pending_training_preserves_actual_province_breakpoint(entry, legacy, name):
+    state, player = setup(names=("Gold", "Gold", "Copper", "Estate"))
+    state.supply[name] = 10
+    if legacy:
+        player.training_pile = name
+    else:
+        state.add_pile_token(player, name, "+$1")
+    card = get_card(name)
+    bonus_play(state, player, card, entry)
+    assert [c.name for c in card.set_aside] == ([] if name == "Gear" else ["Estate"])
+    assert player.coins == 1
+    assert sum(c.stats.coins for c in player.hand if c.is_treasure) + player.coins == 8
+
+
+@pytest.mark.parametrize("entry", ["main", "helper"])
+@pytest.mark.parametrize("source", ["lost_arts", "champion", "great_leader"])
+def test_pending_action_bonuses_keep_smithy_playable(entry, source):
+    state, player = setup(names=("Smithy", "Gold"))
+    state.supply["Gear"] = 10
+    if source == "lost_arts":
+        state.add_pile_token(player, "Gear", "+1 Action")
+    elif source == "champion":
+        player.champions_in_play = 2
+    else:
+        from dominion.prophecies.great_leader import GreatLeader
+        state.prophecy = GreatLeader()
+        state.prophecy.is_active = True
+    gear = get_card("Gear")
+    bonus_play(state, player, gear, entry)
+    assert gear.set_aside == []
+    # The main loop can now play Smithy, consuming the available Action.
+    if entry == "helper":
+        assert player.actions >= 1
+        assert any(c.name == "Smithy" for c in player.hand)
+
+
+@pytest.mark.parametrize("name", ["Smithy", "Village"])
+def test_future_action_token_bonuses_count_as_support(name):
+    names = ("Smithy", "Smithy", "Smithy", "Gold")
+    if name == "Village":
+        names = ("Village", *names)
+    state, player = setup(names=names)
+    state.add_pile_token(player, name, "+1 Action")
+    player.actions = 2
+    gear = get_card("Gear")
+    bonus_play(state, player, gear, "helper")
+    assert gear.set_aside == []
+
+
+@pytest.mark.parametrize("entry", ["main", "helper"])
+@pytest.mark.parametrize("source,expected,coins", [
+    ("token", ["Copper"], 2), ("legacy", [], 1), ("none", ["Copper"], 0),
+])
+def test_pending_harbor_bonus_respects_trigger_timing(entry, source, expected, coins):
+    state, player = setup(names=("Gold", "Gold", "Copper"))
+    state.supply["Gear"] = 10
+    player.harbor_village_pending = 1
+    if source == "token":
+        state.add_pile_token(player, "Gear", "+$1")
+    elif source == "legacy":
+        player.training_pile = "Gear"
+    gear = get_card("Gear")
+    bonus_play(state, player, gear, entry)
+    if entry == "main" and source == "legacy":
+        expected, coins = ["Copper"], 2
+    assert [c.name for c in gear.set_aside] == expected
+    assert player.coins == coins
+
+
+@pytest.mark.parametrize("trained", ["Militia", "Gear"])
+def test_way_proxy_uses_played_card_bonus_instead_of_proxy_pile(trained):
+    from dominion.ways.mouse import WayOfTheMouse
+    strategy = EnhancedStrategy()
+    strategy.choose_way = lambda state, player, card, ways: next(w for w in ways if w)
+    state, player = setup(strategy, ("Gold", "Gold", "Copper"))
+    mouse = WayOfTheMouse("Gear")
+    state.ways = [mouse]
+    state.add_pile_token(player, trained, "+$1")
+    bonus_play(state, player, get_card("Militia"), "helper")
+    assert [c.name for c in mouse.set_aside_card.set_aside] == ([] if trained == "Militia" else ["Copper"])
+    assert player.coins == int(trained == "Militia")
+
+
+def test_nested_storage_counts_unresolved_outer_training_once():
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [PriorityRule("Gear")]
+    state, player = setup(strategy, ("Gear", "Gold", "Gold", "Copper"))
+    gear = player.hand[0]
+    state.add_pile_token(player, "Throne Room", "+$1")
+    bonus_play(state, player, get_card("Throne Room"), "helper")
+    assert gear.set_aside == []
+    assert player.coins == 1
+
+
+def test_pending_context_restores_after_strategy_failure():
+    strategy = EnhancedStrategy()
+    def fail(*args):
+        raise RuntimeError("choice failed")
+    strategy.choose_gear_set_aside = fail
+    state, player = setup(strategy, ("Gold",))
+    with pytest.raises(RuntimeError, match="choice failed"):
+        bonus_play(state, player, get_card("Gear"), "helper")
+    assert getattr(state, "_pending_play_context", None) is None
+    assert getattr(state, "_decision_play_context", None) is None

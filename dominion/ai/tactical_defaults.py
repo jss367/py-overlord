@@ -137,6 +137,35 @@ def discard_priority(card: Card) -> tuple:
     return (not dead, card.name != "Curse", card.name != "Copper", card.cost.coins, card.name)
 
 
+def guaranteed_play_resources(state, player, card, *, followups=True, harbor_pending=0, coins_before=None, inner_coins=0, harbor_after_followups=False):
+    """Known external +Coins/+Actions; never run hooks or inspect future draws."""
+    coins = int(state.has_pile_token(player, card.name, "+$1"))
+    actions = int(state.has_pile_token(player, card.name, "+1 Action"))
+    if state.is_action(card):
+        actions += player.champions_in_play
+    if followups:
+        # Harbor checks coins before legacy Training/Prophecy/Ally hooks.
+        if not harbor_after_followups and coins_before is not None and player.coins + coins + inner_coins > coins_before:
+            coins += harbor_pending
+        training = getattr(player, "training_pile", None)
+        if training and state.supply_pile_key(card.name) == state.supply_pile_key(training):
+            coins += 1
+        prophecy = state.prophecy
+        if prophecy is not None and prophecy.is_active:
+            if prophecy.name == "Great Leader" and state.is_action(card):
+                actions += 1
+            if prophecy.name == "Approaching Army" and card.is_attack:
+                coins += 1
+        if card.is_liaison:
+            for ally in state.allies:
+                if ally.name == "League of Shopkeepers":
+                    coins += int(player.favors >= 5)
+                    actions += int(player.favors >= 10 and not player.ignore_action_bonuses)
+        if harbor_after_followups and coins_before is not None and player.coins + coins + inner_coins > coins_before:
+            coins += harbor_pending
+    return coins, actions
+
+
 def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> list[Card]:
     """Optional storage: stranded Actions, then money above a buy breakpoint.
 
@@ -150,7 +179,23 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
     from dominion.cards.registry import get_card
 
     hand = list(player.hand)
-    money = player.coins + sum(c.stats.coins for c in hand if state.is_treasure(c))
+    pending = getattr(state, "_pending_play_context", None)
+    pending_coins, pending_actions = (0, 0)
+    while pending is not None:
+        if pending["player"] is player:
+            coins, actions = guaranteed_play_resources(
+                state, player, pending["card"], followups=pending["followups"],
+                harbor_pending=pending.get("harbor_pending", 0),
+                coins_before=pending.get("coins_before"), inner_coins=pending_coins,
+                harbor_after_followups=pending.get("harbor_after_followups", False),
+            )
+            pending_coins += coins
+            pending_actions += actions
+        pending = pending.get("outer")
+    money = player.coins + pending_coins + sum(
+        c.stats.coins + guaranteed_play_resources(state, player, c)[0]
+        for c in hand if state.is_treasure(c)
+    )
     costs = [3]
     for name, remaining in state.supply.items():
         if remaining <= 0 or name in state.non_supply_pile_names:
@@ -176,16 +221,21 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
         and not (treasures_playable and state.is_treasure(c))
         and not (night_playable and c.is_night)
     ]
+    def available_actions(card):
+        printed = 0 if player.ignore_action_bonuses else card.stats.actions
+        return printed + guaranteed_play_resources(state, player, card)[1]
+
     terminals = sorted(
-        (c for c in action_only if c.stats.actions == 0),
+        (c for c in action_only if available_actions(c) == 0),
         key=next_value, reverse=True,
     )
     # A Village or cantrip must remain usable this turn; account for its support.
     action_budget = (
-        player.actions + player.villagers if state.phase in {"start", "action"} else 0
+        player.actions + player.villagers + pending_actions
+        if state.phase in {"start", "action"} else 0
     )
     if action_budget > 0:
-        action_budget += sum(max(0, c.stats.actions - 1) for c in hand if c.is_action)
+        action_budget += sum(max(0, available_actions(c) - 1) for c in hand if state.is_action(c))
     stranded = (
         action_only if action_budget <= 0 else terminals[action_budget:]
     )
