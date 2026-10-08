@@ -375,3 +375,42 @@ def test_gear_last_action_keeps_crown_to_double_gold_this_turn():
     assert state.move_card_from_hand_to_play(player, crown)
     state.play_treasure_indirectly(player, crown)
     assert player.coins == 6
+
+
+
+@pytest.mark.parametrize("phase", ["treasure", "buy", "night"])
+@pytest.mark.parametrize("name", ["Gear", "Haven"])
+def test_late_phase_storage_ignores_actions_villagers_and_villages(phase, name):
+    state, player = setup(names=("Smithy", "Village", "Gold"))
+    state.phase = phase
+    player.actions = 5
+    player.villagers = 5
+    player.deck = [get_card("Estate"), get_card("Estate")]
+    card = get_card(name)
+    player.in_play.append(card)
+    state.play_action_indirectly(player, card)
+    expected = ["Smithy", "Village"] if name == "Gear" else ["Smithy"]
+    assert [c.name for c in card.set_aside] == expected
+    assert state.phase == phase
+    assert player.actions >= 5  # Haven's +Action still cannot be spent here.
+    assert player.villagers == 5
+
+
+@pytest.mark.parametrize("phase", ["start", "action"])
+def test_storage_keeps_actions_with_usable_villagers_and_village_support(phase):
+    state, player = setup(names=("Smithy", "Village", "Gold"))
+    state.phase = phase
+    player.actions = 0
+    player.villagers = 1
+    assert player.ai.choose_gear_set_aside(state, player, player.hand) == []
+
+
+@pytest.mark.parametrize("phase,expected", [
+    ("action", []), ("treasure", []), ("buy", ["Crown"]), ("night", ["Crown"]),
+])
+def test_hybrid_storage_respects_its_remaining_play_phase(phase, expected):
+    state, player = setup(names=("Crown", "Werewolf", "Gold"))
+    state.phase = phase
+    player.actions = 0
+    picks = player.ai.choose_gear_set_aside(state, player, player.hand)
+    assert [c.name for c in picks] == expected

@@ -167,17 +167,23 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
     def next_value(card):
         return (card.stats.cards * 2 + card.stats.coins, card.cost.coins, card.name)
 
-    # No Actions does not strand cards still playable as Treasures or at Night.
+    # Retain hybrids while their other ordinary play phase is still available.
     # Use the live Treasure type so Capitalism is covered as well as Crown.
+    treasures_playable = state.phase in {"start", "action", "treasure"}
+    night_playable = state.phase in {"start", "action", "treasure", "buy", "night"}
     action_only = [
-        c for c in hand if c.is_action and not state.is_treasure(c) and not c.is_night
+        c for c in hand if c.is_action
+        and not (treasures_playable and state.is_treasure(c))
+        and not (night_playable and c.is_night)
     ]
     terminals = sorted(
         (c for c in action_only if c.stats.actions == 0),
         key=next_value, reverse=True,
     )
     # A Village or cantrip must remain usable this turn; account for its support.
-    action_budget = player.actions + player.villagers
+    action_budget = (
+        player.actions + player.villagers if state.phase in {"start", "action"} else 0
+    )
     if action_budget > 0:
         action_budget += sum(max(0, c.stats.actions - 1) for c in hand if c.is_action)
     stranded = (

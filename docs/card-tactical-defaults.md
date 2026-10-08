@@ -268,13 +268,16 @@ remain authoritative. Chapel continues to use existing strategy trash
 priorities, including conditional rules for stopping at a minimum economy or
 preserving late points. Junk Dealer and Anvil keep their existing trash/discard
 policies: the former must sacrifice something even in a hand of useful cards;
-the latter's cheapest-Treasure preference does not evaluate its gain jointly.
+the latter's preference for discarding the cheapest Treasure does not evaluate
+its gain jointly.
 
 The storage baseline reserves printed supply-cost breakpoints (with current
 cost reductions), including a $3 building floor when available. It accounts
-for remaining Actions, Villagers and printed action support when identifying
-stranded Actions, avoids saving pure junk under optional Gear, and preserves
-this turn when the final Province/Colony can be bought. It does not model
+for remaining Actions, Villagers and printed action support before or during
+the Action phase when identifying stranded Actions. After that phase these
+resources cannot make an Action playable. Hybrids remain in hand while their
+Treasure or Night play phase is still available. The baseline avoids saving pure
+junk under optional Gear, and preserves this turn when the final Province/Colony can be bought. It does not model
 special card text, draw order, landscapes, multiple purchases or three-pile
 endings. A strategy can override either dedicated storage decision.
 
