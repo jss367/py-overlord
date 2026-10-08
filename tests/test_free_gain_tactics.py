@@ -465,3 +465,112 @@ def test_remodel_checks_trash_cost_after_trash_reactions():
     assert not player.discard
     assert smithy in state.trash
     assert state.supply["Gold"] == 10
+
+
+@pytest.mark.parametrize("source", ["Workshop", "Remodel", "Anvil", "Quartermaster"])
+@pytest.mark.parametrize("first_empty", [False, True])
+def test_contextual_gainers_remove_exposed_split_member_until_exhausted(source, first_empty):
+    strategy = EnhancedStrategy()
+    strategy.free_gain_priority = [PriorityRule("Acolyte")]
+    strategy.trash_priority = [PriorityRule("Estate")]
+    strategy.choose_anvil_option = lambda s, p, treasures, choices: (treasures[0], get_card("Acolyte"))
+    strategy.choose_quartermaster_option = lambda *args: ("gain", get_card("Acolyte"))
+    names = ("Herb Gatherer", "Acolyte", "Sorceress", "Sibyl")
+    state, player = make_state(strategy, names)
+    state.supply = dict.fromkeys(names, 4)
+    if first_empty:
+        state.supply["Herb Gatherer"] = 0
+    else:
+        state.rotate_supply_pile("Herb Gatherer")
+    assert state.top_supply_card("Herb Gatherer") == "Acolyte"
+    before = state.supply.copy()
+    qm = get_card("Quartermaster")
+    player.duration = [qm]
+    for remaining in range(3, -1, -1):
+        player.hand = [get_card("Estate" if source == "Remodel" else "Copper")]
+        if source == "Quartermaster":
+            state._handle_quartermaster_start_of_turn(player)
+        else:
+            get_card(source).play_effect(state)
+        assert state.supply["Acolyte"] == remaining
+        assert all(state.supply[name] == before[name] for name in names if name != "Acolyte")
+        owned = qm.set_aside if source == "Quartermaster" else player.discard
+        assert sum(c.name == "Acolyte" for c in owned) == 4 - remaining
+    assert state.top_supply_card("Herb Gatherer") == "Sorceress"
+    assert "Acolyte" not in {c.name for c in gain_menu(state, player, CardCost(4))}
+
+
+def test_gain_selected_rejects_stale_split_choice_without_removing_another_card():
+    from dominion.cards.gain_decisions import gain_selected
+    state, player = make_state(names=("Herb Gatherer", "Acolyte", "Sorceress", "Sibyl"))
+    state.rotate_supply_pile("Herb Gatherer")
+    before = state.supply.copy()
+    assert gain_selected(state, player, get_card("Herb Gatherer")) is None
+    assert state.supply == before
+    assert state.top_supply_card("Herb Gatherer") == "Acolyte"
+    assert player.discard == []
+
+
+@pytest.mark.parametrize("kind", ["probe", "random", "rl", "general"])
+def test_base_remodel_preserves_existing_ai_trash_hook(kind, monkeypatch):
+    state, player = make_state(names=("Province", "Silver", "Smithy"))
+    copper, gold = get_card("Copper"), get_card("Gold")
+    player.hand = [copper, gold]
+    seen = []
+    if kind == "probe":
+        class Probe(DummyAI):
+            def choose_card_to_trash(self, state, choices):
+                seen.append(choices)
+                return gold
+            def choose_free_gain(self, state, owner, choices, context):
+                assert context.sacrificed is gold
+                assert gold not in context.hand
+                assert copper in context.hand
+                return next(c for c in choices if c.name == "Silver")
+        ai = Probe()
+    elif kind == "random":
+        from dominion.rl.random_ai import RandomAI
+        ai = RandomAI()
+        def select(choices):
+            seen.append(choices)
+            assert any(c is gold for c in choices)
+            return gold
+        monkeypatch.setattr("dominion.rl.random_ai.random.choice", select)
+    elif kind == "rl":
+        from dominion.rl.rl_ai import RLAI
+        ai = RLAI()
+        ai.action_queue.put(gold)
+    else:
+        from dominion.rl.general.policy import GeneralAI
+        ai = GeneralAI(None)
+        def decide(state, choices, decision):
+            assert decision == "trash"
+            seen.append(choices)
+            return gold
+        ai.decide = decide
+    player.ai = ai
+    get_card("Remodel").play_effect(state)
+    assert state.trash == [gold]
+    assert player.hand == [copper]
+    assert len(player.discard) == 1
+    if kind == "rl":
+        decision, requested_state, choices = ai.choice_queue.get_nowait()
+        assert decision == "trash" and requested_state is state
+        assert choices == [copper, gold]
+        assert ai.choice_queue.empty()
+    else:
+        assert seen[0][:2] == [copper, gold]
+
+
+@pytest.mark.parametrize("invalid", [None, get_card("Gold")])
+def test_base_remodel_invalid_trash_hook_uses_pair_fallback(invalid):
+    class Probe(DummyAI):
+        def choose_card_to_trash(self, state, choices):
+            return invalid
+    state, player = make_state(names=("Province", "Chapel", "Silver"))
+    player.ai = Probe()
+    gold, curse = get_card("Gold"), get_card("Curse")
+    player.hand = [gold, curse]
+    get_card("Remodel").play_effect(state)
+    assert state.trash == [curse]
+    assert player.hand == [gold]

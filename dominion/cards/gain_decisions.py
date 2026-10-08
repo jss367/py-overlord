@@ -38,7 +38,8 @@ def gain_selected(state, player, card):
     if card is None:
         return None
     pile = state.supply_pile_key(card.name)
-    if state.supply.get(pile, 0) <= 0:
+    # Revalidate the exposed member before mutating the physical pile.
+    if state.top_supply_card(pile) != card.name:
         return None
-    state.supply[pile] -= 1
-    return state.gain_card(player, card)
+    gained = state.take_top_supply_card(pile)
+    return state.gain_card(player, gained) if gained is not None else None

@@ -371,6 +371,18 @@ class GeneticAI(AI):
             return hook(state, player, choices)
         return super().choose_overlord_target(state, player, choices)
 
+    def choose_captain_target(self, state, player, choices: list[Card]) -> Optional[Card]:
+        hook = getattr(self.strategy, "choose_captain_target", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_captain_target(state, player, choices)
+
+    def choose_band_of_misfits_target(self, state, player, choices: list[Card]) -> Optional[Card]:
+        hook = getattr(self.strategy, "choose_band_of_misfits_target", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_band_of_misfits_target(state, player, choices)
+
     def choose_quartermaster_gain(self, state, player, choices: list[Card]) -> Optional[Card]:
         hook = getattr(self.strategy, "choose_quartermaster_gain", None)
         if hook is not None:
@@ -494,6 +506,18 @@ class GeneticAI(AI):
         if hook is not None:
             return hook(state, player, options)
         return super().choose_teacher_token(state, player, options)
+
+    def choose_gear_set_aside(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_gear_set_aside", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_gear_set_aside(state, player, choices)
+
+    def choose_card_to_set_aside_for_haven(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_card_to_set_aside_for_haven", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_card_to_set_aside_for_haven(state, player, choices)
 
     def choose_cards_to_trash(self, state: "GameState", choices: list[Card], count: int) -> list[Card]:
         hook = getattr(self.strategy, "choose_cards_to_trash", None)

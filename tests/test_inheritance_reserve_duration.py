@@ -12,6 +12,8 @@ These tests pin down the corrected behaviour for supported callbacks and
 the guard that keeps unsupported callbacks out of the candidate list.
 """
 
+import pytest
+
 from dominion.cards.registry import get_card
 from dominion.events.registry import get_event
 from dominion.game.game_state import GameState
@@ -163,3 +165,67 @@ def test_inherited_estate_in_duration_counts_as_one_vp():
     assert estate in player.duration
     # While the overlay is live, the Estate is still a Victory card worth 1.
     assert estate.get_victory_points(player) == 1
+
+
+
+@pytest.mark.parametrize("replay", [False, True])
+def test_inherited_gear_storage_survives_replay_cleanup_and_return(replay):
+    from dominion.projects.citadel import Citadel
+
+    state = _new_state(["Gear"])
+    state.log_callback = lambda *args: None
+    player = state.players[0]
+    player.inherited_action_name = "Gear"
+    player.ai.choose_gear_set_aside = lambda state, player, choices: choices[:1]
+    if replay:
+        player.projects.append(Citadel())
+    estate = get_card("Estate")
+    drawn = [get_card(name) for name in ["Gold", "Copper", "Silver", "Smithy"]]
+    player.hand = [estate]
+    player.deck = list(drawn)
+    player.discard = []
+    player.actions = 1
+    state.phase = "action"
+    assert "Gear" in {c.name for c in get_event("Inheritance")._eligible_candidates(state)}
+    assert not hasattr(estate, "set_aside")
+    state.handle_action_phase()
+    saved = list(estate.set_aside)
+    assert len(saved) == (2 if replay else 1)
+    assert estate.name == "Estate"
+    assert estate.get_victory_points(player) == 1
+    assert len(player.all_cards()) == 5
+    state.handle_cleanup_phase()
+    assert estate in player.in_play
+    assert estate in player.duration
+    assert estate.set_aside == saved
+    state.do_duration_phase()
+    state.do_duration_phase()
+    assert estate.set_aside == []
+    assert estate not in player.duration
+    assert not estate.duration_persistent
+    assert all(sum(c is stored for c in player.hand) == 1 for stored in saved)
+    assert len(player.all_cards()) == 5
+    state.handle_cleanup_phase()
+    assert estate not in player.in_play
+    assert estate.name == "Estate"
+    assert len(player.all_cards()) == 5
+
+
+def test_inherited_gear_declining_storage_needs_no_duration_retention():
+    state = _new_state(["Gear"])
+    state.log_callback = lambda *args: None
+    player = state.players[0]
+    player.inherited_action_name = "Gear"
+    player.ai.choose_gear_set_aside = lambda *args: []
+    estate = get_card("Estate")
+    player.hand = [estate]
+    player.deck = []
+    player.discard = []
+    state.phase = "action"
+    state.handle_action_phase()
+    assert estate.set_aside == []
+    assert estate not in player.duration
+    assert not estate.duration_persistent
+    state.handle_cleanup_phase()
+    assert estate not in player.in_play
+    assert sum(c is estate for c in player.all_cards()) == 1

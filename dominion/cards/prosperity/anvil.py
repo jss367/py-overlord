@@ -39,9 +39,11 @@ class Anvil(Card):
             return
         choice, target = pair
         target = resolve_gain(target, gainable)
-        if choice not in treasures or target is None:
+        if (choice is None or not any(choice is held for held in treasures)
+                or not game_state.is_treasure(choice) or target is None):
             return
-        player.hand.remove(choice)
+        index = next(i for i, held in enumerate(player.hand) if held is choice)
+        player.hand.pop(index)
         game_state.discard_card(player, choice)
         # Discard reactions may empty a pile or change its cost.
         target = resolve_gain(target, gain_menu(game_state, player, CardCost(coins=4)))

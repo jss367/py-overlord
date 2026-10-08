@@ -23,6 +23,12 @@ class JunkDealer(Card):
         choice = player.ai.choose_card_to_trash_with_junk_dealer(
             game_state, player, list(player.hand)
         )
-        if choice and choice in player.hand:
-            player.hand.remove(choice)
-            game_state.trash_card(player, choice)
+        if not any(choice is card for card in player.hand):
+            from dominion.ai.base_ai import AI
+
+            choice = AI.choose_card_to_trash_with_junk_dealer(
+                player.ai, game_state, player, list(player.hand)
+            )
+        index = next(i for i, card in enumerate(player.hand) if card is choice)
+        player.hand.pop(index)
+        game_state.trash_card(player, choice)
