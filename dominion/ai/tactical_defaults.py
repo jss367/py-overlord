@@ -127,3 +127,140 @@ def choose_quartermaster_gain(choices: list[Card]) -> Card | None:
 def quartermaster_take_all(mat: list[Card]) -> bool:
     """Baseline collection cadence: gain twice, then collect; overridable."""
     return len(mat) >= 2
+
+
+def discard_priority(card: Card) -> tuple:
+    """Prefer dead cards, then cheap economy, preserving live green hybrids."""
+    dead = card.name == "Curse" or (
+        card.is_victory and not card.is_action and not card.is_treasure
+    )
+    return (not dead, card.name != "Curse", card.name != "Copper", card.cost.coins, card.name)
+
+
+def guaranteed_play_resources(state, player, card, *, followups=True, harbor_pending=0, coins_before=None, inner_coins=0, harbor_after_followups=False):
+    """Known external +Coins/+Actions; never run hooks or inspect future draws."""
+    coins = int(state.has_pile_token(player, card.name, "+$1"))
+    actions = int(state.has_pile_token(player, card.name, "+1 Action"))
+    if state.is_action(card):
+        actions += player.champions_in_play
+    if followups:
+        # Harbor checks coins before legacy Training/Prophecy/Ally hooks.
+        if not harbor_after_followups and coins_before is not None and player.coins + coins + inner_coins > coins_before:
+            coins += harbor_pending
+        training = getattr(player, "training_pile", None)
+        if training and state.supply_pile_key(card.name) == state.supply_pile_key(training):
+            coins += 1
+        prophecy = state.prophecy
+        if prophecy is not None and prophecy.is_active:
+            if prophecy.name == "Great Leader" and state.is_action(card):
+                actions += 1
+            if prophecy.name == "Approaching Army" and card.is_attack:
+                coins += 1
+        if card.is_liaison:
+            for ally in state.allies:
+                if ally.name == "League of Shopkeepers":
+                    coins += int(player.favors >= 5)
+                    actions += int(player.favors >= 10 and not player.ignore_action_bonuses)
+        if harbor_after_followups and coins_before is not None and player.coins + coins + inner_coins > coins_before:
+            coins += harbor_pending
+    return coins, actions
+
+
+def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> list[Card]:
+    """Optional storage: stranded Actions, then money above a buy breakpoint.
+
+    Printed resources estimate usefulness, not special card effects. Do not
+    store dead cards: returning them adds no value to the next hand. Preserve
+    affordable supply-cost breakpoints and a minimum $3 building hand.
+    """
+    if not choices or count <= 0:
+        return []
+
+    hand = list(player.hand)
+    # Ordinary hand plays belong to this player's turn. Indirect plays (for
+    # example Toil/March in Buy) do not reopen earlier play phases.
+    own_turn = player is state.turn_player
+    actions_playable = own_turn and state.phase in {"start", "action"}
+    treasures_playable = own_turn and state.phase in {"start", "action", "treasure"}
+    night_playable = own_turn and state.phase in {"start", "action", "treasure", "buy", "night"}
+    buys_available = own_turn and player.buys > 0 and state.phase in {"start", "action", "treasure", "buy"}
+
+    def treasure_income(card):
+        if not treasures_playable or not state.is_treasure(card):
+            return 0
+        return card.stats.coins + guaranteed_play_resources(state, player, card)[0]
+
+    pending = getattr(state, "_pending_play_context", None)
+    pending_coins, pending_actions = (0, 0)
+    while pending is not None:
+        if pending["player"] is player:
+            coins, actions = guaranteed_play_resources(
+                state, player, pending["card"], followups=pending["followups"],
+                harbor_pending=pending.get("harbor_pending", 0),
+                coins_before=pending.get("coins_before"), inner_coins=pending_coins,
+                harbor_after_followups=pending.get("harbor_after_followups", False),
+            )
+            pending_coins += coins
+            pending_actions += actions
+        pending = pending.get("outer")
+    money = player.coins + player.coin_tokens + pending_coins + sum(treasure_income(c) for c in hand)
+    # Reuse engine affordability for live restrictions and effective costs.
+    # The baseline reserves coin-only Supply buys, not Events/Projects or
+    # future Potion income; the $3 building floor remains a policy choice.
+    affordable = state._get_affordable_cards(player, available_coins=money)
+    supply_buys = [
+        card for card in affordable
+        if not getattr(card, "is_event", False) and not getattr(card, "is_project", False)
+        and card.name not in state.non_supply_pile_names
+        and card.cost.debt == 0 and card.cost.potions == 0
+    ]
+    costs = [3, *(state.get_card_cost(player, card) for card in supply_buys)]
+    floor = max((cost for cost in costs if cost <= money), default=money)
+    # There may be no next turn when buying the final Province/Colony.
+    if buys_available and any(
+        card.name in {"Province", "Colony"} and state.supply.get(card.name) == 1
+        for card in supply_buys
+    ):
+        return []
+
+    def next_value(card):
+        return (card.stats.cards * 2 + card.stats.coins, card.cost.coins, card.name)
+
+    # Retain hybrids while their other ordinary play phase is still available.
+    # Use the live Treasure type so Capitalism is covered as well as Crown.
+    action_only = [
+        c for c in hand if c.is_action
+        and not (treasures_playable and state.is_treasure(c))
+        and not (night_playable and c.is_night)
+    ]
+    def available_actions(card):
+        printed = 0 if player.ignore_action_bonuses else card.stats.actions
+        return printed + guaranteed_play_resources(state, player, card)[1]
+
+    terminals = sorted(
+        (c for c in action_only if available_actions(c) == 0),
+        key=next_value, reverse=True,
+    )
+    # A Village or cantrip must remain usable this turn; account for its support.
+    action_budget = (
+        player.actions + player.villagers + pending_actions
+        if actions_playable else 0
+    )
+    if action_budget > 0:
+        action_budget += sum(max(0, available_actions(c) - 1) for c in hand if state.is_action(c))
+    stranded = (
+        action_only if action_budget <= 0 else terminals[action_budget:]
+    )
+    selected = []
+    for card in sorted(stranded, key=next_value, reverse=True):
+        if any(card is c for c in choices) and len(selected) < max(0, count):
+            selected.append(card)
+    for card in sorted((c for c in choices if c.is_treasure and not c.is_action),
+                       key=next_value, reverse=True):
+        if len(selected) >= max(0, count):
+            break
+        income = treasure_income(card)
+        if card.stats.coins > 0 and money - income >= floor:
+            selected.append(card)
+            money -= income
+    return selected

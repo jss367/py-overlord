@@ -67,14 +67,14 @@ tested, then expand coverage by expansion.
 | Band of Misfits | Dark Ages | Select a supply Action | Connected and tested; dedicated strategy forwarding and independent supply priorities. Seeded comparisons found smaller, uncertain gains. Indirect-play and proxy ownership rules remain in #396 and #397. |
 | Workshop | Base | Select a free gain | Needs context: calls the buy selector, which uses gain priorities; evaluate free-gain fallback and ownership limits. |
 | Remodel | Base | Choose a trash/gain pair | Needs context: separate generic trash and gain choices do not evaluate the pair together. |
-| Anvil | Prosperity | Discard a Treasure, then gain | Gain and Treasure-discard overrides are connected; evaluate their tradeoff and gain interactions under #391 and #392. |
-| Chapel | Base | Choose up to four trashes | Generic trash priorities are connected; evaluate stopping and minimum economy. |
-| Junk Dealer | Dark Ages | Choose a mandatory trash | Dedicated trash hook is forwarded; evaluate keeping enough economy under #392. |
-| Gear | Adventures | Choose cards to set aside | Needs forwarding; evaluate current-turn versus next-turn value. |
-| Haven | Seaside | Choose a card to set aside | Needs forwarding; evaluate next-hand usefulness. |
+| Anvil | Prosperity | Discard a Treasure, then gain | Both dedicated hooks were already forwarded. Discard baseline and physical-card validation are tested; the combined discard/gain tradeoff belongs to #391. |
+| Chapel | Base | Choose up to four trashes | Connected and tested: optional stopping, four-card cap, legal physical choices, conditional economy floors, and endgame preservation. Trash priorities remain strategy-owned. |
+| Junk Dealer | Dark Ages | Choose a mandatory trash | Dedicated override was already forwarded. Invalid/declined choices now use the mandatory base fallback. Tests preserve useful economy when junk is available; no hard economy floor can prevent a mandatory trash. |
+| Gear | Adventures | Choose cards to set aside | Connected, tested, and evaluated on a fixed kingdom: shared baseline saves stranded Actions or money above a buy breakpoint and can stop at zero. Multiple copies and replays conserve cards; no-choice plays leave at current cleanup. |
+| Haven | Seaside | Choose a card to set aside | Connected, tested, and evaluated on a fixed kingdom: shares next-turn selection with Gear, then reuses the generic discard hook with reason `"haven"`. Mandatory legal fallback, per-copy replay storage, scoring and delayed returns are tested. |
 | Barge | Menagerie | Resolve now or next turn | Needs forwarding; evaluate hand and action context. |
 | Sleigh | Menagerie | Redirect a gained card | Needs forwarding; evaluate whether to spend the reaction. |
-| Torturer | Intrigue | Respond to attack and choose discards | Response mode and generic discards are forwarded; evaluate both policies under #393. |
+| Torturer | Intrigue | Respond to attack and choose discards | Response mode and generic discard selection are already forwarded (`reason="torturer"`); their policy evaluation belongs to #393. |
 | Watchtower | Prosperity | Trash, topdeck, or keep a gain | Existing connected defaults and tests; evaluate exceptions by strategy and game stage. |
 | Clerk | Prosperity | Reaction play and attack topdeck | Existing connected defaults and tests; evaluate exceptions. |
 | Investment | Prosperity | Take money or trash a Treasure for points | Existing connected defaults and tests; evaluate point-versus-economy tradeoffs. |
@@ -247,3 +247,87 @@ First-implementation regression tests:
 existing interaction coverage in
 [`test_plunder_kingdom_cards.py`](../tests/test_plunder_kingdom_cards.py) and
 [`test_genetic_ai_hooks.py`](../tests/test_genetic_ai_hooks.py).
+
+## Trashing, discard, and next-turn storage evaluation
+
+Issue [#392](https://github.com/jss367/py-overlord/issues/392) adds Gear and Haven
+forwarding through `GeneticAI`. Both use
+`tactical_defaults.choose_next_turn_cards(state, player, choices, count)`.
+Gear may return zero to two cards. Haven first considers one useful next-turn
+card, then calls the existing generic discard selector with `reason="haven"`.
+A dedicated Haven override returning `None` does not waive its mandatory
+selection: the card effect picks a legal fallback. Invalid Gear choices are
+ignored; invalid Chapel choices stop optional trashing; invalid Junk Dealer
+choices trigger its existing mandatory trash baseline. Anvil may decline its
+discard and must select an actual Treasure from the legal hand menu.
+
+The shared discard ranking now puts all pure Victory cards and Curses before
+live cards, then Copper and cheaper cards. It preserves Action/Victory,
+Treasure/Victory, and Night cards as live choices. Strategy discard overrides
+remain authoritative. Chapel continues to use existing strategy trash
+priorities, including conditional rules for stopping at a minimum economy or
+preserving late points. Junk Dealer and Anvil keep their existing trash/discard
+policies: the former must sacrifice something even in a hand of useful cards;
+the latter's preference for discarding the cheapest Treasure does not evaluate
+its gain jointly.
+
+The storage baseline reserves printed supply-cost breakpoints (with current
+cost reductions), including a $3 building floor when available. It accounts
+for remaining Actions, Villagers and printed action support before or during
+the Action phase when identifying stranded Actions. After that phase these
+resources cannot make an Action playable. Hand Treasure income contributes only
+before or during the Treasure phase; storing one removes its entire projected
+income, including known external bonuses. Later indirect plays through Toil or
+March do not reopen earlier phases, so newly drawn money can be saved without
+preserving fictitious buy breakpoints. Ordinary play budgets apply only on the
+owner's turn. Hybrids remain in hand while their Treasure or Night play phase is
+still available. The baseline avoids saving pure
+junk under optional Gear, and preserves this turn when the final Province/Colony
+can legally be bought during a remaining Buy phase with an unspent Buy.
+Coin tokens (Coffers) are spendable currency alongside coins. The engine's
+read-only affordability helper supplies legal coin-only Supply breakpoints,
+including effective costs, Debt, banned buys and Mission restrictions.
+It does not model
+special card text, draw order, landscapes, multiple purchases or three-pile
+endings. The baseline also projects known pending pile-token, Champion,
+Prophecy and Ally resource bonuses. Scoped play context identifies the actual
+played card, including Way proxies and unresolved enclosing plays; forecasts
+never apply bonuses early. Harbor Village uses the current caller's existing
+bonus timing. Future Action support includes these known external Action bonuses
+as well as printed Actions. Pending draws, optional reactions and extra buys are
+not forecast. A strategy can override either dedicated storage decision.
+
+Resource audit for this baseline:
+
+| Resource | Projection boundary / engine source |
+| --- | --- |
+| Coins and Coin tokens/Coffers | Current balances plus known pending coin bonuses and hand Treasure income; `_get_affordable_cards` uses their combined spendable total and `_commit_buy` spends coins then tokens. Existing negative-coin penalties are already in the coin balance. |
+| Hand Treasure income | Printed coins plus known external coin bonuses, only on the owner's turn before/during Treasure phase; the same contribution is removed when storing that physical card. Live Treasure type includes Capitalism; special text and conditional Treasure/replay effects are not interpreted. |
+| Pending play resources | Pile tokens, Champion, the supported Prophecy/Ally bonuses and Harbor Village, scoped to the real played card and the caller's unresolved hooks; bonuses already awarded are not counted twice. |
+| Actions and Villagers | Current balances and known pending Actions only before/during Action phase, plus printed/known external net Action support from hand. Printed Action bonuses respect `ignore_action_bonuses`; late or off-turn Actions cannot reopen a phase. Optional Reserve calls, special play permissions and play-limit landscapes are not forecast. |
+| Buys | A remaining current Buy is required for final-pile suppression; future extra Buys and multiple purchases are not projected. |
+| Potions, Debt and legality | Live engine restrictions are retained. The policy only reserves zero-Potion, zero-Debt Supply prices, uses `get_card_cost` for discounts, and does not forecast Potion income or discretionary Debt payments. |
+| Other counters | Favors only inform the supported Ally resource bonus; VP, Sun, Pirate Ship and other effect-specific counters are not spendable purchase currency and are not added to cash. |
+
+
+Card-conservation and retention corrections are separately tracked in
+[#398 — Fix lost set-aside cards when Gear or Haven is replayed](https://github.com/jss367/py-overlord/issues/398).
+Storage accumulates per physical copy across plays; all stored cards return
+once next turn. Haven's list-valued storage is included in ownership/scoring.
+A play without storage schedules no Duration instruction; an empty later replay
+preserves earlier storage. Tests also cover completed Duration cleanup and
+Throne Room replaying two successful storage effects. Multiplier retention
+when only one replay schedules a future effect remains a broader engine audit;
+this change does not certify every multiplier/Way/Command combination.
+
+The [published comparison](../reports/strategies/trashing-discard-and-next-turn-card-decisions.html)
+contains complete results, uncertainty, score-margin regressions, policies,
+seeds and reproduction commands. Both comparison arms use the corrected card
+rules, isolating the policy change. Registered Big Money and Chapel Witch are
+reevaluated alongside four diagnostic decks and three representative opponents.
+Saved catalog standings are retained and marked outdated by catalog
+regeneration; this focused study does not replace a full tournament.
+
+Coverage: [`test_set_aside_tactics.py`](../tests/test_set_aside_tactics.py),
+existing expansion tests, and
+[`evaluate_set_aside_tactics.py`](../scripts/evaluate_set_aside_tactics.py).

@@ -185,8 +185,8 @@ def test_salvager_trashes_for_coins():
 def test_haven_forces_set_aside_when_hand_has_only_junk():
     """Haven must set aside a card whenever the hand is non-empty.
 
-    The default heuristic only picks Actions/expensive Treasures; this test
-    proves Haven still picks something when the hand is all low-value cards.
+    The mandatory fallback must choose a real card even when no useful
+    next-turn Action or spare Treasure is available.
     """
     state = _make_state()
     player = state.players[0]
@@ -198,7 +198,7 @@ def test_haven_forces_set_aside_when_hand_has_only_junk():
     player.hand = [haven, copper, estate]
     play_action(state, player, haven)
 
-    assert haven.set_aside is not None, \
+    assert haven.set_aside, \
         "Haven must set aside something when hand has cards"
 
 
@@ -212,13 +212,14 @@ def test_haven_sets_aside_card_for_next_turn():
     player.hand = [haven, gold]
     play_action(state, player, haven)
 
-    # Gold should be set aside, Estate drawn
-    assert haven.set_aside is gold
-    assert gold not in player.hand
+    # Preserve the useful Gold this turn; mandatory storage takes the Estate.
+    estate = haven.set_aside[0]
+    assert estate.name == "Estate"
+    assert gold in player.hand
     assert haven in player.duration
 
     haven.on_duration(state)
-    assert gold in player.hand
+    assert estate in player.hand
 
 
 def test_treasure_map_gains_four_golds_when_two_trashed():

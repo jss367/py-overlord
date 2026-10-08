@@ -234,8 +234,25 @@ class Card:
         if self.stats.cards > 0:
             game_state.draw_cards(player, self.stats.cards)
 
-        # Let subclasses add additional effects
-        self.play_effect(game_state)
+        # Scope pending resources to the actual play. A Way proxy uses the
+        # outer played card's bonuses; nested real plays get their own context.
+        previous = getattr(game_state, "_pending_play_context", None)
+        caller = getattr(game_state, "_decision_play_context", None)
+        if caller and caller["player"] is player and (
+            caller["card"] is self or way_proxy_run
+        ):
+            pending = dict(caller)
+        elif way_proxy_run:
+            pending = None
+        else:
+            pending = {"player": player, "card": self, "followups": False}
+        if pending is not None:
+            pending["outer"] = previous
+        game_state._pending_play_context = pending
+        try:
+            self.play_effect(game_state)
+        finally:
+            game_state._pending_play_context = previous
 
         # Adventures: pile-token "play" bonuses (+1 Card / +1 Action /
         # +1 Buy / +$1) and Champion's "+1 Action per Action play" trigger

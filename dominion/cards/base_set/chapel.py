@@ -25,8 +25,9 @@ class Chapel(Card):
             # Let AI choose a card to trash
             card_to_trash = player.ai.choose_card_to_trash(game_state, player.hand + [None])
 
-            if card_to_trash:
-                player.hand.remove(card_to_trash)
+            index = next((i for i, card in enumerate(player.hand) if card is card_to_trash), None)
+            if index is not None:
+                player.hand.pop(index)
                 game_state.trash_card(player, card_to_trash)
                 cards_to_trash.append(card_to_trash)
             else:

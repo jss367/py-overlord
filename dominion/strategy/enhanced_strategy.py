@@ -687,6 +687,10 @@ class EnhancedStrategy:
         rules = self._tactical_rules(state, player, kind) + list(extra_rules)
         return [c for c in choices if not _rules_cover_card(rules, c)]
 
+    def choose_gear_set_aside(self, state, player, choices):
+        """Optional next-turn storage, independent of hand Action priorities."""
+        return tactical_defaults.choose_next_turn_cards(state, player, choices, 2)
+
     def choose_courier_target(self, state, player, choices: list[Card]) -> Optional[Card]:
         """Try Action preferences, then explicit Treasure preferences and tactics.
 

@@ -51,6 +51,14 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="trashing-discard-and-next-turn-card-decisions.html",
+        display_name="Trashing, Discarding, and Saving Cards for the Next Turn",
+        description="Shared Gear and Haven decisions, mandatory and optional selection rules, card conservation, and fixed-seed comparisons with uncertainty and regressions.",
+        kingdom_cards=("Gear", "Haven", "Chapel", "Junk Dealer", "Anvil", "Village",
+                       "Smithy", "Laboratory", "Militia", "Market"),
+        source_label="Card rules, tactical regression tests and seat-balanced repository simulations",
+    ),
+    CuratedStrategyGuide(
         filename="supply-action-selection-evaluation.html",
         display_name="Choosing Supply Actions: Captain, Band of Misfits and Overlord",
         description="Dedicated target preferences, legal-menu audits, targeted scenarios and fixed-seed comparisons of shared supply Action decisions, with uncertainty and remaining rules defects.",

@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trashing, Discarding, and Saving Cards for the Next Turn</title>
+<style>
+:root{color-scheme:light;--ink:#193c43;--paper:#f5f3eb;--line:#c5d2ce;--accent:#9b492e}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.65 system-ui,sans-serif}
+main{max-width:1180px;margin:auto;padding:28px 26px 65px}a{color:var(--accent)}nav{font-size:14px}
+h1,h2{font-family:Georgia,serif;line-height:1.15}h1{font-size:clamp(35px,5vw,58px);max-width:980px}
+h2{margin-top:38px;font-size:29px}.lead{font-size:21px;max-width:950px}.callout{border-left:5px solid #357b76;background:#e1ede6;padding:20px 24px;margin:24px 0}
+.scroll{overflow:auto}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:11px;text-align:left;vertical-align:top}th{background:#e1ede6}
+pre{padding:20px;background:var(--ink);color:white;overflow:auto;border-radius:8px;font-size:13px}code{font-size:.88em}li{margin:8px 0}footer{font-size:14px;border-top:1px solid var(--line);padding-top:20px;margin-top:38px}
+@media print{nav{display:none}body{background:white}tr{break-inside:avoid}}
+</style></head><body><main><nav><a href="index.html">Strategy catalog</a></nav>
+<header><p>Shared card decisions · October 7, 2026</p><h1>Trashing, Discarding, and Saving Cards for the Next Turn</h1>
+<p class="lead">Keep useful economy this turn, save stranded Actions for next turn, and distinguish an optional sacrifice from a mandatory one.</p></header>
+<div class="callout"><strong>Useful defaults, with strategy exceptions.</strong> Gear and Haven now expose dedicated strategy decisions. In 7,200 fixed-seed games, the simple Gear money policy improved against all three opponents. Haven improvements were smaller. A supported engine had worse score margins: these heuristics are a starting point, not a universal strategy recommendation.</div>
+<h2>What each decision should protect</h2>
+<ul>
+<li><strong>Chapel:</strong> trash zero to four cards. Keep enough economy to rebuild and preserve points when the game is about to end. Existing conditional trash priorities can enforce a deck economy floor; choosing nothing stops immediately.</li>
+<li><strong>Junk Dealer:</strong> trash one card if the hand is nonempty. Its existing default takes junk first, then the cheapest card. If an override declines or names a card outside the hand, the mandatory fallback still trashes a real card. A minimum economy preference cannot excuse this mandatory cost.</li>
+<li><strong>Anvil:</strong> discarding a Treasure is optional. Its existing discard default uses Copper first, then the cheapest Treasure. Strategies can decline. This study does not optimize the joint discard/gain tradeoff; that belongs to <a href="https://github.com/jss367/py-overlord/issues/391">the free-gain work</a>.</li>
+<li><strong>Gear:</strong> save zero to two cards per play. Prefer Actions that cannot be played this turn, accounting for printed action support and Villagers. Then save Treasure only if the remaining money preserves an affordable supply-cost breakpoint and, when possible, a $3 building hand. Do not save pure junk merely to fill the storage pile.</li>
+<li><strong>Haven:</strong> use the same next-turn heuristic for one card. If it finds no useful spare, use the existing discard decision with reason <code>"haven"</code>. Haven must still set aside a card whenever the hand is nonempty, even when a strategy returns nothing.</li>
+</ul>
+<p>The generic discard default puts Curses and pure Victory cards before live cards, then Copper and cheaper cards. Expensive dead Victory cards no longer survive at the expense of useful money. Action/Victory, Treasure/Victory and Night cards retain their live-card status. Strategy overrides remain authoritative.</p>
+<p><strong>Endgame exception:</strong> if current printed money can buy the final Province or Colony, optional storage declines and mandatory Haven uses the low-value discard fallback. The baseline accounts for current coin-cost reductions. It does not predict special card effects, draw order, landscapes, multiple purchases or three-pile endings.</p>
+<h2>Strategy hooks and legal physical cards</h2>
+<p>Python strategies may define <code>choose_gear_set_aside(state, player, choices)</code> returning a list and <code>choose_card_to_set_aside_for_haven(state, player, choices)</code> returning a card. The adapter falls back to the base AI when a hook is absent. Ordinary strategies share Gear's baseline; Haven's base fallback can call a strategy's existing generic discard hook. Dedicated policies remain independent of Action play priorities.</p>
+<p>The card effects validate physical identity, not merely a card name. Gear ignores invalid and repeated selections, accepting at most two legal cards per play. Two distinct copies with the same name are both legal. Anvil's discard is validated against actual Treasures in hand. Invalid optional Chapel choices stop; mandatory Haven and Junk Dealer choices use a legal fallback.</p>
+<h2>Card conservation and delayed return</h2>
+<p>Gear previously cleared its storage on a replay, and Haven replaced its single stored card. Both now accumulate list-valued storage per physical copy. A Throne Room replay can set aside cards on both plays without losing the first group; all return exactly once next turn. Haven's stored cards also remain included in ownership and scoring. Multiple copies keep separate piles.</p>
+<p>A play setting aside no cards schedules no Duration instruction and leaves at the current cleanup. An empty or declined later replay preserves an earlier pending return. After returning its stored cards, the Duration stays in play until that turn's cleanup. The card-conservation bug is tracked separately in <a href="https://github.com/jss367/py-overlord/issues/398">#398</a>, alongside the decision work in <a href="https://github.com/jss367/py-overlord/issues/392">#392</a>.</p>
+<p>These rules follow the <a href="https://www.riograndegames.com/wp-content/uploads/2022/03/Dominion-Rules-Adventures.pdf">publisher's Adventures rules</a> and <a href="https://www.riograndegames.com/wp-content/uploads/2022/01/Seaside2nd.pdf">Seaside Duration rules</a>. Tests cover successful Throne Room replays, empty later plays, separate copies, scoring, delayed returns and cleanup. Retention of a multiplier when only one replay schedules a future effect remains a broader engine audit; this report does not certify every multiplier, Way or Command interaction.</p>
+<h2>Fixed-seed comparison</h2>
+<p><strong>Kingdom:</strong> Gear, Haven, Chapel, Junk Dealer, Anvil, Village, Smithy, Laboratory, Militia, Market. Two players, eight Provinces, ordinary starting decks, no landscapes. Each row has 200 games per policy: seeds 392000–392099, each played from both seats. Eighteen comparisons yield 7,200 games; none reached the turn limit.</p>
+<p>Both arms use the corrected card rules. Only the subject's storage/discard defaults differ; opponents use the current defaults in both arms. The previous defaults saved the first two cards under Gear, favored expensive Actions/Treasures under Haven, and discarded Copper before expensive pure Victory cards. Existing trash and Anvil discard policies were retained. Policies were fixed before the comparisons, without a search or refinement on these results.</p>
+<p>Win share counts a win as one and a tie as one half; ties respect equal points and equal turns taken. Differences are percentage points, current minus previous. Approximate 95% intervals use paired seed blocks, averaging both seats before computing the standard error. They describe variation in these sampled games, not uncertainty across kingdoms or policies. A zero-width interval means all sampled paired differences matched; it does not prove equivalence. Score margins are descriptive point differences, without significance claims. No correction for eighteen comparisons is applied.</p>
+<div class="scroll"><table><thead><tr><th>Subject</th><th>Opponent</th><th>Previous win share</th><th>Current win share</th><th>Change, points</th><th>Approx. 95% paired interval</th><th>Mean score margin, previous → current</th></tr></thead><tbody>
+<tr><td>Gear money</td><td>Big Money</td>
+<td>48.5%</td><td>71.0%</td>
+<td>+22.5</td><td>+12.9 to +32.1</td>
+<td>-0.53 → +6.38</td></tr>
+<tr><td>Gear money</td><td>Smithy money</td>
+<td>26.0%</td><td>45.5%</td>
+<td>+19.5</td><td>+10.8 to +28.2</td>
+<td>-7.10 → -0.57</td></tr>
+<tr><td>Gear money</td><td>Militia money</td>
+<td>26.0%</td><td>52.0%</td>
+<td>+26.0</td><td>+17.6 to +34.4</td>
+<td>-7.00 → +0.42</td></tr>
+<tr><td>Haven money</td><td>Big Money</td>
+<td>22.0%</td><td>33.5%</td>
+<td>+11.5</td><td>+3.6 to +19.4</td>
+<td>-8.39 → -4.96</td></tr>
+<tr><td>Haven money</td><td>Smithy money</td>
+<td>12.5%</td><td>15.0%</td>
+<td>+2.5</td><td>-3.6 to +8.6</td>
+<td>-13.45 → -11.05</td></tr>
+<tr><td>Haven money</td><td>Militia money</td>
+<td>9.5%</td><td>15.5%</td>
+<td>+6.0</td><td>+0.4 to +11.6</td>
+<td>-14.06 → -10.95</td></tr>
+<tr><td>Supported storage engine</td><td>Big Money</td>
+<td>0.5%</td><td>1.5%</td>
+<td>+1.0</td><td>-1.0 to +3.0</td>
+<td>-33.99 → -37.31</td></tr>
+<tr><td>Supported storage engine</td><td>Smithy money</td>
+<td>0.0%</td><td>0.5%</td>
+<td>+0.5</td><td>-0.5 to +1.5</td>
+<td>-37.25 → -40.63</td></tr>
+<tr><td>Supported storage engine</td><td>Militia money</td>
+<td>0.0%</td><td>0.0%</td>
+<td>+0.0</td><td>+0.0 to +0.0</td>
+<td>-33.58 → -35.58</td></tr>
+<tr><td>Trashing and discard money</td><td>Big Money</td>
+<td>12.0%</td><td>12.0%</td>
+<td>+0.0</td><td>+0.0 to +0.0</td>
+<td>-10.87 → -10.87</td></tr>
+<tr><td>Trashing and discard money</td><td>Smithy money</td>
+<td>5.5%</td><td>5.5%</td>
+<td>+0.0</td><td>+0.0 to +0.0</td>
+<td>-14.18 → -14.18</td></tr>
+<tr><td>Trashing and discard money</td><td>Militia money</td>
+<td>0.0%</td><td>0.5%</td>
+<td>+0.5</td><td>-0.5 to +1.5</td>
+<td>-20.34 → -20.09</td></tr>
+<tr><td>Registered Big Money</td><td>Big Money</td>
+<td>50.0%</td><td>50.0%</td>
+<td>+0.0</td><td>+0.0 to +0.0</td>
+<td>+0.00 → +0.00</td></tr>
+<tr><td>Registered Big Money</td><td>Smithy money</td>
+<td>32.0%</td><td>32.0%</td>
+<td>+0.0</td><td>+0.0 to +0.0</td>
+<td>-6.04 → -6.04</td></tr>
+<tr><td>Registered Big Money</td><td>Militia money</td>
+<td>26.0%</td><td>26.0%</td>
+<td>+0.0</td><td>-2.0 to +2.0</td>
+<td>-7.70 → -7.64</td></tr>
+<tr><td>Registered Chapel Witch</td><td>Big Money</td>
+<td>21.5%</td><td>21.5%</td>
+<td>+0.0</td><td>+0.0 to +0.0</td>
+<td>-5.83 → -5.83</td></tr>
+<tr><td>Registered Chapel Witch</td><td>Smithy money</td>
+<td>9.0%</td><td>9.0%</td>
+<td>+0.0</td><td>+0.0 to +0.0</td>
+<td>-11.26 → -11.26</td></tr>
+<tr><td>Registered Chapel Witch</td><td>Militia money</td>
+<td>5.0%</td><td>7.5%</td>
+<td>+2.5</td><td>-0.1 to +5.1</td>
+<td>-14.04 → -12.90</td></tr>
+</tbody></table></div>
+<h2>Interpretation and regressions</h2>
+<p>Gear money gained 19.5–26.0 percentage points against the three opponents, with all paired intervals above zero. Haven money gained 11.5 points against Big Money and 6.0 against Militia money, while its 2.5-point change against Smithy money remained uncertain. These are improvements for the tested decks on this kingdom.</p>
+<p><strong>Regression:</strong> the supported storage engine's mean score margins worsened by 2.00–3.38 points. Its win shares remained near zero, so the win-rate comparison is insensitive here; tiny changes do not show engine strength. Its purchase policy builds several action piles before money, and it is a weak diagnostic deck against these opponents. Printed-resource defaults cannot replace a hand-aware engine policy. Keep custom overrides when their priorities differ.</p>
+<p>The trashing/discard diagnostic and registered Big Money were effectively unchanged. Registered Chapel Witch's 2.5-point improvement against Militia money had an interval spanning zero. These focused reevaluations preserve the registered purchase/trash policies; they do not replace a full catalog tournament. Saved standings remain available, with stale simulation inputs marked by catalog regeneration.</p>
+<h2>Exact policies and reproduction</h2>
+<p>The Gear and Haven money decks buy two copies of their named Duration; the supported engine targets one Junk Dealer, three Villages, four Laboratories, two Gears, two Havens and two Smithies, in that order. The trashing/discard deck targets one Chapel, one Junk Dealer and two Anvils. All take an affordable Province first, then unmet targets, Gold and Silver, with late Duchy/Estate fallbacks. The two custom opponents similarly target two Smithies or one Militia. Registered Big Money and Chapel Witch use their unchanged factories.</p>
+<p>Diagnostic Action order is Village, Haven, Junk Dealer, Laboratory, Chapel, Gear, Smithy, Militia. Diagnostic trash priorities are Curse, Estate, then Copper while total printed Treasure economy exceeds $3. This floor is deliberately implemented through the existing trash hook. Full runnable settings and the exact previous defaults are in <code>scripts/evaluate_set_aside_tactics.py</code>.</p>
+<pre>PYTHONPATH=. python scripts/evaluate_set_aside_tactics.py \
+  --pairs 100 --seed 392000 --output .context/set-aside-comparison.json
+pytest -q tests/test_set_aside_tactics.py
+PYTHONPATH=. python scripts/render_catalog.py
+python scripts/check_catalog.py</pre>
+<details><summary>Complete machine-readable comparison evidence</summary><pre>{
+  &quot;seed_start&quot;: 392000,
+  &quot;seed_pairs&quot;: 100,
+  &quot;kingdom&quot;: [
+    &quot;Gear&quot;,
+    &quot;Haven&quot;,
+    &quot;Chapel&quot;,
+    &quot;Junk Dealer&quot;,
+    &quot;Anvil&quot;,
+    &quot;Village&quot;,
+    &quot;Smithy&quot;,
+    &quot;Laboratory&quot;,
+    &quot;Militia&quot;,
+    &quot;Market&quot;
+  ],
+  &quot;games&quot;: 7200,
+  &quot;comparisons&quot;: [
+    {
+      &quot;candidate&quot;: &quot;Gear money&quot;,
+      &quot;opponent&quot;: &quot;Big Money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.485,
+      &quot;current_win_share&quot;: 0.71,
+      &quot;difference&quot;: 0.225,
+      &quot;paired_95_interval&quot;: [
+        0.129126609162359,
+        0.320873390837641
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -0.53,
+      &quot;current_score_margin&quot;: 6.385
+    },
+    {
+      &quot;candidate&quot;: &quot;Gear money&quot;,
+      &quot;opponent&quot;: &quot;Smithy money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.26,
+      &quot;current_win_share&quot;: 0.455,
+      &quot;difference&quot;: 0.195,
+      &quot;paired_95_interval&quot;: [
+        0.10812989146101085,
+        0.2818701085389892
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -7.1,
+      &quot;current_score_margin&quot;: -0.575
+    },
+    {
+      &quot;candidate&quot;: &quot;Gear money&quot;,
+      &quot;opponent&quot;: &quot;Militia money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.26,
+      &quot;current_win_share&quot;: 0.52,
+      &quot;difference&quot;: 0.26,
+      &quot;paired_95_interval&quot;: [
+        0.17586999958577815,
+        0.34413000041422187
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -7.005,
+      &quot;current_score_margin&quot;: 0.425
+    },
+    {
+      &quot;candidate&quot;: &quot;Haven money&quot;,
+      &quot;opponent&quot;: &quot;Big Money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.22,
+      &quot;current_win_share&quot;: 0.335,
+      &quot;difference&quot;: 0.115,
+      &quot;paired_95_interval&quot;: [
+        0.03638375781459957,
+        0.19361624218540044
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -8.395,
+      &quot;current_score_margin&quot;: -4.965
+    },
+    {
+      &quot;candidate&quot;: &quot;Haven money&quot;,
+      &quot;opponent&quot;: &quot;Smithy money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.125,
+      &quot;current_win_share&quot;: 0.15,
+      &quot;difference&quot;: 0.025,
+      &quot;paired_95_interval&quot;: [
+        -0.036311837471579775,
+        0.08631183747157978
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -13.45,
+      &quot;current_score_margin&quot;: -11.05
+    },
+    {
+      &quot;candidate&quot;: &quot;Haven money&quot;,
+      &quot;opponent&quot;: &quot;Militia money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.095,
+      &quot;current_win_share&quot;: 0.155,
+      &quot;difference&quot;: 0.06,
+      &quot;paired_95_interval&quot;: [
+        0.003798141588654838,
+        0.11620185841134516
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -14.06,
+      &quot;current_score_margin&quot;: -10.945
+    },
+    {
+      &quot;candidate&quot;: &quot;Supported storage engine&quot;,
+      &quot;opponent&quot;: &quot;Big Money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.005,
+      &quot;current_win_share&quot;: 0.015,
+      &quot;difference&quot;: 0.01,
+      &quot;paired_95_interval&quot;: [
+        -0.0096,
+        0.0296
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -33.99,
+      &quot;current_score_margin&quot;: -37.315
+    },
+    {
+      &quot;candidate&quot;: &quot;Supported storage engine&quot;,
+      &quot;opponent&quot;: &quot;Smithy money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.0,
+      &quot;current_win_share&quot;: 0.005,
+      &quot;difference&quot;: 0.005,
+      &quot;paired_95_interval&quot;: [
+        -0.0048,
+        0.0148
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -37.25,
+      &quot;current_score_margin&quot;: -40.63
+    },
+    {
+      &quot;candidate&quot;: &quot;Supported storage engine&quot;,
+      &quot;opponent&quot;: &quot;Militia money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.0,
+      &quot;current_win_share&quot;: 0.0,
+      &quot;difference&quot;: 0.0,
+      &quot;paired_95_interval&quot;: [
+        0.0,
+        0.0
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -33.575,
+      &quot;current_score_margin&quot;: -35.58
+    },
+    {
+      &quot;candidate&quot;: &quot;Trashing and discard money&quot;,
+      &quot;opponent&quot;: &quot;Big Money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.12,
+      &quot;current_win_share&quot;: 0.12,
+      &quot;difference&quot;: 0.0,
+      &quot;paired_95_interval&quot;: [
+        0.0,
+        0.0
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -10.865,
+      &quot;current_score_margin&quot;: -10.865
+    },
+    {
+      &quot;candidate&quot;: &quot;Trashing and discard money&quot;,
+      &quot;opponent&quot;: &quot;Smithy money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.055,
+      &quot;current_win_share&quot;: 0.055,
+      &quot;difference&quot;: 0.0,
+      &quot;paired_95_interval&quot;: [
+        0.0,
+        0.0
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -14.175,
+      &quot;current_score_margin&quot;: -14.175
+    },
+    {
+      &quot;candidate&quot;: &quot;Trashing and discard money&quot;,
+      &quot;opponent&quot;: &quot;Militia money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.0,
+      &quot;current_win_share&quot;: 0.005,
+      &quot;difference&quot;: 0.005,
+      &quot;paired_95_interval&quot;: [
+        -0.0048,
+        0.0148
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -20.335,
+      &quot;current_score_margin&quot;: -20.085
+    },
+    {
+      &quot;candidate&quot;: &quot;Registered Big Money&quot;,
+      &quot;opponent&quot;: &quot;Big Money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.5,
+      &quot;current_win_share&quot;: 0.5,
+      &quot;difference&quot;: 0.0,
+      &quot;paired_95_interval&quot;: [
+        0.0,
+        0.0
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: 0,
+      &quot;current_score_margin&quot;: 0
+    },
+    {
+      &quot;candidate&quot;: &quot;Registered Big Money&quot;,
+      &quot;opponent&quot;: &quot;Smithy money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.32,
+      &quot;current_win_share&quot;: 0.32,
+      &quot;difference&quot;: 0.0,
+      &quot;paired_95_interval&quot;: [
+        0.0,
+        0.0
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -6.04,
+      &quot;current_score_margin&quot;: -6.04
+    },
+    {
+      &quot;candidate&quot;: &quot;Registered Big Money&quot;,
+      &quot;opponent&quot;: &quot;Militia money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.26,
+      &quot;current_win_share&quot;: 0.26,
+      &quot;difference&quot;: 0.0,
+      &quot;paired_95_interval&quot;: [
+        -0.019698741179080558,
+        0.019698741179080558
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -7.7,
+      &quot;current_score_margin&quot;: -7.64
+    },
+    {
+      &quot;candidate&quot;: &quot;Registered Chapel Witch&quot;,
+      &quot;opponent&quot;: &quot;Big Money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.215,
+      &quot;current_win_share&quot;: 0.215,
+      &quot;difference&quot;: 0.0,
+      &quot;paired_95_interval&quot;: [
+        0.0,
+        0.0
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -5.825,
+      &quot;current_score_margin&quot;: -5.825
+    },
+    {
+      &quot;candidate&quot;: &quot;Registered Chapel Witch&quot;,
+      &quot;opponent&quot;: &quot;Smithy money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.09,
+      &quot;current_win_share&quot;: 0.09,
+      &quot;difference&quot;: 0.0,
+      &quot;paired_95_interval&quot;: [
+        0.0,
+        0.0
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -11.26,
+      &quot;current_score_margin&quot;: -11.26
+    },
+    {
+      &quot;candidate&quot;: &quot;Registered Chapel Witch&quot;,
+      &quot;opponent&quot;: &quot;Militia money&quot;,
+      &quot;games_per_policy&quot;: 200,
+      &quot;previous_win_share&quot;: 0.05,
+      &quot;current_win_share&quot;: 0.075,
+      &quot;difference&quot;: 0.025,
+      &quot;paired_95_interval&quot;: [
+        -0.000589415425487582,
+        0.05058941542548759
+      ],
+      &quot;turn_limit_games&quot;: {
+        &quot;previous&quot;: 0,
+        &quot;current&quot;: 0
+      },
+      &quot;previous_score_margin&quot;: -14.045,
+      &quot;current_score_margin&quot;: -12.905
+    }
+  ],
+  &quot;interval&quot;: &quot;Normal approximation, paired seed blocks; each block averages both seats; ties count half.&quot;
+}</pre></details>
+<footer>Implementation: <code>dominion/ai/tactical_defaults.py</code>, <code>dominion/ai/base_ai.py</code>, <code>dominion/ai/genetic_ai.py</code>, and the covered card modules. Regression coverage: <code>tests/test_set_aside_tactics.py</code>. Tracking: <a href="https://github.com/jss367/py-overlord/issues/344">shared decision parent issue #344</a>. These Python hooks are not new optimizer genes.</footer>
+</main></body></html>

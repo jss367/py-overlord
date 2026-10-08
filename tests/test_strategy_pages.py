@@ -155,6 +155,7 @@ def test_render_strategy_pages_writes_index_and_strategy_page(tmp_path):
         "collection-swindler-strategy-guide.html",
         "shepherd-tragic-hero-strategy-guide.html",
         "cobbler-shepherd-strategy-comparison.html",
+        "trashing-discard-and-next-turn-card-decisions.html",
         "supply-action-selection-evaluation.html",
     }
 
@@ -218,6 +219,7 @@ def test_render_strategy_pages_resolves_alias_names(tmp_path):
         "collection-swindler-strategy-guide.html",
         "shepherd-tragic-hero-strategy-guide.html",
         "cobbler-shepherd-strategy-comparison.html",
+        "trashing-discard-and-next-turn-card-decisions.html",
         "supply-action-selection-evaluation.html",
     }
 

@@ -555,7 +555,10 @@ class GameState:
                 # Butterfly, Worm) no-op the move when it is not in play, per the
                 # rulebook ("it stays set aside, even if it has instructions on
                 # it that would move it").
-                self._resolve_action_text(player, card)
+                self._resolve_play_with_decision_context(
+                    player, card, lambda: self._resolve_action_text(player, card),
+                    harbor_pending=harbor_pending, coins_before=coins_before_action,
+                )
         if harbor_pending and player.coins > coins_before_action:
             player.coins += harbor_pending
         training_pile = getattr(player, "training_pile", None)
@@ -573,6 +576,22 @@ class GameState:
         if shared_play_hooks:
             self._maybe_citadel_replay(player, card)
         return True
+
+    def _resolve_play_with_decision_context(
+        self, player, card, resolve, *, harbor_pending=0, coins_before=None,
+        harbor_after_followups=False
+    ):
+        """Expose this play's guaranteed follow-ups without applying them early."""
+        previous = getattr(self, "_decision_play_context", None)
+        self._decision_play_context = {
+            "player": player, "card": card, "followups": True,
+            "harbor_pending": harbor_pending, "coins_before": coins_before,
+            "harbor_after_followups": harbor_after_followups,
+        }
+        try:
+            return resolve()
+        finally:
+            self._decision_play_context = previous
 
     def _resolve_action_text(self, player: PlayerState, card: Card) -> None:
         """Resolve one play of ``card``: offer a Way if the kingdom has any,
@@ -1960,7 +1979,9 @@ class GameState:
         )
         try:
             self._maybe_kiln_gain(player, card)
-            self._resolve_action_text(player, card)
+            self._resolve_play_with_decision_context(
+                player, card, lambda: self._resolve_action_text(player, card)
+            )
             training_pile = getattr(player, "training_pile", None)
             if training_pile and self.supply_pile_key(card.name) == self.supply_pile_key(training_pile):
                 player.coins += 1
@@ -2245,7 +2266,11 @@ class GameState:
                 # Chameleon/Mouse, then the pile-token/Champion bonuses and
                 # Urchin reaction for the card actually played.
                 self._maybe_kiln_gain(player, choice)
-                self._apply_way_text(player, choice, way)
+                self._resolve_play_with_decision_context(
+                    player, choice, lambda: self._apply_way_text(player, choice, way),
+                    harbor_pending=harbor_pending, coins_before=coins_before_action,
+                    harbor_after_followups=True,
+                )
                 if training_pile and self.supply_pile_key(choice.name) == self.supply_pile_key(training_pile):
                     player.coins += 1
                 # Allies that react to plays still fire when an Action is
@@ -2377,9 +2402,17 @@ class GameState:
                         # exposing the inherited type/name to downstream
                         # hooks. The overlay is torn down at the end of this
                         # iteration.
-                        choice.on_play(self)
+                        self._resolve_play_with_decision_context(
+                            player, choice, lambda: choice.on_play(self),
+                            harbor_pending=harbor_pending, coins_before=coins_before_action,
+                            harbor_after_followups=True,
+                        )
                     else:
-                        choice.on_play(self)
+                        self._resolve_play_with_decision_context(
+                            player, choice, lambda: choice.on_play(self),
+                            harbor_pending=harbor_pending, coins_before=coins_before_action,
+                            harbor_after_followups=True,
+                        )
                     if training_pile and self.supply_pile_key(choice.name) == self.supply_pile_key(training_pile):
                         player.coins += 1
 
@@ -3085,8 +3118,12 @@ class GameState:
 
         return max(0, cost)
 
-    def _get_affordable_cards(self, player):
-        """Helper to get list of affordable cards, events and projects."""
+    def _get_affordable_cards(self, player, *, available_coins=None):
+        """Legal buys at current or read-only projected spendable currency.
+
+        The default includes coins and Coin tokens. A projection changes only
+        the currency ceiling; Debt, Potion and buy restrictions remain live.
+        """
 
         if player.debt > 0:
             return []
@@ -3097,7 +3134,8 @@ class GameState:
             return []
 
         affordable = []
-        available_coins = player.coins + player.coin_tokens
+        if available_coins is None:
+            available_coins = player.coins + player.coin_tokens
 
         for card_name, count in self.supply.items():
             if count > 0:
