@@ -414,3 +414,26 @@ def test_hybrid_storage_respects_its_remaining_play_phase(phase, expected):
     player.actions = 0
     picks = player.ai.choose_gear_set_aside(state, player, player.hand)
     assert [c.name for c in picks] == expected
+
+
+
+@pytest.mark.parametrize("name", ["Gear", "Haven"])
+def test_copied_set_aside_effect_initializes_per_card_storage(name):
+    strategy = EnhancedStrategy()
+    strategy.choose_gear_set_aside = lambda state, player, choices: choices[:1]
+    strategy.choose_card_to_set_aside_for_haven = lambda state, player, choices: choices[0]
+    state, player = setup(strategy, ("Gold", "Silver"))
+    gold, silver = player.hand
+    owner = get_card("Estate")
+    player.in_play.append(owner)
+    effect = type(get_card(name))
+    assert not hasattr(owner, "set_aside")
+    effect.play_effect(owner, state)
+    effect.play_effect(owner, state)
+    assert owner.set_aside == [gold, silver]
+    assert len(player.all_cards()) == 3
+    effect.on_duration(owner, state)
+    effect.on_duration(owner, state)
+    assert player.hand == [gold, silver]
+    assert owner.set_aside == []
+    assert not owner.duration_persistent
