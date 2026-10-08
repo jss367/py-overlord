@@ -390,6 +390,8 @@ class EnhancedStrategy:
 
         self.gain_priority: list[PriorityRule] = []
         self.action_priority: list[PriorityRule] = []
+        self.captain_target_priority: list[PriorityRule] = []
+        self.band_of_misfits_target_priority: list[PriorityRule] = []
         self.trash_priority: list[PriorityRule] = []
         self.bounty_hunter_exile_priority: list[PriorityRule] = []
         self.treasure_priority: list[PriorityRule] = []
@@ -723,9 +725,29 @@ class EnhancedStrategy:
         if choice is not None:
             return choice
         # Prefer unspecified cards over rules whose conditions did not pass.
-        return tactical_defaults.choose_overlord_target(
-            player, self._unspecified(state, player, "action", choices) or choices
+        return tactical_defaults.choose_supply_action_target(
+            state, player, self._unspecified(state, player, "action", choices) or choices
         )
+
+    def _choose_supply_target(self, state, player, choices, kind):
+        rules = getattr(self, f"{kind}_target_priority")
+        choice = self._choose_from_priority(rules, choices, state, player, f"{kind}_target")
+        if choice is not None:
+            return choice
+        unspecified = [c for c in choices if not _rules_cover_card(rules, c)]
+        return tactical_defaults.choose_supply_action_target(state, player, unspecified or choices)
+
+    def choose_captain_target(self, state, player, choices: list[Card]) -> Optional[Card]:
+        """Use Captain-only conditional priorities, then shared supply tactics.
+
+        Override this method for another policy. None requests the card's
+        mandatory fallback; it does not decline a legal supply play.
+        """
+        return self._choose_supply_target(state, player, choices, "captain")
+
+    def choose_band_of_misfits_target(self, state, player, choices: list[Card]) -> Optional[Card]:
+        """Use Band of Misfits-only priorities, independently of hand order."""
+        return self._choose_supply_target(state, player, choices, "band_of_misfits")
 
     def choose_quartermaster_gain(self, state, player, choices: list[Card]) -> Optional[Card]:
         """Reuse gain preferences, with a baseline when none selects a card.

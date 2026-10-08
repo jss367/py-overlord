@@ -190,6 +190,8 @@ class StrategyBattle:
             strat.trash_priority,
             strat.bounty_hunter_exile_priority,
             strat.treasure_priority,
+            getattr(strat, "captain_target_priority", []) or [],
+            getattr(strat, "band_of_misfits_target_priority", []) or [],
         ]:
             for rule in priority_list:
                 if isinstance(rule, PriorityRule):

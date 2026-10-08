@@ -68,7 +68,11 @@ class AI(ABC):
         choice = self.choose_action(state, choices + [None])
         if choice is not None and choice.name in {card.name for card in choices}:
             return choice
-        return tactical_defaults.choose_overlord_target(player, choices)
+        return tactical_defaults.choose_supply_action_target(state, player, choices)
+
+    def choose_captain_target(self, state, player, choices: list[Card]) -> Optional[Card]:
+        """Select a mandatory supply play, independently of hand sequencing."""
+        return tactical_defaults.choose_supply_action_target(state, player, choices)
 
     def choose_quartermaster_gain(self, state, player, choices: list[Card]) -> Optional[Card]:
         return tactical_defaults.choose_quartermaster_gain(choices)
@@ -2571,13 +2575,8 @@ class AI(ABC):
     def choose_band_of_misfits_target(
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Card | None:
-        """Band of Misfits: select a non-Command Action in supply costing < $5."""
-        if not choices:
-            return None
-        return max(
-            choices,
-            key=lambda c: (c.stats.cards * 2 + c.stats.actions + c.cost.coins, c.name),
-        )
+        """Select a mandatory target from the card's current legal menu."""
+        return tactical_defaults.choose_supply_action_target(state, player, choices)
 
     def should_catacombs_discard_three(
         self, state: GameState, player: PlayerState, revealed: list[Card]
