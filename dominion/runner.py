@@ -42,6 +42,7 @@ def save_strategy_as_python(
     *,
     clean_for_publication: bool = True,
     board_config: BoardConfig | None = None,
+    factory_name: str | None = None,
 ) -> None:
     """Serialize an EnhancedStrategy as a Python module.
 
@@ -120,7 +121,17 @@ def save_strategy_as_python(
             lines.append("")
 
     emit("gain_priority", strategy.gain_priority)
+    # None inherits purchase preferences; [] explicitly selects the tactical
+    # baseline. Always write this nullable field, including seed overrides.
+    free_gain = getattr(strategy, "free_gain_priority", None)
+    if free_gain is None:
+        lines.extend(["        self.free_gain_priority = None", ""])
+    else:
+        lines.extend(format_list("free_gain_priority", free_gain))
+        lines.append("")
     emit("action_priority", strategy.action_priority)
+    emit("captain_target_priority", getattr(strategy, "captain_target_priority", None))
+    emit("band_of_misfits_target_priority", getattr(strategy, "band_of_misfits_target_priority", None))
     emit("treasure_priority", strategy.treasure_priority)
     emit("trash_priority", strategy.trash_priority)
     emit(
@@ -137,7 +148,7 @@ def save_strategy_as_python(
 
     lines.extend(
         [
-            f"def create_{class_name.lower()}() -> EnhancedStrategy:",
+            f"def {factory_name or ('create_' + class_name.lower())}() -> EnhancedStrategy:",
             f"    return {class_name}()",
         ]
     )

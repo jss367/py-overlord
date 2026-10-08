@@ -18,7 +18,7 @@ LABELS = {
 }
 
 
-def render(data, historical):
+def render(data, historical, previous=None):
     def rate(value, interval):
         return f'{value * 100:.1f}%<small>{interval[0] * 100:.1f}%–{interval[1] * 100:.1f}%</small>'
 
@@ -56,6 +56,14 @@ def render(data, historical):
         findings.append(f'<li><strong>{source}:</strong> {escape(details)}. See all comparisons, including regressions, below.</li>')
     fresh = escape(data['source_fingerprint'])
     old = escape(historical['source_fingerprint'])
+    previous_note = (
+        '<p>The <a href="../../scripts/data/free_gain_tactics_evaluation-2026-10-08.json">first October 8 rerun</a>'
+        f' is also unchanged, with input fingerprint <code>{escape(previous["source_fingerprint"])}</code>.'
+        ' The final export-round-trip rerun uses a distinct file and fingerprint after serializer fixes.'
+        ' The evaluation never calls those exporters; all 33 empirical result records match the first rerun.'
+        ' The repeated panel keeps broad input provenance exact without relabeling the prior run.</p>'
+        if previous is not None else ''
+    )
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Free Gains and Quartermaster: Tactical Policy Evaluation</title>
@@ -66,7 +74,8 @@ def render(data, historical):
 <div class="note"><strong>Dated rerun: October 8, 2026.</strong> {games:,} games across {len(results)} comparisons, {data['pairs']} seed pairs each, four local CPU workers, no model inference. {truncated} games reached the {data['turn_limit']}-round limit. This run uses the merged rules and reviewed fixes. Previous and updated <em>policy arms</em> share the same rerun engine; neither column is the old experiment.</div>
 <h2>Run identity and preserved historical evidence</h2>
 <p>Rerun simulation input fingerprint: <code>{fresh}</code>. Evaluator SHA-256: <code>{escape(data['evaluator_sha256'])}</code>. Python {escape(data['python_version'])}. The fingerprint covers non-reporting Dominion Python, generated strategies, boards and the tournament configuration files; it identifies inputs, not statistical certainty.</p>
-<p>The <a href="../../scripts/data/free_gain_tactics_evaluation.json">original raw outcomes</a> remain byte-for-byte unchanged. Their fingerprint <code>{old}</code> matches the original PR tree <code>4fc860b5b559d85192a97f8535f8a1da31f455f2</code>. They are historical evidence, not results for the reviewed merged tree. All tables and findings below are rendered from the distinct <a href="../../scripts/data/free_gain_tactics_evaluation-2026-10-08.json">October 8 rerun</a>.</p>
+<p>The <a href="../../scripts/data/free_gain_tactics_evaluation.json">original raw outcomes</a> remain byte-for-byte unchanged. Their fingerprint <code>{old}</code> matches the original PR tree <code>4fc860b5b559d85192a97f8535f8a1da31f455f2</code>. They are historical evidence, not results for the reviewed merged tree. All tables and findings below are rendered from the distinct <a href="../../scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json">final October 8 export-round-trip rerun</a>.</p>
+{previous_note}
 <p>Since the original run, reviewed inputs changed in exposed-card gain removal, physical-pile endgame context, shared Action/Way resolution and pending bonuses, Anvil validation, opponent trashing/storage defaults, and dynamic board discovery. These can affect legality, choices, random-state progression or opponents. The diagnostic and Port Moresby boards are explicit, so the new free-gain discovery fix does not itself change those boards. Fingerprint changes outside this panel are not evidence that each result changed.</p>
 <h2>Practical findings from this rerun</h2><ul>{''.join(findings)}</ul>
 <p>Registered Port Moresby strategy changes range from {min(r['delta'] for r in registered) * 100:+.1f} to {max(r['delta'] for r in registered) * 100:+.1f} percentage points. Consult each paired interval below; do not promote a plan on a point estimate alone.</p>
@@ -83,7 +92,7 @@ def render(data, historical):
 <p>Regression tests cover mandatory and optional gains, componentwise and modified costs, ownership limits, sacrifice context, Watchtower/Trail reactions, repeated Quartermaster instructions, exposed split-pile depletion, physical-pile menu uniqueness and endgame counts, and existing AI/RL trash hooks. Coverage does not certify every card or landscape interaction. Rules tracking: <a href="https://github.com/jss367/py-overlord/issues/399">Workshop costs</a>, <a href="https://github.com/jss367/py-overlord/issues/400">Remodel costs</a>, and <a href="https://github.com/jss367/py-overlord/issues/401">Quartermaster recurring instructions</a>.</p>
 <p>Rule references retained from the original audit: <a href="https://www.riograndegames.com/wp-content/uploads/2013/02/DomAlchemy.pdf">Alchemy</a>, <a href="https://www.riograndegames.com/wp-content/uploads/2022/03/Dominion-Rules-Empires.pdf">Empires</a>, and <a href="https://www.riograndegames.com/wp-content/uploads/2022/08/DomPlunder.pdf">Plunder</a>. These support the componentwise-cost and Quartermaster rules audit, independently of the empirical policy comparisons.</p>
 <h2>Reproduce and inspect the evidence</h2>
-<pre><code>PYTHONPATH=. python scripts/evaluate_free_gain_tactics.py --pairs 100 --seed 391000 --workers 4 --output scripts/data/free_gain_tactics_evaluation-2026-10-08.json
+<pre><code>PYTHONPATH=. python scripts/evaluate_free_gain_tactics.py --pairs 100 --seed 391000 --workers 4 --output scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json
 PYTHONPATH=. python scripts/render_free_gain_tactics_guide.py
 pytest -q tests/test_free_gain_tactics.py tests/test_shared_card_tactics.py tests/test_plunder_kingdom_cards.py
 PYTHONPATH=. python scripts/render_catalog.py
@@ -96,11 +105,12 @@ python scripts/check_catalog.py</code></pre>
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--results', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08.json'))
+    parser.add_argument('--results', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json'))
     parser.add_argument('--historical', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation.json'))
+    parser.add_argument('--previous', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08.json'))
     parser.add_argument('--output', type=Path, default=Path('dominion/reporting/curated_strategy_guides/free-gains-and-quartermaster-policy-evaluation.html'))
     args = parser.parse_args()
-    args.output.write_text(render(json.loads(args.results.read_text()), json.loads(args.historical.read_text())))
+    args.output.write_text(render(json.loads(args.results.read_text()), json.loads(args.historical.read_text()), json.loads(args.previous.read_text())))
 
 
 if __name__ == '__main__':

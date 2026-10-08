@@ -218,11 +218,11 @@ and [Plunder](https://www.riograndegames.com/wp-content/uploads/2022/08/DomPlund
 Reproduction:
 
 ```sh
-PYTHONPATH=. python scripts/evaluate_free_gain_tactics.py --pairs 100 --seed 391000 --workers 4 --output scripts/data/free_gain_tactics_evaluation-2026-10-08.json
+PYTHONPATH=. python scripts/evaluate_free_gain_tactics.py --pairs 100 --seed 391000 --workers 4 --output scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json
 PYTHONPATH=. python scripts/render_free_gain_tactics_guide.py
 ```
 
-The dated [October 8 rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08.json)
+The dated [final October 8 export-round-trip rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json)
 uses the merged reviewed simulation inputs and covers 13,200 games: 100 seeds × two seats × two policies × 33 comparisons.
 Controls reproduce the previous decisions using the same corrected rules;
 opponents use current policies. Four representative kingdoms compare inherited
@@ -234,8 +234,15 @@ use paired normal estimates. These are unadjusted exploratory comparisons.
 The [original raw outcomes](../scripts/data/free_gain_tactics_evaluation.json)
 remain unchanged as historical evidence: their fingerprint matches the original
 PR tree `4fc860b5`, while the distinct rerun fingerprint describes the fixed tree.
-Nine comparison records changed in the rerun. The guide is generated from the
-rerun data, not relabeled historical results. Dynamic boards now also discover
+Nine comparison records changed in the first rerun. That
+[first October 8 rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08.json)
+is also retained unchanged. Export-only fixes subsequently changed the broad
+source fingerprint; a distinct final rerun reproduces all 33 empirical records
+and identifies the final source inputs. The guide is generated from the final
+rerun data, not relabeled historical results. Python exports and worker serialization preserve `free_gain_priority` as `None`,
+`[]`, or explicit rules, and preserve Captain/Band target lists. Optimal exports
+use the shared Python serializer while retaining their existing factory name.
+Dynamic boards now also discover
 cards referenced only in `free_gain_priority`; explicit boards remain authoritative.
 
 Findings, every comparison, uncertainty, regressions, and reproduction details

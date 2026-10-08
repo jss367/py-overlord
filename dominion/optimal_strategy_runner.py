@@ -3,7 +3,7 @@ import importlib.util
 
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.simulation.strategy_battle import StrategyBattle
-from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
+from dominion.runner import save_strategy_as_python
 
 
 def train_optimal_strategy():
@@ -75,82 +75,12 @@ def train_optimal_strategy():
     else:
         save_strategy = new_strategy
 
-    def save_strategy_as_python(strategy: EnhancedStrategy, path: Path) -> None:
-        """Serialize an :class:`EnhancedStrategy` as a Python module."""
-
-        def format_list(name: str, rules: list[PriorityRule]) -> list[str]:
-            lines = [f"        self.{name} = ["]
-            for rule in rules:
-                if rule.condition:
-                    lines.append(
-                        f"            PriorityRule({rule.card_name!r}, {rule.condition!r}),"
-                    )
-                else:
-                    lines.append(f"            PriorityRule({rule.card_name!r}),")
-            lines.append("        ]")
-            return lines
-
-        def format_way_policy(rules: list[WayRule]) -> list[str]:
-            lines = ["        self.way_policy = ["]
-            for rule in rules:
-                cond_source = (
-                    getattr(rule.condition, "_source", None) if rule.condition else None
-                )
-                if cond_source:
-                    lines.append(
-                        f"            WayRule({rule.card_name!r}, {rule.way_name!r}, {cond_source}),"
-                    )
-                else:
-                    lines.append(
-                        f"            WayRule({rule.card_name!r}, {rule.way_name!r}),"
-                    )
-            lines.append("        ]")
-            return lines
-
-        needs_way_rule = bool(getattr(strategy, "way_policy", None))
-        import_line = (
-            "from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule"
-            if needs_way_rule
-            else "from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule"
-        )
-        lines = [
-            import_line,
-            "",
-            "",
-            "class OptimalStrategy(EnhancedStrategy):",
-            "    def __init__(self) -> None:",
-            "        super().__init__()",
-            f"        self.name = {strategy.name!r}",
-        ]
-
-        if strategy.gain_priority:
-            lines.extend(format_list("gain_priority", strategy.gain_priority))
-        if strategy.action_priority:
-            lines.extend(format_list("action_priority", strategy.action_priority))
-        if strategy.treasure_priority:
-            lines.extend(format_list("treasure_priority", strategy.treasure_priority))
-        if strategy.trash_priority:
-            lines.extend(format_list("trash_priority", strategy.trash_priority))
-        if getattr(strategy, "bounty_hunter_exile_priority", None):
-            lines.extend(
-                format_list(
-                    "bounty_hunter_exile_priority",
-                    strategy.bounty_hunter_exile_priority,
-                )
-            )
-        if getattr(strategy, "discard_priority", None):
-            lines.extend(format_list("discard_priority", strategy.discard_priority))
-        if needs_way_rule:
-            lines.extend(format_way_policy(strategy.way_policy))
-
-        lines.append("")
-        lines.append("def create_optimal_strategy() -> EnhancedStrategy:")
-        lines.append("    return OptimalStrategy()")
-
-        path.write_text("\n".join(lines), encoding="utf-8")
-
-    # Save strategy to Python file
-    save_strategy_as_python(save_strategy, optimal_strategy_path)
+    # Use the shared serializer so seed hooks and all decision priority fields
+    # survive this export path as well. Preserve the existing factory name.
+    save_strategy_as_python(
+        save_strategy, optimal_strategy_path, class_name="OptimalStrategy",
+        clean_for_publication=False, factory_name="create_optimal_strategy",
+    )
 
     print(f"\nFinal strategy win rate vs BigMoney: {metrics['win_rate']:.1f}%")
     print("\nOptimal Strategy gain priorities:")
