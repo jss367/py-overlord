@@ -649,3 +649,78 @@ def test_off_turn_storage_does_not_spend_owners_hand_resources():
     # A reaction/indirect play can temporarily target an off-turn player.
     picks = owner.ai.choose_gear_set_aside(state, owner, owner.hand)
     assert [c.name for c in picks] == ["Smithy", "Gold"]
+
+
+@pytest.mark.parametrize("coins,tokens", [(0, 1), (1, 0), (-1, 2)])
+@pytest.mark.parametrize("last_province", [False, True])
+def test_storage_counts_current_spendable_currency_without_spending_it(coins, tokens, last_province):
+    state, player = setup(names=("Gold", "Gold", "Copper"))
+    state.phase = "action"
+    state.supply["Province"] = 1 if last_province else 8
+    player.coins, player.coin_tokens = coins, tokens
+    assert player.ai.choose_gear_set_aside(state, player, player.hand) == []
+    assert (player.coins, player.coin_tokens) == (coins, tokens)
+    # At normal nonnegative balances, the real engine agrees that this
+    # hand and its Coin token can buy Province after playing Treasures.
+    if coins >= 0:
+        state.phase = "treasure"
+        state.handle_treasure_phase()
+        province = next(c for c in state._get_affordable_cards(player) if c.name == "Province")
+        state._commit_buy(player, province)
+        assert (player.coins, player.coin_tokens) == (0, 0)
+
+
+@pytest.mark.parametrize("event_name", ["Toil", "March"])
+@pytest.mark.parametrize("buys", [1, 2])
+def test_buying_event_requires_remaining_buy_for_final_pile_suppression(event_name, buys):
+    from dominion.events.menagerie_events import March, Toil
+
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [PriorityRule("Gear")]
+    state, player = setup(strategy)
+    state.phase = "buy"
+    state.supply["Province"] = 1
+    event = Toil() if event_name == "Toil" else March()
+    player.coins = event.cost.coins + 8
+    player.buys = buys
+    gear = get_card("Gear")
+    (player.hand if event_name == "Toil" else player.discard).append(gear)
+    player.deck = [get_card("Gold"), get_card("Gold")]
+    state._commit_buy(player, event)
+    assert player.coins == 8
+    assert player.buys == buys - 1
+    assert [c.name for c in gear.set_aside] == (["Gold", "Gold"] if buys == 1 else [])
+
+
+@pytest.mark.parametrize("restriction", ["debt", "mission", "banned"])
+def test_final_pile_suppression_reuses_live_purchase_restrictions(restriction):
+    state, player = setup(names=("Smithy", "Gold"))
+    state.phase = "buy"
+    state.supply["Province"] = 1
+    player.coins = 8
+    if restriction == "debt":
+        player.debt = 1
+    elif restriction == "mission":
+        player.mission_no_buy_turn = True
+    else:
+        player.banned_buys.append("Province")
+    assert [c.name for c in player.ai.choose_gear_set_aside(state, player, player.hand)] == ["Smithy", "Gold"]
+
+
+def test_projected_affordability_reuses_costs_without_mutating_balances():
+    state, player = setup()
+    player.coins = 2
+    player.coin_tokens = 1
+    player.cost_reduction = 1
+    before = (player.coins, player.coin_tokens, player.buys, player.potions, player.debt)
+    actual = {c.name for c in state._get_affordable_cards(player)}
+    projected = {c.name for c in state._get_affordable_cards(player, available_coins=7)}
+    assert "Province" not in actual
+    assert "Province" in projected
+    assert (player.coins, player.coin_tokens, player.buys, player.potions, player.debt) == before
+
+
+def test_other_counters_are_not_spendable_coins():
+    state, player = setup(names=("Gold", "Gold", "Copper"))
+    player.potions = player.vp_tokens = player.favors = player.pirate_ship_tokens = 99
+    assert [c.name for c in player.ai.choose_gear_set_aside(state, player, player.hand)] == ["Copper"]

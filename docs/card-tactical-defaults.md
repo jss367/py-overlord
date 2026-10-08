@@ -283,7 +283,11 @@ preserving fictitious buy breakpoints. Ordinary play budgets apply only on the
 owner's turn. Hybrids remain in hand while their Treasure or Night play phase is
 still available. The baseline avoids saving pure
 junk under optional Gear, and preserves this turn when the final Province/Colony
-can be bought during a remaining Buy phase. It does not model
+can legally be bought during a remaining Buy phase with an unspent Buy.
+Coin tokens (Coffers) are spendable currency alongside coins. The engine's
+read-only affordability helper supplies legal coin-only Supply breakpoints,
+including effective costs, Debt, banned buys and Mission restrictions.
+It does not model
 special card text, draw order, landscapes, multiple purchases or three-pile
 endings. The baseline also projects known pending pile-token, Champion,
 Prophecy and Ally resource bonuses. Scoped play context identifies the actual
@@ -292,6 +296,19 @@ never apply bonuses early. Harbor Village uses the current caller's existing
 bonus timing. Future Action support includes these known external Action bonuses
 as well as printed Actions. Pending draws, optional reactions and extra buys are
 not forecast. A strategy can override either dedicated storage decision.
+
+Resource audit for this baseline:
+
+| Resource | Projection boundary / engine source |
+| --- | --- |
+| Coins and Coin tokens/Coffers | Current balances plus known pending coin bonuses and hand Treasure income; `_get_affordable_cards` uses their combined spendable total and `_commit_buy` spends coins then tokens. Existing negative-coin penalties are already in the coin balance. |
+| Hand Treasure income | Printed coins plus known external coin bonuses, only on the owner's turn before/during Treasure phase; the same contribution is removed when storing that physical card. Live Treasure type includes Capitalism; special text and conditional Treasure/replay effects are not interpreted. |
+| Pending play resources | Pile tokens, Champion, the supported Prophecy/Ally bonuses and Harbor Village, scoped to the real played card and the caller's unresolved hooks; bonuses already awarded are not counted twice. |
+| Actions and Villagers | Current balances and known pending Actions only before/during Action phase, plus printed/known external net Action support from hand. Printed Action bonuses respect `ignore_action_bonuses`; late or off-turn Actions cannot reopen a phase. Optional Reserve calls, special play permissions and play-limit landscapes are not forecast. |
+| Buys | A remaining current Buy is required for final-pile suppression; future extra Buys and multiple purchases are not projected. |
+| Potions, Debt and legality | Live engine restrictions are retained. The policy only reserves zero-Potion, zero-Debt Supply prices, uses `get_card_cost` for discounts, and does not forecast Potion income or discretionary Debt payments. |
+| Other counters | Favors only inform the supported Ally resource bonus; VP, Sun, Pirate Ship and other effect-specific counters are not spendable purchase currency and are not added to cash. |
+
 
 Card-conservation and retention corrections are separately tracked in
 [#398 — Fix lost set-aside cards when Gear or Haven is replayed](https://github.com/jss367/py-overlord/issues/398).

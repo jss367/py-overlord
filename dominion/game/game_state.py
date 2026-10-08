@@ -3118,8 +3118,12 @@ class GameState:
 
         return max(0, cost)
 
-    def _get_affordable_cards(self, player):
-        """Helper to get list of affordable cards, events and projects."""
+    def _get_affordable_cards(self, player, *, available_coins=None):
+        """Legal buys at current or read-only projected spendable currency.
+
+        The default includes coins and Coin tokens. A projection changes only
+        the currency ceiling; Debt, Potion and buy restrictions remain live.
+        """
 
         if player.debt > 0:
             return []
@@ -3130,7 +3134,8 @@ class GameState:
             return []
 
         affordable = []
-        available_coins = player.coins + player.coin_tokens
+        if available_coins is None:
+            available_coins = player.coins + player.coin_tokens
 
         for card_name, count in self.supply.items():
             if count > 0:

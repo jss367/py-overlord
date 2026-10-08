@@ -176,8 +176,6 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
     if not choices or count <= 0:
         return []
 
-    from dominion.cards.registry import get_card
-
     hand = list(player.hand)
     # Ordinary hand plays belong to this player's turn. Indirect plays (for
     # example Toil/March in Buy) do not reopen earlier play phases.
@@ -185,7 +183,7 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
     actions_playable = own_turn and state.phase in {"start", "action"}
     treasures_playable = own_turn and state.phase in {"start", "action", "treasure"}
     night_playable = own_turn and state.phase in {"start", "action", "treasure", "buy", "night"}
-    buys_available = own_turn and state.phase in {"start", "action", "treasure", "buy"}
+    buys_available = own_turn and player.buys > 0 and state.phase in {"start", "action", "treasure", "buy"}
 
     def treasure_income(card):
         if not treasures_playable or not state.is_treasure(card):
@@ -205,18 +203,24 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
             pending_coins += coins
             pending_actions += actions
         pending = pending.get("outer")
-    money = player.coins + pending_coins + sum(treasure_income(c) for c in hand)
-    costs = [3]
-    for name, remaining in state.supply.items():
-        if remaining <= 0 or name in state.non_supply_pile_names:
-            continue
-        card = get_card(name)
-        if card.cost.debt == 0 and card.cost.potions == 0:
-            costs.append(state.get_card_cost(player, card))
+    money = player.coins + player.coin_tokens + pending_coins + sum(treasure_income(c) for c in hand)
+    # Reuse engine affordability for live restrictions and effective costs.
+    # The baseline reserves coin-only Supply buys, not Events/Projects or
+    # future Potion income; the $3 building floor remains a policy choice.
+    affordable = state._get_affordable_cards(player, available_coins=money)
+    supply_buys = [
+        card for card in affordable
+        if not getattr(card, "is_event", False) and not getattr(card, "is_project", False)
+        and card.name not in state.non_supply_pile_names
+        and card.cost.debt == 0 and card.cost.potions == 0
+    ]
+    costs = [3, *(state.get_card_cost(player, card) for card in supply_buys)]
     floor = max((cost for cost in costs if cost <= money), default=money)
     # There may be no next turn when buying the final Province/Colony.
-    if buys_available and any(state.supply.get(name) == 1 and money >= state.get_card_cost(player, get_card(name))
-           for name in ("Province", "Colony")):
+    if buys_available and any(
+        card.name in {"Province", "Colony"} and state.supply.get(card.name) == 1
+        for card in supply_buys
+    ):
         return []
 
     def next_value(card):
