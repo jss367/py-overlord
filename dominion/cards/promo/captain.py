@@ -1,4 +1,5 @@
 from ..base_card import Card, CardCost, CardStats, CardType
+from ..supply_play import select_supply_action, supply_action_choices
 
 class Captain(Card):
     """Command card that plays Actions from the Supply now and next turn."""
@@ -25,28 +26,12 @@ class Captain(Card):
             player.duration.append(self)
 
     def _play_from_supply(self, game_state, player):
-        candidates = []
         from ..registry import get_card
 
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            try:
-                card = get_card(name)
-            except ValueError:
-                continue
-            if not card.is_action:
-                continue
-            if card.is_duration or card.is_command:
-                continue
-            if card.cost.coins > 4 or card.cost.potions or card.cost.debt:
-                continue
-            candidates.append(card)
-        if not candidates:
+        candidates = supply_action_choices(game_state, player, 4, allow_duration=False)
+        choice = select_supply_action(game_state, player, candidates, "choose_captain_target")
+        if choice is None:
             return
-        choice = player.ai.choose_action(game_state, candidates + [None])
-        if choice is None or choice.name not in {card.name for card in candidates}:
-            choice = candidates[0]
         # "play a non-Duration Action card from the Supply costing up to $4,
         # leaving it there": a virtual play like Riverboat's. The proxy never
         # enters in_play, so Ways that move the played card (Turtle,

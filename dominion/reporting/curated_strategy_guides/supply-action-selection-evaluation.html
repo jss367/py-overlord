@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Choosing Supply Actions: Captain, Band of Misfits and Overlord</title>
+<style>
+:root { color-scheme:light; --ink:#28231d; --paper:#f4f0e6; --panel:#fffdf8; --line:#d9d0bd; --accent:#245f73; }
+* { box-sizing:border-box; } body { margin:0 auto; max-width:1140px; padding:28px clamp(18px,4vw,48px) 64px; color:var(--ink); background:var(--paper); font:16px/1.65 system-ui,sans-serif; }
+a { color:var(--accent); text-underline-offset:3px; } nav { display:flex; flex-wrap:wrap; gap:20px; }
+h1,h2 { font-family:Georgia,serif; line-height:1.15; } h1 { font-size:clamp(2.2rem,5vw,3.5rem); } h2 { margin-top:2rem; }
+header { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:28px; margin-top:22px; }
+.table-wrap { overflow-x:auto; } table { border-collapse:collapse; width:100%; background:var(--panel); } th,td { border-bottom:1px solid var(--line); padding:12px; text-align:left; vertical-align:top; } th { background:#eae3d6; }
+pre { white-space:pre-wrap; overflow-wrap:anywhere; background:var(--panel); padding:18px; border:1px solid var(--line); } code { font-size:.9em; }
+@media print { body { background:white; padding:0; } nav { display:none; } tr { break-inside:avoid; } .table-wrap { overflow:visible; } }
+</style></head><body>
+<nav><a href="index.html">Strategy catalog</a><a href="../../docs/card-tactical-defaults.md">Shared decision inventory</a></nav>
+<header><p>Supply Action decision evaluation · October 2026</p><h1>Choosing Supply Actions</h1>
+<p><strong>Captain and Band of Misfits now have independent strategy target choices, and all three Commands share a deterministic tactical fallback.</strong> The tested policy improved Captain and Overlord against two opponents, produced smaller uncertain gains for Band of Misfits, and had no measured regressions in nine comparisons.</p>
+<p>The 3,600-game study measures decisions in the current simulator. Known scheduling and indirect-play defects limit conclusions about actual Dominion strength. Duration valuation has scenario evidence only.</p></header>
+<h2>Using the target choices</h2>
+<p>Captain uses <code>captain_target_priority</code>; Band of Misfits uses <code>band_of_misfits_target_priority</code>. Each is an ordered list of conditional <code>PriorityRule</code> entries. Their hand <code>action_priority</code> remains independent. A Python strategy may also override <code>choose_captain_target(state, player, choices)</code> or <code>choose_band_of_misfits_target(state, player, choices)</code>.</p>
+<pre><code>strategy.action_priority = [PriorityRule("Village"), PriorityRule("Smithy")]
+strategy.captain_target_priority = [
+    PriorityRule("Chapel", lambda state, player:
+        sum(card.name == "Curse" for card in player.hand) &gt;= 2),
+    PriorityRule("Smithy"),
+]
+strategy.band_of_misfits_target_priority = [PriorityRule("Militia")]</code></pre>
+<p>The example illustrates separate preferences; it is not an optimized strategy. Overlord retains its existing hand and phase preferences for compatibility, followed by the shared supply baseline; overriding <code>choose_overlord_target</code> can still choose a different payload.</p>
+<p>All three supply plays are mandatory when a legal target exists. An override returning <code>None</code>, an unavailable card, or an invalid object requests the shared fallback. An empty menu does nothing. Failed conditional rules prefer unspecified targets, but the baseline still chooses when every rule fails. Captain reevaluates its next-turn choice against the new hand and current costs. Dedicated priorities are Python strategy settings, not new optimizer genes.</p>
+<h2>What the baseline considers</h2>
+<p>Needed Action support comes first when terminal Actions in hand exceed remaining Actions. Next comes available draw and money, attack pressure, bounded junk removal, and discounted next-turn resources. Draw is capped by the deck plus discard; ties use Actions, Buys, printed coin cost and card name rather than Supply order.</p>
+<p>Militia's attack estimate changes with opposing hand sizes. Witch, Sea Hag and Familiar lose their cursing premium when Curses run out. Chapel, Steward and Junk Dealer receive hand-dependent trashing estimates; mandatory Junk Dealer trash is penalized in a clean hand. Starting Copper economy is preserved until other printed Treasure income reaches $3. Small Victory cards stop counting as junk at two remaining Provinces.</p>
+<p>Caravan, Fishing Village, Wharf, Merchant Ship and Lighthouse have explicit current and future resource estimates. Future value is discounted by 25% and ignored at two remaining Provinces. Pillage and Feast are penalized because a virtual target cannot trash itself for its payoff. Unmodeled effects use printed resources and a coarse Attack premium.</p>
+<h2>Targeted scenarios and legal menus</h2>
+<div class="table-wrap"><table><thead><tr><th>Situation</th><th>Observed shared decision</th><th>Practical limit</th></tr></thead><tbody>
+<tr><td>Early hand with three Estates; Chapel versus Smithy</td><td>Chapel: estimated junk removal exceeds immediate draw.</td><td>Actual trashing still follows the strategy's trash policy.</td></tr>
+<tr><td>Clean hand or just one Estate</td><td>Smithy over Chapel.</td><td>No model of every trash-and-gain combination.</td></tr>
+<tr><td>Several terminal Commands and no Actions left</td><td>Village supplies Actions for the other copies.</td><td>Does not predict all Actions that future draw might reveal.</td></tr>
+<tr><td>Militia versus Smithy; opponent has three, five, or six cards</td><td>Smithy at three and five; Militia at six.</td><td>Coarse hand pressure, without exact hand quality or every defense.</td></tr>
+<tr><td>Witch versus Smithy</td><td>Witch while Curses remain; Smithy after exhaustion.</td><td>Ignores opponent junk-removal speed.</td></tr>
+<tr><td>Wharf versus Smithy</td><td>Wharf early; Smithy at two Provinces.</td><td>Scenario-only valuation; virtual Duration ownership remains defective.</td></tr>
+<tr><td>Empty drawable deck and a useful Gold in hand</td><td>Money over Smithy or mandatory Junk Dealer trash.</td><td>Printed Treasure economy is only an approximation.</td></tr>
+</tbody></table></div>
+<p>Regression tests exercise actual card → AI adapter → strategy selection, dedicated method overrides, passing/failing conditions, all conditions failing, invalid objects, empty menus, active phase hand rules, changed costs and Captain's second decision. Legal menus use current coin costs, exclude debt and Potion costs, exclude Command targets, and exclude Duration targets for Captain. Band of Misfits compares both its own and the target's modified cost, including the $0 floor.</p>
+<p>The menu offers exposed split-pile cards and top Knights or Ruins; it excludes empty, non-Supply and Ferryman set-aside piles. Live Action types under Enlightenment are recognized. Buy-only restrictions, including Grand Market's Copper rule, do not prevent a supply play. Existing Captain tests verify moving Ways leave virtual targets in the Supply and that Citadel sees its indirect play. The new tests also select targets through an indirect play of the Command itself.</p>
+<h2>Fixed-seed, seat-balanced comparisons</h2>
+<p>Each row uses 100 distinct seeds, both seats for each seed, and both policies: 200 games per policy, 400 games per row. Policies share purchases and hand sequencing. Each seed is reset before every seat/policy combination. Opponents are the registered Smithy money, Village/Laboratory engine and Chapel/Witch strategies.</p>
+<p>The probe buys Provinces, late Duchies, up to two copies of its Command, Gold, one Smithy, Silver and late Estates, in that order. Its only explicit hand Action rule is the Command; normal fallback still plays the purchased Smithy. Trash priorities remove Curses, non-endgame Estates and Coppers backed by $3 of other printed Treasure income. This exposes the supply fallback rather than an optimized dedicated target policy.</p>
+<p>Each kingdom, in Supply insertion order, is Chapel, Village, Smithy, Militia, Witch, Laboratory, Market, Festival, Moat and the row's Command. Legacy Captain uses hand selection then the first target; legacy Band of Misfits uses its old printed draw/Actions/cost ranking; legacy Overlord uses existing preferences then its old printed-resource fallback. Both policies run on the current legal menus and rules engine. The study therefore isolates decision changes rather than measuring the earlier cost/menu defects.</p>
+<div class="table-wrap"><table><thead><tr><th>Command</th><th>Opponent</th><th>Legacy wins</th><th>Shared wins</th><th>Change, percentage points</th><th>Conservative 95% interval, points</th><th>First seed</th></tr></thead><tbody><tr><td>Captain</td><td>Smithy money</td><td>117/200 (58.5%)</td><td>181/200 (90.5%)</td><td>+32.0</td><td>+4.8 to +59.2</td><td>39000</td></tr>
+<tr><td>Captain</td><td>Village and Laboratory engine</td><td>200/200 (100.0%)</td><td>200/200 (100.0%)</td><td>+0.0</td><td>-27.2 to +27.2</td><td>49000</td></tr>
+<tr><td>Captain</td><td>Chapel and Witch attack</td><td>160/200 (80.0%)</td><td>193/200 (96.5%)</td><td>+16.5</td><td>-10.7 to +43.7</td><td>59000</td></tr>
+<tr><td>Band of Misfits</td><td>Smithy money</td><td>116/200 (58.0%)</td><td>136/200 (68.0%)</td><td>+10.0</td><td>-17.2 to +37.2</td><td>139000</td></tr>
+<tr><td>Band of Misfits</td><td>Village and Laboratory engine</td><td>200/200 (100.0%)</td><td>200/200 (100.0%)</td><td>+0.0</td><td>-27.2 to +27.2</td><td>149000</td></tr>
+<tr><td>Band of Misfits</td><td>Chapel and Witch attack</td><td>114/200 (57.0%)</td><td>126/200 (63.0%)</td><td>+6.0</td><td>-21.2 to +33.2</td><td>159000</td></tr>
+<tr><td>Overlord</td><td>Smithy money</td><td>131/200 (65.5%)</td><td>192/200 (96.0%)</td><td>+30.5</td><td>+3.3 to +57.7</td><td>239000</td></tr>
+<tr><td>Overlord</td><td>Village and Laboratory engine</td><td>200/200 (100.0%)</td><td>200/200 (100.0%)</td><td>+0.0</td><td>-27.2 to +27.2</td><td>249000</td></tr>
+<tr><td>Overlord</td><td>Chapel and Witch attack</td><td>87/200 (43.5%)</td><td>189/200 (94.5%)</td><td>+51.0</td><td>+23.8 to +78.2</td><td>259000</td></tr></tbody></table></div>
+<p>Intervals use a two-sided Hoeffding bound on the 100 independent seed-pair averages of shared-minus-legacy outcomes, each in [-1, 1]. Both seat swaps are treated as one cluster. The half-width is 27.2 percentage points; these bounds are deliberately conservative and remain nonzero with no discordant outcomes. Wins use the simulator's winner selector, which breaks equal scores using turns taken and then seat order. Alternating seats controls that bias. These are per-row bounds, without correction for nine simultaneous comparisons, and measure seed sampling only.</p>
+<p>Captain's gain against Smithy money and Overlord's gains against Smithy money and Chapel/Witch clear these conservative bounds. Captain's smaller attack-opponent gain and both Band of Misfits gains remain uncertain. The Village/Laboratory opponent loses every game to both versions, so those rows do not distinguish the policies. No observed regression proves neither universal improvement nor optimal play; different purchases, hand rules, opponents, pile ordering for legacy Captain, and defensive cards can change the result.</p>
+<h2>Remaining rules defects and limits</h2>
+<p>The audit separately filed <a href="https://github.com/jss367/py-overlord/issues/395">Captain next-turn scheduling and repeated plays (#395)</a>, <a href="https://github.com/jss367/py-overlord/issues/396">Overlord and Band of Misfits indirect Action handling (#396)</a>, and <a href="https://github.com/jss367/py-overlord/issues/397">virtual Supply proxies and Duration owner tracking (#397)</a>. Five strict expected-failure tests reproduce them.</p>
+<p>Captain currently renews its effect beyond the next turn and deduplicates repeated initial plays. Overlord and Band of Misfits bypass Action counters, Ways and other centralized indirect-play handling, including Enlightenment substitutions. Virtual Duration targets can be counted as owned, and Overlord temporarily puts its target in play. Matches exclude Duration payloads, but both Captain policies retain the existing scheduling defect. Absolute strength remains provisional; rerun these comparisons after those fixes.</p>
+<p>The policy is a small, explicit heuristic. It does not interpret all card text, value every nested choice or reaction, or score resource substitutions under Enlightenment. Attack defense, multiplayer scaling, Colony endings and exact deck composition are not modeled. The endgame horizon uses remaining Provinces rather than predicting the end of the game.</p>
+<p>Current rules distinguish playing a card from becoming it and specify that a played virtual target cannot move itself out of play. See the <a href="https://dominionstrategy.com/2019/09/25/dominion-2019-errata-and-rules-tweaks/">designer's play-without-moving clarification</a> and the <a href="https://www.riograndegames.com/games/dominion-captain-promo/">publisher's Captain rules</a>. Current non-Command restrictions are reflected in the audited menus.</p>
+<h2>Evidence and reproduction</h2>
+<p>Machine-readable results, per-seed paired changes, target counts, seat wins, Python version and simulation fingerprint: <a href="../../scripts/data/supply_action_evaluation.json">supply Action evaluation data</a>. Runner: <a href="../../scripts/evaluate_supply_actions.py">evaluate_supply_actions.py</a>. Scenarios and known rules failures: <a href="../../tests/test_shared_card_tactics.py">shared card tactic tests</a>. Parent tracking: <a href="https://github.com/jss367/py-overlord/issues/344">shared card decisions inventory (#344)</a>; implementation: <a href="https://github.com/jss367/py-overlord/issues/390">supply Action selection (#390)</a>.</p>
+<pre><code>PYTHONPATH=. python scripts/evaluate_supply_actions.py --pairs 100 --seed 39000 \
+  --output .context/supply-action-reproduction.json
+python -m pytest -q tests/test_shared_card_tactics.py tests/test_indirect_play_ways.py \
+  tests/test_renaissance_projects.py tests/test_dark_ages_cards.py
+PYTHONPATH=. python scripts/render_catalog.py
+python scripts/check_catalog.py</code></pre>
+<p>No currently registered strategy references Captain, Band of Misfits or Overlord. This study reevaluates explicit Command purchase policies against existing opponents. Catalog regeneration preserves historical tournament standings and marks them outdated when simulation inputs change; the nine comparisons do not replace that global tournament.</p>
+</body></html>

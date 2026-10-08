@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from dominion.ai.genetic_ai import GeneticAI
+from dominion.ai import tactical_defaults
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
@@ -217,3 +218,315 @@ def test_modified_costs_are_used_in_both_menus():
     player.cost_reduction = 1
     get_card("Overlord").play_effect(state)
     assert len(player.hand) == 4
+
+
+SUPPLY_COMMANDS = [
+    ("Captain", "choose_captain_target", "captain_target_priority"),
+    ("Band of Misfits", "choose_band_of_misfits_target", "band_of_misfits_target_priority"),
+]
+
+
+@pytest.mark.parametrize("card_name, hook, priority", SUPPLY_COMMANDS)
+def test_supply_preferences_are_independent_of_hand_play_order(card_name, hook, priority):
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [PriorityRule("Village")]
+    setattr(strategy, priority, [PriorityRule("Smithy")])
+    state, player = make_state(strategy)
+    get_card(card_name).play_effect(state)
+    assert len(player.hand) == 3
+    assert strategy.choose_action(state, player, [get_card("Village"), get_card("Smithy")]).name == "Village"
+
+
+@pytest.mark.parametrize("card_name, hook, priority", SUPPLY_COMMANDS)
+def test_supply_specific_override_is_forwarded(card_name, hook, priority):
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [PriorityRule("Village")]
+    calls = []
+
+    def select(state, player, choices):
+        calls.append({c.name for c in choices})
+        return next(c for c in choices if c.name == "Smithy")
+
+    setattr(strategy, hook, select)
+    state, player = make_state(strategy)
+    get_card(card_name).play_effect(state)
+    assert calls == [{"Village", "Smithy"}]
+    assert len(player.hand) == 3
+
+
+@pytest.mark.parametrize("card_name, hook, priority", SUPPLY_COMMANDS)
+@pytest.mark.parametrize("condition, expected", [(True, 3), (False, 1)])
+def test_supply_conditional_preferences(card_name, hook, priority, condition, expected):
+    strategy = EnhancedStrategy()
+    setattr(strategy, priority, [PriorityRule("Smithy", lambda *_: condition)])
+    # A hand rule must not reinstate a target rejected by a supply rule.
+    strategy.action_priority = [PriorityRule("Smithy")]
+    state, player = make_state(strategy)
+    get_card(card_name).play_effect(state)
+    assert len(player.hand) == expected
+
+
+@pytest.mark.parametrize("card_name, hook, priority", SUPPLY_COMMANDS)
+def test_all_supply_conditions_failing_still_plays_mandatory_target(card_name, hook, priority):
+    strategy = EnhancedStrategy()
+    setattr(strategy, priority, [PriorityRule("Smithy", lambda *_: False)])
+    state, player = make_state(strategy, names=("Smithy",))
+    get_card(card_name).play_effect(state)
+    assert len(player.hand) == 3
+
+
+@pytest.mark.parametrize("card_name, hook, priority", SUPPLY_COMMANDS)
+@pytest.mark.parametrize("invalid", [None, "Gold", "Wharf", "Overlord", "bad type"])
+@pytest.mark.parametrize("names", [("Village", "Smithy"), ("Smithy", "Village")])
+def test_supply_invalid_selection_is_mandatory_and_deterministic(card_name, hook, priority, invalid, names):
+    strategy = EnhancedStrategy()
+    selection = invalid if invalid == "bad type" else get_card(invalid) if invalid else None
+    setattr(strategy, hook, lambda *_: selection)
+    state, player = make_state(strategy, names=names)
+    get_card(card_name).play_effect(state)
+    assert len(player.hand) == 3
+    assert state.supply == dict.fromkeys(names, 10)
+
+
+@pytest.mark.parametrize("card_name, hook, priority", SUPPLY_COMMANDS)
+def test_empty_supply_menu_does_not_call_strategy(card_name, hook, priority):
+    strategy = EnhancedStrategy()
+    setattr(strategy, hook, lambda *_: pytest.fail("Empty menu reached strategy"))
+    state, player = make_state(strategy, names=("Gold", "Village", "Overlord"))
+    state.supply["Village"] = 0
+    get_card(card_name).play_effect(state)
+    assert player.hand == []
+
+
+@pytest.mark.parametrize("card_name, expected", [
+    ("Captain", {"Smithy"}),
+    ("Band of Misfits", {"Smithy", "Caravan"}),
+    ("Overlord", {"Smithy", "Caravan", "Laboratory"}),
+])
+def test_supply_command_menus(card_name, expected):
+    strategy = EnhancedStrategy()
+    hook = "choose_" + card_name.lower().replace(" ", "_") + "_target"
+
+    def select(state, player, choices):
+        assert {c.name for c in choices} == expected
+        return get_card("Smithy")
+
+    setattr(strategy, hook, select)
+    state, player = make_state(strategy, names=(
+        "Captain", "Band of Misfits", "Overlord", "City Quarter", "Alchemist",
+        "Smithy", "Caravan", "Laboratory", "Village", "Horse",
+    ))
+    state.supply["Village"] = 0
+    state.non_supply_pile_names.add("Horse")
+    get_card(card_name).play_effect(state)
+    assert len(player.hand) == 3
+
+
+def test_captain_uses_current_cost_on_both_plays():
+    state, player = make_state(names=("Laboratory",))
+    captain = get_card("Captain")
+    captain.play_effect(state)
+    assert not player.hand
+    assert captain in player.duration  # Even with no legal first-turn target.
+    player.cost_reduction = 1
+    captain.on_duration(state)
+    assert len(player.hand) == 2
+    assert state.supply["Laboratory"] == 10
+
+
+def test_band_of_misfits_compares_both_modified_costs_and_cost_floor():
+    strategy = EnhancedStrategy()
+    menus = []
+    strategy.choose_band_of_misfits_target = lambda _s, _p, cs: menus.append({c.name for c in cs}) or None
+    state, player = make_state(strategy, names=("Smithy", "Laboratory", "Village"))
+    player.cost_reduction = 2
+    get_card("Band of Misfits").play_effect(state)
+    assert menus == [{"Smithy", "Village"}]  # Lab is still equal to Misfits.
+    player.cost_reduction = 5
+    get_card("Band of Misfits").play_effect(state)
+    assert len(menus) == 1  # Nothing costs less than $0.
+
+
+@pytest.mark.parametrize("card_name", ["Captain", "Band of Misfits", "Overlord"])
+def test_supply_menu_respects_pile_specific_discount_and_not_buy_restrictions(card_name):
+    state, player = make_state(names=("Grand Market",))
+    player.in_play = [get_card("Copper")]
+    state.family_inventor_tokens = {"Grand Market": 2}
+    assert not get_card("Grand Market").may_be_bought(state)
+    get_card(card_name).play_effect(state)
+    assert len(player.hand) == 1
+    assert player.coins == 2
+
+
+def test_supply_menu_only_offers_exposed_split_and_knight_cards():
+    state, player = make_state(names=("Encampment", "Plunder", "Knights"))
+    state.pile_order["Knights"] = ["Dame Anna", "Sir Martin"]
+    from dominion.cards.supply_play import supply_action_choices
+
+    choices = supply_action_choices(state, player, 4)
+    assert {c.name for c in choices} == {"Encampment", "Sir Martin"}
+    state.supply["Encampment"] = 0
+    assert {c.name for c in supply_action_choices(state, player, 4)} == {"Sir Martin"}
+
+
+def test_supply_menu_includes_live_action_types_and_top_ruins():
+    from dominion.cards.supply_play import supply_action_choices
+    from dominion.prophecies.registry import get_prophecy
+
+    state, player = make_state(names=("Silver", "Ruins"))
+    state.pile_order["Ruins"] = ["Ruined Village", "Abandoned Mine"]
+    assert {c.name for c in supply_action_choices(state, player, 4)} == {"Abandoned Mine"}
+    state.prophecy = get_prophecy("Enlightenment")
+    state.prophecy.is_active = True
+    assert {c.name for c in supply_action_choices(state, player, 4)} == {"Silver", "Abandoned Mine"}
+
+
+def test_supply_menu_excludes_ferryman_set_aside_pile():
+    from dominion.cards.supply_play import supply_action_choices
+
+    state, player = make_state(names=("Smithy", "Village"))
+    state.ferryman_card_name = "Smithy"
+    assert {c.name for c in supply_action_choices(state, player, 4)} == {"Village"}
+
+
+def test_captain_reselects_with_next_turn_context_through_strategy():
+    strategy = EnhancedStrategy()
+    strategy.captain_target_priority = [PriorityRule("Village", lambda _s, p: p.actions == 0)]
+    state, player = make_state(strategy)
+    captain = get_card("Captain")
+    captain.play_effect(state)
+    assert len(player.hand) == 3
+    assert player.actions_played == 1
+    player.actions = 0
+    captain.on_duration(state)
+    assert len(player.hand) == 4
+    assert player.actions == 2
+    assert player.actions_played == 2
+    assert state.supply == {"Village": 10, "Smithy": 10}
+
+
+@pytest.mark.parametrize("hook", ["choose_captain_target", "choose_band_of_misfits_target"])
+def test_adapter_without_strategy_hook_uses_shared_baseline(hook):
+    state, player = make_state()
+    player.ai.strategy = SimpleNamespace(choose_action=lambda *_: pytest.fail("Hand selector called"))
+    assert getattr(player.ai, hook)(state, player, [get_card("Village"), get_card("Smithy")]).name == "Smithy"
+
+
+@pytest.mark.parametrize("junk_count, expected", [(0, "Smithy"), (1, "Smithy"), (3, "Chapel")])
+def test_supply_baseline_values_trashing_according_to_hand(junk_count, expected):
+    state, player = make_state()
+    player.hand = [get_card("Estate") for _ in range(junk_count)]
+    assert tactical_defaults.choose_supply_action_target(
+        state, player, [get_card("Chapel"), get_card("Smithy")]
+    ).name == expected
+
+
+def test_supply_baseline_keeps_endgame_victory_cards():
+    state, player = make_state()
+    state.supply["Province"] = 2
+    player.hand = [get_card("Estate") for _ in range(3)]
+    assert tactical_defaults.choose_supply_action_target(
+        state, player, [get_card("Chapel"), get_card("Smithy")]
+    ).name == "Smithy"
+
+
+@pytest.mark.parametrize("card_name, hook, priority", SUPPLY_COMMANDS)
+def test_supply_baseline_supports_excess_command_copies(card_name, hook, priority):
+    state, player = make_state()
+    player.actions = 0
+    player.hand = [get_card(card_name) for _ in range(3)]
+    get_card(card_name).play_effect(state)
+    assert player.actions == 2  # Village unlocks the other Commands.
+    assert len(player.hand) == 4
+
+
+@pytest.mark.parametrize("card_name, hook, priority", SUPPLY_COMMANDS)
+def test_phase_hand_rules_do_not_affect_dedicated_supply_priorities(card_name, hook, priority):
+    strategy = PhaseAwareStrategy()
+    strategy.phase_action_priority[StrategyPhase.ENDGAME] = [PriorityRule("Smithy", lambda *_: False)]
+    state, player = make_state(strategy)
+    get_card(card_name).play_effect(state)
+    assert len(player.hand) == 3
+
+
+@pytest.mark.parametrize("hand_size, expected", [(3, "Smithy"), (5, "Smithy"), (6, "Militia")])
+def test_supply_baseline_values_attack_pressure(hand_size, expected):
+    state, player = make_state()
+    opponent = PlayerState(GeneticAI(EnhancedStrategy()))
+    opponent.hand = [get_card("Copper") for _ in range(hand_size)]
+    state.players.append(opponent)
+    assert tactical_defaults.choose_supply_action_target(
+        state, player, [get_card("Militia"), get_card("Smithy")]
+    ).name == expected
+
+
+@pytest.mark.parametrize("curses, expected", [(0, "Smithy"), (10, "Witch")])
+def test_supply_baseline_does_not_value_exhausted_cursing(curses, expected):
+    state, player = make_state()
+    state.players.append(PlayerState(GeneticAI(EnhancedStrategy())))
+    state.supply["Curse"] = curses
+    assert tactical_defaults.choose_supply_action_target(
+        state, player, [get_card("Witch"), get_card("Smithy")]
+    ).name == expected
+
+
+@pytest.mark.parametrize("provinces, expected", [(8, "Wharf"), (2, "Smithy")])
+def test_supply_baseline_values_duration_horizon(provinces, expected):
+    state, player = make_state()
+    state.supply["Province"] = provinces
+    assert tactical_defaults.choose_supply_action_target(
+        state, player, [get_card("Wharf"), get_card("Smithy")]
+    ).name == expected
+
+
+def test_supply_baseline_caps_draw_and_avoids_mandatory_good_card_trash():
+    state, player = make_state()
+    player.deck = []
+    player.hand = [get_card("Gold")]
+    assert tactical_defaults.choose_supply_action_target(
+        state, player, [get_card("Junk Dealer"), get_card("Smithy"), get_card("Militia")]
+    ).name == "Militia"
+    assert tactical_defaults.choose_supply_action_target(state, player, []) is None
+
+
+@pytest.mark.parametrize("card_name, hook, priority", SUPPLY_COMMANDS)
+def test_supply_play_indirectly_uses_the_same_dedicated_target(card_name, hook, priority):
+    strategy = EnhancedStrategy()
+    setattr(strategy, priority, [PriorityRule("Smithy")])
+    state, player = make_state(strategy)
+    command = get_card(card_name)
+    player.in_play = [command]
+    state.play_action_indirectly(player, command)
+    assert len(player.hand) == 3
+    assert state.supply == {"Village": 10, "Smithy": 10}
+    assert all(c.name != "Smithy" for c in player.in_play)
+
+
+@pytest.mark.xfail(strict=True, reason="Captain renews indefinitely: issue #395")
+def test_audited_captain_duration_finishes_after_next_turn():
+    state, player = make_state(names=("Village",))
+    captain = get_card("Captain")
+    player.in_play = [captain]
+    captain.play_effect(state)
+    state.do_duration_phase()
+    assert captain not in player.duration
+
+
+@pytest.mark.parametrize("card_name", ["Overlord", "Band of Misfits"])
+@pytest.mark.xfail(strict=True, reason="Supply play bypasses indirect Action counters: issue #396")
+def test_audited_command_supply_play_counts_as_an_action(card_name):
+    state, player = make_state(names=("Village",))
+    command = get_card(card_name)
+    player.in_play = [command]
+    state.play_action_indirectly(player, command)
+    assert player.actions_played == 2
+
+
+@pytest.mark.parametrize("card_name", ["Overlord", "Band of Misfits"])
+@pytest.mark.xfail(strict=True, reason="Virtual Duration counted as an owned card: issue #397")
+def test_audited_supply_duration_never_becomes_owned(card_name):
+    state, player = make_state(names=("Caravan",))
+    command = get_card(card_name)
+    player.in_play = [command]
+    command.play_effect(state)
+    assert all(c.name != "Caravan" for c in player.all_cards())

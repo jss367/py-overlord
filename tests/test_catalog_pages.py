@@ -209,6 +209,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "strategies/collection-swindler-strategy-guide.html",
         "strategies/shepherd-tragic-hero-strategy-guide.html",
         "strategies/cobbler-shepherd-strategy-comparison.html",
+        "strategies/supply-action-selection-evaluation.html",
         "strategies/index.html",
         "strategies/card-strategy-usage.html",
         "strategies/leaderboard.html",

@@ -1,6 +1,7 @@
 """Band of Misfits — $5 Command card that plays a cheaper non-Command Action."""
 
 from ..base_card import Card, CardCost, CardStats, CardType
+from ..supply_play import select_supply_action, supply_action_choices
 
 
 class BandOfMisfits(Card):
@@ -22,27 +23,9 @@ class BandOfMisfits(Card):
         player = game_state.current_player
         my_cost = game_state.get_card_cost(player, self)
 
-        candidates: list[Card] = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            try:
-                c = get_card(name)
-            except ValueError:
-                continue
-            if not c.is_action or c.is_command:
-                continue
-            if c.cost.potions > 0 or c.cost.debt > 0:
-                continue
-            cost = game_state.get_card_cost(player, c)
-            if cost >= my_cost:
-                continue
-            if not c.may_be_bought(game_state):
-                continue
-            candidates.append(c)
-
-        choice = player.ai.choose_band_of_misfits_target(
-            game_state, player, candidates
+        candidates = supply_action_choices(game_state, player, my_cost - 1)
+        choice = select_supply_action(
+            game_state, player, candidates, "choose_band_of_misfits_target"
         )
         if not choice:
             return

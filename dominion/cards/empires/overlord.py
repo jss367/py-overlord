@@ -1,5 +1,5 @@
 from ..base_card import Card, CardCost, CardStats, CardType
-from dominion.ai import tactical_defaults
+from ..supply_play import select_supply_action, supply_action_choices
 
 
 class Overlord(Card):
@@ -17,34 +17,12 @@ class Overlord(Card):
         player = game_state.current_player
         from ..registry import get_card
 
-        choices = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            try:
-                card = get_card(name)
-            except ValueError:
-                continue
-            if (
-                card.is_action
-                and not card.is_command
-                and not card.cost.debt
-                and not card.cost.potions
-                and game_state.get_card_cost(player, card) <= 5
-            ):
-                choices.append(card)
-        if not choices:
+        choices = supply_action_choices(game_state, player, 5)
+        proxy = select_supply_action(
+            game_state, player, choices, "choose_overlord_target", legacy_action=True
+        )
+        if proxy is None:
             return
-        hook = getattr(player.ai, "choose_overlord_target", None)
-        if hook is not None:
-            proxy = hook(game_state, player, choices)
-        else:
-            # Compatibility with small AIs that only implement generic choices.
-            proxy = player.ai.choose_action(game_state, choices + [None])
-            if proxy is None:
-                proxy = tactical_defaults.choose_overlord_target(player, choices)
-        if proxy is None or proxy.name not in {card.name for card in choices}:
-            proxy = tactical_defaults.choose_overlord_target(player, choices)
         temp_card = get_card(proxy.name)
         player.in_play.append(temp_card)
         temp_card.on_play(game_state)
