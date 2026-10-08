@@ -184,6 +184,15 @@ when every rule fails, a mandatory gain still picks a legal card, while Anvil's
 optional exchange may decline. A dedicated contextual override can use all
 context fields, including destinations, to specify a different policy.
 
+Anvil's optional decision is whether to discard the Treasure. Once it is
+discarded, the gain is mandatory if a legal card remains, as clarified by the
+[official FAQ reproduced on the Anvil page](https://wiki.dominionstrategy.com/index.php/Anvil#Official_FAQ).
+A Friendly discard can consume the selected pile's last card before Anvil's
+gain resolves. The engine then rebuilds the legal menu and makes the committed
+gain, even when only a Curse remains or the replacement strategy hook returns
+`None`. If every legal pile is empty, no card is gained. Declining the initial
+exchange leaves the Treasure in hand and triggers no discard reaction.
+
 ```python
 strategy.free_gain_priority = [
     PriorityRule("Village", PriorityRule.max_in_deck("Village", 3)),

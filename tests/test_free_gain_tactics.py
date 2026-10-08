@@ -244,6 +244,55 @@ def test_anvil_declines_junk_even_when_discarding_copper():
     assert not player.discard
 
 
+@pytest.mark.parametrize("remaining", ["Curse", "Village", None])
+@pytest.mark.parametrize("decline_fallback", [False, True])
+def test_anvil_committed_gain_rechecks_supply_after_friendly_discard(remaining, decline_fallback):
+    class Strategy(EnhancedStrategy):
+        def choose_anvil_option(self, state, player, treasures, choices):
+            return treasures[0], next(c for c in choices if c.name == "Silver")
+
+        def choose_free_gain(self, state, player, choices, context):
+            assert context.source == "Anvil"
+            assert context.mandatory  # Only the initial Treasure discard is optional.
+            assert context.sacrificed is silver
+            assert state.supply["Silver"] == 0
+            return None if decline_fallback else super().choose_free_gain(state, player, choices, context)
+
+    names = ("Silver", remaining) if remaining else ("Silver",)
+    state, player = make_state(Strategy(), names)
+    state.supply["Silver"] = 1
+    state.pile_traits["Silver"] = "Friendly"
+    silver = get_card("Silver")
+    player.hand = [silver]
+
+    get_card("Anvil").play_effect(state)
+
+    assert not player.hand
+    assert player.discard[0] is silver
+    assert [c.name for c in player.discard] == ["Silver", "Silver"] + ([remaining] if remaining else [])
+    assert state.supply["Silver"] == 0  # Friendly used the last copy, not Anvil.
+    if remaining:
+        assert state.supply[remaining] == 9
+
+
+def test_anvil_declining_exchange_does_not_trigger_friendly_discard():
+    class Strategy(EnhancedStrategy):
+        def choose_anvil_option(self, *args):
+            return None, None
+
+    state, player = make_state(Strategy(), ("Silver", "Curse"))
+    state.supply["Silver"] = 1
+    state.pile_traits["Silver"] = "Friendly"
+    silver = get_card("Silver")
+    player.hand = [silver]
+
+    get_card("Anvil").play_effect(state)
+
+    assert player.hand == [silver]
+    assert not player.discard
+    assert state.supply == {"Silver": 1, "Curse": 10}
+
+
 def test_anvil_combined_override_can_choose_both_cards():
     class Strategy(EnhancedStrategy):
         def choose_anvil_option(self, state, player, treasures, choices):
