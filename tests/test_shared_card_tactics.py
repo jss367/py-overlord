@@ -516,6 +516,7 @@ def test_supply_only_reference_is_available_on_an_inferred_board(card_name, prio
 
 
 @pytest.mark.parametrize("priority, target", [
+    ("free_gain_priority", "Smithy"),
     ("captain_target_priority", "Smithy"),
     ("band_of_misfits_target_priority", "Militia"),
 ])
@@ -636,3 +637,27 @@ def test_audited_virtual_pillage_has_no_conditional_payoff():
     get_card("Captain").play_effect(state)
     assert state.supply["Pillage"] == 10
     assert player.count_in_deck("Spoils") == 0
+
+
+@pytest.mark.parametrize("rules,expected", [
+    (None, set()), ([], set()), ([PriorityRule("Smithy")], {"Smithy"}),
+])
+def test_dynamic_board_discovers_free_gain_only_targets(rules, expected):
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Workshop")]
+    strategy.free_gain_priority = rules
+    with StrategyBattle() as battle:
+        names = set(battle._determine_kingdom_cards(strategy, EnhancedStrategy()))
+    assert "Workshop" in names
+    assert names & {"Smithy"} == expected
+    if expected:
+        state, player = make_state(strategy, names=names)
+        get_card("Workshop").play_effect(state)
+        assert player.discard[-1].name == "Smithy"
+
+
+def test_explicit_board_remains_authoritative_over_free_gain_references():
+    strategy = EnhancedStrategy()
+    strategy.free_gain_priority = [PriorityRule("Smithy")]
+    with StrategyBattle(kingdom_cards=["Workshop"]) as battle:
+        assert battle._determine_kingdom_cards(strategy, EnhancedStrategy()) == ["Workshop"]

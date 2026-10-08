@@ -53,7 +53,7 @@ CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
         filename="free-gains-and-quartermaster-policy-evaluation.html",
         display_name="Free Gains and Quartermaster: Tactical Policy Evaluation",
-        description="Workshop, Remodel, Anvil, and Quartermaster policies compared in 13,200 seeded games, including uncertainty, regressions, and reevaluation of existing Port Moresby strategies.",
+        description="October 8 rerun of Workshop, Remodel, Anvil, and Quartermaster policies in 13,200 seeded games, with input provenance, uncertainty, regressions, preserved historical outcomes, and Port Moresby reevaluation.",
         kingdom_cards=("Workshop", "Remodel", "Anvil", "Quartermaster"),
         source_label="Targeted rules scenarios and seat-balanced repository simulations",
         strategy_slugs=("port-moresby-quartermaster-money", "port-moresby-double-quartermaster-money", "port-moresby-copper-mat-money"),

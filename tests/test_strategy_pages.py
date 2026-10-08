@@ -597,3 +597,20 @@ def test_cobbler_guide_control_settings_match_saved_opponents():
         for seed in [140000000, 140010000, 140020000]
     ]
     assert settings[2]["cobbler"] == 0
+
+
+
+def test_free_gain_guide_is_rendered_from_distinct_dated_run():
+    import json
+    from pathlib import Path
+    from scripts.render_free_gain_tactics_guide import render
+
+    original = json.loads(Path("scripts/data/free_gain_tactics_evaluation.json").read_text())
+    rerun = json.loads(Path("scripts/data/free_gain_tactics_evaluation-2026-10-08.json").read_text())
+    guide = Path("dominion/reporting/curated_strategy_guides/free-gains-and-quartermaster-policy-evaluation.html").read_text()
+    assert rerun["source_fingerprint"] != original["source_fingerprint"]
+    assert sum(row["games_per_policy"] * 2 for row in rerun["results"]) == 13200
+    assert len(rerun["results"]) == 33
+    assert all(len(row["paired_outcomes"]) == rerun["pairs"] for row in rerun["results"])
+    assert guide == render(rerun, original)
+    assert rerun["source_fingerprint"] in guide and original["source_fingerprint"] in guide
