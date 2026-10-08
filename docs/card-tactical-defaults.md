@@ -253,7 +253,7 @@ the output exclusively. If the local reproduction output already exists,
 choose a fresh filename. These commands preserve all committed raw outcomes
 and render a separate HTML copy from the newly produced data.
 
-The dated [October 8 recording/discovery rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-recording.json)
+The dated [October 8 policy-propagation audit rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-policy-audit.json)
 uses the merged reviewed simulation inputs and covers 13,200 games: 100 seeds × two seats × two policies × 33 comparisons.
 Controls reproduce the previous decisions using the same corrected rules;
 opponents use current policies. Four representative kingdoms compare inherited
@@ -270,9 +270,12 @@ Nine comparison records changed in the first rerun. That
 is also retained unchanged. Export-only fixes subsequently changed the broad
 source fingerprint; the [export-round-trip rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json)
 is retained unchanged as well. The [adapter-compatibility rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-adapters.json)
-is also retained. The final recording/discovery rerun identifies sources after
+is also retained. The recording/discovery rerun identifies sources after
 final-gain teacher recording and reusable-strategy reference collection, plus
-the evaluator's output-preservation guard.
+the evaluator's output-preservation guard. The
+[recording/discovery rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-recording.json)
+is also preserved; the final audit rerun identifies the nullable policy's
+identity, crossover, normalization/pruning and publication consumers.
 The panel uses GeneticAI strategies rather than learned/random adapters; its
 results do not measure learned-policy or random-agent performance. The guide is generated from the final
 rerun data, not relabeled historical results. Python exports and worker serialization preserve `free_gain_priority` as `None`,
@@ -285,9 +288,31 @@ missing targets and seed overlap, including rules used only for free gains.
 
 Findings, every comparison, uncertainty, regressions, and reproduction details
 are published in the [Free Gains and Quartermaster Tactical Policy Evaluation](../reports/strategies/free-gains-and-quartermaster-policy-evaluation.html).
-The study evaluates these panels only; no dedicated policy genes were added to
-the optimizer. Saved catalog standings are preserved and marked outdated after
+The study evaluates these fixed-policy panels only; it does not measure genetic
+search improvements. No new free-gain mutation vocabulary was added. Saved catalog standings are preserved and marked outdated after
 the simulation changes.
+
+### Free-gain field propagation audit
+
+`None` inherits purchases, `[]` requests tactical fallback, and ordered rules
+specify a separate policy. Generic consumers preserve those distinct values.
+
+| Consumer | Treatment |
+| --- | --- |
+| League, trainer confirmation and hall of fame | Shared `genome_signature` includes nullable ordered rules and structural condition fingerprints; same-card rules with different predicates remain distinct. |
+| Baseline panel assembly | Deduplicates by original name and full rule signature; distinct policies receive unique labels on copies, including repeated merges. Name/spec-only island rosters identify registered factories rather than stored policy variants. |
+| Deepcopy, selection, champions and worker transport | Whole strategies retain the nullable field. Python/optimal/island exports use the shared serializer; worker transport uses cloudpickle. |
+| Positional and typed crossover | Can inherit either parent's complete setting, including resetting explicit rules to `None` or `[]`, without aliasing either parent. Both-inherited policies consume no extra random draw. |
+| Mutation and typed promotion/recompilation | Purchase-module mutations preserve the configured side policy. Typed metadata owns purchase/action/trash modules, not the free-gain list, and recompilation preserves it on the copied strategy. Fresh random genomes start with inheritance. |
+| Syntactic cleanup and normalization | Simplify non-null lists while retaining `None` and `[]`; publication recognizes free-gain-only Action references and lint includes the list. |
+| Empirical pruning and parallel rule fires | Reset, collect, return and merge free-gain fire indices; prune explicit rules with the existing minimum-rule floor. Inheritance remains `None`. |
+| Discovery and evidence summaries | Dynamic kingdoms and reusable-seed overlap include free-gain references. League JSON summaries retain null versus empty versus explicit rules. |
+
+Cross-path regressions exercise all modes and distinct same-card conditions,
+identity/deduplication, both crossover APIs, promotion/mutation/normalization,
+clone and export round trips, publication cleanup, and real serial/parallel
+free-gain fire reporting. Approximate buy-menu similarity remains a diversity
+heuristic, separate from exact policy identity; this audit adds no training run.
 
 ## Supply Action selection: implementation and evaluation
 

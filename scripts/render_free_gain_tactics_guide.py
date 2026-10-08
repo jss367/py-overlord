@@ -18,7 +18,7 @@ LABELS = {
 }
 
 
-def render(data, historical, previous=None, exports=None, adapters=None):
+def render(data, historical, previous=None, exports=None, adapters=None, recording=None):
     def rate(value, interval):
         return f'{value * 100:.1f}%<small>{interval[0] * 100:.1f}%–{interval[1] * 100:.1f}%</small>'
 
@@ -74,10 +74,18 @@ def render(data, historical, previous=None, exports=None, adapters=None):
     adapter_note = (
         '<p>The <a href="../../scripts/data/free_gain_tactics_evaluation-2026-10-08-adapters.json">adapter-compatibility rerun</a>'
         f' remains unchanged with fingerprint <code>{escape(adapters["source_fingerprint"])}</code>.'
-        ' The current recording/discovery rerun identifies final-gain teacher recording and reusable-strategy'
+        ' The recording/discovery rerun below identifies final-gain teacher recording and reusable-strategy'
         ' reference collection, plus an evaluator that refuses existing output paths. These panels do not'
         ' use teacher training or seed retrieval; provenance changes alone do not show performance changes.</p>'
         if adapters is not None else ''
+    )
+    recording_note = (
+        '<p>The <a href="../../scripts/data/free_gain_tactics_evaluation-2026-10-08-recording.json">recording/discovery rerun</a>'
+        f' remains unchanged with fingerprint <code>{escape(recording["source_fingerprint"])}</code>.'
+        ' The current policy-propagation audit rerun identifies nullable free-gain identity, whole-policy'
+        ' crossover, normalization/pruning, baseline-panel deduplication and publication consumers.'
+        ' This fixed-policy panel does not test league training or genetic search quality.</p>'
+        if recording is not None else ''
     )
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -89,10 +97,11 @@ def render(data, historical, previous=None, exports=None, adapters=None):
 <div class="note"><strong>Dated rerun: October 8, 2026.</strong> {games:,} games across {len(results)} comparisons, {data['pairs']} seed pairs each, four local CPU workers, no model inference. {truncated} games reached the {data['turn_limit']}-round limit. This run uses the merged rules and reviewed fixes. Previous and updated <em>policy arms</em> share the same rerun engine; neither column is the old experiment.</div>
 <h2>Run identity and preserved historical evidence</h2>
 <p>Rerun simulation input fingerprint: <code>{fresh}</code>. Evaluator SHA-256: <code>{escape(data['evaluator_sha256'])}</code>. Python {escape(data['python_version'])}. The fingerprint covers non-reporting Dominion Python, generated strategies, boards and the tournament configuration files; it identifies inputs, not statistical certainty.</p>
-<p>The <a href="../../scripts/data/free_gain_tactics_evaluation.json">original raw outcomes</a> remain byte-for-byte unchanged. Their fingerprint <code>{old}</code> matches the original PR tree <code>4fc860b5b559d85192a97f8535f8a1da31f455f2</code>. They are historical evidence, not results for the reviewed merged tree. All tables and findings below are rendered from the distinct <a href="../../scripts/data/free_gain_tactics_evaluation-2026-10-08-recording.json">October 8 recording/discovery rerun</a>.</p>
+<p>The <a href="../../scripts/data/free_gain_tactics_evaluation.json">original raw outcomes</a> remain byte-for-byte unchanged. Their fingerprint <code>{old}</code> matches the original PR tree <code>4fc860b5b559d85192a97f8535f8a1da31f455f2</code>. They are historical evidence, not results for the reviewed merged tree. All tables and findings below are rendered from the distinct <a href="../../scripts/data/free_gain_tactics_evaluation-2026-10-08-policy-audit.json">October 8 policy-propagation audit rerun</a>.</p>
 {previous_note}
 {export_note}
 {adapter_note}
+{recording_note}
 <p>Since the original run, reviewed inputs changed in exposed-card gain removal, physical-pile endgame context, shared Action/Way resolution and pending bonuses, Anvil validation, opponent trashing/storage defaults, and dynamic board discovery. These can affect legality, choices, random-state progression or opponents. The diagnostic and Port Moresby boards are explicit, so the new free-gain discovery fix does not itself change those boards. Fingerprint changes outside this panel are not evidence that each result changed.</p>
 <h2>Practical findings from this rerun</h2><ul>{''.join(findings)}</ul>
 <p>Registered Port Moresby strategy changes range from {min(r['delta'] for r in registered) * 100:+.1f} to {max(r['delta'] for r in registered) * 100:+.1f} percentage points. Consult each paired interval below; do not promote a plan on a point estimate alone.</p>
@@ -114,7 +123,7 @@ PYTHONPATH=. python scripts/render_free_gain_tactics_guide.py --results .context
 pytest -q tests/test_free_gain_tactics.py tests/test_shared_card_tactics.py tests/test_plunder_kingdom_cards.py
 PYTHONPATH=. python scripts/render_catalog.py
 python scripts/check_catalog.py</code></pre>
-<p>The evaluator refuses an existing output path before starting games and exclusively creates its output. Choose another local filename if the reproduction file already exists. The reproduction renderer reads that new file and writes a separate HTML copy; committed outcomes and the packaged guide remain unchanged. Worker count changes throughput, not seeds. No dedicated policy genes were added. Saved catalog standings/card ranks are retained with their own freshness notice; this panel does not replace the global tournament.</p>
+<p>The evaluator refuses an existing output path before starting games and exclusively creates its output. Choose another local filename if the reproduction file already exists. The reproduction renderer reads that new file and writes a separate HTML copy; committed outcomes and the packaged guide remain unchanged. Worker count changes throughput, not seeds. No new free-gain mutation vocabulary was added; crossover can inherit a parent's complete nullable setting, and configured rules participate in normalization and empirical pruning. Saved catalog standings/card ranks are retained with their own freshness notice; this panel does not replace the global tournament.</p>
 <footer>Rerun October 8, 2026. <a href="https://github.com/jss367/py-overlord/issues/391">Implementation tracking</a>. Generated from raw outcomes by <a href="../../scripts/render_free_gain_tactics_guide.py">the report renderer</a>.</footer>
 </main></body></html>
 '''
@@ -122,14 +131,15 @@ python scripts/check_catalog.py</code></pre>
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--results', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08-recording.json'))
+    parser.add_argument('--results', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08-policy-audit.json'))
     parser.add_argument('--historical', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation.json'))
     parser.add_argument('--previous', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08.json'))
     parser.add_argument('--exports', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json'))
     parser.add_argument('--adapters', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08-adapters.json'))
+    parser.add_argument('--recording', type=Path, default=Path('scripts/data/free_gain_tactics_evaluation-2026-10-08-recording.json'))
     parser.add_argument('--output', type=Path, default=Path('dominion/reporting/curated_strategy_guides/free-gains-and-quartermaster-policy-evaluation.html'))
     args = parser.parse_args()
-    args.output.write_text(render(json.loads(args.results.read_text()), json.loads(args.historical.read_text()), json.loads(args.previous.read_text()), json.loads(args.exports.read_text()), json.loads(args.adapters.read_text())))
+    args.output.write_text(render(json.loads(args.results.read_text()), json.loads(args.historical.read_text()), json.loads(args.previous.read_text()), json.loads(args.exports.read_text()), json.loads(args.adapters.read_text()), json.loads(args.recording.read_text())))
 
 
 if __name__ == '__main__':

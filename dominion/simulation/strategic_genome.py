@@ -1140,6 +1140,12 @@ def crossover_strategic_strategies(parent1: BaseStrategy, parent2: BaseStrategy,
 
     child = deepcopy(parent1)
     child_genome.compile_into(child, info)
+    # This side policy is outside the typed purchase modules. Inherit its
+    # complete nullable setting, without inventing a free-gain mutation gene.
+    if (getattr(parent1, "free_gain_priority", None) is not None
+            or getattr(parent2, "free_gain_priority", None) is not None):
+        if rng.random() < 0.5:
+            child.free_gain_priority = deepcopy(getattr(parent2, "free_gain_priority", None))
     if rng.random() < 0.5:
         child.way_policy = deepcopy(getattr(parent2, "way_policy", []))
     return child

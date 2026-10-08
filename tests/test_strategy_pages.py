@@ -609,7 +609,8 @@ def test_free_gain_guide_is_rendered_from_distinct_dated_run():
     previous = json.loads(Path("scripts/data/free_gain_tactics_evaluation-2026-10-08.json").read_text())
     exports = json.loads(Path("scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json").read_text())
     adapters = json.loads(Path("scripts/data/free_gain_tactics_evaluation-2026-10-08-adapters.json").read_text())
-    rerun = json.loads(Path("scripts/data/free_gain_tactics_evaluation-2026-10-08-recording.json").read_text())
+    recording = json.loads(Path("scripts/data/free_gain_tactics_evaluation-2026-10-08-recording.json").read_text())
+    rerun = json.loads(Path("scripts/data/free_gain_tactics_evaluation-2026-10-08-policy-audit.json").read_text())
     guide = Path("dominion/reporting/curated_strategy_guides/free-gains-and-quartermaster-policy-evaluation.html").read_text()
     assert rerun["source_fingerprint"] != original["source_fingerprint"]
     assert sum(row["games_per_policy"] * 2 for row in rerun["results"]) == 13200
@@ -621,7 +622,9 @@ def test_free_gain_guide_is_rendered_from_distinct_dated_run():
     assert rerun["source_fingerprint"] != exports["source_fingerprint"]
     assert rerun["results"] == adapters["results"]
     assert rerun["source_fingerprint"] != adapters["source_fingerprint"]
-    assert guide == render(rerun, original, previous, exports, adapters)
+    assert rerun["results"] == recording["results"]
+    assert rerun["source_fingerprint"] != recording["source_fingerprint"]
+    assert guide == render(rerun, original, previous, exports, adapters, recording)
     assert rerun["source_fingerprint"] in guide and original["source_fingerprint"] in guide
     assert "--output .context/free_gain_tactics_reproduction.json" in guide
     assert "--results .context/free_gain_tactics_reproduction.json --output .context/free_gain_tactics_reproduction.html" in guide

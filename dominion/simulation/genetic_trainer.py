@@ -1094,6 +1094,11 @@ class GeneticTrainer:
                 parent2.bounty_hunter_exile_priority
             )
 
+        if (getattr(parent1, "free_gain_priority", None) is not None
+                or getattr(parent2, "free_gain_priority", None) is not None):
+            if random.random() < 0.5:
+                child.free_gain_priority = deepcopy(getattr(parent2, "free_gain_priority", None))
+
         return child
 
     def _mutate(self, strategy: BaseStrategy) -> BaseStrategy:
@@ -1332,6 +1337,8 @@ class GeneticTrainer:
             from dominion.simulation.structured_genome import normalize_menu
             normalize_menu(strategy, self._kingdom_info)
         strategy.gain_priority = self._normalize_priority_list(strategy.gain_priority)
+        if getattr(strategy, "free_gain_priority", None) is not None:
+            strategy.free_gain_priority = self._normalize_priority_list(strategy.free_gain_priority)
         strategy.action_priority = self._normalize_priority_list(strategy.action_priority)
         strategy.treasure_priority = self._normalize_priority_list(strategy.treasure_priority)
         strategy.trash_priority = self._normalize_priority_list(strategy.trash_priority)

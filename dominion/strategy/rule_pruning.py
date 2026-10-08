@@ -35,6 +35,7 @@ from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 
 _PRIORITY_LIST_ATTRS = (
     "gain_priority",
+    "free_gain_priority",
     "action_priority",
     "treasure_priority",
     "trash_priority",

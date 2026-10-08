@@ -3,6 +3,7 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
+from copy import deepcopy
 
 import coloredlogs
 import yaml
@@ -10,6 +11,7 @@ import yaml
 from dominion.boards.loader import BoardConfig, load_board
 from dominion.analysis.strategy_library import find_compatible_strategies
 from dominion.simulation.genetic_trainer import GeneticTrainer
+from dominion.simulation.adversarial_league import genome_signature
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
 from dominion.strategy.lint import cleanup_for_publication, lint_strategy
 
@@ -196,7 +198,8 @@ def _importable_seed_base(strategy: EnhancedStrategy) -> tuple[str, str] | None:
 
 def merge_baseline_panel(base_panel: list, reused: list) -> list:
     """Return ``base_panel`` followed by the ``reused`` strategies not already
-    present (dedup by ``strategy.name``).
+    present (dedup by name and policy signature; distinct policies retain
+    unique display names without modifying callers' strategy objects).
 
     Pulled out of ``main()`` so the reuse-augments-default-baselines invariant
     is unit-testable without standing up an argparse/training run: with reuse on
@@ -206,9 +209,20 @@ def merge_baseline_panel(base_panel: list, reused: list) -> list:
     """
     panel = list(base_panel)
     existing_names = {strategy.name for strategy in panel}
+    existing = {(getattr(strategy, "_baseline_identity_name", strategy.name), genome_signature(strategy)) for strategy in panel}
     for strategy in reused:
-        if strategy.name in existing_names:
+        key = (getattr(strategy, "_baseline_identity_name", strategy.name), genome_signature(strategy))
+        if key in existing:
             continue
+        existing.add(key)
+        if strategy.name in existing_names:
+            strategy = deepcopy(strategy)
+            original_name = strategy.name
+            strategy._baseline_identity_name = key[0]
+            suffix = 2
+            while f"{original_name} ({suffix})" in existing_names:
+                suffix += 1
+            strategy.name = f"{original_name} ({suffix})"
         existing_names.add(strategy.name)
         panel.append(strategy)
     return panel
