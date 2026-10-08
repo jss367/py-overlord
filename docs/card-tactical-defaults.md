@@ -33,8 +33,12 @@ Suggested child issue titles, in priority order:
 5. **Measure tactical defaults and expand the card inventory** — reproducible
    decision scenarios, seeded comparisons, and an audit of remaining expansions.
 
-The parent tracking issue is open. The five child issue groups above are
-proposed boundaries; separate child issues have not yet been opened.
+The parent tracking issue is open. These decision families are tracked in
+[#390](https://github.com/jss367/py-overlord/issues/390),
+[#391](https://github.com/jss367/py-overlord/issues/391),
+[#392](https://github.com/jss367/py-overlord/issues/392),
+[#393](https://github.com/jss367/py-overlord/issues/393), and
+[#394](https://github.com/jss367/py-overlord/issues/394), respectively.
 
 ## Status vocabulary
 
@@ -63,14 +67,14 @@ tested, then expand coverage by expansion.
 | Band of Misfits | Dark Ages | Select a supply Action | Needs forwarding: its dedicated base-AI hook is not forwarded to the strategy. |
 | Workshop | Base | Select a free gain | Needs context: calls the buy selector, which uses gain priorities; evaluate free-gain fallback and ownership limits. |
 | Remodel | Base | Choose a trash/gain pair | Needs context: separate generic trash and gain choices do not evaluate the pair together. |
-| Anvil | Prosperity | Discard a Treasure, then gain | Gain override is connected; Treasure-discard hook needs forwarding. |
-| Chapel | Base | Choose up to four trashes | Generic trash priorities are connected; evaluate stopping and minimum economy. |
-| Junk Dealer | Dark Ages | Choose a mandatory trash | Needs forwarding for its dedicated trash hook; evaluate keeping enough economy. |
-| Gear | Adventures | Choose cards to set aside | Needs forwarding; evaluate current-turn versus next-turn value. |
-| Haven | Seaside | Choose a card to set aside | Needs forwarding; evaluate next-hand usefulness. |
+| Anvil | Prosperity | Discard a Treasure, then gain | Both dedicated hooks were already forwarded. Discard baseline and physical-card validation are tested; the combined discard/gain tradeoff belongs to #391. |
+| Chapel | Base | Choose up to four trashes | Connected and tested: optional stopping, four-card cap, legal physical choices, conditional economy floors, and endgame preservation. Trash priorities remain strategy-owned. |
+| Junk Dealer | Dark Ages | Choose a mandatory trash | Dedicated override was already forwarded. Invalid/declined choices now use the mandatory base fallback. Tests preserve useful economy when junk is available; no hard economy floor can prevent a mandatory trash. |
+| Gear | Adventures | Choose cards to set aside | Connected, tested, and evaluated on a fixed kingdom: shared baseline saves stranded Actions or money above a buy breakpoint and can stop at zero. Multiple copies and replays conserve cards; no-choice plays leave at current cleanup. |
+| Haven | Seaside | Choose a card to set aside | Connected, tested, and evaluated on a fixed kingdom: shares next-turn selection with Gear, then reuses the generic discard hook with reason `"haven"`. Mandatory legal fallback, per-copy replay storage, scoring and delayed returns are tested. |
 | Barge | Menagerie | Resolve now or next turn | Needs forwarding; evaluate hand and action context. |
 | Sleigh | Menagerie | Redirect a gained card | Needs forwarding; evaluate whether to spend the reaction. |
-| Torturer | Intrigue | Respond to attack and choose discards | Response mode is forwarded under `choose_torturer_response`; discard selection needs forwarding. |
+| Torturer | Intrigue | Respond to attack and choose discards | Response mode and generic discard selection are already forwarded (`reason="torturer"`); their policy evaluation belongs to #393. |
 | Watchtower | Prosperity | Trash, topdeck, or keep a gain | Existing connected defaults and tests; evaluate exceptions by strategy and game stage. |
 | Clerk | Prosperity | Reaction play and attack topdeck | Existing connected defaults and tests; evaluate exceptions. |
 | Investment | Prosperity | Take money or trash a Treasure for points | Existing connected defaults and tests; evaluate point-versus-economy tradeoffs. |
@@ -163,3 +167,55 @@ First-implementation regression tests:
 existing interaction coverage in
 [`test_plunder_kingdom_cards.py`](../tests/test_plunder_kingdom_cards.py) and
 [`test_genetic_ai_hooks.py`](../tests/test_genetic_ai_hooks.py).
+
+## Trashing, discard, and next-turn storage evaluation
+
+Issue [#392](https://github.com/jss367/py-overlord/issues/392) adds Gear and Haven
+forwarding through `GeneticAI`. Both use
+`tactical_defaults.choose_next_turn_cards(state, player, choices, count)`.
+Gear may return zero to two cards. Haven first considers one useful next-turn
+card, then calls the existing generic discard selector with `reason="haven"`.
+A dedicated Haven override returning `None` does not waive its mandatory
+selection: the card effect picks a legal fallback. Invalid Gear choices are
+ignored; invalid Chapel choices stop optional trashing; invalid Junk Dealer
+choices trigger its existing mandatory trash baseline. Anvil may decline its
+discard and must select an actual Treasure from the legal hand menu.
+
+The shared discard ranking now puts all pure Victory cards and Curses before
+live cards, then Copper and cheaper cards. It preserves Action/Victory,
+Treasure/Victory, and Night cards as live choices. Strategy discard overrides
+remain authoritative. Chapel continues to use existing strategy trash
+priorities, including conditional rules for stopping at a minimum economy or
+preserving late points. Junk Dealer and Anvil keep their existing trash/discard
+policies: the former must sacrifice something even in a hand of useful cards;
+the latter's cheapest-Treasure preference does not evaluate its gain jointly.
+
+The storage baseline reserves printed supply-cost breakpoints (with current
+cost reductions), including a $3 building floor when available. It accounts
+for remaining Actions, Villagers and printed action support when identifying
+stranded Actions, avoids saving pure junk under optional Gear, and preserves
+this turn when the final Province/Colony can be bought. It does not model
+special card text, draw order, landscapes, multiple purchases or three-pile
+endings. A strategy can override either dedicated storage decision.
+
+Card-conservation and retention corrections are separately tracked in
+[#398 — Fix lost set-aside cards when Gear or Haven is replayed](https://github.com/jss367/py-overlord/issues/398).
+Storage accumulates per physical copy across plays; all stored cards return
+once next turn. Haven's list-valued storage is included in ownership/scoring.
+A play without storage schedules no Duration instruction; an empty later replay
+preserves earlier storage. Tests also cover completed Duration cleanup and
+Throne Room replaying two successful storage effects. Multiplier retention
+when only one replay schedules a future effect remains a broader engine audit;
+this change does not certify every multiplier/Way/Command combination.
+
+The [published comparison](../reports/strategies/trashing-discard-and-next-turn-card-decisions.html)
+contains complete results, uncertainty, score-margin regressions, policies,
+seeds and reproduction commands. Both comparison arms use the corrected card
+rules, isolating the policy change. Registered Big Money and Chapel Witch are
+reevaluated alongside four diagnostic decks and three representative opponents.
+Saved catalog standings are retained and marked outdated by catalog
+regeneration; this focused study does not replace a full tournament.
+
+Coverage: [`test_set_aside_tactics.py`](../tests/test_set_aside_tactics.py),
+existing expansion tests, and
+[`evaluate_set_aside_tactics.py`](../scripts/evaluate_set_aside_tactics.py).

@@ -13,17 +13,13 @@ class Haven(Card):
             stats=CardStats(cards=1, actions=1),
             types=[CardType.ACTION, CardType.DURATION],
         )
-        self.set_aside = None
+        self.set_aside = []
         self.duration_persistent = False
 
     def play_effect(self, game_state):
         player = game_state.current_player
 
         if not player.hand:
-            # Nothing to set aside; Haven still enters duration so cleanup
-            # discards it correctly next turn.
-            player.duration.append(self)
-            self.duration_persistent = True
             return
 
         # Haven's set-aside is mandatory if the hand has cards. Honor the AI
@@ -32,20 +28,18 @@ class Haven(Card):
         choice = player.ai.choose_card_to_set_aside_for_haven(
             game_state, player, list(player.hand)
         )
-        if choice is None or choice not in player.hand:
-            choice = min(
-                player.hand,
-                key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
-            )
+        if not any(choice is held for held in player.hand):
+            from dominion.ai.tactical_defaults import discard_priority
 
-        player.hand.remove(choice)
-        self.set_aside = choice
+            choice = min(player.hand, key=discard_priority)
+
+        index = next(i for i, held in enumerate(player.hand) if held is choice)
+        self.set_aside.append(player.hand.pop(index))
         player.duration.append(self)
         self.duration_persistent = True
 
     def on_duration(self, game_state):
         player = game_state.current_player
-        if self.set_aside is not None:
-            player.hand.append(self.set_aside)
-            self.set_aside = None
+        player.hand.extend(self.set_aside)
+        self.set_aside = []
         self.duration_persistent = False

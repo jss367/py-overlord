@@ -71,3 +71,67 @@ def choose_quartermaster_gain(choices: list[Card]) -> Card | None:
 def quartermaster_take_all(mat: list[Card]) -> bool:
     """Baseline collection cadence: gain twice, then collect; overridable."""
     return len(mat) >= 2
+
+
+def discard_priority(card: Card) -> tuple:
+    """Prefer dead cards, then cheap economy, preserving live green hybrids."""
+    dead = card.name == "Curse" or (
+        card.is_victory and not card.is_action and not card.is_treasure
+    )
+    return (not dead, card.name != "Curse", card.name != "Copper", card.cost.coins, card.name)
+
+
+def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> list[Card]:
+    """Optional storage: stranded Actions, then money above a buy breakpoint.
+
+    Printed resources estimate usefulness, not special card effects. Do not
+    store dead cards: returning them adds no value to the next hand. Preserve
+    affordable supply-cost breakpoints and a minimum $3 building hand.
+    """
+    if not choices or count <= 0:
+        return []
+
+    from dominion.cards.registry import get_card
+
+    hand = list(player.hand)
+    money = player.coins + sum(c.stats.coins for c in hand if c.is_treasure)
+    costs = [3]
+    for name, remaining in state.supply.items():
+        if remaining <= 0 or name in state.non_supply_pile_names:
+            continue
+        card = get_card(name)
+        if card.cost.debt == 0 and card.cost.potions == 0:
+            costs.append(state.get_card_cost(player, card))
+    floor = max((cost for cost in costs if cost <= money), default=money)
+    # There may be no next turn when buying the final Province/Colony.
+    if any(state.supply.get(name) == 1 and money >= state.get_card_cost(player, get_card(name))
+           for name in ("Province", "Colony")):
+        return []
+
+    def next_value(card):
+        return (card.stats.cards * 2 + card.stats.coins, card.cost.coins, card.name)
+
+    terminals = sorted(
+        (c for c in hand if c.is_action and c.stats.actions == 0),
+        key=next_value, reverse=True,
+    )
+    # A Village or cantrip must remain usable this turn; account for its support.
+    action_budget = player.actions + player.villagers
+    if action_budget > 0:
+        action_budget += sum(max(0, c.stats.actions - 1) for c in hand if c.is_action)
+    stranded = (
+        [c for c in hand if c.is_action] if action_budget <= 0 else terminals[action_budget:]
+    )
+    selected = []
+    for card in sorted(stranded, key=next_value, reverse=True):
+        if any(card is c for c in choices) and len(selected) < max(0, count):
+            selected.append(card)
+    for card in sorted((c for c in choices if c.is_treasure and not c.is_action),
+                       key=next_value, reverse=True):
+        if len(selected) >= max(0, count):
+            break
+        value = card.stats.coins
+        if value > 0 and money - value >= floor:
+            selected.append(card)
+            money -= value
+    return selected

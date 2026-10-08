@@ -530,10 +530,10 @@ class AI(ABC):
 
         while remaining and len(selected) < count:
             choice = self.choose_card_to_trash(state, remaining)
-            if choice is None or choice not in remaining:
+            index = next((i for i, card in enumerate(remaining) if card is choice), None)
+            if choice is None or index is None:
                 break
-            selected.append(choice)
-            remaining.remove(choice)
+            selected.append(remaining.pop(index))
 
         return selected
 
@@ -676,25 +676,13 @@ class AI(ABC):
     ) -> list[Card]:
         """Choose up to ``count`` cards to discard from ``choices``.
 
-        Default heuristic prefers to discard obviously low-value cards:
-        Curses, low-cost non-action Victory, then Copper, then by cost.
+        Default heuristic discards dead cards before printed economy; live
+        Action/Victory and Treasure/Victory hybrids remain useful.
 
         ``reason`` can be used by subclasses to tailor decisions (e.g. "torturer").
         """
 
-        def discard_priority(card: Card) -> tuple[int, int, str]:
-            if card.name == "Curse":
-                return (0, 0, card.name)
-            # Non-action green cards are typically dead in hand; prefer cheaper ones first
-            if card.is_victory and not card.is_action and card.cost.coins <= 2:
-                return (1, card.cost.coins, card.name)
-            if card.name == "Copper":
-                return (2, 0, card.name)
-            # Otherwise rank by coin cost (cheaper first)
-            return (3, card.cost.coins, card.name)
-
-        available = list(choices)
-        ordered = sorted(available, key=discard_priority)
+        ordered = sorted(choices, key=tactical_defaults.discard_priority)
         return ordered[: max(0, min(count, len(ordered)))]
 
     def choose_card_to_delay(
@@ -1546,23 +1534,15 @@ class AI(ABC):
     def choose_card_to_set_aside_for_haven(
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Optional[Card]:
-        """Pick a card to set aside under Haven for next turn.
+        """Store a stranded Action or spare money; otherwise discard least value.
 
-        Default: prefer the most valuable Action; otherwise the most expensive
-        Treasure. Skip if the only options are clear junk.
+        Haven is mandatory, so the existing discard hook supplies its fallback.
         """
-        if not choices:
-            return None
-
-        actions = [c for c in choices if c.is_action]
-        if actions:
-            return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
-
-        treasures = [c for c in choices if c.is_treasure and c.name != "Copper"]
-        if treasures:
-            return max(treasures, key=lambda c: (c.cost.coins, c.name))
-
-        return None
+        picks = tactical_defaults.choose_next_turn_cards(state, player, choices, 1)
+        if picks:
+            return picks[0]
+        picks = self.choose_cards_to_discard(state, player, choices, 1, reason="haven")
+        return picks[0] if picks else None
 
     def choose_card_to_ambassador(
         self, state: GameState, player: PlayerState, choices: list[Card]
@@ -2370,17 +2350,8 @@ class AI(ABC):
     def choose_gear_set_aside(
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> list[Card]:
-        """Pick up to 2 cards to set aside with Gear, returned next turn.
-
-        Default: set aside Action cards that won't be useful this turn (extras),
-        or low-value cards we'd rather draw next turn.
-        """
-        actions = [c for c in choices if c.is_action]
-        if len(actions) >= 2 and player.actions <= 0:
-            return actions[:2]
-        # Default: don't set aside aggressively; just pick any 2 spare cards
-        # so the set-aside pile isn't empty for tests.
-        return choices[:2]
+        """Optionally save up to two useful cards without sacrificing a buy."""
+        return tactical_defaults.choose_next_turn_cards(state, player, choices, 2)
 
     def choose_gain_for_alms(
         self, state: GameState, player: PlayerState, choices: list[Card]

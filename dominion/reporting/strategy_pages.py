@@ -51,6 +51,14 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="trashing-discard-and-next-turn-card-decisions.html",
+        display_name="Trashing, Discarding, and Saving Cards for the Next Turn",
+        description="Shared Gear and Haven decisions, mandatory and optional selection rules, card conservation, and fixed-seed comparisons with uncertainty and regressions.",
+        kingdom_cards=("Gear", "Haven", "Chapel", "Junk Dealer", "Anvil", "Village",
+                       "Smithy", "Laboratory", "Militia", "Market"),
+        source_label="Card rules, tactical regression tests and seat-balanced repository simulations",
+    ),
+    CuratedStrategyGuide(
         filename="cobbler-shepherd-strategy-comparison.html",
         strategy_slugs=("cobbler-shepherd-growth",),
         display_name="Cobbler and Shepherd: Strategy Comparison",

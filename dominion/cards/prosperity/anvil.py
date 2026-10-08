@@ -57,13 +57,14 @@ class Anvil(Card):
         )
         if (
             choice is None
-            or choice not in player.hand
+            or not any(choice is held for held in treasures)
             or not game_state.is_treasure(choice)
         ):
             return
 
         # Discard the chosen Treasure from hand.
-        player.hand.remove(choice)
+        index = next(i for i, held in enumerate(player.hand) if held is choice)
+        player.hand.pop(index)
         game_state.discard_card(player, choice)
 
         if game_state.supply.get(target.name, 0) <= 0:

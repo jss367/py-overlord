@@ -468,6 +468,18 @@ class GeneticAI(AI):
             return hook(state, player, options)
         return super().choose_teacher_token(state, player, options)
 
+    def choose_gear_set_aside(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_gear_set_aside", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_gear_set_aside(state, player, choices)
+
+    def choose_card_to_set_aside_for_haven(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_card_to_set_aside_for_haven", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_card_to_set_aside_for_haven(state, player, choices)
+
     def choose_cards_to_trash(self, state: "GameState", choices: list[Card], count: int) -> list[Card]:
         hook = getattr(self.strategy, "choose_cards_to_trash", None)
         if hook is not None:
