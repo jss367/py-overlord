@@ -275,9 +275,15 @@ The storage baseline reserves printed supply-cost breakpoints (with current
 cost reductions), including a $3 building floor when available. It accounts
 for remaining Actions, Villagers and printed action support before or during
 the Action phase when identifying stranded Actions. After that phase these
-resources cannot make an Action playable. Hybrids remain in hand while their
-Treasure or Night play phase is still available. The baseline avoids saving pure
-junk under optional Gear, and preserves this turn when the final Province/Colony can be bought. It does not model
+resources cannot make an Action playable. Hand Treasure income contributes only
+before or during the Treasure phase; storing one removes its entire projected
+income, including known external bonuses. Later indirect plays through Toil or
+March do not reopen earlier phases, so newly drawn money can be saved without
+preserving fictitious buy breakpoints. Ordinary play budgets apply only on the
+owner's turn. Hybrids remain in hand while their Treasure or Night play phase is
+still available. The baseline avoids saving pure
+junk under optional Gear, and preserves this turn when the final Province/Colony
+can be bought during a remaining Buy phase. It does not model
 special card text, draw order, landscapes, multiple purchases or three-pile
 endings. The baseline also projects known pending pile-token, Champion,
 Prophecy and Ally resource bonuses. Scoped play context identifies the actual

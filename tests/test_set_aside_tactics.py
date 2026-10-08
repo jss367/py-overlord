@@ -406,7 +406,7 @@ def test_storage_keeps_actions_with_usable_villagers_and_village_support(phase):
 
 
 @pytest.mark.parametrize("phase,expected", [
-    ("action", []), ("treasure", []), ("buy", ["Crown"]), ("night", ["Crown"]),
+    ("action", []), ("treasure", []), ("buy", ["Crown", "Gold"]), ("night", ["Crown", "Gold"]),
 ])
 def test_hybrid_storage_respects_its_remaining_play_phase(phase, expected):
     state, player = setup(names=("Crown", "Werewolf", "Gold"))
@@ -559,3 +559,93 @@ def test_pending_context_restores_after_strategy_failure():
         bonus_play(state, player, get_card("Gear"), "helper")
     assert getattr(state, "_pending_play_context", None) is None
     assert getattr(state, "_decision_play_context", None) is None
+
+
+@pytest.mark.parametrize("event_name", ["Toil", "March"])
+def test_buy_phase_event_gear_saves_newly_drawn_gold(event_name):
+    from dominion.events.menagerie_events import March, Toil
+
+    strategy = EnhancedStrategy()
+    strategy.action_priority = [PriorityRule("Gear")]
+    state, player = setup(strategy)
+    state.phase = "buy"
+    player.actions = player.villagers = 5
+    gear = get_card("Gear")
+    (player.hand if event_name == "Toil" else player.discard).append(gear)
+    player.deck = [get_card("Gold"), get_card("Gold")]
+    golds = list(reversed(player.deck))
+    (Toil() if event_name == "Toil" else March()).on_buy(state, player)
+    assert gear.set_aside == golds
+    assert player.hand == []
+    assert player.coins == 0
+    assert state.phase == "buy"
+    state.do_duration_phase()
+    assert player.hand == golds
+
+
+@pytest.mark.parametrize("phase", ["start", "action", "treasure", "buy", "night", "cleanup"])
+@pytest.mark.parametrize("name", ["Gear", "Haven"])
+def test_storage_hand_money_uses_remaining_treasure_phase(phase, name):
+    state, player = setup(names=("Gold", "Gold"))
+    state.phase = phase
+    card = get_card(name)
+    player.in_play.append(card)
+    state.play_action_indirectly(player, card)
+    expected = [] if phase in {"start", "action", "treasure"} else ["Gold"] * (2 if name == "Gear" else 1)
+    # Haven must store one card even when the optional baseline declines.
+    if name == "Haven" and not expected:
+        expected = ["Gold"]
+    assert [c.name for c in card.set_aside] == expected
+
+
+@pytest.mark.parametrize("phase", ["start", "action", "treasure", "buy", "night", "cleanup"])
+def test_final_province_guard_uses_real_cash_and_remaining_buy_phase(phase):
+    state, player = setup(names=("Gold", "Gold"))
+    state.phase = phase
+    state.supply["Province"] = 1
+    player.coins = 2
+    picks = player.ai.choose_gear_set_aside(state, player, player.hand)
+    assert [c.name for c in picks] == ([] if phase in {"start", "action", "treasure"} else ["Gold", "Gold"])
+    player.coins = 8
+    picks = player.ai.choose_gear_set_aside(state, player, player.hand)
+    assert [c.name for c in picks] == ([] if phase in {"start", "action", "treasure", "buy"} else ["Gold", "Gold"])
+
+
+@pytest.mark.parametrize("phase", ["start", "action", "treasure"])
+def test_storing_treasure_subtracts_full_projected_token_income(phase):
+    state, player = setup(names=("Gold", "Gold", "Copper", "Copper"))
+    state.phase = phase
+    state.add_pile_token(player, "Copper", "+$1")
+    picks = player.ai.choose_gear_set_aside(state, player, player.hand)
+    assert [c.name for c in picks] == ["Copper"]
+    for card in picks:
+        player.hand.remove(card)
+    state.phase = "treasure"
+    state.handle_treasure_phase()
+    assert player.coins == 8
+
+
+@pytest.mark.parametrize("phase", ["treasure", "buy", "night", "cleanup"])
+def test_late_pending_action_sources_do_not_reopen_action_phase(phase):
+    state, player = setup(names=("Smithy", "Village"))
+    state.phase = phase
+    player.actions = player.villagers = player.champions_in_play = 5
+    state.add_pile_token(player, "Gear", "+1 Action")
+    gear = get_card("Gear")
+    player.in_play.append(gear)
+    state.play_action_indirectly(player, gear)
+    assert [c.name for c in gear.set_aside] == ["Smithy", "Village"]
+    assert player.actions == 11
+    assert state.phase == phase
+
+
+def test_off_turn_storage_does_not_spend_owners_hand_resources():
+    state, owner = setup(names=("Smithy", "Gold"))
+    other = PlayerState(GeneticAI(EnhancedStrategy()))
+    state.players.append(other)
+    state.current_player_index = 1
+    state.phase = "action"
+    owner.actions = owner.villagers = 5
+    # A reaction/indirect play can temporarily target an off-turn player.
+    picks = owner.ai.choose_gear_set_aside(state, owner, owner.hand)
+    assert [c.name for c in picks] == ["Smithy", "Gold"]

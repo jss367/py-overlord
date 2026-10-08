@@ -179,6 +179,19 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
     from dominion.cards.registry import get_card
 
     hand = list(player.hand)
+    # Ordinary hand plays belong to this player's turn. Indirect plays (for
+    # example Toil/March in Buy) do not reopen earlier play phases.
+    own_turn = player is state.turn_player
+    actions_playable = own_turn and state.phase in {"start", "action"}
+    treasures_playable = own_turn and state.phase in {"start", "action", "treasure"}
+    night_playable = own_turn and state.phase in {"start", "action", "treasure", "buy", "night"}
+    buys_available = own_turn and state.phase in {"start", "action", "treasure", "buy"}
+
+    def treasure_income(card):
+        if not treasures_playable or not state.is_treasure(card):
+            return 0
+        return card.stats.coins + guaranteed_play_resources(state, player, card)[0]
+
     pending = getattr(state, "_pending_play_context", None)
     pending_coins, pending_actions = (0, 0)
     while pending is not None:
@@ -192,10 +205,7 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
             pending_coins += coins
             pending_actions += actions
         pending = pending.get("outer")
-    money = player.coins + pending_coins + sum(
-        c.stats.coins + guaranteed_play_resources(state, player, c)[0]
-        for c in hand if state.is_treasure(c)
-    )
+    money = player.coins + pending_coins + sum(treasure_income(c) for c in hand)
     costs = [3]
     for name, remaining in state.supply.items():
         if remaining <= 0 or name in state.non_supply_pile_names:
@@ -205,7 +215,7 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
             costs.append(state.get_card_cost(player, card))
     floor = max((cost for cost in costs if cost <= money), default=money)
     # There may be no next turn when buying the final Province/Colony.
-    if any(state.supply.get(name) == 1 and money >= state.get_card_cost(player, get_card(name))
+    if buys_available and any(state.supply.get(name) == 1 and money >= state.get_card_cost(player, get_card(name))
            for name in ("Province", "Colony")):
         return []
 
@@ -214,8 +224,6 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
 
     # Retain hybrids while their other ordinary play phase is still available.
     # Use the live Treasure type so Capitalism is covered as well as Crown.
-    treasures_playable = state.phase in {"start", "action", "treasure"}
-    night_playable = state.phase in {"start", "action", "treasure", "buy", "night"}
     action_only = [
         c for c in hand if c.is_action
         and not (treasures_playable and state.is_treasure(c))
@@ -232,7 +240,7 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
     # A Village or cantrip must remain usable this turn; account for its support.
     action_budget = (
         player.actions + player.villagers + pending_actions
-        if state.phase in {"start", "action"} else 0
+        if actions_playable else 0
     )
     if action_budget > 0:
         action_budget += sum(max(0, available_actions(c) - 1) for c in hand if state.is_action(c))
@@ -247,8 +255,8 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
                        key=next_value, reverse=True):
         if len(selected) >= max(0, count):
             break
-        value = card.stats.coins
-        if value > 0 and money - value >= floor:
+        income = treasure_income(card)
+        if card.stats.coins > 0 and money - income >= floor:
             selected.append(card)
-            money -= value
+            money -= income
     return selected
