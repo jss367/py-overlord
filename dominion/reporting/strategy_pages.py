@@ -51,6 +51,14 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="supply-action-selection-evaluation.html",
+        display_name="Choosing Supply Actions: Captain, Band of Misfits and Overlord",
+        description="Dedicated target preferences, legal-menu audits, targeted scenarios and fixed-seed comparisons of shared supply Action decisions, with uncertainty and remaining rules defects.",
+        kingdom_cards=("Captain", "Band of Misfits", "Overlord", "Chapel", "Village",
+                       "Smithy", "Militia", "Witch", "Laboratory", "Market", "Festival", "Moat"),
+        source_label="Rules audit, regression scenarios and seat-balanced repository simulations",
+    ),
+    CuratedStrategyGuide(
         filename="cobbler-shepherd-strategy-comparison.html",
         strategy_slugs=("cobbler-shepherd-growth",),
         display_name="Cobbler and Shepherd: Strategy Comparison",
