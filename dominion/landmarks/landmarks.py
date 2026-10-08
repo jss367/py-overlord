@@ -2,7 +2,6 @@
 
 from collections import Counter
 
-from dominion.cards.base_card import CardType
 
 from .base_landmark import Landmark
 

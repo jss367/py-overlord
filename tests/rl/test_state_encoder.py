@@ -1,10 +1,8 @@
 """Tests for state encoder."""
 
 import numpy as np
-import pytest
 from dominion.rl.state_encoder import StateEncoder, PHASE1_KINGDOM
 from dominion.game.game_state import GameState
-from dominion.game.player_state import PlayerState
 from dominion.rl.rl_ai import RLAI
 from dominion.rl.random_ai import RandomAI
 from dominion.cards.registry import get_card

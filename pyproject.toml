@@ -30,3 +30,7 @@ dominion-trainer = "dominion.runner:main"
 
 [project.optional-dependencies]
 rl = ["torch>=2.6", "gymnasium>=1.0", "numpy>=2.0"]
+dev = ["pytest", "ruff", "setuptools>=61.0", "wheel"]
+
+[tool.ruff.lint]
+select = ["E9", "F"]

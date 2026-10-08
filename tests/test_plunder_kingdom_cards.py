@@ -1,8 +1,6 @@
 """Tests for the 31 newly added Plunder kingdom cards."""
 
-import random
 
-import pytest
 
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
@@ -580,7 +578,6 @@ def test_tools_takes_gained_card_to_hand():
     state.gain_card(player, get_card("Silver"))
     assert "Silver" in player.gained_cards_this_turn
     tools = get_card("Tools")
-    pre_hand_size = len(player.hand)
     tools.on_play(state)
     # Silver moves from discard to hand.
     assert any(c.name == "Silver" for c in player.hand)

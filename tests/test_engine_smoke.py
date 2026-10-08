@@ -3,7 +3,6 @@ import types
 
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
-from dominion.game.player_state import PlayerState
 
 
 # ---- Stub AI ---------------------------------------------------------------
@@ -90,7 +89,7 @@ def test_initialization_and_starting_hands():
     assert gs.supply["Copper"] == 60 - (7 * 2)
 
 
-def test_treasure_play_and_buy_estate_when_affordable():
+def test_treasure_play_and_buy_duchy_when_affordable():
     gs = make_game()
     p = gs.current_player
     # Force a deterministic starting hand: 5 Coppers to guarantee 5 coins
@@ -100,11 +99,9 @@ def test_treasure_play_and_buy_estate_when_affordable():
     gs.handle_action_phase()  # does nothing (Greedy doesn't play actions)
     gs.handle_treasure_phase()  # plays all 5 Coppers
     assert p.coins == 5
-    pre_estate = gs.supply["Estate"]
+    pre_duchy = gs.supply["Duchy"]
     gs.handle_buy_phase()  # Greedy buys Duchy (cost 5) rather than Estate
-    assert gs.supply["Duchy"] == pre_estate - 1 + (
-        gs.supply["Estate"] - gs.supply["Estate"]
-    )  # sanity; main check below
+    assert gs.supply["Duchy"] == pre_duchy - 1
     assert "Duchy" in p.bought_this_turn
     # Duchy gained to discard by default
     assert any(c.name == "Duchy" for c in p.discard)
@@ -139,7 +136,7 @@ def test_watchtower_topdecks_gained_card():
     choice = get_card("Estate")
     # Simulate buying Estate
     gs.supply["Estate"] -= 1
-    gained = gs.gain_card(p, choice)
+    gs.gain_card(p, choice)
     # Because AI always chooses 'topdeck' for Watchtower, the gained card
     # should be on the drawable top of the deck, not discard.
     assert p.deck and p.deck[-1].name == "Estate"
@@ -169,7 +166,7 @@ def test_trader_replaces_gain_with_silver():
     pre_estate = gs.supply["Estate"]
     pre_silver = gs.supply["Silver"]
     gs.supply["Estate"] -= 1
-    gained = gs.gain_card(p, get_card("Estate"))
+    gs.gain_card(p, get_card("Estate"))
     # Trader should have replaced the gain with Silver
     assert any(c.name == "Silver" for c in p.discard + p.deck + p.hand)
     assert gs.supply["Silver"] == pre_silver - 1

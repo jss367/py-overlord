@@ -12,7 +12,7 @@ from dominion.cards.dark_ages.ruins import RUIN_VARIANT_NAMES
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 
-from tests.utils import ChooseFirstActionAI, DummyAI
+from tests.utils import ChooseFirstActionAI
 
 
 class _GreedyAI(ChooseFirstActionAI):
@@ -190,7 +190,6 @@ def test_buying_top_knight_pops_pile():
 
     pile_size_before = len(state.pile_order["Knights"])
     top = state.pile_order["Knights"][-1]
-    knight = get_card(top)
     state.handle_buy_phase()
 
     # Either bought or stopped; if bought, pile shrinks by 1
@@ -429,8 +428,6 @@ def test_urchin_triggers_on_attack_replaced_by_enchantress():
     state.current_player_index = 0
     state.phase = "action"
 
-    cards_before = len(attacker.hand)
-    actions_before = attacker.actions
     state.handle_action_phase()
 
     # Witch was played but its effect was replaced with +1 Card +1 Action.

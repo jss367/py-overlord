@@ -9,7 +9,6 @@ behavior on Ally boards.
 from dominion.allies.registry import get_ally
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
-from dominion.game.player_state import PlayerState
 
 
 class _NullAI:

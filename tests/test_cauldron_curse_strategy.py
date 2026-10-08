@@ -25,7 +25,6 @@ from dominion.ai.genetic_ai import GeneticAI
 from dominion.boards.loader import load_board
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
-from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.strategy.strategy_loader import StrategyLoader
 
 BOARD_PATH = Path("boards/cauldron_curse.txt")

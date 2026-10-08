@@ -1,12 +1,9 @@
 """Tests for Rising Sun kingdom cards, events, and prophecies."""
 
-from typing import Optional
 
-from dominion.cards.base_card import Card, CardType
 from dominion.cards.registry import get_card
 from dominion.events.registry import get_event
 from dominion.game.game_state import GameState
-from dominion.game.player_state import PlayerState
 from dominion.prophecies import get_prophecy
 
 from tests.utils import ChooseFirstActionAI, DummyAI
@@ -478,8 +475,6 @@ def test_continue_returns_to_action_phase_for_more_plays():
     player.in_play = []
     player.actions = 0  # only Continue's +1 Action enables hand play
 
-    coins_before = player.coins
-    actions_before = player.actions
     get_event("Continue").on_buy(state, player)
 
     # The gained Village played (in_play count), and the Village from hand

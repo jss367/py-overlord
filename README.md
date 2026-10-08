@@ -2,6 +2,67 @@
 
 Requires Python 3.14 or newer.
 
+## Development
+
+Install the package with its development and reinforcement-learning dependencies:
+
+```bash
+python -m pip install -e '.[dev,rl]'
+pytest -q
+python -m ruff check .
+python scripts/ensure_pytest_collection.py
+python scripts/check_catalog.py
+```
+
+CI runs the reinforcement-learning tests as well as the core simulator tests.
+For local work without reinforcement learning, install `.[dev]`; tests under
+`tests/rl/` are omitted when Torch or Gymnasium is unavailable. Ruff's shared
+configuration enables all Pyflakes checks, including unused and shadowed names.
+
+Strategy conditions must return a truth value or raise an error. A broken
+condition raises `StrategyDecisionError` with its strategy and rule context;
+training rejects the failed evaluation instead of silently trying the next
+rule. Decision-observer failures also invalidate an evaluation, so incomplete
+decision statistics cannot be mistaken for a successful run.
+
+Predicate signatures conservatively describe structure within the current
+runtime; they do not prove that two arbitrary Python functions are equivalent.
+Source-tagged rules use their declared source. Custom predicates include code,
+defaults, annotations and preserved function metadata, closures, referenced
+globals, function/partial attributes, and local class/instance state. Containers and callables retain reference topology,
+including unordered cycles. Strings and bytes also retain aliases when reachable
+code observes identity with `is`, `id`, or `operator.is_`/`is_not`; value-only code
+ignores incidental scalar sharing. Numeric scalars use value identity because
+pickle does not preserve their object identity. Reflection and dynamically
+generated identity tests need an explicit source signature. Imported symbols use the shared runtime's module and qualified name;
+interpreter-generated class bookkeeping is excluded. If serialization changes
+observable reference topology, the transported predicate can have a different
+signature. Custom metaclasses and subclasses of the supported scalar, container,
+partial, descriptor and module types are rejected with
+`UnsupportedConditionFingerprint`; they must declare a predicate `_source`
+signature that includes every behavior-controlling parameter. Exact standard-library `Counter` values are supported without custom attributes
+(their pickle reducer drops attribute state);
+standard imported enums remain shared runtime symbols. Fingerprints are not a cross-version
+checkpoint format.
+
+Structural encoding accepts exact built-in scalars/containers, Python functions
+and bound methods, partials, method descriptors, local classes with the standard
+metaclass, and plain objects using default object serialization (including
+`SimpleNamespace`). Imported modules must be the registered module with an import
+specification; dynamic modules require an explicit source signature. Opaque
+values are restricted to exact `datetime` date/time/datetime/timedelta/timezone,
+`Decimal`, `Fraction`, `range`, `slice`, and compiled regex types. They retain
+reference topology; datetime/time values require a standard fixed-offset timezone.
+Unknown extension types, custom object reducers, generic function type
+parameters, and identity tests on function names/documentation require explicit
+source signatures. Custom descriptor attributes are rejected because their
+serialization discards them; put policy state in the underlying function instead. Imported symbols assume the same shared runtime, rather than independent mutable module snapshots. Code-location
+reflection, custom annotation evaluators, and other dynamic introspection are
+outside this structural contract. Internal graph markers use a distinct data
+type so arbitrary user names cannot be mistaken for graph edges.
+
+## Running strategies
+
 To battle strategies:
 
 ```

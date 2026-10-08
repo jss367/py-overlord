@@ -5,7 +5,6 @@ from typing import Optional
 from dominion.cards.base_card import Card
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
-from dominion.game.player_state import PlayerState
 from tests.utils import DummyAI
 
 
@@ -320,7 +319,6 @@ def test_sculptor_gains_to_hand_and_villager_for_treasure():
     p = state.players[0]
     sculptor = get_card("Sculptor")
     p.in_play.append(sculptor)
-    villagers_before = p.villagers
     sculptor.on_play(state)
     # Sculptor gained the highest-value card $4 — TrashAndKeepAI picks max.
     # Confirm something landed in hand.

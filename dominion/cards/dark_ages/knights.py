@@ -13,7 +13,6 @@ coins.
 Per-knight extras are listed in each subclass. Sir Martin costs $4.
 """
 
-from typing import Optional
 
 from ..base_card import Card, CardCost, CardStats, CardType
 

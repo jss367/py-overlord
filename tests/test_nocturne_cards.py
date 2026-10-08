@@ -195,7 +195,6 @@ def test_devils_workshop_zero_gains_picks_card_up_to_four():
     state, player = _setup()
     dw = get_card("Devil's Workshop")
     player.cards_gained_this_turn_count = 0
-    silver_before = state.supply.get("Silver", 0)
     dw.play_effect(state)
     # Should gain up to $4 — most expensive available
     # (Silver is $3, Duchy is $5, Smithy/Village are $4)

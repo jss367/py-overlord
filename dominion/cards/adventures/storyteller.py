@@ -19,7 +19,6 @@ class Storyteller(Card):
         picks = player.ai.choose_treasures_to_play_for_storyteller(
             game_state, player, treasures_in_hand
         )
-        coins_before = player.coins
         for card in picks[:3]:
             if card not in player.hand:
                 continue

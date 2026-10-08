@@ -220,6 +220,18 @@ from ..plunder import (
 )
 
 __all__ = [
+    'Avanto',
+    'BlackMarket',
+    'Captain',
+    'Church',
+    'Dismantle',
+    'Envoy',
+    'Governor',
+    'Prince',
+    'Sauna',
+    'Stash',
+    'WalledVillage',
+
     'Fairgrounds',
     'FarmingVillage',
     'FortuneTeller',

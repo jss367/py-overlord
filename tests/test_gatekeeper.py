@@ -84,7 +84,6 @@ def test_gatekeeper_wears_off_after_duration():
     p2.gatekeeper_attacks = 1
 
     # Simulate duration resolving
-    gatekeeper = get_card("Gatekeeper")
     p2.gatekeeper_attacks = max(0, p2.gatekeeper_attacks - 1)
 
     village = get_card("Village")

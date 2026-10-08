@@ -1,7 +1,6 @@
 """Tests for RLAI adapter."""
 
 import threading
-import pytest
 from dominion.rl.rl_ai import RLAI
 from dominion.cards.registry import get_card
 

@@ -139,7 +139,6 @@ class KimberleyMine(EnhancedStrategy):
     def _upgradeable(self, state, player, card):
         target = UPGRADE_TARGET.get(card.name)
         if target is None:
-            p = self.params
             return False
         if target == "Platinum":
             return (
@@ -266,7 +265,6 @@ class KimberleyMine(EnhancedStrategy):
         counts = Counter(c.name for c in player.all_cards())
         has_sewers = any(x.name == "Sewers" for x in player.projects)
         colonies = state.supply.get("Colony", 0)
-        provinces = state.supply.get("Province", 8)
         names = []
         late = colonies <= p["province_colonies"] or player.turns_taken >= p["green_turn"]
         if counts["Platinum"] or late or player.turns_taken >= 8:

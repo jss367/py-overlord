@@ -17,7 +17,6 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
-import pytest
 
 from dominion.boards.loader import BoardConfig
 from dominion.simulation.genetic_trainer import GeneticTrainer

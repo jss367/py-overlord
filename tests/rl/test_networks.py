@@ -1,6 +1,5 @@
 """Tests for neural network components."""
 
-import pytest
 import torch
 from dominion.rl.networks import MLPPolicy
 from dominion.rl.state_encoder import PHASE1_KINGDOM, StateEncoder

@@ -1,7 +1,6 @@
 """Tests for action encoder."""
 
 import numpy as np
-import pytest
 from dominion.rl.action_encoder import ActionEncoder
 from dominion.rl.state_encoder import PHASE1_KINGDOM
 from dominion.cards.registry import get_card

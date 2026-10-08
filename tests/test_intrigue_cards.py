@@ -1,11 +1,10 @@
 """Tests for the missing-Intrigue cards plus the Nobles / Wishing Well /
 Ironworks bug fixes."""
 
-from dominion.cards.base_card import CardType
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 
-from tests.utils import ChooseFirstActionAI, DummyAI, TrashFirstAI
+from tests.utils import ChooseFirstActionAI, TrashFirstAI
 
 
 # ---------------------------------------------------------------------------
@@ -99,28 +98,20 @@ def test_ironworks_does_not_double_decrement_supply():
     player = state.players[0]
     ironworks = get_card("Ironworks")
 
-    # Force a known supply count for an obvious target (Estate).
-    starting_estate = state.supply.get("Estate", 0)
+    starting_supply = dict(state.supply)
 
     player.hand = [ironworks]
     ironworks.play_effect(state)
 
-    # Ironworks gains the highest-priority $4 card. It should have decremented
-    # SOME card's supply by exactly 1 (not 2). Sum total decrements equals 1.
-    decrements = 0
-    for name in {"Estate", "Silver", "Ironworks"}:
-        # Pre-game supply was full; track delta.
-        pass
-    # Easier: verify Ironworks decremented exactly one card.
+    # Exactly one card leaves the Supply, whichever legal card the AI chose.
+    assert sum(starting_supply.values()) - sum(state.supply.values()) == 1
     gained = player.discard[-1] if player.discard else None
     if gained is None:
         # Maybe it was top-decked by Insignia or similar; check deck.
         gained = player.deck[-1] if player.deck else None
     assert gained is not None
 
-    # If Ironworks gained an Estate, supply should be exactly Estate-1.
-    if gained.name == "Estate":
-        assert state.supply["Estate"] == starting_estate - 1
+    assert state.supply[gained.name] == starting_supply[gained.name] - 1
 
 
 # ---------------------------------------------------------------------------
@@ -693,7 +684,7 @@ def test_saboteur_trashes_and_replaces():
         [ChooseFirstActionAI(), ChooseFirstActionAI()],
         [get_card("Saboteur")],
     )
-    p1, p2 = state.players[0], state.players[1]
+    p2 = state.players[1]
     saboteur = get_card("Saboteur")
 
     state.current_player_index = 0
@@ -799,7 +790,6 @@ def test_secret_passage_buries_junk_when_only_junk_in_hand():
 def test_mining_village_can_self_trash_via_ai_hook():
     """Mining Village's optional +$2 self-trash must be reachable when
     an AI's ``should_trash_mining_village`` returns True."""
-    from dominion.ai.base_ai import AI
 
     class TrashMVAI(ChooseFirstActionAI):
         def should_trash_mining_village(self, state, player):

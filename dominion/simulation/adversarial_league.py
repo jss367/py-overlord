@@ -29,16 +29,14 @@ Public API: :class:`AdversarialLeague`, :func:`aggregate_fitness`,
 :func:`build_seeded_league`.
 """
 
-import hashlib
 import logging
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Iterable, Optional
 
-import cloudpickle
-
 from dominion.boards.loader import BoardConfig
 from dominion.strategy.strategies.base_strategy import BaseStrategy
+from dominion.strategy.condition_signature import condition_signature
 
 log = logging.getLogger(__name__)
 
@@ -249,27 +247,19 @@ def genome_signature(strategy: BaseStrategy) -> tuple:
     """Fingerprint rules, including custom callable code and captured values.
 
     Generated predicates have canonical source strings. Hand-written closures,
-    partials, and callable objects need their serialized behavior instead;
+    partials, and callable objects use structural code/value fingerprints;
     treating missing source as None conflates them with unconditional rules.
     This is shared with trainer confirmation and hall-of-fame deduplication.
     """
 
-    def condition_sig(condition) -> tuple | None:
-        if condition is None:
-            return None
-        source = getattr(condition, "_source", None)
-        if source is not None:
-            return ("source", source)
-        return ("callable", hashlib.sha256(cloudpickle.dumps(condition)).digest())
-
     def rule_sig(rules) -> tuple:
         return tuple(
-            (r.card_name, condition_sig(r.condition))
+            (r.card_name, condition_signature(r.condition))
             for r in rules or []
         )
 
     way_sig = tuple(
-        (r.card_name, r.way_name, condition_sig(r.condition))
+        (r.card_name, r.way_name, condition_signature(r.condition))
         for r in getattr(strategy, "way_policy", []) or []
     )
     return (

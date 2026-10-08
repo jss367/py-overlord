@@ -3,7 +3,7 @@
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 
-from tests.utils import ChooseFirstActionAI, DummyAI
+from tests.utils import ChooseFirstActionAI
 
 
 class MessengerTestAI(ChooseFirstActionAI):

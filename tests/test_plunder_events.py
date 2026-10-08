@@ -1,11 +1,9 @@
 """Tests for the Plunder Events (15 total; Looting tested elsewhere)."""
 
-import random
 
-import pytest
 
 from dominion.cards.registry import get_card
-from dominion.events.registry import EVENT_TYPES, get_event
+from dominion.events.registry import get_event
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
 
@@ -299,7 +297,6 @@ def test_prosper_gains_one_of_each_loot():
 
     state = _make_state()
     player = state.current_player
-    pre_discard = len(player.discard)
     pr = get_event("Prosper")
     pr.on_buy(state, player)
     # All 15 Loots in discard (Doubloons may have added an extra Gold).

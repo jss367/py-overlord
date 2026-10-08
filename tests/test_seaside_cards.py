@@ -1,13 +1,11 @@
 """Tests for the Seaside expansion cards."""
 
-from typing import Optional
 
-from dominion.cards.base_card import Card
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
 
-from tests.utils import DummyAI, ChooseFirstActionAI
+from tests.utils import DummyAI
 
 
 def play_action(state, player, card):

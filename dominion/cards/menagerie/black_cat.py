@@ -26,7 +26,6 @@ class BlackCat(Card):
         if not getattr(self, "_off_turn_play", False):
             return
 
-        from ..registry import get_card
 
         for other in game_state.players:
             if other is player:

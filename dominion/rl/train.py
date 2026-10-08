@@ -21,7 +21,7 @@ def train(
     save_dir = Path(checkpoint_dir) / f"run_{timestamp}"
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"Training RL Dominion agent")
+    print("Training RL Dominion agent")
     print(f"Kingdom: {PHASE1_KINGDOM}")
     print(f"Checkpoints: {save_dir}")
     print(f"Iterations: {num_iterations}, Rollout steps: {rollout_steps}")
