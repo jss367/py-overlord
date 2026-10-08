@@ -9,6 +9,7 @@ from dominion.ai import tactical_defaults
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
+from dominion.simulation.strategy_battle import StrategyBattle
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule
 from dominion.strategy.phase_strategy import PhaseAwareStrategy, StrategyPhase
 
@@ -493,6 +494,40 @@ def test_phase_hand_rules_do_not_affect_dedicated_supply_priorities(card_name, h
     state, player = make_state(strategy)
     get_card(card_name).play_effect(state)
     assert len(player.hand) == 3
+
+
+@pytest.mark.parametrize("card_name, priority, target", [
+    ("Captain", "captain_target_priority", "Smithy"),
+    ("Band of Misfits", "band_of_misfits_target_priority", "Militia"),
+])
+def test_supply_only_reference_is_available_on_an_inferred_board(card_name, priority, target):
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule(card_name)]
+    setattr(strategy, priority, [PriorityRule(target, lambda _s, p: p.actions > 0)])
+    with StrategyBattle(log_frequency=0) as battle:
+        names = battle._determine_kingdom_cards(strategy, EnhancedStrategy())
+    assert set(names) == {card_name, target}
+    state, player = make_state(strategy, names=names)
+    get_card(card_name).play_effect(state)
+    if target == "Smithy":
+        assert len(player.hand) == 3
+    else:
+        assert player.coins == 2
+
+
+@pytest.mark.parametrize("priority, target", [
+    ("captain_target_priority", "Smithy"),
+    ("band_of_misfits_target_priority", "Militia"),
+])
+def test_supply_only_references_appear_in_catalog_metadata(monkeypatch, priority, target):
+    from dominion.reporting.strategy_pages import collect_rendered_strategies
+    from dominion.strategy.strategy_loader import StrategyLoader
+
+    strategy = EnhancedStrategy()
+    setattr(strategy, priority, [PriorityRule(target)])
+    monkeypatch.setattr(StrategyLoader, "get_strategy", lambda self, name: strategy)
+    rendered = collect_rendered_strategies(names=["Big Money"])[0]
+    assert rendered.references["Kingdom Cards"] == [target]
 
 
 @pytest.mark.parametrize("hand_size, expected", [(3, "Smithy"), (5, "Smithy"), (6, "Militia")])

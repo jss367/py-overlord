@@ -159,7 +159,9 @@ Issue [#390](https://github.com/jss367/py-overlord/issues/390) connects Captain
 and Band of Misfits through the card → `GeneticAI` → strategy path. They use
 `captain_target_priority` and `band_of_misfits_target_priority`, respectively:
 ordered `PriorityRule` lists with the usual `(state, player)` conditions.
-Neither consults hand `action_priority` or active phase hand rules. Strategies
+Neither consults hand `action_priority` or active phase hand rules. Payloads
+referenced only in these lists are included in automatically inferred kingdoms
+and catalog/card-usage metadata. Strategies
 can instead override `choose_captain_target(state, player, choices)` or
 `choose_band_of_misfits_target(state, player, choices)`. Overlord retains its
 existing action/phase preferences and independent method override for backward
