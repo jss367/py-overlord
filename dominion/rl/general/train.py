@@ -58,6 +58,28 @@ class RecordingTeacher(GeneticAI):
     def choose_buy(self, state, choices):
         return self.record(state, choices, "buy", super().choose_buy(state, choices))
 
+    def choose_free_gain(self, state, player, choices, context):
+        # Record the contextual strategy decision too, without routing it
+        # through purchase preferences or changing the checkpoint vocabulary.
+        if not choices:
+            return None
+        choice = super().choose_free_gain(state, player, choices, context)
+        if not any(c.name == getattr(choice, "name", None) for c in choices):
+            return choice  # Optional decline or invalid response; effect validates.
+        return self.record(state, choices, "buy", choice)
+
+    def choose_remodel_option(self, state, player, options):
+        # The strategy's joint pair hook bypasses both separate AI selectors.
+        # Keep that policy authoritative and record its selected legal pair.
+        trash, gain = super().choose_remodel_option(state, player, options)
+        for card, choices in options:
+            if trash is card:
+                self.record(state, [c for c, _ in options], "trash", trash)
+                if any(c.name == getattr(gain, "name", None) for c in choices):
+                    self.record(state, choices, "buy", gain)
+                break
+        return trash, gain
+
     def choose_card_to_trash(self, state, choices):
         return self.record(state, choices, "trash", super().choose_card_to_trash(state, choices))
 

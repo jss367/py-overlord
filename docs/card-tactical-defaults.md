@@ -193,6 +193,17 @@ gain, even when only a Curse remains or the replacement strategy hook returns
 `None`. If every legal pile is empty, no card is gained. Declining the initial
 exchange leaves the Treasure in hand and triggers no discard reaction.
 
+Direct AI adapters inherit their existing `choose_buy` selector for free gains
+on the effect's legal menu: RandomAI remains random, RLAI requests a queued
+decision, and GeneralAI uses its learned selector. This calls only the selector;
+no purchase occurs, and neither coins nor buys filter or pay for the gain.
+Empty menus request no decision. Mandatory effects validate the response and
+fall back to a legal gain if the selector declines or returns an invalid card.
+GeneticAI instead honors the strategy's contextual free-gain hook and separate
+preferences. The imitation teacher records that contextual choice and both
+choices of a joint Remodel pair, preserving its strategy policy and the existing
+checkpoint decision vocabulary.
+
 ```python
 strategy.free_gain_priority = [
     PriorityRule("Village", PriorityRule.max_in_deck("Village", 3)),
@@ -227,11 +238,11 @@ and [Plunder](https://www.riograndegames.com/wp-content/uploads/2022/08/DomPlund
 Reproduction:
 
 ```sh
-PYTHONPATH=. python scripts/evaluate_free_gain_tactics.py --pairs 100 --seed 391000 --workers 4 --output scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json
+PYTHONPATH=. python scripts/evaluate_free_gain_tactics.py --pairs 100 --seed 391000 --workers 4 --output scripts/data/free_gain_tactics_evaluation-2026-10-08-adapters.json
 PYTHONPATH=. python scripts/render_free_gain_tactics_guide.py
 ```
 
-The dated [final October 8 export-round-trip rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json)
+The dated [October 8 adapter-compatibility rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-adapters.json)
 uses the merged reviewed simulation inputs and covers 13,200 games: 100 seeds × two seats × two policies × 33 comparisons.
 Controls reproduce the previous decisions using the same corrected rules;
 opponents use current policies. Four representative kingdoms compare inherited
@@ -246,8 +257,11 @@ PR tree `4fc860b5`, while the distinct rerun fingerprint describes the fixed tre
 Nine comparison records changed in the first rerun. That
 [first October 8 rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08.json)
 is also retained unchanged. Export-only fixes subsequently changed the broad
-source fingerprint; a distinct final rerun reproduces all 33 empirical records
-and identifies the final source inputs. The guide is generated from the final
+source fingerprint; the [export-round-trip rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json)
+is retained unchanged as well. The final adapter-compatibility rerun identifies
+the sources after restoring direct AI selector control and teacher recording.
+The panel uses GeneticAI strategies rather than learned/random adapters; its
+results do not measure learned-policy or random-agent performance. The guide is generated from the final
 rerun data, not relabeled historical results. Python exports and worker serialization preserve `free_gain_priority` as `None`,
 `[]`, or explicit rules, and preserve Captain/Band target lists. Optimal exports
 use the shared Python serializer while retaining their existing factory name.

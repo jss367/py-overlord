@@ -598,6 +598,10 @@ def test_base_remodel_preserves_existing_ai_trash_hook(kind, monkeypatch):
             return gold
         ai.decide = decide
     player.ai = ai
+    if kind != "probe":
+        # This test isolates the trash selector; free-gain adapter dispatch is
+        # exercised independently through all four effects below.
+        monkeypatch.setattr(ai, "choose_free_gain", lambda state, owner, choices, context: choices[0])
     get_card("Remodel").play_effect(state)
     assert state.trash == [gold]
     assert player.hand == [copper]
@@ -609,6 +613,134 @@ def test_base_remodel_preserves_existing_ai_trash_hook(kind, monkeypatch):
         assert ai.choice_queue.empty()
     else:
         assert seen[0][:2] == [copper, gold]
+
+
+@pytest.mark.parametrize("source", ["Workshop", "Remodel", "Anvil", "Quartermaster"])
+@pytest.mark.parametrize("kind", ["probe", "random", "rl", "general"])
+def test_free_gain_preserves_adapter_selector_without_purchasing(source, kind, monkeypatch):
+    state, player = make_state(names=("Silver", "Village", "Province"))
+    estate, copper = get_card("Estate"), get_card("Copper")
+    player.hand = [estate, copper]
+    player.coins = player.buys = 0
+    seen = []
+
+    def select(state, choices, decision="buy"):
+        seen.append((decision, list(choices)))
+        if decision == "trash" or any(c is estate for c in choices):
+            return estate
+        assert player.coins == player.buys == 0
+        assert {c.name for c in choices} == {"Silver", "Village"}
+        return next(c for c in choices if c.name == "Silver")
+
+    if kind == "probe":
+        class Probe(DummyAI):
+            def choose_buy(self, state, choices):
+                return select(state, choices)
+        ai = Probe()
+    elif kind == "random":
+        from dominion.rl.random_ai import RandomAI
+        ai = RandomAI()
+        monkeypatch.setattr("dominion.rl.random_ai.random.choice", lambda choices: select(state, choices))
+    elif kind == "rl":
+        from dominion.rl.rl_ai import RLAI
+        ai = RLAI()
+        if source == "Remodel":
+            ai.action_queue.put(estate)
+        ai.action_queue.put(get_card("Silver"))
+    else:
+        from dominion.rl.general.policy import GeneralAI
+        ai = GeneralAI(None)
+        ai.decide = select
+    player.ai = ai
+
+    if source == "Quartermaster":
+        player.duration = [get_card(source)]
+        state._handle_quartermaster_start_of_turn(player)
+        gained = player.duration[0].set_aside
+    else:
+        get_card(source).play_effect(state)
+        gained = player.discard
+
+    assert gained[-1].name == "Silver"
+    assert state.supply == {"Silver": 9, "Village": 10, "Province": 10}
+    assert player.coins == player.buys == 0
+    if kind == "rl":
+        requests = []
+        while not ai.choice_queue.empty():
+            decision, requested_state, choices = ai.choice_queue.get_nowait()
+            assert requested_state is state
+            requests.append((decision, choices))
+        assert [d for d, _ in requests] == (["trash", "buy"] if source == "Remodel" else ["buy"])
+        assert {c.name for c in requests[-1][1]} == {"Silver", "Village"}
+        assert ai.action_queue.empty()
+    else:
+        assert seen[-1][0] == "buy"
+
+
+def test_random_free_gain_roundtrip_retains_random_choice_and_empty_menu(monkeypatch):
+    import cloudpickle
+    from dominion.rl.random_ai import RandomAI
+
+    ai = cloudpickle.loads(cloudpickle.dumps(RandomAI()))
+    state, player = make_state()
+    choices = [get_card("Village"), get_card("Silver")]
+    selected = iter(reversed(choices))
+    monkeypatch.setattr("dominion.rl.random_ai.random.choice", lambda menu: next(selected))
+    context = FreeGainContext.build(state, player, "Workshop")
+    assert ai.choose_free_gain(state, player, choices, context) is choices[1]
+    assert ai.choose_free_gain(state, player, choices, context) is choices[0]
+    assert ai.choose_free_gain(state, player, [], context) is None
+
+
+@pytest.mark.parametrize("source", ["Workshop", "Remodel"])
+@pytest.mark.parametrize("roundtrip", [False, True])
+def test_recording_teacher_keeps_independent_free_gain_policy_and_records(source, roundtrip):
+    import cloudpickle
+    from dominion.ai.genetic_ai import GeneticAI
+    from dominion.rl.general.train import RecordingTeacher
+
+    teacher = RecordingTeacher.__new__(RecordingTeacher)
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Village")]
+    strategy.free_gain_priority = [PriorityRule("Silver")]
+    strategy.trash_priority = [PriorityRule("Estate")]
+    GeneticAI.__init__(teacher, strategy)
+    recorded = []
+    teacher.record = lambda state, choices, decision, choice: (recorded.append((decision, choice.name)), choice)[1]
+    if roundtrip:
+        teacher = cloudpickle.loads(cloudpickle.dumps(teacher))
+        # A serialized closure has its own list; expose it through a fresh spy.
+        teacher.record = lambda state, choices, decision, choice: (recorded.append((decision, choice.name)), choice)[1]
+    state, player = make_state(names=("Silver", "Village"))
+    player.ai = teacher
+    player.hand = [get_card("Estate")]
+    get_card(source).play_effect(state)
+    assert recorded == ([("trash", "Estate")] if source == "Remodel" else []) + [("buy", "Silver")]
+    assert player.discard[-1].name == "Silver"
+
+
+@pytest.mark.parametrize("source", ["Workshop", "Anvil"])
+@pytest.mark.parametrize("empty", [False, True])
+def test_recording_teacher_does_not_record_declines_or_empty_menus(source, empty):
+    from dominion.ai.genetic_ai import GeneticAI
+    from dominion.rl.general.train import RecordingTeacher
+
+    class DecliningStrategy(EnhancedStrategy):
+        def choose_free_gain(self, *args):
+            return None
+
+    teacher = RecordingTeacher.__new__(RecordingTeacher)
+    GeneticAI.__init__(teacher, DecliningStrategy())
+    def unexpected_record(*args):
+        pytest.fail("A declined or empty-menu gain is not a legal card training target")
+    teacher.record = unexpected_record
+    state, player = make_state(names=() if empty else ("Silver",))
+    player.ai = teacher
+    copper = get_card("Copper")
+    player.hand = [copper]
+    get_card(source).play_effect(state)
+    assert player.hand == [copper]
+    assert [c.name for c in player.discard] == (["Silver"] if source == "Workshop" and not empty else [])
 
 
 @pytest.mark.parametrize("invalid", [None, get_card("Gold")])

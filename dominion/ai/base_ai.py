@@ -53,7 +53,10 @@ class AI(ABC):
         pass
 
     def choose_free_gain(self, state, player, choices, context):
-        return tactical_defaults.choose_free_gain(state, player, choices, context)
+        # Reuse an adapter's selector, not the engine's purchase operation.
+        # The effect already supplied a legal free-gain menu; coins and buys
+        # must neither filter that menu nor be spent by this decision.
+        return self.choose_buy(state, choices) if choices else None
 
     def choose_remodel_option(self, state, player, options):
         # Preserve existing AI trash decisions (including RL policy requests).

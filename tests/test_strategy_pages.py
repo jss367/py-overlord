@@ -607,7 +607,8 @@ def test_free_gain_guide_is_rendered_from_distinct_dated_run():
 
     original = json.loads(Path("scripts/data/free_gain_tactics_evaluation.json").read_text())
     previous = json.loads(Path("scripts/data/free_gain_tactics_evaluation-2026-10-08.json").read_text())
-    rerun = json.loads(Path("scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json").read_text())
+    exports = json.loads(Path("scripts/data/free_gain_tactics_evaluation-2026-10-08-exports.json").read_text())
+    rerun = json.loads(Path("scripts/data/free_gain_tactics_evaluation-2026-10-08-adapters.json").read_text())
     guide = Path("dominion/reporting/curated_strategy_guides/free-gains-and-quartermaster-policy-evaluation.html").read_text()
     assert rerun["source_fingerprint"] != original["source_fingerprint"]
     assert sum(row["games_per_policy"] * 2 for row in rerun["results"]) == 13200
@@ -615,5 +616,7 @@ def test_free_gain_guide_is_rendered_from_distinct_dated_run():
     assert all(len(row["paired_outcomes"]) == rerun["pairs"] for row in rerun["results"])
     assert rerun["results"] == previous["results"]
     assert rerun["source_fingerprint"] != previous["source_fingerprint"]
-    assert guide == render(rerun, original, previous)
+    assert rerun["results"] == exports["results"]
+    assert rerun["source_fingerprint"] != exports["source_fingerprint"]
+    assert guide == render(rerun, original, previous, exports)
     assert rerun["source_fingerprint"] in guide and original["source_fingerprint"] in guide
