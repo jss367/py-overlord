@@ -574,3 +574,79 @@ def test_base_remodel_invalid_trash_hook_uses_pair_fallback(invalid):
     get_card("Remodel").play_effect(state)
     assert state.trash == [curse]
     assert player.hand == [gold]
+
+
+PHYSICAL_PILES = [
+    ("Herb Gatherer", "Acolyte", "Sorceress", "Sibyl"),
+    ("Student", "Conjurer", "Sorcerer", "Lich"),
+    ("Catapult", "Rocks"),
+    ("Humble Castle", "Crumbling Castle", "Small Castle", "Haunted Castle",
+     "Opulent Castle", "Sprawling Castle", "Grand Castle", "King's Castle"),
+]
+
+
+@pytest.mark.parametrize("members", PHYSICAL_PILES, ids=lambda p: p[0])
+def test_free_gain_endgame_counts_physical_piles_not_empty_members(members):
+    state, player = make_state(names=members)
+    # Leave the final member live despite all earlier groups being depleted.
+    for name in members[:-1]:
+        state.supply[name] = 0
+    state.supply.update(Horse=0, Spoils=0)
+    state.non_supply_pile_names.update({"Horse", "Spoils"})
+    assert state.empty_piles == 0
+    assert not FreeGainContext.build(state, player, "Workshop").endgame
+    state.supply[members[-1]] = 0
+    assert state.empty_piles == 1
+    assert not FreeGainContext.build(state, player, "Quartermaster").endgame
+    state.supply["Silver"] = 0
+    assert state.empty_piles == 2
+    assert FreeGainContext.build(state, player, "Quartermaster").endgame
+
+
+@pytest.mark.parametrize("name", ["Province", "Colony"])
+def test_free_gain_endgame_retains_present_nearly_empty_big_victory_piles(name):
+    state, player = make_state(names=("Silver",))
+    assert not FreeGainContext.build(state, player, "Workshop").endgame
+    state.supply[name] = 3
+    assert not FreeGainContext.build(state, player, "Workshop").endgame
+    state.supply[name] = 2
+    assert FreeGainContext.build(state, player, "Workshop").endgame
+
+
+@pytest.mark.parametrize("members", PHYSICAL_PILES, ids=lambda p: p[0])
+def test_gain_menu_has_one_exposed_option_per_physical_pile(members):
+    state, player = make_state(names=(*members, "Silver"))
+    for _ in members:
+        top = state.top_supply_card(members[0])
+        choices = gain_menu(state, player, CardCost(20))
+        assert [c.name for c in choices] == [top, "Silver"]
+        assert len({state.supply_pile_key(c.name) for c in choices}) == len(choices)
+        state.rotate_supply_pile(members[0])
+
+
+def test_gain_menu_deduplicates_member_enumeration_at_its_boundary(monkeypatch):
+    members = PHYSICAL_PILES[0]
+    state, player = make_state(names=(*members, "Silver"))
+    state.rotate_supply_pile(members[0])
+    # Explicitly enforce the menu's physical-pile contract independently of
+    # the upstream iterator's current exposed-member filtering.
+    monkeypatch.setattr(state, "_iter_gainable_supply_cards", lambda: iter(
+        [(name, get_card(name), 10) for name in (*members, "Silver")]
+    ))
+    choices = gain_menu(state, player, CardCost(4))
+    assert [c.name for c in choices] == ["Acolyte", "Silver"]
+    assert player.ai.choose_free_gain(state, player, choices,
+        FreeGainContext.build(state, player, "Workshop")) in choices
+
+
+def test_rotated_context_ownership_and_sacrifice_stay_card_named():
+    state, player = make_state(names=PHYSICAL_PILES[0])
+    state.rotate_supply_pile("Herb Gatherer")
+    herb, acolyte = get_card("Herb Gatherer"), get_card("Acolyte")
+    player.hand = [herb, acolyte]
+    context = FreeGainContext.build(state, player, "Remodel", sacrificed=acolyte)
+    assert context.hand == (herb,)
+    assert context.owned_counts.get("Herb Gatherer") == 1
+    assert context.owned_counts.get("Acolyte", 0) == 0
+    assert context.sacrificed is acolyte
+    assert not context.endgame

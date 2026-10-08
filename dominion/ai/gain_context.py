@@ -23,7 +23,7 @@ class FreeGainContext:
         endgame = any(
             name in state.supply and state.supply[name] <= 2
             for name in ("Province", "Colony")
-        ) or sum(count == 0 for count in state.supply.values()) >= 2
+        ) or state.empty_piles >= 2
         return cls(source, destination, tuple(c for c in player.hand if c is not sacrificed),
                    dict(Counter(c.name for c in player.all_cards() if c is not sacrificed)),
                    endgame, sacrificed, mandatory)

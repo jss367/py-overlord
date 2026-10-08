@@ -8,8 +8,13 @@ from dominion.cards.registry import get_card
 
 def gain_menu(state, player, limit: CardCost):
     choices = []
+    seen_piles = set()
     for name, _card, _count in state._iter_gainable_supply_cards():
-        top = state.top_supply_card(name)
+        pile = state.supply_pile_key(name)
+        if pile in seen_piles:
+            continue
+        seen_piles.add(pile)
+        top = state.top_supply_card(pile)
         card = get_card(top) if top is not None else None
         if card is not None and (
             state.get_card_cost(player, card) <= limit.coins

@@ -169,7 +169,12 @@ stored/exiled cards, endgame status, any sacrificed card, and whether the gain
 is mandatory. For a proposed Remodel pair, the snapshots exclude the proposed
 trash. Reactions still resolve through `gain_card` and can change the final
 destination. Endgame detection uses a present Province/Colony pile at two or
-fewer cards, or two empty piles; it is intentionally an approximate horizon.
+fewer cards, or two empty physical Supply piles via `state.empty_piles`; empty
+members of a still-live split pile and tracked non-Supply piles do not advance
+that horizon. It is intentionally approximate. Gain menus contain one exposed
+option per physical pile via `supply_pile_key`/`top_supply_card`; validated gains
+remove that exposed card with `take_top_supply_card`, while ownership and gain
+selection remain keyed by the actual card name.
 
 `free_gain_priority = None` inherits existing gain preferences, including active
 phase rules. An explicit list separates free gains from purchases; `[]` uses
