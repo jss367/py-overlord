@@ -14,18 +14,9 @@ class Workshop(Card):
         """Gain a card costing up to 4 coins."""
         player = game_state.current_player
 
-        # Find cards that can be gained
-        possible_gains = [
-            card
-            for _name, card, _count in game_state._iter_gainable_supply_cards()
-            if game_state.get_card_cost(player, card) <= 4
-        ]
+        from ..gain_decisions import choose_free_gain, gain_menu, gain_selected
 
-        # Let AI choose what to gain
-        if possible_gains:
-            chosen_card = player.ai.choose_buy(game_state, possible_gains)
-
-            if chosen_card:
-                # Gain the chosen card
-                game_state.supply[chosen_card.name] -= 1
-                game_state.gain_card(player, chosen_card)
+        choices = gain_menu(game_state, player, CardCost(coins=4))
+        gain_selected(game_state, player, choose_free_gain(
+            game_state, player, choices, "Workshop"
+        ))

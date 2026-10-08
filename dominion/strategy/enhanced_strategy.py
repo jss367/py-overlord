@@ -5,6 +5,7 @@ from typing import Callable, Iterable, Optional, ClassVar
 
 from dominion.cards.base_card import Card
 from dominion.ai import tactical_defaults
+from dominion.ai.gain_context import FreeGainContext
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
 
@@ -389,6 +390,8 @@ class EnhancedStrategy:
         self.version: str = "1.0"
 
         self.gain_priority: list[PriorityRule] = []
+        # None inherits existing gain/phase preferences; [] opts into only tactics.
+        self.free_gain_priority: list[PriorityRule] | None = None
         self.action_priority: list[PriorityRule] = []
         self.trash_priority: list[PriorityRule] = []
         self.bounty_hunter_exile_priority: list[PriorityRule] = []
@@ -723,22 +726,49 @@ class EnhancedStrategy:
             player, self._unspecified(state, player, "action", choices) or choices
         )
 
+    def choose_free_gain(self, state, player, choices, context):
+        """Override for destination, hand, ownership, stage, or sacrifice.
+
+        A separate list opts out of purchase preferences. Failed conditional
+        priorities exclude their cards from the fallback where possible;
+        mandatory gains still select a legal card when all rules fail.
+        """
+        rules = getattr(self, "free_gain_priority", None)
+        if rules is None:
+            choice = self.choose_gain(state, player, choices)
+            fallback = self._unspecified(state, player, "gain", choices)
+        else:
+            choice = self._choose_from_priority(rules, choices, state, player, "free_gain")
+            fallback = [c for c in choices if not _rules_cover_card(rules, c)]
+        if choice is not None:
+            return choice
+        return tactical_defaults.choose_free_gain(
+            state, player, fallback or (choices if context.mandatory else []), context
+        )
+
+    def choose_remodel_option(self, state, player, options):
+        # Preserve explicit trash priorities; otherwise compare complete pairs.
+        trash = self.choose_trash(state, player, [c for c, _ in options])
+        if any(trash is card for card, _ in options):
+            choices = next(gains for c, gains in options if c is trash)
+            return trash, self.choose_free_gain(state, player, choices,
+                FreeGainContext.build(state, player, "Remodel", sacrificed=trash))
+        return tactical_defaults.choose_remodel_option(
+            state, player, options, self.choose_free_gain
+        )
+
     def choose_quartermaster_gain(self, state, player, choices: list[Card]) -> Optional[Card]:
         """Reuse gain preferences, with a baseline when none selects a card.
 
         Override for mat-specific gains. Returning None from an override
         requests the engine's shared fallback.
         """
-        choice = self.choose_gain(state, player, choices)
-        if choice is not None:
-            return choice
-        return tactical_defaults.choose_quartermaster_gain(
-            self._unspecified(state, player, "gain", choices) or choices
-        )
+        return self.choose_free_gain(state, player, choices,
+            FreeGainContext.build(state, player, "Quartermaster", "quartermaster"))
 
     def quartermaster_take_all(self, state, player, mat: list[Card]) -> bool:
         """Override to collect based on hand, game stage, or stored cards."""
-        return tactical_defaults.quartermaster_take_all(mat)
+        return tactical_defaults.quartermaster_should_collect(state, player, mat)
 
     def choose_watchtower_reaction(self, state, player, gained_card: Card) -> Optional[str]:
         """Default Watchtower reaction policy.

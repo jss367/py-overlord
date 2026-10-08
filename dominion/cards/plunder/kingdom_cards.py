@@ -946,8 +946,8 @@ class Quartermaster(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
-            player.duration.append(self)
+        # One recurring instruction per play, sharing this physical copy's pile.
+        player.duration.append(self)
 
     def on_duration(self, game_state):
         self.duration_persistent = True

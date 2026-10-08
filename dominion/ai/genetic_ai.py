@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING, Optional
 
 from dominion.ai.base_ai import AI
+from dominion.ai import tactical_defaults
+from dominion.ai.gain_context import FreeGainContext
 from dominion.cards.base_card import Card
 from dominion.strategy.enhanced_strategy import EnhancedStrategy
 
@@ -43,6 +45,30 @@ class GeneticAI(AI):
             return None
 
         return self.strategy.choose_gain(state, state.current_player, choices)
+
+    def choose_free_gain(self, state, player, choices, context):
+        hook = getattr(self.strategy, "choose_free_gain", None)
+        if hook is not None:
+            return hook(state, player, choices, context)
+        return super().choose_free_gain(state, player, choices, context)
+
+    def choose_remodel_option(self, state, player, options):
+        hook = getattr(self.strategy, "choose_remodel_option", None)
+        if hook is not None:
+            return hook(state, player, options)
+        return super().choose_remodel_option(state, player, options)
+
+    def choose_anvil_option(self, state, player, treasures, choices):
+        hook = getattr(self.strategy, "choose_anvil_option", None)
+        if hook is not None:
+            return hook(state, player, treasures, choices)
+        target = self.choose_anvil_gain(state, player, choices)
+        treasure = self.choose_anvil_treasure_to_discard(state, player, treasures)
+        if any(getattr(self.strategy, name, None) is not None for name in (
+            "choose_anvil_gain", "choose_anvil_treasure_to_discard"
+        )):
+            return treasure, target
+        return tactical_defaults.choose_anvil_option(state, player, treasures, target)
 
     # Board-specific Nocturne decisions, with the normal AI as fallback.
     def choose_night(self, state, choices):
@@ -200,7 +226,8 @@ class GeneticAI(AI):
         hook = getattr(self.strategy, "choose_anvil_gain", None)
         if hook is not None:
             return hook(state, player, choices)
-        return self.strategy.choose_gain(state, player, choices)
+        return self.choose_free_gain(state, player, choices,
+            FreeGainContext.build(state, player, "Anvil", mandatory=False))
 
     def choose_anvil_treasure_to_discard(self, state, player, choices):
         hook = getattr(self.strategy, "choose_anvil_treasure_to_discard", None)

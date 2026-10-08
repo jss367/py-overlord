@@ -1520,6 +1520,10 @@ class GameState:
             self.extra_turn = False
             return
         self._start_duration_snapshot = (list(player.duration), list(player.multiplied_durations))
+        quartermaster_instructions = [
+            card for zone in self._start_duration_snapshot for card in zone
+            if card.name == "Quartermaster"
+        ]
         # Menagerie "next turn" Ways: take what was banked by LAST turn's
         # plays before any start-of-turn play (Ghost, Clerk, Hasty, Patient,
         # Turtle itself) can bank new values; anything scheduled during this
@@ -1852,8 +1856,8 @@ class GameState:
         # Plunder Patient trait: play any cards on the Patient mat.
         self._handle_patient_start_of_turn(self.current_player)
 
-        # Plunder Quartermaster: gain a card or take all from mat.
-        self._handle_quartermaster_start_of_turn(self.current_player)
+        # Plunder Quartermaster: gain or take one card for each recurring play.
+        self._handle_quartermaster_start_of_turn(self.current_player, quartermaster_instructions)
 
         # Prosperity 2E Clerk: resolve after start-of-turn setup and draws so
         # extra-turn caps are active and newly drawn Clerks are eligible.
@@ -2008,8 +2012,8 @@ class GameState:
             else:
                 player.discard.append(card)
 
-    def _handle_quartermaster_start_of_turn(self, player: PlayerState) -> None:
-        """Plunder Quartermaster: each copy in play resolves one choice per turn.
+    def _handle_quartermaster_start_of_turn(self, player: PlayerState, instructions=None) -> None:
+        """Plunder Quartermaster: each recurring play resolves one choice.
 
         "Choose one: gain a card costing up to $4, setting it aside on this;
         or put a card from this into your hand." Each Quartermaster keeps its
@@ -2019,22 +2023,24 @@ class GameState:
         hooks fire (Watchtower, Trail, etc.); only cards that land in the
         default discard destination move onto the Quartermaster.
         """
-        quartermasters = [c for c in player.duration if c.name == "Quartermaster"]
+        from ..cards.gain_decisions import gain_menu, gain_selected
+        from ..cards.base_card import CardCost
+        from ..ai.gain_context import FreeGainContext
+
+        quartermasters = instructions if instructions is not None else [
+            c for c in player.duration + player.multiplied_durations if c.name == "Quartermaster"
+        ]
         if not quartermasters:
             return
         for qm in quartermasters:
             mat = qm.set_aside
-            candidates = []
-            for _name, card, _count in self._iter_gainable_supply_cards():
-                if (
-                    self.get_card_cost(player, card) <= 4
-                    and card.cost.potions == 0
-                    and card.cost.debt == 0
-                ):
-                    candidates.append(card)
-            mode, pick = player.ai.choose_quartermaster_option(
+            candidates = gain_menu(self, player, CardCost(coins=4))
+            option = player.ai.choose_quartermaster_option(
                 self, player, list(mat), candidates
             )
+            if not isinstance(option, tuple) or len(option) != 2:
+                option = ("gain", None)
+            mode, pick = option
             if mode == "take":
                 if pick is None or pick not in mat:
                     continue
@@ -2050,14 +2056,12 @@ class GameState:
             # illegal one); resolve it against the offered candidates so the
             # $4 limit is enforced, falling back to the shared baseline.
             names = {c.name for c in candidates}
-            if pick is None or pick.name not in names:
-                pick = tactical_defaults.choose_quartermaster_gain(candidates)
+            if getattr(pick, "name", None) not in names:
+                pick = tactical_defaults.choose_free_gain(self, player, candidates,
+                    FreeGainContext.build(self, player, "Quartermaster", "quartermaster"))
             else:
                 pick = next(c for c in candidates if c.name == pick.name)
-            if pick is None or self.supply.get(pick.name, 0) <= 0:
-                continue
-            self.supply[pick.name] -= 1
-            gained = self.gain_card(player, get_card(pick.name))
+            gained = gain_selected(self, player, pick)
             if gained is None:
                 continue
             if gained in player.discard:

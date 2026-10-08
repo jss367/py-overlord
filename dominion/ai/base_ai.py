@@ -3,6 +3,7 @@ from typing import Optional
 
 from dominion.cards.base_card import Card
 from dominion.ai import tactical_defaults
+from dominion.ai.gain_context import FreeGainContext
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
 
@@ -51,6 +52,27 @@ class AI(ABC):
         """Choose a card to trash from available choices."""
         pass
 
+    def choose_free_gain(self, state, player, choices, context):
+        return tactical_defaults.choose_free_gain(state, player, choices, context)
+
+    def choose_remodel_option(self, state, player, options):
+        return tactical_defaults.choose_remodel_option(
+            state, player, options, self.choose_free_gain
+        )
+
+    def choose_anvil_option(self, state, player, treasures, choices):
+        # Compose the existing dedicated overrides. They remain authoritative
+        # so older strategies can explicitly spend a valuable Treasure.
+        target = self.choose_anvil_gain(state, player, choices)
+        treasure = self.choose_anvil_treasure_to_discard(state, player, treasures)
+        if target is None or treasure is None:
+            return None, None
+        gain_overridden = type(self).choose_anvil_gain is not AI.choose_anvil_gain
+        discard_overridden = type(self).choose_anvil_treasure_to_discard is not AI.choose_anvil_treasure_to_discard
+        if gain_overridden or discard_overridden:
+            return treasure, target
+        return tactical_defaults.choose_anvil_option(state, player, treasures, target)
+
     def choose_charm_option(self, state: GameState, player: PlayerState, options: list[str]) -> str:
         """Select which of Charm's modes to use when played."""
 
@@ -71,10 +93,11 @@ class AI(ABC):
         return tactical_defaults.choose_overlord_target(player, choices)
 
     def choose_quartermaster_gain(self, state, player, choices: list[Card]) -> Optional[Card]:
-        return tactical_defaults.choose_quartermaster_gain(choices)
+        return self.choose_free_gain(state, player, choices,
+            FreeGainContext.build(state, player, "Quartermaster", "quartermaster"))
 
     def quartermaster_take_all(self, state, player, mat: list[Card]) -> bool:
-        return tactical_defaults.quartermaster_take_all(mat)
+        return tactical_defaults.quartermaster_should_collect(state, player, mat)
 
     def should_trash_engineer_for_extra_gains(
         self, state: GameState, player: PlayerState, engineer: Card
@@ -1880,12 +1903,8 @@ class AI(ABC):
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Card | None:
         """Anvil: pick which $0-$4 card to gain after discarding a Treasure."""
-        if not choices:
-            return None
-        actions = [c for c in choices if c.is_action]
-        if actions:
-            return max(actions, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
-        return max(choices, key=lambda c: (c.cost.coins, c.name))
+        return self.choose_free_gain(state, player, choices,
+            FreeGainContext.build(state, player, "Anvil", mandatory=False))
 
     def choose_cards_to_set_aside_for_grotto(
         self, state: GameState, player: PlayerState, hand: list[Card]
@@ -3065,25 +3084,22 @@ class AI(ABC):
         mat: list[Card],
         candidates: list[Card],
     ) -> tuple[str, Optional[Card]]:
-        """Quartermaster start-of-turn choice for one Quartermaster.
+        """Compose overridable gain/timing hooks; collect one useful card.
 
-        Returns ``("take", card)`` to put ``card`` from that Quartermaster's
-        pile into hand, or ``("gain", card)`` to gain ``card`` (costing up to
-        $4) onto it. The default composes the shared tactical hooks:
-        ``quartermaster_take_all`` decides whether to collect this turn (the
-        rules allow one card per Quartermaster per turn, so collecting takes
-        the priciest stored card) and ``choose_quartermaster_gain`` picks the
-        gain otherwise.
+        The historical quartermaster_take_all name remains compatible, but
+        returns only a timing decision. A combined override can choose any
+        stored card and either mode independently.
         """
         if mat and self.quartermaster_take_all(state, player, list(mat)):
-            return "take", max(mat, key=lambda c: (c.cost.coins, c.name))
+            return "take", tactical_defaults.choose_quartermaster_card(player, mat)
         if candidates:
             pick = self.choose_quartermaster_gain(state, player, list(candidates))
-            if pick is None or pick.name not in {c.name for c in candidates}:
-                pick = tactical_defaults.choose_quartermaster_gain(candidates)
+            if getattr(pick, "name", None) not in {c.name for c in candidates}:
+                pick = tactical_defaults.choose_free_gain(state, player, candidates,
+                    FreeGainContext.build(state, player, "Quartermaster", "quartermaster"))
             return "gain", pick
         if mat:
-            return "take", max(mat, key=lambda c: (c.cost.coins, c.name))
+            return "take", tactical_defaults.choose_quartermaster_card(player, mat)
         return "gain", None
 
     def choose_card_to_exile_for_sanctuary(

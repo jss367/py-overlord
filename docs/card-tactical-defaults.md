@@ -33,8 +33,8 @@ Suggested child issue titles, in priority order:
 5. **Measure tactical defaults and expand the card inventory** — reproducible
    decision scenarios, seeded comparisons, and an audit of remaining expansions.
 
-The parent tracking issue is open. The five child issue groups above are
-proposed boundaries; separate child issues have not yet been opened.
+The parent tracking issue is open. These decision families are tracked in
+#390, #391, #392, #393, and #394, respectively.
 
 ## Status vocabulary
 
@@ -58,19 +58,19 @@ tested, then expand coverage by expansion.
 | --- | --- | --- | --- |
 | Overlord | Empires | Select a supply Action | Connected and tested; evaluate attacks, trashing, duration targets, and action support beyond printed resources. |
 | Courier | Allies | Select an Action or Treasure from discard | Connected and tested: discard reactions resolve before selection; supports strategy overrides and declining. Default considers Courier chains, needed Actions, printed draw, and money. Strength comparisons remain unevaluated. |
-| Quartermaster | Plunder | Select a gain and collection timing | Connected and tested; each copy keeps its own pile and collects one card per turn per the printed rules. Strategies may also override `choose_quartermaster_option` for a single hand-aware take/gain decision. |
+| Quartermaster | Plunder | Select a gain and collection timing | Evaluated on a fixed-seed panel; hand-aware one-card collection, endgame points, independent piles, repeated plays sharing a pile, and start-of-turn scheduling are covered. Improvements vary by opponent; see the free-gain evaluation below. |
 | Captain | Promo | Select a supply Action | Needs context: reuses hand action priorities and falls back to the first candidate. |
 | Band of Misfits | Dark Ages | Select a supply Action | Needs forwarding: its dedicated base-AI hook is not forwarded to the strategy. |
-| Workshop | Base | Select a free gain | Needs context: calls the buy selector, which uses gain priorities; evaluate free-gain fallback and ownership limits. |
-| Remodel | Base | Choose a trash/gain pair | Needs context: separate generic trash and gain choices do not evaluate the pair together. |
-| Anvil | Prosperity | Discard a Treasure, then gain | Gain override is connected; Treasure-discard hook needs forwarding. |
+| Workshop | Base | Select a free gain | Evaluated; separate free-gain context and priorities, ownership-aware mandatory fallback. Generic independent priorities regressed against some opponents; opt in and tune per strategy. |
+| Remodel | Base | Choose a trash/gain pair | Evaluated; compare legal trash/gain pairs, honor explicit trash preferences, and refresh gains after trash reactions. The panel improved against some opponents; no optimality claim. |
+| Anvil | Prosperity | Discard a Treasure, then gain | Evaluated; combined discard/gain override and shared tradeoff baseline. Both existing separate overrides remain authoritative. Panel results include small regressions and overlapping intervals. |
 | Chapel | Base | Choose up to four trashes | Generic trash priorities are connected; evaluate stopping and minimum economy. |
-| Junk Dealer | Dark Ages | Choose a mandatory trash | Needs forwarding for its dedicated trash hook; evaluate keeping enough economy. |
+| Junk Dealer | Dark Ages | Choose a mandatory trash | Dedicated trash hook is forwarded; evaluate keeping enough economy. |
 | Gear | Adventures | Choose cards to set aside | Needs forwarding; evaluate current-turn versus next-turn value. |
 | Haven | Seaside | Choose a card to set aside | Needs forwarding; evaluate next-hand usefulness. |
 | Barge | Menagerie | Resolve now or next turn | Needs forwarding; evaluate hand and action context. |
 | Sleigh | Menagerie | Redirect a gained card | Needs forwarding; evaluate whether to spend the reaction. |
-| Torturer | Intrigue | Respond to attack and choose discards | Response mode is forwarded under `choose_torturer_response`; discard selection needs forwarding. |
+| Torturer | Intrigue | Respond to attack and choose discards | Response mode and generic discards are forwarded; evaluate both policies. |
 | Watchtower | Prosperity | Trash, topdeck, or keep a gain | Existing connected defaults and tests; evaluate exceptions by strategy and game stage. |
 | Clerk | Prosperity | Reaction play and attack topdeck | Existing connected defaults and tests; evaluate exceptions. |
 | Investment | Prosperity | Take money or trash a Treasure for points | Existing connected defaults and tests; evaluate point-versus-economy tradeoffs. |
@@ -99,8 +99,8 @@ validate menus; `GeneticAI` forwards the following strategy hooks:
 | --- | --- |
 | `choose_overlord_target(state, player, choices)` | Try the strategy's action preferences. Otherwise prefer action support when terminal Actions exceed remaining Actions, then printed draw and money, with deterministic tie-breaking. |
 | `choose_courier_target(state, player, choices)` | Try Action preferences, then explicit Treasure preferences. Otherwise chain Courier while a deck remains, supply needed Actions, then compare available printed draw and money. Returning `None` declines the optional play. |
-| `choose_quartermaster_gain(state, player, choices)` | Try the strategy's gain preferences. Otherwise prefer non-junk, non-Victory gains, then printed cost and resources. |
-| `quartermaster_take_all(state, player, mat)` | Decide whether this Quartermaster collects this turn (the card puts *one* stored card into hand; the engine takes the priciest). Baseline: collect when at least two cards are stored. |
+| `choose_quartermaster_gain(state, player, choices)` | Use the contextual free-gain selector with Quartermaster storage as the declared destination. |
+| `quartermaster_take_all(state, player, mat)` | Compatibility timing hook: collect one useful stored card promptly, prefer immediate Action support/draw/money, gain late points that already score on the mat, and avoid mandatory junk gains. |
 
 For Overlord and Quartermaster, conditional rules that fail are deprioritized
 in favor of unspecified cards.
@@ -134,14 +134,93 @@ The legal menus reject debt and Potion costs and apply current coin-cost
 modifiers. Overlord also excludes Command cards, preventing self-selection.
 Quartermaster gains still use the engine's gain/reaction path.
 
-The collection hook's name and behavior reflect the existing simulator. This
-change does not certify the card's complete rules implementation. Storage per
-physical card, duration-copy behavior, and full rules conformance need an
-explicit audit before treating a strategy benchmark as authoritative.
+Storage per physical copy, cloned ownership, and gain reactions were covered
+by #343. The subsequent rules audit for #391 adds repeated recurring choices
+on the same pile and defers Quartermasters played during start-of-turn effects.
+This is targeted rules coverage, not certification of every landscape or
+special-card interaction.
 
 The new hooks are available to Python strategies. They are not new genes in the
 optimizer: existing priority lists can influence the baseline, but searching
 dedicated policy parameters requires additional optimizer work.
+
+## Free gains and stored cards: implementation and evaluation
+
+[Make free gains and stored-card decisions strategy-aware (#391)](https://github.com/jss367/py-overlord/issues/391)
+covers Workshop, Remodel, Anvil, and Quartermaster. The shared baseline lives in
+[`tactical_defaults.py`](../dominion/ai/tactical_defaults.py); legal menus and
+canonical selections live in [`gain_decisions.py`](../dominion/cards/gain_decisions.py).
+Workshop no longer calls `choose_buy`. Purchases retain `choose_gain` for API
+compatibility; free gains use `choose_free_gain(state, player, choices, context)`.
+
+`FreeGainContext` records the source, declared destination (`discard`, `hand`,
+`deck`, or `quartermaster` storage), a hand snapshot, owned counts including
+stored/exiled cards, endgame status, any sacrificed card, and whether the gain
+is mandatory. For a proposed Remodel pair, the snapshots exclude the proposed
+trash. Reactions still resolve through `gain_card` and can change the final
+destination. Endgame detection uses a present Province/Colony pile at two or
+fewer cards, or two empty piles; it is intentionally an approximate horizon.
+
+`free_gain_priority = None` inherits existing gain preferences, including active
+phase rules. An explicit list separates free gains from purchases; `[]` uses
+only the tactical fallback. Conditional preferences and ownership limits use
+normal `PriorityRule` predicates. Failed conditions deprioritize covered cards;
+when every rule fails, a mandatory gain still picks a legal card, while Anvil's
+optional exchange may decline. A dedicated contextual override can use all
+context fields, including destinations, to specify a different policy.
+
+```python
+strategy.free_gain_priority = [
+    PriorityRule("Village", PriorityRule.max_in_deck("Village", 3)),
+    PriorityRule("Smithy", PriorityRule.max_in_deck("Smithy", 2)),
+    PriorityRule("Silver"),
+]
+```
+
+The default ranks printed draw and money, needed village support, diminishing
+Action copies, junk, and late points. It is a modest heuristic: attacks,
+landmarks such as Fountain, special gain effects, and engines may need a
+strategy override. Do not replace a tuned strategy's gain list indiscriminately.
+
+| Hook | Contract and baseline |
+| --- | --- |
+| `choose_free_gain(state, player, choices, context)` | Return a legal gain; Workshop/Remodel use a mandatory legal fallback for an absent or invalid selection. |
+| `choose_remodel_option(state, player, options)` | Each option is `(physical_trash, legal_gains)`; return `(trash, gain)`. Baseline compares gain value against retained-card value, or honors explicit trash preferences. Invalid pairs use the baseline. The engine checks the trashed card’s current cost and rebuilds the gain menu after trash reactions. |
+| `choose_anvil_option(state, player, treasures, choices)` | Return `(physical_discard, gain)` or `(None, None)` to decline. Default considers gain value versus lost Treasure income; invalid pairs decline. Existing gain/discard overrides remain authoritative, including explicitly spending a Gold. |
+| `choose_quartermaster_option(state, player, mat, candidates)` | Combined gain/take override for one recurring instruction. Compatibility gain/timing hooks still work. Collection selects one card by current-hand usefulness. Each replay sees the preceding choice's updates; different physical copies see only their own storage. |
+
+The 54 targeted regression scenarios in
+[`test_free_gain_tactics.py`](../tests/test_free_gain_tactics.py), plus existing
+shared, Plunder, and adapter tests, separate policy choices from rules checks.
+Distinct rules defects are tracked as [Workshop cost limits (#399)](https://github.com/jss367/py-overlord/issues/399),
+[Remodel replacement costs (#400)](https://github.com/jss367/py-overlord/issues/400),
+and [Quartermaster recurring instructions (#401)](https://github.com/jss367/py-overlord/issues/401).
+The audit uses the official [Alchemy](https://www.riograndegames.com/wp-content/uploads/2013/02/DomAlchemy.pdf),
+[Empires](https://www.riograndegames.com/wp-content/uploads/2022/03/Dominion-Rules-Empires.pdf),
+[Menagerie](https://www.riograndegames.com/wp-content/uploads/2020/01/DominionMenagerie.pdf),
+and [Plunder](https://www.riograndegames.com/wp-content/uploads/2022/08/DomPlunder.pdf) rules.
+
+Reproduction:
+
+```sh
+PYTHONPATH=. python scripts/evaluate_free_gain_tactics.py --pairs 100 --seed 391000 --workers 4
+```
+
+The committed [raw outcomes](../scripts/data/free_gain_tactics_evaluation.json)
+cover 13,200 games: 100 seeds × two seats × two policies × 33 comparisons.
+Controls reproduce the previous decisions using the same corrected rules;
+opponents use current policies. Four representative kingdoms compare inherited
+purchase preferences and opt-in independent fallback against Big Money, Smithy
+money, and a Village/Smithy/Laboratory engine. Three existing Port Moresby
+strategies are reevaluated against three board-specific opponents. Rate intervals
+use an approximate Wilson bound on independent seed-pair means; change intervals
+use paired normal estimates. These are unadjusted exploratory comparisons.
+
+Findings, every comparison, uncertainty, regressions, and reproduction details
+are published in the [Free Gains and Quartermaster Tactical Policy Evaluation](../reports/strategies/free-gains-and-quartermaster-policy-evaluation.html).
+The study evaluates these panels only; no dedicated policy genes were added to
+the optimizer. Saved catalog standings are preserved and marked outdated after
+the simulation changes.
 
 ## Completion criteria for each implementation issue
 

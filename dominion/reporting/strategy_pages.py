@@ -51,6 +51,14 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="free-gains-and-quartermaster-policy-evaluation.html",
+        display_name="Free Gains and Quartermaster: Tactical Policy Evaluation",
+        description="Workshop, Remodel, Anvil, and Quartermaster policies compared in 13,200 seeded games, including uncertainty, regressions, and reevaluation of existing Port Moresby strategies.",
+        kingdom_cards=("Workshop", "Remodel", "Anvil", "Quartermaster"),
+        source_label="Targeted rules scenarios and seat-balanced repository simulations",
+        strategy_slugs=("port-moresby-quartermaster-money", "port-moresby-double-quartermaster-money", "port-moresby-copper-mat-money"),
+    ),
+    CuratedStrategyGuide(
         filename="cobbler-shepherd-strategy-comparison.html",
         strategy_slugs=("cobbler-shepherd-growth",),
         display_name="Cobbler and Shepherd: Strategy Comparison",

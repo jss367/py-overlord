@@ -27,47 +27,26 @@ class Anvil(Card):
         if not treasures:
             return
 
-        from ..registry import get_card
+        from ..gain_decisions import gain_menu, gain_selected, resolve_gain
 
-        # Work out what could be gained BEFORE deciding to discard: the
-        # discard is optional, so a player who wants nothing on offer simply
-        # keeps the Treasure. Once a Treasure is discarded the gain is
-        # mandatory.
-        gainable = []
-        for name, count in game_state.supply.items():
-            if count <= 0 or name in game_state.non_supply_pile_names:
-                continue
-            card = get_card(name)
-            if (
-                game_state.get_card_cost(player, card) <= 4
-                and card.cost.potions == 0
-                and card.cost.debt == 0
-            ):
-                gainable.append(card)
-
+        gainable = gain_menu(game_state, player, CardCost(coins=4))
         if not gainable:
             return
-
-        target = player.ai.choose_anvil_gain(game_state, player, gainable)
-        if target is None or target not in gainable:
-            return
-
-        choice = player.ai.choose_anvil_treasure_to_discard(
-            game_state, player, list(treasures)
+        pair = player.ai.choose_anvil_option(
+            game_state, player, list(treasures), gainable
         )
-        if (
-            choice is None
-            or choice not in player.hand
-            or not game_state.is_treasure(choice)
-        ):
+        if not isinstance(pair, tuple) or len(pair) != 2:
             return
-
-        # Discard the chosen Treasure from hand.
+        choice, target = pair
+        target = resolve_gain(target, gainable)
+        if choice not in treasures or target is None:
+            return
         player.hand.remove(choice)
         game_state.discard_card(player, choice)
-
-        if game_state.supply.get(target.name, 0) <= 0:
-            return
-
-        game_state.supply[target.name] -= 1
-        game_state.gain_card(player, get_card(target.name))
+        # Discard reactions may empty a pile or change its cost.
+        target = resolve_gain(target, gain_menu(game_state, player, CardCost(coins=4)))
+        if target is None:
+            from ..gain_decisions import choose_free_gain
+            target = choose_free_gain(game_state, player,
+                gain_menu(game_state, player, CardCost(coins=4)), "Anvil", choice)
+        gain_selected(game_state, player, target)
