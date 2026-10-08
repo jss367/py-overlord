@@ -79,11 +79,10 @@ class AI(ABC):
         treasure = self.choose_anvil_treasure_to_discard(state, player, treasures)
         if target is None or treasure is None:
             return None, None
-        gain_overridden = type(self).choose_anvil_gain is not AI.choose_anvil_gain
-        discard_overridden = type(self).choose_anvil_treasure_to_discard is not AI.choose_anvil_treasure_to_discard
-        if gain_overridden or discard_overridden:
-            return treasure, target
-        return tactical_defaults.choose_anvil_option(state, player, treasures, target)
+        # Direct adapters already supplied their policy through choose_buy /
+        # choose_free_gain. A legal selection must not be vetoed by another
+        # policy. GeneticAI applies its strategy tradeoff in its own hook.
+        return treasure, target
 
     def choose_charm_option(self, state: GameState, player: PlayerState, options: list[str]) -> str:
         """Select which of Charm's modes to use when played."""

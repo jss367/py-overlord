@@ -199,6 +199,9 @@ decision, and GeneralAI uses its learned selector. This calls only the selector;
 no purchase occurs, and neither coins nor buys filter or pay for the gain.
 Empty menus request no decision. Mandatory effects validate the response and
 fall back to a legal gain if the selector declines or returns an invalid card.
+For Anvil, a direct adapter's legal selected gain is authoritative, including
+an exchange the shared heuristic would reject. A declined gain preserves the
+Treasure. GeneticAI applies its strategy exchange tradeoff separately.
 GeneticAI instead honors the strategy's contextual free-gain hook and separate
 preferences. Teacher selectors propose choices without recording free gains or
 joint Remodel pairs. The validated executor snapshots the final legal gain
@@ -254,7 +257,7 @@ the output exclusively. If the local reproduction output already exists,
 choose a fresh filename. These commands preserve all committed raw outcomes
 and render a separate HTML copy from the newly produced data.
 
-The dated [October 8 committed-action recording rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-committed-recording.json)
+The dated [October 8 Anvil adapter-control rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-anvil-adapter.json)
 uses the merged reviewed simulation inputs and covers 13,200 games: 100 seeds × two seats × two policies × 33 comparisons.
 Controls reproduce the previous decisions using the same corrected rules;
 opponents use current policies. Four representative kingdoms compare inherited
@@ -279,7 +282,9 @@ is also preserved; the final audit rerun identifies the nullable policy's
 identity, crossover, normalization/pruning and publication consumers. That
 [policy-propagation audit rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-policy-audit.json)
 is preserved unchanged. The current rerun identifies the committed-action
-recording contract; all 33 fixed-policy comparison records match the prior panel.
+recording contract. That [committed-action recording rerun](../scripts/data/free_gain_tactics_evaluation-2026-10-08-committed-recording.json)
+is also preserved. The current adapter-control rerun identifies the Anvil
+selector fix; all 33 fixed-policy comparison records match the prior panel.
 The panel uses GeneticAI strategies rather than learned/random adapters; its
 results do not measure learned-policy or random-agent performance. The guide is generated from the final
 rerun data, not relabeled historical results. Python exports and worker serialization preserve `free_gain_priority` as `None`,

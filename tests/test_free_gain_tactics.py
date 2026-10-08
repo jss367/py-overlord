@@ -900,3 +900,50 @@ def test_rotated_context_ownership_and_sacrifice_stay_card_named():
     assert context.owned_counts.get("Acolyte", 0) == 0
     assert context.sacrificed is acolyte
     assert not context.endgame
+
+
+@pytest.mark.parametrize("kind", ["probe", "random", "rl", "general"])
+@pytest.mark.parametrize("treasure,target", [("Copper", "Estate"), ("Gold", "Silver"), ("Copper", None)])
+def test_anvil_direct_adapter_controls_heuristic_unfavorable_exchange(kind, treasure, target, monkeypatch):
+    state, player = make_state(names=("Estate", "Silver", "Village"))
+    held = get_card(treasure)
+    player.hand = [held]
+    player.coins = player.buys = 0
+    chosen = get_card(target) if target else None
+    seen = []
+    def select(state, choices, decision="buy"):
+        seen.append((decision, choices))
+        return chosen
+    if kind == "probe":
+        class Probe(DummyAI):
+            def choose_buy(self, state, choices):
+                return select(state, choices)
+        ai = Probe()
+    elif kind == "random":
+        from dominion.rl.random_ai import RandomAI
+        ai = RandomAI()
+        monkeypatch.setattr("dominion.rl.random_ai.random.choice", lambda choices: select(state, choices))
+    elif kind == "rl":
+        from dominion.rl.rl_ai import RLAI
+        ai = RLAI()
+        ai.action_queue.put(chosen)
+    else:
+        from dominion.rl.general.policy import GeneralAI
+        ai = GeneralAI(None)
+        ai.decide = select
+    player.ai = ai
+    get_card("Anvil").play_effect(state)
+    if target:
+        assert player.hand == [] and [c.name for c in player.discard] == [treasure, target]
+        assert state.supply[target] == 9
+    else:
+        assert player.hand == [held] and player.discard == []
+        assert all(count == 10 for count in state.supply.values())
+    assert player.coins == player.buys == 0
+    if kind == "rl":
+        decision, requested_state, choices = ai.choice_queue.get_nowait()
+        assert decision == "buy" and requested_state is state
+        assert {c.name for c in choices} == {"Estate", "Silver", "Village"}
+        assert ai.choice_queue.empty() and ai.action_queue.empty()
+    else:
+        assert len(seen) == 1 and seen[0][0] == "buy"

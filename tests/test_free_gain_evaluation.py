@@ -15,6 +15,7 @@ from scripts import evaluate_free_gain_tactics as evaluator
     "free_gain_tactics_evaluation-2026-10-08-recording.json",
     "free_gain_tactics_evaluation-2026-10-08-policy-audit.json",
     "free_gain_tactics_evaluation-2026-10-08-committed-recording.json",
+    "free_gain_tactics_evaluation-2026-10-08-anvil-adapter.json",
 ])
 def test_existing_dated_outcomes_are_rejected_before_simulation(filename, monkeypatch, capsys):
     output = Path("scripts/data") / filename
