@@ -344,3 +344,34 @@ def test_anvil_base_discard_uses_cheapest_economy_and_empty_menu_declines():
     assert player.ai.choose_anvil_treasure_to_discard(state, player, player.hand).name == "Copper"
     assert player.ai.choose_anvil_treasure_to_discard(state, player, player.hand[:2]).name == "Silver"
     assert player.ai.choose_anvil_treasure_to_discard(state, player, []) is None
+
+
+
+@pytest.mark.parametrize("actions", [0, 1])
+@pytest.mark.parametrize("name", ["Crown", "Werewolf", "Militia"])
+def test_storage_keeps_actions_playable_in_a_later_phase(name, actions):
+    from dominion.projects.capitalism import Capitalism
+
+    names = ["Estate", name, "Gold"]
+    if actions:
+        names.append("Smithy")
+    state, player = setup(names=names)
+    if name == "Militia":
+        player.projects.append(Capitalism())
+    player.actions = actions
+    assert player.ai.choose_gear_set_aside(state, player, player.hand) == []
+
+
+def test_gear_last_action_keeps_crown_to_double_gold_this_turn():
+    state, player = setup(names=("Estate", "Crown", "Gold"))
+    crown = player.hand[1]
+    player.deck = [get_card("Estate"), get_card("Estate")]
+    gear = get_card("Gear")
+    play(state, player, gear)
+    assert player.actions == 0
+    assert gear.set_aside == []
+    assert any(card is crown for card in player.hand)
+    state.phase = "treasure"
+    assert state.move_card_from_hand_to_play(player, crown)
+    state.play_treasure_indirectly(player, crown)
+    assert player.coins == 6

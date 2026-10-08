@@ -150,7 +150,7 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
     from dominion.cards.registry import get_card
 
     hand = list(player.hand)
-    money = player.coins + sum(c.stats.coins for c in hand if c.is_treasure)
+    money = player.coins + sum(c.stats.coins for c in hand if state.is_treasure(c))
     costs = [3]
     for name, remaining in state.supply.items():
         if remaining <= 0 or name in state.non_supply_pile_names:
@@ -167,8 +167,13 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
     def next_value(card):
         return (card.stats.cards * 2 + card.stats.coins, card.cost.coins, card.name)
 
+    # No Actions does not strand cards still playable as Treasures or at Night.
+    # Use the live Treasure type so Capitalism is covered as well as Crown.
+    action_only = [
+        c for c in hand if c.is_action and not state.is_treasure(c) and not c.is_night
+    ]
     terminals = sorted(
-        (c for c in hand if c.is_action and c.stats.actions == 0),
+        (c for c in action_only if c.stats.actions == 0),
         key=next_value, reverse=True,
     )
     # A Village or cantrip must remain usable this turn; account for its support.
@@ -176,7 +181,7 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
     if action_budget > 0:
         action_budget += sum(max(0, c.stats.actions - 1) for c in hand if c.is_action)
     stranded = (
-        [c for c in hand if c.is_action] if action_budget <= 0 else terminals[action_budget:]
+        action_only if action_budget <= 0 else terminals[action_budget:]
     )
     selected = []
     for card in sorted(stranded, key=next_value, reverse=True):
