@@ -88,7 +88,7 @@ def choose_supply_action_target(state, player, choices: list[Card]) -> Card | No
             if card.name == "Junk Dealer" and not junk:
                 value -= 4  # Mandatory trash can destroy useful economy.
         value += future * 0.75 if provinces > 2 else 0
-        if card.name in {"Pillage", "Feast"}:
+        if card.name == "Pillage":
             value = -1  # A virtual card cannot trash itself for its payoff.
         return (
             needs_actions and card.stats.actions >= 2,

@@ -181,8 +181,9 @@ Copper is only fuel with at least $3 of other printed Treasure economy, and
 small Victory cards stop being junk with two Provinces left. Mandatory Junk
 Dealer trash is penalized in a clean hand. Caravan, Fishing Village, Wharf,
 Merchant Ship and Lighthouse have explicit immediate/future estimates; future
-value is discounted by 25% and dropped with two Provinces left. Pillage and
-Feast are penalized because their virtual self-trash cannot pay out. Unknown
+value is discounted by 25% and dropped with two Provinces left. Pillage is
+penalized because its virtual self-trash cannot pay out. Feast is not penalized:
+its gain is unconditional, even when it cannot trash itself. Unknown
 effects use printed resources and a coarse Attack premium. Ties use Actions,
 Buys, printed coin cost, then name. These are modest heuristics, not optimal play.
 
@@ -204,6 +205,7 @@ certification. The rules audit found and separately filed:
 - [#395: Captain scheduling and repeated plays](https://github.com/jss367/py-overlord/issues/395).
 - [#396: Overlord and Band of Misfits indirect Action handling](https://github.com/jss367/py-overlord/issues/396).
 - [#397: Virtual Supply proxies and Duration owner tracking](https://github.com/jss367/py-overlord/issues/397).
+- [#405: Pillage self-trash condition and payoff ordering](https://github.com/jss367/py-overlord/issues/405).
 
 Strict expected-failure tests reproduce these defects in
 `tests/test_shared_card_tactics.py`. Matches exclude Duration payloads; Duration

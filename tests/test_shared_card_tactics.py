@@ -489,6 +489,22 @@ def test_supply_baseline_caps_draw_and_avoids_mandatory_good_card_trash():
     assert tactical_defaults.choose_supply_action_target(state, player, []) is None
 
 
+@pytest.mark.parametrize("card_name", ["Captain", "Band of Misfits"])
+def test_virtual_feast_gains_without_trashing_itself(card_name):
+    state, player = make_state(names=("Feast", "Laboratory"))
+    get_card(card_name).play_effect(state)
+    assert [c.name for c in player.discard] == ["Laboratory"]
+    assert state.supply == {"Feast": 10, "Laboratory": 9}
+    assert state.trash == []
+
+
+def test_supply_baseline_does_not_penalize_unconditional_self_trash_effects():
+    state, player = make_state()
+    assert tactical_defaults.choose_supply_action_target(
+        state, player, [get_card("Feast"), get_card("Pillage")]
+    ).name == "Feast"
+
+
 @pytest.mark.parametrize("card_name, hook, priority", SUPPLY_COMMANDS)
 def test_supply_play_indirectly_uses_the_same_dedicated_target(card_name, hook, priority):
     strategy = EnhancedStrategy()
@@ -530,3 +546,12 @@ def test_audited_supply_duration_never_becomes_owned(card_name):
     player.in_play = [command]
     command.play_effect(state)
     assert all(c.name != "Caravan" for c in player.all_cards())
+
+
+@pytest.mark.xfail(strict=True, reason="Pillage payoff does not require self-trash: issue #405")
+def test_audited_virtual_pillage_has_no_conditional_payoff():
+    state, player = make_state(names=("Pillage", "Spoils"))
+    player.cost_reduction = 1
+    get_card("Captain").play_effect(state)
+    assert state.supply["Pillage"] == 10
+    assert player.count_in_deck("Spoils") == 0
