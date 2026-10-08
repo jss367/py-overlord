@@ -50,7 +50,7 @@ def _make_trainer(tmp_path, **kwargs) -> GeneticTrainer:
 def _fired(strategies: list[BaseStrategy]) -> list[dict[str, list[int]]]:
     return [
         {
-            attr: [i for i, rule in enumerate(getattr(s, attr)) if getattr(rule, "_fired", False)]
+            attr: [i for i, rule in enumerate(getattr(s, attr) or []) if getattr(rule, "_fired", False)]
             for attr in _PRIORITY_LIST_ATTRS
         }
         for s in strategies
@@ -77,6 +77,9 @@ def test_seeded_parallel_evaluation_matches_serial(tmp_path):
     serial = _make_trainer(tmp_path, workers=1)
     parallel = _make_trainer(tmp_path, workers=2, games_per_task=2)
     serial_pop = _population()
+    serial_pop[0].gain_priority.insert(2, PriorityRule("Workshop", PriorityRule.max_in_deck("Workshop", 1)))
+    serial_pop[0].action_priority.insert(0, PriorityRule("Workshop"))
+    serial_pop[0].free_gain_priority = [PriorityRule("Smithy")]
     parallel_pop = deepcopy(serial_pop)
 
     serial._eval_seed_context = (_SEED_PHASE_SCREEN, 0)
@@ -87,6 +90,7 @@ def test_seeded_parallel_evaluation_matches_serial(tmp_path):
         assert serial_fitness == parallel_fitness
         assert serial.last_population_breakdowns == parallel.last_population_breakdowns
         assert _fired(serial_pop) == _fired(parallel_pop)
+        assert _fired(parallel_pop)[0]["free_gain_priority"] == [0]
         assert any(any(v) for v in _fired(parallel_pop)), "expected some rules to fire"
 
         # Single-strategy entry point goes through the same pool.

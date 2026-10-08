@@ -39,15 +39,20 @@ class RecordingTeacher(GeneticAI):
         self.examples = examples
 
     def record(self, state, choices, decision, choice):
+        example = self._recording_example(state, choices, decision, choice)
+        if example is not None:
+            self.examples.append(example)
+        return choice
+
+    def _recording_example(self, state, choices, decision, choice):
         mask = self.actions.get_action_mask(choices)
         target = self.actions.card_to_action(choice)
         if not mask[target]:
             raise ValueError(f"Teacher chose an illegal {decision} action")
         if mask.sum() > 1:
             seat = next(i for i, p in enumerate(state.players) if p.ai is self)
-            self.examples.append((self.encoder.encode_decision(state, seat, decision),
-                                  mask, target, decision))
-        return choice
+            return (self.encoder.encode_decision(state, seat, decision), mask, target, decision)
+        return None
 
     def choose_action(self, state, choices):
         return self.record(state, choices, "action", super().choose_action(state, choices))
@@ -58,8 +63,40 @@ class RecordingTeacher(GeneticAI):
     def choose_buy(self, state, choices):
         return self.record(state, choices, "buy", super().choose_buy(state, choices))
 
+    def choose_free_gain(self, state, player, choices, context):
+        # Every selection is provisional. The effect's validated executor
+        # records its final legal gain, including reactions and fallback.
+        return super().choose_free_gain(state, player, choices, context)
+
+    def prepare_free_gain_record(self, state, player, choices, choice, context):
+        # Snapshot the final menu before gaining changes the
+        # observation. Commit only the successful, matching final gain.
+        example = self._recording_example(state, choices, "buy", choice)
+        def commit(gained):
+            if example is not None and getattr(gained, "name", None) == choice.name:
+                self.examples.append(example)
+        return commit
+
+    def choose_remodel_option(self, state, player, options):
+        previous = getattr(self, "_planning_remodel", False)
+        self._planning_remodel = True
+        try:
+            return super().choose_remodel_option(state, player, options)
+        finally:
+            self._planning_remodel = previous
+
+    def prepare_remodel_trash_record(self, state, player, choices, choice):
+        example = self._recording_example(state, choices, "trash", choice)
+        def commit(trashed):
+            if example is not None and trashed is choice:
+                self.examples.append(example)
+        return commit
+
     def choose_card_to_trash(self, state, choices):
-        return self.record(state, choices, "trash", super().choose_card_to_trash(state, choices))
+        choice = super().choose_card_to_trash(state, choices)
+        if getattr(self, "_planning_remodel", False):
+            return choice
+        return self.record(state, choices, "trash", choice)
 
 
 def collect_examples(kingdoms, games, seed):

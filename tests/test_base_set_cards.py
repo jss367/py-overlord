@@ -427,7 +427,7 @@ def test_workshop_uses_reduced_cost_for_gain_threshold():
     player = state.players[0]
     state.setup_card_cost_reduction = 1
     state.supply["Magnate"] = 10
-    player.ai.choose_buy = lambda _state, choices: next(
+    player.ai.choose_free_gain = lambda _state, _player, choices, _context: next(
         card for card in choices if card.name == "Magnate"
     )
 

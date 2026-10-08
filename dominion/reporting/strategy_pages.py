@@ -51,6 +51,14 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="free-gains-and-quartermaster-policy-evaluation.html",
+        display_name="Free Gains and Quartermaster: Tactical Policy Evaluation",
+        description="October 8 rerun of Workshop, Remodel, Anvil, and Quartermaster policies in 13,200 seeded games, with input provenance, uncertainty, regressions, preserved historical outcomes, and Port Moresby reevaluation.",
+        kingdom_cards=("Workshop", "Remodel", "Anvil", "Quartermaster"),
+        source_label="Targeted rules scenarios and seat-balanced repository simulations",
+        strategy_slugs=("port-moresby-quartermaster-money", "port-moresby-double-quartermaster-money", "port-moresby-copper-mat-money"),
+    ),
+    CuratedStrategyGuide(
         filename="trashing-discard-and-next-turn-card-decisions.html",
         display_name="Trashing, Discarding, and Saving Cards for the Next Turn",
         description="Shared Gear and Haven decisions, mandatory and optional selection rules, card conservation, and fixed-seed comparisons with uncertainty and regressions.",

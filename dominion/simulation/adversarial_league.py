@@ -264,6 +264,7 @@ def genome_signature(strategy: BaseStrategy) -> tuple:
     )
     return (
         rule_sig(getattr(strategy, "gain_priority", [])),
+        None if getattr(strategy, "free_gain_priority", None) is None else rule_sig(strategy.free_gain_priority),
         rule_sig(getattr(strategy, "action_priority", [])),
         rule_sig(getattr(strategy, "treasure_priority", [])),
         rule_sig(getattr(strategy, "trash_priority", [])),

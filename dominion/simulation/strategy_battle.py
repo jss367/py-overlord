@@ -186,6 +186,7 @@ class StrategyBattle:
         references: set[str] = set()
         for priority_list in [
             strat.gain_priority,
+            getattr(strat, "free_gain_priority", None) or [],
             strat.action_priority,
             strat.trash_priority,
             strat.bounty_hunter_exile_priority,

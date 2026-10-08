@@ -13,57 +13,46 @@ class Remodel(Card):
         )
 
     def play_effect(self, game_state):
+        from dominion.ai import tactical_defaults
+        from ..gain_decisions import (
+            choose_free_gain, gain_menu, gain_selected, resolve_gain,
+        )
+
         player = game_state.current_player
         if not player.hand:
             return
-
-        trash_choice = player.ai.choose_card_to_trash(game_state, list(player.hand))
-        if trash_choice not in player.hand:
-            trash_choice = min(player.hand, key=self._trash_priority)
-
-        if trash_choice not in player.hand:
-            return
-
-        player.hand.remove(trash_choice)
-        game_state.trash_card(player, trash_choice)
-
-        self._gain_replacement(game_state, player, trash_choice)
-
-    def _gain_replacement(self, game_state, player, trashed):
-        max_coins = trashed.cost.coins + 2
-        max_potions = trashed.cost.potions
-
-        options = []
-        for _name, candidate, _count in game_state._iter_gainable_supply_cards():
-            if candidate.cost.potions > max_potions:
-                continue
-            if candidate.cost.coins > max_coins:
-                continue
-            options.append(candidate)
-
-        if not options:
-            return
-
-        choice = player.ai.choose_buy(game_state, options + [None])
-        if choice not in options:
-            options.sort(
-                key=lambda c: (c.cost.coins, c.cost.potions, c.stats.cards, c.name),
-                reverse=True,
+        options = [
+            (card, gain_menu(game_state, player, self._limit(game_state, player, card)))
+            for card in player.hand
+        ]
+        hook = getattr(player.ai, "choose_remodel_option", None)
+        pair = hook(game_state, player, options) if hook else None
+        if not isinstance(pair, tuple) or len(pair) != 2 or pair[0] not in player.hand:
+            pair = tactical_defaults.choose_remodel_option(
+                game_state, player, options,
+                lambda state, owner, choices, context: choose_free_gain(
+                    state, owner, choices, "Remodel", context.sacrificed
+                ),
             )
-            choice = options[0]
-
-        if game_state.supply.get(choice.name, 0) <= 0:
+        trashed, target = pair
+        if trashed is None:
             return
-
-        game_state.supply[choice.name] -= 1
-        game_state.gain_card(player, choice)
+        prepare = getattr(player.ai, "prepare_remodel_trash_record", None)
+        commit_trash = prepare(game_state, player, list(player.hand), trashed) if prepare else None
+        player.hand.remove(trashed)
+        game_state.trash_card(player, trashed)
+        if commit_trash is not None:
+            commit_trash(trashed)
+        # Follow instructions in order: trash/reactions, then check the
+        # trashed card's current cost and the available replacement gains.
+        limit = self._limit(game_state, player, trashed)
+        choices = gain_menu(game_state, player, limit)
+        target = resolve_gain(target, choices) or choose_free_gain(
+            game_state, player, choices, "Remodel", trashed
+        )
+        gain_selected(game_state, player, target, choices=choices, source="Remodel", sacrificed=trashed)
 
     @staticmethod
-    def _trash_priority(card):
-        if card.name == "Curse":
-            return (0, card.cost.coins, card.name)
-        if card.is_victory and not card.is_action:
-            return (1, card.cost.coins, card.name)
-        if card.name == "Copper":
-            return (2, card.cost.coins, card.name)
-        return (3, card.cost.coins, card.name)
+    def _limit(state, player, card):
+        return CardCost(state.get_card_cost(player, card) + 2,
+                        card.cost.potions, card.cost.debt)

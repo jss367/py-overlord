@@ -236,6 +236,7 @@ def lint_strategy(strategy: EnhancedStrategy) -> list[StrategyLintWarning]:
     warnings: list[StrategyLintWarning] = []
     for list_name, rules in (
         ("gain", getattr(strategy, "gain_priority", []) or []),
+        ("free_gain", getattr(strategy, "free_gain_priority", None) or []),
         ("action", getattr(strategy, "action_priority", []) or []),
         ("treasure", getattr(strategy, "treasure_priority", []) or []),
         ("trash", getattr(strategy, "trash_priority", []) or []),
@@ -328,6 +329,7 @@ def cleanup_for_publication(
 
     cleaned = normalize_strategy(strategy)
     gained_cards = {rule.card_name for rule in getattr(cleaned, "gain_priority", []) or []}
+    gained_cards.update(rule.card_name for rule in getattr(cleaned, "free_gain_priority", None) or [])
     can_gain_off_menu_actions = _board_has_non_card_off_menu_gain_paths(board_config) or any(
         _card_can_gain_off_menu_actions(card_name) for card_name in gained_cards
     )

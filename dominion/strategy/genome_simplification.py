@@ -106,6 +106,8 @@ def simplify_strategy(strategy: EnhancedStrategy) -> EnhancedStrategy:
     """
     out = deepcopy(strategy)
     out.gain_priority = _simplify_priority_list(out.gain_priority)
+    if getattr(out, "free_gain_priority", None) is not None:
+        out.free_gain_priority = _simplify_priority_list(out.free_gain_priority)
     out.action_priority = _simplify_priority_list(out.action_priority)
     out.treasure_priority = _simplify_priority_list(out.treasure_priority)
     out.trash_priority = _simplify_priority_list(out.trash_priority)

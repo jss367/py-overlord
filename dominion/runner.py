@@ -3,6 +3,7 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
+from copy import deepcopy
 
 import coloredlogs
 import yaml
@@ -10,6 +11,7 @@ import yaml
 from dominion.boards.loader import BoardConfig, load_board
 from dominion.analysis.strategy_library import find_compatible_strategies
 from dominion.simulation.genetic_trainer import GeneticTrainer
+from dominion.simulation.adversarial_league import genome_signature
 from dominion.strategy.enhanced_strategy import EnhancedStrategy, PriorityRule, WayRule
 from dominion.strategy.lint import cleanup_for_publication, lint_strategy
 
@@ -42,6 +44,7 @@ def save_strategy_as_python(
     *,
     clean_for_publication: bool = True,
     board_config: BoardConfig | None = None,
+    factory_name: str | None = None,
 ) -> None:
     """Serialize an EnhancedStrategy as a Python module.
 
@@ -120,7 +123,17 @@ def save_strategy_as_python(
             lines.append("")
 
     emit("gain_priority", strategy.gain_priority)
+    # None inherits purchase preferences; [] explicitly selects the tactical
+    # baseline. Always write this nullable field, including seed overrides.
+    free_gain = getattr(strategy, "free_gain_priority", None)
+    if free_gain is None:
+        lines.extend(["        self.free_gain_priority = None", ""])
+    else:
+        lines.extend(format_list("free_gain_priority", free_gain))
+        lines.append("")
     emit("action_priority", strategy.action_priority)
+    emit("captain_target_priority", getattr(strategy, "captain_target_priority", None))
+    emit("band_of_misfits_target_priority", getattr(strategy, "band_of_misfits_target_priority", None))
     emit("treasure_priority", strategy.treasure_priority)
     emit("trash_priority", strategy.trash_priority)
     emit(
@@ -137,7 +150,7 @@ def save_strategy_as_python(
 
     lines.extend(
         [
-            f"def create_{class_name.lower()}() -> EnhancedStrategy:",
+            f"def {factory_name or ('create_' + class_name.lower())}() -> EnhancedStrategy:",
             f"    return {class_name}()",
         ]
     )
@@ -185,7 +198,8 @@ def _importable_seed_base(strategy: EnhancedStrategy) -> tuple[str, str] | None:
 
 def merge_baseline_panel(base_panel: list, reused: list) -> list:
     """Return ``base_panel`` followed by the ``reused`` strategies not already
-    present (dedup by ``strategy.name``).
+    present (dedup by name and policy signature; distinct policies retain
+    unique display names without modifying callers' strategy objects).
 
     Pulled out of ``main()`` so the reuse-augments-default-baselines invariant
     is unit-testable without standing up an argparse/training run: with reuse on
@@ -195,9 +209,20 @@ def merge_baseline_panel(base_panel: list, reused: list) -> list:
     """
     panel = list(base_panel)
     existing_names = {strategy.name for strategy in panel}
+    existing = {(getattr(strategy, "_baseline_identity_name", strategy.name), genome_signature(strategy)) for strategy in panel}
     for strategy in reused:
-        if strategy.name in existing_names:
+        key = (getattr(strategy, "_baseline_identity_name", strategy.name), genome_signature(strategy))
+        if key in existing:
             continue
+        existing.add(key)
+        if strategy.name in existing_names:
+            strategy = deepcopy(strategy)
+            original_name = strategy.name
+            strategy._baseline_identity_name = key[0]
+            suffix = 2
+            while f"{original_name} ({suffix})" in existing_names:
+                suffix += 1
+            strategy.name = f"{original_name} ({suffix})"
         existing_names.add(strategy.name)
         panel.append(strategy)
     return panel
