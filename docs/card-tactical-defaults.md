@@ -137,8 +137,11 @@ Existing phase-specific priorities are consulted through the normal selectors.
 The legal supply-play menus reject debt and Potion costs and apply current
 coin-cost modifiers. All three Commands exclude Command targets; Captain also
 excludes Durations. Only exposed, nonempty Supply piles are offered, including
-the top Knight or Ruins and live Action types under Enlightenment. Buy-only
-restrictions do not apply to plays.
+the top Knight or Ruins and live Action types under Enlightenment. Newly legal
+Enlightenment Treasure targets use the shared indirect Action handler, including
+substitution, Ways and Action counters. Ordinary Action targets on Overlord and
+Band of Misfits retain the separate #396 rules backlog. Buy-only restrictions
+do not apply to plays.
 Quartermaster gains still use the engine's gain/reaction path.
 
 The collection hook's name reflects the existing simulator. Storage per

@@ -35,5 +35,10 @@ class BandOfMisfits(Card):
         # is not actually moved here. We instantiate a fresh copy and resolve
         # its on_play, but treat it as Band of Misfits for in-play state.
         impostor = get_card(choice.name)
+        if not impostor.is_action:
+            # Live Action types (Enlightenment Treasures) require the shared
+            # substitution, Way offer and Action-play bookkeeping.
+            game_state.play_action_indirectly(player, impostor)
+            return
         impostor.on_play(game_state)
         game_state.fire_ally_play_hooks(player, impostor)

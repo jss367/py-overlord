@@ -381,6 +381,52 @@ def test_supply_menu_includes_live_action_types_and_top_ruins():
     assert {c.name for c in supply_action_choices(state, player, 4)} == {"Silver", "Abandoned Mine"}
 
 
+@pytest.mark.parametrize("card_name", ["Captain", "Band of Misfits", "Overlord"])
+def test_enlightenment_supply_treasure_uses_action_substitution(card_name):
+    from dominion.prophecies.registry import get_prophecy
+
+    state, player = make_state(names=("Silver",))
+    state.prophecy = get_prophecy("Enlightenment")
+    state.prophecy.is_active = True
+    state.phase = "action"
+    get_card(card_name).play_effect(state)
+    assert len(player.hand) == 1
+    assert player.actions == 2
+    assert player.coins == 0
+    assert player.actions_played == 1
+    assert player.actions_this_turn == 1
+    assert state.supply["Silver"] == 10
+    assert all(c.name != "Silver" for c in player.all_cards())
+
+
+@pytest.mark.parametrize("card_name", ["Captain", "Band of Misfits", "Overlord"])
+def test_enlightenment_supply_treasure_offers_a_way_without_moving_it(card_name):
+    from dominion.prophecies.registry import get_prophecy
+    from dominion.ways.registry import get_way
+
+    strategy = EnhancedStrategy()
+    offered = []
+    turtle = get_way("Way of the Turtle")
+
+    def choose_way(state, player, card, ways):
+        offered.append(card.name)
+        return turtle
+
+    strategy.choose_way = choose_way
+    state, player = make_state(strategy, names=("Silver",))
+    state.prophecy = get_prophecy("Enlightenment")
+    state.prophecy.is_active = True
+    state.phase = "action"
+    state.ways = [turtle]
+    get_card(card_name).play_effect(state)
+    assert offered == ["Silver"]
+    assert not getattr(player, "turtle_set_aside", [])
+    assert player.hand == []
+    assert player.coins == 0
+    assert player.actions_played == 1
+    assert state.supply["Silver"] == 10
+
+
 def test_supply_menu_excludes_ferryman_set_aside_pile():
     from dominion.cards.supply_play import supply_action_choices
 
