@@ -101,8 +101,9 @@ def evaluate(pairs, seed):
     runner_hash = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     rows = []
     for command_index, command in enumerate(COMMANDS):
-        # No Duration payloads in matches: their ownership rules are a known
-        # engine defect. Duration target valuation is covered by scenarios.
+        # Keep the original non-Duration panel for policy comparability.
+        # Duration scheduling/ownership is covered separately by rules tests;
+        # this study does not establish the strength of Duration selections.
         kingdom = ["Chapel", "Village", "Smithy", "Militia", "Witch",
                    "Laboratory", "Market", "Festival", "Moat", command]
         battle = StrategyBattle(kingdom_cards=kingdom, log_frequency=0)

@@ -180,7 +180,8 @@ def retain_multiplier(player, multiplier, target):
         target in player.duration
         or target in player.multiplied_durations
         or getattr(target, "duration_targets", [])
-    ) and multiplier in player.in_play:
+        or getattr(target, "waiting_for_gain", False)
+    ) and (multiplier in player.in_play or getattr(multiplier, "virtual_supply_play", False)):
         targets = getattr(multiplier, "duration_targets", [])
         if target not in targets:
             targets.append(target)

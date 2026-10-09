@@ -464,6 +464,7 @@ def _finish_turn(
     ]
     player.highwayman_blocked_this_turn = False
     player.insignia_active = False
+    player.virtual_gain_effects = []
     player.sailor_play_uses = 0
     player.corsair_trashed_this_turn = False
     # Rotate gain history for Smugglers.

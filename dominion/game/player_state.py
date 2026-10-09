@@ -25,6 +25,9 @@ class PlayerState:
     in_play: list[Card] = field(default_factory=list)
     duration: list[Card] = field(default_factory=list)
     multiplied_durations: list[Card] = field(default_factory=list)
+    # Virtual Supply instruction objects with a rest-of-turn gain trigger.
+    # They hold effects, never physical card ownership.
+    virtual_gain_effects: list[Card] = field(default_factory=list)
     projects: list = field(default_factory=list)
     exile: list[Card] = field(default_factory=list)
     invested_exile: list[Card] = field(default_factory=list)
@@ -277,6 +280,7 @@ class PlayerState:
         self.in_play = []
         self.duration = []
         self.multiplied_durations = []
+        self.virtual_gain_effects = []
         self.projects = []
         self.exile = []
         self.invested_exile = []
@@ -611,10 +615,14 @@ class PlayerState:
                 game_state.hasty_set_aside.get(id(self), []),
                 game_state.patient_mat.get(id(self), []),
             ])
-        for card in dict.fromkeys(self.in_play + self.duration + self.multiplied_durations):
+        for card in dict.fromkeys(
+            self.in_play + self.duration + self.multiplied_durations + self.virtual_gain_effects
+        ):
             set_aside = getattr(card, "set_aside", None)
             if isinstance(set_aside, list):
                 zones.append(set_aside)
+            elif isinstance(set_aside, Card):
+                zones.append([set_aside])
 
         return zones
 
@@ -636,7 +644,11 @@ class PlayerState:
         for zone in zones:
             for card in zone:
                 card_id = id(card)
-                if card_id in seen_ids or getattr(card, "returned_to_supply", False):
+                if (
+                    card_id in seen_ids
+                    or getattr(card, "returned_to_supply", False)
+                    or getattr(card, "virtual_supply_play", False)
+                ):
                     continue
                 seen_ids.add(card_id)
                 cards.append(card)

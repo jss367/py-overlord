@@ -81,6 +81,10 @@ class Blockade(Card):
         """
         if self.watched_card_name is None:
             return
+        if getattr(self, "virtual_supply_play", False):
+            # The gain/next-turn return are instructions, but the attack
+            # explicitly requires Blockade itself to be in play.
+            return
         if self not in owner.duration:
             return
         if gained_card.name != self.watched_card_name:

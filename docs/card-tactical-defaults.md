@@ -157,11 +157,12 @@ Existing phase-specific priorities are consulted through the normal selectors.
 The legal supply-play menus reject debt and Potion costs and apply current
 coin-cost modifiers. All three Commands exclude Command targets; Captain also
 excludes Durations. Only exposed, nonempty Supply piles are offered, including
-the top Knight or Ruins and live Action types under Enlightenment. Newly legal
-Enlightenment Treasure targets use the shared indirect Action handler, including
-substitution, Ways and Action counters. Ordinary Action targets on Overlord and
-Band of Misfits retain the separate #396 rules backlog. Buy-only restrictions
-do not apply to plays.
+the top Knight or Ruins and live Action types under Enlightenment. All targets
+use the shared indirect Action handler, including substitutions, Ways, Action
+counters, Citadel, and Ally/Prophecy/Tavern observers. Targets remain virtual;
+their pending Duration instructions retain the physical Command, including
+nested multipliers and delayed Cargo Ship storage. Buy-only restrictions do
+not apply to plays.
 Quartermaster gains still use the engine's gain/reaction path.
 
 Storage per physical copy, cloned ownership, and gain reactions were covered
@@ -383,9 +384,10 @@ effects use printed resources and a coarse Attack premium. Ties use Actions,
 Buys, printed coin cost, then name. These are modest heuristics, not optimal play.
 
 [Published supply Action evaluation](../reports/strategies/supply-action-selection-evaluation.html)
-records targeted scenarios, exact purchases, nine opponent comparisons,
-3,600 games with fixed seeds and both seats, conservative uncertainty bounds,
-and limitations. Raw evidence is
+records targeted scenarios, exact purchases, the historical nine opponent
+comparisons, and a separate fresh-seed validation after the Command rules fixes.
+Each study has 3,600 games with both seats and conservative uncertainty bounds.
+Historical raw evidence is
 [`supply_action_evaluation.json`](../scripts/data/supply_action_evaluation.json);
 reproduce with:
 
@@ -394,18 +396,32 @@ PYTHONPATH=. python scripts/evaluate_supply_actions.py --pairs 100 --seed 39000 
   --output .context/supply-action-reproduction.json
 ```
 
-This is evaluation of target policies in the current simulator, not full card
-certification. The rules audit found and separately filed:
+The original command reproduces the historical result only on its historical
+implementation at commit `7eeb11aca9ee90c33bd3c46289e9689ab57dd1dd`. Current
+rules validation uses a separate artifact and seed range:
+
+```bash
+PYTHONPATH=. python scripts/evaluate_supply_actions.py --pairs 100 --seed 1395000 \
+  --output .context/supply-action-rules-validation.json
+```
+
+This is evaluation of target policies on a bounded panel, not full card
+certification. The rules audit separately tracked these now-implemented fixes:
 
 - [#395: Captain scheduling and repeated plays](https://github.com/jss367/py-overlord/issues/395).
 - [#396: Overlord and Band of Misfits indirect Action handling](https://github.com/jss367/py-overlord/issues/396).
 - [#397: Virtual Supply proxies and Duration owner tracking](https://github.com/jss367/py-overlord/issues/397).
 - [#405: Pillage self-trash condition and payoff ordering](https://github.com/jss367/py-overlord/issues/405).
 
-Strict expected-failure tests reproduce these defects in
-`tests/test_shared_card_tactics.py`. Matches exclude Duration payloads; Duration
-valuation has scenario coverage only. Captain matches retain the current
-scheduling defect for both policies, so their absolute strength is provisional.
+The six former expected failures now pass in `tests/test_shared_card_tactics.py`.
+Additional `tests/test_command_supply_rules.py` coverage exercises one next-turn
+Captain instruction per play, physical owner retention/release, repeated and
+nested multipliers, persistent instructions, stored-card ownership, cloning,
+self-movement, moving Ways, shared observers, Citadel's first-play ownership,
+and Pillage's attack-before-Spoils order and successful-self-trash condition.
+The original study used the defective rules; the fresh-seed artifact is
+[`supply_action_rules_validation.json`](../scripts/data/supply_action_rules_validation.json).
+Both studies exclude Duration payloads, so Duration strength remains unevaluated.
 The target estimate does not inspect every nested decision, every defense, or
 an opponent's full deck, or value resource substitutions under Enlightenment;
 dedicated overrides remain appropriate. The optimizer
