@@ -1,4 +1,5 @@
 from ..base_card import Card, CardCost, CardStats, CardType
+from dominion.ai import tactical_defaults
 
 
 class Torturer(Card):
@@ -11,71 +12,49 @@ class Torturer(Card):
         )
 
     def play_effect(self, game_state):
-        """Each other player discards two cards or gains a Curse to hand."""
+        """Each other player chooses discard two or gain a Curse to hand.
 
+        Either choice remains legal with an empty hand or exhausted Curse pile.
+        A chosen discard is mandatory: sanitize physical selections and fill a
+        short/invalid answer rather than silently switching the response mode.
+        """
         player = game_state.current_player
 
         def attack_target(target):
-            curses_remaining = game_state.supply.get("Curse", 0)
+            if target.ai.choose_torturer_attack(game_state, target):
+                choices = list(target.hand)
+                count = min(2, len(choices))
+                picks = target.ai.choose_cards_to_discard(
+                    game_state, target, list(choices), count, reason="torturer",
+                )
+                fallback = tactical_defaults.torturer_discards(
+                    game_state, target, choices, len(choices),
+                )
+                selected = []
+                for card in list(picks or []) + fallback:
+                    if any(card is c for c in choices) and not any(card is c for c in selected):
+                        selected.append(card)
+                        if len(selected) == count:
+                            break
+                # An empty hand pays zero discards. Remove the selected batch
+                # before discard reactions draw or play cards from that hand.
+                for card in selected:
+                    target.hand.remove(card)
+                game_state.discard_cards(target, selected)
+                if selected:
+                    game_state.log_callback((
+                        "action", target.ai.name,
+                        f"discards {len(selected)} cards due to Torturer",
+                        {"discarded_cards": [c.name for c in selected],
+                         "remaining_hand": [c.name for c in target.hand]},
+                    ))
+            elif game_state.give_curse_to_player(target, to_hand=True):
+                game_state.log_callback((
+                    "action", target.ai.name, "takes Curse to hand due to Torturer",
+                    {"curses_remaining": game_state.supply.get("Curse", 0),
+                     "hand": [c.name for c in target.hand]},
+                ))
 
-            choose_discard = target.ai.choose_torturer_attack(game_state, target)
-            if not choose_discard and curses_remaining == 0:
-                choose_discard = True
-
-            if choose_discard:
-                max_discards = min(2, len(target.hand))
-                if max_discards == 0 and curses_remaining > 0:
-                    # The player cannot discard any cards, so they must take the Curse
-                    choose_discard = False
-                else:
-                    cards_to_discard = target.ai.choose_cards_to_discard(
-                        game_state,
-                        target,
-                        list(target.hand),
-                        max_discards,
-                        reason="torturer",
-                    )
-                    # Ensure we only discard cards actually still in hand
-                    discarded: list[Card] = []
-                    for card in cards_to_discard[:max_discards]:
-                        if card in target.hand:
-                            target.hand.remove(card)
-                            game_state.discard_card(target, card)
-                            discarded.append(card)
-
-                    if discarded:
-                        discard_count = len(discarded)
-                        card_desc = "card" if discard_count == 1 else "cards"
-                        game_state.log_callback(
-                            (
-                                "action",
-                                target.ai.name,
-                                f"discards {discard_count} {card_desc} due to Torturer",
-                                {
-                                    "discarded_cards": [c.name for c in discarded],
-                                    "remaining_hand": [c.name for c in target.hand],
-                                },
-                            )
-                        )
-                    else:
-                        choose_discard = False
-
-            if not choose_discard:
-                gained = game_state.give_curse_to_player(target, to_hand=True)
-                if gained:
-                    game_state.log_callback(
-                        (
-                            "action",
-                            target.ai.name,
-                            "takes Curse to hand due to Torturer",
-                            {
-                                "curses_remaining": game_state.supply.get("Curse", 0),
-                                "hand": [c.name for c in target.hand],
-                            },
-                        )
-                    )
-
-        for other in game_state.players:
-            if other is player:
-                continue
+        start = game_state.players.index(player)
+        for other in game_state.players[start + 1:] + game_state.players[:start]:
             game_state.attack_player(other, attack_target)

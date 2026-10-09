@@ -72,9 +72,9 @@ tested, then expand coverage by expansion.
 | Junk Dealer | Dark Ages | Choose a mandatory trash | Dedicated override was already forwarded. Invalid/declined choices now use the mandatory base fallback. Tests preserve useful economy when junk is available; no hard economy floor can prevent a mandatory trash. |
 | Gear | Adventures | Choose cards to set aside | Connected, tested, and evaluated on a fixed kingdom: shared baseline saves stranded Actions or money above a buy breakpoint and can stop at zero. Multiple copies and replays conserve cards; no-choice plays leave at current cleanup. |
 | Haven | Seaside | Choose a card to set aside | Connected, tested, and evaluated on a fixed kingdom: shares next-turn selection with Gear, then reuses the generic discard hook with reason `"haven"`. Mandatory legal fallback, per-copy replay storage, scoring and delayed returns are tested. |
-| Barge | Menagerie | Resolve now or next turn | Needs forwarding; evaluate hand and action context. |
-| Sleigh | Menagerie | Redirect a gained card | Needs forwarding; evaluate whether to spend the reaction. |
-| Torturer | Intrigue | Respond to attack and choose discards | Response mode and generic discard selection are already forwarded (`reason="torturer"`); their policy evaluation belongs to #393. |
+| Barge | Menagerie | Resolve now or next turn | Evaluated: dedicated strategy override, draw/phase-aware fallback, independent replay queues, Throne Room retention, and Chameleon timing. Fresh-seed comparisons reevaluate three registered engines. |
+| Sleigh | Menagerie | Redirect a gained card | Evaluated: strategy can decline or choose hand/deck; default considers phases, playable Sleigh cost, and prior gain movement. Three registered strategies reevaluated; general simultaneous gain ordering remains in #410. |
+| Torturer | Intrigue | Respond to attack and choose discards | Evaluated: both existing responder hooks retained, mandatory physical discards and empty-hand/empty-pile choices corrected. Defaults preserve live next-hand cards; purchase-preserving response regressed and remains opt-in. |
 | Watchtower | Prosperity | Trash, topdeck, or keep a gain | Existing connected defaults and tests; evaluate exceptions by strategy and game stage. |
 | Clerk | Prosperity | Reaction play and attack topdeck | Existing connected defaults and tests; evaluate exceptions. |
 | Investment | Prosperity | Take money or trash a Treasure for points | Existing connected defaults and tests; evaluate point-versus-economy tradeoffs. |
@@ -501,3 +501,61 @@ regeneration; this focused study does not replace a full tournament.
 Coverage: [`test_set_aside_tactics.py`](../tests/test_set_aside_tactics.py),
 existing expansion tests, and
 [`evaluate_set_aside_tactics.py`](../scripts/evaluate_set_aside_tactics.py).
+
+
+## Reaction and Duration timing evaluation
+
+[#393](https://github.com/jss367/py-overlord/issues/393) forwards
+`should_resolve_barge_now(state, player)` and
+`choose_sleigh_reaction(state, player, gained_card)` through `GeneticAI`.
+Barge returns a boolean; an absent or invalid override uses the base fallback.
+Sleigh returns `"hand"`, `"deck"`, or `None`; invalid answers decline without
+spending the reaction. A strategy's explicit decline is authoritative.
+
+Torturer's response and discard forwarding were already connected. The response
+hook is `choose_torturer_response(state, player)` (`True` discards); the discard
+hook is `choose_cards_to_discard(..., reason="torturer")`. Both receive the
+responding player even while the attacker is `current_player`. A chosen discard
+must pay two cards or all available cards. Physical invalid/duplicate/short
+answers are sanitized and filled; the selected batch leaves hand before discard
+reactions run. Either response remains legal with no hand or no Curses.
+
+The reusable Barge default compares this turn's usable draw against next-turn
+printed resources with a 20% future discount. It uses remaining Actions and
+Villagers, the unseen deck/discard composition rather than draw order, phase,
+printed money and an extra Buy estimate. It prefers immediate resources before
+a likely final Province/Colony purchase and immediate Chameleon money. Sleigh
+accelerates useful cards to hand while their play phase remains open and otherwise
+topdecks them; it declines junk/dead points, already moved gains and redundant
+destinations, and preserves a last playable Sleigh rather than spending its two
+Horses for Silver. Special text and conditional engine resources remain reasons
+for strategy overrides.
+
+Torturer discards dead cards and terminal Actions beyond a fresh one-Action
+budget with printed village support. Its default response retains the historical
+willingness to discard Copper to avoid persistent deck pollution. The first
+9,600-game study instead protected the current hand's attainable Supply purchase
+breakpoint. That response regressed by 10.5–17.5 percentage points in two money
+decks facing Torturer, so it is available only as the explicit
+`tactical_defaults.torturer_should_discard_preserving_buy` strategy override.
+The original outcomes are retained in
+[`reaction_duration_selective_response_evaluation.json`](../scripts/data/reaction_duration_selective_response_evaluation.json).
+Final defaults are evaluated separately on fresh seeds; see the
+[published policy evaluation](../reports/strategies/barge-sleigh-and-torturer-policy-evaluation.html)
+for all results, uncertainty, limitations and reproduction commands.
+
+The rules audit filed separate defects, with fixes included in this implementation:
+
+- [#406 — Torturer response legality, full discards and turn order](https://github.com/jss367/py-overlord/issues/406).
+- [#407 — Barge repeated deferred payloads](https://github.com/jss367/py-overlord/issues/407).
+- [#408 — Curse destination before gain reactions](https://github.com/jss367/py-overlord/issues/408).
+- [#409 — Sleigh must not move an already moved gain](https://github.com/jss367/py-overlord/issues/409).
+
+[#410 — Player ordering of simultaneous gain reactions and effects](https://github.com/jss367/py-overlord/issues/410)
+remains separate. The study uses the same engine order in both arms and does
+not certify every legal reaction order or every Way/Command/multiplier interaction.
+Saved global standings remain preserved with their freshness notice. These focused
+reevaluations do not replace a full tournament.
+
+Coverage: [`test_reaction_duration_tactics.py`](../tests/test_reaction_duration_tactics.py)
+and [`evaluate_reaction_duration_tactics.py`](../scripts/evaluate_reaction_duration_tactics.py).

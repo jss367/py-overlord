@@ -51,6 +51,17 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="barge-sleigh-and-torturer-policy-evaluation.html",
+        display_name="Barge, Sleigh and Torturer: Timing and Reaction Policy Evaluation",
+        description="Strategy timing/reaction overrides, rules corrections, 19,200 seeded study games, rejected Torturer response, fresh validation and six registered strategy reevaluations with uncertainty and capped-game sensitivity.",
+        kingdom_cards=("Barge", "Sleigh", "Torturer", "Village", "Workshop", "Smithy",
+                       "Militia", "Chapel", "Market", "Watchtower"),
+        source_label="Official rules, engine scenarios and seat-balanced repository simulations",
+        strategy_slugs=("black-cat-and-livery-board-ox-engine", "black-cat-and-livery-board-fisherman-infirmary",
+                        "black-cat-and-livery-board-cavalry-horses", "collection-swindler-rush",
+                        "selective-envoy-collection", "village-envoy-collection-engine"),
+    ),
+    CuratedStrategyGuide(
         filename="free-gains-and-quartermaster-policy-evaluation.html",
         display_name="Free Gains and Quartermaster: Tactical Policy Evaluation",
         description="October 8 rerun of Workshop, Remodel, Anvil, and Quartermaster policies in 13,200 seeded games, with input provenance, uncertainty, regressions, preserved historical outcomes, and Port Moresby reevaluation.",

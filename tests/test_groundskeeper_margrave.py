@@ -258,7 +258,7 @@ def test_mandatory_discards_are_topped_up_by_the_engine_not_the_strategy():
 def test_listed_mandatory_discards_are_filled_to_count(reason):
     """These callers take a short answer as the whole choice, so fill it.
 
-    Torturer discards whatever comes back and stops, Fugitive and Alley drop
+    Torturer now fills short answers in the engine too; Fugitive and Alley drop
     the effect entirely on an empty list, and Marquis and Sickness slice to
     ``picks[:count]``. None of them tops the selection up, so under-answering
     silently under-discards. Junk still goes first; the filler is the deadest
@@ -286,7 +286,7 @@ def test_torturer_gets_two_discards_from_a_hand_holding_one_junk_card():
     strategy = GroundskeeperMargrave()
     state = board_state(strategy)
     target = state.players[1]
-    state.supply["Curse"] = 0  # force the discard branch.
+    target.ai.strategy.choose_torturer_response = lambda s, p: True
     target.hand = [
         get_card("Copper"),
         get_card("Gold"),

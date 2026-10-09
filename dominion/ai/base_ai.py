@@ -720,6 +720,8 @@ class AI(ABC):
         ``reason`` can be used by subclasses to tailor decisions (e.g. "torturer").
         """
 
+        if reason == "torturer":
+            return tactical_defaults.torturer_discards(state, player, choices, count)
         ordered = sorted(choices, key=tactical_defaults.discard_priority)
         return ordered[: max(0, min(count, len(ordered)))]
 
@@ -962,29 +964,8 @@ class AI(ABC):
         return True
 
     def choose_torturer_attack(self, state: GameState, player: PlayerState) -> bool:
-        """Choose whether to discard two cards or gain a Curse from Torturer.
-
-        The default heuristic discards when at least two low-value cards are
-        present (Curses, Estates, or Coppers). Otherwise, it keeps the valuable
-        hand and accepts the Curse.
-        """
-
-        hand = list(player.hand)
-
-        if len(hand) < 2:
-            return False
-
-        def is_low_value(card: Card) -> bool:
-            if card.name == "Curse":
-                return True
-            if card.name == "Copper":
-                return True
-            if card.is_victory and not card.is_action and card.cost.coins <= 2:
-                return True
-            return False
-
-        low_value_cards = [card for card in hand if is_low_value(card)]
-        return len(low_value_cards) >= 2
+        """True discards; False takes a Curse (even from an empty pile)."""
+        return tactical_defaults.torturer_should_discard(state, player)
 
     # ------------------------------------------------------------------
     # Intrigue decision hooks
@@ -2949,13 +2930,8 @@ class AI(ABC):
     def choose_sleigh_reaction(
         self, state: GameState, player: PlayerState, gained_card: Card
     ) -> Optional[str]:
-        """Return 'hand', 'deck', or None.
-
-        Default: put Action / Treasure into hand for immediate use.
-        """
-        if gained_card.is_action or gained_card.is_treasure:
-            return "hand"
-        return None
+        """Accelerate a useful gain, preserving playable Sleigh when costly."""
+        return tactical_defaults.sleigh_reaction(state, player, gained_card)
 
     def choose_scrap_options(
         self, state: GameState, player: PlayerState, n: int
@@ -3044,8 +3020,8 @@ class AI(ABC):
     def should_resolve_barge_now(
         self, state: GameState, player: PlayerState
     ) -> bool:
-        """Default: resolve immediately."""
-        return True
+        """Compare draw usable this turn with discounted next-turn resources."""
+        return tactical_defaults.barge_should_resolve_now(state, player)
 
     def should_play_falconer(
         self,

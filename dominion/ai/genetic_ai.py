@@ -405,6 +405,20 @@ class GeneticAI(AI):
             return self.strategy.choose_torturer_response(state, player)
         return super().choose_torturer_attack(state, player)
 
+    def should_resolve_barge_now(self, state, player) -> bool:
+        hook = getattr(self.strategy, "should_resolve_barge_now", None)
+        if hook is not None:
+            answer = hook(state, player)
+            if isinstance(answer, bool):
+                return answer
+        return super().should_resolve_barge_now(state, player)
+
+    def choose_sleigh_reaction(self, state, player, gained_card) -> Optional[str]:
+        hook = getattr(self.strategy, "choose_sleigh_reaction", None)
+        if hook is not None:
+            return hook(state, player, gained_card)
+        return super().choose_sleigh_reaction(state, player, gained_card)
+
     def choose_card_to_trash(self, state: "GameState", choices: list[Card]) -> Optional[Card]:
         if not choices:
             return None
