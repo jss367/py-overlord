@@ -13,38 +13,31 @@ class Engineer(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
 
-        def affordable_cards() -> list[Card]:
-            cards: list[Card] = []
-            for _name, candidate, _count in game_state._iter_gainable_supply_cards():
-                if (game_state.get_card_cost(player, candidate) <= 4
-                        and candidate.cost.potions == 0 and candidate.cost.debt == 0):
-                    cards.append(candidate)
-            cards.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
-            return cards
+        from dominion.ai.gain_context import FreeGainContext
+        from ..gain_decisions import choose_free_gain, gain_menu, gain_selected
 
-        def gain_from_choices(choices: list[Card]):
-            if not choices:
-                return None
-            choice = player.ai.choose_buy(game_state, choices)
-            if choice not in choices:
-                choice = choices[0]
-            gained = game_state.take_top_supply_card(game_state.supply_pile_key(choice.name))
-            if gained is not None:
-                game_state.gain_card(player, gained)
-            return choice
+        def gain(number, previous=None):
+            choices = gain_menu(game_state, player, CardCost(coins=4))
+            choices.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
+            context = FreeGainContext.build(
+                game_state, player, self.name, source_card=self, gain_number=number,
+                previous_gain=previous, can_trash_source=self in player.in_play,
+                sacrificed=self if number == 2 else None,
+            )
+            choice = choose_free_gain(game_state, player, choices, self.name, context=context)
+            gained = []
+            gain_selected(game_state, player, choice, choices=choices,
+                          source=self.name, context=context, gain_observer=gained.append)
+            return gained[0] if gained else None
 
-        choices = affordable_cards()
-        gain_from_choices(choices)
-
+        first = gain(1)
         if self not in player.in_play:
             return
-
-        if not player.ai.should_trash_engineer_for_extra_gains(
-            game_state, player, self
-        ):
+        if not player.ai.should_trash_engineer_for_extra_gains(game_state, player, self):
             return
-
+        # The hook can itself move the source; self-trash must still succeed.
+        if self not in player.in_play:
+            return
         player.in_play.remove(self)
         game_state.trash_card(player, self)
-
-        gain_from_choices(affordable_cards())
+        gain(2, first)

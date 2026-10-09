@@ -8,7 +8,7 @@ from dominion.cards.base_card import Card
 from dominion.ai.gain_context import FreeGainContext
 
 
-def free_gain_value(state, player, card, context: FreeGainContext) -> float:
+def _deck_gain_value(state, player, card, context: FreeGainContext) -> float:
     """Modest deck value, with diminishing returns and late-game points.
 
     This deliberately uses printed resources; special engines should supply
@@ -41,6 +41,35 @@ def free_gain_value(state, player, card, context: FreeGainContext) -> float:
     if context.endgame:
         value += max(0, points) * 4
     return value
+
+
+def free_gain_value(state, player, card, context: FreeGainContext) -> float:
+    """Deck value plus Ironworks' immediate live-type bonuses when applicable."""
+    value = _deck_gain_value(state, player, card, context)
+    if card is None or context.source != "Ironworks":
+        return value
+    from dominion.cards.gain_decisions import gained_card_types
+
+    action, treasure, victory = gained_card_types(state, player, card)
+    if action and not player.ignore_action_bonuses:
+        stranded = player.actions == 0 and any(
+            state.is_action(c) or state.is_inherited_estate(player, c) for c in context.hand
+        )
+        value += 3 if stranded else .5
+    if treasure:
+        value += 2
+    if victory:
+        value += 2
+    return value
+
+
+def purchase_gain_fallback(choices, source):
+    """Preserve the two gainers' mandatory fallback when purchases select nothing."""
+    if source == "Ironworks":
+        key = lambda c: (c.cost.coins, c.is_action, c.is_treasure, c.is_victory, c.name)
+    else:
+        key = lambda c: (c.cost.coins, c.name)
+    return max(choices, key=key, default=None)
 
 
 def choose_free_gain(state, player, choices, context):

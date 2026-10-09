@@ -34,36 +34,22 @@ class Ironworks(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
 
-        options = [
-            card
-            for _name, card, _count in game_state._iter_gainable_supply_cards()
-            if game_state.get_card_cost(player, card) <= 4
-            and card.cost.potions == 0
-            and card.cost.debt == 0
-        ]
-        if not options:
-            return
+        from dominion.ai.gain_context import FreeGainContext
+        from ..gain_decisions import choose_free_gain, gain_menu, gain_selected, gained_card_types
 
-        # The choice belongs to the player: Ironworks' three bonuses make the
-        # right pick board- and turn-dependent, so route it through the AI
-        # exactly as Workshop does.
-        gained = player.ai.choose_buy(game_state, list(options))
-        if gained is None or gained.name not in {c.name for c in options}:
-            gained = self._default_gain(options)
-
-        if game_state.supply.get(gained.name, 0) <= 0:
+        options = gain_menu(game_state, player, CardCost(coins=4))
+        context = FreeGainContext.build(game_state, player, self.name, source_card=self)
+        choice = choose_free_gain(game_state, player, options, self.name, context=context)
+        gained = []
+        gain_selected(game_state, player, choice, choices=options, source=self.name,
+                      context=context, gain_observer=gained.append)
+        if not gained:
             return
-        game_state.supply[gained.name] -= 1
-        game_state.log_callback(
-            ("supply_change", gained.name, -1, game_state.supply[gained.name])
-        )
-        actual = game_state.gain_card(player, gained)
-        if actual is None:
-            return
-
-        if actual.is_action:
+        actual = gained[0]
+        action, treasure, victory = gained_card_types(game_state, player, actual)
+        if action and not player.ignore_action_bonuses:
             player.actions += 1
-        if actual.is_treasure:
+        if treasure:
             player.coins += 1
-        if actual.is_victory:
+        if victory:
             game_state.draw_cards(player, 1)

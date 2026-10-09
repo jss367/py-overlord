@@ -15,9 +15,14 @@ class FreeGainContext:
     endgame: bool
     sacrificed: Card | None = None
     mandatory: bool = True
+    source_card: Card | None = None
+    gain_number: int = 1
+    previous_gain: Card | None = None
+    can_trash_source: bool = False
 
     @classmethod
-    def build(cls, state, player, source, destination="discard", sacrificed=None, mandatory=True):
+    def build(cls, state, player, source, destination="discard", sacrificed=None, mandatory=True,
+              *, source_card=None, gain_number=1, previous_gain=None, can_trash_source=False):
         # Missing Province piles in small tactical fixtures do not signal an
         # endgame. Stored/exiled cards are included by all_cards().
         endgame = any(
@@ -26,4 +31,4 @@ class FreeGainContext:
         ) or state.empty_piles >= 2
         return cls(source, destination, tuple(c for c in player.hand if c is not sacrificed),
                    dict(Counter(c.name for c in player.all_cards() if c is not sacrificed)),
-                   endgame, sacrificed, mandatory)
+                   endgame, sacrificed, mandatory, source_card, gain_number, previous_gain, can_trash_source)

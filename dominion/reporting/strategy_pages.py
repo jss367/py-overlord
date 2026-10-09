@@ -51,6 +51,17 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="ironworks-and-engineer-contextual-gain-evaluation.html",
+        display_name="Ironworks and Engineer: Contextual Gains and Policy Evaluation",
+        description="Separate purchase and free-gain priorities, live Ironworks bonuses, Engineer's sequential gains, locked policy comparisons and registered strategy compatibility checks with uncertainty.",
+        kingdom_cards=("Ironworks", "Engineer", "Village", "Smithy", "Laboratory", "Market",
+                       "Festival", "Witch", "Militia", "Moat", "Watchtower"),
+        source_label="Official rules, physical engine scenarios and seat-balanced repository simulations",
+        strategy_slugs=("suzhou-groundskeeper-engine", "taskmaster-workforce-best",
+                        "recruiter-kitsune-courtyard-engine", "recruiter-kitsune-counterfeit-money",
+                        "recruiter-kitsune-six-courtyards"),
+    ),
+    CuratedStrategyGuide(
         filename="barge-sleigh-and-torturer-policy-evaluation.html",
         display_name="Barge, Sleigh and Torturer: Timing and Reaction Policy Evaluation",
         description="Strategy timing/reaction overrides, rules corrections, 19,200 seeded study games, rejected Torturer response, fresh validation and six registered strategy reevaluations with uncertainty and capped-game sensitivity.",
