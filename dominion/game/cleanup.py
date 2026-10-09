@@ -125,16 +125,6 @@ def _discard_cards(state: GameState, player: PlayerState) -> tuple[list[Card], b
     # Duration cards remain in play until their lingering effects finish.
     durations_to_keep = state._cards_retained_in_play(player)
 
-    # A physical multiplier may be shuffled and played again. Completed
-    # targets must not retain it during an unrelated later Duration play.
-    for card in player.all_cards() + state.trash:
-        if hasattr(card, "duration_targets"):
-            card.duration_targets = [
-                target
-                for target in card.duration_targets
-                if target in durations_to_keep
-            ]
-
     # Plunder Journey event: "Don't discard your Action cards from play
     # this turn." Keep every Action card from in_play in the same set so
     # they survive cleanup. They will be discarded normally at the end of
@@ -240,18 +230,33 @@ def _discard_cards(state: GameState, player: PlayerState) -> tuple[list[Card], b
     player.hand = []
     state.discard_cards(player, hand_cards, from_cleanup=True)
 
-    in_play_cards = list(player.in_play)
-    player.in_play = []
+    # Resolve ordinary discards before cards with deferred gain instructions
+    # and their multipliers. Friendly discards can schedule Cargo Ship here.
+    # Keep physical cards in play until each actually leaves, so gain hooks and
+    # transitive Command retention still see the owner and its multipliers.
+    in_play_cards = sorted(
+        player.in_play,
+        key=lambda card: bool(
+            getattr(card, "waiting_for_gain", False)
+            or getattr(card, "duration_targets", [])
+        ),
+    )
     for card in trickster_selected:
         if card in in_play_cards:
             in_play_cards.remove(card)
+            player.in_play.remove(card)
 
     tireless_set_aside: list[Card] = []
 
     for card in in_play_cards:
+        # Hand discards and earlier discard hooks may add pending Durations.
+        durations_to_keep.update(state._cards_retained_in_play(player))
         if card in durations_to_keep:
-            player.in_play.append(card)
-        elif getattr(card, "_frog_topdeck", None) == (id(player), player.turns_taken):
+            continue
+        if card not in player.in_play:
+            continue
+        player.in_play.remove(card)
+        if getattr(card, "_frog_topdeck", None) == (id(player), player.turns_taken):
             # Menagerie Way of the Frog: topdeck on cleanup. The marker is
             # (owner, turn it was set in), so a stale marker on a card that
             # left play and came back on a later turn -- or under another
@@ -316,6 +321,15 @@ def _discard_cards(state: GameState, player: PlayerState) -> tuple[list[Card], b
                 tireless_set_aside.append(card)
             else:
                 state.discard_card(player, card, from_cleanup=True)
+
+    # Prune completed targets only after cleanup gains can schedule them.
+    # A reused multiplier must not retain targets from an unrelated later play.
+    durations_to_keep = state._cards_retained_in_play(player)
+    for card in player.all_cards() + state.trash:
+        if hasattr(card, "duration_targets"):
+            card.duration_targets = [
+                target for target in card.duration_targets if target in durations_to_keep
+            ]
 
     if player.trickster_set_aside:
         player.hand.extend(player.trickster_set_aside)
@@ -464,6 +478,7 @@ def _finish_turn(
     ]
     player.highwayman_blocked_this_turn = False
     player.insignia_active = False
+    player.virtual_gain_effects = []
     player.sailor_play_uses = 0
     player.corsair_trashed_this_turn = False
     # Rotate gain history for Smugglers.

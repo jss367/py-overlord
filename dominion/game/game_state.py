@@ -1,5 +1,6 @@
 import copy
 import random
+from collections import Counter
 from dataclasses import dataclass, field
 from typing import Literal, Optional
 
@@ -450,6 +451,37 @@ class GameState:
             self.current_player_index = original_index
             self.reaction_turn_player_index = original_turn_index
 
+    def play_supply_action(self, player: PlayerState, owner: Card, proxy: Card) -> bool:
+        """Play a virtual Supply target and retain its physical Command.
+
+        The instruction object may enter a Duration queue and hold real
+        set-aside cards, but it never enters a physical zone or counts as
+        owned. Queue changes include Durations played by nested multipliers.
+        """
+        proxy.virtual_supply_play = True
+        proxy.virtual_supply_owner = owner
+        before = Counter(player.duration + player.multiplied_durations)
+        try:
+            return self.play_action_indirectly(player, proxy)
+        finally:
+            self._attach_supply_duration_targets(player, owner, proxy, before)
+            # Cargo Ship registers a rest-of-turn instruction now, and only
+            # schedules its Duration after it sets aside an actual gain.
+            if getattr(proxy, "waiting_for_gain", False):
+                player.virtual_gain_effects.append(proxy)
+
+    def _attach_supply_duration_targets(self, player, owner, proxy, before):
+        """Link instructions created by an initial or delayed virtual play."""
+        after = Counter(player.duration + player.multiplied_durations)
+        targets = getattr(owner, "duration_targets", [])
+        added = list(after - before) + getattr(proxy, "duration_targets", [])
+        if getattr(proxy, "waiting_for_gain", False):
+            added.append(proxy)
+        for target in added:
+            if target not in targets:
+                targets.append(target)
+        owner.duration_targets = targets
+
     def play_action_indirectly(
         self,
         player: PlayerState,
@@ -517,6 +549,9 @@ class GameState:
         coins_before_action = player.coins
         player.actions_this_turn += 1
         player.actions_played += 1
+        # Reserve the first Action before its instructions play other cards.
+        # The replay still resolves after those instructions finish.
+        citadel_replay = shared_play_hooks and self._claim_citadel_replay(player, card)
         if shared_play_hooks:
             self._maybe_kiln_gain(player, card)
             suppress_instructions = suppress_instructions or self._highwayman_blocks_treasure(player, card)
@@ -574,7 +609,7 @@ class GameState:
         # Captain, Ghost, Riverboat, Royal Carriage, Throne Room et al
         # — funnels through the same Citadel trigger.
         if shared_play_hooks:
-            self._maybe_citadel_replay(player, card)
+            self._maybe_citadel_replay(player, card, claimed=citadel_replay)
         return True
 
     def _resolve_play_with_decision_context(
@@ -1937,7 +1972,20 @@ class GameState:
                 self.discard_card(player, card)
                 self.draw_cards(player, 2)
 
-    def _maybe_citadel_replay(self, player: PlayerState, card: Card) -> bool:
+    def _claim_citadel_replay(self, player: PlayerState, card: Card) -> bool:
+        """Reserve Citadel's first-play trigger before any nested plays."""
+        inherited = card.name == "Estate" and getattr(player, "inherited_action_name", None)
+        if (
+            not (self.is_action(card) or inherited)
+            or self.turn_player is not player
+            or player.citadel_used
+            or not any(p.name == "Citadel" for p in player.projects)
+        ):
+            return False
+        player.citadel_used = True
+        return True
+
+    def _maybe_citadel_replay(self, player: PlayerState, card: Card, *, claimed=False) -> bool:
         """Renaissance Citadel: if this is the first Action played this turn
         and the player owns Citadel, mark the per-turn flag and replay the
         card. The replay is a play in its own right, so it is offered its
@@ -1959,18 +2007,8 @@ class GameState:
             card.name == "Estate"
             and getattr(player, "inherited_action_name", None)
         )
-        if not (self.is_action(card) or inherited_action_play):
+        if not claimed and not self._claim_citadel_replay(player, card):
             return False
-        # "When you play an Action card during your turn": off-turn plays
-        # (Sheepdog, Trail, Weaver reacting on another player's turn) do
-        # not qualify.
-        if self.turn_player is not player:
-            return False
-        if player.citadel_used:
-            return False
-        if not any(p.name == "Citadel" for p in player.projects):
-            return False
-        player.citadel_used = True
         player.actions_this_turn += 1
         player.actions_played += 1
         # Hold the Inheritance overlay through the post-play hooks so
@@ -2111,7 +2149,8 @@ class GameState:
             # The queue records pending instructions, not physical ownership.
             # A Duration trashed or otherwise moved still resolves where it is.
             if (
-                not getattr(card, "returned_to_supply", False)
+                not getattr(card, "virtual_supply_play", False)
+                and not getattr(card, "returned_to_supply", False)
                 and card not in self.trash
                 and not any(card in owner.all_cards() for owner in self.players)
             ):
@@ -2120,7 +2159,15 @@ class GameState:
         for card in snapshot[0] + snapshot[1]:
             pending_before = player.duration.count(card)
             coins_before, actions_before = player.coins, player.actions
-            card.on_duration(self)
+            owner = getattr(card, "virtual_supply_owner", None)
+            if owner is None:
+                card.on_duration(self)
+            else:
+                before = Counter(player.duration + player.multiplied_durations)
+                try:
+                    card.on_duration(self)
+                finally:
+                    self._attach_supply_duration_targets(player, owner, card, before)
             self.log_callback(
                 (
                     "action",
@@ -2267,6 +2314,7 @@ class GameState:
             training_pile = getattr(player, "training_pile", None)
 
             if way:
+                citadel_replay = self._claim_citadel_replay(player, choice)
                 # Same Way protocol as the shared helper: proxy flag for
                 # Chameleon/Mouse, then the pile-token/Champion bonuses and
                 # Urchin reaction for the card actually played.
@@ -2285,7 +2333,7 @@ class GameState:
                 # Renaissance Citadel: a Way-played Action still counts as
                 # the first Action played this turn — replay it. The replay
                 # is its own play and gets its own Way offer.
-                self._maybe_citadel_replay(player, choice)
+                self._maybe_citadel_replay(player, choice, claimed=citadel_replay)
             else:
                 flagships_to_resolve: list[Card] = []
                 pending_flagships = getattr(player, "flagship_pending", [])
@@ -3276,7 +3324,8 @@ class GameState:
         }
         retained = {
             card for card in player.duration + player.multiplied_durations
-            if card in owned and card not in moved_from_play
+            if getattr(card, "virtual_supply_play", False)
+            or (card in owned and card not in moved_from_play)
         }
         changed = True
         while changed:
@@ -3873,7 +3922,10 @@ class GameState:
         # it. Playing a gained card can register effects for later (including
         # nested) gains, but cannot add triggers to this gain in progress.
         in_play_at_gain = list(player.in_play)
-        owner_gain_cards = list(dict.fromkeys(in_play_at_gain + list(player.duration)))
+        cargo_ship_at_gain = in_play_at_gain + list(player.virtual_gain_effects)
+        owner_gain_cards = list(dict.fromkeys(
+            in_play_at_gain + [c for c in player.duration if not getattr(c, "virtual_supply_play", False)]
+        ))
         allies_gain_effects = tuple(getattr(player, "allies_gain_effects", []))
 
         # Menagerie Exile rule: gaining a card lets the player discard ALL
@@ -3997,7 +4049,7 @@ class GameState:
         self._trigger_invest_draw(actual_card.name, player)
         self._handle_fools_gold_reactions(player, actual_card)
         self._track_action_gain(player, actual_card)
-        self._handle_cargo_ship_gain(player, actual_card, in_play_at_gain)
+        self._handle_cargo_ship_gain(player, actual_card, cargo_ship_at_gain)
         self._handle_menagerie_gain_reactions(player, actual_card)
         self._handle_opponent_gain_hooks(player, actual_card)
         self._handle_livery_gain(player, actual_card, in_play_at_gain)
@@ -4979,10 +5031,16 @@ class GameState:
             self.gain_card(player, get_card("Gold"))
 
     def _handle_cargo_ship_gain(self, player: PlayerState, gained_card: Card, in_play_at_gain) -> None:
-        """Check if a Cargo Ship in play wants to set aside the gained card."""
+        """Resolve active physical or virtual Cargo Ship gain instructions."""
         for card in in_play_at_gain:
             if hasattr(card, "on_cargo_ship_gain"):
                 if card.on_cargo_ship_gain(self, player, gained_card):
+                    owner = getattr(card, "virtual_supply_owner", None)
+                    if owner is not None:
+                        targets = getattr(owner, "duration_targets", [])
+                        if card not in targets:
+                            targets.append(card)
+                        owner.duration_targets = targets
                     break
 
     def _handle_opponent_gain_hooks(self, gainer: PlayerState, gained_card: Card) -> None:

@@ -4,8 +4,8 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Pillage(Card):
-    """Trash this. Gain 2 Spoils. Each other player with 5 or more cards in
-    hand reveals their hand and discards a card you choose.
+    """Trash this. If you did, attack hands of at least five cards, then
+    gain two Spoils.
     """
 
     def __init__(self):
@@ -24,17 +24,12 @@ class Pillage(Card):
 
         attacker = game_state.current_player
 
-        # Trash this Pillage
-        if self in attacker.in_play:
-            attacker.in_play.remove(self)
-            game_state.trash_card(attacker, self)
-
-        # Gain 2 Spoils
-        for _ in range(2):
-            if game_state.supply.get("Spoils", 0) <= 0:
-                break
-            game_state.supply["Spoils"] -= 1
-            game_state.gain_card(attacker, get_card("Spoils"))
+        # A virtual Supply play or replay after self-trash cannot move this
+        # particular card, so neither the attack nor rewards can resolve.
+        if self not in attacker.in_play:
+            return
+        attacker.in_play.remove(self)
+        game_state.trash_card(attacker, self)
 
         # Attack each other player with hand size >= 5
         def attack_target(target):
@@ -55,7 +50,14 @@ class Pillage(Card):
                 target.hand.remove(choice)
                 game_state.discard_card(target, choice)
 
-        for other in game_state.players:
-            if other is attacker:
-                continue
+        attacker_index = game_state.players.index(attacker)
+        opponents = game_state.players[attacker_index + 1:] + game_state.players[:attacker_index]
+        for other in opponents:
             game_state.attack_player(other, attack_target)
+
+        # Resolve the attack before gaining Spoils, including reactions.
+        for _ in range(2):
+            if game_state.supply.get("Spoils", 0) <= 0:
+                break
+            game_state.supply["Spoils"] -= 1
+            game_state.gain_card(attacker, get_card("Spoils"))

@@ -24,14 +24,4 @@ class Overlord(Card):
         if proxy is None:
             return
         temp_card = get_card(proxy.name)
-        if not temp_card.is_action:
-            # Enlightenment makes Treasures legal Action targets. Their play
-            # needs its Action-phase substitution and shared play observers,
-            # while the virtual Supply target remains outside in_play.
-            game_state.play_action_indirectly(player, temp_card)
-            return
-        player.in_play.append(temp_card)
-        temp_card.on_play(game_state)
-        game_state.fire_ally_play_hooks(player, temp_card)
-        if temp_card in player.in_play:
-            player.in_play.remove(temp_card)
+        game_state.play_supply_action(player, self, temp_card)

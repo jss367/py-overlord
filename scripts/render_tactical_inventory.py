@@ -39,9 +39,11 @@ def reviewed_decisions():
 
     add(("Overlord", "Captain", "Band of Misfits"), "Supply Action target",
         ("choose_overlord_target", "choose_captain_target", "choose_band_of_misfits_target"),
-        ("tests/test_shared_card_tactics.py",), rules="Targeted menus; open proxy/indirect-play/scheduling defects",
-        tactical="Evaluated: fixed non-Duration panel only",
-        evidence=("scripts/data/supply_action_evaluation.json", "reports/strategies/supply-action-selection-evaluation.html"),
+        ("tests/test_shared_card_tactics.py", "tests/test_command_supply_rules.py"),
+        rules="Scoped menus, virtual ownership, indirect plays, replay/Duration scheduling audit",
+        tactical="Evaluated: fixed non-Duration panel; refreshed after rules fixes",
+        evidence=("scripts/data/supply_action_evaluation.json", "scripts/data/supply_action_rules_validation.json",
+                  "reports/strategies/supply-action-selection-evaluation.html"),
         followups=(390, 395, 396, 397, 405))
     for name in ("Overlord", "Captain", "Band of Misfits"):
         a = audits[name]

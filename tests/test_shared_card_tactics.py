@@ -600,7 +600,6 @@ def test_supply_play_indirectly_uses_the_same_dedicated_target(card_name, hook, 
     assert all(c.name != "Smithy" for c in player.in_play)
 
 
-@pytest.mark.xfail(strict=True, reason="Captain renews indefinitely: issue #395")
 def test_audited_captain_duration_finishes_after_next_turn():
     state, player = make_state(names=("Village",))
     captain = get_card("Captain")
@@ -611,7 +610,6 @@ def test_audited_captain_duration_finishes_after_next_turn():
 
 
 @pytest.mark.parametrize("card_name", ["Overlord", "Band of Misfits"])
-@pytest.mark.xfail(strict=True, reason="Supply play bypasses indirect Action counters: issue #396")
 def test_audited_command_supply_play_counts_as_an_action(card_name):
     state, player = make_state(names=("Village",))
     command = get_card(card_name)
@@ -621,7 +619,6 @@ def test_audited_command_supply_play_counts_as_an_action(card_name):
 
 
 @pytest.mark.parametrize("card_name", ["Overlord", "Band of Misfits"])
-@pytest.mark.xfail(strict=True, reason="Virtual Duration counted as an owned card: issue #397")
 def test_audited_supply_duration_never_becomes_owned(card_name):
     state, player = make_state(names=("Caravan",))
     command = get_card(card_name)
@@ -630,7 +627,6 @@ def test_audited_supply_duration_never_becomes_owned(card_name):
     assert all(c.name != "Caravan" for c in player.all_cards())
 
 
-@pytest.mark.xfail(strict=True, reason="Pillage payoff does not require self-trash: issue #405")
 def test_audited_virtual_pillage_has_no_conditional_payoff():
     state, player = make_state(names=("Pillage", "Spoils"))
     player.cost_reduction = 1
