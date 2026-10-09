@@ -3645,29 +3645,13 @@ class GameState:
             card.react_to_discard(self, player)
 
     def give_curse_to_player(self, player, *, to_hand: bool = False):
-        """Give a curse card to a player.
-
-        When ``to_hand`` is ``True`` the gained Curse is moved directly to the
-        player's hand after resolving standard gain effects.
-        """
-
-        from ..cards.registry import get_card  # Import here to avoid circular dependency
+        """Gain a Curse to its declared destination, honoring gain reactions."""
+        from ..cards.registry import get_card
 
         if self.supply.get("Curse", 0) <= 0:
             return False
-
-        curse = get_card("Curse")
         self.supply["Curse"] -= 1
-        gained = self.gain_card(player, curse)
-
-        if to_hand and gained:
-            if gained in player.discard:
-                player.discard.remove(gained)
-            elif gained in player.deck:
-                player.deck.remove(gained)
-            if gained not in player.hand:
-                player.hand.append(gained)
-
+        self.gain_card(player, get_card("Curse"), to_hand=to_hand)
         return True
 
     def _ensure_hex_deck(self) -> None:
@@ -5076,10 +5060,14 @@ class GameState:
         # Sleigh: discard from hand to put gained card into hand or onto deck
         for card in list(player.hand):
             if card.name == "Sleigh" and hasattr(card, "react_to_own_gain"):
+                destination = self._gain_destinations.get(gained_card)
                 decision = card.react_to_own_gain(self, player, gained_card)
-                if decision in {"hand", "deck"}:
-                    if not self._remove_gained_card_from_zones(player, gained_card):
+                if decision in ("hand", "deck"):
+                    # Sleigh may be discarded after another mover, but can only
+                    # move a gain still in its original gain destination.
+                    if destination is None or gained_card not in destination:
                         break
+                    destination.remove(gained_card)
                     if decision == "hand":
                         player.hand.append(gained_card)
                     else:

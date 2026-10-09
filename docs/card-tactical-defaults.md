@@ -73,9 +73,10 @@ this inventory rather than maintaining a second divergent card table.
 The supply, free-gain, and set-aside implementations merged in
 [#404](https://github.com/jss367/py-overlord/pull/404),
 [#403](https://github.com/jss367/py-overlord/pull/403), and
-[#402](https://github.com/jss367/py-overlord/pull/402). Barge and Sleigh still need
-strategy forwarding in this tree. Torturer already forwards its response mode
-and generic discard hook; its evaluation belongs to #393. Quartermaster's
+[#402](https://github.com/jss367/py-overlord/pull/402). This branch adds Barge and Sleigh
+strategy forwarding and the scoped Torturer rules/tactical audit under #393;
+see the reaction and Duration evaluation below. Simultaneous gain ordering
+remains in #410. Quartermaster's
 one-card collection, independent storage and replay/scheduling audit are in
 #391's merged evidence, rather than an outstanding generic storage task.
 Anvil and Junk Dealer dedicated overrides are connected and tested.
@@ -521,6 +522,64 @@ Coverage: [`test_set_aside_tactics.py`](../tests/test_set_aside_tactics.py),
 existing expansion tests, and
 [`evaluate_set_aside_tactics.py`](../scripts/evaluate_set_aside_tactics.py).
 
+
+## Reaction and Duration timing evaluation
+
+[#393](https://github.com/jss367/py-overlord/issues/393) forwards
+`should_resolve_barge_now(state, player)` and
+`choose_sleigh_reaction(state, player, gained_card)` through `GeneticAI`.
+Barge returns a boolean; an absent or invalid override uses the base fallback.
+Sleigh returns `"hand"`, `"deck"`, or `None`; invalid answers decline without
+spending the reaction. A strategy's explicit decline is authoritative.
+
+Torturer's response and discard forwarding were already connected. The response
+hook is `choose_torturer_response(state, player)` (`True` discards); the discard
+hook is `choose_cards_to_discard(..., reason="torturer")`. Both receive the
+responding player even while the attacker is `current_player`. A chosen discard
+must pay two cards or all available cards. Physical invalid/duplicate/short
+answers are sanitized and filled; the selected batch leaves hand before discard
+reactions run. Either response remains legal with no hand or no Curses.
+
+The reusable Barge default compares this turn's usable draw against next-turn
+printed resources with a 20% future discount. It uses remaining Actions and
+Villagers, the unseen deck/discard composition rather than draw order, phase,
+printed money and an extra Buy estimate. It prefers immediate resources before
+a likely final Province/Colony purchase and immediate Chameleon money. Sleigh
+accelerates useful cards to hand while their play phase remains open and otherwise
+topdecks them; it declines junk/dead points, already moved gains and redundant
+destinations, and preserves a last playable Sleigh rather than spending its two
+Horses for Silver. Special text and conditional engine resources remain reasons
+for strategy overrides.
+
+Torturer discards dead cards and terminal Actions beyond a fresh one-Action
+budget with printed village support. Its default response retains the historical
+willingness to discard Copper to avoid persistent deck pollution. The first
+9,600-game study instead protected the current hand's attainable Supply purchase
+breakpoint. That response regressed by 10.5–17.5 percentage points in two money
+decks facing Torturer, so it is available only as the explicit
+`tactical_defaults.torturer_should_discard_preserving_buy` strategy override.
+The original outcomes are retained in
+[`reaction_duration_selective_response_evaluation.json`](../scripts/data/reaction_duration_selective_response_evaluation.json).
+Final defaults are evaluated separately on fresh seeds; see the
+[published policy evaluation](../reports/strategies/barge-sleigh-and-torturer-policy-evaluation.html)
+for all results, uncertainty, limitations and reproduction commands.
+
+The rules audit filed separate defects, with fixes included in this implementation:
+
+- [#406 — Torturer response legality, full discards and turn order](https://github.com/jss367/py-overlord/issues/406).
+- [#407 — Barge repeated deferred payloads](https://github.com/jss367/py-overlord/issues/407).
+- [#408 — Curse destination before gain reactions](https://github.com/jss367/py-overlord/issues/408).
+- [#409 — Sleigh must not move an already moved gain](https://github.com/jss367/py-overlord/issues/409).
+
+[#410 — Player ordering of simultaneous gain reactions and effects](https://github.com/jss367/py-overlord/issues/410)
+remains separate. The study uses the same engine order in both arms and does
+not certify every legal reaction order or every Way/Command/multiplier interaction.
+Saved global standings remain preserved with their freshness notice. These focused
+reevaluations do not replace a full tournament.
+
+Coverage: [`test_reaction_duration_tactics.py`](../tests/test_reaction_duration_tactics.py)
+and [`evaluate_reaction_duration_tactics.py`](../scripts/evaluate_reaction_duration_tactics.py).
+
 ## Shared scenario and benchmark protocol
 
 This protocol complements the implementation-family work in #390–#393. It does
@@ -571,3 +630,15 @@ policy search is tracked in
 has searchable exile priority rules, but they do not encode the full contextual
 bonus policy. Existing free-gain preference fields also round-trip through
 optimizer/export paths; arbitrary overrides do not automatically become genes.
+
+## October 9 integration provenance
+
+Main through `e6b080ba1859917830c4f199f8bf28c5d86b4497` adds centralized
+Supply gains from #414 alongside the #415 evidence inventory. The merged
+simulation fingerprint is `9935c17f597c05ad70acc2cd46733baaf205a6a9e0f2af8576c67b3fe0955afc`. Saved study outcomes and their recorded
+hashes remain unchanged. The #416 final study fingerprint is
+`3ad9ef6ce8ffd6256380033e1765827194d8d2c012408ba2b7a2e9fd735b2498`;
+the #415 study fingerprint is
+`0e4706b7fa6183421c64cb05112a66b10838bebdbb6c87eed4837266325bd1a3`.
+Both studies describe historical inputs, not freshly measured merged behavior.
+No study panel was rerun or regraded during integration.

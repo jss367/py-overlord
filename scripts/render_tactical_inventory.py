@@ -72,13 +72,22 @@ def reviewed_decisions():
             evidence=("reports/strategies/trashing-discard-and-next-turn-card-decisions.html",), followups=(392, 398))
     add(("Courier",), "Optional Action/Treasure play from discard", ("choose_courier_target",),
         ("tests/test_courier.py",), followups=(348,))
+    reaction_evidence = (
+        "scripts/data/reaction_duration_tactics_evaluation.json",
+        "scripts/data/reaction_duration_selective_response_evaluation.json",
+        "reports/strategies/barge-sleigh-and-torturer-policy-evaluation.html",
+    )
     for name, hook in (("Barge", "should_resolve_barge_now"), ("Sleigh", "choose_sleigh_reaction")):
-        add((name,), "Timing / gain destination", (hook,), ("tests/test_menagerie_cards.py",),
-            wiring="Needs forwarding", rules="Existing card tests; strategy path absent",
-            tactical="Needs context", followups=(393, 407) if name == "Barge" else (393, 409, 410))
+        add((name,), "Timing / gain destination", (hook,),
+            ("tests/test_reaction_duration_tactics.py", "tests/test_menagerie_cards.py"),
+            rules="Scoped replay/destination audit; other interactions unreviewed",
+            tactical="Evaluated: historical fixed-policy panel; merged Supply inputs not reevaluated",
+            evidence=reaction_evidence, followups=(410,))
     add(("Torturer",), "Attack mode and discards", ("choose_torturer_attack", "choose_cards_to_discard"),
-        ("tests/test_groundskeeper_margrave.py",),
-        rules="Forwarding tests; full response/menu audit remains with #393", tactical="Needs context", followups=(393, 406, 408))
+        ("tests/test_reaction_duration_tactics.py", "tests/test_groundskeeper_margrave.py"),
+        rules="Scoped choices, physical discards, gain reactions and attack order audit",
+        tactical="Evaluated: historical fixed-policy panel; merged Supply inputs not reevaluated",
+        evidence=reaction_evidence, followups=(410,))
 
     for name, hooks in (
         ("Watchtower", ("choose_watchtower_reaction",)),

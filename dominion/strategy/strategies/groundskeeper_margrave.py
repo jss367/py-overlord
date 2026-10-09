@@ -58,8 +58,8 @@ _ENGINE_PIECES = frozenset(
 #: ``test_every_engine_discard_request_names_its_caller`` keeps it that way.
 _MANDATORY_DISCARDS = frozenset(
     {
-        # Torturer: takes any nonempty result as the choice, so a short answer
-        # discards one card instead of two and the attack is under-paid.
+        # Torturer: the discard branch is mandatory. The engine also fills
+        # short answers; retaining this reason keeps standalone choices complete.
         "torturer",
         # Fugitive: returns without discarding at all if the result is empty.
         "fugitive",

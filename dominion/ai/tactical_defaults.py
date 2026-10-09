@@ -375,3 +375,159 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
             selected.append(card)
             money -= income
     return selected
+
+
+def barge_should_resolve_now(state, player) -> bool:
+    """Compare printed draw utility now and next turn without peeking at order.
+
+    A remaining Action (or Villager) makes draw usable immediately. Otherwise
+    discount stranded terminal Actions. Future resources are discounted by 20%;
+    special engines should override this deliberately bounded estimate.
+    """
+    from dominion.ways.chameleon import _chameleon_is_active
+
+    own_turn = player is state.turn_player
+    before_buy = own_turn and state.phase in {"start", "action", "treasure"}
+    money = player.coins + player.coin_tokens + sum(
+        c.stats.coins for c in player.hand if state.is_treasure(c)
+    )
+    if own_turn and state.phase in {"start", "action", "treasure", "buy"}:
+        affordable = state._get_affordable_cards(player, available_coins=money)
+        if player.buys > 0 and any(
+            c.name in {"Province", "Colony"} and state.supply.get(c.name) == 1
+            for c in affordable
+        ):
+            return True  # Do not save resources beyond a likely game end.
+    if _chameleon_is_active(player) and before_buy:
+        return True  # The immediate payload is +$3, not draw.
+    if not before_buy:
+        return False
+    pool = player.deck + player.discard
+    if not pool:
+        return False  # Cleanup will provide next turn's draw pool.
+    if state.phase in {"start", "action"} and player.actions + player.villagers > 0:
+        return True
+    # With no Actions left, money still works this turn; terminal draw does not.
+    immediate = sum(c.stats.coins for c in pool if state.is_treasure(c))
+    future = immediate + sum(
+        c.stats.cards * 2 + c.stats.coins for c in pool if c.is_action and not state.is_treasure(c)
+    )
+    # An extra Buy is useful with money for two modest purchases.
+    buy_value = len(pool) / 3 if money >= 6 and player.buys <= 1 else 0
+    return immediate + buy_value >= .8 * future
+
+
+def sleigh_reaction(state, player, gained_card):
+    """Spend Sleigh on useful acceleration, accounting for phases and cost.
+
+    Keep a playable Sleigh's two Horses when a weak gain would replace it.
+    After Action/Treasure play has passed, a useful gain belongs on the deck.
+    Decline junk, dead points, and gains already at the desired destination.
+    """
+    destination = getattr(state, "_gain_destinations", {}).get(gained_card)
+    if destination is None or gained_card not in destination:
+        return None  # Another gain effect already moved it.
+    if gained_card.name in {"Curse", "Copper"} or gained_card.is_ruins:
+        return None
+    if not (gained_card.is_action or state.is_treasure(gained_card) or gained_card.is_night):
+        return None
+    own_turn = player is state.turn_player
+    action_phase = own_turn and state.phase in {"start", "action"}
+    treasure_phase = own_turn and state.phase in {"start", "action", "treasure"}
+    night_phase = own_turn and state.phase in {"start", "action", "treasure", "buy", "night"}
+    usable = (
+        gained_card.is_action and action_phase and player.actions + player.villagers > 0
+        or state.is_treasure(gained_card) and treasure_phase
+        or gained_card.is_night and night_phase
+    )
+    if usable:
+        if destination is player.hand:
+            return None
+        # Consuming the last playable Sleigh for Silver loses two Horses.
+        if action_phase and player.actions + player.villagers == 1 and gained_card.name == "Silver":
+            return None
+        return "hand"
+    if destination is player.deck:
+        return None
+    return "deck"
+
+
+def torturer_discards(state, player, choices, count):
+    """Preserve next-hand economy and playable Actions; discard dead cards first.
+
+    The responder's Action phase has usually not begun: use a fresh one-Action
+    budget plus printed village support, rather than the attacker's resources.
+    """
+    budget = 1 + player.villagers + sum(max(0, c.stats.actions - 1) for c in choices if c.is_action)
+    terminals = sorted((c for c in choices if c.is_action and c.stats.actions == 0),
+                       key=lambda c: (c.stats.cards * 2 + c.stats.coins, c.cost.coins, c.name), reverse=True)
+    stranded = terminals[budget:]
+
+    def value(card):
+        if card.name == "Curse" or (card.is_victory and not card.is_action and not state.is_treasure(card)):
+            return -1
+        if card in stranded:
+            return 0
+        if state.is_treasure(card):
+            return card.stats.coins * 2
+        if card.is_action:
+            return 2 + card.stats.cards * 2 + card.stats.coins * 2 + max(0, card.stats.actions - 1) * 3
+        return 3 if card.is_night else 1
+
+    return sorted(choices, key=lambda c: (value(c), discard_priority(c)))[:max(0, count)]
+
+
+def torturer_should_discard_preserving_buy(state, player):
+    """Take a free empty-pile Curse; otherwise compare the next hand's loss.
+
+    Dead points and stranded terminals are cheap. Copper is expendable only
+    when discarding it preserves the hand's attainable Supply buy breakpoint.
+    This models printed resources, not future draws, trashers or all reactions.
+    """
+    if state.supply.get("Curse", 0) <= 0:
+        return False
+    picks = torturer_discards(state, player, list(player.hand), min(2, len(player.hand)))
+    if not picks:
+        return True
+    money = sum(c.stats.coins for c in player.hand if state.is_treasure(c))
+    remaining = money - sum(c.stats.coins for c in picks if state.is_treasure(c))
+    from dominion.cards.registry import get_card
+
+    candidates = [get_card(name) for key, n in list(state.supply.items())
+                  if n > 0 and key not in state.non_supply_pile_names
+                  and (name := state.top_supply_card(key)) is not None]
+    costs = [3, *(state.get_card_cost(player, card) for card in candidates
+                 if card.cost.potions == 0 and card.cost.debt == 0)]
+    floor = max((cost for cost in costs if cost <= money), default=money)
+    # The ranked prefix is cheap only if it consists entirely of dead cards,
+    # stranded terminals, or Copper that does not lower this hand's purchase.
+    budget = 1 + player.villagers + sum(max(0, c.stats.actions - 1) for c in player.hand if c.is_action)
+    terminals = sorted((c for c in player.hand if c.is_action and c.stats.actions == 0),
+                       key=lambda c: (c.stats.cards * 2 + c.stats.coins, c.cost.coins, c.name), reverse=True)
+    return all(
+        c.name == "Curse" or (c.is_victory and not c.is_action and not state.is_treasure(c))
+        or c in terminals[budget:] or (c.name == "Copper" and remaining >= floor)
+        for c in picks
+    )
+
+
+
+def torturer_should_discard(state, player):
+    """Avoid deck pollution by giving up dead cards, Copper or excess terminals.
+
+    Seeded evaluation found that protecting a single hand's buy breakpoint
+    accumulated too many Curses in money decks. Keep the historical Copper
+    tolerance; strategies may opt into torturer_should_discard_preserving_buy.
+    """
+    if state.supply.get("Curse", 0) <= 0:
+        return False
+    picks = torturer_discards(state, player, list(player.hand), min(2, len(player.hand)))
+    budget = 1 + player.villagers + sum(max(0, c.stats.actions - 1) for c in player.hand if c.is_action)
+    terminals = sorted((c for c in player.hand if c.is_action and c.stats.actions == 0),
+                       key=lambda c: (c.stats.cards * 2 + c.stats.coins, c.cost.coins, c.name), reverse=True)
+    return all(
+        c.name in {"Curse", "Copper"}
+        or (c.is_victory and not c.is_action and not state.is_treasure(c))
+        or c in terminals[budget:]
+        for c in picks
+    )

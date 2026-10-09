@@ -296,6 +296,7 @@ def test_sheepdog_plays_when_gaining():
 def test_sleigh_puts_gained_card_into_hand():
     state, p1, _ = _two_player_state()
     p1.hand = [get_card("Sleigh")]
+    state.phase = "treasure"  # Silver is useful now; Sleigh cannot be played.
     state.supply["Silver"] -= 1
     state.gain_card(p1, get_card("Silver"))
     # Silver should be in hand (Sleigh used 'hand' option)

@@ -31,7 +31,7 @@ class Sleigh(Card):
         if self not in player.hand:
             return None
         decision = player.ai.choose_sleigh_reaction(game_state, player, gained_card)
-        if decision not in {"hand", "deck"}:
+        if decision not in ("hand", "deck"):
             return None
         # Discard the Sleigh
         player.hand.remove(self)

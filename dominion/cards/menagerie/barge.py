@@ -13,7 +13,7 @@ class Barge(Card):
             stats=CardStats(),
             types=[CardType.ACTION, CardType.DURATION],
         )
-        self._fire_now = False
+        self._pending_resolutions = 0
 
     def play_effect(self, game_state):
         # Lazy import to avoid circular import (ways package imports
@@ -30,7 +30,7 @@ class Barge(Card):
                 # Not a duration this turn; remove from in_play normally during
                 # cleanup. Default behaviour does this.
             else:
-                self._fire_now = True
+                self._pending_resolutions = getattr(self, "_pending_resolutions", 0) + 1
                 player.duration.append(self)
                 self.duration_persistent = True
 
@@ -39,11 +39,11 @@ class Barge(Card):
 
     def on_duration(self, game_state):
         player = game_state.current_player
-        if self._fire_now:
+        if self._pending_resolutions > 0:
             # Duration "+3 Cards" — fires next turn, when the chosen-card
             # Chameleon resolution has long ended, so it never swaps. Use
             # the regular draw path.
             game_state.draw_cards(player, 3)
             player.buys += 1
-            self._fire_now = False
+            self._pending_resolutions -= 1
         self.duration_persistent = False
