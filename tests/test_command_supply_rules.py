@@ -412,3 +412,47 @@ def test_pillage_attack_precedes_spoils_and_cannot_repeat_after_trash(spoils):
     state.play_action_indirectly(attacker, pillage)
     assert len(seen) == 2
     assert attacker.count("Spoils") == spoils
+
+
+@pytest.mark.parametrize("command", ["Overlord", "Band of Misfits"])
+@pytest.mark.parametrize("gain_source", ["hand", "play_before", "play_after", "discard_hook"])
+@pytest.mark.parametrize("multiplied", [False, True])
+def test_cleanup_gain_retains_virtual_cargo_ship_owner(command, gain_source, multiplied):
+    state, player, owner = setup(command, "Cargo Ship")
+    player.ai.should_set_aside_cargo_ship = lambda s, p, c: True
+    throne = get_card("Throne Room")
+    if multiplied:
+        player.hand = [owner]
+        player.in_play = [throne]
+        player.ai.strategy.action_priority = [PriorityRule(command)]
+        state.play_action_indirectly(player, throne)
+    else:
+        state.play_action_indirectly(player, owner)
+    friendly = get_card("Gold")
+    state.pile_traits["Gold"] = "Friendly"
+    if gain_source == "hand":
+        player.hand = [friendly]
+    elif gain_source == "play_before":
+        player.in_play.insert(0, friendly)
+    else:
+        player.in_play.append(friendly)
+        if gain_source == "discard_hook":
+            friendly.on_discard_from_play = lambda s, p: s.gain_from_supply(p, "Gold")
+    state.handle_cleanup_phase()
+    assert owner in player.in_play
+    if multiplied:
+        assert throne in player.in_play
+        assert throne.duration_targets == [owner]
+    cargos = [c for c in player.duration if c.name == "Cargo Ship"]
+    assert cargos and all(c.set_aside is not None for c in cargos)
+    stored = [c.set_aside for c in cargos]
+    assert all(c in player.all_cards() for c in stored)
+    assert player.count("Cargo Ship") == 0
+    state.do_duration_phase()
+    assert all(c in player.hand for c in stored)
+    state.handle_cleanup_phase()
+    assert owner not in player.in_play
+    assert owner.duration_targets == []
+    if multiplied:
+        assert throne not in player.in_play
+        assert throne.duration_targets == []

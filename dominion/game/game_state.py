@@ -474,6 +474,8 @@ class GameState:
             # schedules its Duration after it sets aside an actual gain.
             if getattr(proxy, "waiting_for_gain", False):
                 player.virtual_gain_effects.append(proxy)
+                if proxy not in targets:
+                    targets.append(proxy)
 
     def play_action_indirectly(
         self,
