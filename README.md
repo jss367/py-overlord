@@ -72,7 +72,9 @@ python -m dominion.simulation.strategy_battle "Chapel Witch" "Big Money" --games
 Strategy names contain spaces, so be sure to wrap them in quotes when invoking the command line tools.
 
 For reusable card decisions, strategy override hooks, and the optimization
-backlog, see [Shared card decisions](docs/card-tactical-defaults.md).
+backlog, see [Shared card decisions](docs/card-tactical-defaults.md), the
+[complete card evidence inventory](docs/card-tactical-inventory.md), and the
+[reaction, Investment and exile policy evaluation](reports/strategies/card-reactions-investment-and-exile-evaluation.html).
 
 Pass `--use-shelters` to start each player with Necropolis, Hovel and
 Overgrown Estate instead of three Estates.

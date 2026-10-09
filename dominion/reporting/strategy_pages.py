@@ -51,6 +51,14 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="card-reactions-investment-and-exile-evaluation.html",
+        display_name="Watchtower, Clerk, Investment and Bounty Hunter: Tactical Evaluation",
+        description="Four-stage decision scenarios and 7,200 seeded games distinguish connected hooks from measured tactics, with locked recommendations, fresh validation, regressions and explicit unreviewed coverage.",
+        kingdom_cards=("Watchtower", "Clerk", "Investment", "Bounty Hunter", "Village",
+                       "Smithy", "Laboratory", "Witch", "Militia", "Moat"),
+        source_label="Recorded decision scenarios, evidence inventory and seat-balanced policy comparisons",
+    ),
+    CuratedStrategyGuide(
         filename="free-gains-and-quartermaster-policy-evaluation.html",
         display_name="Free Gains and Quartermaster: Tactical Policy Evaluation",
         description="October 8 rerun of Workshop, Remodel, Anvil, and Quartermaster policies in 13,200 seeded games, with input provenance, uncertainty, regressions, preserved historical outcomes, and Port Moresby reevaluation.",
