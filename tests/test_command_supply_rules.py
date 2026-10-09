@@ -456,3 +456,47 @@ def test_cleanup_gain_retains_virtual_cargo_ship_owner(command, gain_source, mul
     if multiplied:
         assert throne not in player.in_play
         assert throne.duration_targets == []
+
+
+@pytest.mark.parametrize("payload", ["Wharf", "Throne Room", "Cargo Ship"])
+@pytest.mark.parametrize("multiplied", [False, True])
+def test_virtual_mastermind_retains_owner_for_later_duration_plays(payload, multiplied):
+    state, player, owner = setup("Overlord", "Mastermind")
+    throne = get_card("Throne Room")
+    if multiplied:
+        player.hand = [owner]
+        player.in_play = [throne]
+        player.ai.strategy.action_priority = [PriorityRule("Overlord")]
+        state.play_action_indirectly(player, throne)
+    else:
+        state.play_action_indirectly(player, owner)
+    state.handle_cleanup_phase()
+    assert owner in player.in_play
+    targets = [get_card(payload) for _ in range(2 if multiplied else 1)]
+    caravans = [get_card("Caravan") for _ in targets] if payload == "Throne Room" else []
+    player.hand = targets + caravans
+    player.ai.choose_mastermind_action = lambda s, p, choices: next(
+        (c for c in choices if c.name == payload), None
+    )
+    player.ai.choose_throne_room_action = lambda s, choices: next(
+        (c for c in choices if c.name == "Caravan"), None
+    )
+    player.ai.should_set_aside_cargo_ship = lambda s, p, c: True
+    state.do_duration_phase()
+    if payload == "Cargo Ship":
+        state.gain_from_supply(player, "Gold")
+    pending = list(player.duration)
+    assert pending
+    state.handle_cleanup_phase()
+    assert owner in player.in_play
+    if multiplied:
+        assert throne in player.in_play
+    assert all(c in owner.duration_targets for c in pending)
+    assert player.count("Mastermind") == 0
+    state.do_duration_phase()
+    assert player.duration == []
+    state.handle_cleanup_phase()
+    assert owner not in player.in_play
+    assert owner.duration_targets == []
+    if multiplied:
+        assert throne not in player.in_play

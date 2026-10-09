@@ -464,18 +464,23 @@ class GameState:
         try:
             return self.play_action_indirectly(player, proxy)
         finally:
-            after = Counter(player.duration + player.multiplied_durations)
-            targets = getattr(owner, "duration_targets", [])
-            for target in list(after - before) + getattr(proxy, "duration_targets", []):
-                if target not in targets:
-                    targets.append(target)
-            owner.duration_targets = targets
+            self._attach_supply_duration_targets(player, owner, proxy, before)
             # Cargo Ship registers a rest-of-turn instruction now, and only
             # schedules its Duration after it sets aside an actual gain.
             if getattr(proxy, "waiting_for_gain", False):
                 player.virtual_gain_effects.append(proxy)
-                if proxy not in targets:
-                    targets.append(proxy)
+
+    def _attach_supply_duration_targets(self, player, owner, proxy, before):
+        """Link instructions created by an initial or delayed virtual play."""
+        after = Counter(player.duration + player.multiplied_durations)
+        targets = getattr(owner, "duration_targets", [])
+        added = list(after - before) + getattr(proxy, "duration_targets", [])
+        if getattr(proxy, "waiting_for_gain", False):
+            added.append(proxy)
+        for target in added:
+            if target not in targets:
+                targets.append(target)
+        owner.duration_targets = targets
 
     def play_action_indirectly(
         self,
@@ -2154,7 +2159,15 @@ class GameState:
         for card in snapshot[0] + snapshot[1]:
             pending_before = player.duration.count(card)
             coins_before, actions_before = player.coins, player.actions
-            card.on_duration(self)
+            owner = getattr(card, "virtual_supply_owner", None)
+            if owner is None:
+                card.on_duration(self)
+            else:
+                before = Counter(player.duration + player.multiplied_durations)
+                try:
+                    card.on_duration(self)
+                finally:
+                    self._attach_supply_duration_targets(player, owner, card, before)
             self.log_callback(
                 (
                     "action",
