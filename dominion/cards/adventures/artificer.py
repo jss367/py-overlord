@@ -84,10 +84,7 @@ class Artificer(Card):
                 player.hand.remove(card)
                 game_state.discard_card(player, card)
 
-        gained = game_state.take_top_supply_card(game_state.supply_pile_key(chosen.name))
-        if gained is None:
-            return
-        game_state.gain_card(player, gained, to_deck=True)
+        game_state.gain_from_supply(player, chosen.name, destination="deck")
 
 
 def is_artificer_junk(card) -> bool:

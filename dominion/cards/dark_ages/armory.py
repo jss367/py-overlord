@@ -35,7 +35,4 @@ class Armory(Card):
             # to $4"), so a declining or invalid hook falls back to the
             # shared ranking rather than gaining nothing.
             chosen = max(options, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
-        gained = game_state.take_top_supply_card(game_state.supply_pile_key(chosen.name))
-        if gained is None:
-            return
-        game_state.gain_card(player, gained, to_deck=True)
+        game_state.gain_from_supply(player, chosen.name, destination="deck")
