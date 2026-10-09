@@ -52,45 +52,65 @@ The parent tracking issue is open. These decision families are tracked in
   the policy; record the evidence and limitations before using this status.
 - **Unreviewed:** no claim about either correctness or tactical quality.
 
-## Initial inventory
+## Evidence-backed coverage inventory
 
-This is a prioritized source inspection, not a complete audit of every card.
-All unlisted cards remain unreviewed. Prioritize cards on the kingdoms being
-tested, then expand coverage by expansion.
+[Card decision evidence inventory](card-tactical-inventory.md) is the canonical
+card-by-card checklist. It covers every registered card name by expansion,
+including the parent's original 18 cards, the seven additional card groups
+previously listed here, ten individual Knight members, and newly inspected
+Ironworks, Engineer, Counterfeit, Moneylender, Minion, and Courtier choices.
+Each row separates the decision, scoped rules audit, actual engine/AI hooks,
+tactical evaluation, tests, artifacts, and linked follow-ups. Every remaining
+registered card is explicitly unreviewed; a source link is not audit evidence.
 
-| Card | Expansion | Decision | Current status and next work |
-| --- | --- | --- | --- |
-| Overlord | Empires | Select a supply Action | Connected and tested; targeted scenarios and seeded supply-policy comparisons measured attacks, trashing, and action support. Duration valuation has scenario coverage only; indirect-play and proxy ownership rules remain in #396 and #397. |
-| Courier | Allies | Select an Action or Treasure from discard | Connected and tested: discard reactions resolve before selection; supports strategy overrides and declining. Default considers Courier chains, needed Actions, printed draw, and money. Strength comparisons remain unevaluated. |
-| Quartermaster | Plunder | Select a gain and collection timing | Evaluated on a fixed-seed panel; hand-aware one-card collection, endgame points, independent piles, repeated plays sharing a pile, and start-of-turn scheduling are covered. Improvements vary by opponent; see the free-gain evaluation below. |
-| Captain | Promo | Select a supply Action | Connected and tested; independent supply priorities and shared mandatory fallback. Seeded comparisons measured improvements on the tested board. Next-turn scheduling/replay rules remain in #395. |
-| Band of Misfits | Dark Ages | Select a supply Action | Connected and tested; dedicated strategy forwarding and independent supply priorities. Seeded comparisons found smaller, uncertain gains. Indirect-play and proxy ownership rules remain in #396 and #397. |
-| Workshop | Base | Select a free gain | Evaluated; separate free-gain context and priorities, ownership-aware mandatory fallback. Generic independent priorities regressed against some opponents; opt in and tune per strategy. |
-| Remodel | Base | Choose a trash/gain pair | Evaluated; compare legal trash/gain pairs, honor explicit trash preferences, and refresh gains after trash reactions. The panel improved against some opponents; no optimality claim. |
-| Anvil | Prosperity | Discard a Treasure, then gain | Evaluated; combined discard/gain override and shared tradeoff baseline. Both existing separate overrides remain authoritative. Panel results include small regressions and overlapping intervals. |
-| Chapel | Base | Choose up to four trashes | Connected and tested: optional stopping, four-card cap, legal physical choices, conditional economy floors, and endgame preservation. Trash priorities remain strategy-owned. |
-| Junk Dealer | Dark Ages | Choose a mandatory trash | Dedicated override was already forwarded. Invalid/declined choices now use the mandatory base fallback. Tests preserve useful economy when junk is available; no hard economy floor can prevent a mandatory trash. |
-| Gear | Adventures | Choose cards to set aside | Connected, tested, and evaluated on a fixed kingdom: shared baseline saves stranded Actions or money above a buy breakpoint and can stop at zero. Multiple copies and replays conserve cards; no-choice plays leave at current cleanup. |
-| Haven | Seaside | Choose a card to set aside | Connected, tested, and evaluated on a fixed kingdom: shares next-turn selection with Gear, then reuses the generic discard hook with reason `"haven"`. Mandatory legal fallback, per-copy replay storage, scoring and delayed returns are tested. |
-| Barge | Menagerie | Resolve now or next turn | Evaluated: dedicated strategy override, draw/phase-aware fallback, independent replay queues, Throne Room retention, and Chameleon timing. Fresh-seed comparisons reevaluate three registered engines. |
-| Sleigh | Menagerie | Redirect a gained card | Evaluated: strategy can decline or choose hand/deck; default considers phases, playable Sleigh cost, and prior gain movement. Three registered strategies reevaluated; general simultaneous gain ordering remains in #410. |
-| Torturer | Intrigue | Respond to attack and choose discards | Evaluated: both existing responder hooks retained, mandatory physical discards and empty-hand/empty-pile choices corrected. Defaults preserve live next-hand cards; purchase-preserving response regressed and remains opt-in. |
-| Watchtower | Prosperity | Trash, topdeck, or keep a gain | Existing connected defaults and tests; evaluate exceptions by strategy and game stage. |
-| Clerk | Prosperity | Reaction play and attack topdeck | Existing connected defaults and tests; evaluate exceptions. |
-| Investment | Prosperity | Take money or trash a Treasure for points | Existing connected defaults and tests; evaluate point-versus-economy tradeoffs. |
-| Bounty Hunter | Menagerie | Choose a card to exile | Existing strategy priority override and base fallback; evaluate reuse and exceptions. |
-| Knights / Rogue | Dark Ages | Attacked player picks which revealed $3-$6 card to trash | Connected and tested (`choose_card_to_trash_for_knight_attack`, `choose_card_to_trash_for_rogue_attack`): against a Knight the default gives up a revealed Knight (which also trashes the attacker's), else the cheapest card; against Rogue it is simply the cheapest card. |
-| Stables | Hinterlands | Discard a Treasure for +3 Cards +1 Action, or decline | Connected and tested (`choose_treasure_to_discard_for_stables`): default Copper, then Spoils, then Silver; strategies may decline. |
-| Spice Merchant | Hinterlands | Optional Treasure trash and mode | Connected and tested (`choose_treasure_to_trash_for_spice_merchant`, `choose_spice_merchant_mode`): default only trashes Copper, draws unless the hand is short of money with no Actions left. |
-| Armory | Dark Ages | Select a free $4 gain onto the deck | Connected and tested (`choose_armory_gain`): default runs the gain priorities over the exposed piles (the top Knight included). |
-| Artificer | Adventures | Discard count and gain onto the deck | Connected and tested (`choose_artificer_gain`): default spends only junk (Curses, Victory cards, Coppers) and skips $0 gains; discards go through `choose_cards_to_discard` with reason `"artificer"`. |
-| Scheme | Hinterlands | Action to topdeck at Clean-up | Connected and tested (`choose_card_to_topdeck_for_scheme`): default takes the most expensive discarded Action; Durations staying in play are excluded. |
+The inventory is generated by
+[`render_tactical_inventory.py`](../scripts/render_tactical_inventory.py).
+Run `PYTHONPATH=. python scripts/render_tactical_inventory.py` after changing
+coverage or registering cards. Its tests enforce registry coverage, existing
+hooks/evidence, and an exact generated-document match. The parent issue links
+this inventory rather than maintaining a second divergent card table.
+
+The supply, free-gain, and set-aside implementations merged in
+[#404](https://github.com/jss367/py-overlord/pull/404),
+[#403](https://github.com/jss367/py-overlord/pull/403), and
+[#402](https://github.com/jss367/py-overlord/pull/402). This branch adds Barge and Sleigh
+strategy forwarding and the scoped Torturer rules/tactical audit under #393;
+see the reaction and Duration evaluation below. Simultaneous gain ordering
+remains in #410. Quartermaster's
+one-card collection, independent storage and replay/scheduling audit are in
+#391's merged evidence, rather than an outstanding generic storage task.
+Anvil and Junk Dealer dedicated overrides are connected and tested.
+
+Watchtower's gain reaction, Clerk's victim topdeck, Investment's self-trash
+mode, and Bounty Hunter's exile choice now have targeted four-stage scenarios
+and measured fixed-policy panels. Clerk's start-turn reaction is connected and
+tested but unchanged between comparison arms; its timing remains unevaluated.
+Investment's forwarded legacy Treasure-selection helper is not an engine
+choice: after mandatory hand trash, the engine can trash Investment itself
+and score every remaining Treasure name. Policy accounting and cash-out timing
+remain in [#411](https://github.com/jss367/py-overlord/issues/411).
+Ironworks/Engineer still use purchase priorities for free gains, tracked in
+[#412](https://github.com/jss367/py-overlord/issues/412). Courtier bonuses are
+connected; its reveal choice still lacks strategy forwarding. A scoped reviewed
+entry never certifies all of that card's other decisions or interactions.
 
 Traceability: choice forwarding is in
 [`GeneticAI`](../dominion/ai/genetic_ai.py); existing AI heuristics are in
 [`AI`](../dominion/ai/base_ai.py); priority behavior and card overrides are in
 [`EnhancedStrategy`](../dominion/strategy/enhanced_strategy.py). Quartermaster's
 decisions are in [`GameState`](../dominion/game/game_state.py).
+
+The earlier inventory's other connected defaults remain unevaluated as
+independent policies: Knight victims give up a revealed Knight (also trashing
+the attacker), otherwise the cheapest eligible card; Rogue victims give up the
+cheapest card. Stables prefers Copper, then Spoils, then Silver and can decline.
+Spice Merchant only trashes Copper by default and favors draw unless short of
+money with no Actions left. Armory runs gain priorities over exposed piles,
+including the top Knight. Artificer budgets junk discards, skips $0 gains and
+uses generic discards with `reason="artificer"`. Scheme selects the most
+expensive discarded Action, excluding Durations retained in play. The linked
+card modules and `tests/test_kolkata_board_cards.py` retain rules and hook
+evidence for these choices; none is promoted to evaluated by this study.
 
 ## First implementation: Overlord and Quartermaster
 
@@ -559,3 +579,66 @@ reevaluations do not replace a full tournament.
 
 Coverage: [`test_reaction_duration_tactics.py`](../tests/test_reaction_duration_tactics.py)
 and [`evaluate_reaction_duration_tactics.py`](../scripts/evaluate_reaction_duration_tactics.py).
+
+## Shared scenario and benchmark protocol
+
+This protocol complements the implementation-family work in #390–#393. It does
+not recreate their hooks or treat regression coverage as tactical evaluation.
+
+1. Name the exact decision and card rules being held fixed. Exercise physical
+   plays/reactions for early building, constrained hands, excessive copies and
+   endgame; record legal menus, hand/storage/ownership context and observed
+   outcomes. Mark untested effects and interactions explicitly unreviewed.
+2. Freeze policy code, purchases, hand order, board and representative opponent
+   factories before screening. Record actual hook firings so a no-op comparison
+   is visible. Keep rules changes separate from policy comparisons.
+3. Use the same initial seeds for both policies and both seats. Score ties as
+   half a win after the engine's score/turn tie-break. Treat the two seats as
+   one seed block for uncertainty; random streams may diverge after decisions.
+4. Select the recommendation on screen seeds using a declared rule, save that
+   evidence, then load and hash it before fresh validation. Refuse overlapping
+   seed ranges, changed simulation inputs and overwritten artifacts. Validation
+   must not select a different recommendation from its own outcomes.
+5. Save raw per-game outcomes, scores, seats, seeds, hook counters, truncations,
+   policy definitions, runner/Python provenance and reproduction commands.
+   Report win-share and score-margin regressions against every opponent,
+   sample sizes and confidence methods, including multiplicity limitations.
+6. Before a production baseline change, reevaluate affected registered
+   strategies on their own boards and mark historical tournament evidence
+   appropriately. Publish recommendations as registered HTML guides. Callable
+   Python policies and optimizer parameters require separate coverage claims.
+
+The first expanded panel is implemented in
+[`evaluate_card_tactics.py`](../scripts/evaluate_card_tactics.py) and verified by
+[`test_card_tactics_evaluation.py`](../tests/test_card_tactics_evaluation.py).
+It records 32 stage/policy scenarios, a 2,400-game screen (50 independent seeds
+per comparison), and 4,800 fresh validation games (100 seeds per comparison).
+Both arms use current rules and purchases; no production default changes.
+Raw evidence is in
+[`card_tactics_screen.json`](../scripts/data/card_tactics_screen.json) and
+[`card_tactics_validation.json`](../scripts/data/card_tactics_validation.json).
+The guide contains all comparisons and reproduction commands:
+[Watchtower, Clerk, Investment and Bounty Hunter: Tactical Evaluation](../reports/strategies/card-reactions-investment-and-exile-evaluation.html).
+
+The benchmark uses nondegenerate Hoeffding bounds on independent seed blocks
+for rates and paired rate changes, and approximate paired normal intervals
+for score changes. Bounds are per comparison, not corrected for multiple
+comparisons. A weak engine opponent and a single diagnostic money purchase
+policy limit generalization. No evolutionary search is performed. Dedicated
+policy search is tracked in
+[#413](https://github.com/jss367/py-overlord/issues/413); Bounty Hunter already
+has searchable exile priority rules, but they do not encode the full contextual
+bonus policy. Existing free-gain preference fields also round-trip through
+optimizer/export paths; arbitrary overrides do not automatically become genes.
+
+## October 9 integration provenance
+
+Main through `e6b080ba1859917830c4f199f8bf28c5d86b4497` adds centralized
+Supply gains from #414 alongside the #415 evidence inventory. The merged
+simulation fingerprint is `9935c17f597c05ad70acc2cd46733baaf205a6a9e0f2af8576c67b3fe0955afc`. Saved study outcomes and their recorded
+hashes remain unchanged. The #416 final study fingerprint is
+`3ad9ef6ce8ffd6256380033e1765827194d8d2c012408ba2b7a2e9fd735b2498`;
+the #415 study fingerprint is
+`0e4706b7fa6183421c64cb05112a66b10838bebdbb6c87eed4837266325bd1a3`.
+Both studies describe historical inputs, not freshly measured merged behavior.
+No study panel was rerun or regraded during integration.

@@ -51,8 +51,7 @@ def gain_selected(state, player, card, *, choices=None, source=None, sacrificed=
     if prepare is not None and source is not None and choices is not None:
         context = FreeGainContext.build(state, player, source, destination, sacrificed=sacrificed)
         commit = prepare(state, player, choices, card, context)
-    gained = state.take_top_supply_card(pile)
-    actual = state.gain_card(player, gained) if gained is not None else None
+    actual = state.gain_from_supply(player, card.name)
     if actual is not None and commit is not None:
         commit(actual)
     return actual

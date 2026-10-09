@@ -1,7 +1,7 @@
 import copy
 import random
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Literal, Optional
 
 from dominion.cards.base_card import Card
 from dominion.ai import tactical_defaults
@@ -3780,6 +3780,45 @@ class GameState:
             chosen.append(self.boons_deck.pop())
         self.druid_boons = chosen
 
+    def gain_from_supply(
+        self,
+        player: PlayerState,
+        card_name: str,
+        *,
+        destination: Literal["discard", "deck", "hand"] = "discard",
+    ) -> Card | None:
+        """Take an exposed Supply card and resolve its gain and reactions.
+
+        Callers select a specific card name and enforce the effect's cost and
+        type restrictions; they must not decrement supply themselves. An empty,
+        absent, reserved, non-Supply, or now-covered target returns None without
+        gaining a different member of its pile. Knights and Ruins use the name
+        of the exposed card, not their placeholder pile name.
+
+        The destination is the initial location; reactions may replace, move,
+        or trash the returned card. Resolution errors propagate: this operation
+        does not roll back effects of reactions that have already run.
+        """
+        if destination not in {"discard", "deck", "hand"}:
+            raise ValueError(f"Invalid gain destination: {destination!r}")
+        pile = self.supply_pile_key(card_name)
+        if (
+            (pile not in self.supply and card_name not in self.supply)
+            or pile in self.non_supply_pile_names
+            or card_name in self.non_supply_pile_names
+            or self._is_ferryman_reserved_pile_name(card_name)
+        ):
+            return None
+        if self.top_supply_card(pile) != card_name:
+            return None
+        card = self.take_top_supply_card(pile)
+        if card is None:
+            return None
+        return self.gain_card(
+            player, card, from_supply=True,
+            to_deck=destination == "deck", to_hand=destination == "hand",
+        )
+
     def gain_card(
         self,
         player: PlayerState,
@@ -3789,6 +3828,10 @@ class GameState:
         to_hand: bool = False,
     ) -> Card | None:
         """Add a card to a player's discard or deck, honoring topdeck effects.
+
+        New Supply gainers should call ``gain_from_supply`` instead. This
+        lower-level entry point also supports already-removed cards and gains
+        from other locations, including legacy purchase and card-effect paths.
 
         ``from_supply`` controls supply-restoration semantics. The default
         (``True``) matches the historical contract: the caller has already
