@@ -658,3 +658,13 @@ the #415 study fingerprint is
 `0e4706b7fa6183421c64cb05112a66b10838bebdbb6c87eed4837266325bd1a3`.
 Both studies describe historical inputs, not freshly measured merged behavior.
 No study panel was rerun or regraded during integration.
+
+## Preserved Command-study provenance
+
+The #417 raw validation file is preserved byte-for-byte from commit
+`1528789376055aebc89121fbe09a945229291e15`, whose simulation inputs match
+its fingerprint `84988f12974c86081fb76f5409328746e298de82c6ca240d550d2d93c1441984`. Later cleanup retention
+and delayed virtual-Duration propagation fixes through `ddca7f9` use fingerprint
+`7f7368fb5a6f91eb09adf3f71e5727a2cb0cda4ce7cbf9b5f4a8413c16581f6d` and have regression coverage. The original study tables are not relabeled
+as measurements of these later inputs. No experiment or historical regrading was
+performed for this provenance correction.
