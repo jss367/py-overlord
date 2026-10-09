@@ -19,6 +19,9 @@ For local work without reinforcement learning, install `.[dev]`; tests under
 `tests/rl/` are omitted when Torch or Gymnasium is unavailable. Ruff's shared
 configuration enables all Pyflakes checks, including unused and shadowed names.
 
+For card-effect implementation, see [Gaining cards from the Supply](docs/supply-gains.md)
+for the shared gain operation and migration guidance.
+
 Strategy conditions must return a truth value or raise an error. A broken
 condition raises `StrategyDecisionError` with its strategy and rule context;
 training rejects the failed evaluation instead of silently trying the next
