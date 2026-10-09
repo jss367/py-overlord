@@ -217,8 +217,8 @@ class SuzhouGroundskeeper(EnhancedStrategy):
         return self.pick(choices, ["Gold", "Silver", "Copper"])
 
     # -- buys and gains ------------------------------------------------
-    # Ironworks and Workshop both route their gain through ``choose_buy``,
-    # which GeneticAI sends here, so one ranked list covers buys and gains.
+    # Ironworks and Workshop inherit this purchase list through the contextual
+    # free-gain selector, so one ranked list still covers buys and gains.
     # A buy always offers ``None`` ("buy nothing"); a gainer does not, and
     # that is how this hook tells the two apart.
     def choose_gain(self, state, player, choices, *, mandatory=None):

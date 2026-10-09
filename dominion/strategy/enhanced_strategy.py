@@ -742,6 +742,8 @@ class EnhancedStrategy:
         rules = getattr(self, "free_gain_priority", None)
         if rules is None:
             choice = self.choose_gain(state, player, choices)
+            if choice is None and context.source in {"Ironworks", "Engineer"}:
+                return tactical_defaults.purchase_gain_fallback(choices, context.source)
             fallback = self._unspecified(state, player, "gain", choices)
         else:
             choice = self._choose_from_priority(rules, choices, state, player, "free_gain")

@@ -89,8 +89,10 @@ Investment's forwarded legacy Treasure-selection helper is not an engine
 choice: after mandatory hand trash, the engine can trash Investment itself
 and score every remaining Treasure name. Policy accounting and cash-out timing
 remain in [#411](https://github.com/jss367/py-overlord/issues/411).
-Ironworks/Engineer still use purchase priorities for free gains, tracked in
-[#412](https://github.com/jss367/py-overlord/issues/412). Courtier bonuses are
+Ironworks and Engineer now use contextual free gains with inherited purchase
+priorities until a separate policy opts in. Their rules and measurements are
+published in the [Ironworks and Engineer evaluation](../reports/strategies/ironworks-and-engineer-contextual-gain-evaluation.html)
+for [#412](https://github.com/jss367/py-overlord/issues/412). Courtier bonuses are
 connected; its reveal choice still lacks strategy forwarding. A scoped reviewed
 entry never certifies all of that card's other decisions or interactions.
 
@@ -227,8 +229,8 @@ GeneticAI instead honors the strategy's contextual free-gain hook and separate
 preferences. Teacher selectors propose choices without recording free gains or
 joint Remodel pairs. The validated executor snapshots the final legal gain
 menu and pre-gain observation after trash/discard reactions, and commits only
-a successful matching gain. Workshop, Remodel, Anvil and Quartermaster all use
-this contract. Remodel snapshots its physical trash before execution and commits
+a successful matching gain. Workshop, Remodel, Anvil, Quartermaster, Ironworks
+and Engineer all use this contract. Remodel snapshots its physical trash before execution and commits
 it after trashing succeeds; a Fortress returning to hand still counts as trashed.
 Legacy trash selection during pair planning cannot duplicate that example.
 Empty menus, failed gains and Trader replacement produce no phantom gain label.
@@ -668,3 +670,45 @@ and delayed virtual-Duration propagation fixes through `ddca7f9` use fingerprint
 `7f7368fb5a6f91eb09adf3f71e5727a2cb0cda4ce7cbf9b5f4a8413c16581f6d` and have regression coverage. The original study tables are not relabeled
 as measurements of these later inputs. No experiment or historical regrading was
 performed for this provenance correction.
+
+
+## Ironworks and Engineer contextual gains
+
+Both cards pass their legal $4, no-Potion, no-Debt menu to
+`choose_free_gain(state, player, choices, context)`. `free_gain_priority=None`
+inherits the active purchase selector and preserves each card's old mandatory
+fallback if that selector declines. An explicit list overrides purchases;
+`[]` opts into the shared contextual ranking. A custom callable remains
+authoritative when it selects a legal card. Invalid selections receive a
+mandatory legal fallback; empty menus request no gain decision.
+
+`FreeGainContext` adds optional `source_card`, `gain_number`, `previous_gain`,
+and `can_trash_source` fields, with backward-compatible defaults. Ironworks
+sets its physical source. Engineer's first gain declares whether that source
+can still be trashed. Its existing `should_trash_engineer_for_extra_gains`
+override runs after the first gain and reactions; the conservative default
+still keeps Engineer. The second gain rebuilds its menu after self-trash and
+trash reactions, sets `gain_number=2`, records the actual first gain after
+replacement, and supplies Engineer as `sacrificed`. This lets a strategy plan
+both gains and then reassess the extra gain using the resulting state.
+
+Ironworks pays every matching live-type bonus, including Capitalism,
+Enlightenment and the active player's Inheritance. Snowy Village suppresses
+its Action bonus. It gains exposed split-pile members through the shared
+executor. Trader replacement determines the actual gained identity;
+Watchtower movement or trashing does not cancel the bonuses. A subsequent
+Changeling exchange is separate from the gain, so the original gained card's
+bonuses and matching teacher label are preserved. The shared gain observer
+captures identity after replacement and before on-gain exchanges; it is
+observational and does not resolve another effect. Both Engineer gains record
+pre-gain observations after the relevant reactions, never a speculative pair
+or a failed/replaced choice. The training action vocabulary is unchanged.
+
+The registered HTML evaluation records a fixed diagnostic screen, locked
+recommendations and fresh validation, plus purchase-selector compatibility on
+five registered strategies' boards. Independent Ironworks ranking considers
+immediate bonuses and stranded Actions. The Engineer diagnostic projects
+complete gain pairs and cashes out only at the endgame or with excessive
+copies; projected pairs do not model reactions. These diagnostics do not
+replace inherited priorities or the default keep-Engineer policy. No optimizer
+parameters are added by this change; searchable policy families remain #413.

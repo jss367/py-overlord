@@ -123,13 +123,19 @@ def reviewed_decisions():
     for name in KNIGHT_NAMES:
         audits[name] = audits["Knights"]
 
-    add(("Ironworks",), "Mandatory free gain via purchase selector", ("choose_buy",),
-        ("tests/test_suzhou_board_rules.py",), wiring="Needs context: connected purchase priorities",
-        tactical="Needs context: no independent free-gain parameters", followups=(412,))
-    add(("Engineer",), "Optional self-trash and free gains via purchase selector",
-        ("should_trash_engineer_for_extra_gains", "choose_buy"), ("tests/test_recruiter_kitsune_rules.py",),
-        wiring="Needs context: self-trash connected; gains reuse purchases",
-        tactical="Needs context: gain destination / ownership", followups=(412,), adapter="dominion/ai/base_ai.py")
+    add(("Ironworks",), "Contextual mandatory free gain and live-type bonuses", ("choose_free_gain",),
+        ("tests/test_ironworks_engineer_context.py", "tests/test_suzhou_board_rules.py",
+         "scripts/data/ironworks-engineer-validation.json",
+         "reports/strategies/ironworks-and-engineer-contextual-gain-evaluation.html"),
+        rules="Scoped costs / exposed piles / live bonuses / gain reactions audited",
+        tactical="Measured diagnostic alternative; inherited purchase policy retained")
+    add(("Engineer",), "Contextual sequential gains and optional self-trash",
+        ("choose_free_gain", "should_trash_engineer_for_extra_gains"),
+        ("tests/test_ironworks_engineer_context.py", "tests/test_recruiter_kitsune_rules.py",
+         "scripts/data/ironworks-engineer-validation.json",
+         "scripts/data/ironworks-engineer-registered-validation.json"),
+        rules="Scoped costs / exposed piles / conditional self-trash / reactions audited",
+        tactical="Measured joint-gain diagnostic; conservative keep policy retained", adapter="dominion/ai/base_ai.py")
     add(("Counterfeit",), "Optional Treasure replay/trash", ("should_replay_treasure_with_counterfeit",),
         ("tests/test_recruiter_kitsune_rules.py",), adapter="dominion/ai/base_ai.py")
     add(("Moneylender",), "Optional Copper trash", ("should_trash_copper_for_moneylender",),
@@ -179,8 +185,8 @@ def render():
     lines += ["", f"Total: {len(rows)} registered names; {sum(reviewed.values())} scoped entries; "
               f"{len(rows) - sum(reviewed.values())} unreviewed.", "",
               "Priority: finish active kingdoms and #393 timing/response coverage, then review Base, "
-              "Prosperity, Menagerie and the remaining expansions. Ironworks and Engineer expose additional "
-              "free-gain context gaps; their hooks are not duplicated here.", "",
+              "Prosperity, Menagerie and the remaining expansions. Ironworks and Engineer have contextual "
+              "gain coverage; this does not certify their other card interactions.", "",
               "## Scoped evidence", "",
               "| Card | Expansion | Decision | Rules audit | Engine → AI wiring | Tactical evaluation | Evidence / follow-ups |",
               "| --- | --- | --- | --- | --- | --- | --- |"]

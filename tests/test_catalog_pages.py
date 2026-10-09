@@ -184,6 +184,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "strategies/free-gains-and-quartermaster-policy-evaluation.html",
         "strategies/barge-sleigh-and-torturer-policy-evaluation.html",
         "strategies/card-reactions-investment-and-exile-evaluation.html",
+        "strategies/ironworks-and-engineer-contextual-gain-evaluation.html",
         "strategies/ninja-watchtower-figurine-strategy-guide.html",
         "strategies/ten-strongest-unused-cards.html",
         "strategies/strategy-retirement-and-rebuild-comparison.html",
@@ -308,6 +309,8 @@ def test_catalog_refuses_to_overwrite_unrecognized_tournament_results(tmp_path):
 @pytest.mark.parametrize(
     ("filename", "title"),
     [
+        ("ironworks-and-engineer-contextual-gain-evaluation.html",
+         "Ironworks and Engineer: Contextual Gains and Policy Evaluation"),
         ("cursed-band-biding-time-strategy-guide.html", "Cursed Band and Biding Time Strategy Guide"),
         ("hyderabad-strategy-guide.html", "Hyderabad Strategy Search Guide"),
         ("lisbon-strategy-guide.html", "Lisbon Strategy Search Guide"),

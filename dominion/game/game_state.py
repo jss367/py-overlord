@@ -3835,6 +3835,7 @@ class GameState:
         card_name: str,
         *,
         destination: Literal["discard", "deck", "hand"] = "discard",
+        gain_observer=None,
     ) -> Card | None:
         """Take an exposed Supply card and resolve its gain and reactions.
 
@@ -3845,7 +3846,9 @@ class GameState:
         of the exposed card, not their placeholder pile name.
 
         The destination is the initial location; reactions may replace, move,
-        or trash the returned card. Resolution errors propagate: this operation
+        or trash the returned card. ``gain_observer`` receives the actual gain
+        after replacement, before on-gain exchanges; it must only observe it.
+        Resolution errors propagate: this operation
         does not roll back effects of reactions that have already run.
         """
         if destination not in {"discard", "deck", "hand"}:
@@ -3866,6 +3869,7 @@ class GameState:
         return self.gain_card(
             player, card, from_supply=True,
             to_deck=destination == "deck", to_hand=destination == "hand",
+            gain_observer=gain_observer,
         )
 
     def gain_card(
@@ -3875,6 +3879,8 @@ class GameState:
         to_deck: bool = False,
         from_supply: bool = True,
         to_hand: bool = False,
+        *,
+        gain_observer=None,
     ) -> Card | None:
         """Add a card to a player's discard or deck, honoring topdeck effects.
 
@@ -3916,6 +3922,10 @@ class GameState:
             player, card, actual_card, destination_is_deck, from_supply=from_supply
         )
 
+        # Observe the actual gain after replacements, before on-gain effects
+        # can exchange it. An exchanged Changeling is not the card gained.
+        if gain_observer is not None:
+            gain_observer(actual_card)
         actual_card.returned_to_supply = False
 
         # Only abilities already active when this gain happens can react to
