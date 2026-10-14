@@ -599,7 +599,8 @@ def test_duplicate_call_does_not_take_an_exposed_different_split_pile_card():
 
 
 @pytest.mark.parametrize('copies', [1, 2])
-def test_off_turn_duplicate_is_discarded_at_active_players_cleanup(copies):
+@pytest.mark.parametrize('tireless', [False, True])
+def test_off_turn_duplicate_is_discarded_at_active_players_cleanup(copies, tireless):
     state, active, _ = setup()
     owner = PlayerState(GeneticAI(EnhancedStrategy()))
     state.players.append(owner)
@@ -610,12 +611,16 @@ def test_off_turn_duplicate_is_discarded_at_active_players_cleanup(copies):
     owner.duration = [duration]
     owner.ai.should_call_from_tavern = lambda *args: True
     state.supply['Gold'] = copies
+    state.tireless_piles = {'Duplicate'} if tireless else set()
     state.gain_from_supply(owner, 'Gold')
     assert state.turn_player is active
     assert duplicate in owner.in_play and duplicate not in owner.discard
     assert owner.count('Gold') == copies
     state.handle_cleanup_phase()
-    assert duplicate not in owner.in_play and owner.discard.count(duplicate) == 1
+    assert duplicate not in owner.in_play
+    assert owner.discard.count(duplicate) == (0 if tireless else 1)
+    if tireless:
+        assert owner.deck[-1] is duplicate and owner.count('Duplicate') == 1
     assert owner.hand == [hand]
     assert duration in owner.in_play and owner.duration == [duration]
     assert not state._off_turn_called_duplicates
@@ -782,3 +787,225 @@ def test_garrison_menu_requires_an_active_gain_instruction(active):
     state.gain_from_supply(player, 'Gold')
     assert any('owner_card' in choices for _, choices in seen) == active
     assert garrison.tokens == int(active)
+
+
+@pytest.mark.parametrize('name,expected', [('Gold', True), ('Village', False), ('Province', False)])
+def test_guildhall_menu_requires_a_treasure_gain(name, expected):
+    from dominion.projects.guildhall import Guildhall
+    state, player, _ = setup(observe=True)
+    player.projects.append(type('Observer', (), {'name': 'Observer', 'on_gain': lambda *args: None})())
+    player.projects.append(Guildhall())
+    menus = []
+    player.ai.strategy.choose_gain_effect = lambda s,p,c,choices: (menus.append([e.source.name for e in choices if e.source]) or choices[0])
+    state.gain_from_supply(player, name)
+    assert any('Guildhall' in menu for menu in menus) == expected
+    assert player.coin_tokens == int(expected)
+
+
+@pytest.mark.parametrize('name,expected', [('Gold', False), ('Sailor', False), ('Wharf', True)])
+def test_sailor_menu_only_offers_qualified_duration_gains(name, expected):
+    state, player, seen = setup(observe=True)
+    sailor = get_card('Sailor')
+    player.in_play = [sailor]
+    sailor.play_effect(state)
+    player.ai.should_play_gain_with_sailor = lambda *args: False
+    state.gain_card(player, get_card(name))
+    assert any('sailor' in choices for _, choices in seen) == expected
+
+
+def test_stowaway_in_duration_does_not_offer_its_hand_reaction_again():
+    state, player, _ = setup()
+    owner = PlayerState(GeneticAI(EnhancedStrategy()))
+    state.players.append(owner)
+    owner.duration = [get_card('Stowaway')]
+    owner.projects = [type('Observer', (), {'name': 'Observer', 'on_opponent_gain': lambda *args: None})() for _ in range(2)]
+    menus = []
+    owner.ai.strategy.choose_gain_effect = lambda s,p,c,choices: (menus.append([e.kind for e in choices]) or choices[0])
+    state.gain_from_supply(player, 'Province')
+    assert not any('opponent_duration' in menu for menu in menus)
+
+
+def test_exile_copy_menu_refreshes_after_nested_gain_discards_the_copy():
+    state, player, _ = setup(order=['card_on_gain'], observe=True)
+    player.exile = [get_card('Gold')]
+    player.ai.should_discard_exiled_copies = lambda *args: True
+    outer = get_card('Gold')
+    ready, menus = [], []
+    def nested(s, p):
+        s.gain_from_supply(p, 'Gold')
+        ready.append(True)
+    outer.on_gain = nested
+    player.projects.append(type('Observer', (), {'name': 'Observer', 'on_gain': lambda *args: None})())
+    def choose(s, p, gained, choices):
+        if gained is outer and ready:
+            menus.append([e.kind for e in choices])
+        return next((e for e in choices if e.kind == 'card_on_gain'), choices[0])
+    player.ai.strategy.choose_gain_effect = choose
+    state.gain_card(player, outer)
+    assert menus and not any('exile_copies' in menu for menu in menus)
+    assert not player.exile
+
+
+def test_deliver_menu_omits_a_gain_already_trashed_by_watchtower():
+    state, player, _ = setup(['Watchtower'], ['watchtower'], observe=True)
+    player.projects.append(type('Observer', (), {'name': 'Observer', 'on_gain': lambda *args: None})())
+    player.deliver_pending_count = 1
+    player.ai.strategy.choose_watchtower_reaction = lambda *args: 'trash'
+    menus = []
+    def choose(s, p, gained, choices):
+        if gained in s.trash:
+            menus.append([e.kind for e in choices])
+        return next((e for e in choices if e.kind == 'watchtower'), choices[0])
+    player.ai.strategy.choose_gain_effect = choose
+    gold = state.gain_from_supply(player, 'Gold')
+    assert gold in state.trash and player.deliver_pending_count == 0
+    assert menus and not any('deliver' in menu for menu in menus)
+
+
+def test_nested_duration_gain_consumes_sailor_use_before_outer_menu_returns():
+    state, player, _ = setup(order=['card_on_gain', 'sailor'])
+    sailor = get_card('Sailor')
+    player.in_play = [sailor]
+    sailor.play_effect(state)
+    player.ai.should_play_gain_with_sailor = lambda *args: True
+    state.supply['Wharf'] = 2
+    outer = get_card('Wharf')
+    outer.on_gain = lambda s, p: s.gain_from_supply(p, 'Wharf')
+    state.gain_card(player, outer)
+    assert player.sailor_play_uses == 0
+    assert outer in player.discard and outer not in player.in_play
+    assert sum(c.name == 'Wharf' for c in player.in_play) == 1
+
+
+def test_off_turn_duplicate_discards_before_the_active_players_redraw():
+    state, active, _ = setup()
+    owner = PlayerState(GeneticAI(EnhancedStrategy()))
+    state.players.append(owner)
+    duplicate = get_card('Duplicate')
+    owner.tavern_mat = [duplicate]
+    owner.ai.should_call_from_tavern = lambda *args: True
+    state.gain_from_supply(owner, 'Gold')
+    hand_sizes = []
+    discard = state.discard_card
+    def record_discard(player, card, **kwargs):
+        if player is owner and card is duplicate:
+            hand_sizes.append(len(active.hand))
+        return discard(player, card, **kwargs)
+    state.discard_card = record_discard
+    state.handle_cleanup_phase()
+    assert hand_sizes == [0]
+    assert len(active.hand) == 5
+
+
+def test_off_turn_tireless_duplicate_returns_before_between_turn_donate():
+    state, active, _ = setup()
+    owner = PlayerState(GeneticAI(EnhancedStrategy()))
+    state.players.append(owner)
+    duplicate = get_card('Duplicate')
+    owner.tavern_mat = [duplicate]
+    owner.ai.should_call_from_tavern = lambda *args: True
+    state.tireless_piles = {'Duplicate'}
+    state.gain_from_supply(owner, 'Gold')
+    active.donate_pending = 1
+    returned = []
+    donate = state._resolve_donate
+    def record_donate(player):
+        returned.append(bool(owner.deck) and owner.deck[-1] is duplicate)
+        return donate(player)
+    state._resolve_donate = record_donate
+    state.handle_cleanup_phase()
+    assert returned == [True]
+    assert owner.count('Duplicate') == 1
+
+
+def test_calls_created_during_redraw_discard_before_any_tireless_returns():
+    state, active, _ = setup()
+    tireless = get_card('Village')
+    active.in_play = [tireless]
+    state.tireless_piles = {'Village'}
+    owner = PlayerState(GeneticAI(EnhancedStrategy()))
+    state.players.append(owner)
+    duplicate = get_card('Duplicate')
+    owner.tavern_mat = [duplicate]
+    owner.ai.should_call_from_tavern = lambda *args: True
+    draw = active.draw_cards
+    def gain_during_redraw(count):
+        draw(count)
+        state.gain_from_supply(owner, 'Gold')
+    active.draw_cards = gain_during_redraw
+    returned = []
+    discard = state.discard_card
+    def record_discard(player, card, **kwargs):
+        if player is owner and card is duplicate:
+            returned.append(tireless in active.deck)
+        return discard(player, card, **kwargs)
+    state.discard_card = record_discard
+    state.handle_cleanup_phase()
+    assert returned == [False]
+    assert active.deck[-1] is tireless
+    assert owner.discard.count(duplicate) == 1
+
+
+@pytest.mark.parametrize('modifier,name', [('capitalism', 'Militia'), ('charlatan', 'Curse'), ('inheritance', 'Estate')])
+@pytest.mark.parametrize('direct', [False, True])
+def test_guildhall_recognizes_live_treasure_gains(modifier, name, direct):
+    from dominion.projects.capitalism import Capitalism
+    from dominion.projects.guildhall import Guildhall
+    state, player, _ = setup(observe=True)
+    guildhall = Guildhall()
+    player.projects.append(guildhall)
+    if modifier in {'capitalism', 'inheritance'}:
+        player.projects.append(Capitalism())
+    if modifier == 'charlatan':
+        state.supply['Charlatan'] = 10
+    if modifier == 'inheritance':
+        player.inherited_action_name = 'Militia'
+    menus = []
+    player.ai.strategy.choose_gain_effect = lambda s,p,c,choices: (menus.append([e.source.name for e in choices if e.source]) or choices[0])
+    gained = get_card(name)
+    assert not gained.is_treasure
+    if direct:
+        guildhall.on_gain(state, player, gained)
+    else:
+        state.gain_card(player, gained)
+        assert any('Guildhall' in menu for menu in menus)
+    assert player.coin_tokens == 1
+
+
+@pytest.mark.parametrize('active_capitalism', [False, True])
+@pytest.mark.parametrize('owner_capitalism', [False, True])
+def test_off_turn_guildhall_uses_the_actual_turns_treasure_types(active_capitalism, owner_capitalism):
+    from dominion.projects.capitalism import Capitalism
+    from dominion.projects.guildhall import Guildhall
+    state, active, _ = setup()
+    owner = PlayerState(GeneticAI(EnhancedStrategy()))
+    state.players.append(owner)
+    owner.projects = [Guildhall()]
+    if active_capitalism:
+        active.projects.append(Capitalism())
+    if owner_capitalism:
+        owner.projects.append(Capitalism())
+    state.gain_card(owner, get_card('Militia'))
+    assert owner.coin_tokens == int(active_capitalism)
+    assert state.current_player is active and state.turn_player is active
+
+
+@pytest.mark.parametrize('treasure_at_gain', [False, True])
+def test_guildhall_keeps_captured_type_after_a_nested_modifier_change(treasure_at_gain):
+    from dominion.projects.capitalism import Capitalism
+    from dominion.projects.guildhall import Guildhall
+    state, player, _ = setup(order=['card_on_gain', 'project'], observe=True)
+    player.projects.append(Guildhall())
+    capitalism = Capitalism()
+    if treasure_at_gain:
+        player.projects.append(capitalism)
+    gained = get_card('Militia')
+    def change_modifier(s, p):
+        if treasure_at_gain:
+            p.projects.remove(capitalism)
+        else:
+            p.projects.append(capitalism)
+    gained.on_gain = change_modifier
+    state.gain_card(player, gained)
+    assert state.is_treasure(gained) is not treasure_at_gain
+    assert player.coin_tokens == int(treasure_at_gain)

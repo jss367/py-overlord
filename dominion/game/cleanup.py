@@ -22,20 +22,29 @@ def cleanup_turn(state: GameState) -> None:
     player = state.current_player
     _resolve_cleanup_triggers(state, player)
     tireless_set_aside, journey_extra_turn = _discard_cards(state, player)
-    outpost_extra_turn = _draw_next_hand(state, player, tireless_set_aside)
-    _discard_off_turn_duplicates(state)
+    off_turn_tireless = _discard_off_turn_duplicates(state)
+    outpost_extra_turn = _draw_next_hand(state, player, tireless_set_aside, off_turn_tireless=off_turn_tireless)
+    # A redraw/shuffle effect can itself gain cards and call another Duplicate.
+    for owner, card in _discard_off_turn_duplicates(state):
+        state._cover_gained_deck_top(owner, card)
+        owner.deck.append(card)
     _finish_turn(state, player, outpost_extra_turn)
     _advance_player(state, player, outpost_extra_turn, journey_extra_turn)
 
 
-def _discard_off_turn_duplicates(state: GameState) -> None:
-    """Discard only physical Duplicates called by other owners this turn."""
+def _discard_off_turn_duplicates(state: GameState) -> list[tuple[PlayerState, Card]]:
+    """Discard other owners' calls; return Tireless cards for after the redraw."""
+    tireless = []
     while getattr(state, "_off_turn_called_duplicates", []):
         pending, state._off_turn_called_duplicates = state._off_turn_called_duplicates, []
         for owner, card in pending:
             if card in owner.in_play:
                 owner.in_play.remove(card)
-                state.discard_card(owner, card, from_cleanup=True)
+                if state.supply_pile_key(card.name) in state.tireless_piles:
+                    tireless.append((owner, card))
+                else:
+                    state.discard_card(owner, card, from_cleanup=True)
+    return tireless
 
 
 def _resolve_cleanup_triggers(state: GameState, player: PlayerState) -> None:
@@ -351,7 +360,7 @@ def _discard_cards(state: GameState, player: PlayerState) -> tuple[list[Card], b
 
 
 def _draw_next_hand(
-    state: GameState, player: PlayerState, tireless_set_aside: list[Card]
+    state: GameState, player: PlayerState, tireless_set_aside: list[Card], *, off_turn_tireless=()
 ) -> bool:
     """Draw and resolve post-draw effects, including Donate; report an Outpost turn."""
     # Outpost: schedule an extra turn for this player with a 3-card hand.
@@ -393,8 +402,12 @@ def _draw_next_hand(
         player.foresight_set_aside = []
 
     # Tireless: put set-aside cards on top of deck after drawing
+    other_tireless = list(off_turn_tireless) + _discard_off_turn_duplicates(state)
     for card in tireless_set_aside:
         player.deck.append(card)
+    for owner, card in other_tireless:
+        state._cover_gained_deck_top(owner, card)
+        owner.deck.append(card)
 
     # Nocturne — Faithful Hound: set-aside Hounds return to hand at end of turn
     if getattr(player, "hound_set_aside", None):
