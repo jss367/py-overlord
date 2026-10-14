@@ -52,3 +52,28 @@ def test_guide_rejects_changed_evaluation_runners(tmp_path, monkeypatch, changed
     monkeypatch.setattr(guide, 'tournament_fingerprint', lambda: 'current')
     with pytest.raises(ValueError, match={'policy': 'Policy runner', 'reaction': 'Reaction runner', 'summary': 'Summary helper'}[changed]):
         guide.render()
+
+
+def test_guide_identifies_retained_results_after_later_engine_changes(tmp_path, monkeypatch):
+    from scripts import render_remaining_card_policies_guide as guide
+    snapshot = json.loads((guide.DATA / 'investment-accounting-validation.json').read_text())
+    output = tmp_path / 'guide.html'
+    monkeypatch.setattr(guide, 'SOURCE', output)
+    monkeypatch.setattr(guide, 'tournament_fingerprint', lambda: 'later-engine')
+    guide.render()
+    html = output.read_text()
+    assert snapshot['simulation_fingerprint'] in html
+    assert 'current engine differs from this retained benchmark snapshot' in html
+    assert 'not been regraded or relabeled' in html
+
+
+def test_guide_rejects_mixed_study_input_snapshots(tmp_path, monkeypatch):
+    from scripts import render_remaining_card_policies_guide as guide
+    names = ('investment-accounting-screen', 'investment-accounting-validation',
+             'investment-registered-validation', 'contextual-policy-search-screen',
+             'contextual-policy-search-validation', 'gain-effect-ordering-reaction-validation')
+    for i, name in enumerate(names):
+        (tmp_path / (name + '.json')).write_text(json.dumps({'simulation_fingerprint': 'different' if i == 5 else 'snapshot'}))
+    monkeypatch.setattr(guide, 'DATA', tmp_path)
+    with pytest.raises(ValueError, match='mixed simulation inputs'):
+        guide.render()

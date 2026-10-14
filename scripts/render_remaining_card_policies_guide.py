@@ -44,10 +44,11 @@ def render():
              'contextual-policy-search-validation', 'gain-effect-ordering-reaction-validation')
     studies = [json.loads((DATA / (n + '.json')).read_text()) for n in names]
     screen, validation, registered, search, heldout, reactions = studies
-    fingerprint = tournament_fingerprint()
+    fingerprint = validation['simulation_fingerprint']
+    current_fingerprint = tournament_fingerprint()
     for study in studies:
         if study.get('simulation_fingerprint', study.get('source_fingerprint')) != fingerprint:
-            raise ValueError('Study uses different simulation inputs')
+            raise ValueError('Studies use mixed simulation inputs')
     for study, previous in ((validation, names[0]), (heldout, names[3])):
         if study['selection_sha256'] != hashlib.sha256((DATA / (previous + '.json')).read_bytes()).hexdigest():
             raise ValueError('Validation selection hash mismatch')
@@ -62,8 +63,9 @@ def render():
     body = [f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{TITLE}</title><style>{css}</style></head><body><main>',
             f'<p><a href="index.html">Strategy catalog</a> · <a href="../../docs/card-tactical-inventory.md">Card evidence inventory</a></p><h1>{TITLE}</h1>',
             f'<p class="muted">October 14, 2026 · {sum(s.get("total_games", s.get("games", 0)) for s in studies):,} games · Scoped rules corrections and fresh policy comparisons</p>',
+            ('<p class="muted">The current engine differs from this retained benchmark snapshot. Later Gatekeeper/Sleigh movement corrections are covered by synthetic regressions; these saved games have not been regraded or relabeled as results from the later engine.</p>' if fingerprint != current_fingerprint else ''),
             '''<div class="recommendation"><strong>Use owner-ordered gain effects and accurate Investment accounting; keep the conservative tactical defaults.</strong> The engine now offers legal effect order to each owner and refreshes hand reactions after each resolution. Investment values every live Treasure name left after its mandatory hand trash. Optional finite policy settings can mutate and export. The selected search candidate shows no observed validation improvement; a uniform three-name cash-out rule regresses and is rejected.</div>
-<p>This closes the implementation scope of <a href="https://github.com/jss367/py-overlord/issues/410">simultaneous gain ordering</a>, <a href="https://github.com/jss367/py-overlord/issues/411">Investment accounting and timing evaluation</a> and <a href="https://github.com/jss367/py-overlord/issues/413">searchable contextual decisions</a>. The <a href="https://github.com/jss367/py-overlord/issues/344">broader card inventory</a> remains open. Rules scenarios, connected hooks and measured strength are separate claims. These experiments rerun scoped contrasts on the current engine; historical studies and global standings retain their original evidence.</p>
+<p>This closes the implementation scope of <a href="https://github.com/jss367/py-overlord/issues/410">simultaneous gain ordering</a>, <a href="https://github.com/jss367/py-overlord/issues/411">Investment accounting and timing evaluation</a> and <a href="https://github.com/jss367/py-overlord/issues/413">searchable contextual decisions</a>. The <a href="https://github.com/jss367/py-overlord/issues/344">broader card inventory</a> remains open. Rules scenarios, connected hooks and measured strength are separate claims. These experiments rerun scoped contrasts on the recorded engine snapshot; historical studies and global standings retain their original evidence.</p>
 <p class="muted">Review follow-up: the same frozen protocol and original seeds were rerun after review corrections to off-turn Priest coins, Crucible trash counters, automatic board discovery and opponent reaction eligibility. The <a href="https://github.com/jss367/py-overlord/blob/2d36f40e5e72b16e81ec4975cf0c0f37687fb117/reports/strategies/gain-effect-ordering-and-searchable-card-policies.html">pre-review snapshot</a> preserves the earlier artifacts and input fingerprint. Repeated seeds verify compatibility; they are not additional independent samples.</p>
 <h2>What changes during a gain</h2>
 <p>The real turn player resolves their effects first, followed by other owners in turn order. Each owner chooses one offered effect with <code>choose_gain_effect(state, player, gained_card, choices)</code>. Choices are objects with <code>kind</code>, <code>source</code> and a readable <code>label</code>. Return an offered object or its kind string; invalid results use the first legal choice. Existing card-specific decisions still decide whether to react. Returning no ordering choice does not decline all effects.</p>
@@ -135,7 +137,7 @@ def render():
     body.append('<p>The guide recomputes conservative Hoeffding change bounds from the saved seed blocks. The legacy runner also saves approximate paired intervals that can collapse at zero observed variance; those are not evidence of exact equivalence. Full scores, counters, cap flags and paired outcomes remain in the raw artifact. No full global tournament was run.</p>')
     if capped_reactions:
         body.append('<h3>Capped reaction contrasts: sensitivity</h3>' + table(('Subject', 'Opponent', 'Worst-case capped change range (points)', 'Complete paired seed blocks', 'Complete-block change (points)'), capped_reactions))
-    body.append('<h2>Reproduction and source evidence</h2><p>Use fresh output paths; the runners refuse to overwrite existing evidence. These commands use the committed final inputs. The guide renderer validates simulation and selection provenance without simulating games.</p><pre>')
+    body.append('<h2>Reproduction and source evidence</h2><p>Use <a href="https://github.com/jss367/py-overlord/tree/a3ee7cbc">the recorded benchmark checkout at a3ee7cbc</a> to reproduce this input fingerprint. Latest-source runs have their own fingerprint and do not replace these retained games.</p><p>Use fresh output paths; the runners refuse to overwrite existing evidence. These commands use the committed final inputs. The guide renderer validates simulation and selection provenance without simulating games.</p><pre>')
     commands = [
         f'PYTHONPATH=. python scripts/evaluate_remaining_card_policies.py --study {study} --phase {phase} --pairs {pairs} --seed {seed} --workers 4' + (f' --selection .context/{selection}.json' if selection else '') + f' --output .context/{name}.json'
         for study, phase, pairs, seed, selection, name in (
