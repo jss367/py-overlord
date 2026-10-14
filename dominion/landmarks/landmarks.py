@@ -31,6 +31,10 @@ class Aqueduct(Landmark):
         self.pile_vp = {"Silver": 8, "Gold": 8}
         self.vp_pool = 0
 
+    def gain_effect_applies(self, game_state, player, card, *, gain_number=None) -> bool:
+        return bool(card.is_treasure and self.pile_vp.get(card.name, 0) > 0
+                    or card.is_victory and self.vp_pool > 0)
+
     def on_gain(self, game_state, player, card) -> None:
         if card.is_treasure and self.pile_vp.get(card.name, 0) > 0:
             self.pile_vp[card.name] -= 1
@@ -140,6 +144,9 @@ class Battlefield(Landmark):
     def setup(self, game_state) -> None:
         self.vp_pool = 6 * len(game_state.players)
 
+    def gain_effect_applies(self, game_state, player, card, *, gain_number=None) -> bool:
+        return card.is_victory and self.vp_pool > 0
+
     def on_gain(self, game_state, player, card) -> None:
         if not card.is_victory:
             return
@@ -202,6 +209,9 @@ class DefiledShrine(Landmark):
                 continue
             if card.is_action and not card.is_victory:
                 self.pile_vp[name] = 2
+
+    def gain_effect_applies(self, game_state, player, card, *, gain_number=None) -> bool:
+        return card.is_action and self.pile_vp.get(card.name, 0) > 0
 
     def on_gain(self, game_state, player, card) -> None:
         if card.is_action and self.pile_vp.get(card.name, 0) > 0:
@@ -271,6 +281,10 @@ class Labyrinth(Landmark):
 
     def setup(self, game_state) -> None:
         self.vp_pool = 6 * len(game_state.players)
+
+    def gain_effect_applies(self, game_state, player, card, *, gain_number=None) -> bool:
+        number = player.cards_gained_this_turn if gain_number is None else gain_number
+        return number == 2 and self.vp_pool > 0
 
     def on_gain(self, game_state, player, card) -> None:
         if self.vp_pool <= 0:

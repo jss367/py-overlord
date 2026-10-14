@@ -39,6 +39,10 @@ class Landmark:
     def on_gain(self, game_state, player, card) -> None:
         pass
 
+    def gain_effect_applies(self, game_state, player, card, *, gain_number=None) -> bool:
+        """Whether this landmark currently has an instruction for this gain."""
+        return type(self).on_gain is not Landmark.on_gain
+
     def on_trash(self, game_state, player, card) -> None:
         pass
 

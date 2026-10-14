@@ -93,11 +93,12 @@ class GainEvent:
                          source=card, priority=55, eligible=eligible, dynamic=True)
             elif owner is not player and card.name == "Fool's Gold" and gained.name == 'Province':
                 def fools_gold(c=card, p=owner):
-                    if state.supply.get('Gold', 0) > 0 and state._should_trash_fools_gold(p):
+                    if state._should_trash_fools_gold(p):
                         p.hand.remove(c)
                         state.trash_card(p, c)
-                        state.supply['Gold'] -= 1
-                        state.gain_card(p, get_card('Gold'), to_deck=True)
+                        if state.supply.get('Gold', 0) > 0:
+                            state.supply['Gold'] -= 1
+                            state.gain_card(p, get_card('Gold'), to_deck=True)
                 self.add(owner, 'fools_gold', fools_gold, source=card, priority=45, eligible=eligible, dynamic=True)
 
     def resolve(self):
@@ -233,7 +234,8 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
             landmark._fired = True
             add('landmark', lambda c=landmark: c.on_gain(state, player, gained, claimed=True), source=landmark, priority=65)
         elif landmark.name != 'Mountain Pass':
-            add('landmark', lambda c=landmark: c.on_gain(state, player, gained), source=landmark, priority=65)
+            add('landmark', lambda c=landmark: c.on_gain(state, player, gained), source=landmark, priority=65,
+                eligible=lambda c=landmark: c.gain_effect_applies(state, player, gained, gain_number=event.gain_number))
     if player.sailor_play_uses and any(c.name == 'Sailor' for c in owner_cards):
         add('sailor', lambda: state._handle_sailor_gain(player, gained), priority=66, eligible=event.movable)
     if state.pile_trait(gained.name) in {'Cursed', 'Rich', 'Hasty'} or gained.name == 'Province' and state.trait_piles.get('Fawning'):
@@ -268,8 +270,8 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
         player.mining_road_triggered = True
         add('mining_road', lambda: state._handle_mining_road_gain(player, gained, claimed=True), priority=73)
     for card in list(player.tavern_mat):
-        if card.name == 'Duplicate':
-            add('tavern', lambda c=card: c.on_call_from_tavern(state, player, 'gain', gained), source=card,
+        if card.name == 'Duplicate' and gained_cost.coins <= 6 and not (gained_cost.potions or gained_cost.debt):
+            add('tavern', lambda c=card: c.on_call_from_tavern(state, player, 'gain', gained, cost_at_gain=gained_cost), source=card,
                 priority=75, eligible=lambda c=card: c in player.tavern_mat)
     if player.travelling_fair_active and state.phase == 'buy' and player is state.turn_player:
         add('travelling_fair', lambda: topdeck(lambda: player.ai.should_topdeck_with_travelling_fair(state, player, gained)), priority=76)

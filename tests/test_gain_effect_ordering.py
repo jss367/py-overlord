@@ -454,3 +454,140 @@ def test_changeling_menu_refreshes_availability_after_nested_effects(change):
     assert menus
     assert any('changeling' in menu for menu in menus) == (change == 'refill')
     assert result.name == ('Changeling' if change == 'refill' else 'Village')
+
+
+@pytest.mark.parametrize('gold_available', [0, 1])
+def test_fools_gold_can_be_trashed_after_gold_runs_out(gold_available):
+    state, gainer, _ = setup()
+    owners = [PlayerState(GeneticAI(EnhancedStrategy())) for _ in range(2)]
+    state.players += owners
+    state.supply['Gold'] = gold_available
+    originals = []
+    for owner in owners:
+        card = get_card("Fool's Gold")
+        originals.append(card)
+        owner.hand = [card]
+        owner.ai.should_trash_fools_gold_for_gold = lambda *args: True
+    state.gain_from_supply(gainer, 'Province')
+    assert all(card in state.trash for card in originals)
+    assert sum(p.count('Gold') for p in owners) == gold_available
+    assert state.supply['Gold'] == 0
+
+
+@pytest.mark.parametrize('name,gain,pool,pile_vp,expected', [
+    ('Arena', 'Gold', 12, {}, False),
+    ('Baths', 'Gold', 12, {}, False),
+    ('Battlefield', 'Gold', 12, {}, False),
+    ('Battlefield', 'Province', 0, {}, False),
+    ('Battlefield', 'Province', 12, {}, True),
+    ('Aqueduct', 'Gold', 0, {'Gold': 0}, False),
+    ('Aqueduct', 'Gold', 0, {'Gold': 1}, True),
+    ('Aqueduct', 'Province', 1, {}, True),
+    ('Defiled Shrine', 'Village', 0, {'Village': 0}, False),
+    ('Defiled Shrine', 'Village', 0, {'Village': 1}, True),
+    ('Labyrinth', 'Gold', 12, {}, False),
+])
+def test_landmark_menu_only_offers_applicable_gain_instructions(name, gain, pool, pile_vp, expected):
+    state, player, seen = setup()
+    landmark = get_landmark(name)
+    landmark.vp_pool, landmark.pile_vp = pool, pile_vp
+    state.landmarks = [landmark]
+    state.gain_from_supply(player, gain)
+    assert any('landmark' in choices for _, choices in seen) == expected
+
+
+def test_aqueduct_gain_instruction_becomes_eligible_after_nested_refill():
+    state, player, _ = setup(order=['card_on_gain', 'landmark'])
+    landmark = get_landmark('Aqueduct')
+    landmark.setup(state)
+    state.landmarks = [landmark]
+    outer = get_card('Province')
+    outer.on_gain = lambda s, p: s.gain_from_supply(p, 'Gold')
+    state.gain_card(player, outer)
+    assert player.vp_tokens == 1
+    assert landmark.vp_pool == 0
+    assert landmark.pile_vp['Gold'] == 7
+
+
+@pytest.mark.parametrize('name,expected', [('Gold', True), ('Province', False), ('Alchemist', False), ('Engineer', False)])
+def test_duplicate_menu_qualifies_all_cost_components(name, expected):
+    state, player, seen = setup()
+    player.tavern_mat = [get_card('Duplicate')]
+    player.ai.should_call_from_tavern = lambda *args: False
+    state.gain_card(player, get_card(name))
+    assert any('tavern' in choices for _, choices in seen) == expected
+
+
+def test_duplicate_keeps_discounted_gain_time_cost_after_discount_disappears():
+    state, player, _ = setup(order=['card_on_gain', 'tavern'])
+    dup = get_card('Duplicate')
+    player.tavern_mat = [dup]
+    player.ai.should_call_from_tavern = lambda *args: True
+    highway = get_card('Highway')
+    player.in_play = [highway, get_card('Highway')]
+    for card in player.in_play:
+        card.play_effect(state)
+    province = get_card('Province')
+    def remove_discount(s, p):
+        p.in_play.clear()
+        p.highway_count = 0
+    province.on_gain = remove_discount
+    state.gain_card(player, province)
+    assert dup in player.in_play and dup not in player.tavern_mat
+    assert player.count('Province') == 2
+
+
+@pytest.mark.parametrize('name', ['Gold', 'Horse', 'Patrician'])
+def test_duplicate_can_be_called_even_without_a_matching_supply_copy(name):
+    state, player, _ = setup(order=['tavern', 'card_on_gain'])
+    dup = get_card('Duplicate')
+    player.tavern_mat = [dup]
+    player.ai.should_call_from_tavern = lambda *args: True
+    state.supply[name] = 0
+    gained = get_card(name)
+    state.gain_card(player, gained, from_supply=False)
+    assert dup in player.in_play and dup not in player.tavern_mat
+    assert player.count(name) == 1
+
+
+def test_duplicate_called_on_empty_emporium_enables_its_fifth_action_bonus():
+    state, player, _ = setup(order=['tavern', 'card_on_gain'])
+    dup = get_card('Duplicate')
+    player.tavern_mat = [dup]
+    player.in_play = [get_card('Village') for _ in range(4)]
+    player.ai.should_call_from_tavern = lambda *args: True
+    state.supply['Emporium'] = 0
+    state.gain_card(player, get_card('Emporium'), from_supply=False)
+    assert dup in player.in_play
+    assert player.vp_tokens == 2
+    assert player.count('Emporium') == 1
+
+
+def test_duplicate_cannot_be_enabled_by_a_later_price_reduction():
+    state, player, seen = setup(order=['card_on_gain', 'tavern'])
+    dup = get_card('Duplicate')
+    player.tavern_mat = [dup]
+    player.ai.should_call_from_tavern = lambda *args: True
+    province = get_card('Province')
+    def add_discount(s, p):
+        for _ in range(2):
+            highway = get_card('Highway')
+            p.in_play.append(highway)
+            highway.play_effect(s)
+    province.on_gain = add_discount
+    state.gain_card(player, province)
+    assert dup in player.tavern_mat
+    assert not any('tavern' in choices for _, choices in seen)
+
+
+def test_duplicate_call_does_not_take_an_exposed_different_split_pile_card():
+    state, player, _ = setup(order=['tavern'])
+    dup = get_card('Duplicate')
+    player.tavern_mat = [dup]
+    player.ai.should_call_from_tavern = lambda *args: True
+    state.supply['Patrician'] = 0
+    state.supply['Emporium'] = 5
+    state.gain_card(player, get_card('Patrician'), from_supply=False)
+    assert dup in player.in_play
+    assert state.supply['Emporium'] == 5
+    assert player.count('Emporium') == 0
