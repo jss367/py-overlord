@@ -193,6 +193,18 @@ class GeneticAI(AI):
             state, chooser, target, revealed, is_self=is_self
         )
 
+    def choose_courtier_reveal(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_courtier_reveal", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_courtier_reveal(state, player, choices)
+
+    def should_gain_from_trash_with_rogue(self, state, player, choices):
+        hook = getattr(self.strategy, "should_gain_from_trash_with_rogue", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().should_gain_from_trash_with_rogue(state, player, choices)
+
     def choose_courtier_options(self, state, player, options, num_choices):
         hook = getattr(self.strategy, "choose_courtier_options", None)
         if hook is not None:
@@ -344,6 +356,18 @@ class GeneticAI(AI):
         if hook is not None:
             return hook(state, player, choices)
         return super().choose_armory_gain(state, player, choices)
+
+    def choose_artificer_discards(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_artificer_discards", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_artificer_discards(state, player, choices)
+
+    def choose_artificer_gain_after_discard(self, state, player, choices, planned):
+        hook = getattr(self.strategy, "choose_artificer_gain_after_discard", None)
+        if hook is not None:
+            return hook(state, player, choices, planned)
+        return super().choose_artificer_gain_after_discard(state, player, choices, planned)
 
     def choose_artificer_gain(self, state, player, choices):
         hook = getattr(self.strategy, "choose_artificer_gain", None)

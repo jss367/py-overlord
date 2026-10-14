@@ -407,6 +407,19 @@ class EnhancedStrategy:
         self.landscapes: list[str] = []
         self._decision_trace_callback = None
 
+    def choose_courtier_reveal(self, state, player, choices):
+        from dominion.ai.tactical_defaults import courtier_reveal
+
+        return courtier_reveal(state, player, choices)
+
+    def should_gain_from_trash_with_rogue(self, state, player, choices):
+        from dominion.ai.tactical_defaults import rogue_gain
+
+        return rogue_gain(state, player, choices)
+
+    def should_replay_treasure_with_counterfeit(self, state, player, choices):
+        return tactical_defaults.counterfeit_treasure(state, player, choices)
+
     # ------------------------------------------------------------------
     def _eval_condition(self, rule, state, player, list_name):
         """Evaluate a priority condition with context and its original cause."""

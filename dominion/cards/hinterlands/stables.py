@@ -15,7 +15,7 @@ class Stables(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
 
-        treasures = [card for card in player.hand if card.is_treasure]
+        treasures = [c for c in player.hand if game_state.is_treasure(c)]
         if not treasures:
             return
 
@@ -28,4 +28,5 @@ class Stables(Card):
         game_state.discard_card(player, choice)
 
         game_state.draw_cards(player, 3)
-        player.actions += 1
+        if not player.ignore_action_bonuses:
+            player.actions += 1

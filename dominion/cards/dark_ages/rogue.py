@@ -3,13 +3,25 @@
 from ..base_card import Card, CardCost, CardStats, CardType
 
 
-class Rogue(Card):
-    """+$2. Each other player reveals the top 2 cards of their deck. If any
-    cost between $3 and $6, that player chooses one to trash; otherwise they
-    discard.
+def attack_trash_candidates(game_state, cards):
+    """The shared Rogue/Knights interval excludes every Potion/Debt cost."""
+    return [c for c in cards if (
+        3 <= game_state.get_card_cost(game_state.turn_player, c) <= 6
+        and c.cost.potions == 0 and c.cost.debt == 0
+    )]
 
-    If there are any cards in the trash costing $3 to $6, gain one (this
-    happens before the attacks).
+
+def opponents_in_order(game_state, attacker):
+    start = game_state.players.index(attacker)
+    return [game_state.players[(start + offset) % len(game_state.players)]
+            for offset in range(1, len(game_state.players))]
+
+
+class Rogue(Card):
+    """+$2. Gain a $3-$6 card from the trash if possible; otherwise attack.
+
+    Each victim reveals two cards, trashes one costing $3-$6 if possible,
+    and discards the rest. Newly trashed cards are not gained by this play.
     """
 
     def __init__(self):
@@ -23,9 +35,18 @@ class Rogue(Card):
     def play_effect(self, game_state):
         attacker = game_state.current_player
 
-        # If there are any $3-$6 cards in the trash, gain one (per official
-        # text the trash check happens after attacks; we run it after as well
-        # to satisfy the "if any" wording).
+        eligible = attack_trash_candidates(game_state, game_state.trash)
+        if eligible:
+            choice = attacker.ai.should_gain_from_trash_with_rogue(
+                game_state, attacker, list(eligible)
+            )
+            if choice not in eligible:
+                from dominion.ai.tactical_defaults import rogue_gain
+
+                choice = rogue_gain(game_state, attacker, eligible)
+            game_state.trash.remove(choice)
+            game_state.gain_card(attacker, choice, from_supply=False)
+            return
 
         def attack_target(target):
             revealed: list[Card] = []
@@ -48,11 +69,7 @@ class Rogue(Card):
                 )
             )
 
-            trashable = [
-                c
-                for c in revealed
-                if 3 <= game_state.get_card_cost(attacker, c) <= 6
-            ]
+            trashable = attack_trash_candidates(game_state, revealed)
 
             if trashable:
                 if len(trashable) == 1:
@@ -76,22 +93,5 @@ class Rogue(Card):
                 for card in revealed:
                     game_state.discard_card(target, card)
 
-        for other in game_state.players:
-            if other is attacker:
-                continue
+        for other in opponents_in_order(game_state, attacker):
             game_state.attack_player(other, attack_target)
-
-        # Now check trash for $3-$6 to gain
-        eligible_in_trash = [
-            c
-            for c in game_state.trash
-            if 3 <= game_state.get_card_cost(attacker, c) <= 6
-        ]
-        if eligible_in_trash:
-            choice = attacker.ai.should_gain_from_trash_with_rogue(
-                game_state, attacker, list(eligible_in_trash)
-            )
-            if choice and choice in game_state.trash:
-                game_state.trash.remove(choice)
-                # Gain from trash; do not touch supply.
-                game_state.gain_card(attacker, choice, from_supply=False)

@@ -186,6 +186,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "strategies/card-reactions-investment-and-exile-evaluation.html",
         "strategies/ironworks-and-engineer-contextual-gain-evaluation.html",
         "strategies/gain-effect-ordering-and-searchable-card-policies.html",
+        "strategies/remaining-named-card-decisions-and-rules.html",
         "strategies/ninja-watchtower-figurine-strategy-guide.html",
         "strategies/ten-strongest-unused-cards.html",
         "strategies/strategy-retirement-and-rebuild-comparison.html",

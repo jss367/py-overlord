@@ -2599,23 +2599,23 @@ class GameState:
             return True
         return False
 
-    def live_type_count(self, card: Card) -> int:
-        """Number of types ``card`` has right now, including game-level
-        modifiers (Charlatan adds Treasure to Curse). Used by "2 or more
-        types" triggers such as Falconer."""
-        count = len(card.types)
-        if not card.is_treasure and self.is_treasure(card):
-            count += 1
-        # Rising Sun Enlightenment: Treasures are also Actions for all purposes.
-        if (
-            self.prophecy is not None
-            and self.prophecy.is_active
-            and self.prophecy.name == "Enlightenment"
-            and self.is_treasure(card)
-            and not card.is_action
-        ):
-            count += 1
-        return count
+    def live_type_count(self, card: Card, player: PlayerState | None = None) -> int:
+        """Distinct current types, optionally including an owner's Inheritance.
+
+        Includes global modifiers such as Charlatan, Capitalism and Enlightenment.
+        """
+        from ..cards.base_card import CardType
+
+        types = set(card.types)
+        if self.is_action(card):
+            types.add(CardType.ACTION)
+        if self.is_treasure(card):
+            types.add(CardType.TREASURE)
+        if player is not None and self.is_inherited_estate(player, card):
+            # Current Inheritance adds Action and Command, not the types of
+            # the set-aside Action (or that Action's Capitalism qualification).
+            types.update((CardType.ACTION, CardType.COMMAND))
+        return len(types)
 
     def is_inherited_estate(self, player: PlayerState, card: Card) -> bool:
         """Whether this player's Estate can use Inheritance on this turn."""

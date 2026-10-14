@@ -148,7 +148,36 @@ def reviewed_decisions():
         ("tests/test_groundskeeper_margrave.py",))
     add(("Minion",), "Money vs redraw", ("choose_minion_mode",), ("tests/test_three_unused_kingdoms.py",))
     add(("Courtier",), "Reveal and bonus combination", ("choose_courtier_reveal", "choose_courtier_options"),
-        ("tests/test_three_unused_kingdoms.py",), wiring="Needs forwarding for reveal; bonuses connected/tested", followups=(344,))
+        ("tests/test_three_unused_kingdoms.py",), followups=(344, 421))
+
+    named = ("Courtier", "Courier", "Knights", "Rogue", "Stables", "Spice Merchant",
+             "Armory", "Artificer", "Scheme", "Chapel", "Junk Dealer", "Counterfeit",
+             "Moneylender", "Minion", *KNIGHT_NAMES)
+    additional_hooks = {
+        "Rogue": ("should_gain_from_trash_with_rogue",),
+        "Artificer": ("choose_artificer_discards", "choose_artificer_gain_after_discard"),
+    }
+    rule_issues = {"Courtier": (421, 427), "Rogue": (422,), "Knights": (423,),
+                   "Artificer": (424,), "Stables": (425,), "Spice Merchant": (425,),
+                   "Counterfeit": (426,)}
+    for name in named:
+        audit = audits[name]
+        audits[name] = Audit(
+            "Victim trash and mandatory trash-pile gain" if name == "Rogue" else audit.decision,
+            "Scoped physical choices / timing / live types audited; wider Inheritance migration unreviewed (#427)",
+            "Connected/tested",
+            "Evaluated: fixed-priority diagnostic screen and fresh validation; no replacement established",
+            audit.hooks + additional_hooks.get(name, ()),
+            audit.evidence + (
+                "tests/test_named_card_decisions.py", "tests/test_named_card_evaluation.py",
+                "scripts/data/named-card-decisions-screen.json",
+                "scripts/data/named-card-decisions-validation.json",
+                "scripts/data/named-card-registered-before.json",
+                "scripts/data/named-card-registered-after.json",
+                "reports/strategies/remaining-named-card-decisions-and-rules.html"),
+            tuple(dict.fromkeys(audit.followups + rule_issues.get(name, (423,) if name in KNIGHT_NAMES else ()))),
+            audit.adapter,
+        )
     return audits
 
 

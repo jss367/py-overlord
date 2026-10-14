@@ -19,22 +19,22 @@ class Counterfeit(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
 
-        treasures = [c for c in player.hand if c.is_treasure]
+        treasures = [c for c in player.hand if game_state.is_treasure(c)]
+        if not treasures:
+            return
         choice = player.ai.should_replay_treasure_with_counterfeit(
             game_state, player, treasures
         )
-        if not choice or choice not in player.hand:
+        if choice not in treasures:
             return
 
         # Move into in-play and play twice
         if not game_state.move_card_from_hand_to_play(player, choice):
             return
-        choice.on_play(game_state)
-        game_state.fire_ally_play_hooks(player, choice)
-        choice.on_play(game_state)
-        game_state.fire_ally_play_hooks(player, choice)
+        for _ in range(2):
+            game_state.play_treasure_indirectly(player, choice)
 
         # Trash the played treasure
         if choice in player.in_play:
             player.in_play.remove(choice)
-        game_state.trash_card(player, choice)
+            game_state.trash_card(player, choice)

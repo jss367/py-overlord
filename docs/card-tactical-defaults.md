@@ -98,8 +98,8 @@ are documented in the current guide.
 Ironworks and Engineer now use contextual free gains with inherited purchase
 priorities until a separate policy opts in. Their rules and measurements are
 published in the [Ironworks and Engineer evaluation](../reports/strategies/ironworks-and-engineer-contextual-gain-evaluation.html)
-for [#412](https://github.com/jss367/py-overlord/issues/412). Courtier bonuses are
-connected; its reveal choice still lacks strategy forwarding. A scoped reviewed
+for [#412](https://github.com/jss367/py-overlord/issues/412). Courtier's reveal and bonus
+choices are now both connected. A scoped reviewed
 entry never certifies all of that card's other decisions or interactions.
 
 Traceability: choice forwarding is in
@@ -108,8 +108,9 @@ Traceability: choice forwarding is in
 [`EnhancedStrategy`](../dominion/strategy/enhanced_strategy.py). Quartermaster's
 decisions are in [`GameState`](../dominion/game/game_state.py).
 
-The earlier inventory's other connected defaults remain unevaluated as
-independent policies: Knight victims give up a revealed Knight (also trashing
+The earlier inventory's other connected defaults now have a separate
+[named-decision evaluation](../reports/strategies/remaining-named-card-decisions-and-rules.html).
+Their inherited policies remain: Knight victims give up a revealed Knight (also trashing
 the attacker), otherwise the cheapest eligible card; Rogue victims give up the
 cheapest card. Stables prefers Copper, then Spoils, then Silver and can decline.
 Spice Merchant only trashes Copper by default and favors draw unless short of
@@ -118,7 +119,28 @@ including the top Knight. Artificer budgets junk discards, skips $0 gains and
 uses generic discards with `reason="artificer"`. Scheme selects the most
 expensive discarded Action, excluding Durations retained in play. The linked
 card modules and `tests/test_kolkata_board_cards.py` retain rules and hook
-evidence for these choices; none is promoted to evaluated by this study.
+evidence for these choices. The new study compares diagnostic alternatives with
+fixed priorities, independent screen/validation seeds and both seats; it does
+not claim universal strength or replace historical study identities. Artificer
+also exposes independent physical discards and a refreshed optional gain menu
+through `choose_artificer_discards` and `choose_artificer_gain_after_discard`.
+The legacy gain hook and junk-first default remain compatible.
+
+The rules audit is separate from those preference comparisons. Courtier uses
+current types and mandatory reveal/bonus fallbacks. Rogue gains from existing
+trash **or** attacks, never both. Knights finish one victim's instructions,
+including self-trash triggers, before the next victim. Both attacks exclude
+Potion/Debt prices. Stables, Spice Merchant and Counterfeit offer live Treasure
+types; conditional Action bonuses respect Snowy Village. Counterfeit uses the
+shared Treasure play helper and cannot trash a target that already left play.
+Issues #421–#426 track these fixes individually.
+
+The audit also exposed [#427](https://github.com/jss367/py-overlord/issues/427):
+Inheritance's wider execution and gain-type paths still use legacy overlays.
+Courtier counts the current Action–Command–Victory Estate types, and the three
+Treasure menus above do not transfer the set-aside Action's Capitalism type.
+This scoped correction does not certify the rest of Inheritance. The inventory
+still explicitly lists 568 registered names without a scoped review.
 
 ## First implementation: Overlord and Quartermaster
 
