@@ -3,7 +3,7 @@
   "seed_pairs": 100,
   "games": 9600,
   "turn_limit": 150,
-  "source_fingerprint": "ca547642b7e45bc357ba3da08c23b7caccc7fe5a6b550c5c1f05a9401e474815",
+  "source_fingerprint": "6591eb798050ed75a5c42d8c421e5e05ea420ef8d8fac8db42bb466e1952df23",
   "evaluator_sha256": "b6ae0def25d16bb89e3d2e3fd555057b00e537fd7c34a34ef6300c1475433b2e",
   "python_version": "3.14.3",
   "common_rules": "Corrected Barge replay queues, Torturer choices/ordering/discards, gain destinations and Sleigh tracking in both arms; current opponent policies.",

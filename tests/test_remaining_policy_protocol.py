@@ -28,3 +28,27 @@ def test_invalid_study_inputs_are_rejected_before_simulation(problem,tmp_path,mo
     assert error.value.code==2
     assert {'existing':'evidence exists','missing':'frozen screen','stale':'Stale screen','overlap':'seeds overlap'}[problem] in capsys.readouterr().err
     assert output.read_text()=='earlier outcomes' if output.exists() else problem!='existing'
+
+
+@pytest.mark.parametrize('changed', ['policy', 'reaction', 'summary'])
+def test_guide_rejects_changed_evaluation_runners(tmp_path, monkeypatch, changed):
+    from scripts import render_remaining_card_policies_guide as guide
+    names = ('investment-accounting-screen', 'investment-accounting-validation',
+             'investment-registered-validation', 'contextual-policy-search-screen',
+             'contextual-policy-search-validation', 'gain-effect-ordering-reaction-validation')
+    metadata = {'simulation_fingerprint': 'current',
+                'runner_sha256': study.sha(Path(study.__file__)),
+                'summary_helper_sha256': study.sha(Path(study.original.__file__)),
+                'evaluator_sha256': study.sha(Path('scripts/evaluate_reaction_duration_tactics.py'))}
+    field = {'policy': 'runner_sha256', 'reaction': 'evaluator_sha256', 'summary': 'summary_helper_sha256'}[changed]
+    metadata[field] = 'stale'
+    for name in names:
+        data = dict(metadata)
+        if name.endswith('validation') and name.startswith(('investment-accounting', 'contextual-policy')):
+            previous = tmp_path / (name.replace('-validation', '-screen') + '.json')
+            data['selection_sha256'] = study.sha(previous)
+        (tmp_path / (name + '.json')).write_text(json.dumps(data))
+    monkeypatch.setattr(guide, 'DATA', tmp_path)
+    monkeypatch.setattr(guide, 'tournament_fingerprint', lambda: 'current')
+    with pytest.raises(ValueError, match={'policy': 'Policy runner', 'reaction': 'Reaction runner', 'summary': 'Summary helper'}[changed]):
+        guide.render()
