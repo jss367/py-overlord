@@ -185,6 +185,14 @@ class GameState:
     def gain_destination(self, card):
         return getattr(self, "_gain_destinations", {}).get(card)
 
+    def _cover_gained_deck_top(self, player, incoming):
+        """A gained deck card stops moving once another card covers it."""
+        if player.deck and player.deck[-1] is not incoming:
+            destinations = getattr(self, "_gain_destinations", {})
+            top = player.deck[-1]
+            if destinations.get(top) is player.deck:
+                destinations[top] = None
+
     def opponents_in_order(self, player):
         index = self.players.index(player)
         return self.players[index + 1 :] + self.players[:index]
@@ -3949,6 +3957,7 @@ class GameState:
         if destination_is_deck:
             # PlayerState.draw_cards() draws with deck.pop(), so the end of
             # the list is the top of the deck.
+            self._cover_gained_deck_top(player, actual_card)
             player.deck.append(actual_card)
         elif to_hand:
             player.hand.append(actual_card)
@@ -4403,12 +4412,13 @@ class GameState:
         if decision not in {"trash", "topdeck"}:
             return
 
-        if not self._remove_gained_card_from_zones(player, gained_card):
+        if not self._remove_gained_card_from_zones(player, gained_card, target=player.deck if decision == "topdeck" else None):
             return
 
         if decision == "trash":
             self.trash_card(player, gained_card)
         else:
+            self._cover_gained_deck_top(player, gained_card)
             player.deck.append(gained_card)
 
     def _handle_royal_seal_reaction(self, player: PlayerState, gained_card: Card, *, active_at_gain=False) -> None:
@@ -4420,22 +4430,24 @@ class GameState:
         if not player.ai.should_topdeck_with_royal_seal(self, player, gained_card):
             return
 
-        if self._remove_gained_card_from_zones(player, gained_card):
+        if self._remove_gained_card_from_zones(player, gained_card, target=player.deck):
+            self._cover_gained_deck_top(player, gained_card)
             player.deck.append(gained_card)
 
-    def _remove_gained_card_from_zones(self, player: PlayerState, card: Card) -> bool:
+    def _remove_gained_card_from_zones(self, player: PlayerState, card: Card, *, target=None) -> bool:
         """Remove ``card`` from hand, discard, or deck if present."""
 
         destinations = getattr(self, "_gain_destinations", {})
         if card in destinations:
             origin = destinations[card]
-            if origin is None or card not in origin or not any(origin is z for z in (player.hand, player.deck, player.discard)):
+            if origin is None or card not in origin or origin is player.deck and origin[-1] is not card or not any(origin is z for z in (player.hand, player.deck, player.discard)):
                 destinations[card] = None
                 return False
         for zone in (player.discard, player.deck, player.hand):
             if card in zone:
                 zone.remove(card)
-                destinations[card] = None
+                if target is not zone:
+                    destinations[card] = None
                 return True
         return False
 

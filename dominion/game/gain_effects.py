@@ -52,15 +52,19 @@ class GainEvent:
 
     def movable(self):
         zone = self.state.gain_destination(self.card)
-        return zone is not None and self.card in zone and any(
+        return zone is not None and self.card in zone and (zone is not self.player.deck or zone[-1] is self.card) and any(
             zone is z for z in (self.player.hand, self.player.deck, self.player.discard)
         )
 
     def move(self, target):
         if not self.movable():
             return False
-        self.state.gain_destination(self.card).remove(self.card)
-        self.state._gain_destinations[self.card] = None
+        origin = self.state.gain_destination(self.card)
+        origin.remove(self.card)
+        if target is not origin:
+            self.state._gain_destinations[self.card] = None
+        if target is self.player.deck:
+            self.state._cover_gained_deck_top(self.player, self.card)
         target.append(self.card)
         return True
 
@@ -129,7 +133,7 @@ class GainEvent:
                     state.current_player_index, state.reaction_turn_player_index = old_index, old_turn
                     state._gain_event_number = old_number
                     state._gain_event_collection_bonus = old_collection
-                    if had_card and (self.card not in zone or not any(zone is z for z in (self.player.hand, self.player.deck, self.player.discard))):
+                    if had_card and (self.card not in zone or zone is self.player.deck and zone[-1] is not self.card or not any(zone is z for z in (self.player.hand, self.player.deck, self.player.discard))):
                         state._gain_destinations[self.card] = None
         return self.result
 

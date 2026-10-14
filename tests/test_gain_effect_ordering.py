@@ -75,12 +75,24 @@ def test_cargo_ship_and_sleigh_cannot_both_move_the_gain(order):
     assert player.count('Gold') == 1
 
 
-def test_same_zone_watchtower_move_still_loses_track():
+def test_topdecking_an_already_topdecked_gain_keeps_it_movable():
     state, player, _ = setup(['Watchtower','Sleigh'], ['watchtower','sleigh'])
     player.ai.strategy.choose_watchtower_reaction = lambda *args: 'topdeck'
     player.ai.strategy.choose_sleigh_reaction = lambda *args: 'hand'
     gold = state.gain_from_supply(player,'Gold',destination='deck')
+    assert gold in player.hand and gold not in player.deck
+
+
+def test_gain_covered_on_deck_stops_moving_after_cover_is_removed():
+    state, player, _ = setup(["Watchtower", "Sleigh"], ["card_on_gain", "watchtower", "sleigh"])
+    player.ai.strategy.choose_watchtower_reaction = lambda *args: "topdeck"
+    player.ai.strategy.choose_sleigh_reaction = lambda *args: "hand"
+    gold = get_card("Gold")
+    gold.on_gain = lambda s, p: s.gain_from_supply(p, "Silver", destination="deck")
+    state.gain_card(player, gold, to_deck=True)
     assert gold in player.deck and gold not in player.hand
+    assert any(c.name == "Silver" for c in player.hand)
+    assert player.deck[-1] is gold
 
 
 def test_next_gain_innovation_is_reserved_before_nested_card_ability():
