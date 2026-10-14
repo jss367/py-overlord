@@ -16,6 +16,11 @@ def gained_card_types(state, player, card):
     return action, treasure, card.is_victory
 
 
+def live_treasures(state, player, cards):
+    """Treasures in an owned-card menu, including active inherited types."""
+    return [c for c in cards if gained_card_types(state, player, c)[1]]
+
+
 def gain_menu(state, player, limit: CardCost):
     choices = []
     seen_piles = set()

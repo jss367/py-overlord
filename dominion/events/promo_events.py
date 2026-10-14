@@ -112,7 +112,8 @@ class Summon(Event):
         # Summon's "play it next turn" effect has no card to play.
         passed_card = get_card(gain_target_name)
         supply_before_gain = game_state.supply.get(pile_name, 0)
-        gained = game_state.gain_card(player, passed_card)
+        actual_gain = []
+        gained = game_state.gain_card(player, passed_card, gain_observer=actual_gain.append)
 
         if ordered_pile and gained is not passed_card:
             # Replacement happened (Trader / Exile-reclaim / Changeling).
@@ -128,6 +129,6 @@ class Summon(Event):
                 game_state.pile_order[pile_name].append(gain_target_name)
                 game_state.supply[pile_name] = supply_before_gain + 1
 
-        if gained in player.discard:
-            player.discard.remove(gained)
-            player.summon_set_aside.append(gained)
+        actual = actual_gain[0]
+        if game_state._remove_gained_card_from_zones(player, actual):
+            player.summon_set_aside.append(actual)

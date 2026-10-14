@@ -182,12 +182,13 @@ def test_split_pile_transition_does_not_substitute_a_newly_exposed_card():
     assert inventory(state) == before
 
 
-def test_changeling_exchange_returns_original_and_preserves_location():
+def test_changeling_exchange_returns_original_and_puts_replacement_in_discard():
     state, player = make_state({"Village": 1, "Changeling": 1})
     player.ai.changeling = True
     before = inventory(state)
     gained = state.gain_from_supply(player, "Village", destination="deck")
-    assert gained.name == "Changeling" and gained is player.deck[-1]
+    assert gained.name == "Changeling" and gained is player.discard[-1]
+    assert not player.deck
     assert state.supply == {"Village": 1, "Changeling": 0}
     assert inventory(state) == before
 

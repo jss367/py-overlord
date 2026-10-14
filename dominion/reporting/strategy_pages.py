@@ -51,6 +51,17 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="gain-effect-ordering-and-searchable-card-policies.html",
+        display_name="Ordering Gain Effects and Searching Card Policies",
+        description="Owner-ordered gain events, live Investment accounting, bounded genome parameters and 17,280 seeded games with frozen selections, rejected regressions and capped-game sensitivity.",
+        kingdom_cards=("Watchtower", "Clerk", "Investment", "Bounty Hunter", "Sleigh",
+                       "Sheepdog", "Cargo Ship", "Barge", "Torturer"),
+        source_label="Official rules, physical gain scenarios and fresh seat-balanced policy comparisons",
+        strategy_slugs=("lisbon-investment-rush", "black-cat-and-livery-board-ox-engine",
+                        "black-cat-and-livery-board-fisherman-infirmary", "black-cat-and-livery-board-cavalry-horses",
+                        "collection-swindler-rush", "selective-envoy-collection", "village-envoy-collection-engine"),
+    ),
+    CuratedStrategyGuide(
         filename="ironworks-and-engineer-contextual-gain-evaluation.html",
         display_name="Ironworks and Engineer: Contextual Gains and Policy Evaluation",
         description="Separate purchase and free-gain priorities, live Ironworks bonuses, Engineer's sequential gains, locked policy comparisons and registered strategy compatibility checks with uncertainty.",
@@ -2243,7 +2254,7 @@ def render_strategy_page(
         else ""
     )
     guide_nav = "".join(
-        f'<a href="{escape(guide.filename)}">Read the strategy guide</a>'
+        f'<a href="{escape(guide.filename)}">{escape(guide.display_name)}</a>'
         for guide in CURATED_STRATEGY_GUIDES
         if item.slug in guide.strategy_slugs
         or guide.filename == f"{item.slug}-strategy-guide.html"

@@ -43,10 +43,8 @@ class Investment(Card):
             player.in_play.remove(self)
             game_state.trash_card(player, self)
 
-            distinct_treasure_names = {
-                card.name for card in player.hand if game_state.is_treasure(card)
-            }
-            player.vp_tokens += len(distinct_treasure_names)
+            from ..gain_decisions import live_treasures
+            player.vp_tokens += len({c.name for c in live_treasures(game_state, player, player.hand)})
             return
 
         player.coins += 1

@@ -48,10 +48,7 @@ class Joust(Card):
         if not choice or choice not in available_rewards:
             choice = available_rewards[0]
         game_state.supply[choice.name] -= 1
-        gained = game_state.gain_card(player, choice)
-        if gained in player.discard:
-            player.discard.remove(gained)
-            player.hand.append(gained)
+        game_state.gain_card(player, choice, to_hand=True)
 
     def on_cleanup_return_province(self, player):
         if self.province_set_aside:

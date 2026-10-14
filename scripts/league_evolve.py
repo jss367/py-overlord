@@ -244,6 +244,7 @@ def _describe(strategy: BaseStrategy) -> dict:
     return {
         "name": strategy.name,
         "gain_priority": rules("gain_priority"),
+        "card_decision_policies": getattr(strategy, "card_decision_policies", None),
         "free_gain_priority": None if getattr(strategy, "free_gain_priority", None) is None else rules("free_gain_priority"),
         "action_priority": rules("action_priority"),
         "treasure_priority": rules("treasure_priority"),

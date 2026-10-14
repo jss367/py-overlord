@@ -622,11 +622,8 @@ def test_changeling_exchange_skipped_when_gaining_changeling():
     assert sum(1 for c in player.discard if c.name == "Changeling") == 1
 
 
-def test_changeling_exchange_preserves_topdeck_position():
-    """When a gained card is topdecked (e.g. via Royal Seal) and then
-    exchanged for a Changeling, the Changeling must replace the gained
-    card in the SAME deck slot (the top), not get appended to the
-    bottom."""
+def test_royal_seal_move_prevents_later_changeling_exchange():
+    """A gained card moved by Royal Seal can no longer be returned for exchange."""
 
     class TopdeckExchangeAI(_PlayAllAI):
         def should_topdeck_with_royal_seal(self, state, player, gained_card):
@@ -651,18 +648,11 @@ def test_changeling_exchange_preserves_topdeck_position():
     state.supply["Smithy"] -= 1
     state.gain_card(player, smithy)
 
-    # Changeling must sit at the top of the deck (last element), where
-    # Royal Seal placed Smithy before the exchange replaced it.
-    assert player.deck, "deck should not be empty after exchange"
-    assert player.deck[-1].name == "Changeling", (
-        f"top-of-deck should be Changeling, got {[c.name for c in player.deck]}"
-    )
-    # And the original deck order below it must be untouched.
-    assert player.deck[0] is estate_a
-    assert player.deck[1] is estate_b
-    # Smithy returned to the supply, no Smithy/Changeling leaked into discard.
-    assert not any(c.name == "Smithy" for c in player.discard)
-    assert not any(c.name == "Changeling" for c in player.discard)
+    assert player.deck == [estate_a, estate_b, smithy]
+    assert not any(c.name == "Changeling" for c in player.all_cards())
+    assert state.supply["Changeling"] == 10
+    assert state.supply["Smithy"] == 9
+
 
 
 def test_changeling_uses_effective_cost_at_gain_peddler_full_cost():

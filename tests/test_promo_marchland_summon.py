@@ -323,9 +323,9 @@ def test_summon_changeling_exchange_on_knight_no_double_restore():
     assert state.pile_order["Knights"][-1] == starting_top
     # Changeling pile decreased by 1.
     assert state.supply["Changeling"] == starting_changeling_supply - 1
-    # Player set aside a Changeling.
-    assert len(player.summon_set_aside) == 1
-    assert player.summon_set_aside[0].name == "Changeling"
+    # The exchanged Changeling is not the gained Knight; it stays in discard.
+    assert not player.summon_set_aside
+    assert any(card.name == "Changeling" for card in player.discard)
 
 
 def test_summon_start_play_fires_action_play_hooks():

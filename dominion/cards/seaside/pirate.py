@@ -43,13 +43,6 @@ class Pirate(Card):
 
         if best_treasure and game_state.supply.get(best_treasure.name, 0) > 0:
             game_state.supply[best_treasure.name] -= 1
-            gained = game_state.gain_card(player, best_treasure)
-            # Move to hand
-            if gained in player.discard:
-                player.discard.remove(gained)
-            elif gained in player.deck:
-                player.deck.remove(gained)
-            if gained not in player.hand:
-                player.hand.append(gained)
+            game_state.gain_card(player, best_treasure, to_hand=True)
 
         self.duration_persistent = False

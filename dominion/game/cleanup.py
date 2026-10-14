@@ -23,8 +23,19 @@ def cleanup_turn(state: GameState) -> None:
     _resolve_cleanup_triggers(state, player)
     tireless_set_aside, journey_extra_turn = _discard_cards(state, player)
     outpost_extra_turn = _draw_next_hand(state, player, tireless_set_aside)
+    _discard_off_turn_duplicates(state)
     _finish_turn(state, player, outpost_extra_turn)
     _advance_player(state, player, outpost_extra_turn, journey_extra_turn)
+
+
+def _discard_off_turn_duplicates(state: GameState) -> None:
+    """Discard only physical Duplicates called by other owners this turn."""
+    while getattr(state, "_off_turn_called_duplicates", []):
+        pending, state._off_turn_called_duplicates = state._off_turn_called_duplicates, []
+        for owner, card in pending:
+            if card in owner.in_play:
+                owner.in_play.remove(card)
+                state.discard_card(owner, card, from_cleanup=True)
 
 
 def _resolve_cleanup_triggers(state: GameState, player: PlayerState) -> None:

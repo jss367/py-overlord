@@ -46,6 +46,10 @@ class GeneticAI(AI):
 
         return self.strategy.choose_gain(state, state.current_player, choices)
 
+    def choose_gain_effect(self, state, player, gained_card, choices):
+        hook = getattr(self.strategy, "choose_gain_effect", None)
+        return hook(state, player, gained_card, choices) if hook else super().choose_gain_effect(state, player, gained_card, choices)
+
     def choose_free_gain(self, state, player, choices, context):
         hook = getattr(self.strategy, "choose_free_gain", None)
         if hook is not None:

@@ -51,13 +51,6 @@ class Cobbler(Card):
 
         if game_state.supply.get(choice.name, 0) > 0:
             game_state.supply[choice.name] -= 1
-            gained = game_state.gain_card(player, choice)
-            if gained:
-                if gained in player.discard:
-                    player.discard.remove(gained)
-                elif gained in player.deck:
-                    player.deck.remove(gained)
-                if gained not in player.hand:
-                    player.hand.append(gained)
+            game_state.gain_card(player, choice, to_hand=True)
 
         self.duration_persistent = False

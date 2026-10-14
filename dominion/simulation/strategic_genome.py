@@ -117,6 +117,7 @@ class StrategicGenome:
     #: means "no override": the generic policy in
     #: :meth:`BaseAI.choose_card_to_exile_for_bounty_hunter` decides.
     bounty_exile_order: list[str] = field(default_factory=list)
+    card_decision_policies: dict | None = None
 
     def compile_into(self, strategy: BaseStrategy, info) -> BaseStrategy:
         """Replace phenotype rule lists while preserving identity and Ways."""
@@ -302,6 +303,8 @@ class StrategicGenome:
                 )
             )
         strategy.trash_priority = trash
+        from dominion.strategy.card_policies import validate_policies
+        strategy.card_decision_policies = validate_policies(self.card_decision_policies)
         strategy._strategic_genome = deepcopy(self)
         return strategy
 
@@ -436,6 +439,7 @@ def promote_legacy_strategy(strategy: BaseStrategy, info) -> bool:
     """
 
     if getattr(strategy, "_strategic_genome", None) is not None:
+        strategy._strategic_genome.card_decision_policies = deepcopy(getattr(strategy, "card_decision_policies", None))
         return True
 
     gain = list(getattr(strategy, "gain_priority", []) or [])
@@ -617,6 +621,7 @@ def promote_legacy_strategy(strategy: BaseStrategy, info) -> bool:
             return False
 
     genome = StrategicGenome(
+        card_decision_policies=deepcopy(getattr(strategy, "card_decision_policies", None)),
         openings=openings,
         build_targets=targets,
         economy=EconomyPlan(
@@ -665,6 +670,7 @@ def synchronize_strategic_genome(strategy: BaseStrategy, info) -> bool:
     if original is None:
         return False
     genome = deepcopy(original)
+    genome.card_decision_policies = deepcopy(getattr(strategy, "card_decision_policies", None))
     gain_signatures = {_rule_signature(rule) for rule in strategy.gain_priority}
     action_names = [rule.card_name for rule in strategy.action_priority]
     treasure_names = [rule.card_name for rule in strategy.treasure_priority]
@@ -1112,6 +1118,9 @@ def mutate_strategic_strategy(strategy: BaseStrategy, info, rate: float, rng=_ra
 
     way_policy = deepcopy(getattr(strategy, "way_policy", []))
     name = strategy.name
+    from dominion.strategy.card_policies import mutate_policies
+    mutate_policies(strategy, info.kingdom_cards, rate, rng)
+    genome.card_decision_policies = deepcopy(getattr(strategy, "card_decision_policies", None))
     genome.compile_into(strategy, info)
     strategy.name = name
     strategy.way_policy = way_policy
@@ -1127,6 +1136,7 @@ def crossover_strategic_strategies(parent1: BaseStrategy, parent2: BaseStrategy,
         return None
 
     child_genome = deepcopy(first)
+    child_genome.card_decision_policies = deepcopy(getattr(parent1, "card_decision_policies", None))
     for field_name in (
         "openings", "build_targets", "economy", "greening", "endgame",
         "trash", "action_order", "treasure_order", "bounty_exile_order",
@@ -1148,4 +1158,6 @@ def crossover_strategic_strategies(parent1: BaseStrategy, parent2: BaseStrategy,
             child.free_gain_priority = deepcopy(getattr(parent2, "free_gain_priority", None))
     if rng.random() < 0.5:
         child.way_policy = deepcopy(getattr(parent2, "way_policy", []))
+    from dominion.strategy.card_policies import crossover_policies
+    crossover_policies(child, parent1, parent2, rng)
     return child

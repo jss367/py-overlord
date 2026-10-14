@@ -37,8 +37,4 @@ class TreasureMap(Card):
             if game_state.supply.get("Gold", 0) <= 0:
                 break
             game_state.supply["Gold"] -= 1
-            gained = game_state.gain_card(player, get_card("Gold"))
-            # Move from discard onto the top of the deck.
-            if gained in player.discard:
-                player.discard.remove(gained)
-                player.deck.append(gained)
+            game_state.gain_card(player, get_card("Gold"), to_deck=True)

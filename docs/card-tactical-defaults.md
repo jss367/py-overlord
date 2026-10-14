@@ -73,10 +73,12 @@ this inventory rather than maintaining a second divergent card table.
 The supply, free-gain, and set-aside implementations merged in
 [#404](https://github.com/jss367/py-overlord/pull/404),
 [#403](https://github.com/jss367/py-overlord/pull/403), and
-[#402](https://github.com/jss367/py-overlord/pull/402). This branch adds Barge and Sleigh
+[#402](https://github.com/jss367/py-overlord/pull/402).
+[#416](https://github.com/jss367/py-overlord/pull/416) merged Barge and Sleigh
 strategy forwarding and the scoped Torturer rules/tactical audit under #393;
-see the reaction and Duration evaluation below. Simultaneous gain ordering
-remains in #410. Quartermaster's
+see the reaction and Duration evaluation below. Owner-ordered simultaneous gain menus now address #410; the
+[current gain-ordering and policy guide](../reports/strategies/gain-effect-ordering-and-searchable-card-policies.html)
+records scoped rules coverage and new-engine measurements. Quartermaster's
 one-card collection, independent storage and replay/scheduling audit are in
 #391's merged evidence, rather than an outstanding generic storage task.
 Anvil and Junk Dealer dedicated overrides are connected and tested.
@@ -84,11 +86,15 @@ Anvil and Junk Dealer dedicated overrides are connected and tested.
 Watchtower's gain reaction, Clerk's victim topdeck, Investment's self-trash
 mode, and Bounty Hunter's exile choice now have targeted four-stage scenarios
 and measured fixed-policy panels. Clerk's start-turn reaction is connected and
-tested but unchanged between comparison arms; its timing remains unevaluated.
+tested. Its timing was held constant in the historical comparison; the new
+bounded search varies it without claiming an isolated timing improvement.
 Investment's forwarded legacy Treasure-selection helper is not an engine
 choice: after mandatory hand trash, the engine can trash Investment itself
-and score every remaining Treasure name. Policy accounting and cash-out timing
-remain in [#411](https://github.com/jss367/py-overlord/issues/411).
+and score every remaining Treasure name. Actual live Treasure-name accounting now addresses
+[#411](https://github.com/jss367/py-overlord/issues/411). The conservative mode
+preserves ordinary-hand choices; separately screened hand trash, play order,
+future trashing value, excessive copies, closing points and buy breakpoints
+are documented in the current guide.
 Ironworks and Engineer now use contextual free gains with inherited purchase
 priorities until a separate policy opts in. Their rules and measurements are
 published in the [Ironworks and Engineer evaluation](../reports/strategies/ironworks-and-engineer-contextual-gain-evaluation.html)
@@ -711,4 +717,30 @@ immediate bonuses and stranded Actions. The Engineer diagnostic projects
 complete gain pairs and cashes out only at the endgame or with excessive
 copies; projected pairs do not model reactions. These diagnostics do not
 replace inherited priorities or the default keep-Engineer policy. No optimizer
-parameters are added by this change; searchable policy families remain #413.
+parameters were added by that historical change; the current bounded families
+are documented below for #413.
+
+## Bounded card policy search and gain order
+
+The [current guide](../reports/strategies/gain-effect-ordering-and-searchable-card-policies.html)
+records #410, #411 and #413 together. `choose_gain_effect(state, player, gained,
+choices)` chooses one offered simultaneous effect for its owner; individual
+reaction decisions still choose whether to use it. Eligibility refreshes after
+each effect, owners resolve in turn order starting with the real turn player,
+and nested gains reserve once-per-event instructions before invoking callbacks.
+The default is the first offered legal effect. New hand reactions join the
+current gain; each physical reaction is offered at most once, with an explicit
+256-effect guard against unbounded custom loops.
+
+`EnhancedStrategy.card_decision_policies` and `StrategicGenome` carry finite,
+validated settings from `dominion/strategy/card_policies.py`. Families cover
+Watchtower destinations/thresholds, Clerk response/timing, Investment self-trash,
+Bounty Hunter bonuses and gain-effect order. `None` inherits; `{}` declares no
+family overrides and remains distinct in signatures and exports. Empty priority
+lists, explicit priority rules and custom Python overrides retain their existing
+semantics. Arbitrary callables are preserved where supported, not inferred into
+search genes. Existing purchase, supply-play, free-gain and trash preferences
+remain independent. The new benchmark varies tactical genes using production
+mutation with purchases fixed; it is not a full purchase-and-policy search or a
+new global tournament. It records every evaluated genotype and raw outcome,
+locks screen selection before disjoint validation, and reports capped games.

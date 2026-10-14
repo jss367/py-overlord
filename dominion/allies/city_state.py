@@ -34,10 +34,11 @@ class CityState(Ally):
         return True
 
     def on_owner_gain(self, game_state, player, gained_card):
-        zone = self._gain_zone(game_state, player, gained_card)
-        if zone is None:
+        if player is not game_state.turn_player or not gained_card.is_action or player.favors < 2:
             return
-        if not decide(game_state, player, "city_state", [False, True], True):
+        zone = self._gain_zone(game_state, player, gained_card)
+        if not decide(game_state, player, "city_state", [False, True], zone is not None):
             return
         player.favors -= 2
-        game_state.play_action_from_zone_indirectly(player, gained_card, zone)
+        if zone is not None:
+            game_state.play_action_from_zone_indirectly(player, gained_card, zone)

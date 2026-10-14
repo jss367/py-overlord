@@ -229,8 +229,10 @@ def mutate_menu(strategy: BaseStrategy, info: KingdomInfo, rate: float, rng=_ran
     """Apply menu-edit mutations in place and return the strategy."""
     from dominion.simulation.strategic_genome import mutate_strategic_strategy
 
+    from dominion.strategy.card_policies import mutate_policies
     if mutate_strategic_strategy(strategy, info, rate, rng):
         return strategy
+    mutate_policies(strategy, info.kingdom_cards, rate, rng)
 
     gain = strategy.gain_priority
 

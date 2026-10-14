@@ -52,6 +52,10 @@ class AI(ABC):
         """Choose a card to trash from available choices."""
         pass
 
+    def choose_gain_effect(self, state, player, gained_card, choices):
+        """Choose the next simultaneous gain effect from an owner-specific menu."""
+        return choices[0] if choices else None
+
     def choose_free_gain(self, state, player, choices, context):
         # Reuse an adapter's selector, not the engine's purchase operation.
         # The effect already supplied a legal free-gain menu; coins and buys
@@ -1940,7 +1944,7 @@ class AI(ABC):
             if any(c.name == "Fool's Gold" for c in state.trash):
                 return False
             players = list(state.players)
-            gainer = state.current_player
+            gainer = state.turn_player
             if gainer not in players or gainer is player:
                 return False
             # A skipped turn (Lich) means this player does not act next.
@@ -2036,9 +2040,8 @@ class AI(ABC):
         """
         if not can_trash_this:
             return "coin"
-        treasures = [c for c in player.hand if state.is_treasure(c)]
-        distinct = {c.name for c in treasures}
-        if len(distinct) >= 2:
+        from dominion.strategy.card_policies import investment_points
+        if investment_points(state, player) >= 2:
             return "trash"
         return "coin"
 
