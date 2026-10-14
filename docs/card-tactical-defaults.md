@@ -139,7 +139,11 @@ The audit also exposed [#427](https://github.com/jss367/py-overlord/issues/427):
 Inheritance's wider execution and gain-type paths still use legacy overlays.
 Courtier counts the current Action–Command–Victory Estate types, and the three
 Treasure menus above do not transfer the set-aside Action's Capitalism type.
-This scoped correction does not certify the rest of Inheritance. The inventory
+This scoped correction does not certify the rest of Inheritance.
+The shared Capitalism predicate also misses conditional/delayed coin text
+([#429](https://github.com/jss367/py-overlord/issues/429)); the new card paths
+follow that predicate and test its immediate-coin case, without certifying the
+wider classification. The inventory
 still explicitly lists 568 registered names without a scoped review.
 
 ## First implementation: Overlord and Quartermaster
