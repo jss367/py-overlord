@@ -255,3 +255,20 @@ def test_watchtower_trash_respects_real_turn_for_priest_and_crucible(off_turn):
     assert player.cards_trashed_this_turn == (3 if off_turn else 4)
     assert state.current_player is (other if off_turn else player)
     assert state.turn_player is state.current_player
+
+
+@pytest.mark.parametrize('name', ['Black Cat', 'Footpad', 'Stowaway', 'Monkey', 'Blockade'])
+@pytest.mark.parametrize('gain', ['Gold', 'Province'])
+def test_opponent_hand_menu_filters_inactive_reactions(name, gain):
+    state, owner, seen = setup([name])
+    gainer = PlayerState(GeneticAI(EnhancedStrategy()))
+    state.players.append(gainer)
+    state.current_player_index = 1
+    # Two other instructions keep the ordering hook observable even when
+    # the hand card has no legal reaction to this gain.
+    owner.projects = [type('Observer', (), {
+        'name': 'Observer', 'on_opponent_gain': lambda *args: None,
+    })() for _ in range(2)]
+    state.gain_from_supply(gainer, gain)
+    offered = any('opponent_reaction' in kinds for _, kinds in seen)
+    assert offered == (gain == 'Province' and name in {'Black Cat', 'Footpad', 'Stowaway'})

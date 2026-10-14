@@ -88,7 +88,7 @@ class GainEvent:
             elif card.name == 'Falconer' and self.type_count >= 2:
                 self.add(owner, 'falconer', lambda c=card, p=owner: state._play_falconer_reaction(p, player, gained, c),
                          source=card, priority=61, eligible=eligible, dynamic=True)
-            elif owner is not player and hasattr(card, 'on_opponent_gain'):
+            elif owner is not player and gained.is_victory and card.name in {'Black Cat', 'Footpad', 'Stowaway'}:
                 self.add(owner, 'opponent_reaction', lambda c=card, p=owner: c.on_opponent_gain(state, p, player, gained),
                          source=card, priority=55, eligible=eligible, dynamic=True)
             elif owner is not player and card.name == "Fool's Gold" and gained.name == 'Province':
