@@ -548,6 +548,9 @@ def test_duplicate_can_be_called_even_without_a_matching_supply_copy(name):
     state.gain_card(player, gained, from_supply=False)
     assert dup in player.in_play and dup not in player.tavern_mat
     assert player.count(name) == 1
+    state.handle_cleanup_phase()
+    assert dup in player.discard and dup not in player.in_play
+    assert player.count('Duplicate') == 1
 
 
 def test_duplicate_called_on_empty_emporium_enables_its_fifth_action_bonus():
