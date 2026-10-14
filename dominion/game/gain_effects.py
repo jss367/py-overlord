@@ -224,10 +224,12 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
                 if state.is_action(gained) and not player.innovation_used:
                     player.innovation_used = True
                     add('innovation', lambda p=project: p.on_gain(state, player, gained, claimed=True), source=project, priority=35, eligible=event.movable)
+            elif project.name == 'Guildhall':
+                if treasure_gain:
+                    add('project', lambda p=project: p.on_gain(state, player, gained, treasure_at_gain=treasure_gain), source=project, priority=35)
             else:
                 add('project', lambda p=project: p.on_gain(state, player, gained), source=project, priority=35,
-                    eligible=lambda p=project: (p.name != 'Academy' or gained.is_action)
-                    and (p.name != 'Guildhall' or gained.is_treasure))
+                    eligible=lambda p=project: p.name != 'Academy' or gained.is_action)
     if player.groundskeeper_bonus and gained.is_victory:
         bonus = player.groundskeeper_bonus
         add('groundskeeper', lambda: setattr(player, 'vp_tokens', player.vp_tokens + bonus), priority=40)

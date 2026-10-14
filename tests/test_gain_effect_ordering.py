@@ -944,3 +944,68 @@ def test_calls_created_during_redraw_discard_before_any_tireless_returns():
     assert returned == [False]
     assert active.deck[-1] is tireless
     assert owner.discard.count(duplicate) == 1
+
+
+@pytest.mark.parametrize('modifier,name', [('capitalism', 'Militia'), ('charlatan', 'Curse'), ('inheritance', 'Estate')])
+@pytest.mark.parametrize('direct', [False, True])
+def test_guildhall_recognizes_live_treasure_gains(modifier, name, direct):
+    from dominion.projects.capitalism import Capitalism
+    from dominion.projects.guildhall import Guildhall
+    state, player, _ = setup(observe=True)
+    guildhall = Guildhall()
+    player.projects.append(guildhall)
+    if modifier in {'capitalism', 'inheritance'}:
+        player.projects.append(Capitalism())
+    if modifier == 'charlatan':
+        state.supply['Charlatan'] = 10
+    if modifier == 'inheritance':
+        player.inherited_action_name = 'Militia'
+    menus = []
+    player.ai.strategy.choose_gain_effect = lambda s,p,c,choices: (menus.append([e.source.name for e in choices if e.source]) or choices[0])
+    gained = get_card(name)
+    assert not gained.is_treasure
+    if direct:
+        guildhall.on_gain(state, player, gained)
+    else:
+        state.gain_card(player, gained)
+        assert any('Guildhall' in menu for menu in menus)
+    assert player.coin_tokens == 1
+
+
+@pytest.mark.parametrize('active_capitalism', [False, True])
+@pytest.mark.parametrize('owner_capitalism', [False, True])
+def test_off_turn_guildhall_uses_the_actual_turns_treasure_types(active_capitalism, owner_capitalism):
+    from dominion.projects.capitalism import Capitalism
+    from dominion.projects.guildhall import Guildhall
+    state, active, _ = setup()
+    owner = PlayerState(GeneticAI(EnhancedStrategy()))
+    state.players.append(owner)
+    owner.projects = [Guildhall()]
+    if active_capitalism:
+        active.projects.append(Capitalism())
+    if owner_capitalism:
+        owner.projects.append(Capitalism())
+    state.gain_card(owner, get_card('Militia'))
+    assert owner.coin_tokens == int(active_capitalism)
+    assert state.current_player is active and state.turn_player is active
+
+
+@pytest.mark.parametrize('treasure_at_gain', [False, True])
+def test_guildhall_keeps_captured_type_after_a_nested_modifier_change(treasure_at_gain):
+    from dominion.projects.capitalism import Capitalism
+    from dominion.projects.guildhall import Guildhall
+    state, player, _ = setup(order=['card_on_gain', 'project'], observe=True)
+    player.projects.append(Guildhall())
+    capitalism = Capitalism()
+    if treasure_at_gain:
+        player.projects.append(capitalism)
+    gained = get_card('Militia')
+    def change_modifier(s, p):
+        if treasure_at_gain:
+            p.projects.remove(capitalism)
+        else:
+            p.projects.append(capitalism)
+    gained.on_gain = change_modifier
+    state.gain_card(player, gained)
+    assert state.is_treasure(gained) is not treasure_at_gain
+    assert player.coin_tokens == int(treasure_at_gain)
