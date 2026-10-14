@@ -44,11 +44,4 @@ class Mine(Card):
                 if chosen_card and game_state.supply.get(chosen_card.name, 0) > 0:
                     # Gain the chosen treasure to hand
                     game_state.supply[chosen_card.name] -= 1
-                    gained_card = game_state.gain_card(player, chosen_card)
-                    if gained_card:
-                        if gained_card in player.discard:
-                            player.discard.remove(gained_card)
-                            player.hand.append(gained_card)
-                        elif gained_card in player.deck:
-                            player.deck.remove(gained_card)
-                            player.hand.append(gained_card)
+                    game_state.gain_card(player, chosen_card, to_hand=True)

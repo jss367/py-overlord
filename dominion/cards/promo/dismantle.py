@@ -1,7 +1,7 @@
 from ..base_card import Card, CardCost, CardStats, CardType
 
 class Dismantle(Card):
-    """Trashes a card for a Gold to hand and a cheaper gain."""
+    """Trashes a card for a Gold and a cheaper gain."""
 
     def __init__(self):
         super().__init__(
@@ -25,10 +25,7 @@ class Dismantle(Card):
             from ..registry import get_card
 
             game_state.supply["Gold"] -= 1
-            gained_gold = game_state.gain_card(player, get_card("Gold"))
-            if gained_gold in player.discard:
-                player.discard.remove(gained_gold)
-                player.hand.append(gained_gold)
+            game_state.gain_card(player, get_card("Gold"))
 
         from ..registry import get_card
 

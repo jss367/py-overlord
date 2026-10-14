@@ -8,9 +8,9 @@ Notable invariants under test:
 
 1. Only Action cards (not Treasures, not Attacks) are valid targets.
 2. The buy is once-per-turn (a player flag prevents repeats within a turn).
-3. The play step locates the gained card across all post-gain zones (deck,
-   discard, hand) so reactions like Insignia or Villa don't leave the card
-   double-tracked.
+3. The play step respects the original gain zone; a gain moved by Insignia
+   or Villa cannot be moved again by Continue. Returning to the Action phase
+   remains independent of whether the gained card can be played.
 """
 
 from dominion.cards.registry import get_card
@@ -82,9 +82,8 @@ def test_continue_marks_used_for_turn():
     assert Continue().may_be_bought(state, player) is False
 
 
-def test_continue_does_not_duplicate_topdecked_gains():
-    """If Insignia tops-decks the gain, Continue must still find and play it
-    cleanly without leaving the same object in both deck and in_play."""
+def test_continue_does_not_follow_an_insignia_topdecked_gain():
+    """Moving the gain to deck prevents Continue's later automatic play."""
     state, player = _new_state("Village")
     player.insignia_active = True
     player.ai.should_topdeck_with_insignia = lambda *a, **k: True
@@ -94,20 +93,20 @@ def test_continue_does_not_duplicate_topdecked_gains():
     villages_in_play = [c for c in player.in_play if c.name == "Village"]
     villages_in_deck = [c for c in player.deck if c.name == "Village"]
     villages_in_discard = [c for c in player.discard if c.name == "Village"]
-    assert len(villages_in_play) == 1
-    assert villages_in_deck == []
+    assert villages_in_play == []
+    assert len(villages_in_deck) == 1
     assert villages_in_discard == []
 
 
-def test_continue_finds_gain_in_hand_for_villa():
-    """Villa's on_gain moves itself into hand. Continue must still play it."""
+def test_continue_does_not_automatically_play_villa_after_its_own_move():
+    """Villa moved to hand; this AI declines the subsequent normal Action play."""
     state, player = _new_state("Villa")
     Continue().on_buy(state, player)
 
     villas_in_play = [c for c in player.in_play if c.name == "Villa"]
     villas_in_hand = [c for c in player.hand if c.name == "Villa"]
-    assert len(villas_in_play) == 1
-    assert villas_in_hand == []
+    assert villas_in_play == []
+    assert len(villas_in_hand) == 1
 
 
 def test_continue_skips_play_if_gain_was_intercepted():
@@ -115,15 +114,9 @@ def test_continue_skips_play_if_gain_was_intercepted():
     not blindly append the card to in_play."""
     state, player = _new_state("Village")
 
-    real_gain = state.gain_card
-    intercepted: list = []
-
-    def fake_gain(p, card, to_deck=False):
-        intercepted.append(card)
-        return card
-
-    state.gain_card = fake_gain  # type: ignore[assignment]
-
+    player.hand = [get_card("Watchtower")]
+    player.ai.choose_watchtower_reaction = lambda *args: "trash"
     Continue().on_buy(state, player)
+    assert any(c.name == "Village" for c in state.trash)
     assert not any(c.name == "Village" for c in player.in_play)
-    state.gain_card = real_gain
+    assert state.phase == "buy"

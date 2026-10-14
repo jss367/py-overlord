@@ -978,10 +978,7 @@ class SilverMine(Card):
         if game_state.supply.get("Silver", 0) > 0:
             game_state.supply["Silver"] -= 1
             silver = get_card("Silver")
-            gained = game_state.gain_card(player, silver)
-            if gained in player.discard:
-                player.discard.remove(gained)
-                player.hand.append(gained)
+            game_state.gain_card(player, silver, to_hand=True)
         self.duration_persistent = False
 
 

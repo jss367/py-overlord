@@ -62,33 +62,20 @@ class Continue(Event):
         game_state.log_callback(
             ("supply_change", chosen.name, -1, game_state.supply[chosen.name])
         )
-        gained = game_state.gain_card(player, chosen)
+        actual_gain = []
+        game_state.gain_card(player, chosen, gain_observer=actual_gain.append)
+        gained = actual_gain[0]
 
-        # Locate the gained card in whichever post-gain zone it landed in.
-        zone = None
-        for candidate in (player.hand, player.discard, player.deck):
-            if gained in candidate:
-                zone = candidate
-                break
-
-        if zone is None:
-            return
-
-        zone.remove(gained)
-        player.in_play.append(gained)
-
-        # Per rulebook: "you return to your Action phase; and you play the
-        # Action card you gained." Switch the phase back so the gain plays
-        # under Action-phase semantics (Daimyo replays, Prophecy hooks).
+        # Returning to the Action phase is independent of moving the gain.
         game_state.phase = "action"
-
-        daimyo_replays = getattr(player, "daimyo_pending", 0)
-        player.daimyo_pending = 0
-        plays = 1 + daimyo_replays
-        for _ in range(plays):
-            gained.on_play(game_state)
-            game_state.fire_prophecy_action_hooks(player, gained)
-            game_state.fire_ally_play_hooks(player, gained)
+        if game_state._remove_gained_card_from_zones(player, gained):
+            player.in_play.append(gained)
+            daimyo_replays = getattr(player, "daimyo_pending", 0)
+            player.daimyo_pending = 0
+            for _ in range(1 + daimyo_replays):
+                gained.on_play(game_state)
+                game_state.fire_prophecy_action_hooks(player, gained)
+                game_state.fire_ally_play_hooks(player, gained)
 
         # Let the player use any remaining Action plays from hand. This loop
         # also picks up any Shadow cards now exposed in the deck.

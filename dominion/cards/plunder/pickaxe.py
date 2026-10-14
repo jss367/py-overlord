@@ -31,7 +31,4 @@ class Pickaxe(Card):
 
         loot_name = random.choice(LOOT_CARD_NAMES)
         loot = get_card(loot_name)
-        gained = game_state.gain_card(player, loot)
-        if gained in player.discard:
-            player.discard.remove(gained)
-            player.hand.append(gained)
+        game_state.gain_card(player, loot, to_hand=True)

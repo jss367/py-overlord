@@ -390,3 +390,31 @@ def test_nonmoving_growth_trigger_still_resolves_after_sleigh_moves_the_gain():
     assert state.gain_destination(gold) is None
     assert player.count('Village') == 1
     assert state.supply['Village'] == 9
+
+
+@pytest.mark.parametrize('name,expected', [('Silver', True), ('Changeling', False), ('Ghost', False)])
+def test_changeling_menu_excludes_unavailable_exchanges(name, expected):
+    state, player, seen = setup(['Sheepdog'])
+    state.supply['Changeling'] = 10
+    if name == 'Ghost':
+        state.gain_card(player, get_card(name), from_supply=False)
+    else:
+        state.gain_from_supply(player, name)
+    assert any('changeling' in choices for _, choices in seen) == expected
+
+
+def test_changeling_qualification_keeps_the_gain_time_cost_after_other_effects():
+    state, player, _ = setup(order=['card_on_gain', 'changeling'])
+    state.supply['Changeling'] = 10
+    player.ai.should_exchange_changeling = lambda *args: True
+    silver = get_card('Silver')
+    def lower_cost(s, p):
+        highway = get_card('Highway')
+        p.in_play.append(highway)
+        highway.play_effect(s)
+    silver.on_gain = lower_cost
+    state.supply['Silver'] -= 1
+    result = state.gain_card(player, silver)
+    assert state.get_card_cost(player, silver) == 2
+    assert result.name == 'Changeling' and result in player.discard
+    assert state.supply['Silver'] == 10

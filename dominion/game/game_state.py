@@ -2128,18 +2128,19 @@ class GameState:
                     FreeGainContext.build(self, player, "Quartermaster", "quartermaster"))
             else:
                 pick = next(c for c in candidates if c.name == pick.name)
+            actual_gain = []
             gained = gain_selected(self, player, pick, choices=candidates,
-                                   source="Quartermaster", destination="quartermaster")
+                                   source="Quartermaster", destination="quartermaster",
+                                   gain_observer=actual_gain.append)
             if gained is None:
                 continue
-            if gained in player.discard:
-                # Default destination — move onto this Quartermaster per card
-                # text. On-gain reactions that redirected the card (Watchtower
-                # topdeck/trash, Trail playing itself) take precedence.
-                player.discard.remove(gained)
-                mat.append(gained)
+            actual = actual_gain[0]
+            moved = self._remove_gained_card_from_zones(player, actual)
+            if moved:
+                mat.append(actual)
+            where = "onto" if moved else "via"
             self.log_callback(
-                ("action", player.ai.name, f"gains {gained} onto Quartermaster", {})
+                ("action", player.ai.name, f"gains {actual} {where} Quartermaster", {})
             )
 
     def do_duration_phase(self):
@@ -4006,7 +4007,7 @@ class GameState:
         )
 
     def _maybe_exchange_for_changeling(
-        self, player: PlayerState, gained_card: Card
+        self, player: PlayerState, gained_card: Card, *, cost_at_gain=None
     ) -> Card:
         """If the player has the option, exchange ``gained_card`` for a Changeling.
 
@@ -4027,7 +4028,9 @@ class GameState:
         # `cost.coins` is much higher than what they actually cost in many
         # game states, and Changeling's "$3+" trigger applies to the actual
         # gain-time cost.
-        if self.get_card_cost(player, gained_card) < 3:
+        if cost_at_gain is None:
+            cost_at_gain = self.get_card_cost(player, gained_card)
+        if cost_at_gain < 3:
             return gained_card
         # Changeling's exchange requires returning the gained card to its
         # pile. If the gained card has no Supply pile to return to (e.g.
@@ -4269,13 +4272,7 @@ class GameState:
         candidates.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
         choice = candidates[0]
         self.supply[choice.name] -= 1
-        gained = self.gain_card(player, choice)
-        if gained in player.discard:
-            player.discard.remove(gained)
-            player.hand.append(gained)
-        elif gained in player.deck:
-            player.deck.remove(gained)
-            player.hand.append(gained)
+        self.gain_card(player, choice, to_hand=True)
 
     def _handle_gatekeeper_exile(
         self, player: PlayerState, card: Card, on_deck: bool, had_exiled_copy: bool, *, qualified=False

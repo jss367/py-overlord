@@ -16,10 +16,7 @@ class JackOfAllTrades(Card):
 
         if game_state.supply.get("Silver", 0) > 0:
             game_state.supply["Silver"] -= 1
-            gained = game_state.gain_card(player, get_card("Silver"))
-            if gained in player.discard:
-                player.discard.remove(gained)
-                player.hand.append(gained)
+            game_state.gain_card(player, get_card("Silver"))
 
         if not player.deck and player.discard:
             player.shuffle_discard_into_deck()

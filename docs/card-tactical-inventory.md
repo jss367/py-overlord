@@ -656,6 +656,11 @@ Each row has unreviewed rules, wiring and tactical quality in this inventory. A 
 | Warehouse | Seaside | Unreviewed | Unreviewed | Unreviewed | Unreviewed | [`dominion/cards/seaside/warehouse.py`](../dominion/cards/seaside/warehouse.py) |
 | Wharf | Seaside | Unreviewed | Unreviewed | Unreviewed | Unreviewed | [`dominion/cards/seaside/wharf.py`](../dominion/cards/seaside/wharf.py) |
 
+## Shared gain-source destination checks
+
+`tests/test_gain_source_destinations.py` separately checks initial placement, Watchtower trash/topdeck reactions and legal Changeling exchanges through 24 source callbacks. Hand/deck gains declare their destination before reactions; independent storage/play instructions keep the actual observed gain and respect movement tracking. This is scoped shared-pipeline rules coverage, not a complete audit of these cards' internal choices, other effects or tactical policies. The decision-family statuses above remain scoped to their stated audits; the current HTML gain-ordering guide records this distinction.
+
+
 ## Optimizer coverage is separate
 
 `card_decision_policies` exposes validated finite Watchtower, Clerk, Investment, Bounty Hunter and gain-order settings through structured genomes, native mutation, crossover and Python export/discovery. None, empty mappings and explicit settings remain distinct; custom callables and explicit priority rules keep precedence. Existing supply, free-gain and trash lists remain independent. The linked new study records each genotype and actual varied fields, then validates its locked selection on fresh seeds with fixed purchases. This bounded screen is not a joint search of all purchase, storage and tactical decisions; arbitrary Python hooks are not genes.

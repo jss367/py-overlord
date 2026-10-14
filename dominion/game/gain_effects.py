@@ -292,8 +292,9 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
                     priority = 5
             add('ally', lambda c=ally: c.on_owner_gain(state, player, gained), source=ally, priority=priority)
     def changeling():
-        event.result = state._maybe_exchange_for_changeling(player, gained)
-    if state.supply.get('Changeling', 0) and gained_cost.coins >= 3:
+        event.result = state._maybe_exchange_for_changeling(player, gained, cost_at_gain=gained_cost.coins)
+    if (state.supply.get('Changeling', 0) and gained_cost.coins >= 3 and gained.name != 'Changeling'
+            and state._resolve_changeling_pile_name(gained) is not None):
         add('changeling', changeling, priority=99,
             eligible=event.movable)
     return event.resolve()

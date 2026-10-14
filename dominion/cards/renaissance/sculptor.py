@@ -40,15 +40,11 @@ class Sculptor(Card):
         if game_state.supply.get(choice.name, 0) <= 0:
             return
         game_state.supply[choice.name] -= 1
-        gained = game_state.gain_card(player, choice)
+        from ..gain_decisions import gained_card_types
 
-        # Move from discard/deck into hand (Sculptor gains to hand).
-        if gained in player.discard:
-            player.discard.remove(gained)
-            player.hand.append(gained)
-        elif gained in player.deck:
-            player.deck.remove(gained)
-            player.hand.append(gained)
-
-        if gained.is_treasure:
+        treasure_gains = []
+        def observe(card):
+            treasure_gains.append(gained_card_types(game_state, player, card)[1])
+        game_state.gain_card(player, choice, to_hand=True, gain_observer=observe)
+        if treasure_gains and treasure_gains[0]:
             player.villagers += 1
