@@ -77,18 +77,20 @@ def reviewed_decisions():
     reaction_evidence = (
         "scripts/data/reaction_duration_tactics_evaluation.json",
         "scripts/data/reaction_duration_selective_response_evaluation.json",
+        "scripts/data/gain-effect-ordering-reaction-validation.json",
+        "reports/strategies/gain-effect-ordering-and-searchable-card-policies.html",
         "reports/strategies/barge-sleigh-and-torturer-policy-evaluation.html",
     )
     for name, hook in (("Barge", "should_resolve_barge_now"), ("Sleigh", "choose_sleigh_reaction")):
         add((name,), "Timing / gain destination", (hook,),
-            ("tests/test_reaction_duration_tactics.py", "tests/test_menagerie_cards.py"),
-            rules="Scoped replay/destination audit; other interactions unreviewed",
-            tactical="Evaluated: historical fixed-policy panel; merged Supply inputs not reevaluated",
+            ("tests/test_reaction_duration_tactics.py", "tests/test_menagerie_cards.py", "tests/test_gain_effect_ordering.py"),
+            rules="Scoped owner-ordered gains, replay and original-destination tracking audit",
+            tactical="Evaluated: fixed-policy and registered-board contrasts rerun on owner-ordered gain engine",
             evidence=reaction_evidence, followups=(410,))
     add(("Torturer",), "Attack mode and discards", ("choose_torturer_attack", "choose_cards_to_discard"),
         ("tests/test_reaction_duration_tactics.py", "tests/test_groundskeeper_margrave.py"),
         rules="Scoped choices, physical discards, gain reactions and attack order audit",
-        tactical="Evaluated: historical fixed-policy panel; merged Supply inputs not reevaluated",
+        tactical="Evaluated: fixed-policy and registered-board contrasts rerun on owner-ordered gain engine",
         evidence=reaction_evidence, followups=(410,))
 
     for name, hooks in (
@@ -100,11 +102,15 @@ def reviewed_decisions():
         add((name,), "Gain reaction" if name == "Watchtower" else "Attack response / start-turn reaction" if name == "Clerk"
             else "Mandatory hand trash / self-trash mode" if name == "Investment" else "Exile target / first-name bonus",
             hooks, ("tests/test_card_tactics_evaluation.py", "tests/test_genetic_ai_hooks.py",
+                    "tests/test_searchable_card_policies.py",
                     "tests/test_menagerie_cards.py" if name == "Bounty Hunter" else "tests/test_prosperity_cards.py"),
-            tactical="Evaluated: fixed money panel; Clerk reaction timing unchanged" if name == "Clerk"
-                else "Evaluated: fixed money panel; no universal improvement",
+            tactical="Evaluated: bounded mutation screen and fresh fixed-purchase validation; no improvement established",
             evidence=("scripts/data/card_tactics_screen.json", "scripts/data/card_tactics_validation.json",
-                      "reports/strategies/card-reactions-investment-and-exile-evaluation.html"),
+                      "reports/strategies/card-reactions-investment-and-exile-evaluation.html",
+                      "scripts/data/contextual-policy-search-screen.json",
+                      "scripts/data/contextual-policy-search-validation.json",
+                      "scripts/data/investment-accounting-validation.json",
+                      "reports/strategies/gain-effect-ordering-and-searchable-card-policies.html"),
             followups=(394, 411, 413) if name == "Investment" else (394, 413))
 
     extra = (
@@ -212,16 +218,18 @@ def render():
         source = Path(inspect.getfile(CARD_TYPES[name])).resolve().relative_to(root)
         lines.append(f"| {name} | {expansion} | Unreviewed | Unreviewed | Unreviewed | Unreviewed | {link(str(source))} |")
     lines += ["", "## Optimizer coverage is separate", "",
-        "Bounty Hunter's `bounty_hunter_exile_priority` already round-trips through "
-        "`dominion/simulation/structured_genome.py`, mutates in the genetic trainer, and has "
-        "tests in `tests/test_structured_genome.py`. This exposes priority rules, not the complete "
-        "contextual bonus policy in the benchmark. Free-gain preferences also round-trip, but arbitrary "
-        "Python Watchtower, Clerk, Investment, supply-target, timing and storage overrides are not "
-        "automatically searchable genes. A callable hook and a parameterized policy are separate claims.", "",
+        "`card_decision_policies` exposes validated finite Watchtower, Clerk, Investment, "
+        "Bounty Hunter and gain-order settings through structured genomes, native mutation, "
+        "crossover and Python export/discovery. None, empty mappings and explicit settings "
+        "remain distinct; custom callables and explicit priority rules keep precedence. "
+        "Existing supply, free-gain and trash lists remain independent. The linked new study "
+        "records each genotype and actual varied fields, then validates its locked selection "
+        "on fresh seeds with fixed purchases. This bounded screen is not a joint search of "
+        "all purchase, storage and tactical decisions; arbitrary Python hooks are not genes.", "",
         "Baseline-change rule: freeze the candidate and purchases before fresh seat-balanced validation, "
         "record decision firings and raw seed outcomes, and reevaluate every affected registered strategy "
-        "on its own board before changing production defaults. This measurement changes no defaults; "
-        "existing supply, free-gain and storage studies contain their own strategy reevaluations. "
+        "on its own board before changing production defaults. The current Investment accounting fix preserves ordinary-hand choices; optional search settings do not change other shared defaults. "
+        "Existing supply, free-gain and storage studies contain their own strategy reevaluations. "
         "Historical standings remain historical evidence.", ""]
     return "\n".join(lines)
 
