@@ -22,8 +22,10 @@ def _opponent_gain_applies(state, source, owner, gainer, gained):
 def _ally_gain_applies(ally, state, player, gained, cost):
     if ally.name == 'Band of Nomads':
         return player.favors >= 1 and cost.coins >= 3
-    if ally.name in {"Architects' Guild", "Trappers' Lodge"}:
+    if ally.name == "Architects' Guild":
         return player.favors >= 2
+    if ally.name == "Trappers' Lodge":
+        return player.favors >= 1
     if ally.name == 'City-state':
         return player.favors >= 2 and player is state.turn_player and gained.is_action
     return True

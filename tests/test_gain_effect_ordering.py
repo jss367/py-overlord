@@ -673,7 +673,7 @@ def test_opponent_gain_menu_qualifies_project_and_duration_sources(source, gain,
     assert any(source in menu for menu in menus) == expected
 
 
-@pytest.mark.parametrize('ally,cost', [('Band of Nomads', 1), ("Architects' Guild", 2), ("Trappers' Lodge", 2), ('City-state', 2)])
+@pytest.mark.parametrize('ally,cost', [('Band of Nomads', 1), ("Architects' Guild", 2), ("Trappers' Lodge", 1), ('City-state', 2)])
 @pytest.mark.parametrize('payable', [False, True])
 def test_ally_gain_menu_checks_actual_payable_favor_cost(ally, cost, payable):
     from dominion.allies.registry import get_ally
@@ -716,7 +716,7 @@ def test_trappers_lodge_can_pay_for_a_gain_to_hand_and_preserves_move_tracking()
     from dominion.allies.registry import get_ally
     state, player, _ = setup()
     state.allies = [get_ally("Trappers' Lodge")]
-    player.favors = 2
+    player.favors = 1
     player.ai.choose_allies_option = lambda *args: True
     gold = state.gain_from_supply(player, 'Gold', destination='hand')
     assert gold in player.deck and gold not in player.hand

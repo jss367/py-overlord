@@ -216,7 +216,7 @@ def test_league_of_bankers_grants_coin_per_4_favors():
 def test_trappers_lodge_topdecks_gain():
     state, player = _state("Trappers' Lodge")
     state.supply["Silver"] = 5
-    player.favors = 2
+    player.favors = 1
     silver = get_card("Silver")
     state.gain_card(player, silver)
     # Silver was costed at $3, should be topdecked.
