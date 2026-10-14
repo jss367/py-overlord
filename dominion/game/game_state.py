@@ -4845,11 +4845,11 @@ class GameState:
 
         # Renaissance Priest: +$2 for each Priest played this turn.
         priest_count = getattr(player, "priest_played_this_turn", 0)
-        if priest_count and player is self.current_player:
+        if priest_count and player is self.turn_player:
             player.coins += 2 * priest_count
 
-        # Plunder Crucible: track trashes-this-turn.
-        if player is self.current_player:
+        # Plunder Crucible: track trashes on the owner's actual turn.
+        if player is self.turn_player:
             player.cards_trashed_this_turn = getattr(player, "cards_trashed_this_turn", 0) + 1
 
         # Plunder Pious trait.

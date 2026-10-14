@@ -237,3 +237,21 @@ def test_already_triggered_royal_seal_survives_its_source_leaving_play():
     village.on_gain=remove_source
     state.gain_card(player,village)
     assert village in player.deck and royal in state.trash
+
+
+@pytest.mark.parametrize('off_turn', [False, True])
+def test_watchtower_trash_respects_real_turn_for_priest_and_crucible(off_turn):
+    state, player, _ = setup(['Watchtower'])
+    other = PlayerState(GeneticAI(EnhancedStrategy()))
+    state.players.append(other)
+    state.current_player_index = int(off_turn)
+    player.priest_played_this_turn = 2
+    player.cards_trashed_this_turn = 3
+    player.ai.strategy.choose_watchtower_reaction = lambda *args: 'trash'
+    state.supply['Curse'] = 10
+    curse = state.gain_from_supply(player, 'Curse')
+    assert curse in state.trash
+    assert player.coins == (0 if off_turn else 4)
+    assert player.cards_trashed_this_turn == (3 if off_turn else 4)
+    assert state.current_player is (other if off_turn else player)
+    assert state.turn_player is state.current_player
