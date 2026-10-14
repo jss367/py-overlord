@@ -376,3 +376,17 @@ def test_gatekeeper_uses_live_gain_types(gain):
         state.supply['Charlatan'] = 10
     gained = state.gain_from_supply(player, gain)
     assert gained in player.exile
+
+
+def test_nonmoving_growth_trigger_still_resolves_after_sleigh_moves_the_gain():
+    from dominion.prophecies.registry import get_prophecy
+    state, player, _ = setup(['Sleigh'], ['sleigh', 'prophecy'])
+    player.ai.strategy.choose_sleigh_reaction = lambda *args: 'hand'
+    player.ai.choose_buy = lambda s, choices: next((c for c in choices if getattr(c, 'name', None) == 'Village'), None)
+    state.prophecy = get_prophecy('Growth')
+    state.prophecy.is_active = True
+    gold = state.gain_from_supply(player, 'Gold')
+    assert gold in player.hand
+    assert state.gain_destination(gold) is None
+    assert player.count('Village') == 1
+    assert state.supply['Village'] == 9
