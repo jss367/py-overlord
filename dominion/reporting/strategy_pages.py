@@ -2254,7 +2254,7 @@ def render_strategy_page(
         else ""
     )
     guide_nav = "".join(
-        f'<a href="{escape(guide.filename)}">Read the strategy guide</a>'
+        f'<a href="{escape(guide.filename)}">{escape(guide.display_name)}</a>'
         for guide in CURATED_STRATEGY_GUIDES
         if item.slug in guide.strategy_slugs
         or guide.filename == f"{item.slug}-strategy-guide.html"
