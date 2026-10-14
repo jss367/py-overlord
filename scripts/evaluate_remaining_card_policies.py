@@ -23,7 +23,7 @@ from dominion.strategy.strategy_loader import StrategyLoader
 from scripts import evaluate_card_tactics as original
 
 OPPONENTS = original.OPPONENTS
-INVESTMENT_VARIANTS = ('legacy','corrected','uniform_three','min_two','buy_breakpoint','treasure_last','future_trashing')
+INVESTMENT_VARIANTS = ('legacy','corrected','uniform_three','min_two','buy_breakpoint','treasure_last','hand_trash_only','future_trashing','excess_copy_only','closing_points_only')
 KINGDOM = original.KINGDOM
 
 
@@ -62,11 +62,15 @@ def subject(study, variant, settings=None, registered=False):
         strategy.card_decision_policies = {'investment': {'min_names':2,'preserve_buy_breakpoint':True}}
     elif variant == 'treasure_last':
         strategy.treasure_priority = [PriorityRule(c) for c in ('Platinum','Gold','Silver','Copper','Investment')]
-    elif variant == 'future_trashing':
-        strategy.card_decision_policies = {'investment': {'min_names':3,'future_junk_keep':2,'excess_copy_cashout':3,
-                                                         'closing_provinces':1,'closing_names':2}}
-        # Preserve economy in the mandatory hand trash unless junk is available.
+    elif variant == 'hand_trash_only':
+        # Isolate the mandatory hand-trash priorities from self-trash timing.
         strategy.trash_priority = [PriorityRule('Curse'),PriorityRule('Estate')]
+    elif variant == 'future_trashing':
+        strategy.card_decision_policies = {'investment': {'future_junk_keep':2}}
+    elif variant == 'excess_copy_only':
+        strategy.card_decision_policies = {'investment': {'excess_copy_cashout':3}}
+    elif variant == 'closing_points_only':
+        strategy.card_decision_policies = {'investment': {'closing_provinces':1,'closing_names':2}}
     return original.ObservedAI(strategy)
 
 
