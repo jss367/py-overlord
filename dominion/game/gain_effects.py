@@ -142,6 +142,8 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
                          allies_effects, gained_cost, had_exiled_copy):
     """Collect per-owner instructions and resolve them in turn order."""
     event = GainEvent(state, player, gained)
+    from dominion.cards.gain_decisions import gained_card_types
+    action_gain, treasure_gain, _ = gained_card_types(state, player, gained)
     add = lambda kind, callback, **kwargs: event.add(player, kind, callback, **kwargs)
     original_deck = state.gain_destination(gained) is player.deck
 
@@ -156,8 +158,8 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
     ):
         if active and not original_deck:
             add(kind, lambda decide=decide: topdeck(decide), priority=0)
-    if getattr(player, 'gatekeeper_attacks', 0) > 0:
-        add('gatekeeper', lambda: state._handle_gatekeeper_exile(player, gained, original_deck, had_exiled_copy), priority=10, eligible=event.movable)
+    if getattr(player, 'gatekeeper_attacks', 0) > 0 and (action_gain or treasure_gain) and not had_exiled_copy:
+        add('gatekeeper', lambda: state._handle_gatekeeper_exile(player, gained, original_deck, had_exiled_copy, qualified=True), priority=10, eligible=event.movable)
     if had_exiled_copy:
         def exile():
             if player.ai.should_discard_exiled_copies(state, player, gained):
@@ -171,7 +173,12 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
     add('card_on_gain', lambda: gained.on_gain(state, player), source=gained, priority=20)
     if state.prophecy is not None and state.prophecy.is_active:
         prophecy = state.prophecy
-        add('prophecy', lambda: prophecy.on_gain(state, player, gained), source=prophecy, priority=21)
+        applies = not (prophecy.name == 'Harsh Winter' and player is not state.turn_player) and not (
+            prophecy.name == 'Rapid Expansion' and not (action_gain or treasure_gain)
+        )
+        if applies:
+            add('prophecy', lambda: prophecy.on_gain(state, player, gained), source=prophecy, priority=21,
+                eligible=event.movable if prophecy.name in {'Rapid Expansion', 'Progress'} else lambda: True)
     add('trade_route', lambda: state._handle_trade_route_token(gained), priority=22)
     if any(c.name == 'Royal Seal' for c in in_play):
         add('royal_seal', lambda: state._handle_royal_seal_reaction(player, gained, active_at_gain=True), priority=31, eligible=event.movable)
@@ -288,5 +295,5 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
         event.result = state._maybe_exchange_for_changeling(player, gained)
     if state.supply.get('Changeling', 0) and gained_cost.coins >= 3:
         add('changeling', changeling, priority=99,
-            eligible=lambda: any(gained in z for z in (player.hand, player.deck, player.discard)))
+            eligible=event.movable)
     return event.resolve()

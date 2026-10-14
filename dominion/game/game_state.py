@@ -4014,7 +4014,7 @@ class GameState:
         original ``gained_card`` (no exchange) or the Changeling that
         replaced it. Exchanging means: the original card is returned to
         its supply pile, a Changeling is removed from the Changeling pile,
-        and the Changeling is placed where the original card was.
+        and the Changeling is put into the discard pile (not gained).
         """
 
         if self.supply.get("Changeling", 0) <= 0:
@@ -4046,14 +4046,7 @@ class GameState:
             return gained_card
         # Skip cards that did not enter a normal zone (e.g. Watchtower
         # already moved them to the trash or to the deck-top set-aside).
-        zone = None
-        if gained_card in player.discard:
-            zone = player.discard
-        elif gained_card in player.deck:
-            zone = player.deck
-        elif gained_card in player.hand:
-            zone = player.hand
-        else:
+        if not any(gained_card in zone for zone in (player.discard, player.deck, player.hand)):
             return gained_card
 
         if not player.ai.should_exchange_changeling(self, player, gained_card):
@@ -4061,12 +4054,10 @@ class GameState:
 
         from ..cards.registry import get_card
 
-        # Capture the index where the gained card sits so the Changeling
-        # replaces it in the same slot. This matters for topdeck-style gains
-        # (e.g. Watchtower / Royal Seal placing on top of deck) where the
-        # exchanged card must keep that position.
-        original_index = zone.index(gained_card)
-        zone.pop(original_index)
+        # Stop-moving also applies to the returned card. The exchange itself
+        # always puts Changeling in discard, including an initial deck/hand gain.
+        if not self._remove_gained_card_from_zones(player, gained_card):
+            return gained_card
         # Return the gained card to its Supply pile. For ordered piles
         # (Knights, Ruins) push the card name back onto the top of
         # pile_order so it's the next card to come off; for normal piles
@@ -4075,7 +4066,7 @@ class GameState:
         # Take a Changeling from the Changeling pile.
         self.supply["Changeling"] -= 1
         changeling = get_card("Changeling")
-        zone.insert(original_index, changeling)
+        player.discard.append(changeling)
         self.log_callback(
             ("action", player.ai.name, f"exchanges {gained_card} for Changeling", {})
         )
@@ -4287,15 +4278,18 @@ class GameState:
             player.hand.append(gained)
 
     def _handle_gatekeeper_exile(
-        self, player: PlayerState, card: Card, on_deck: bool, had_exiled_copy: bool
+        self, player: PlayerState, card: Card, on_deck: bool, had_exiled_copy: bool, *, qualified=False
     ) -> None:
         """Exile a gained Action/Treasure if the player is under Gatekeeper attack."""
         if getattr(player, "gatekeeper_attacks", 0) <= 0:
             return
-        if not (card.is_action or card.is_treasure):
-            return
-        # Skip if player already had a copy in exile at gain time
-        if had_exiled_copy or any(c.name == card.name for c in player.exile):
+        if not qualified:
+            from ..cards.gain_decisions import gained_card_types
+            action, treasure, _ = gained_card_types(self, player, card)
+            if not (action or treasure):
+                return
+        # The Exile predicate was captured at gain time, before nested gains.
+        if had_exiled_copy:
             return
 
         # Gatekeeper cannot follow a gain moved away from its original zone.

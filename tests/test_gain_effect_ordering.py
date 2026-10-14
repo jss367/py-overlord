@@ -284,3 +284,95 @@ def test_gatekeeper_cannot_follow_a_gain_moved_to_hand_by_sleigh(order):
     assert (silver in player.exile) == (order[0] == 'gatekeeper')
     assert player.count('Silver') == 1
     assert any(c.name == 'Sleigh' for c in player.discard)
+
+
+@pytest.mark.parametrize('prophecy_name', ['Rapid Expansion', 'Progress'])
+@pytest.mark.parametrize('first', ['sleigh', 'prophecy'])
+def test_prophecy_and_sleigh_respect_the_first_mover(prophecy_name, first):
+    from dominion.prophecies.registry import get_prophecy
+    state, player, _ = setup(['Sleigh'], [first])
+    player.ai.strategy.choose_sleigh_reaction = lambda *args: 'hand'
+    state.prophecy = get_prophecy(prophecy_name)
+    state.prophecy.is_active = True
+    gold = state.gain_from_supply(player, 'Gold')
+    assert (gold in player.hand) == (first == 'sleigh')
+    assert (gold in player.rapid_expansion_set_aside) == (first == 'prophecy' and prophecy_name == 'Rapid Expansion')
+    assert (gold in player.deck) == (first == 'prophecy' and prophecy_name == 'Progress')
+    assert sum(c is gold for zone in (player.hand, player.deck, player.discard, player.rapid_expansion_set_aside) for c in zone) == 1
+
+
+@pytest.mark.parametrize('destination', ['discard', 'hand', 'deck'])
+def test_changeling_exchange_puts_replacement_in_discard(destination):
+    state, player, _ = setup(order=['changeling'])
+    state.supply['Changeling'] = 10
+    player.ai.should_exchange_changeling = lambda *args: True
+    replacement = state.gain_from_supply(player, 'Gold', destination=destination)
+    assert replacement.name == 'Changeling'
+    assert replacement in player.discard
+    assert replacement not in player.hand and replacement not in player.deck
+    assert state.supply['Gold'] == 10
+    assert state.supply['Changeling'] == 9
+
+
+@pytest.mark.parametrize('first', ['sleigh', 'changeling'])
+def test_changeling_cannot_exchange_a_sleigh_moved_gain(first):
+    state, player, _ = setup(['Sleigh'], [first])
+    player.ai.strategy.choose_sleigh_reaction = lambda *args: 'hand'
+    player.ai.should_exchange_changeling = lambda *args: True
+    state.supply['Changeling'] = 10
+    result = state.gain_from_supply(player, 'Gold')
+    assert result.name == ('Gold' if first == 'sleigh' else 'Changeling')
+    assert (result in player.hand) == (first == 'sleigh')
+    assert (result in player.discard) == (first == 'changeling')
+    assert state.supply['Changeling'] == (10 if first == 'sleigh' else 9)
+
+
+@pytest.mark.parametrize('off_turn', [False, True])
+@pytest.mark.parametrize('debt', [0, 2])
+def test_harsh_winter_gain_uses_real_turn_for_placing_and_taking_debt(off_turn, debt):
+    from dominion.prophecies.registry import get_prophecy
+    state, player, _ = setup()
+    other = PlayerState(GeneticAI(EnhancedStrategy()))
+    state.players.append(other)
+    state.current_player_index = int(off_turn)
+    state.prophecy = get_prophecy('Harsh Winter')
+    state.prophecy.is_active = True
+    if debt:
+        state.harsh_winter_debt['Gold'] = debt
+    state.gain_from_supply(player, 'Gold')
+    assert player.debt == (debt if not off_turn else 0)
+    expected = debt if off_turn else 0 if debt else 2
+    assert state.harsh_winter_debt.get('Gold', 0) == expected
+
+
+@pytest.mark.parametrize('gain,exiled,expected', [('Province', False, False), ('Silver', True, False), ('Silver', False, True)])
+def test_gatekeeper_menu_only_contains_qualified_gain_time_triggers(gain, exiled, expected):
+    state, player, seen = setup(['Sheepdog'])
+    player.gatekeeper_attacks = 1
+    if exiled:
+        player.exile = [get_card('Silver')]
+    state.gain_from_supply(player, gain)
+    assert any('gatekeeper' in choices for _, choices in seen) == expected
+
+
+def test_gatekeeper_keeps_both_triggers_when_nested_gain_adds_an_exiled_copy():
+    state, player, _ = setup(order=['card_on_gain', 'gatekeeper'])
+    player.gatekeeper_attacks = 1
+    outer = get_card('Silver')
+    outer.on_gain = lambda s, p: s.gain_from_supply(p, 'Silver')
+    state.gain_card(player, outer)
+    assert len(player.exile) == 2 and outer in player.exile
+    assert all(c.name == 'Silver' for c in player.exile)
+
+
+@pytest.mark.parametrize('gain', ['Estate', 'Curse'])
+def test_gatekeeper_uses_live_gain_types(gain):
+    state, player, _ = setup()
+    player.gatekeeper_attacks = 1
+    state.supply[gain] = 10
+    if gain == 'Estate':
+        player.inherited_action_name = 'Village'
+    else:
+        state.supply['Charlatan'] = 10
+    gained = state.gain_from_supply(player, gain)
+    assert gained in player.exile
