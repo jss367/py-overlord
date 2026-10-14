@@ -4298,16 +4298,9 @@ class GameState:
         if had_exiled_copy or any(c.name == card.name for c in player.exile):
             return
 
-        # Move card from its current location to exile
-        if on_deck and card in player.deck:
-            player.deck.remove(card)
-        elif card in player.discard:
-            player.discard.remove(card)
-        elif card in player.hand:
-            player.hand.remove(card)
-        else:
-            return
-        player.exile.append(card)
+        # Gatekeeper cannot follow a gain moved away from its original zone.
+        if self._remove_gained_card_from_zones(player, card):
+            player.exile.append(card)
 
     def _handle_trader_exchange(
         self,

@@ -157,7 +157,7 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
         if active and not original_deck:
             add(kind, lambda decide=decide: topdeck(decide), priority=0)
     if getattr(player, 'gatekeeper_attacks', 0) > 0:
-        add('gatekeeper', lambda: state._handle_gatekeeper_exile(player, gained, original_deck, had_exiled_copy), priority=10)
+        add('gatekeeper', lambda: state._handle_gatekeeper_exile(player, gained, original_deck, had_exiled_copy), priority=10, eligible=event.movable)
     if had_exiled_copy:
         def exile():
             if player.ai.should_discard_exiled_copies(state, player, gained):

@@ -272,3 +272,15 @@ def test_opponent_hand_menu_filters_inactive_reactions(name, gain):
     state.gain_from_supply(gainer, gain)
     offered = any('opponent_reaction' in kinds for _, kinds in seen)
     assert offered == (gain == 'Province' and name in {'Black Cat', 'Footpad', 'Stowaway'})
+
+
+@pytest.mark.parametrize('order', [('gatekeeper', 'sleigh'), ('sleigh', 'gatekeeper')])
+def test_gatekeeper_cannot_follow_a_gain_moved_to_hand_by_sleigh(order):
+    state, player, _ = setup(['Sleigh'], order)
+    player.gatekeeper_attacks = 1
+    player.ai.strategy.choose_sleigh_reaction = lambda *args: 'hand'
+    silver = state.gain_from_supply(player, 'Silver')
+    assert (silver in player.hand) == (order[0] == 'sleigh')
+    assert (silver in player.exile) == (order[0] == 'gatekeeper')
+    assert player.count('Silver') == 1
+    assert any(c.name == 'Sleigh' for c in player.discard)
