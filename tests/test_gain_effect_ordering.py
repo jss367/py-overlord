@@ -418,3 +418,39 @@ def test_changeling_qualification_keeps_the_gain_time_cost_after_other_effects()
     assert state.get_card_cost(player, silver) == 2
     assert result.name == 'Changeling' and result in player.discard
     assert state.supply['Silver'] == 10
+
+
+@pytest.mark.parametrize('change', ['deplete', 'refill', 'remove_origin'])
+def test_changeling_menu_refreshes_availability_after_nested_effects(change):
+    state, player, _ = setup(order=['card_on_gain'])
+    state.supply['Changeling'] = 0 if change == 'refill' else 1
+    player.ai.should_exchange_changeling = lambda *args: True
+    # Independent nonmoving instructions keep the menu observable after the
+    # nested effect, including when the exchange is no longer available.
+    player.projects = [type('Observer', (), {'name': 'Observer', 'on_gain': lambda *args: None})() for _ in range(2)]
+    ready = []
+    menus = []
+    returned = get_card('Changeling')
+    if change == 'refill':
+        player.hand.append(returned)
+    outer = get_card('Village')
+    def alter_supply(s, p):
+        if change == 'deplete':
+            s.gain_from_supply(p, 'Silver')
+        elif change == 'refill':
+            p.hand.remove(returned)
+            s._restore_to_supply_pile(returned)
+        else:
+            del s.supply['Village']
+        ready.append(True)
+    outer.on_gain = alter_supply
+    def choose(s, p, gained, choices):
+        if gained is outer and ready:
+            menus.append([effect.kind for effect in choices])
+        return next((effect for effect in choices if effect.kind == 'card_on_gain'), choices[0])
+    player.ai.strategy.choose_gain_effect = choose
+    state.supply['Village'] -= 1
+    result = state.gain_card(player, outer)
+    assert menus
+    assert any('changeling' in menu for menu in menus) == (change == 'refill')
+    assert result.name == ('Changeling' if change == 'refill' else 'Village')
