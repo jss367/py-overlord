@@ -39,6 +39,10 @@ class Duplicate(Card):
             return False
         player.tavern_mat.remove(self)
         player.in_play.append(self)
+        if player is not game_state.turn_player:
+            pending = getattr(game_state, "_off_turn_called_duplicates", [])
+            pending.append((player, self))
+            game_state._off_turn_called_duplicates = pending
         copy = None
         if pile not in game_state.non_supply_pile_names and game_state.top_supply_card(pile) == gained_card.name:
             copy = game_state.take_top_supply_card(pile)

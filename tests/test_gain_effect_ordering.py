@@ -11,7 +11,7 @@ from dominion.strategy.enhanced_strategy import EnhancedStrategy
 from dominion.ai.genetic_ai import GeneticAI
 
 
-def setup(hand=(), order=()):
+def setup(hand=(), order=(), *, observe=False):
     strategy = EnhancedStrategy()
     seen = []
     def choose(state, player, gain, choices):
@@ -23,6 +23,8 @@ def setup(hand=(), order=()):
     strategy.should_play_sheepdog = lambda *args: True
     player = PlayerState(GeneticAI(strategy))
     player.hand = [get_card(n) for n in hand]
+    if observe:
+        player.projects = [type('Observer', (), {'name': 'Observer', 'on_gain': lambda *args: None})()]
     player.deck = [get_card('Copper') for _ in range(10)]
     state = GameState([player], supply={'Gold':10,'Silver':10,'Village':10,'Province':8})
     state.log_callback = lambda *_: None
@@ -488,7 +490,7 @@ def test_fools_gold_can_be_trashed_after_gold_runs_out(gold_available):
     ('Labyrinth', 'Gold', 12, {}, False),
 ])
 def test_landmark_menu_only_offers_applicable_gain_instructions(name, gain, pool, pile_vp, expected):
-    state, player, seen = setup()
+    state, player, seen = setup(observe=True)
     landmark = get_landmark(name)
     landmark.vp_pool, landmark.pile_vp = pool, pile_vp
     state.landmarks = [landmark]
@@ -511,7 +513,7 @@ def test_aqueduct_gain_instruction_becomes_eligible_after_nested_refill():
 
 @pytest.mark.parametrize('name,expected', [('Gold', True), ('Province', False), ('Alchemist', False), ('Engineer', False)])
 def test_duplicate_menu_qualifies_all_cost_components(name, expected):
-    state, player, seen = setup()
+    state, player, seen = setup(observe=True)
     player.tavern_mat = [get_card('Duplicate')]
     player.ai.should_call_from_tavern = lambda *args: False
     state.gain_card(player, get_card(name))
@@ -594,3 +596,189 @@ def test_duplicate_call_does_not_take_an_exposed_different_split_pile_card():
     assert dup in player.in_play
     assert state.supply['Emporium'] == 5
     assert player.count('Emporium') == 0
+
+
+@pytest.mark.parametrize('copies', [1, 2])
+def test_off_turn_duplicate_is_discarded_at_active_players_cleanup(copies):
+    state, active, _ = setup()
+    owner = PlayerState(GeneticAI(EnhancedStrategy()))
+    state.players.append(owner)
+    duplicate, duration, hand = get_card('Duplicate'), get_card('Hireling'), get_card('Estate')
+    owner.tavern_mat = [duplicate]
+    owner.hand = [hand]
+    owner.in_play = [duration]
+    owner.duration = [duration]
+    owner.ai.should_call_from_tavern = lambda *args: True
+    state.supply['Gold'] = copies
+    state.gain_from_supply(owner, 'Gold')
+    assert state.turn_player is active
+    assert duplicate in owner.in_play and duplicate not in owner.discard
+    assert owner.count('Gold') == copies
+    state.handle_cleanup_phase()
+    assert duplicate not in owner.in_play and owner.discard.count(duplicate) == 1
+    assert owner.hand == [hand]
+    assert duration in owner.in_play and owner.duration == [duration]
+    assert not state._off_turn_called_duplicates
+
+
+@pytest.mark.parametrize('token', [False, True])
+def test_trade_route_menu_requires_a_token_on_the_gained_pile(token):
+    state, player, seen = setup(observe=True)
+    state.trade_route_tokens_on_piles = {'Gold': token}
+    state.gain_from_supply(player, 'Gold')
+    assert any('trade_route' in choices for _, choices in seen) == token
+    assert state.trade_route_mat_tokens == int(token)
+
+
+def test_trade_route_pending_instruction_refreshes_after_nested_gain_takes_token():
+    state, player, _ = setup(order=['card_on_gain'])
+    state.trade_route_tokens_on_piles = {'Gold': True}
+    outer = get_card('Gold')
+    outer.on_gain = lambda s, p: s.gain_from_supply(p, 'Gold')
+    state.gain_card(player, outer)
+    assert state.trade_route_mat_tokens == 1
+    assert not state.trade_route_tokens_on_piles['Gold']
+
+
+@pytest.mark.parametrize('source,gain,position,affected,expected', [
+    ('Road Network', 'Gold', 1, True, False),
+    ('Road Network', 'Province', 1, True, True),
+    ('Monkey', 'Gold', 1, True, True),
+    ('Monkey', 'Gold', 2, True, False),
+    ('Blockade', 'Gold', 1, True, True),
+    ('Blockade', 'Silver', 1, True, False),
+    ('Blockade', 'Gold', 1, False, False),
+])
+def test_opponent_gain_menu_qualifies_project_and_duration_sources(source, gain, position, affected, expected):
+    from dominion.projects.road_network import RoadNetwork
+    state, gainer, _ = setup()
+    others = [PlayerState(GeneticAI(EnhancedStrategy())) for _ in range(2)]
+    state.players += others
+    owner = state.players[position]
+    card = RoadNetwork() if source == 'Road Network' else get_card(source)
+    if source == 'Road Network':
+        owner.projects = [card]
+    else:
+        owner.duration = [card]
+    if source == 'Blockade':
+        card.watched_card_name = 'Gold'
+        card._affected_player_ids = {id(gainer)} if affected else set()
+    owner.projects += [type('Observer', (), {'name': 'Observer', 'on_opponent_gain': lambda *args: None})() for _ in range(2)]
+    menus = []
+    def choose(s, p, gained, choices):
+        menus.append([getattr(e.source, 'name', '') for e in choices])
+        return choices[0]
+    owner.ai.strategy.choose_gain_effect = choose
+    state.gain_from_supply(gainer, gain)
+    assert any(source in menu for menu in menus) == expected
+
+
+@pytest.mark.parametrize('ally,cost', [('Band of Nomads', 1), ("Architects' Guild", 2), ("Trappers' Lodge", 2), ('City-state', 2)])
+@pytest.mark.parametrize('payable', [False, True])
+def test_ally_gain_menu_checks_actual_payable_favor_cost(ally, cost, payable):
+    from dominion.allies.registry import get_ally
+    state, player, seen = setup(observe=True)
+    state.allies = [get_ally(ally)]
+    player.favors = cost if payable else cost - 1
+    player.ai.choose_allies_option = lambda s,p,reason,options,default: False
+    state.gain_from_supply(player, 'Village')
+    assert any('ally' in choices for _, choices in seen) == payable
+
+
+def test_ally_becomes_payable_after_gain_time_guildmaster_favor():
+    from dominion.allies.registry import get_ally
+    state, player, _ = setup(order=['registered_gain_effect', 'ally'])
+    state.allies = [get_ally('Band of Nomads')]
+    player.allies_gain_effects = [('guildmaster', get_card('Guildmaster'), [])]
+    player.ai.choose_allies_option = lambda s,p,reason,options,default: 'buy' if reason == 'band_of_nomads' else default
+    state.gain_from_supply(player, 'Gold')
+    assert player.favors == 0
+    assert player.buys == 2
+
+
+def test_nomads_qualification_uses_gain_time_cost_after_nested_discount():
+    from dominion.allies.registry import get_ally
+    state, player, _ = setup(order=['card_on_gain', 'ally'])
+    state.allies = [get_ally('Band of Nomads')]
+    player.favors = 1
+    player.ai.choose_allies_option = lambda s,p,reason,options,default: 'buy' if reason == 'band_of_nomads' else default
+    silver = get_card('Silver')
+    def discount(s, p):
+        card = get_card('Highway')
+        p.in_play.append(card)
+        card.play_effect(s)
+    silver.on_gain = discount
+    state.gain_card(player, silver)
+    assert player.favors == 0 and player.buys == 2
+
+
+def test_trappers_lodge_can_pay_for_a_gain_to_hand_and_preserves_move_tracking():
+    from dominion.allies.registry import get_ally
+    state, player, _ = setup()
+    state.allies = [get_ally("Trappers' Lodge")]
+    player.favors = 2
+    player.ai.choose_allies_option = lambda *args: True
+    gold = state.gain_from_supply(player, 'Gold', destination='hand')
+    assert gold in player.deck and gold not in player.hand
+    assert player.favors == 0 and state.gain_destination(gold) is None
+
+
+def test_architects_guild_can_pay_even_if_no_cheaper_card_is_available():
+    from dominion.allies.registry import get_ally
+    state, player, _ = setup()
+    state.supply = {'Copper': 1}
+    player.deck = []
+    state.allies = [get_ally("Architects' Guild")]
+    player.favors = 2
+    player.ai.choose_allies_option = lambda *args: True
+    state.gain_from_supply(player, 'Copper')
+    assert player.favors == 0 and player.count('Copper') == 1
+
+
+def test_plain_gain_has_no_inherited_card_or_trade_route_menu_entries():
+    state, player, seen = setup()
+    state.gain_from_supply(player, 'Gold')
+    assert seen == []
+
+
+@pytest.mark.parametrize('name,gain', [('Good Harvest', 'Gold'), ('Growth', 'Province'), ('Bureaucracy', 'Copper')])
+def test_prophecy_menu_requires_an_actual_applicable_gain_instruction(name, gain):
+    from dominion.prophecies.registry import get_prophecy
+    state, player, seen = setup(['Sheepdog'])
+    state.prophecy = get_prophecy(name)
+    state.prophecy.is_active = True
+    state.gain_card(player, get_card(gain))
+    assert not any('prophecy' in choices for _, choices in seen)
+
+
+def test_academy_menu_excludes_non_action_gains():
+    from dominion.projects.academy import Academy
+    state, player, seen = setup(['Sheepdog'])
+    player.projects = [Academy()]
+    state.gain_from_supply(player, 'Gold')
+    assert not any('project' in choices for _, choices in seen)
+
+
+@pytest.mark.parametrize('kind,source,gain,expected', [
+    ('galleria', 'Galleria', 'Gold', False),
+    ('galleria', 'Galleria', 'Village', True),
+    ('skirmisher', 'Skirmisher', 'Gold', False),
+    ('skirmisher', 'Skirmisher', 'Militia', True),
+])
+def test_registered_allies_menu_requires_the_gain_trigger(kind, source, gain, expected):
+    state, player, seen = setup(observe=True)
+    player.allies_gain_effects = [(kind, get_card(source), [])]
+    state.gain_card(player, get_card(gain))
+    assert any('registered_gain_effect' in choices for _, choices in seen) == expected
+
+
+@pytest.mark.parametrize('active', [False, True])
+def test_garrison_menu_requires_an_active_gain_instruction(active):
+    state, player, seen = setup(observe=True)
+    garrison = get_card('Garrison')
+    player.in_play = [garrison]
+    if active:
+        garrison.play_effect(state)
+    state.gain_from_supply(player, 'Gold')
+    assert any('owner_card' in choices for _, choices in seen) == active
+    assert garrison.tokens == int(active)

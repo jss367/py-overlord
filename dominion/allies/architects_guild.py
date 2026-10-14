@@ -19,8 +19,9 @@ class ArchitectsGuild(Ally):
                 )
             ),
         )
-        if choices and decide(
-            game_state, player, "architects_guild", [False, True], True
+        if decide(
+            game_state, player, "architects_guild", [False, True], bool(choices)
         ):
             player.favors -= 2
-            gain(game_state, player, choices)
+            if choices:
+                gain(game_state, player, choices)
