@@ -11,6 +11,8 @@ GAIN_EFFECT_LIMIT = 256
 def _opponent_gain_applies(state, source, owner, gainer, gained):
     if source.name == 'Road Network':
         return gained.is_victory
+    if source.name in {'Stowaway', 'Footpad', 'Black Cat'}:
+        return gained.is_victory and source in owner.hand
     if source.name == 'Monkey':
         return source in owner.duration and state.players[(state.players.index(owner) - 1) % len(state.players)] is gainer
     if source.name == 'Blockade':
@@ -193,7 +195,8 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
                     if card in player.invested_exile:
                         player.invested_exile.remove(card)
                     state.discard_card(player, card)
-        add('exile_copies', exile, priority=11)
+        add('exile_copies', exile, priority=11,
+            eligible=lambda: any(c.name == gained.name for c in player.exile))
     from dominion.cards.base_card import Card
     if (getattr(gained.on_gain, '__func__', None) is not Card.on_gain
             or gained.is_action and event.collection_bonus or gained.cost.coins == 5):
@@ -223,7 +226,8 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
                     add('innovation', lambda p=project: p.on_gain(state, player, gained, claimed=True), source=project, priority=35, eligible=event.movable)
             else:
                 add('project', lambda p=project: p.on_gain(state, player, gained), source=project, priority=35,
-                    eligible=lambda p=project: p.name != 'Academy' or gained.is_action)
+                    eligible=lambda p=project: (p.name != 'Academy' or gained.is_action)
+                    and (p.name != 'Guildhall' or gained.is_treasure))
     if player.groundskeeper_bonus and gained.is_victory:
         bonus = player.groundskeeper_bonus
         add('groundskeeper', lambda: setattr(player, 'vp_tokens', player.vp_tokens + bonus), priority=40)
@@ -271,8 +275,9 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
         elif landmark.name != 'Mountain Pass':
             add('landmark', lambda c=landmark: c.on_gain(state, player, gained), source=landmark, priority=65,
                 eligible=lambda c=landmark: c.gain_effect_applies(state, player, gained, gain_number=event.gain_number))
-    if player.sailor_play_uses and any(c.name == 'Sailor' for c in owner_cards):
-        add('sailor', lambda: state._handle_sailor_gain(player, gained), priority=66, eligible=event.movable)
+    if player.sailor_play_uses and gained.is_duration and gained.name != 'Sailor' and any(c.name == 'Sailor' for c in owner_cards):
+        add('sailor', lambda: state._handle_sailor_gain(player, gained), priority=66,
+            eligible=lambda: player.sailor_play_uses > 0 and event.movable())
     if state.pile_trait(gained.name) in {'Cursed', 'Rich', 'Hasty'} or gained.name == 'Province' and state.trait_piles.get('Fawning'):
         add('trait', lambda: state._handle_trait_on_gain(player, gained), priority=70,
             eligible=event.movable if state.pile_trait(gained.name) == 'Hasty' else lambda: True)
@@ -314,7 +319,7 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
         player.deliver_pending_count -= 1
         def deliver():
             event.move(player.deliver_set_aside)
-        add('deliver', deliver, priority=77)
+        add('deliver', deliver, priority=77, eligible=event.movable)
     for card in owner_cards:
         if hasattr(card, 'on_owner_gain'):
             if card.name == 'Garrison' and (card not in player.in_play or card._garrison_gain_triggers <= 0
