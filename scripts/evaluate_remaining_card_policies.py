@@ -99,7 +99,10 @@ def evaluate(task):
     records=[run_game(spec,variant,settings,seed+i,seat) for i in range(pairs) for seat in (0,1)]
     counts=Counter()
     for r in records: counts.update(r['decisions'])
-    return {**spec,'variant':variant,'parameters':settings,'seed_start':seed,'pairs':pairs,
+    configured=subject(spec['study'],variant,settings,spec.get('registered',False)).strategy
+    return {**spec,'variant':variant,'parameters':deepcopy(configured.card_decision_policies),
+            'treasure_order':[r.card_name for r in configured.treasure_priority],
+            'trash_order':[r.card_name for r in configured.trash_priority], 'seed_start':seed,'pairs':pairs,
             'win_share':mean(r['win_share'] for r in records),'score_margin':mean(r['score_margin'] for r in records),
             'capped_games':sum(r['truncated'] for r in records),'decisions':dict(counts),'records':records}
 
@@ -176,10 +179,11 @@ def main():
     if args.selection and sha(args.selection)!=selection_hash:raise RuntimeError('Screen selection changed')
     control='legacy' if args.study=='investment' else 'baseline'
     varied = {}
-    for candidate_settings in population.values():
+    for variant in variants:
+        candidate_settings=population.get(variant)
         for family, values in (candidate_settings or {}).items():
             for key, value in values.items():
-                varied.setdefault(f'{family}.{key}', set()).add(value)
+                varied.setdefault(f'{family}.{key}', {'inherit'}).add(value)
     payload={'actual_varied_parameters': {k: sorted(v, key=str) for k,v in varied.items()}, 'study':args.study,'phase':args.phase,'seed':args.seed,'pairs':args.pairs,
              'simulation_fingerprint':fingerprint,'runner_sha256':runner_hash,'summary_helper_sha256':helper_hash,
              'python_version':platform.python_version(),'selection_sha256':selection_hash,'population':population,

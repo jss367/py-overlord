@@ -4411,10 +4411,10 @@ class GameState:
         else:
             player.deck.append(gained_card)
 
-    def _handle_royal_seal_reaction(self, player: PlayerState, gained_card: Card) -> None:
+    def _handle_royal_seal_reaction(self, player: PlayerState, gained_card: Card, *, active_at_gain=False) -> None:
         """Allow Royal Seal to topdeck newly gained cards."""
 
-        if not any(card.name == "Royal Seal" for card in player.in_play):
+        if not active_at_gain and not any(card.name == "Royal Seal" for card in player.in_play):
             return
 
         if not player.ai.should_topdeck_with_royal_seal(self, player, gained_card):

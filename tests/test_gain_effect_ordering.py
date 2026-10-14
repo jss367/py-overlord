@@ -211,3 +211,17 @@ def test_cloned_gain_instruction_maps_follow_the_cloned_owner():
     cloned=clone.players[0]
     assert clone.mirror_pending[id(cloned)]==1
     assert clone.landing_party_pending[id(cloned)][0] is not state.landing_party_pending[id(player)][0]
+
+
+def test_already_triggered_royal_seal_survives_its_source_leaving_play():
+    state,player,_=setup()
+    royal=get_card('Royal Seal')
+    player.in_play=[royal]
+    player.ai.should_topdeck_with_royal_seal=lambda *args: True
+    village=get_card('Village')
+    def remove_source(s,p):
+        p.in_play.remove(royal)
+        s.trash_card(p,royal)
+    village.on_gain=remove_source
+    state.gain_card(player,village)
+    assert village in player.deck and royal in state.trash

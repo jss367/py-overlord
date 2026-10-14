@@ -170,7 +170,7 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
         add('prophecy', lambda: prophecy.on_gain(state, player, gained), source=prophecy, priority=21)
     add('trade_route', lambda: state._handle_trade_route_token(gained), priority=22)
     if any(c.name == 'Royal Seal' for c in in_play):
-        add('royal_seal', lambda: state._handle_royal_seal_reaction(player, gained), priority=31, eligible=event.movable)
+        add('royal_seal', lambda: state._handle_royal_seal_reaction(player, gained, active_at_gain=True), priority=31, eligible=event.movable)
     for project in list(player.projects):
         if hasattr(project, 'on_gain'):
             if project.name == 'Innovation':
