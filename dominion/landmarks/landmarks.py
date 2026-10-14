@@ -276,7 +276,8 @@ class Labyrinth(Landmark):
         if self.vp_pool <= 0:
             return
         # cards_gained_this_turn was just incremented by gain_card; check ==2.
-        if player.cards_gained_this_turn == 2:
+        number = getattr(game_state, "_gain_event_number", None)
+        if (player.cards_gained_this_turn if number is None else number) == 2:
             take = min(2, self.vp_pool)
             self.vp_pool -= take
             player.vp_tokens += take
@@ -297,8 +298,8 @@ class MountainPass(Landmark):
     def setup(self, game_state) -> None:
         self._fired = False
 
-    def on_gain(self, game_state, player, card) -> None:
-        if self._fired:
+    def on_gain(self, game_state, player, card, *, claimed=False) -> None:
+        if self._fired and not claimed:
             return
         if card.name != "Province":
             return

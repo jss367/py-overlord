@@ -131,6 +131,9 @@ def save_strategy_as_python(
     else:
         lines.extend(format_list("free_gain_priority", free_gain))
         lines.append("")
+    from dominion.strategy.card_policies import validate_policies
+    policies = validate_policies(getattr(strategy, "card_decision_policies", None))
+    lines.extend([f"        self.card_decision_policies = {policies!r}", ""])
     emit("action_priority", strategy.action_priority)
     emit("captain_target_priority", getattr(strategy, "captain_target_priority", None))
     emit("band_of_misfits_target_priority", getattr(strategy, "band_of_misfits_target_priority", None))

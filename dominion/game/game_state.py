@@ -175,7 +175,7 @@ class GameState:
         # These ownership maps use object IDs rather than player indices.
         # Rebind their keys to the copied players for scoring and simulation.
         player_ids = {id(old): id(clone) for old, clone in zip(self.players, new.players)}
-        for name in ("hasty_set_aside", "patient_mat"):
+        for name in ("hasty_set_aside", "patient_mat", "mirror_pending", "landing_party_pending"):
             new.__dict__[name] = {
                 player_ids.get(key, key): cards
                 for key, cards in new.__dict__[name].items()
@@ -3946,31 +3946,6 @@ class GameState:
         # Silver, if Trader swapped the gain), not the original card.
         had_exiled_copy = any(c.name == actual_card.name for c in player.exile)
 
-        if not destination_is_deck and getattr(player, "topdeck_gains", False):
-            destination_is_deck = True
-
-        if (
-            not destination_is_deck
-            and getattr(player, "way_of_seal_active", False)
-            and player.ai.should_topdeck_with_way_of_seal(self, player, actual_card)
-        ):
-            destination_is_deck = True
-
-        if (
-            not destination_is_deck
-            and getattr(player, "insignia_active", False)
-            and player.ai.should_topdeck_with_insignia(self, player, actual_card)
-        ):
-            destination_is_deck = True
-
-        # Prosperity 2E: Tiara — while in play, gains may be topdecked.
-        if (
-            not destination_is_deck
-            and any(card.name == "Tiara" for card in player.in_play)
-            and player.ai.should_topdeck_with_tiara(self, player, actual_card)
-        ):
-            destination_is_deck = True
-
         if destination_is_deck:
             # PlayerState.draw_cards() draws with deck.pop(), so the end of
             # the list is the top of the deck.
@@ -4003,151 +3978,23 @@ class GameState:
             if actual_card.is_victory:
                 player.gained_victory_this_buy_phase = True
 
-        # Let the owner order City-state before any simultaneous gain mover,
-        # including Gatekeeper, on-gain card abilities, Watchtower and Traits.
-        resolved_allies = []
-        for ally in self.allies:
-            hook = getattr(ally, "on_owner_gain_first", None)
-            if hook is not None and hook(self, player, actual_card):
-                resolved_allies.append(ally)
-
-        self._handle_gatekeeper_exile(player, actual_card, destination_is_deck, had_exiled_copy)
-
-        # "When you gain a card, you may discard all copies of it from
-        # Exile." Resolved after Gatekeeper so a just-exiled gain is never
-        # pulled straight back off the mat (the player had no prior copy in
-        # that case, so this is a no-op there anyway).
-        if had_exiled_copy and player.ai.should_discard_exiled_copies(self, player, actual_card):
-            # Take the copies off the mat before discarding: discard reactions
-            # can trigger further gains (Tunnel gains a Gold), and a nested
-            # gain must see an up-to-date Exile mat.
-            matching = [c for c in player.exile if c.name == actual_card.name]
-            player.exile = [c for c in player.exile if c.name != actual_card.name]
-            for exiled in matching:
-                if exiled in player.invested_exile:
-                    player.invested_exile.remove(exiled)
-                self.log_callback(
-                    ("action", player.ai.name, f"discards {exiled.name} from Exile", {})
-                )
-                # Route through discard_card so non-cleanup discard reactions
-                # fire (Village Green, Trail, Weaver, Tunnel, Faithful Hound).
-                self.discard_card(player, exiled)
-
-        actual_card.on_gain(self, player)
-
-        # Rising Sun: Kintsugi event needs to know whether the player has
-        # ever gained a Gold.
+        # Record the event before nested effects can gain more cards.
         if actual_card.name == "Gold":
             player.kintsugi_has_gained_gold = True
-
-        # Rising Sun: Prophecy on-gain hook (Bureaucracy, Growth, Harsh Winter,
-        # Progress, Rapid Expansion all care about gains).
-        if self.prophecy is not None and self.prophecy.is_active:
-            self.prophecy.on_gain(self, player, actual_card)
-
-        self._handle_trade_route_token(actual_card)
-        self._handle_watchtower_reaction(player, actual_card)
-        self._handle_royal_seal_reaction(player, actual_card)
-
-        for project in player.projects:
-            if hasattr(project, "on_gain"):
-                project.on_gain(self, player, actual_card)
-
-        if getattr(player, "groundskeeper_bonus", 0) and actual_card.is_victory:
-            player.vp_tokens += player.groundskeeper_bonus
-
-        self._trigger_invest_draw(actual_card.name, player)
-        self._handle_fools_gold_reactions(player, actual_card)
-        self._track_action_gain(player, actual_card)
-        self._handle_cargo_ship_gain(player, actual_card, cargo_ship_at_gain)
-        self._handle_menagerie_gain_reactions(player, actual_card)
-        self._handle_opponent_gain_hooks(player, actual_card)
-        self._handle_livery_gain(player, actual_card, in_play_at_gain)
-        self._handle_secluded_shrine_gain(player, actual_card)
-        self._handle_falconer_reactions(player, actual_card)
-
-        # Treasury cares about Victory cards gained anywhere on your turn
-        # (Action phase via Workshop / Charm / Ironworks counts too).
-        if actual_card.is_victory and player is self.current_player:
+        if actual_card.is_victory:
             player.gained_victory_this_turn = True
+        player.cards_gained_this_turn += 1
+        player.cards_gained_this_turn_count += 1
+        player.gained_cards_this_turn.append(actual_card.name)
 
-        if hasattr(player, "cards_gained_this_turn"):
-            player.cards_gained_this_turn += 1
+        from .gain_effects import resolve_gain_effects
 
-        # Nocturne — Devil's Workshop and Monastery key off this counter
-        if hasattr(player, "cards_gained_this_turn_count"):
-            player.cards_gained_this_turn_count += 1
-
-        # Track names of cards gained this turn (for Smugglers).
-        if hasattr(player, "gained_cards_this_turn"):
-            player.gained_cards_this_turn.append(actual_card.name)
-
-        # Empires Landmarks: react to gains AFTER the counters are bumped so
-        # Labyrinth can see cards_gained_this_turn == 2 on the 2nd gain.
-        for landmark in self.landmarks:
-            landmark.on_gain(self, player, actual_card)
-
-        # Sailor: once per turn, may play a non-Sailor Action gained this turn.
-        self._handle_sailor_gain(player, actual_card)
-
-        # Plunder Trait gain hooks (Cursed / Rich / Hasty / Fawning).
-        self._handle_trait_on_gain(player, actual_card)
-
-        # Plunder Mirror event: gain another copy of a gained Action.
-        self._handle_mirror_gain(player, actual_card)
-
-        # Plunder Landing Party: top-deck this and Treasure on next gain.
-        self._handle_landing_party_gain(player, actual_card)
-
-        # Plunder Mining Road: first Treasure gained → gain a Treasure to hand.
-        self._handle_mining_road_gain(player, actual_card)
-        # Adventures: Tavern triggers — Duplicate may be called when a card is
-        # gained costing up to $6.
-        self._call_tavern_triggers(player, "gain", actual_card)
-
-        # Adventures Travelling Fair: optionally topdeck this gain.
-        if (
-            getattr(player, "travelling_fair_active", False)
-            and self.phase == "buy"
-            and player is self.current_player
-            and not destination_is_deck
-        ):
-            if player.ai.should_topdeck_with_travelling_fair(self, player, actual_card):
-                if actual_card in player.discard:
-                    player.discard.remove(actual_card)
-                    player.deck.append(actual_card)
-
-        # Plunder Deliver event: set aside the next gain to return to hand
-        # at the start of the next turn. The pending count is always
-        # consumed by the next gain (per "the next card you gain this
-        # turn"); if the card has been moved out of the player's zones
-        # (e.g. trashed by Watchtower or exiled), nothing is set aside
-        # but the trigger is still spent.
-        self._handle_deliver_gain(player, actual_card)
-        # Generic "while this is in play, when you gain a card ..." hook used
-        # by cards like Garrison. In-play cards may
-        # implement on_owner_gain(game_state, player, gained_card).
-        for card in owner_gain_cards:
-            hook = getattr(card, "on_owner_gain", None)
-            if hook is not None:
-                hook(self, player, actual_card)
-
-        self._resolve_allies_gain_effects(player, actual_card, allies_gain_effects, gained_cost)
-
-        # Allies hook: the chosen Ally may react to the active player's gains
-        # (Architects' Guild, Band of Nomads, Trappers' Lodge).
-        for ally in self.allies:
-            if ally in resolved_allies:
-                continue
-            hook = getattr(ally, "on_owner_gain", None)
-            if hook is not None:
-                hook(self, player, actual_card)
-
-        # Nocturne Changeling: when you gain a non-Changeling card costing
-        # $3+, you may exchange it for a Changeling from the supply.
-        actual_card = self._maybe_exchange_for_changeling(player, actual_card)
-
-        return actual_card
+        return resolve_gain_effects(
+            self, player, actual_card, in_play=in_play_at_gain,
+            cargo_ships=cargo_ship_at_gain, owner_cards=owner_gain_cards,
+            allies_effects=allies_gain_effects, gained_cost=gained_cost,
+            had_exiled_copy=had_exiled_copy,
+        )
 
     def _maybe_exchange_for_changeling(
         self, player: PlayerState, gained_card: Card
@@ -4344,13 +4191,14 @@ class GameState:
         if copy is not None:
             self.gain_card(player, copy)
 
-    def _handle_landing_party_gain(self, player: PlayerState, gained_card: Card) -> None:
+    def _handle_landing_party_gain(self, player: PlayerState, gained_card: Card, *, landing=None) -> None:
         if not gained_card.is_treasure:
             return
-        pending = self.landing_party_pending.get(id(player))
-        if not pending:
-            return
-        landing = pending.pop(0)
+        if landing is None:
+            pending = self.landing_party_pending.get(id(player))
+            if not pending:
+                return
+            landing = pending.pop(0)
         # Locate and remove the gained card from wherever it landed
         # (discard, deck, or hand via gain-to-hand effects). If we cannot
         # find it, abandon the Landing Party trigger rather than re-queueing
@@ -4401,14 +4249,14 @@ class GameState:
             return
         player.deliver_set_aside.append(gained_card)
 
-    def _handle_mining_road_gain(self, player: PlayerState, gained_card: Card) -> None:
+    def _handle_mining_road_gain(self, player: PlayerState, gained_card: Card, *, claimed=False) -> None:
         if player is not self.current_player:
             return
         if not gained_card.is_treasure:
             return
         if not any(card.name == "Mining Road" for card in player.in_play):
             return
-        if getattr(player, "mining_road_triggered", False):
+        if not claimed and getattr(player, "mining_road_triggered", False):
             return
         player.mining_road_triggered = True
 
@@ -4575,19 +4423,20 @@ class GameState:
         if self._remove_gained_card_from_zones(player, gained_card):
             player.deck.append(gained_card)
 
-    @staticmethod
-    def _remove_gained_card_from_zones(player: PlayerState, card: Card) -> bool:
+    def _remove_gained_card_from_zones(self, player: PlayerState, card: Card) -> bool:
         """Remove ``card`` from hand, discard, or deck if present."""
 
-        if card in player.discard:
-            player.discard.remove(card)
-            return True
-        if card in player.deck:
-            player.deck.remove(card)
-            return True
-        if card in player.hand:
-            player.hand.remove(card)
-            return True
+        destinations = getattr(self, "_gain_destinations", {})
+        if card in destinations:
+            origin = destinations[card]
+            if origin is None or card not in origin or not any(origin is z for z in (player.hand, player.deck, player.discard)):
+                destinations[card] = None
+                return False
+        for zone in (player.discard, player.deck, player.hand):
+            if card in zone:
+                zone.remove(card)
+                destinations[card] = None
+                return True
         return False
 
     def notify_invest(self, card_name: str, investing_player: PlayerState) -> None:
@@ -4725,21 +4574,23 @@ class GameState:
             self.supply[choice.name] -= 1
             self.gain_card(player, choice)
 
-    def _track_action_gain(self, player: PlayerState, card: Card) -> None:
+    def _track_action_gain(self, player: PlayerState, card: Card, *, number=None, sources=None, claimed=False) -> None:
         if not card.is_action:
             return
 
-        player.actions_gained_this_turn += 1
-
+        if number is None:
+            player.actions_gained_this_turn += 1
+            number = player.actions_gained_this_turn
+        active = player.in_play if sources is None else sources
         if (
-            player.actions_gained_this_turn == 3
-            and not player.cauldron_triggered
-            and any(card_in_play.name == "Cauldron" for card_in_play in player.in_play)
+            number == 3
+            and (claimed or not player.cauldron_triggered)
+            and any(card_in_play.name == "Cauldron" for card_in_play in active)
         ):
             player.cauldron_triggered = True
 
             cauldron_card = next(
-                (c for c in player.in_play if c.name == "Cauldron"),
+                (c for c in active if c.name == "Cauldron"),
                 None,
             )
 
@@ -5104,49 +4955,34 @@ class GameState:
                 if not player.ai.should_play_falconer(self, player, gainer, gained_card):
                     break
                 falconer = falconers[0]
-                # Rising Sun Daimyo: "the next time you play a non-Command
-                # Action card this turn, replay it" also covers a Falconer the
-                # turn player plays in reaction (e.g. during their Buy phase).
-                # Reserve the charge for THIS play before resolving it: the
-                # Falconer's own gain (a Trail, say) can nest another Falconer
-                # reaction, which must not consume the charge first.
-                replays = 0
-                if player is self.turn_player and getattr(player, "daimyo_pending", 0):
-                    replays, player.daimyo_pending = player.daimyo_pending, 0
-                if not self.play_action_from_hand_indirectly(player, falconer):
-                    player.daimyo_pending = getattr(player, "daimyo_pending", 0) + replays
+                if not self._play_falconer_reaction(player, gainer, gained_card, falconer, approved=True):
                     break
-                for _ in range(replays):
-                    if falconer not in player.in_play:
-                        break
-                    self.play_action_indirectly(player, falconer)
+
+    def _play_falconer_reaction(self, player, gainer, gained_card, falconer, *, approved=False):
+        """Play one physical reaction, reserving Daimyo before nested gains."""
+        if falconer not in player.hand:
+            return False
+        if not approved and not player.ai.should_play_falconer(self, player, gainer, gained_card):
+            return False
+        replays = 0
+        if player is self.turn_player and player.daimyo_pending:
+            replays, player.daimyo_pending = player.daimyo_pending, 0
+        if not self.play_action_from_hand_indirectly(player, falconer):
+            player.daimyo_pending += replays
+            return False
+        for _ in range(replays):
+            if falconer not in player.in_play:
+                break
+            self.play_action_indirectly(player, falconer)
+        return True
 
     def _handle_menagerie_gain_reactions(
         self, player: PlayerState, gained_card: Card
     ) -> None:
         """Sleigh / Sheepdog reactions in the gainer's own hand."""
-        # Sleigh: discard from hand to put gained card into hand or onto deck
-        for card in list(player.hand):
-            if card.name == "Sleigh" and hasattr(card, "react_to_own_gain"):
-                destination = self._gain_destinations.get(gained_card)
-                decision = card.react_to_own_gain(self, player, gained_card)
-                if decision in ("hand", "deck"):
-                    # Sleigh may be discarded after another mover, but can only
-                    # move a gain still in its original gain destination.
-                    if destination is None or gained_card not in destination:
-                        break
-                    destination.remove(gained_card)
-                    if decision == "hand":
-                        player.hand.append(gained_card)
-                    else:
-                        player.deck.append(gained_card)
-                    break
-        # Sheepdog: play from hand when you gain a card. Each Sheepdog in
-        # hand may independently react to the same gain event, so do not stop
-        # after the first successful reaction.
-        for card in list(player.hand):
-            if card.name == "Sheepdog" and hasattr(card, "react_to_own_gain"):
-                card.react_to_own_gain(self, player, gained_card)
+        from .gain_effects import GainEvent
+
+        GainEvent(self, player, gained_card).resolve()
 
     def _maybe_kiln_gain(self, player: PlayerState, played_card: Card) -> None:
         """Menagerie Kiln: gain a copy of the next card the player plays.
@@ -5177,11 +5013,11 @@ class GameState:
             self.supply[played_card.name] -= 1
             self.gain_card(player, copy)
 
-    def _handle_livery_gain(self, player: PlayerState, gained_card: Card, in_play_at_gain) -> None:
+    def _handle_livery_gain(self, player: PlayerState, gained_card: Card, in_play_at_gain, *, qualified=False) -> None:
         """Each Livery in play: gain a Horse when a card costing $4+ is gained."""
         if gained_card.name == "Horse":
             return
-        if self.get_card_cost(player, gained_card) < 4:
+        if not qualified and self.get_card_cost(player, gained_card) < 4:
             return
         livery_count = sum(1 for c in in_play_at_gain if c.name == "Livery")
         if livery_count <= 0:

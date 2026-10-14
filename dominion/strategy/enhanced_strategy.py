@@ -392,6 +392,7 @@ class EnhancedStrategy:
         self.gain_priority: list[PriorityRule] = []
         # None inherits existing gain/phase preferences; [] opts into only tactics.
         self.free_gain_priority: list[PriorityRule] | None = None
+        self.card_decision_policies: dict | None = None
         self.action_priority: list[PriorityRule] = []
         self.captain_target_priority: list[PriorityRule] = []
         self.band_of_misfits_target_priority: list[PriorityRule] = []
@@ -593,13 +594,24 @@ class EnhancedStrategy:
         Returning ``None`` lets :class:`GeneticAI` fall back to the generic
         Bounty Hunter policy, so a partial or condition-gated list is safe.
         """
-        return self._choose_from_priority(
-            self.bounty_hunter_exile_priority,
-            choices,
-            state,
-            player,
-            "bounty_hunter_exile",
-        )
+        choice = self._choose_from_priority(self.bounty_hunter_exile_priority, choices, state, player, "bounty_hunter_exile")
+        if choice is not None:
+            return choice
+        from .card_policies import policy
+        settings = policy(self, "bounty_hunter")
+        if not settings:
+            return None
+        exiled = {c.name for c in player.exile}
+        fresh = [c for c in choices if c.name not in exiled and (
+            c.name in {"Curse", "Copper", "Estate", "Duchy", "Province"}
+            or player.count(c.name) > settings.get("keep_good_copies", 1)
+        )]
+        if not settings.get("prefer_new_name", False) or not fresh:
+            return None
+        income = player.coins + sum(c.stats.coins for c in player.hand if state.is_treasure(c))
+        price = settings.get("buy_breakpoint", 8)
+        useful = [c for c in fresh if income - c.stats.coins < price <= income - c.stats.coins + 3]
+        return min(useful or fresh, key=lambda c: (c.cost.coins, c.name))
 
     def choose_way(self, state, player, card, ways):
         """Choose a Way from ``way_policy``, or apply the default
@@ -732,6 +744,12 @@ class EnhancedStrategy:
             state, player, self._unspecified(state, player, "action", choices) or choices
         )
 
+    def choose_gain_effect(self, state, player, gained_card, choices):
+        """Override simultaneous-effect order; existing fallback is first offered."""
+        from .card_policies import policy
+        first = policy(self, "gain_order").get("first")
+        return next((e for e in choices if e.kind == first), choices[0] if choices else None)
+
     def choose_free_gain(self, state, player, choices, context):
         """Override for destination, hand, ownership, stage, or sacrifice.
 
@@ -805,12 +823,23 @@ class EnhancedStrategy:
         by default so they do not clog the next hand.
         """
 
+        from .card_policies import policy
+        settings = policy(self, "watchtower")
+        if settings and gained_card.name == "Copper":
+            income = sum(c.stats.coins for c in player.all_cards() if state.is_treasure(c))
+            if income < settings.get("keep_copper_below_income", 0):
+                return None
         if gained_card.name in {"Curse", "Copper", "Ruins"}:
             return "trash"
         if gained_card.is_victory and not gained_card.is_action:
             return None
         if gained_card.is_action or gained_card.is_treasure:
-            if gained_card.cost.coins >= 4:
+            if settings and len(player.hand) > settings.get("topdeck_hand_limit", 8):
+                return None
+            if settings and gained_card.is_action and not gained_card.stats.actions:
+                if sum(c.is_action and not c.stats.actions for c in player.all_cards()) > settings.get("terminal_limit", 6):
+                    return None
+            if gained_card.cost.coins >= settings.get("topdeck_min_cost", 4):
                 return "topdeck"
         return None
 
@@ -822,6 +851,11 @@ class EnhancedStrategy:
         if not choices:
             return None
 
+        from .card_policies import policy
+        if policy(self, "clerk").get("dead_cards_first", False):
+            dead = [c for c in choices if c.is_victory and not state.is_action(c) and not state.is_treasure(c)]
+            if dead:
+                return min(dead, key=lambda c: (c.cost.coins, c.name))
         def burden(card: Card) -> tuple:
             return (
                 card.name not in {"Curse", "Copper", "Estate", "Hovel", "Overgrown Estate"},
@@ -837,31 +871,30 @@ class EnhancedStrategy:
     def should_play_clerk_reaction(self, state, player, clerk: Card | None = None) -> bool:
         """Play Clerk from hand at start of turn by default."""
 
-        return True
+        from .card_policies import policy
+        return policy(self, "clerk").get("play_at_start", True)
 
     def choose_investment_mode(self, state, player, can_trash_treasure: bool) -> str:
-        """Default Investment choice.
+        """Value self-trash using all live Treasure names in the actual hand.
 
-        Trash for VP when enough Treasure variety remains after trashing the
-        weakest Treasure; otherwise take the +$1.
+        The positional flag means Investment itself can be trashed. Retain the
+        historical keyword spelling for Python overrides; no second hand
+        Treasure is removed. The conservative ordinary cash-out threshold is
+        three names, discounted to two when the weakest Treasure name is
+        repeated; this preserves the established ordinary-hand choices without
+        pretending to remove another Treasure. Bounded settings are optional.
         """
-
-        if not can_trash_treasure:
-            return "coin"
-
-        choices = [card for card in player.hand if getattr(card, "is_treasure", False)]
-        trash = self.choose_treasure_to_trash_for_investment(state, player, choices)
-        remaining_names = {
-            card.name
-            for card in choices
-            if card is not trash and getattr(card, "is_treasure", False)
-        }
-        return "trash" if len(remaining_names) >= 2 else "coin"
+        from .card_policies import investment_mode
+        return investment_mode(self, state, player, can_trash_treasure)
 
     def choose_treasure_to_trash_for_investment(
         self, state, player, choices: list[Card]
     ) -> Optional[Card]:
-        """Investment: trash the weakest Treasure from hand."""
+        """Legacy compatibility selector; Investment never calls this hook.
+
+        Kept for explicit Python callers. The engine's mandatory hand trash
+        uses choose_trash; its second mode trashes Investment itself.
+        """
 
         if not choices:
             return None

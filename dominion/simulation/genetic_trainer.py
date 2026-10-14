@@ -1099,6 +1099,8 @@ class GeneticTrainer:
             if random.random() < 0.5:
                 child.free_gain_priority = deepcopy(getattr(parent2, "free_gain_priority", None))
 
+        from dominion.strategy.card_policies import crossover_policies
+        crossover_policies(child, parent1, parent2, random)
         return child
 
     def _mutate(self, strategy: BaseStrategy) -> BaseStrategy:
@@ -1114,6 +1116,8 @@ class GeneticTrainer:
             self._mutate_way_policy(strategy)
             return strategy
 
+        from dominion.strategy.card_policies import mutate_policies
+        mutate_policies(strategy, self.kingdom_cards, self.mutation_rate, random)
         # --- Mutate gain priorities ---
         # Condition mutations: drop, replace, or fresh-from-none
         for priority in strategy.gain_priority:

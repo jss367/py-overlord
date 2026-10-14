@@ -238,11 +238,12 @@ class SecludedShrine(Card):
         # waiting until its owner gains a Treasure.
         self.duration_persistent = self.shrine_armed
 
-    def on_owner_gains_treasure(self, game_state, player):
+    def on_owner_gains_treasure(self, game_state, player, *, charges=None):
         """Resolve every pending "next time you gain a Treasure" trigger."""
-        if not self.shrine_armed:
-            return
-        charges, self.shrine_charges = self.shrine_charges, 0
+        if charges is None:
+            if not self.shrine_armed:
+                return
+            charges, self.shrine_charges = self.shrine_charges, 0
         self.duration_persistent = False
         for _ in range(2 * charges):
             if not player.hand:

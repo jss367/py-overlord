@@ -262,6 +262,7 @@ def genome_signature(strategy: BaseStrategy) -> tuple:
         (r.card_name, r.way_name, condition_signature(r.condition))
         for r in getattr(strategy, "way_policy", []) or []
     )
+    from dominion.strategy.card_policies import policy_signature
     return (
         rule_sig(getattr(strategy, "gain_priority", [])),
         None if getattr(strategy, "free_gain_priority", None) is None else rule_sig(strategy.free_gain_priority),
@@ -270,6 +271,7 @@ def genome_signature(strategy: BaseStrategy) -> tuple:
         rule_sig(getattr(strategy, "trash_priority", [])),
         rule_sig(getattr(strategy, "bounty_hunter_exile_priority", [])),
         way_sig,
+        policy_signature(strategy),
     )
 
 
