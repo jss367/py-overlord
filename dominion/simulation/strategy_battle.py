@@ -182,7 +182,7 @@ class StrategyBattle:
         self.close()
 
     def _extract_cards_from_strategy(self, strat: EnhancedStrategy) -> set[str]:
-        """Return all names referenced by a strategy's priority lists."""
+        """Return names referenced by priority rules and bounded card policies."""
         references: set[str] = set()
         for priority_list in [
             strat.gain_priority,
@@ -205,6 +205,11 @@ class StrategyBattle:
                 references.add(card_name)
             if way_name:
                 references.add(way_name)
+
+        from dominion.strategy.card_policies import FAMILY_CARDS, validate_policies
+        policies = validate_policies(getattr(strat, "card_decision_policies", None)) or {}
+        for family in policies:
+            references.update(FAMILY_CARDS[family])
 
         references.update(getattr(strat, "landscapes", None) or [])
 

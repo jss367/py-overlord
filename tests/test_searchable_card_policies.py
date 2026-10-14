@@ -190,3 +190,20 @@ def test_direct_semantic_mutation_searches_card_parameters():
         assert mutate_strategic_strategy(strategy,INFO,1.0,rng)
     assert strategy.card_decision_policies
     assert strategy._strategic_genome.card_decision_policies==strategy.card_decision_policies
+
+
+@pytest.mark.parametrize('settings,expected', [
+    (None, set()), ({}, set()), ({'watchtower': {}}, {'Watchtower'}),
+    ({'investment': {'min_names': 2}}, {'Investment'}),
+    ({'clerk': {'play_at_start': False}}, {'Clerk'}),
+    ({'bounty_hunter': {'prefer_new_name': True}}, {'Bounty Hunter'}),
+    ({'gain_order': {'first': 'sheepdog'}}, {'Sleigh', 'Sheepdog', 'Cargo Ship'}),
+])
+def test_automatic_battle_board_includes_policy_only_references(tmp_path, settings, expected):
+    from dominion.simulation.strategy_battle import StrategyBattle
+    ours, other = EnhancedStrategy(), EnhancedStrategy()
+    ours.card_decision_policies = settings
+    battle = StrategyBattle(log_folder=str(tmp_path))
+    assert set(battle._determine_board_references(ours, other).kingdom_cards) == expected
+    battle.kingdom_cards = ['Village']
+    assert battle._determine_board_references(ours, other).kingdom_cards == ['Village']
