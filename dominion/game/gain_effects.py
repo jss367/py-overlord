@@ -278,7 +278,7 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
                     owner = getattr(c, 'virtual_supply_owner', None)
                     if owner is not None and c not in getattr(owner, 'duration_targets', []):
                         owner.duration_targets = getattr(owner, 'duration_targets', []) + [c]
-            add('cargo_ship', cargo_gain, source=cargo, priority=48,
+            add('cargo_ship', cargo_gain, source=getattr(cargo, 'instruction_source', cargo), priority=48,
                 eligible=lambda c=cargo: c.waiting_for_gain and event.movable())
     if gained_cost.coins >= 4 and gained.name != 'Horse':
         for livery in [c for c in in_play if c.name == 'Livery']:

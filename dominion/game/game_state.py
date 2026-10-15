@@ -2124,6 +2124,14 @@ class GameState:
             player._resolving_duration_sources = previous_sources
 
     def _resolve_duration_snapshot(self, player, snapshot):
+        from .inheritance import reconcile_duration_owners
+
+        reconcile_duration_owners(player)
+        origins = []
+        for name, cards in zip(("duration", "multiplied_durations"), snapshot):
+            for card in cards:
+                owners = player.inherited_duration_plays.get((name, card), [])
+                origins.append(owners.pop(0) if owners else None)
         for zone, cards in zip((player.duration, player.multiplied_durations), snapshot):
             for card in cards:
                 if card in zone:
@@ -2139,11 +2147,20 @@ class GameState:
             ):
                 player.in_play.append(card)
         rescheduled = []
-        for card in snapshot[0] + snapshot[1]:
+        for card, origin in zip(snapshot[0] + snapshot[1], origins):
             pending_before = player.duration.count(card)
             coins_before, actions_before = player.coins, player.actions
             owner = getattr(card, "virtual_supply_owner", None)
-            if owner is None:
+            if origin is not None:
+                before = origin.snapshot()
+                previous_targets = getattr(card, "duration_targets", [])
+                card.duration_targets = []
+                try:
+                    card.on_duration(self)
+                finally:
+                    origin.record(before)
+                    card.duration_targets = previous_targets
+            elif owner is None:
                 card.on_duration(self)
             else:
                 before = Counter(player.duration + player.multiplied_durations)
@@ -2173,12 +2190,17 @@ class GameState:
                 # whose physical card has left play. Some legacy cards enqueue
                 # themselves, in which case this invocation already has an entry.
                 player.duration.append(card)
+                if origin is not None:
+                    player.inherited_duration_plays.setdefault(("duration", card), []).append(origin)
                 rescheduled.append(card)
         # Shared set-aside storage (such as a repeated Archive) can be exhausted
         # by a later invocation in this same batch. Release earlier renewals too.
         for card in rescheduled:
             if not getattr(card, "duration_persistent", False) and card in player.duration:
                 player.duration.remove(card)
+                owners = player.inherited_duration_plays.get(("duration", card), [])
+                if owners:
+                    owners.pop(0)
 
     def handle_action_phase(self):
         """Handle the action phase of a turn."""
@@ -3275,10 +3297,21 @@ class GameState:
             or getattr(card, "permanent_set_aside", False)
             or (card in owned and card not in moved_from_play)
         }
+        from .inheritance import InheritedPlay, reconcile_duration_owners
+
+        reconcile_duration_owners(player)
+        retained.update(play for plays in player.inherited_duration_plays.values() for play in plays)
+        candidates = set(player.in_play)
+        pending = list(candidates)
+        while pending:
+            for target in getattr(pending.pop(), "duration_targets", []):
+                if isinstance(target, InheritedPlay) and target not in candidates:
+                    candidates.add(target)
+                    pending.append(target)
         changed = True
         while changed:
             changed = False
-            for card in player.in_play:
+            for card in candidates:
                 if card not in retained and any(
                     target in retained for target in getattr(card, "duration_targets", [])
                 ):
@@ -5160,13 +5193,22 @@ class GameState:
         if target is None:
             return
         target.permanent_set_aside = True
-        before = Counter(player.duration + player.multiplied_durations)
+        from .inheritance import InheritedPlay
+
+        play = InheritedPlay(player, estate, target)
+        before = play.snapshot()
+        previous_targets = getattr(target, "duration_targets", [])
+        target.duration_targets = []
         try:
             self.play_action_indirectly(player, target)
         finally:
-            self._attach_supply_duration_targets(player, estate, target, before)
-            if getattr(target, "waiting_for_gain", False) and target not in player.virtual_gain_effects:
-                player.virtual_gain_effects.append(target)
+            play.record(before)
+            target.duration_targets = previous_targets
+            estate.duration_targets = getattr(estate, "duration_targets", []) + [play]
+            play.waiting = getattr(target, "waiting_for_gain", False)
+            play.waiting_turn = getattr(target, "_gain_turn", None)
+            if play.waiting:
+                player.virtual_gain_effects.append(play)
 
     # ------------------------------------------------------------------
     # Adventures: Pile tokens (Lost Arts / Training / Pathfinding / Seaway /

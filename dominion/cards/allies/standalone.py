@@ -345,15 +345,15 @@ class RoyalGalley(Card):
         player.in_play.remove(choice)
         self._set_aside.append(choice)
         self.duration_persistent = False
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):
         player = game_state.current_player
         if not self._set_aside:
             return
-        cards = list(self._set_aside)
-        self._set_aside = []
+        count = 1 if getattr(self, "permanent_set_aside", False) else len(self._set_aside)
+        cards, self._set_aside = self._set_aside[:count], self._set_aside[count:]
         for card in cards:
             player.in_play.append(card)
             game_state.play_action_indirectly(

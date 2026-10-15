@@ -2,11 +2,12 @@
   "engine_label": "before-current-type-rules",
   "simulation_fingerprint": "9e54a2fe309821d3e1c311f6f385dd51ea72bd0e1837a8c5e82067eee2d41dca",
   "runner_hashes": {
-    "scripts/evaluate_capitalism_inheritance_compatibility.py": "70a4e15ff3742325a9021d1fbaf861392a87c300ff8fe501870614fa463f44dc",
+    "scripts/evaluate_capitalism_inheritance_compatibility.py": "9eb43a32d7bf47c84d8636e76ad2757055e1f6ffbdd804e23c5aca7f66c075eb",
     "scripts/evaluate_named_card_decisions.py": "517d6ee2d317a1400644044724234230a023b5e2dbc146e41bc64a7e20bfbc7b",
     "scripts/evaluate_card_tactics.py": "9dc514f6826bcb3d2e3454d2fadf55a0c3b61c131aef29ecf3eb62327f890ac6"
   },
   "python_version": "3.14.3",
+  "python_hash_seed": "0",
   "seed": 20261015,
   "pairs": 10,
   "turn_limit": 150,

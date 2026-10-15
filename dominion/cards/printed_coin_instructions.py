@@ -1,9 +1,8 @@
-"""Printed +$ instructions for Capitalism, independent of executable stats.
+"""Printed +$ text for Capitalism, independent of executable stats.
 
-Conditional choices, below-the-line instructions and future-turn bonuses count.
-Coffers, cost changes, token placement and following another card's text do not.
-The complementary sets deliberately require a decision for each registered Action;
-see docs/capitalism-card-classification.md for the rules and audit scope.
+Choices, future bonuses and Teacher's +coin token reference count. Coffers and
+cost amounts without a printed plus do not. The complementary sets require an
+explicit decision for every registered Action; see the classification notes.
 """
 
 ACTIONS_WITH_PRINTED_COINS = frozenset({
@@ -48,7 +47,7 @@ ACTIONS_WITH_PRINTED_COINS = frozenset({
     'Duchess',
     'Elder',
     'Embargo',
-    'Encampment',
+    'Emporium',
     "Farmers' Market",
     'Festival',
     'Fisherman',
@@ -65,7 +64,6 @@ ACTIONS_WITH_PRINTED_COINS = frozenset({
     'Gatekeeper',
     'Giant',
     'Gladiator',
-    'Goatherd',
     'Goons',
     'Grand Market',
     'Guildmaster',
@@ -86,7 +84,6 @@ ACTIONS_WITH_PRINTED_COINS = frozenset({
     'Lighthouse',
     'Livery',
     'Mandarin',
-    'Marauder',
     'Marchland',
     'Market',
     'Mercenary',
@@ -149,6 +146,7 @@ ACTIONS_WITH_PRINTED_COINS = frozenset({
     'Sycophant',
     'Taskmaster',
     'Tea House',
+    'Teacher',
     'Tent',
     'Tormentor',
     'Tournament',
@@ -250,7 +248,7 @@ ACTIONS_WITHOUT_PRINTED_COINS = frozenset({
     'Duplicate',
     'Embassy',
     'Emissary',
-    'Emporium',
+    'Encampment',
     'Enchantress',
     'Engineer',
     'Envoy',
@@ -275,6 +273,7 @@ ACTIONS_WITHOUT_PRINTED_COINS = frozenset({
     'Fugitive',
     'Gear',
     'Ghost Ship',
+    'Goatherd',
     'Gold Mine',
     'Golem',
     'Governor',
@@ -331,6 +330,7 @@ ACTIONS_WITHOUT_PRINTED_COINS = frozenset({
     'Magnate',
     'Magpie',
     'Mapmaker',
+    'Marauder',
     'Margrave',
     'Market Square',
     'Maroon',
@@ -448,7 +448,6 @@ ACTIONS_WITHOUT_PRINTED_COINS = frozenset({
     'Tactician',
     'Tanuki',
     'Taxman',
-    'Teacher',
     'Temple',
     'Thief',
     'Throne Room',

@@ -26,7 +26,7 @@ class Prince(Card):
             choice = affordable[0]
         player.hand.remove(choice)
         self.set_aside_card = choice
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):

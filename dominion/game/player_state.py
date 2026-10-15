@@ -214,6 +214,7 @@ class PlayerState:
     # Adventures Inheritance.
     inherited_action_name: str | None = None
     inherited_action: Card | None = None
+    inherited_duration_plays: dict = field(default_factory=dict)
     inheritance_used: bool = False
     # Adventures Borrow / Alms once-per-turn locks.
     borrow_used_this_turn: bool = False
@@ -423,6 +424,7 @@ class PlayerState:
         self.plan_trash_piles = set()
         self.inherited_action_name = None
         self.inherited_action = None
+        self.inherited_duration_plays = {}
         self.inheritance_used = False
         self.borrow_used_this_turn = False
         self.alms_used_this_turn = False

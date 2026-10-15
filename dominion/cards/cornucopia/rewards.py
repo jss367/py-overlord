@@ -105,8 +105,7 @@ class Renown(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self in player.in_play:
-            player.cost_reduction += 2
+        player.cost_reduction += 2
 
 
 class Courser(Card):

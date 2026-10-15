@@ -13,7 +13,7 @@ from dominion.projects.guildhall import Guildhall
 from tests.test_named_card_decisions import make_state
 
 
-CONDITIONAL = ["Courtier", "Minion", "Moneylender", "Spice Merchant", "Baron", "Mill", "Ironworks", "Broker", "Sycophant", "Town", "Town Crier", "Merchant", "Harbor Village", "Storyteller"]
+CONDITIONAL = ["Courtier", "Minion", "Moneylender", "Spice Merchant", "Baron", "Mill", "Ironworks", "Broker", "Sycophant", "Town", "Town Crier", "Merchant", "Harbor Village", "Storyteller", "Teacher"]
 DELAYED = ["Amulet", "Caravan Guard", "Sailor", "Secret Cave", "Swamp Hag", "Samurai"]
 
 
@@ -47,7 +47,7 @@ def test_conditional_and_future_coins_are_live_everywhere_on_actual_owners_turn(
     assert not state.is_treasure(card)
 
 
-@pytest.mark.parametrize("name", ["Baker", "Butcher", "Candlestick Maker", "Villain", "Inventor", "Highway", "Carpenter", "Modify", "Teacher", "Coppersmith", "Bandit Camp", "Captain", "Throne Room"])
+@pytest.mark.parametrize("name", ["Baker", "Butcher", "Candlestick Maker", "Villain", "Inventor", "Highway", "Carpenter", "Modify", "Coppersmith", "Bandit Camp", "Captain", "Throne Room"])
 def test_coffers_costs_tokens_and_playing_other_cards_do_not_qualify(name):
     state, player = make_state()
     player.projects = [Capitalism()]
@@ -142,3 +142,25 @@ def test_storyteller_initial_coin_and_nested_conditional_treasure_play():
     assert player.actions_played == 2
     assert player.coins == 0
     assert len(player.hand) == 3  # Storyteller's initial coin plus Minion's two.
+
+
+@pytest.mark.parametrize("name,qualifies", [("Emporium", True), ("Encampment", False), ("Goatherd", False), ("Marauder", False)])
+def test_publisher_classification_overrides_incorrect_legacy_card_stats(name, qualifies):
+    state, player = make_state()
+    player.projects = [Capitalism()]
+    card = get_card(name)
+    assert state.is_treasure(card) == qualifies
+    player.hand = [card]
+    state.phase = "buy"
+    player.ai.choose_treasure = lambda s, choices: next((c for c in choices if c is card), None)
+    state.handle_treasure_phase()
+    assert (card in player.in_play) == qualifies
+    assert (card in player.hand) != qualifies
+
+
+def test_teacher_qualifies_but_its_plus_coin_token_does_not_change_smithys_text():
+    state, player = make_state()
+    player.projects = [Capitalism()]
+    state.add_pile_token(player, "Smithy", "+$1")
+    assert state.is_treasure(get_card("Teacher"))
+    assert not state.is_treasure(get_card("Smithy"))

@@ -9,6 +9,7 @@ from concurrent.futures import ProcessPoolExecutor
 from collections import Counter
 import hashlib
 import json
+import os
 from pathlib import Path
 import platform
 import random
@@ -90,6 +91,8 @@ def main():
     args = parser.parse_args()
     if args.output.exists() or args.pairs < 2 or args.workers < 1 or args.seed < 0:
         parser.error("Use a fresh output, at least two pairs, positive workers and a nonnegative seed")
+    # Spawned workers use the same string/set hash seed as well as game RNG seeds.
+    os.environ.setdefault("PYTHONHASHSEED", "0")
     fingerprint, runner_hashes = tournament_fingerprint(), hashes()
     panels = [(s, m, r) for s in SUBJECTS for m in MODIFIERS for r in OPPONENTS]
     tasks = [(s, m, r, args.pairs, args.seed + i * 10000) for i, (s, m, r) in enumerate(panels)]
@@ -99,6 +102,7 @@ def main():
         raise RuntimeError("Simulation inputs changed during measurement")
     result = {"engine_label": args.engine_label, "simulation_fingerprint": fingerprint,
               "runner_hashes": runner_hashes, "python_version": platform.python_version(),
+              "python_hash_seed": os.environ["PYTHONHASHSEED"],
               "seed": args.seed, "pairs": args.pairs, "turn_limit": TURN_LIMIT,
               "kingdom": KINGDOM, "total_games": len(rows) * args.pairs * 2,
               "limitations": "Fixed baseline policies (Estates prioritized and removed from explicit trash priorities with Inheritance), artificial symmetric starting modifiers, one mixed board, three fixed opponents, no policy selection or purchase-timing claim. Match seeds and seats across engines; RNG streams can diverge after rule differences. Capped games are reported, not silently treated as completed.",

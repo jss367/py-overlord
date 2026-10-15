@@ -71,7 +71,8 @@ def test_caravan_source_stays_separate_and_retains_estate(replay):
     assert player.actions_played == 2 * plays
     assert player.duration == [target] * plays
     assert target not in player.in_play
-    assert estate.duration_targets == [target]
+    assert len(estate.duration_targets) == plays
+    assert all(play.instruction_source is target for play in estate.duration_targets)
     assert len(player.hand) == plays
     assert len(player.all_cards()) == 14
     state.handle_cleanup_phase()
@@ -142,7 +143,7 @@ def test_two_estates_share_one_physical_source_with_distinct_plays():
     state.handle_action_phase()
     assert player.actions_played == 4
     assert player.duration == [target, target]
-    assert all(c.duration_targets == [target] for c in estates)
+    assert all(c.duration_targets[0].instruction_source is target for c in estates)
     assert player.all_cards().count(target) == 1
     state.handle_cleanup_phase()
     assert all(c in player.in_play for c in estates)
@@ -160,7 +161,7 @@ def test_inherited_multiplier_retains_estate_for_its_nested_duration():
     state.handle_action_phase()
     assert player.actions_played == 4
     assert throne not in player.in_play
-    assert caravan in estate.duration_targets
+    assert caravan in estate.duration_targets[0].duration_targets
     state.handle_cleanup_phase()
     assert estate in player.in_play
     state.do_duration_phase()
@@ -322,3 +323,148 @@ def test_copied_game_keeps_inherited_cargo_ship_bound_to_copied_turn_and_owner()
     assert not cargo.set_aside
     assert estate in player.in_play
     assert owner.all_cards().count(gained) == 1
+
+
+def test_estates_do_not_share_an_earlier_multipliers_duration_dependency():
+    state, player, source = new_state("Throne Room")
+    first, second = get_card("Estate"), get_card("Estate")
+    caravan, smithy = get_card("Caravan"), get_card("Smithy")
+    player.deck = [get_card("Copper") for _ in range(20)]
+    player.hand = [caravan]
+    player.in_play = [first]
+    player.ai.choose_action = lambda s, choices: next((c for c in choices if c is caravan), None)
+    state.play_action_indirectly(player, first)
+    player.hand.append(smithy)
+    player.in_play.append(second)
+    player.ai.choose_action = lambda s, choices: next((c for c in choices if c is smithy), None)
+    state.play_action_indirectly(player, second)
+    state.handle_cleanup_phase()
+    assert first in player.in_play
+    assert second not in player.in_play
+    assert source not in player.in_play
+
+
+def test_delayed_multiplier_retains_only_the_estate_that_played_a_duration():
+    state, player, source = new_state("Mastermind", discount=1)
+    first, second = get_card("Estate"), get_card("Estate")
+    player.in_play = [first, second]
+    player.deck = [get_card("Copper") for _ in range(20)]
+    state.play_action_indirectly(player, first)
+    state.play_action_indirectly(player, second)
+    state.handle_cleanup_phase()
+    caravan, smithy = get_card("Caravan"), get_card("Smithy")
+    player.hand.extend([caravan, smithy])
+    player.ai.choose_mastermind_action = lambda s, p, choices: next((c for c in choices if c is caravan or c is smithy), None)
+    state.do_duration_phase()
+    state.handle_cleanup_phase()
+    assert source not in player.in_play
+    assert first in player.in_play
+    assert second not in player.in_play
+    state.do_duration_phase()
+    state.handle_cleanup_phase()
+    assert first not in player.in_play
+
+
+def test_only_the_estate_whose_cargo_ship_allowance_was_used_stays_out():
+    state, player, source = new_state("Cargo Ship")
+    player.ai.should_set_aside_cargo_ship = lambda *_: True
+    first, second = get_card("Estate"), get_card("Estate")
+    player.in_play = [first, second]
+    state.play_action_indirectly(player, first)
+    state.play_action_indirectly(player, second)
+    gold = state.gain_from_supply(player, "Gold")
+    assert source.set_aside == [gold]
+    state.handle_cleanup_phase()
+    assert first in player.in_play
+    assert second not in player.in_play
+    state.do_duration_phase()
+    assert gold in player.hand
+    state.handle_cleanup_phase()
+    assert first not in player.in_play
+
+
+@pytest.mark.parametrize("target", ["Grotto", "Secluded Shrine", "Crew", "Enchantress", "Secret Cave"])
+def test_shared_duration_queue_has_one_pending_owner_per_estate(target):
+    state, player, source = new_state(target, discount=1)
+    first, second = get_card("Estate"), get_card("Estate")
+    player.in_play = [first, second]
+    player.hand = [get_card("Copper") for _ in range(12)]
+    player.deck = [get_card("Copper") for _ in range(20)]
+    player.ai.choose_cards_to_set_aside_for_grotto = lambda s, p, choices: choices[:1]
+    player.ai.choose_secret_cave_discards = lambda s, p: p.hand[:3]
+    state.play_action_indirectly(player, first)
+    state.play_action_indirectly(player, second)
+    assert player.duration.count(source) == 2
+    state.handle_cleanup_phase()
+    assert first in player.in_play and second in player.in_play
+    if target == "Secluded Shrine":
+        state.gain_from_supply(player, "Gold")
+        assert source not in player.duration
+        state.handle_cleanup_phase()
+        assert first not in player.in_play and second not in player.in_play
+    else:
+        state.do_duration_phase()
+        state.handle_cleanup_phase()
+        assert first not in player.in_play and second not in player.in_play
+
+
+def test_shared_gear_declining_a_later_play_does_not_retain_that_estate():
+    state, player, source = new_state("Gear")
+    first, second = get_card("Estate"), get_card("Estate")
+    player.in_play = [first, second]
+    player.deck = [get_card("Copper") for _ in range(10)]
+    player.ai.choose_gear_set_aside = lambda s, p, choices: choices[:1]
+    state.play_action_indirectly(player, first)
+    player.ai.choose_gear_set_aside = lambda *_: []
+    state.play_action_indirectly(player, second)
+    state.handle_cleanup_phase()
+    assert first in player.in_play and second not in player.in_play
+
+
+def test_shared_royal_galley_keeps_each_delayed_play_with_its_estate():
+    state, player, source = new_state("Royal Galley")
+    first, second = get_card("Estate"), get_card("Estate")
+    player.in_play = [first, second]
+    player.deck = [get_card("Copper") for _ in range(30)]
+    for estate in [first, second]:
+        throne, smithy = get_card("Throne Room"), get_card("Smithy")
+        player.hand.extend([throne, smithy])
+        player.ai.choose_action = lambda s, choices, t=throne, m=smithy: next((c for c in choices if c is t or c is m), None)
+        state.play_action_indirectly(player, estate)
+    assert len(source.set_aside) == 2
+    state.handle_cleanup_phase()
+    caravan, village = get_card("Caravan"), get_card("Village")
+    player.hand.extend([caravan, village])
+    player.ai.choose_action = lambda s, choices: next((c for c in choices if c is caravan or c is village), None)
+    state.do_duration_phase()
+    assert not source.set_aside
+    state.handle_cleanup_phase()
+    assert first in player.in_play and second not in player.in_play
+    state.do_duration_phase()
+    state.handle_cleanup_phase()
+    assert first not in player.in_play
+
+
+def test_expired_off_turn_cargo_allowance_does_not_reactivate_on_a_later_play():
+    from dominion.game.player_state import PlayerState
+
+    state, player, source = new_state("Cargo Ship")
+    other = PlayerState(ChooseFirstActionAI())
+    other.inherited_action_name = "Village"
+    state.players.append(other)
+    state.current_player_index = 1
+    player.ai.should_set_aside_cargo_ship = lambda *_: True
+    first, second = get_card("Estate"), get_card("Estate")
+    player.in_play = [first]
+    state.play_action_as_owner_indirectly(player, first)
+    old = player.virtual_gain_effects[0]
+    assert old.waiting_for_gain
+    state.handle_cleanup_phase()
+    assert state.current_player is player
+    player.in_play.append(second)
+    state.play_action_indirectly(player, second)
+    assert not old.waiting_for_gain
+    gold = state.gain_from_supply(player, "Gold")
+    assert source.set_aside == [gold]
+    state.handle_cleanup_phase()
+    assert first not in player.in_play and second in player.in_play

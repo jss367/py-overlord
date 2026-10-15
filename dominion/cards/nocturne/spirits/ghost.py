@@ -46,7 +46,7 @@ class Ghost(Card):
             return
         self.set_aside.append(action_card)
         self.duration_persistent = True
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):

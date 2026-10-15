@@ -37,12 +37,12 @@ class Crypt(Card):
         if selected:
             self.set_aside.extend(selected)
             self.duration_persistent = True
-            if self not in player.duration:
+            if self not in player.duration or getattr(self, "permanent_set_aside", False):
                 player.duration.append(self)
         elif self.set_aside:
             # Already have set-aside cards from a previous play; keep duration active.
             self.duration_persistent = True
-            if self not in player.duration:
+            if self not in player.duration or getattr(self, "permanent_set_aside", False):
                 player.duration.append(self)
         else:
             # No treasures were set aside – ensure previous state is cleared.
