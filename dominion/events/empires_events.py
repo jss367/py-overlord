@@ -63,7 +63,7 @@ class Advance(Event):
         super().__init__("Advance", CardCost(coins=0))
 
     def on_buy(self, game_state, player) -> None:
-        actions_in_hand = [c for c in player.hand if c.is_action]
+        actions_in_hand = [c for c in player.hand if game_state.is_action(c)]
         if not actions_in_hand:
             return
         chosen = player.ai.choose_card_to_trash(game_state, actions_in_hand + [None])
@@ -77,7 +77,7 @@ class Advance(Event):
             if count <= 0:
                 continue
             card = get_card(name)
-            if card.is_action and card.cost.coins <= 6 and card.cost.potions == 0 and card.cost.debt == 0:
+            if game_state.is_action(card) and card.cost.coins <= 6 and card.cost.potions == 0 and card.cost.debt == 0:
                 candidates.append(card)
         if candidates:
             candidates.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)

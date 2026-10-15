@@ -46,7 +46,7 @@ class Summon(Event):
                     card = get_card(name)
                 except ValueError:
                     continue
-            if not card.is_action:
+            if not game_state.is_action(card):
                 continue
             if card.cost.potions or card.cost.debt:
                 continue

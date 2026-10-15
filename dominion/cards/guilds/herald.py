@@ -21,7 +21,7 @@ class Herald(Card):
             return
 
         card = player.deck.pop()
-        if card.is_action:
+        if game_state.is_action(card):
             player.in_play.append(card)
             card.on_play(game_state)
             game_state.fire_ally_play_hooks(player, card)

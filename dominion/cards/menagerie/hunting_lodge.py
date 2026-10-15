@@ -28,7 +28,7 @@ class HuntingLodge(Card):
             return
 
         # Simple heuristic: discard unless hand already has Province-buying power
-        total_coins = sum(c.stats.coins for c in player.hand if c.is_treasure)
+        total_coins = sum(c.stats.coins for c in player.hand if game_state.is_treasure(c))
         should_discard = total_coins < 8
 
         if should_discard:

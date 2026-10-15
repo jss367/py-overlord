@@ -25,9 +25,9 @@ class Ironmonger(Card):
             return
 
         # Apply conditional bonuses based on the revealed card's type
-        if revealed.is_action:
+        if game_state.is_action(revealed):
             player.actions += 1
-        if revealed.is_treasure:
+        if game_state.is_treasure(revealed):
             player.coins += 1
         if revealed.is_victory or revealed.name == "Curse":
             game_state.draw_cards(player, 1)

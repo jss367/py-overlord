@@ -33,11 +33,11 @@ class Continue(Event):
                 card = get_card(name)
             except ValueError:
                 continue
-            if not card.is_action:
+            if not game_state.is_action(card):
                 continue
             if card.is_attack:
                 continue
-            if card.is_command:
+            if game_state.is_command(card):
                 continue
             if card.cost.potions > 0:
                 continue

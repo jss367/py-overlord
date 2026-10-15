@@ -28,7 +28,7 @@ class Golem(Card):
             if not player.deck:
                 break
             card = player.deck.pop()
-            if card.is_action and card.name != "Golem":
+            if game_state.is_action(card) and card.name != "Golem":
                 actions_found.append(card)
             else:
                 non_actions.append(card)

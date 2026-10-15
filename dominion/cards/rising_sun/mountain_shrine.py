@@ -29,5 +29,5 @@ class MountainShrine(Card):
                 player.hand.remove(trash_choice)
                 game_state.trash_card(player, trash_choice)
 
-        if any(c.is_action for c in game_state.trash):
+        if any(game_state.is_action(c) for c in game_state.trash):
             game_state.draw_cards(player, 2)

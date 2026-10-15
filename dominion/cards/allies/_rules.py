@@ -151,12 +151,12 @@ def rotate(state, player, pile):
 
 def play_from_hand(state, player, *, treasures=False):
     choices = [
-        c for c in player.hand if c.is_action or (treasures and state.is_treasure(c))
+        c for c in player.hand if state.is_action(c) or (treasures and state.is_treasure(c))
     ]
     if not choices or not state._voyage_can_play_from_hand(player):
         return None
     default = player.ai.choose_action(
-        state, [c for c in choices if c.is_action] + [None]
+        state, [c for c in choices if state.is_action(c)] + [None]
     )
     if default is None and treasures:
         default = player.ai.choose_treasure(
@@ -165,7 +165,7 @@ def play_from_hand(state, player, *, treasures=False):
     choice = decide(state, player, "play_from_hand", [None] + choices, default)
     if choice is None or not state.move_card_from_hand_to_play(player, choice):
         return None
-    if choice.is_action:
+    if state.is_action(choice):
         if not state.play_action_indirectly(
             player, choice, blocked_return_zone=player.hand
         ):

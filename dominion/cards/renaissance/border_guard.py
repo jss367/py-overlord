@@ -48,7 +48,7 @@ class BorderGuard(Card):
         # cost Action, otherwise highest-cost card.
         keep = max(
             revealed,
-            key=lambda c: (c.is_action, c.cost.coins, c.stats.cards, c.name),
+            key=lambda c: (game_state.is_action(c), c.cost.coins, c.stats.cards, c.name),
         )
         revealed.remove(keep)
         player.hand.append(keep)
@@ -57,7 +57,7 @@ class BorderGuard(Card):
 
         # If all originally revealed cards were Actions, take Horn or Lantern.
         original_count = 1 + len(revealed)
-        all_actions = keep.is_action and all(c.is_action for c in revealed)
+        all_actions = game_state.is_action(keep) and all(game_state.is_action(c) for c in revealed)
         if all_actions and original_count == reveal_count:
             self._take_artifact(game_state, player)
 

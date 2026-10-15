@@ -164,7 +164,7 @@ def reviewed_decisions():
         audit = audits[name]
         audits[name] = Audit(
             "Victim trash and mandatory trash-pile gain" if name == "Rogue" else audit.decision,
-            "Scoped physical choices / timing / live types audited; wider Inheritance / conditional Capitalism unreviewed (#427, #429)",
+            "Scoped physical choices / timing / live types audited; current Inheritance and printed Capitalism classification covered separately (#427, #429)",
             "Connected/tested",
             "Evaluated: fixed-priority diagnostic screen and fresh validation; no replacement established; saved study predates review-only rule follow-ups",
             audit.hooks + additional_hooks.get(name, ()),
@@ -225,6 +225,17 @@ def reviewed_decisions():
             tactical="Unreviewed: no isolated preference comparison",
             evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",),
             followups=(436,), adapter=adapter)
+    for name, hooks in (
+        ("Archive", ("choose_archive_card",)),
+        ("Cargo Ship", ("should_set_aside_cargo_ship",)),
+        ("Church", ("choose_cards_to_set_aside_for_church", "choose_church_trash")),
+    ):
+        add((name,), "Repeated physical source storage and next-turn instructions", hooks,
+            ("tests/test_inheritance_reserve_duration.py",),
+            rules="Scoped Inheritance / replay storage / return / ownership audit; other interactions unreviewed",
+            wiring="Existing callbacks exercised through physical source plays",
+            evidence=("reports/strategies/capitalism-and-inheritance-rules-and-policy-compatibility.html",),
+            followups=(427,), adapter="dominion/ai/base_ai.py")
     return audits
 
 

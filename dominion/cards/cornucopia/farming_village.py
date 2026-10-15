@@ -23,7 +23,7 @@ class FarmingVillage(Card):
                 break
 
             card = player.deck.pop()
-            if card.is_action or card.is_treasure:
+            if game_state.is_action(card) or game_state.is_treasure(card):
                 player.hand.append(card)
                 break
 

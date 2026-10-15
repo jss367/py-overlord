@@ -36,7 +36,7 @@ class Ghost(Card):
             if not player.deck:
                 break
             top = player.deck.pop()
-            if top.is_action:
+            if game_state.is_action(top):
                 action_card = top
                 break
             revealed.append(top)
@@ -46,7 +46,7 @@ class Ghost(Card):
             return
         self.set_aside.append(action_card)
         self.duration_persistent = True
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):

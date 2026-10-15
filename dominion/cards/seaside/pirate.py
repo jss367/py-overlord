@@ -37,7 +37,7 @@ class Pirate(Card):
             if count <= 0:
                 continue
             card = get_card(name)
-            if card.is_treasure and card.cost.coins <= 6:
+            if game_state.is_treasure(card) and card.cost.coins <= 6:
                 if best_treasure is None or card.cost.coins > best_treasure.cost.coins:
                     best_treasure = card
 

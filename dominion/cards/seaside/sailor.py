@@ -61,7 +61,7 @@ class Sailor(Card):
         # Treasure-Durations (Astrolabe, Cargo Ship). Only treat the play
         # as an Action play (bumping actions_this_turn / firing
         # action-played hooks) when the gained card actually is an Action.
-        if gained_card.is_action:
+        if game_state.is_action(gained_card):
             game_state.play_action_indirectly(
                 owner, gained_card, blocked_return_zone=return_zone
             )

@@ -28,7 +28,7 @@ class Hermit(Card):
         player = game_state.current_player
 
         # 1. May trash a non-Treasure from discard or hand.
-        choices = [c for c in player.discard + player.hand if not c.is_treasure]
+        choices = [c for c in player.discard + player.hand if not game_state.is_treasure(c)]
         chosen = player.ai.should_trash_with_hermit(game_state, player, choices)
         if chosen and chosen in choices:
             if chosen in player.hand:

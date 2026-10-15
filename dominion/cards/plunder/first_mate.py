@@ -18,7 +18,7 @@ class FirstMate(Card):
         player = game_state.current_player
 
         # Determine all Action cards currently in hand.
-        actions_in_hand = [c for c in player.hand if c.is_action]
+        actions_in_hand = [c for c in player.hand if game_state.is_action(c)]
         if not actions_in_hand:
             # No Action cards to play, just draw up to six.
             self._draw_to_six(game_state, player)

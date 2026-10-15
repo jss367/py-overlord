@@ -38,7 +38,7 @@ class Inn(Card):
         super().on_gain(game_state, player)
 
         # Gather the action cards currently in the discard pile.
-        action_cards = [card for card in player.discard if card.is_action]
+        action_cards = [card for card in player.discard if game_state.is_action(card)]
 
         if not action_cards:
             return

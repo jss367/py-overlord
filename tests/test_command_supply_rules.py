@@ -449,8 +449,8 @@ def test_cleanup_gain_retains_virtual_cargo_ship_owner(command, gain_source, mul
         assert throne in player.in_play
         assert throne.duration_targets == [owner]
     cargos = [c for c in player.duration if c.name == "Cargo Ship"]
-    assert cargos and all(c.set_aside is not None for c in cargos)
-    stored = [c.set_aside for c in cargos]
+    assert cargos and all(bool(c.set_aside) for c in cargos)
+    stored = [card for c in cargos for card in c.set_aside]
     assert all(c in player.all_cards() for c in stored)
     assert player.count("Cargo Ship") == 0
     state.do_duration_phase()

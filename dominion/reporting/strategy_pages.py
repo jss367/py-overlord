@@ -51,9 +51,16 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="capitalism-and-inheritance-rules-and-policy-compatibility.html",
+        display_name="Capitalism and Inheritance: Current Rules and Policy Compatibility",
+        description="Explicit printed coin classification, distinct Estate and set-aside plays, Duration ownership regressions and 1,440 matched compatibility games on separate engine fingerprints.",
+        kingdom_cards=("Courtier", "Stables", "Spice Merchant", "Counterfeit", "Moneylender", "Minion", "Merchant", "Cargo Ship", "Church", "Archive"),
+        source_label="Publisher rules, physical engine regressions and 1,440 matched games",
+    ),
+    CuratedStrategyGuide(
         filename="remaining-named-card-decisions-and-rules.html",
         display_name="Remaining Card Decisions: Rules and Tactical Evaluation",
-        description="Fourteen fixed-priority decision comparisons, scoped rules fixes, fresh validation and seventeen registered strategy compatibility checks; existing preferences retained and wider Inheritance work explicit.",
+        description="Fourteen fixed-priority decision comparisons, scoped rules fixes, fresh validation and seventeen registered strategy compatibility checks; existing preferences retained; later type-rule compatibility evidence linked separately.",
         kingdom_cards=("Courtier", "Courier", "Knights", "Rogue", "Stables", "Spice Merchant",
                        "Armory", "Artificer", "Scheme", "Chapel", "Junk Dealer", "Counterfeit",
                        "Moneylender", "Minion", "Trader", "Groom", "Replace", "Wild Hunt", "Hoard"),

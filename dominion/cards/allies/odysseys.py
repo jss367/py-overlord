@@ -76,7 +76,7 @@ class SunkenTreasure(_Odysseys):
             game_state,
             p,
             candidates(
-                game_state, predicate=lambda c: c.is_action and c.name not in names
+                game_state, predicate=lambda c: game_state.is_action(c) and c.name not in names
             ),
         )
 

@@ -83,6 +83,8 @@ class PlayerState:
     donate_pending: int = 0
     # Rising Sun: Daimyo replays the next non-Command Action card played
     daimyo_pending: int = 0
+    daimyo_sources: list[Card] = field(default_factory=list)
+    daimyo_turn: tuple | None = None
     continue_used_this_turn: bool = False
     foresight_set_aside: list = field(default_factory=list)
     # Rising Sun: Kintsugi event cares whether Gold has ever been gained.
@@ -213,6 +215,8 @@ class PlayerState:
     plan_trash_piles: set = field(default_factory=set)
     # Adventures Inheritance.
     inherited_action_name: str | None = None
+    inherited_action: Card | None = None
+    inherited_duration_plays: dict = field(default_factory=dict)
     inheritance_used: bool = False
     # Adventures Borrow / Alms once-per-turn locks.
     borrow_used_this_turn: bool = False
@@ -334,6 +338,8 @@ class PlayerState:
         self.warlord_restriction_count = 0
         self.donate_pending = 0
         self.daimyo_pending = 0
+        self.daimyo_sources = []
+        self.daimyo_turn = None
         self.continue_used_this_turn = False
         self.foresight_set_aside = []
         self.kintsugi_has_gained_gold = False
@@ -421,6 +427,8 @@ class PlayerState:
         self.expedition_extra_draws = 0
         self.plan_trash_piles = set()
         self.inherited_action_name = None
+        self.inherited_action = None
+        self.inherited_duration_plays = {}
         self.inheritance_used = False
         self.borrow_used_this_turn = False
         self.alms_used_this_turn = False
@@ -615,6 +623,8 @@ class PlayerState:
             self.deliver_set_aside,
             getattr(self, "hound_set_aside", []),
         ]
+        if self.inherited_action is not None:
+            zones.append([self.inherited_action])
         game_state = getattr(self, "game_state", None)
         if game_state is not None:
             zones.extend([

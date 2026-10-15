@@ -16,7 +16,7 @@ class Taxman(Card):
         from ..registry import get_card
 
         player = game_state.current_player
-        treasures = [card for card in player.hand if card.is_treasure]
+        treasures = [card for card in player.hand if game_state.is_treasure(card)]
         if not treasures:
             return
 
@@ -34,7 +34,7 @@ class Taxman(Card):
                 continue
             card = get_card(name)
             if (
-                card.is_treasure
+                game_state.is_treasure(card)
                 and card.cost.coins <= trash_choice.cost.coins + 3
             ):
                 gain_candidates.append(card)

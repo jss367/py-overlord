@@ -16,7 +16,7 @@ class Gear(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        # Copied effects (such as Inheritance) do not run this constructor.
+        # Preserve compatibility with programmatically configured cards.
         if not hasattr(self, "set_aside"):
             self.set_aside = []
         selected = []

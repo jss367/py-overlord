@@ -34,7 +34,7 @@ class Warehouse(Card):
 
         # Fallback: discard cheapest cards if AI didn't pick enough
         while discarded < to_discard and player.hand:
-            card = min(player.hand, key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name))
+            card = min(player.hand, key=lambda c: (game_state.is_action(c), game_state.is_treasure(c), c.cost.coins, c.name))
             player.hand.remove(card)
             game_state.discard_card(player, card)
             discarded += 1

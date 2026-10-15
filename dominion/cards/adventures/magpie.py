@@ -21,10 +21,10 @@ class Magpie(Card):
         if not player.deck:
             return
         top = player.deck[-1]
-        if top.is_treasure:
+        if game_state.is_treasure(top):
             player.deck.pop()
             player.hand.append(top)
-        if top.is_action or top.is_victory:
+        if game_state.is_action(top) or top.is_victory:
             if game_state.supply.get("Magpie", 0) > 0:
                 game_state.supply["Magpie"] -= 1
                 game_state.gain_card(player, get_card("Magpie"))

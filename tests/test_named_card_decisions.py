@@ -83,9 +83,9 @@ def test_courtier_mandatory_reveal_and_bonuses_cannot_be_declined():
 
 
 def test_courtier_default_prefers_live_types_over_printed_types():
-    state, player = make_state(kingdom=("Courtier", "Militia", "Mill"))
+    state, player = make_state(kingdom=("Courtier", "Militia", "Great Hall"))
     player.projects = [Capitalism()]
-    militia, mill = get_card("Militia"), get_card("Mill")
+    militia, mill = get_card("Militia"), get_card("Great Hall")
     player.hand = [mill, militia]
     assert player.ai.choose_courtier_reveal(state, player, player.hand) is militia
 

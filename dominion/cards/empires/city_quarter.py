@@ -12,6 +12,6 @@ class CityQuarter(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        actions_in_hand = sum(1 for card in player.hand if card.is_action)
+        actions_in_hand = sum(1 for card in player.hand if game_state.is_action(card))
         if actions_in_hand:
             game_state.draw_cards(player, actions_in_hand)

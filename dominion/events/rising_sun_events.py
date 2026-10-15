@@ -18,7 +18,7 @@ class Amass(Event):
         # Per rulebook: Duration cards in play that were played on previous
         # turns count too, blocking Amass.
         all_in_play = list(player.in_play) + list(player.duration)
-        if any(card.is_action for card in all_in_play):
+        if any(game_state.is_action(card) for card in all_in_play):
             return
 
         candidates = []
@@ -29,7 +29,7 @@ class Amass(Event):
                 card = get_card(name)
             except ValueError:
                 continue
-            if not card.is_action:
+            if not game_state.is_action(card):
                 continue
             if card.cost.debt > 0 or card.cost.potions > 0:
                 continue
@@ -98,7 +98,7 @@ class Credit(Event):
                 card = get_card(name)
             except ValueError:
                 continue
-            if not (card.is_action or card.is_treasure):
+            if not (game_state.is_action(card) or game_state.is_treasure(card)):
                 continue
             if card.cost.debt > 0:
                 continue
@@ -141,7 +141,7 @@ class Foresight(Event):
                 break
             card = player.deck.pop()
             revealed.append(card)
-            if card.is_action:
+            if game_state.is_action(card):
                 found = card
                 break
 
@@ -245,7 +245,7 @@ class Practice(Event):
         super().__init__("Practice", CardCost(coins=3))
 
     def on_buy(self, game_state, player) -> None:
-        actions = [c for c in player.hand if c.is_action]
+        actions = [c for c in player.hand if game_state.is_action(c)]
         if not actions:
             return
         chosen = player.ai.choose_action(game_state, actions + [None])
@@ -285,7 +285,7 @@ class ReceiveTribute(Event):
                     card = get_card(name)
                 except ValueError:
                     continue
-                if not card.is_action:
+                if not game_state.is_action(card):
                     continue
                 if name in in_play_names or name in gained_names:
                     continue
@@ -314,7 +314,7 @@ class SeaTrade(Event):
 
     def on_buy(self, game_state, player) -> None:
         action_count = sum(
-            1 for c in player.in_play + player.duration if c.is_action
+            1 for c in player.in_play + player.duration if game_state.is_action(c)
         )
         if action_count <= 0:
             return

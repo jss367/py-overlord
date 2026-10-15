@@ -17,7 +17,7 @@ def courtier_reveal(state, player, choices):
 
 def rogue_gain(state, player, choices):
     """Rank the mandatory trash gain independently of purchase preferences."""
-    return max(choices, key=lambda c: (c.cost.coins, c.is_action, c.name), default=None)
+    return max(choices, key=lambda c: (c.cost.coins, state.is_action(c), c.name), default=None)
 
 
 def counterfeit_treasure(state, player, choices):
@@ -199,7 +199,7 @@ def choose_supply_action_target(state, player, choices: list[Card]) -> Card | No
     small audited set, not a general interpreter of card text. Unknown effects
     use printed resources; strategies can override each Command's decision.
     """
-    terminals = sum(c.is_action and c.stats.actions == 0 for c in player.hand)
+    terminals = sum(state.is_action(c) and c.stats.actions == 0 for c in player.hand)
     needs_actions = terminals > player.actions
     drawable = len(player.deck) + len(player.discard)
     opponents = [p for p in state.players if p is not player] if state else []
@@ -211,7 +211,7 @@ def choose_supply_action_target(state, player, choices: list[Card]) -> Card | No
     )
     # Avoid treating the starting economy as disposable. Only surplus Coppers
     # with at least $3 in other printed Treasure income are trashing fuel.
-    other_money = sum(c.stats.coins for c in player.all_cards() if c.is_treasure and c.name != "Copper")
+    other_money = sum(c.stats.coins for c in player.all_cards() if state.is_treasure(c) and c.name != "Copper")
     if other_money >= 3:
         junk += sum(c.name == "Copper" for c in player.hand)
 
@@ -387,7 +387,7 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
     # Retain hybrids while their other ordinary play phase is still available.
     # Use the live Treasure type so Capitalism is covered as well as Crown.
     action_only = [
-        c for c in hand if c.is_action
+        c for c in hand if state.is_action(c)
         and not (treasures_playable and state.is_treasure(c))
         and not (night_playable and c.is_night)
     ]
@@ -413,7 +413,7 @@ def choose_next_turn_cards(state, player, choices: list[Card], count: int) -> li
     for card in sorted(stranded, key=next_value, reverse=True):
         if any(card is c for c in choices) and len(selected) < max(0, count):
             selected.append(card)
-    for card in sorted((c for c in choices if c.is_treasure and not c.is_action),
+    for card in sorted((c for c in choices if state.is_treasure(c) and not state.is_action(c)),
                        key=next_value, reverse=True):
         if len(selected) >= max(0, count):
             break
@@ -457,7 +457,7 @@ def barge_should_resolve_now(state, player) -> bool:
     # With no Actions left, money still works this turn; terminal draw does not.
     immediate = sum(c.stats.coins for c in pool if state.is_treasure(c))
     future = immediate + sum(
-        c.stats.cards * 2 + c.stats.coins for c in pool if c.is_action and not state.is_treasure(c)
+        c.stats.cards * 2 + c.stats.coins for c in pool if state.is_action(c) and not state.is_treasure(c)
     )
     # An extra Buy is useful with money for two modest purchases.
     buy_value = len(pool) / 3 if money >= 6 and player.buys <= 1 else 0
@@ -476,14 +476,14 @@ def sleigh_reaction(state, player, gained_card):
         return None  # Another gain effect already moved it.
     if gained_card.name in {"Curse", "Copper"} or gained_card.is_ruins:
         return None
-    if not (gained_card.is_action or state.is_treasure(gained_card) or gained_card.is_night):
+    if not (state.is_action(gained_card) or state.is_treasure(gained_card) or gained_card.is_night):
         return None
     own_turn = player is state.turn_player
     action_phase = own_turn and state.phase in {"start", "action"}
     treasure_phase = own_turn and state.phase in {"start", "action", "treasure"}
     night_phase = own_turn and state.phase in {"start", "action", "treasure", "buy", "night"}
     usable = (
-        gained_card.is_action and action_phase and player.actions + player.villagers > 0
+        state.is_action(gained_card) and action_phase and player.actions + player.villagers > 0
         or state.is_treasure(gained_card) and treasure_phase
         or gained_card.is_night and night_phase
     )
@@ -505,19 +505,19 @@ def torturer_discards(state, player, choices, count):
     The responder's Action phase has usually not begun: use a fresh one-Action
     budget plus printed village support, rather than the attacker's resources.
     """
-    budget = 1 + player.villagers + sum(max(0, c.stats.actions - 1) for c in choices if c.is_action)
-    terminals = sorted((c for c in choices if c.is_action and c.stats.actions == 0),
+    budget = 1 + player.villagers + sum(max(0, c.stats.actions - 1) for c in choices if state.is_action(c))
+    terminals = sorted((c for c in choices if state.is_action(c) and c.stats.actions == 0),
                        key=lambda c: (c.stats.cards * 2 + c.stats.coins, c.cost.coins, c.name), reverse=True)
     stranded = terminals[budget:]
 
     def value(card):
-        if card.name == "Curse" or (card.is_victory and not card.is_action and not state.is_treasure(card)):
+        if card.name == "Curse" or (card.is_victory and not state.is_action(card) and not state.is_treasure(card)):
             return -1
         if card in stranded:
             return 0
         if state.is_treasure(card):
             return card.stats.coins * 2
-        if card.is_action:
+        if state.is_action(card):
             return 2 + card.stats.cards * 2 + card.stats.coins * 2 + max(0, card.stats.actions - 1) * 3
         return 3 if card.is_night else 1
 
@@ -548,11 +548,11 @@ def torturer_should_discard_preserving_buy(state, player):
     floor = max((cost for cost in costs if cost <= money), default=money)
     # The ranked prefix is cheap only if it consists entirely of dead cards,
     # stranded terminals, or Copper that does not lower this hand's purchase.
-    budget = 1 + player.villagers + sum(max(0, c.stats.actions - 1) for c in player.hand if c.is_action)
-    terminals = sorted((c for c in player.hand if c.is_action and c.stats.actions == 0),
+    budget = 1 + player.villagers + sum(max(0, c.stats.actions - 1) for c in player.hand if state.is_action(c))
+    terminals = sorted((c for c in player.hand if state.is_action(c) and c.stats.actions == 0),
                        key=lambda c: (c.stats.cards * 2 + c.stats.coins, c.cost.coins, c.name), reverse=True)
     return all(
-        c.name == "Curse" or (c.is_victory and not c.is_action and not state.is_treasure(c))
+        c.name == "Curse" or (c.is_victory and not state.is_action(c) and not state.is_treasure(c))
         or c in terminals[budget:] or (c.name == "Copper" and remaining >= floor)
         for c in picks
     )
@@ -569,12 +569,12 @@ def torturer_should_discard(state, player):
     if state.supply.get("Curse", 0) <= 0:
         return False
     picks = torturer_discards(state, player, list(player.hand), min(2, len(player.hand)))
-    budget = 1 + player.villagers + sum(max(0, c.stats.actions - 1) for c in player.hand if c.is_action)
-    terminals = sorted((c for c in player.hand if c.is_action and c.stats.actions == 0),
+    budget = 1 + player.villagers + sum(max(0, c.stats.actions - 1) for c in player.hand if state.is_action(c))
+    terminals = sorted((c for c in player.hand if state.is_action(c) and c.stats.actions == 0),
                        key=lambda c: (c.stats.cards * 2 + c.stats.coins, c.cost.coins, c.name), reverse=True)
     return all(
         c.name in {"Curse", "Copper"}
-        or (c.is_victory and not c.is_action and not state.is_treasure(c))
+        or (c.is_victory and not state.is_action(c) and not state.is_treasure(c))
         or c in terminals[budget:]
         for c in picks
     )

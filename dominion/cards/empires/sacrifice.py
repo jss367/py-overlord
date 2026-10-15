@@ -20,10 +20,10 @@ class Sacrifice(Card):
         if to_trash in player.hand:
             player.hand.remove(to_trash)
             game_state.trash_card(player, to_trash)
-            if to_trash.is_action:
+            if game_state.is_action(to_trash):
                 game_state.draw_cards(player, 2)
                 player.actions += 2
-            if to_trash.is_treasure:
+            if game_state.is_treasure(to_trash):
                 player.coins += 2
             if to_trash.is_victory:
                 player.vp_tokens += 2

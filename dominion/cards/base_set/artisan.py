@@ -32,7 +32,7 @@ class Artisan(Card):
         if options:
             chosen = player.ai.choose_buy(game_state, options + [None])
             if chosen is None or chosen not in options:
-                chosen = max(options, key=lambda c: (c.cost.coins, c.is_action, c.name))
+                chosen = max(options, key=lambda c: (c.cost.coins, game_state.is_action(c), c.name))
 
             if game_state.supply.get(chosen.name, 0) > 0:
                 game_state.supply[chosen.name] -= 1

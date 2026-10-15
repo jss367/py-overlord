@@ -15,7 +15,7 @@ class Alms(Event):
     def may_be_bought(self, game_state, player) -> bool:
         if getattr(player, "alms_used_this_turn", False):
             return False
-        if any(c.is_treasure for c in player.in_play):
+        if any(game_state.is_treasure(c) for c in player.in_play):
             return False
         return True
 
@@ -256,7 +256,7 @@ class Pilgrimage(Event):
         names_in_play = []
         seen = set()
         for c in player.in_play:
-            if c.is_action and c.name not in seen:
+            if game_state.is_action(c) and c.name not in seen:
                 seen.add(c.name)
                 names_in_play.append(c.name)
         if not names_in_play:
@@ -344,7 +344,7 @@ class Seaway(Event):
             except ValueError:
                 continue
             if (
-                card.is_action
+                game_state.is_action(card)
                 and card.may_be_gained(game_state)
                 and card.cost.coins <= 4
                 and card.cost.potions == 0
@@ -400,65 +400,26 @@ class LostArts(Event):
 
 
 class Inheritance(Event):
-    """$7 — Once per game, set aside a non-Victory Action ($0-$4) from the
-    Supply. Each starting Estate is treated as that card during your turn."""
-
-    _SUPPORTED_RESERVE_DURATION_CANDIDATES = {
-        "Caravan",
-        "Caravan Guard",
-        "Duplicate",
-        "Gear",
-        "Guide",
-        "Ratcatcher",
-        "Transmogrify",
-    }
+    """Set aside a non-Command Action costing up to $4; Estates play it."""
 
     def __init__(self):
         super().__init__("Inheritance", CardCost(coins=7))
 
     @staticmethod
-    def _supports_reserve_duration_overlay(card) -> bool:
-        """Return whether the current Estate overlay can safely run this card."""
-        if not (card.is_reserve or card.is_duration):
-            return True
-        return card.name in Inheritance._SUPPORTED_RESERVE_DURATION_CANDIDATES
-
-    @staticmethod
     def _eligible_candidates(game_state) -> list:
-        """Return the list of Action cards a player could currently inherit.
-
-        Supported Reserve and Duration cards are eligible when their
-        Tavern / duration callbacks remain safe after the Estate identity
-        is restored. Cards that need additional helper methods, per-card
-        state, or replay semantics stay guarded out.
-        """
-        candidates = []
-        for name, count in game_state.supply.items():
-            if count <= 0:
-                continue
-            try:
-                card = get_card(name)
-            except ValueError:
-                continue
-            if not card.is_action:
-                continue
-            if card.is_victory:
-                continue
-            if not Inheritance._supports_reserve_duration_overlay(card):
-                continue
-            if card.cost.coins > 4 or card.cost.potions != 0 or card.cost.debt != 0:
-                continue
-            candidates.append(card)
-        return candidates
+        player = game_state.current_player
+        return [
+            card for _name, card, _count in game_state._iter_gainable_supply_cards()
+            if game_state.is_action(card)
+            and not game_state.is_command(card)
+            and game_state.get_card_cost(player, card) <= 4
+            and card.cost.potions == 0 and card.cost.debt == 0
+        ]
 
     def may_be_bought(self, game_state, player) -> bool:
         if getattr(player, "inheritance_used", False):
             return False
-        # Don't offer Inheritance to the AI when no Action would be eligible
-        # (e.g. all $0-$4 non-Victory Action piles are empty, or only
-        # unsupported Reserve / Duration cards qualify). Avoids wasting $7
-        # on a dead event and prevents the once-per-game lock from being
-        # silently bypassed if ``on_buy`` ever ran with no candidates.
+        # Avoid an optional purchase with no eligible target.
         return bool(self._eligible_candidates(game_state))
 
     def on_buy(self, game_state, player) -> None:
@@ -471,12 +432,17 @@ class Inheritance(Event):
         if not candidates:
             return
         choice = player.ai.choose_card_to_inherit(game_state, player, candidates)
-        if choice is None:
+        choice = next((c for c in candidates if c.name == getattr(choice, "name", None)), candidates[0])
+        # This is set aside from the Supply, not gained; it is still owned.
+        pile = game_state.supply_pile_key(choice.name)
+        if game_state.top_supply_card(pile) != choice.name:
             return
-        # Remove a copy from supply to "set aside".
-        if game_state.supply.get(choice.name, 0) > 0:
-            game_state.supply[choice.name] -= 1
-        player.inherited_action_name = choice.name
+        physical = game_state.take_top_supply_card(pile)
+        if physical is None:
+            return
+        player.inherited_action_name = physical.name
+        player.inherited_action = physical
+        physical.permanent_set_aside = True
 
 
 class Pathfinding(Event):

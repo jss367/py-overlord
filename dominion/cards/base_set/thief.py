@@ -44,7 +44,7 @@ class Thief(Card):
                 )
             )
 
-            treasures = [c for c in revealed if c.is_treasure]
+            treasures = [c for c in revealed if game_state.is_treasure(c)]
             if treasures:
                 # Attacker chooses which treasure to trash.
                 if len(treasures) == 1:

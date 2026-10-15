@@ -23,7 +23,7 @@ class Investment(Card):
                 choice = min(
                     player.hand,
                     key=lambda c: (
-                        c.is_action,
+                        game_state.is_action(c),
                         game_state.is_treasure(c),
                         c.cost.coins,
                         c.name,

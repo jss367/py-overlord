@@ -16,8 +16,8 @@ class Lurker(Card):
         from ..allies._rules import candidates, select_modes
 
         player = game_state.current_player
-        trashable = candidates(game_state, predicate=lambda c: c.is_action)
-        gainable = [c for c in game_state.trash if c.is_action]
+        trashable = candidates(game_state, predicate=lambda c: game_state.is_action(c))
+        gainable = [c for c in game_state.trash if game_state.is_action(c)]
         default = player.ai.choose_lurker_mode(
             game_state, player, can_trash=bool(trashable), can_gain=bool(gainable)
         )
@@ -39,7 +39,7 @@ class Lurker(Card):
                 game_state.trash_card(player, choice)
             else:
                 # The first mode may have just added the desired card to the trash.
-                gainable = [c for c in game_state.trash if c.is_action]
+                gainable = [c for c in game_state.trash if game_state.is_action(c)]
                 if not gainable:
                     continue
                 choice = player.ai.choose_action_to_gain_from_trash(

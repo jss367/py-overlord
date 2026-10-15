@@ -21,7 +21,7 @@ class Investment(Event):
         player.hand.remove(card)
         game_state.trash_card(player, card)
 
-        distinct_treasures = {c.name for c in player.hand if c.is_treasure}
+        distinct_treasures = {c.name for c in player.hand if game_state.is_treasure(c)}
         if len(distinct_treasures) >= 3:
             player.vp_tokens += len(distinct_treasures)
         else:

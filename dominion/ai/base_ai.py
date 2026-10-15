@@ -2313,7 +2313,7 @@ class AI(ABC):
     def choose_card_to_inherit(
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Card | None:
-        """Pick which non-Victory Action ($0-$4) to set aside via Inheritance."""
+        """Pick a non-Command Action costing up to $4 to set aside."""
         if not choices:
             return None
         return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))

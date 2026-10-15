@@ -178,8 +178,11 @@ def test_investment_scores_inheritance_capitalism_combination_through_physical_p
     player.in_play=[investment]
     player.hand=[get_card(n) for n in ['Curse','Estate','Silver','Gold']]
     investment.play_effect(state)
-    assert player.vp_tokens==3
-    assert investment in state.trash
+    # Estate's Command instruction has no printed coin bonus. Only Silver
+    # and Gold qualify, so the default keeps Investment below its threshold.
+    assert player.vp_tokens == 0
+    assert investment not in state.trash
+    assert player.coins == 1
 
 
 def test_direct_semantic_mutation_searches_card_parameters():

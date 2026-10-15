@@ -18,14 +18,14 @@ class Coronet(Card):
         playable = [
             c
             for c in player.hand
-            if (c.is_action and not c.is_duration)
-            or (c.is_treasure and not c.is_duration)
+            if (game_state.is_action(c) and not c.is_duration)
+            or (game_state.is_treasure(c) and not c.is_duration)
         ]
         if not playable:
             return
         choice = None
-        actions = [c for c in playable if c.is_action]
-        treasures = [c for c in playable if c.is_treasure]
+        actions = [c for c in playable if game_state.is_action(c)]
+        treasures = [c for c in playable if game_state.is_treasure(c)]
         if actions:
             choice = player.ai.choose_action(game_state, actions + [None])
         if not choice and treasures:
@@ -34,7 +34,7 @@ class Coronet(Card):
             if not game_state.move_card_from_hand_to_play(player, choice):
                 return
             for _ in range(2):
-                if choice.is_action:
+                if game_state.is_action(choice):
                     if not game_state.play_action_indirectly(
                         player, choice, blocked_return_zone=player.hand
                     ):
