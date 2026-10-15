@@ -205,6 +205,12 @@ class GeneticAI(AI):
             return hook(state, player, choices)
         return super().should_gain_from_trash_with_rogue(state, player, choices)
 
+    def should_reveal_trader(self, state, player, gained_card, *, to_deck):
+        hook = getattr(self.strategy, "should_reveal_trader", None)
+        if hook is not None:
+            return hook(state, player, gained_card, to_deck=to_deck)
+        return super().should_reveal_trader(state, player, gained_card, to_deck=to_deck)
+
     def choose_courtier_options(self, state, player, options, num_choices):
         hook = getattr(self.strategy, "choose_courtier_options", None)
         if hook is not None:

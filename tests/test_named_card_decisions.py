@@ -229,6 +229,68 @@ def test_counterfeit_excludes_capitalism_duration_treasures(name):
     assert not player.duration and not player.in_play and not state.trash
 
 
+@pytest.mark.parametrize("copies", [1, 2])
+def test_counterfeit_checks_warlord_before_moving_then_allows_legal_replays(copies):
+    state, player = make_state(kingdom=("Counterfeit", "Militia", "Warlord"))
+    player.projects = [Capitalism()]
+    player.warlord_restriction_count = 1
+    militia = get_card("Militia")
+    player.hand = [militia]
+    player.in_play = [get_card("Militia") for _ in range(copies)]
+    get_card("Counterfeit").play_effect(state)
+    if copies == 2:
+        assert player.hand == [militia] and militia not in state.trash
+        assert player.coins == 0 and player.actions_played == 0
+    else:
+        assert not player.hand and militia in state.trash
+        assert player.coins == 4 and player.actions_played == 2
+
+
+@pytest.mark.parametrize("first", ["trader", "card_on_gain"])
+@pytest.mark.parametrize("off_turn", [False, True])
+def test_trader_preserves_original_gain_and_on_gain_after_exchange(first, off_turn):
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Duchy")]
+    strategy.choose_gain_effect = lambda s, p, card, choices: next(
+        (c for c in choices if c.kind == first), choices[0]
+    )
+    state, player = make_state(strategy, ("Trader", "Border Village"))
+    state.current_player_index = int(off_turn)
+    player.hand = [get_card("Trader")]
+    player.ai.strategy.should_reveal_trader = lambda *_args, **_kwargs: True
+    observed = []
+    result = state.gain_from_supply(player, "Border Village", gain_observer=observed.append)
+    assert result.name == "Silver" and result in player.discard
+    assert [c.name for c in observed] == ["Border Village"]
+    assert player.gained_cards_this_turn == ["Border Village", "Duchy"]
+    assert [c.name for c in player.discard] == ["Silver", "Silver"]
+    assert state.supply["Border Village"] == 10 and state.supply["Duchy"] == 8
+    assert state.current_player_index == int(off_turn)
+
+
+@pytest.mark.parametrize("first", ["trader", "watchtower"])
+def test_trader_obeys_owner_order_and_cannot_follow_a_moved_gain(first):
+    strategy = EnhancedStrategy()
+    strategy.choose_gain_effect = lambda s, p, card, choices: next(
+        (c for c in choices if c.kind == first), choices[0]
+    )
+    strategy.choose_watchtower_reaction = lambda *_: "trash"
+    state, player = make_state(strategy, ("Trader", "Watchtower"))
+    player.hand = [get_card("Trader"), get_card("Watchtower")]
+    player.ai.strategy.should_reveal_trader = lambda *_args, **_kwargs: True
+    silvers, golds = state.supply["Silver"], state.supply["Gold"]
+    state.gain_from_supply(player, "Gold")
+    assert player.gained_cards_this_turn == ["Gold"]
+    if first == "trader":
+        assert [c.name for c in player.discard] == ["Silver"]
+        assert state.supply["Silver"] == silvers - 1 and state.supply["Gold"] == golds
+        assert not state.trash
+    else:
+        assert [c.name for c in state.trash] == ["Gold"]
+        assert state.supply["Silver"] == silvers and state.supply["Gold"] == golds - 1
+        assert not player.discard
+
+
 @pytest.mark.parametrize("name,pile", [("Gold", "Gold"), ("Sir Bailey", "Knights"), ("Ghost", "Ghost")])
 def test_rogue_trader_returns_trash_gain_to_its_physical_pile(name, pile):
     state, player = make_state(kingdom=("Rogue", "Trader", "Knights", "Exorcist"))
@@ -240,7 +302,7 @@ def test_rogue_trader_returns_trash_gain_to_its_physical_pile(name, pile):
     assert card.name == name
     state.trash = [card]
     player.hand = [get_card("Trader")]
-    player.ai.should_reveal_trader = lambda *_args, **_kwargs: True
+    player.ai.strategy.should_reveal_trader = lambda *_args, **_kwargs: True
     count = state.supply[pile]
     silvers = state.supply["Silver"]
     get_card("Rogue").play_effect(state)
@@ -257,7 +319,7 @@ def test_rogue_trader_cannot_exchange_a_card_without_an_origin_pile():
     spy = next(c for c in state.trash if c.name == "Zombie Spy")
     state.trash = [spy]
     player.hand = [get_card("Trader")]
-    player.ai.should_reveal_trader = lambda *_args, **_kwargs: True
+    player.ai.strategy.should_reveal_trader = lambda *_args, **_kwargs: True
     silvers = state.supply["Silver"]
     get_card("Rogue").play_effect(state)
     assert player.discard == [spy]

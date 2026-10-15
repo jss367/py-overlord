@@ -100,6 +100,17 @@ class GainEvent:
             if owner is player and card.name == 'Watchtower':
                 self.add(owner, 'watchtower', lambda: state._handle_watchtower_reaction(player, gained),
                          source=card, priority=30, eligible=eligible, dynamic=True)
+            elif owner is player and card.name == 'Trader':
+                def trader():
+                    self.result = state._handle_trader_exchange(
+                        player, gained, self.result,
+                        state.gain_destination(gained) is player.deck,
+                    )
+                self.add(owner, 'trader', trader, source=card, priority=25,
+                         eligible=lambda c=card: c in player.hand and self.movable()
+                         and state.supply.get('Silver', 0) > 0
+                         and state._resolve_changeling_pile_name(gained) is not None,
+                         dynamic=True)
             elif owner is player and card.name == 'Sleigh':
                 def sleigh(c=card):
                     can_move = self.movable()

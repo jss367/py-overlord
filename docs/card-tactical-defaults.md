@@ -132,7 +132,11 @@ trash **or** attacks, never both. Knights finish one victim's instructions,
 including self-trash triggers, before the next victim. Both attacks exclude
 Potion/Debt prices. Stables, Spice Merchant and Counterfeit offer live Treasure
 types; conditional Action bonuses respect Snowy Village. Counterfeit uses the
-shared Treasure play helper and cannot trash a target that already left play.
+shared Treasure play helper, excludes Duration targets, checks the initial Warlord
+hand-play gate and cannot trash a target that already left play. Trader now
+resolves as an owner-ordered post-gain exchange with original gain identity,
+Silver-to-discard without a gain, and physical pile/stop-moving checks (#430).
+The dedicated strategy reaction hook is forwarded without changing its decline baseline.
 Issues #421–#426 track these fixes individually.
 
 The audit also exposed [#427](https://github.com/jss367/py-overlord/issues/427):
@@ -146,8 +150,10 @@ follow that predicate and test its immediate-coin case, without certifying the
 wider classification. Saved named-card studies predate the two review corrections (Duration targets
 and Trader pile returns). Their fingerprints/outcomes remain preserved; the
 corrections have physical regressions rather than newly relabeled strategy games.
-The inventory
-still explicitly lists 568 registered names without a scoped review.
+The saved named-card studies predate these review corrections and retain their
+original fingerprints; no study was rerun or relabeled. Trader adds a scoped
+rules/forwarding entry, not an isolated tactical evaluation. The inventory
+still explicitly lists 567 registered names without a scoped review.
 
 ## First implementation: Overlord and Quartermaster
 

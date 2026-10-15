@@ -20,7 +20,8 @@ class Counterfeit(Card):
         player = game_state.current_player
 
         treasures = [c for c in player.hand
-                     if game_state.is_treasure(c) and not c.is_duration]
+                     if game_state.is_treasure(c) and not c.is_duration
+                     and not game_state._warlord_blocks_action_play(player, c)]
         if not treasures:
             return
         choice = player.ai.should_replay_treasure_with_counterfeit(

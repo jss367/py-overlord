@@ -3924,12 +3924,8 @@ class GameState:
         actual_card = card
         destination_is_deck = to_deck
 
-        actual_card = self._handle_trader_exchange(
-            player, card, actual_card, destination_is_deck, from_supply=from_supply
-        )
-
-        # Observe the actual gain after replacements, before on-gain effects
-        # can exchange it. An exchanged Changeling is not the card gained.
+        # Observe the original gain before on-gain exchanges. Neither Trader's
+        # Silver nor an exchanged Changeling is the card that was gained.
         if gain_observer is not None:
             gain_observer(actual_card)
         actual_card.returned_to_supply = False
@@ -3947,9 +3943,8 @@ class GameState:
         # Menagerie Exile rule: gaining a card lets the player discard ALL
         # copies of it from Exile — in addition to the gain, never instead
         # of it. Capture whether a copy was exiled before resolving, for
-        # Gatekeeper's "already has an Exiled copy" check. Computed after
-        # the Trader reaction so it tracks the card actually gained (a
-        # Silver, if Trader swapped the gain), not the original card.
+        # Gatekeeper's "already has an Exiled copy" check. An exchange does
+        # not change this gain's identity to the received card.
         had_exiled_copy = any(c.name == actual_card.name for c in player.exile)
 
         if destination_is_deck:
@@ -4298,11 +4293,7 @@ class GameState:
         to_deck: bool,
         from_supply: bool = True,
     ) -> Card:
-        """Legacy Trader replacement, with origin-independent pile returns.
-
-        Current exchange timing/identity is tracked separately; a returned
-        physical card increases its pile even when this gain came from trash.
-        """
+        """Exchange a still-available gained card; the Silver is not gained."""
 
         if self.supply.get("Silver", 0) <= 0:
             return actual_card
@@ -4313,16 +4304,19 @@ class GameState:
         if not player.ai.should_reveal_trader(self, player, original_card, to_deck=to_deck):
             return actual_card
 
-        # Both cards must be available to exchange. Restore physical order
-        # as well as the count, including non-Supply piles that are present.
-        if not self._restore_to_supply_pile(original_card):
+        if self._resolve_changeling_pile_name(original_card) is None:
             return actual_card
+        # The gain event owns stop-moving eligibility. This also protects
+        # callers that try to exchange a card after a prior reaction moved it.
+        if not self._remove_gained_card_from_zones(player, original_card):
+            return actual_card
+        self._restore_to_supply_pile(original_card)
 
-        self.supply["Silver"] -= 1
-        replacement = get_card("Silver")
+        replacement = self.take_top_supply_card("Silver")
+        player.discard.append(replacement)
         context = {
-            "replaced": original_card.name,
-            "destination": "deck" if to_deck else "discard",
+            "exchanged": original_card.name,
+            "destination": "discard",
         }
         self.log_callback(("action", player.ai.name, "reveals Trader", context))
         return replacement

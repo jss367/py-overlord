@@ -153,10 +153,10 @@ def test_trader_restores_exact_pile_and_only_consumes_silver(pile, name):
     player.ai.reveal_trader = True
     before = inventory(state)
     gained = state.gain_from_supply(player, name, destination="hand")
-    assert gained.name == "Silver" and gained in player.hand
+    assert gained.name == "Silver" and gained in player.discard
     assert state.supply[pile] == 1 and state.supply["Silver"] == 1
     assert state.top_supply_card(pile) == name
-    assert player.gained_cards_this_turn == ["Silver"]
+    assert player.gained_cards_this_turn == [name]
     assert inventory(state) == before
 
 

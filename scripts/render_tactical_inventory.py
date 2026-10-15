@@ -164,7 +164,7 @@ def reviewed_decisions():
         audit = audits[name]
         audits[name] = Audit(
             "Victim trash and mandatory trash-pile gain" if name == "Rogue" else audit.decision,
-            "Scoped physical choices / timing / live types audited; wider Inheritance / conditional Capitalism / Trader exchange unreviewed (#427, #429, #430)",
+            "Scoped physical choices / timing / live types audited; wider Inheritance / conditional Capitalism unreviewed (#427, #429)",
             "Connected/tested",
             "Evaluated: fixed-priority diagnostic screen and fresh validation; no replacement established; saved study predates review-only rule follow-ups",
             audit.hooks + additional_hooks.get(name, ()),
@@ -178,6 +178,14 @@ def reviewed_decisions():
             tuple(dict.fromkeys(audit.followups + rule_issues.get(name, (423,) if name in KNIGHT_NAMES else ()))),
             audit.adapter,
         )
+    add(("Trader",), "Optional owner-ordered post-gain exchange",
+        ("should_reveal_trader", "choose_gain_effect"),
+        ("tests/test_named_card_decisions.py", "tests/test_trader.py",
+         "tests/test_trash_gain_supply.py", "tests/test_gain_from_supply.py",
+         "tests/test_gain_source_destinations.py"),
+        rules="Scoped original gain identity / ordering / stop-moving / ordinary, ordered and present non-Supply pile returns",
+        tactical="Unreviewed: baseline declines; reaction forwarding and rules tested, no isolated preference comparison",
+        evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",), followups=(430,))
     return audits
 
 
