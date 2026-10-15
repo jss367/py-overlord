@@ -222,3 +222,34 @@ def test_legacy_opponent_gain_dispatch_also_resolves_each_play_once():
     victim.discard.append(gained)
     state._handle_opponent_gain_hooks(victim, gained)
     assert victim.count("Curse") == 2
+
+
+@pytest.mark.parametrize("location", ["virtual", "trash"])
+def test_other_durations_see_stored_ownership_before_blockade_returns(location):
+    state, player = make_state(kingdom=("Blockade", "Village", "Cobbler", "Overlord"))
+    cobbler = get_card("Cobbler")
+    player.in_play = [cobbler]
+    cobbler.on_play(state)
+    if location == "trash":
+        blockade = play_repeatedly(state, player, ("Silver", "Village"))
+        player.in_play.remove(blockade)
+        state.trash_card(player, blockade)
+    else:
+        overlord = get_card("Overlord")
+        player.in_play = [overlord]
+        player.ai.choose_overlord_target = lambda *_a, **_k: get_card("Blockade")
+        choose_gains(player, ("Silver", "Village"))
+        for _ in range(2):
+            state.play_action_indirectly(player, overlord)
+    assert player.duration[0] is cobbler
+    observed = []
+    def choose(_s, owner, choices, _limit):
+        observed.append((owner.count("Silver"), owner.count("Village")))
+        assert observed[-1] == (1, 1)
+        return next(c for c in choices if c.name == "Copper")
+    player.ai.choose_card_to_gain_to_hand = choose
+    state.do_duration_phase()
+    assert observed == [(1, 1)]
+    assert not player._resolving_duration_sources
+    assert sorted(c.name for c in player.hand) == ["Copper", "Silver", "Village"]
+    assert not player.duration

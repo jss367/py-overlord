@@ -804,7 +804,10 @@ their own turn receive a Curse; returning the stored card ends the watcher
 immunity snapshot per successful play. Each matching play has one gain-event
 instruction and one next-turn return; duplicate Duration references do not
 multiply all watches again. The ownership collector sees every stored card,
-including when Blockade is virtual or trashed. Player references in snapshots
+including when Blockade is virtual or trashed. The Duration resolver retains
+temporary references to sources removed from the queue, so their stored cards
+remain owned while earlier callbacks (such as Cobbler's gain choice) run.
+Player references in snapshots
 remain valid in deep-copied game states. Failed/moved gains add no new record.
 Physical regressions cover same/different names, separate immunity, partial
 returns, scarce Curses, multiplier retention/cleanup and the legacy dispatcher.

@@ -195,7 +195,7 @@ def reviewed_decisions():
         ("tests/test_named_card_decisions.py", "tests/test_command_supply_rules.py",
          "tests/test_gain_effect_ordering.py", "tests/test_gain_source_destinations.py",
          "tests/test_seaside_cards.py", "tests/test_blockade_replays.py"),
-        rules="Scoped initial storage / printed placement / gain movement / failed replay / own-turn / virtual-play / repeated storage / per-play immunity / multiplier return audit; general menus and tactical choices unreviewed",
+        rules="Scoped initial storage / printed placement / gain movement / failed replay / own-turn / virtual-play / repeated storage / per-play immunity / active-duration ownership / multiplier return audit; general menus and tactical choices unreviewed",
         wiring="Automatic watcher tested; gain-choice strategy forwarding unreviewed",
         tactical="Unreviewed: no isolated preference comparison",
         evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",),
