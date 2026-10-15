@@ -1,13 +1,20 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from ..base_card import Card, CardCost, CardStats, CardType
+
+if TYPE_CHECKING:
+    from dominion.game.player_state import PlayerState
 
 
 @dataclass(eq=False)
 class _BlockadePlay:
     card: Card
+    player: PlayerState
     # Player references preserve identity when a GameState is deep-copied.
-    affected: tuple
+    affected: tuple[PlayerState, ...]
 
 
 class Blockade(Card):
@@ -26,6 +33,9 @@ class Blockade(Card):
     def set_aside(self):
         """All real stored cards, exposed to the shared ownership collector."""
         return [play.card for play in self._pending_plays]
+
+    def set_aside_for_owner(self, player):
+        return [play.card for play in self._pending_plays if play.player is player]
 
     @property
     def pending_plays(self):
@@ -54,18 +64,21 @@ class Blockade(Card):
         gained = actual_gain[0]
         if not game_state._remove_gained_card_from_zones(player, gained):
             return
-        self._pending_plays.append(_BlockadePlay(gained, tuple(affected)))
+        self._pending_plays.append(_BlockadePlay(gained, player, tuple(affected)))
         # Each entry is a one-shot return instruction, not a recurring Duration.
         player.duration.append(self)
 
     def on_duration(self, game_state):
-        if self._pending_plays:
-            play = self._pending_plays.pop(0)
-            game_state.current_player.hand.append(play.card)
+        player = game_state.current_player
+        play = next((p for p in self._pending_plays if p.player is player), None)
+        if play is not None:
+            self._pending_plays.remove(play)
+            player.hand.append(play.card)
 
     def watch_applies(self, play, game_state, owner, gainer, gained_card):
         return (
             play in self._pending_plays
+            and play.player is owner
             and self in owner.duration
             and not getattr(play.card, "returned_to_supply", False)
             and play.card.name == gained_card.name
