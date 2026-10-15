@@ -19,7 +19,15 @@ class Daimyo(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        # Each Daimyo registers a pending replay; the action phase loop
-        # replays whatever non-Command Action card is played next.
-        pending = getattr(player, "daimyo_pending", 0)
-        player.daimyo_pending = pending + 1
+        # Bind "this turn" to the actual turn, including off-turn plays.
+        owner = game_state.turn_player
+        marker = (game_state.turn_number, owner.turns_taken, owner)
+        previous = player.daimyo_turn
+        if previous is not None and (
+            previous[:2] != marker[:2] or previous[2] is not owner
+        ) or previous is None and player is not owner:
+            player.daimyo_pending = 0
+            player.daimyo_sources = []
+        player.daimyo_turn = marker
+        player.daimyo_pending += 1
+        player.daimyo_sources.append(self)

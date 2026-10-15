@@ -468,3 +468,120 @@ def test_expired_off_turn_cargo_allowance_does_not_reactivate_on_a_later_play():
     assert source.set_aside == [gold]
     state.handle_cleanup_phase()
     assert first not in player.in_play and second in player.in_play
+
+
+def arm_replays(state, player, pending):
+    owners = []
+    for name in (["Flagship", "Daimyo"] if pending == "both" else [pending]):
+        card = get_card(name)
+        owners.append(card)
+        player.in_play.append(card)
+        state.play_action_indirectly(player, card)
+    return owners
+
+
+@pytest.mark.parametrize("pending", ["Flagship", "Daimyo", "both"])
+@pytest.mark.parametrize("route", ["main", "indirect"])
+def test_pending_replays_pass_through_estate_and_play_only_the_source(pending, route):
+    from dominion.ways.horse import WayOfTheHorse
+
+    state, player, source = new_state("Smithy")
+    player.deck = [get_card("Copper") for _ in range(40)]
+    owners = arm_replays(state, player, pending)
+    before_count, before_hand = player.actions_played, len(player.hand)
+    state.add_pile_token(player, "Estate", "+1 Card")
+    state.add_pile_token(player, "Smithy", "+1 Card")
+    played, ways = [], []
+    state.fire_ally_play_hooks = lambda p, card: played.append(card)
+    state.ways = [WayOfTheHorse()]
+    player.ai.choose_way = lambda s, card, choices: ways.append(card)
+    if route == "main":
+        estate = play_estate(state, player)
+    else:
+        estate = get_card("Estate")
+        player.in_play.append(estate)
+        state.play_action_indirectly(player, estate)
+    assert played == [source] * (1 + len(owners)) + [estate]
+    assert ways.count(estate) == 1 and ways.count(source) == 1 + len(owners)
+    assert player.actions_played - before_count == 2 + len(owners)
+    assert len(player.hand) - before_hand == 4 * (1 + len(owners)) + 1
+    assert not player.flagship_pending and not player.daimyo_pending
+    assert not player.daimyo_sources
+
+
+@pytest.mark.parametrize("pending", ["Flagship", "Daimyo", "both"])
+def test_replay_sources_and_estate_stay_for_the_inherited_duration(pending):
+    state, player, source = new_state("Caravan")
+    player.deck = [get_card("Copper") for _ in range(30)]
+    owners = arm_replays(state, player, pending)
+    estate = play_estate(state, player)
+    assert player.duration.count(source) == 1 + len(owners)
+    state.handle_cleanup_phase()
+    assert all(card in player.in_play for card in [estate] + owners)
+    state.do_duration_phase()
+    state.handle_cleanup_phase()
+    assert all(card not in player.in_play for card in [estate] + owners)
+
+
+@pytest.mark.parametrize("pending", ["Flagship", "Daimyo", "both"])
+def test_way_on_command_estate_does_not_consume_noncommand_replays(pending):
+    from dominion.ways.horse import WayOfTheHorse
+
+    state, player, source = new_state("Smithy")
+    player.deck = [get_card("Copper") for _ in range(20)]
+    arm_replays(state, player, pending)
+    before = player.actions_played
+    state.ways = [WayOfTheHorse()]
+    player.ai.choose_way = lambda s, card, choices: choices[0]
+    estate = play_estate(state, player)
+    assert player.actions_played == before + 1
+    assert source not in player.in_play
+    assert estate not in player.in_play
+    assert len(player.flagship_pending) == int(pending in {"Flagship", "both"})
+    assert player.daimyo_pending == int(pending in {"Daimyo", "both"})
+
+
+def test_inherited_garrison_cannot_hold_tokens_while_permanently_set_aside():
+    state, player, source = new_state("Garrison")
+    estate = play_estate(state, player)
+    gold = state.gain_from_supply(player, "Gold")
+    assert source.tokens == 0 and source not in player.duration
+    assert source not in player.in_play
+    assert player.all_cards().count(gold) == 1
+    state.handle_cleanup_phase()
+    assert estate not in player.in_play
+
+
+def test_off_turn_daimyo_replays_the_inherited_target_on_that_actual_turn():
+    from dominion.game.player_state import PlayerState
+
+    state, player, source = new_state("Smithy")
+    other = PlayerState(ChooseFirstActionAI())
+    other.inherited_action_name = "Village"
+    state.players.append(other)
+    state.current_player_index = 1
+    player.deck = [get_card("Copper") for _ in range(20)]
+    daimyo, estate = get_card("Daimyo"), get_card("Estate")
+    player.in_play = [daimyo, estate]
+    state.play_action_as_owner_indirectly(player, daimyo)
+    before = player.actions_played
+    state.play_action_as_owner_indirectly(player, estate)
+    assert player.actions_played - before == 3
+    assert player.daimyo_pending == 0
+    assert state.turn_player is other
+
+
+def test_off_turn_daimyo_charge_expires_before_a_different_opponents_turn():
+    from dominion.game.player_state import PlayerState
+
+    state, player, source = new_state("Smithy")
+    state.players.extend([PlayerState(ChooseFirstActionAI()), PlayerState(ChooseFirstActionAI())])
+    state.current_player_index = 1
+    daimyo, smithy = get_card("Daimyo"), get_card("Smithy")
+    player.in_play = [daimyo, smithy]
+    state.play_action_as_owner_indirectly(player, daimyo)
+    state.current_player_index = 2
+    before = player.actions_played
+    state.play_action_as_owner_indirectly(player, smithy)
+    assert player.actions_played - before == 1
+    assert player.daimyo_pending == 0

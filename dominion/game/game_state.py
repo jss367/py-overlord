@@ -476,6 +476,50 @@ class GameState:
                 targets.append(target)
         owner.duration_targets = targets
 
+    def _claim_noncommand_replays(self, player: PlayerState, card: Card) -> list:
+        if not self.is_action(card) or self.is_command(card):
+            return []
+        owners = list(player.flagship_pending)
+        player.flagship_pending.clear()
+        for owner in owners:
+            if owner in player.duration:
+                player.duration.remove(owner)
+        stamp, turn_owner = player.daimyo_turn, self.turn_player
+        if stamp is None and player is not turn_owner:
+            return owners  # Preserve legacy manually configured off-turn counters.
+        active = stamp is None or (
+            stamp[:2] == (self.turn_number, turn_owner.turns_taken) and stamp[2] is turn_owner
+        )
+        count = player.daimyo_pending if active else 0
+        player.daimyo_pending = 0
+        sources, player.daimyo_sources = player.daimyo_sources, []
+        player.daimyo_turn = None
+        owners.extend(sources[:count])
+        # Compatibility with callers configuring pending counts directly.
+        owners.extend([None] * max(0, count - len(sources)))
+        return owners
+
+    def _retain_replay_owners(self, player, owners, card, before, inheritance_play=None):
+        for owner in owners:
+            if owner is None or owner not in player.in_play:
+                continue
+            if inheritance_play is not None:
+                targets = getattr(owner, "duration_targets", [])
+                if inheritance_play not in targets:
+                    targets.append(inheritance_play)
+                owner.duration_targets = targets
+            else:
+                self._attach_supply_duration_targets(player, owner, card, before)
+
+    def _replay_claimed_actions(self, player, card, owners, *, inheritance_play=None, treasure=False):
+        for owner in owners:
+            before = Counter(player.duration + player.multiplied_durations)
+            if treasure:
+                self.play_treasure_indirectly(player, card)
+            else:
+                self.play_action_indirectly(player, card, inheritance_play=inheritance_play)
+            self._retain_replay_owners(player, [owner], card, before, inheritance_play)
+
     def play_action_indirectly(
         self,
         player: PlayerState,
@@ -485,6 +529,7 @@ class GameState:
         apply_enchantress: bool | None = None,
         suppress_instructions: bool = False,
         shared_play_hooks: bool = True,
+        inheritance_play=None,
     ) -> bool:
         """Resolve a single Action play that originates outside the main
         action-phase loop, applying the bookkeeping that loop would.
@@ -538,6 +583,7 @@ class GameState:
                 )
             )
             return False
+        replay_owners = self._claim_noncommand_replays(player, card) if shared_play_hooks else []
         harbor_pending = getattr(player, "harbor_village_pending", 0)
         player.harbor_village_pending = 0
         coins_before_action = player.coins
@@ -604,6 +650,7 @@ class GameState:
         # — funnels through the same Citadel trigger.
         if shared_play_hooks:
             self._maybe_citadel_replay(player, card, claimed=citadel_replay)
+        self._replay_claimed_actions(player, card, replay_owners, inheritance_play=inheritance_play)
         return True
 
     def _resolve_play_with_decision_context(
@@ -1624,6 +1671,8 @@ class GameState:
         # Daimyo's "next non-Command Action this turn" replay expires when the
         # turn ends without a triggering Action being played.
         player.daimyo_pending = 0
+        player.daimyo_sources = []
+        player.daimyo_turn = None
         # Merchant's "first Silver this turn = +$1" tracking
         player.merchant_silver_bonus = 0
         player.merchant_silver_bonus_used = False
@@ -2290,6 +2339,8 @@ class GameState:
                 "hand": [c.name for c in player.hand if c != choice],
             }
             action_desc = f"plays {choice}"
+            replay_owners = self._claim_noncommand_replays(player, choice)
+            replay_before = Counter(player.duration + player.multiplied_durations)
             if way:
                 action_desc += f" using {way.name}"
             self.log_callback(("action", player.ai.name, action_desc, context))
@@ -2332,23 +2383,8 @@ class GameState:
                 # the first Action played this turn — replay it. The replay
                 # is its own play and gets its own Way offer.
                 self._maybe_citadel_replay(player, choice, claimed=citadel_replay)
+                self._replay_claimed_actions(player, choice, replay_owners)
             else:
-                flagships_to_resolve: list[Card] = []
-                pending_flagships = getattr(player, "flagship_pending", [])
-                if pending_flagships and not getattr(choice, "is_command", False):
-                    flagships_to_resolve = list(pending_flagships)
-                    pending_flagships.clear()
-                    for flagship in flagships_to_resolve:
-                        if flagship in player.duration:
-                            player.duration.remove(flagship)
-
-                # Rising Sun: Daimyo replays the next non-Command Action.
-                # Multiple Daimyos stack and all replay the same card.
-                daimyo_replays = 0
-                if not getattr(choice, "is_command", False):
-                    daimyo_replays = getattr(player, "daimyo_pending", 0)
-                    player.daimyo_pending = 0
-
                 # Plunder Reckless trait: cards from the Reckless pile play twice.
                 reckless_extra = 1 if self.pile_trait(choice.name) == "Reckless" else 0
 
@@ -2375,14 +2411,17 @@ class GameState:
 
                 plays = (
                     1
-                    + len(flagships_to_resolve)
-                    + daimyo_replays
+                    + len(replay_owners)
                     + reckless_extra
                     + rush_extra
                     + citadel_extra
                 )
-                for play_index in range(plays):
+                play_indices = list(range(plays))
+                for play_index in play_indices:
                     if play_index:
+                        fresh = self._claim_noncommand_replays(player, choice)
+                        play_indices.extend(range(len(play_indices), len(play_indices) + len(fresh)))
+                        replay_owners.extend(fresh)
                         player.actions_this_turn += 1
                         player.actions_played += 1
                     self._maybe_kiln_gain(player, choice)
@@ -2460,6 +2499,8 @@ class GameState:
                     # Adventures: Tavern triggers — Coin of the Realm and
                     # Royal Carriage may call themselves after an Action play.
                     self._call_tavern_triggers(player, "action_played", choice)
+
+                self._retain_replay_owners(player, replay_owners, choice, replay_before)
 
             # Harbor Village bonus: +$1 if the action gave +$
             if harbor_pending > 0:
@@ -2687,6 +2728,7 @@ class GameState:
                 self.logger.current_metrics.cards_played.get(choice.name, 0) + 1
             )
 
+        replay_owners = self._claim_noncommand_replays(player, choice)
         self._maybe_kiln_gain(player, choice)
         coins_before = player.coins
         blocked = self._highwayman_blocks_treasure(player, choice)
@@ -2763,6 +2805,7 @@ class GameState:
         # an Action from hand they don't already have in play.
         self._maybe_inspiring_extra_play(player, choice)
 
+        self._replay_claimed_actions(player, choice, replay_owners, treasure=True)
         return player.coins
 
     def handle_treasure_phase(self):
@@ -3305,7 +3348,7 @@ class GameState:
         pending = list(candidates)
         while pending:
             for target in getattr(pending.pop(), "duration_targets", []):
-                if isinstance(target, InheritedPlay) and target not in candidates:
+                if (isinstance(target, InheritedPlay) or getattr(target, "virtual_supply_play", False)) and target not in candidates:
                     candidates.add(target)
                     pending.append(target)
         changed = True
@@ -4953,17 +4996,7 @@ class GameState:
             return False
         if not approved and not player.ai.should_play_falconer(self, player, gainer, gained_card):
             return False
-        replays = 0
-        if player is self.turn_player and player.daimyo_pending:
-            replays, player.daimyo_pending = player.daimyo_pending, 0
-        if not self.play_action_from_hand_indirectly(player, falconer):
-            player.daimyo_pending += replays
-            return False
-        for _ in range(replays):
-            if falconer not in player.in_play:
-                break
-            self.play_action_indirectly(player, falconer)
-        return True
+        return self.play_action_from_hand_indirectly(player, falconer)
 
     def _handle_menagerie_gain_reactions(
         self, player: PlayerState, gained_card: Card
@@ -5200,7 +5233,7 @@ class GameState:
         previous_targets = getattr(target, "duration_targets", [])
         target.duration_targets = []
         try:
-            self.play_action_indirectly(player, target)
+            self.play_action_indirectly(player, target, inheritance_play=play)
         finally:
             play.record(before)
             target.duration_targets = previous_targets

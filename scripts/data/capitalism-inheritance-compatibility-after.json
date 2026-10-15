@@ -1,6 +1,6 @@
 {
   "engine_label": "current-type-rules",
-  "simulation_fingerprint": "0cf478158e33c20163bd14cb03203c4deae0867c3e89513bfa9968132c9da345",
+  "simulation_fingerprint": "68eab0a1a1f6d611fe25bd4228520aca296a01515d96f1f5eb75754cef57a9c7",
   "runner_hashes": {
     "scripts/evaluate_capitalism_inheritance_compatibility.py": "9eb43a32d7bf47c84d8636e76ad2757055e1f6ffbdd804e23c5aca7f66c075eb",
     "scripts/evaluate_named_card_decisions.py": "517d6ee2d317a1400644044724234230a023b5e2dbc146e41bc64a7e20bfbc7b",

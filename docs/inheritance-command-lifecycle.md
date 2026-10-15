@@ -37,3 +37,11 @@ independent Archive and Church batches. The published rules and compatibility
 panel are linked from
 [the HTML guide](../reports/strategies/capitalism-and-inheritance-rules-and-policy-compatibility.html).
 This mechanism does not certify every target card's independent printed rules.
+
+Flagship and Daimyo replay claims use the live Command predicate and reserve the
+charges before instructions can play nested cards. Estate passes the claims to
+its non-Command target. Replays use shared Action/Treasure handling, and the
+physical replay source keeps the resulting Duration dependency. Daimyo records
+the actual turn owner and turn counters so off-turn charges work on that turn
+and expire before a later opponent's turn. Inherited Garrison has no gain-token
+listener because publisher rules prohibit tokens on Garrison outside play.

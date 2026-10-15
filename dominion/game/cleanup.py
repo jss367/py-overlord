@@ -488,6 +488,9 @@ def _finish_turn(
     player.cost_reduction = 0
     player.innovation_used = False
     player.citadel_used = False
+    player.daimyo_pending = 0
+    player.daimyo_sources = []
+    player.daimyo_turn = None
 
     # Empires Landmarks: end-of-turn hook (Baths). Fired before
     # cards_gained_this_turn resets so the landmark can inspect it.

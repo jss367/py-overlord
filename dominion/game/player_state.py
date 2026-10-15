@@ -83,6 +83,8 @@ class PlayerState:
     donate_pending: int = 0
     # Rising Sun: Daimyo replays the next non-Command Action card played
     daimyo_pending: int = 0
+    daimyo_sources: list[Card] = field(default_factory=list)
+    daimyo_turn: tuple | None = None
     continue_used_this_turn: bool = False
     foresight_set_aside: list = field(default_factory=list)
     # Rising Sun: Kintsugi event cares whether Gold has ever been gained.
@@ -336,6 +338,8 @@ class PlayerState:
         self.warlord_restriction_count = 0
         self.donate_pending = 0
         self.daimyo_pending = 0
+        self.daimyo_sources = []
+        self.daimyo_turn = None
         self.continue_used_this_turn = False
         self.foresight_set_aside = []
         self.kintsugi_has_gained_gold = False
