@@ -3890,8 +3890,9 @@ class GameState:
         to_hand: bool = False,
         *,
         gain_observer=None,
+        to_zone: list[Card] | None = None,
     ) -> Card | None:
-        """Add a card to a player's discard or deck, honoring topdeck effects.
+        """Gain into the source's initial destination, then resolve gain effects.
 
         New Supply gainers should call ``gain_from_supply`` instead. This
         lower-level entry point also supports already-removed cards and gains
@@ -3900,6 +3901,10 @@ class GameState:
         ``from_supply=True`` means the caller already decremented Supply;
         False identifies gains from other locations. Trader returns its target
         to its pile regardless of the gain's origin, including from the trash.
+
+        ``to_zone`` declares a source-specific initial zone (for example,
+        Blockade's set-aside area), before any gain effects resolve. Explicit
+        destinations override a card's printed default gain placement.
 
         The return value follows the physical card received after an exchange,
         for compatibility with Changeling/Trader callers. Use ``gain_observer``
@@ -3926,7 +3931,22 @@ class GameState:
         if from_supply and card.name in self.supply:
             self.top_supply_card(card.name)
         actual_card = card
-        destination_is_deck = to_deck
+        # A source's explicit destination overrides a card's printed default.
+        if to_zone is not None:
+            if to_deck or to_hand:
+                raise ValueError("to_zone cannot be combined with to_deck/to_hand")
+            if not any(to_zone is zone for zone in (
+                player.hand, player.deck, player.discard, player.pending_gain_set_aside
+            )):
+                raise ValueError("to_zone must be an owned gain destination")
+            destination = to_zone
+        elif to_deck:
+            destination = player.deck
+        elif to_hand:
+            destination = player.hand
+        else:
+            destination = getattr(player, card.default_gain_destination)
+        destination_is_deck = destination is player.deck
 
         # Observe the original gain before on-gain exchanges. Neither Trader's
         # Silver nor an exchanged Changeling is the card that was gained.
@@ -3956,14 +3976,12 @@ class GameState:
             # the list is the top of the deck.
             self._cover_gained_deck_top(player, actual_card)
             player.deck.append(actual_card)
-        elif to_hand:
-            player.hand.append(actual_card)
         else:
-            player.discard.append(actual_card)
+            destination.append(actual_card)
 
         if not hasattr(self, "_gain_destinations"):
             self._gain_destinations = {}
-        self._gain_destinations[actual_card] = player.deck if destination_is_deck else player.hand if to_hand else player.discard
+        self._gain_destinations[actual_card] = destination
 
         # Galleria qualifies on the gain event's cost, before gain effects
         # can play Highway or another card that changes prices.
@@ -4043,9 +4061,10 @@ class GameState:
         pile_name = self._resolve_changeling_pile_name(gained_card)
         if pile_name is None:
             return gained_card
-        # Skip cards that did not enter a normal zone (e.g. Watchtower
-        # already moved them to the trash or to the deck-top set-aside).
-        if not any(gained_card in zone for zone in (player.discard, player.deck, player.hand)):
+        # Exchanges may also return a card initially gained set aside, but
+        # cannot follow it after another gain effect has moved it away.
+        zone = self.gain_destination(gained_card)
+        if zone is None or gained_card not in zone:
             return gained_card
 
         if not player.ai.should_exchange_changeling(self, player, gained_card):
@@ -4410,14 +4429,21 @@ class GameState:
             player.deck.append(gained_card)
 
     def _remove_gained_card_from_zones(self, player: PlayerState, card: Card, *, target=None) -> bool:
-        """Remove ``card`` from hand, discard, or deck if present."""
+        """Remove a gain only from its still-available original destination."""
 
         destinations = getattr(self, "_gain_destinations", {})
         if card in destinations:
             origin = destinations[card]
-            if origin is None or card not in origin or origin is player.deck and origin[-1] is not card or not any(origin is z for z in (player.hand, player.deck, player.discard)):
+            if (origin is None or card not in origin or origin is player.deck and origin[-1] is not card
+                    or not any(origin is zone for zone in (
+                        player.hand, player.deck, player.discard, player.pending_gain_set_aside
+                    ))):
                 destinations[card] = None
                 return False
+            origin.remove(card)
+            if target is not origin:
+                destinations[card] = None
+            return True
         for zone in (player.discard, player.deck, player.hand):
             if card in zone:
                 zone.remove(card)

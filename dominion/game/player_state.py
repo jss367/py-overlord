@@ -68,6 +68,7 @@ class PlayerState:
     cauldron_triggered: bool = False
     trickster_uses_remaining: int = 0
     trickster_set_aside: list[Card] = field(default_factory=list)
+    pending_gain_set_aside: list[Card] = field(default_factory=list)
     charm_next_buy_copies: int = 0
     walled_villages_played: int = 0
     fortune_doubled_this_turn: bool = False
@@ -319,6 +320,7 @@ class PlayerState:
         self.cauldron_triggered = False
         self.trickster_uses_remaining = 0
         self.trickster_set_aside = []
+        self.pending_gain_set_aside = []
         self.charm_next_buy_copies = 0
         self.walled_villages_played = 0
         self.fortune_doubled_this_turn = False
@@ -599,6 +601,7 @@ class PlayerState:
             self.native_village_mat,
             self.island_mat,
             self.trickster_set_aside,
+            self.pending_gain_set_aside,
             self.delayed_cards,
             self.flagship_pending,
             self.clerk_pending_replay,

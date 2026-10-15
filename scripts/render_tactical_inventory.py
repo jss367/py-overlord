@@ -195,11 +195,11 @@ def reviewed_decisions():
         ("tests/test_named_card_decisions.py", "tests/test_command_supply_rules.py",
          "tests/test_gain_effect_ordering.py", "tests/test_gain_source_destinations.py",
          "tests/test_seaside_cards.py"),
-        rules="Scoped real storage / failed replay / own-turn / virtual-play watcher audit; successful multi-play storage open (#433)",
+        rules="Scoped initial storage / printed placement / gain movement / failed replay / own-turn / virtual-play watcher audit; successful multi-play storage open (#433)",
         wiring="Automatic watcher tested; gain-choice strategy forwarding unreviewed",
         tactical="Unreviewed: no isolated preference comparison",
         evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",),
-        followups=(432, 433), adapter="dominion/cards/seaside/blockade.py")
+        followups=(432, 433, 434), adapter="dominion/cards/seaside/blockade.py")
     return audits
 
 

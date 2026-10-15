@@ -35,7 +35,7 @@ def fixture(source, mode, monkeypatch):
     elif source == 'Joust':
         target = 'Courser'
         state.supply[target] = 5
-    initial = 'hand' if source in HAND_SOURCES or source in ('Pickaxe', 'Joust') else 'deck' if source in ('Treasure Map', 'Sea Hag', 'Sickness') else 'discard'
+    initial = 'pending_gain_set_aside' if source == 'Blockade' else 'hand' if source in HAND_SOURCES or source in ('Pickaxe', 'Joust') else 'deck' if source in ('Treasure Map', 'Sea Hag', 'Sickness') else 'discard'
     if source == 'Summon':
         state.original_kingdom_pile_names = {'Village'}
     observed = []

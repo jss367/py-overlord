@@ -1,12 +1,14 @@
 """Den of Sin — $5 Night-Duration.
 
-At start of next turn, +2 Cards. When you gain this, put it into hand.
+At start of next turn, +2 Cards. This is gained to your hand instead of your discard pile.
 """
 
 from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class DenOfSin(Card):
+    default_gain_destination = "hand"
+
     def __init__(self):
         super().__init__(
             name="Den of Sin",
@@ -14,16 +16,6 @@ class DenOfSin(Card):
             stats=CardStats(),
             types=[CardType.NIGHT, CardType.DURATION],
         )
-
-    def on_gain(self, game_state, player):
-        super().on_gain(game_state, player)
-        # Put the card into hand instead of discard
-        if self in player.discard:
-            player.discard.remove(self)
-        elif self in player.deck:
-            player.deck.remove(self)
-        if self not in player.hand:
-            player.hand.append(self)
 
     def play_effect(self, game_state):
         player = game_state.current_player

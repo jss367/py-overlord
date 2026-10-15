@@ -804,3 +804,15 @@ their own turn receive a Curse; returning the stored card ends the watcher
 plays still overwrite its single storage slot, separately reproduced in #433.
 The inventory records this bounded rules audit; gain-choice forwarding and
 preference strength remain unreviewed, and the frozen studies are not regraded.
+
+Blockade declares its initial owned set-aside zone before gain effects (#434).
+Nomad Camp and the four printed Nocturne hand-default cards (Ghost Town,
+Guardian, Night Watchman and Den of Sin) now use initial placement metadata;
+explicit source destinations override those defaults. Night Watchman's old
+optional-play-on-gain hook was inconsistent with printed hand placement and
+is removed, without claiming a full audit of its play choices. Villa's actual
+on-gain move, Trader and Watchtower can move the original from initial storage.
+Physical ownership is visible throughout, and shuffles still invalidate an
+original-zone reference. Synthetic regressions cover ordinary/explicit gains,
+reactions, subsequent opponent gains and next-turn returns. These scoped
+placement fixes do not add tactical strength evidence or regrade saved studies.

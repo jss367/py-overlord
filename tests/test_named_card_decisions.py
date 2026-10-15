@@ -529,3 +529,87 @@ def test_artificer_cannot_gain_a_pile_member_consumed_by_friendly_discard():
     assert state.supply["Village"] == 0
     assert player.count("Village") == 2  # Original discard and Friendly's gain.
     assert not player.deck and all("Village" not in menu for menu in menus)
+
+
+@pytest.mark.parametrize("name", ["Nomad Camp", "Ghost Town", "Guardian", "Night Watchman", "Den of Sin"])
+@pytest.mark.parametrize("reaction", [None, "trader", "topdeck", "trash"])
+def test_blockade_initial_storage_overrides_printed_placement_before_gain_reactions(name, reaction):
+    state, player = make_state(kingdom=("Blockade", name, "Trader", "Watchtower"))
+    player.cost_reduction = 1  # Includes a legal reduced-cost Den of Sin.
+    player.ai.choose_card_to_gain_with_blockade = lambda *_args, **_kwargs: get_card(name)
+    player.ai.should_play_night_watchman_now = lambda *_: True
+    player.hand = [get_card("Trader")] if reaction == "trader" else [get_card("Watchtower")]
+    player.ai.strategy.should_reveal_trader = lambda *_args, **_kwargs: reaction == "trader"
+    observed = []
+    def watch(s, p, card):
+        if card.name == name:
+            observed.append(card)
+            assert card in p.pending_gain_set_aside and p.count(name) == 1
+            assert card not in p.hand + p.deck + p.discard + p.in_play
+        return reaction
+    player.ai.strategy.choose_watchtower_reaction = watch
+    blockade = get_card("Blockade")
+    player.in_play = [blockade]
+    count = state.supply[name]
+    blockade.play_effect(state)
+    assert not player.pending_gain_set_aside
+    assert (blockade.set_aside is not None) == (reaction is None)
+    assert state.supply[name] == count - int(reaction != "trader")
+    state.current_player_index = 1
+    state.gain_from_supply(state.players[1], name)
+    assert state.players[1].count("Curse") == int(reaction is None)
+    state.current_player_index = 0
+    if reaction is None:
+        stored = blockade.set_aside
+        assert stored is observed[0] and player.count(name) == 1
+        blockade.on_duration(state)
+        assert stored in player.hand and player.count(name) == 1
+        state.current_player_index = 1
+        state.gain_from_supply(state.players[1], name)
+        assert state.players[1].count("Curse") == 1
+    elif reaction == "trader":
+        assert player.count(name) == 0 and any(c.name == "Silver" for c in player.discard)
+    elif reaction == "trash":
+        assert observed[0] in state.trash and player.count(name) == 0
+    else:
+        assert player.deck[-1] is observed[0] and player.count(name) == 1
+    assert not any(c.name == name for c in player.in_play)
+
+
+@pytest.mark.parametrize("name", ["Nomad Camp", "Ghost Town", "Guardian", "Night Watchman", "Den of Sin"])
+@pytest.mark.parametrize("destination", ["default", "deck", "hand"])
+@pytest.mark.parametrize("trash", [False, True])
+def test_printed_gain_placement_is_initial_and_yields_to_an_explicit_source(name, destination, trash):
+    state, player = make_state(kingdom=(name, "Watchtower"))
+    player.hand = [get_card("Watchtower")]
+    player.ai.should_play_night_watchman_now = lambda *_: True
+    expected = "deck" if name == "Nomad Camp" else "hand"
+    if destination != "default":
+        expected = destination
+    observed = []
+    def watch(s, p, card):
+        observed.append(card)
+        assert card in getattr(p, expected)
+        return "trash" if trash else None
+    player.ai.strategy.choose_watchtower_reaction = watch
+    card = get_card(name)
+    state.gain_card(player, card, from_supply=False,
+                    to_deck=destination == "deck", to_hand=destination == "hand")
+    assert observed == [card]
+    assert (card in state.trash) == trash
+    assert player.count(name) == int(not trash)
+    assert card not in player.in_play
+
+
+def test_villa_moves_from_blockade_initial_storage_without_arming_a_watcher():
+    state, player = make_state(kingdom=("Blockade", "Villa"))
+    player.ai.choose_card_to_gain_with_blockade = lambda *_args, **_kwargs: get_card("Villa")
+    blockade = get_card("Blockade")
+    player.in_play = [blockade]
+    blockade.play_effect(state)
+    assert [c.name for c in player.hand] == ["Villa"] and player.actions == 1
+    assert not player.pending_gain_set_aside and blockade.set_aside is None
+    assert blockade not in player.duration and blockade.watched_card_name is None
+    state.current_player_index = 1
+    state.gain_from_supply(state.players[1], "Villa")
+    assert state.players[1].count("Curse") == 0

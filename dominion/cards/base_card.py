@@ -56,6 +56,9 @@ class CardType(Enum):
 
 
 class Card:
+    # Printed "gained to ... instead of discard" placement, before gain effects.
+    default_gain_destination = "discard"
+
     def __init__(
         self, name: str, cost: CardCost, stats: CardStats, types: list[CardType]
     ):

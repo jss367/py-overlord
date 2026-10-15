@@ -45,7 +45,10 @@ class Blockade(Card):
 
         game_state.supply[choice.name] -= 1
         actual_gain = []
-        game_state.gain_card(player, get_card(choice.name), gain_observer=actual_gain.append)
+        game_state.gain_card(
+            player, get_card(choice.name), gain_observer=actual_gain.append,
+            to_zone=player.pending_gain_set_aside,
+        )
         if not actual_gain:
             return
         gained = actual_gain[0]
