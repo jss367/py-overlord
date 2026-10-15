@@ -37,14 +37,12 @@ class _BaseKnight(Card):
     # --- standard Knight attack ----------------------------------------
 
     def _resolve_knight_attack(self, game_state):
-        from ..registry import get_card  # noqa: F401
+        from .rogue import attack_trash_candidates, opponents_in_order
 
         attacker = game_state.current_player
 
-        knight_was_trashed = False
-
         def attack_target(target):
-            nonlocal knight_was_trashed
+            knight_was_trashed = False
             revealed: list[Card] = []
             for _ in range(2):
                 if not target.deck and target.discard:
@@ -65,11 +63,7 @@ class _BaseKnight(Card):
                 )
             )
 
-            trashable = [
-                c
-                for c in revealed
-                if 3 <= game_state.get_card_cost(attacker, c) <= 6
-            ]
+            trashable = attack_trash_candidates(game_state, revealed)
 
             if trashable:
                 if len(trashable) == 1:
@@ -92,15 +86,13 @@ class _BaseKnight(Card):
             for card in revealed:
                 game_state.discard_card(target, card)
 
-        for other in game_state.players:
-            if other is attacker:
-                continue
-            game_state.attack_player(other, attack_target)
+            # Finish this victim's instructions before attacking the next.
+            if knight_was_trashed and self in attacker.in_play:
+                attacker.in_play.remove(self)
+                game_state.trash_card(attacker, self)
 
-        # If a Knight was trashed by this attack, also trash this Knight.
-        if knight_was_trashed and self in attacker.in_play:
-            attacker.in_play.remove(self)
-            game_state.trash_card(attacker, self)
+        for other in opponents_in_order(game_state, attacker):
+            game_state.attack_player(other, attack_target)
 
     def play_effect(self, game_state):
         self._do_extra(game_state)

@@ -16,8 +16,11 @@ def _opponent_gain_applies(state, source, owner, gainer, gained):
     if source.name == 'Monkey':
         return source in owner.duration and state.players[(state.players.index(owner) - 1) % len(state.players)] is gainer
     if source.name == 'Blockade':
-        return (source in owner.duration and not getattr(source, 'virtual_supply_play', False)
-                and source.watched_card_name == gained.name and id(gainer) in source._affected_player_ids)
+        stored = source.set_aside
+        return (source in owner.duration and stored is not None
+                and not getattr(stored, 'returned_to_supply', False)
+                and stored.name == source.watched_card_name == gained.name
+                and gainer is state.turn_player and id(gainer) in source._affected_player_ids)
     return True
 
 
@@ -76,10 +79,7 @@ class GainEvent:
         self.pending[id(owner)].append(_Trigger(GainEffect(kind, source), callback, eligible, priority))
 
     def movable(self):
-        zone = self.state.gain_destination(self.card)
-        return zone is not None and self.card in zone and (zone is not self.player.deck or zone[-1] is self.card) and any(
-            zone is z for z in (self.player.hand, self.player.deck, self.player.discard)
-        )
+        return self.state.gain_is_movable(self.player, self.card)
 
     def move(self, target):
         if not self.movable():
@@ -100,6 +100,17 @@ class GainEvent:
             if owner is player and card.name == 'Watchtower':
                 self.add(owner, 'watchtower', lambda: state._handle_watchtower_reaction(player, gained),
                          source=card, priority=30, eligible=eligible, dynamic=True)
+            elif owner is player and card.name == 'Trader':
+                def trader():
+                    self.result = state._handle_trader_exchange(
+                        player, gained, self.result,
+                        state.gain_destination(gained) is player.deck,
+                    )
+                self.add(owner, 'trader', trader, source=card, priority=25,
+                         eligible=lambda c=card: c in player.hand and self.movable()
+                         and state.supply.get('Silver', 0) > 0
+                         and state._resolve_changeling_pile_name(gained) is not None,
+                         dynamic=True)
             elif owner is player and card.name == 'Sleigh':
                 def sleigh(c=card):
                     can_move = self.movable()
@@ -141,7 +152,6 @@ class GainEvent:
                 old_index, old_turn = state.current_player_index, state.reaction_turn_player_index
                 old_number = getattr(state, '_gain_event_number', None)
                 old_collection = getattr(state, '_gain_event_collection_bonus', None)
-                zone = state.gain_destination(self.card)
                 had_card = self.movable()
                 try:
                     state.reaction_turn_player_index = next(i for i, p in enumerate(state.players) if p is state.turn_player)
@@ -159,7 +169,7 @@ class GainEvent:
                     state.current_player_index, state.reaction_turn_player_index = old_index, old_turn
                     state._gain_event_number = old_number
                     state._gain_event_collection_bonus = old_collection
-                    if had_card and (self.card not in zone or zone is self.player.deck and zone[-1] is not self.card or not any(zone is z for z in (self.player.hand, self.player.deck, self.player.discard))):
+                    if had_card and not self.movable():
                         state._gain_destinations[self.card] = None
         return self.result
 

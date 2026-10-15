@@ -1139,12 +1139,8 @@ class AI(ABC):
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Optional[Card]:
         """Choose which card to reveal for Courtier (more types -> more bonuses)."""
-        if not choices:
-            return None
-        return max(
-            choices,
-            key=lambda c: (len(c.types), c.cost.coins, c.name),
-        )
+        from .tactical_defaults import courtier_reveal
+        return courtier_reveal(state, player, choices)
 
     def choose_minion_mode(
         self, state: GameState, player: PlayerState
@@ -2621,13 +2617,7 @@ class AI(ABC):
         hook = getattr(getattr(self, "strategy", None), "should_replay_treasure_with_counterfeit", None)
         if hook:
             return hook(state, player, choices)
-        if not choices:
-            return None
-        # Prefer to trash Copper; otherwise highest-coin treasure.
-        coppers = [c for c in choices if c.name == "Copper"]
-        if coppers:
-            return coppers[0]
-        return max(choices, key=lambda c: (c.cost.coins, c.name))
+        return tactical_defaults.counterfeit_treasure(state, player, choices)
 
     def should_play_cultist_chain(
         self, state: GameState, player: PlayerState
@@ -2670,10 +2660,9 @@ class AI(ABC):
     def should_gain_from_trash_with_rogue(
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Card | None:
-        """Rogue: pick a $3-$6 card from trash to gain when none in deck-tops."""
-        if not choices:
-            return None
-        return max(choices, key=lambda c: (c.cost.coins, c.is_action, c.name))
+        """Rogue: choose its mandatory gain when an eligible trash card exists."""
+        from .tactical_defaults import rogue_gain
+        return rogue_gain(state, player, choices)
 
     def choose_card_to_trash_for_altar(
         self, state: GameState, player: PlayerState, choices: list[Card]
@@ -2870,6 +2859,21 @@ class AI(ABC):
         if chosen is not None and chosen in choices:
             return chosen
         return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+
+    def choose_artificer_discards(self, state, player, choices):
+        """Return physical discards, or None to use the legacy gain budget."""
+        return None
+
+    def choose_artificer_gain_after_discard(self, state, player, choices, planned):
+        """Optional gain from the fresh exact-cost menu after discarding.
+
+        Keep a legal legacy plan. An invalidated plan can select another gain
+        through purchase preferences; an unplanned gain is declined by default.
+        """
+        if planned is None:
+            return None
+        matching = next((c for c in choices if c.name == planned.name), None)
+        return matching or self.choose_buy(state, list(choices) + [None])
 
     def choose_artificer_gain(
         self, state: GameState, player: PlayerState, choices: list[Card]

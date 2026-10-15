@@ -35,7 +35,7 @@ def fixture(source, mode, monkeypatch):
     elif source == 'Joust':
         target = 'Courser'
         state.supply[target] = 5
-    initial = 'hand' if source in HAND_SOURCES or source in ('Pickaxe', 'Joust') else 'deck' if source in ('Treasure Map', 'Sea Hag', 'Sickness') else 'discard'
+    initial = 'pending_gain_set_aside' if source == 'Blockade' else 'hand' if source in HAND_SOURCES or source in ('Pickaxe', 'Joust') else 'deck' if source in ('Treasure Map', 'Sea Hag', 'Sickness') else 'discard'
     if source == 'Summon':
         state.original_kingdom_pile_names = {'Village'}
     observed = []
@@ -129,7 +129,7 @@ def test_source_destination_precedes_reactions_and_never_redirects_exchange(sour
     if source == 'Sculptor':
         assert player.villagers == 1
     if source == 'Blockade':
-        assert card.watched_card_name == target
+        assert card.watched_card_name == (target if mode == 'none' else None)
         if mode != 'none':
             assert card.set_aside is None
     if source == 'Quartermaster' and mode != 'none':
@@ -138,12 +138,12 @@ def test_source_destination_precedes_reactions_and_never_redirects_exchange(sour
         assert phase_calls == ['action'] and state.phase == 'buy'
 
 
-def test_sculptor_villager_counts_the_actual_trader_replacement(monkeypatch):
+def test_sculptor_does_not_count_exchanged_silver_as_the_gain(monkeypatch):
     state, player, _, _, _, _, _, invoke = fixture('Sculptor', 'none', monkeypatch)
     player.hand.append(get_card('Trader'))
     player.ai.should_reveal_trader = lambda *args, **kw: True
     player.ai.choose_buy = lambda s, choices: next(c for c in choices if c is not None and c.name == 'Village')
     invoke()
-    assert player.villagers == 1
-    assert any(c.name == 'Silver' for c in player.hand)
+    assert player.villagers == 0  # Village was gained; the exchanged Silver was not.
+    assert any(c.name == 'Silver' for c in player.discard)
     assert state.supply['Village'] == 10

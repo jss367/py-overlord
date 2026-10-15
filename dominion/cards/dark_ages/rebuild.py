@@ -75,6 +75,7 @@ class Rebuild(Card):
             is_ordered_pile
             and gained is not None
             and gained is not choice
+            and not getattr(choice, "returned_to_supply", False)
             and game_state.supply.get(pile_name, 0) == post_decrement_supply
             and len(game_state.pile_order.get(pile_name, []))
             == post_decrement_order_len

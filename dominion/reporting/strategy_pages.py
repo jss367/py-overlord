@@ -51,6 +51,15 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="remaining-named-card-decisions-and-rules.html",
+        display_name="Remaining Card Decisions: Rules and Tactical Evaluation",
+        description="Fourteen fixed-priority decision comparisons, scoped rules fixes, fresh validation and seventeen registered strategy compatibility checks; existing preferences retained and wider Inheritance work explicit.",
+        kingdom_cards=("Courtier", "Courier", "Knights", "Rogue", "Stables", "Spice Merchant",
+                       "Armory", "Artificer", "Scheme", "Chapel", "Junk Dealer", "Counterfeit",
+                       "Moneylender", "Minion", "Trader", "Groom", "Replace", "Wild Hunt", "Hoard"),
+        source_label="Publisher rules, physical engine scenarios and 29,280 seeded games",
+    ),
+    CuratedStrategyGuide(
         filename="gain-effect-ordering-and-searchable-card-policies.html",
         display_name="Ordering Gain Effects and Searching Card Policies",
         description="Owner-ordered gain events, live Investment accounting, bounded genome parameters and 17,280 seeded games with frozen selections, rejected regressions and capped-game sensitivity.",

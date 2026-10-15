@@ -547,6 +547,10 @@ def test_buried_treasure_replays_each_schedule_next_turn_resources(reckless, tia
         def should_replay_treasure_with_tiara(self, state, player, card):
             return True
 
+        def choose_gain_effect(self, state, player, card, choices):
+            # Play the gain before Tiara's optional topdeck moves it away.
+            return next((c for c in choices if c.kind == "card_on_gain"), choices[0])
+
     state, player = setup("Buried Treasure", ai=ReplayAI())
     if reckless:
         state.pile_traits["Buried Treasure"] = "Reckless"

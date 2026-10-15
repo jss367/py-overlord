@@ -185,6 +185,15 @@ class GameState:
     def gain_destination(self, card):
         return getattr(self, "_gain_destinations", {}).get(card)
 
+    def gain_is_movable(self, player, card):
+        """Whether the original gain still occupies its initial owned zone."""
+        zone = self.gain_destination(card)
+        return (zone is not None and card in zone
+                and (zone is not player.deck or zone[-1] is card)
+                and any(zone is z for z in (
+                    player.hand, player.deck, player.discard, player.pending_gain_set_aside
+                )))
+
     def _cover_gained_deck_top(self, player, incoming):
         """A gained deck card stops moving once another card covers it."""
         if player.deck and player.deck[-1] is not incoming:
@@ -2599,23 +2608,23 @@ class GameState:
             return True
         return False
 
-    def live_type_count(self, card: Card) -> int:
-        """Number of types ``card`` has right now, including game-level
-        modifiers (Charlatan adds Treasure to Curse). Used by "2 or more
-        types" triggers such as Falconer."""
-        count = len(card.types)
-        if not card.is_treasure and self.is_treasure(card):
-            count += 1
-        # Rising Sun Enlightenment: Treasures are also Actions for all purposes.
-        if (
-            self.prophecy is not None
-            and self.prophecy.is_active
-            and self.prophecy.name == "Enlightenment"
-            and self.is_treasure(card)
-            and not card.is_action
-        ):
-            count += 1
-        return count
+    def live_type_count(self, card: Card, player: PlayerState | None = None) -> int:
+        """Distinct current types, optionally including an owner's Inheritance.
+
+        Includes global modifiers such as Charlatan, Capitalism and Enlightenment.
+        """
+        from ..cards.base_card import CardType
+
+        types = set(card.types)
+        if self.is_action(card):
+            types.add(CardType.ACTION)
+        if self.is_treasure(card):
+            types.add(CardType.TREASURE)
+        if player is not None and self.is_inherited_estate(player, card):
+            # Current Inheritance adds Action and Command, not the types of
+            # the set-aside Action (or that Action's Capitalism qualification).
+            types.update((CardType.ACTION, CardType.COMMAND))
+        return len(types)
 
     def is_inherited_estate(self, player: PlayerState, card: Card) -> bool:
         """Whether this player's Estate can use Inheritance on this turn."""
@@ -3890,19 +3899,25 @@ class GameState:
         to_hand: bool = False,
         *,
         gain_observer=None,
+        to_zone: list[Card] | None = None,
     ) -> Card | None:
-        """Add a card to a player's discard or deck, honoring topdeck effects.
+        """Gain into the source's initial destination, then resolve gain effects.
 
         New Supply gainers should call ``gain_from_supply`` instead. This
         lower-level entry point also supports already-removed cards and gains
         from other locations, including legacy purchase and card-effect paths.
 
-        ``from_supply`` controls supply-restoration semantics. The default
-        (``True``) matches the historical contract: the caller has already
-        decremented the supply for ``card.name``, so Trader's reaction may
-        add 1 back when it replaces the gain. For trash-origin gains
-        (Lurker, Lich), pass ``False`` so the supply pile isn't inflated by
-        the restoration logic.
+        ``from_supply=True`` means the caller already decremented Supply;
+        False identifies gains from other locations. Trader returns its target
+        to its pile regardless of the gain's origin, including from the trash.
+
+        ``to_zone`` declares a source-specific initial zone (for example,
+        Blockade's set-aside area), before any gain effects resolve. Explicit
+        destinations override a card's printed default gain placement.
+
+        The return value follows the physical card received after an exchange,
+        for compatibility with Changeling/Trader callers. Use ``gain_observer``
+        for the original gain's identity/types in follow-up bonuses.
 
         If the player has matching cards on their Exile mat, the gain still
         happens, and the player may then discard all Exiled copies (the
@@ -3925,14 +3940,25 @@ class GameState:
         if from_supply and card.name in self.supply:
             self.top_supply_card(card.name)
         actual_card = card
-        destination_is_deck = to_deck
+        # A source's explicit destination overrides a card's printed default.
+        if to_zone is not None:
+            if to_deck or to_hand:
+                raise ValueError("to_zone cannot be combined with to_deck/to_hand")
+            if not any(to_zone is zone for zone in (
+                player.hand, player.deck, player.discard, player.pending_gain_set_aside
+            )):
+                raise ValueError("to_zone must be an owned gain destination")
+            destination = to_zone
+        elif to_deck:
+            destination = player.deck
+        elif to_hand:
+            destination = player.hand
+        else:
+            destination = getattr(player, card.default_gain_destination)
+        destination_is_deck = destination is player.deck
 
-        actual_card = self._handle_trader_exchange(
-            player, card, actual_card, destination_is_deck, from_supply=from_supply
-        )
-
-        # Observe the actual gain after replacements, before on-gain effects
-        # can exchange it. An exchanged Changeling is not the card gained.
+        # Observe the original gain before on-gain exchanges. Neither Trader's
+        # Silver nor an exchanged Changeling is the card that was gained.
         if gain_observer is not None:
             gain_observer(actual_card)
         actual_card.returned_to_supply = False
@@ -3950,9 +3976,8 @@ class GameState:
         # Menagerie Exile rule: gaining a card lets the player discard ALL
         # copies of it from Exile — in addition to the gain, never instead
         # of it. Capture whether a copy was exiled before resolving, for
-        # Gatekeeper's "already has an Exiled copy" check. Computed after
-        # the Trader reaction so it tracks the card actually gained (a
-        # Silver, if Trader swapped the gain), not the original card.
+        # Gatekeeper's "already has an Exiled copy" check. An exchange does
+        # not change this gain's identity to the received card.
         had_exiled_copy = any(c.name == actual_card.name for c in player.exile)
 
         if destination_is_deck:
@@ -3960,14 +3985,12 @@ class GameState:
             # the list is the top of the deck.
             self._cover_gained_deck_top(player, actual_card)
             player.deck.append(actual_card)
-        elif to_hand:
-            player.hand.append(actual_card)
         else:
-            player.discard.append(actual_card)
+            destination.append(actual_card)
 
         if not hasattr(self, "_gain_destinations"):
             self._gain_destinations = {}
-        self._gain_destinations[actual_card] = player.deck if destination_is_deck else player.hand if to_hand else player.discard
+        self._gain_destinations[actual_card] = destination
 
         # Galleria qualifies on the gain event's cost, before gain effects
         # can play Highway or another card that changes prices.
@@ -4047,9 +4070,10 @@ class GameState:
         pile_name = self._resolve_changeling_pile_name(gained_card)
         if pile_name is None:
             return gained_card
-        # Skip cards that did not enter a normal zone (e.g. Watchtower
-        # already moved them to the trash or to the deck-top set-aside).
-        if not any(gained_card in zone for zone in (player.discard, player.deck, player.hand)):
+        # Exchanges may also return a card initially gained set aside, but
+        # cannot follow it after another gain effect has moved it away.
+        zone = self.gain_destination(gained_card)
+        if zone is None or gained_card not in zone:
             return gained_card
 
         if not player.ai.should_exchange_changeling(self, player, gained_card):
@@ -4301,13 +4325,7 @@ class GameState:
         to_deck: bool,
         from_supply: bool = True,
     ) -> Card:
-        """Allow Trader reactions to replace a gain with a Silver.
-
-        ``from_supply`` mirrors ``gain_card``: when the caller decremented
-        supply for ``original_card`` (the normal case), Trader restores it.
-        For trash-origin gains the caller never touched supply so we must
-        not "restore" a count that was never decremented.
-        """
+        """Exchange a still-available gained card; the Silver is not gained."""
 
         if self.supply.get("Silver", 0) <= 0:
             return actual_card
@@ -4318,18 +4336,19 @@ class GameState:
         if not player.ai.should_reveal_trader(self, player, original_card, to_deck=to_deck):
             return actual_card
 
-        if from_supply:
-            # Pile-aware restoration: ordered piles (Knights, Ruins) need
-            # both the placeholder count and pile_order put back, not just
-            # ``supply[original_card.name]`` (which silently no-ops since
-            # the supply key is the placeholder name).
-            self._restore_to_supply_pile(original_card)
+        if self._resolve_changeling_pile_name(original_card) is None:
+            return actual_card
+        # The gain event owns stop-moving eligibility. This also protects
+        # callers that try to exchange a card after a prior reaction moved it.
+        if not self._remove_gained_card_from_zones(player, original_card):
+            return actual_card
+        self._restore_to_supply_pile(original_card)
 
-        self.supply["Silver"] -= 1
-        replacement = get_card("Silver")
+        replacement = self.take_top_supply_card("Silver")
+        player.discard.append(replacement)
         context = {
-            "replaced": original_card.name,
-            "destination": "deck" if to_deck else "discard",
+            "exchanged": original_card.name,
+            "destination": "discard",
         }
         self.log_callback(("action", player.ai.name, "reveals Trader", context))
         return replacement
@@ -4355,7 +4374,7 @@ class GameState:
         from ..cards.registry import get_card
 
         hoard_count = sum(1 for card in player.in_play if card.name == "Hoard")
-        if hoard_count and gained_card.is_victory:
+        if hoard_count and bought_card.is_victory:
             for _ in range(hoard_count):
                 if self.supply.get("Gold", 0) <= 0:
                     break
@@ -4419,14 +4438,18 @@ class GameState:
             player.deck.append(gained_card)
 
     def _remove_gained_card_from_zones(self, player: PlayerState, card: Card, *, target=None) -> bool:
-        """Remove ``card`` from hand, discard, or deck if present."""
+        """Remove a gain only from its still-available original destination."""
 
         destinations = getattr(self, "_gain_destinations", {})
         if card in destinations:
             origin = destinations[card]
-            if origin is None or card not in origin or origin is player.deck and origin[-1] is not card or not any(origin is z for z in (player.hand, player.deck, player.discard)):
+            if not self.gain_is_movable(player, card):
                 destinations[card] = None
                 return False
+            origin.remove(card)
+            if target is not origin:
+                destinations[card] = None
+            return True
         for zone in (player.discard, player.deck, player.hand):
             if card in zone:
                 zone.remove(card)
@@ -4528,10 +4551,9 @@ class GameState:
         )
         gained = self.gain_card(player, pick, from_supply=False)
         if gained is not pick and not getattr(pick, "returned_to_supply", False):
-            # The gain was replaced by Trader's Silver, so the chosen card
-            # never left the trash. (A Changeling exchange also returns a
-            # different card, but it has already put ``pick`` back on its
-            # Supply pile, flagged via ``returned_to_supply``.)
+            # Preserve the source for a replacement that did not return it.
+            # Normal Trader/Changeling returns mark the physical card, so it
+            # must not also be restored to the trash here.
             self.trash.append(pick)
 
     def _maybe_play_guard_dogs(self, player: PlayerState) -> None:

@@ -26,10 +26,12 @@ class Courtier(Card):
             game_state, player, list(player.hand)
         )
         if revealed is None or revealed not in player.hand:
-            return
+            from dominion.ai.tactical_defaults import courtier_reveal
+
+            revealed = courtier_reveal(game_state, player, player.hand)
 
         # Number of types on the revealed card determines bonuses.
-        num_types = len(revealed.types)
+        num_types = game_state.live_type_count(revealed, player)
         # The four available options:
         options = ["action", "buy", "coins", "gold"]
         choices = player.ai.choose_courtier_options(
@@ -39,7 +41,7 @@ class Courtier(Card):
         # Deduplicate while preserving order, and cap at num_types.
         seen = set()
         ordered: list[str] = []
-        for c in choices:
+        for c in choices or []:
             if c in options and c not in seen:
                 ordered.append(c)
                 seen.add(c)
@@ -63,7 +65,8 @@ class Courtier(Card):
 
         for choice in ordered:
             if choice == "action":
-                player.actions += 1
+                if not player.ignore_action_bonuses:
+                    player.actions += 1
             elif choice == "buy":
                 player.buys += 1
             elif choice == "coins":

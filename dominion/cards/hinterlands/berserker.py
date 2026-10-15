@@ -20,6 +20,8 @@ class Berserker(Card):
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
+        if self in getattr(game_state, "_gain_destinations", {}) and not game_state.gain_is_movable(player, self):
+            return
         if any(card.is_action for card in player.in_play):
             self._play_now(game_state, player)
 
@@ -69,7 +71,7 @@ class Berserker(Card):
     def _play_now(self, game_state, player):
         # Shared indirect-play helper: owner swap, Way offer and the
         # post-play hooks every other reaction play gets.
-        for zone in (player.discard, player.deck, player.hand, game_state.trash):
+        for zone in (player.discard, player.deck, player.hand, player.pending_gain_set_aside, game_state.trash):
             if self in zone:
                 game_state.play_action_from_zone_indirectly(player, self, zone)
                 return

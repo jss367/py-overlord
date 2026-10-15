@@ -165,20 +165,22 @@ class _RevealTraderAI(DummyAI):
         return True
 
 
-def test_shaman_gain_replaced_by_trader_leaves_card_in_trash():
-    """Revealing Trader swaps the Shaman gain for a Silver; the chosen card
-    was never gained, so it must remain in the trash."""
+def test_shaman_trader_returns_the_trash_gained_card_to_its_pile():
+    """The returned physical Gold leaves trash and increases its pile."""
     state = _game(ais=[_RevealTraderAI(), DummyAI()])
     p0 = state.players[0]
     p0.hand = [get_card("Trader")]
-    gold = get_card("Gold")
+    gold = state.take_top_supply_card("Gold")
     state.trash.append(gold)
     silver_before = state.supply["Silver"]
+    gold_before = state.supply["Gold"]
 
     state._handle_shaman_start_of_turn(p0)
 
     assert [c.name for c in p0.discard] == ["Silver"]
-    assert state.trash == [gold]
+    assert state.trash == []
+    assert gold.returned_to_supply
+    assert state.supply["Gold"] == gold_before + 1
     assert state.supply["Silver"] == silver_before - 1
 
 

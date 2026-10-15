@@ -8,6 +8,24 @@ from dominion.cards.base_card import Card
 from dominion.ai.gain_context import FreeGainContext
 
 
+def courtier_reveal(state, player, choices):
+    """Prefer the most current types, then retain the existing tie-breaks."""
+    return max(choices, key=lambda c: (
+        state.live_type_count(c, player), c.cost.coins, c.name
+    ), default=None)
+
+
+def rogue_gain(state, player, choices):
+    """Rank the mandatory trash gain independently of purchase preferences."""
+    return max(choices, key=lambda c: (c.cost.coins, c.is_action, c.name), default=None)
+
+
+def counterfeit_treasure(state, player, choices):
+    """Preserve Copper-first, then the most expensive Treasure baseline."""
+    copper = next((c for c in choices if c.name == "Copper"), None)
+    return copper or max(choices, key=lambda c: (c.cost.coins, c.name), default=None)
+
+
 def _deck_gain_value(state, player, card, context: FreeGainContext) -> float:
     """Modest deck value, with diminishing returns and late-game points.
 

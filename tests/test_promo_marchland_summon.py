@@ -441,12 +441,8 @@ def test_summon_skips_non_supply_piles():
     assert state.supply["Madman"] == 10
 
 
-def test_summon_trader_replacement_on_knight_restores_pile_state():
-    """If Trader replaces the Summoned Knight gain with a Silver, the
-    Knights pile must be left untouched: pile_order keeps its top card and
-    the Knights supply count is not decremented (since no Knight was
-    actually gained from the pile).
-    """
+def test_summon_trader_exchange_returns_knight_and_does_not_set_aside_silver():
+    """The Knight was gained and exchanged; Silver was not gained by Summon."""
     state = _new_state(["Knights"])
     player = state.players[0]
     player.cost_reduction = 1  # makes Knights effectively $4
@@ -465,11 +461,11 @@ def test_summon_trader_replacement_on_knight_restores_pile_state():
     assert state.supply["Knights"] == starting_supply
     assert len(state.pile_order["Knights"]) == starting_order_len
     assert state.pile_order["Knights"][-1] == starting_order_top
-    # A Silver was gained instead. It went to discard via Trader; my
-    # post-gain rerouting moves the Silver into summon_set_aside.
+    # The received Silver is not a gain and stays in discard.
     assert state.supply["Silver"] == starting_silver_supply - 1
-    assert len(player.summon_set_aside) == 1
-    assert player.summon_set_aside[0].name == "Silver"
+    assert not player.summon_set_aside
+    assert [c.name for c in player.discard] == ["Silver"]
+    assert player.gained_cards_this_turn == [starting_order_top]
 
 
 def test_summon_watchtower_trash_diverts_set_aside():

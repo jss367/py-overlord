@@ -1,6 +1,6 @@
 """Ghost Town — $3 Night-Duration.
 
-+1 Card +1 Action. When you gain this, put it into hand.
++1 Card +1 Action. This is gained to your hand instead of your discard pile.
 (Per the spec: it provides +1 Card +1 Action at the start of your next turn.)
 """
 
@@ -8,6 +8,8 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class GhostTown(Card):
+    default_gain_destination = "hand"
+
     def __init__(self):
         super().__init__(
             name="Ghost Town",
@@ -15,15 +17,6 @@ class GhostTown(Card):
             stats=CardStats(),
             types=[CardType.NIGHT, CardType.DURATION],
         )
-
-    def on_gain(self, game_state, player):
-        super().on_gain(game_state, player)
-        if self in player.discard:
-            player.discard.remove(self)
-        elif self in player.deck:
-            player.deck.remove(self)
-        if self not in player.hand:
-            player.hand.append(self)
 
     def play_effect(self, game_state):
         player = game_state.current_player

@@ -791,23 +791,25 @@ def test_anvil_teacher_records_only_successful_final_gain_with_pre_gain_snapshot
 
     get_card("Anvil").play_effect(state)
 
-    if scenario in {"decline", "empty", "failed", "trader"}:
+    if scenario in {"decline", "empty", "failed"}:
         assert teacher.examples == []
         if scenario == "decline":
             assert [c.name for c in player.hand] == ["Gold"]
             assert not player.discard
-        if scenario == "trader":
-            assert state.supply["Village"] == 10 and state.supply["Silver"] == 9
-            assert player.discard[-1].name == "Silver"
         return
     assert len(teacher.examples) == 1
     observation, mask, target, decision = teacher.examples[0]
-    gained = "Village" if scenario == "replacement" else "Silver"
+    gained = "Village" if scenario in {"replacement", "trader"} else "Silver"
     assert decision == "buy"
     assert target == teacher.actions.card_to_action(get_card(gained))
     assert mask[target]
-    assert observation["supply"][gained] == 10 and state.supply[gained] == 9
+    assert observation["supply"][gained] == 10
+    assert state.supply[gained] == (10 if scenario == "trader" else 9)
     assert observation["discard"] == (("Silver", "Silver") if scenario == "replacement" else ("Copper",))
+    if scenario == "trader":
+        assert player.gained_cards_this_turn == ["Village"]
+        assert player.discard[-1].name == "Silver"
+        return
     destination = player.deck if scenario == "topdeck" else state.trash if scenario == "trash" else player.discard
     assert destination[-1].name == gained
 

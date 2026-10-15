@@ -31,9 +31,10 @@ class WildHunt(Card):
                 return
 
             game_state.supply["Estate"] -= 1
-            gained = game_state.gain_card(player, get_card("Estate"))
+            gained_estates = []
+            game_state.gain_card(player, get_card("Estate"), gain_observer=gained_estates.append)
 
-            if gained and gained.name == "Estate":
+            if gained_estates:
                 player.vp_tokens += game_state.wild_hunt_pile_tokens
                 game_state.wild_hunt_pile_tokens = 0
 

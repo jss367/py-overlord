@@ -77,7 +77,7 @@ def test_engineer_context_tracks_actual_first_gain_and_self_trash():
                 return get_card("Village")
             assert context.gain_number == 2 and not context.can_trash_source
             assert context.sacrificed is engineer and engineer in state.trash
-            assert context.previous_gain.name == "Silver"  # Trader replaced Village.
+            assert context.previous_gain.name == "Village"  # It was gained, then exchanged.
             assert context.owned_counts["Silver"] == 1
             assert "Engineer" not in context.owned_counts
             return get_card("Smithy")
@@ -200,8 +200,8 @@ def test_ironworks_pays_for_actual_gain_after_replacement_before_exchange(reacti
     else:
         player.ai.should_exchange_changeling = lambda *args: True
     get_card("Ironworks").play_effect(state)
-    assert player.coins == (reaction == "trader")
-    assert player.actions == (reaction != "trader")
+    assert player.coins == 0
+    assert player.actions == 1
     if reaction == "changeling":
         assert [c.name for c in player.discard] == ["Changeling"]
         assert len(player.hand) == 1
@@ -240,7 +240,7 @@ def test_teacher_records_final_gain_with_pre_gain_observation(source, reaction):
         player.hand = [get_card("Trader")]
         teacher.should_reveal_trader = lambda *args, **kwargs: True
     get_card(source).play_effect(state)
-    assert labels(teacher) == ([] if reaction == "trader" else [("buy", "Village")])
+    assert labels(teacher) == [("buy", "Village")]
     if teacher.examples:
         observation, mask, target, decision = teacher.examples[0]
         assert observation["supply"]["Village"] == 10 and observation["discard"] == ()

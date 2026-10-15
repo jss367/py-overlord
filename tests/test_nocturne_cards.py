@@ -187,7 +187,7 @@ def test_den_of_sin_drawn_into_hand_on_gain():
     state, player = _setup()
     dos = get_card("Den of Sin")
     player.hand = []
-    dos.on_gain(state, player)
+    state.gain_card(player, dos, from_supply=False)
     assert dos in player.hand
 
 
@@ -268,7 +268,7 @@ def test_fool_grants_three_boons_and_lost_in_woods():
 def test_ghost_town_to_hand_on_gain():
     state, player = _setup()
     gt = get_card("Ghost Town")
-    gt.on_gain(state, player)
+    state.gain_card(player, gt, from_supply=False)
     assert gt in player.hand
 
 
