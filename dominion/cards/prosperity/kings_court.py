@@ -19,7 +19,7 @@ class KingsCourt(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        actions_in_hand = [c for c in player.hand if c.is_action]
+        actions_in_hand = [c for c in player.hand if game_state.is_action(c)]
         if not actions_in_hand:
             return
 

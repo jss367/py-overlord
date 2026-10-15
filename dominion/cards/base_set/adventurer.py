@@ -24,7 +24,7 @@ class Adventurer(Card):
                 break
 
             card = player.deck.pop()
-            if card.is_treasure:
+            if game_state.is_treasure(card):
                 player.hand.append(card)
                 treasures_found += 1
             else:

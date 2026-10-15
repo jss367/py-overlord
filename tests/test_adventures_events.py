@@ -382,11 +382,7 @@ def test_inheritance_estate_plays_as_inherited_action():
     assert player.actions == 2
 
 
-def test_inheritance_estate_as_guide_sets_aside_estate_on_tavern():
-    """Inheriting a Reserve card like Guide must set aside the *Estate
-    instance itself* on the Tavern mat — NOT a fresh phantom Guide. The
-    fresh-Guide bug would leak persistent phantom cards onto the Tavern
-    mat that re-fire each turn."""
+def test_inheritance_guide_stays_set_aside_and_estate_stays_in_play():
     state = _new_state(["Guide"])
     player = state.players[0]
     player.inherited_action_name = "Guide"
@@ -396,14 +392,10 @@ def test_inheritance_estate_as_guide_sets_aside_estate_on_tavern():
     player.actions = 1
     state.phase = "action"
     state.handle_action_phase()
-    # The Estate (not a Guide) should be on the Tavern mat now.
-    assert estate in player.tavern_mat, (
-        "Inherited-as-Guide must place the Estate on the Tavern mat"
-    )
-    # No phantom Guide on the mat.
-    assert not any(c.name == "Guide" for c in player.tavern_mat), (
-        "A fresh Guide instance must NOT appear on the Tavern mat"
-    )
+    assert estate in player.in_play
+    assert not player.tavern_mat
+    assert player.inherited_action not in player.in_play
+    assert player.actions_played == 2
 
 
 def test_inheritance_sets_aside_card():

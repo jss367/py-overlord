@@ -261,7 +261,7 @@ class Courier(Card):
         choices = [
             c
             for c in player.discard
-            if c.is_action
+            if game_state.is_action(c)
             or game_state.is_treasure(c)
             or game_state.is_inherited_estate(player, c)
         ]
@@ -274,22 +274,12 @@ class Courier(Card):
             return
         if not any(choice is c for c in player.discard):
             return
-        overlay = (
-            game_state._begin_inherited_estate_overlay(player, choice)
-            if game_state.is_inherited_estate(player, choice)
-            else None
-        )
-        try:
-            if choice.is_action and not game_state.is_treasure(choice):
-                game_state.play_action_from_zone_indirectly(
-                    player, choice, player.discard
-                )
-            else:
-                player.discard.remove(choice)
-                player.in_play.append(choice)
-                game_state.play_treasure_indirectly(player, choice)
-        finally:
-            game_state._end_inherited_estate_overlay(choice, overlay)
+        if game_state.is_action(choice) and not game_state.is_treasure(choice):
+            game_state.play_action_from_zone_indirectly(player, choice, player.discard)
+        else:
+            player.discard.remove(choice)
+            player.in_play.append(choice)
+            game_state.play_treasure_indirectly(player, choice)
 
 
 class Innkeeper(Card):
@@ -339,7 +329,7 @@ class RoyalGalley(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        actions = [c for c in player.hand if c.is_action and not c.is_duration]
+        actions = [c for c in player.hand if game_state.is_action(c) and not c.is_duration]
         if not actions:
             return
         choice = player.ai.choose_action(game_state, actions + [None])
@@ -387,7 +377,7 @@ class Town(Card):
         player = game_state.current_player
         default = (
             "village"
-            if any(c.is_action for c in player.hand) or player.actions == 0
+            if any(game_state.is_action(c) for c in player.hand) or player.actions == 0
             else "coins"
         )
         for mode in select_modes(
@@ -427,7 +417,7 @@ class Contract(Card):
         p = game_state.current_player
         plus_coins(p, 2)
         p.favors += 1
-        actions = [c for c in p.hand if c.is_action]
+        actions = [c for c in p.hand if game_state.is_action(c)]
         choice = p.ai.choose_action(game_state, actions + [None])
         if choice not in actions:
             return
@@ -510,8 +500,8 @@ class Hunter(Card):
 
         # Put one Action, one Treasure, one Victory into hand.
         for predicate in (
-            lambda c: c.is_action,
-            lambda c: c.is_treasure,
+            lambda c: game_state.is_action(c),
+            lambda c: game_state.is_treasure(c),
             lambda c: c.is_victory,
         ):
             matches = [c for c in revealed if predicate(c)]
@@ -574,7 +564,7 @@ class Specialist(Card):
                     candidates(game_state, predicate=lambda c: c.name == card.name),
                 )
             else:
-                if card.is_action:
+                if game_state.is_action(card):
                     game_state.play_action_indirectly(p, card)
                 else:
                     game_state.play_treasure_indirectly(p, card)
@@ -597,7 +587,7 @@ class Swap(Card):
         sources = [
             c
             for c in p.hand
-            if c.is_action and game_state._resolve_changeling_pile_name(c) is not None
+            if game_state.is_action(c) and game_state._resolve_changeling_pile_name(c) is not None
         ]
         if not sources:
             return
@@ -607,7 +597,7 @@ class Swap(Card):
         useful = candidates(
             game_state,
             CardCost(coins=5),
-            lambda c: c.is_action and c.name != source.name,
+            lambda c: game_state.is_action(c) and c.name != source.name,
         )
         source = decide(
             game_state, p, "swap_return", [None] + sources, source if useful else None
@@ -624,7 +614,7 @@ class Swap(Card):
             candidates(
                 game_state,
                 CardCost(coins=5),
-                lambda c: c.is_action and c.name != source.name,
+                lambda c: game_state.is_action(c) and c.name != source.name,
             ),
             to_hand=True,
         )

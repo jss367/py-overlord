@@ -17,7 +17,7 @@ class AnimalFair(Card):
         )
 
     def cost_modifier(self, game_state, player) -> int:
-        actions_in_play = sum(1 for c in player.in_play if c.is_action)
+        actions_in_play = sum(1 for c in player.in_play if game_state.is_action(c))
         return -2 * actions_in_play
 
     def play_effect(self, game_state):

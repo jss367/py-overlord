@@ -19,5 +19,5 @@ class ShantyTown(Card):
         player = game_state.current_player
         # "Reveal your hand": no game effect besides allowing the bonus.
         # If no Action cards in hand (after Shanty Town has left), +2 Cards.
-        if not any(card.is_action for card in player.hand):
+        if not any(game_state.is_action(card) for card in player.hand):
             game_state.draw_cards(player, 2)

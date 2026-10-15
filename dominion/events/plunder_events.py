@@ -81,7 +81,7 @@ class Peril(Event):
         super().__init__("Peril", CardCost(coins=2))
 
     def on_buy(self, game_state, player) -> None:
-        actions = [c for c in player.hand if c.is_action]
+        actions = [c for c in player.hand if game_state.is_action(c)]
         if not actions:
             return
         # Greedy: trash the cheapest Action.
@@ -279,7 +279,7 @@ class Invasion(Event):
                 card = get_card(name)
             except ValueError:
                 continue
-            if card.is_action and not card.is_victory:
+            if game_state.is_action(card) and not card.is_victory:
                 action_candidates.append(card)
         if action_candidates:
             action_candidates.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)

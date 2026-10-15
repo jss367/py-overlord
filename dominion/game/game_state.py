@@ -6,6 +6,7 @@ from typing import Literal, Optional
 
 from dominion.cards.base_card import Card
 from dominion.ai import tactical_defaults
+from dominion.cards.printed_coin_instructions import ACTIONS_WITH_PRINTED_COINS
 from dominion.cards.registry import get_all_card_names, get_card
 from dominion.cards.split_pile import SplitPileMixin
 from dominion.game.player_state import PlayerState
@@ -333,34 +334,10 @@ class GameState:
         return self.current_player
 
     def _warlord_action_name(self, player: PlayerState, card: Card) -> str | None:
-        if card.is_action:
-            return card.name
-        if (
-            card.is_treasure
-            and self.prophecy is not None
-            and self.prophecy.is_active
-            and self.prophecy.name == "Enlightenment"
-        ):
-            return card.name
-        inherited = getattr(player, "inherited_action_name", None)
-        if card.name == "Estate" and inherited:
-            return inherited
-        return None
+        return card.name if self.is_action(card) else None
 
     def _cards_in_play_named(self, player: PlayerState, name: str) -> int:
-        seen: set[int] = set()
-        count = 0
-        for card in player.in_play:
-            marker = id(card)
-            if marker in seen:
-                continue
-            seen.add(marker)
-            if card.name == name or (
-                card.name == "Estate"
-                and getattr(player, "inherited_action_name", None) == name
-            ):
-                count += 1
-        return count
+        return sum(card.name == name for card in dict.fromkeys(player.in_play))
 
     def _warlord_blocks_action_play(
         self,
@@ -1003,7 +980,7 @@ class GameState:
                 card = get_card(name)
             except ValueError:
                 continue
-            if not card.is_action:
+            if not self.is_action(card):
                 continue
             if card.is_duration:
                 continue
@@ -1800,7 +1777,7 @@ class GameState:
             for card in summoned:
                 player = self.current_player
                 player.in_play.append(card)
-                if card.is_action:
+                if self.is_action(card):
                     self.play_action_indirectly(player, card)
                 else:
                     card.on_play(self)
@@ -1967,7 +1944,7 @@ class GameState:
         player.farmhands_set_aside = []
         for card in to_play:
             player.in_play.append(card)
-            if card.is_action:
+            if self.is_action(card):
                 self.play_action_indirectly(
                     player, card, blocked_return_zone=player.discard
                 )
@@ -1991,9 +1968,8 @@ class GameState:
 
     def _claim_citadel_replay(self, player: PlayerState, card: Card) -> bool:
         """Reserve Citadel's first-play trigger before any nested plays."""
-        inherited = card.name == "Estate" and getattr(player, "inherited_action_name", None)
         if (
-            not (self.is_action(card) or inherited)
+            not self.is_action(card)
             or self.turn_player is not player
             or player.citadel_used
             or not any(p.name == "Citadel" for p in player.projects)
@@ -2017,57 +1993,38 @@ class GameState:
         it for Citadel to behave correctly per its "first time you play an
         Action" wording.
         """
-        # Adventures Inheritance: an Estate played as the inherited Action
-        # card counts as an Action play here even though Estate.is_action
-        # is False.
-        inherited_action_play = (
-            card.name == "Estate"
-            and getattr(player, "inherited_action_name", None)
-        )
         if not claimed and not self._claim_citadel_replay(player, card):
             return False
         player.actions_this_turn += 1
         player.actions_played += 1
-        # Hold the Inheritance overlay through the post-play hooks so
-        # name-gated effects (training token, Kiln, ally play hooks) see
-        # the inherited card's identity, matching the action-phase loop.
-        inheritance_overlay = (
-            self._begin_inherited_estate_overlay(player, card)
-            if inherited_action_play
-            else None
+        self._maybe_kiln_gain(player, card)
+        self._resolve_play_with_decision_context(
+            player, card, lambda: self._resolve_action_text(player, card)
         )
-        try:
-            self._maybe_kiln_gain(player, card)
-            self._resolve_play_with_decision_context(
-                player, card, lambda: self._resolve_action_text(player, card)
-            )
-            training_pile = getattr(player, "training_pile", None)
-            if training_pile and self.supply_pile_key(card.name) == self.supply_pile_key(training_pile):
-                player.coins += 1
-            # Active Prophecies (Great Leader, Approaching Army, etc.)
-            # react to every Action play, including this replay.
-            self.fire_prophecy_action_hooks(player, card)
-            self.fire_ally_play_hooks(player, card)
-            # Adventures Reserves (Coin of the Realm, Royal Carriage)
-            # react to action plays via Tavern triggers. Fire them on
-            # the replay so the helper-driven plays match the action-
-            # phase loop's behaviour.
-            self._call_tavern_triggers(player, "action_played", card)
-        finally:
-            if inherited_action_play:
-                self._end_inherited_estate_overlay(card, inheritance_overlay)
+        training_pile = getattr(player, "training_pile", None)
+        if training_pile and self.supply_pile_key(card.name) == self.supply_pile_key(training_pile):
+            player.coins += 1
+        # Active Prophecies (Great Leader, Approaching Army, etc.)
+        # react to every Action play, including this replay.
+        self.fire_prophecy_action_hooks(player, card)
+        self.fire_ally_play_hooks(player, card)
+        # Adventures Reserves (Coin of the Realm, Royal Carriage)
+        # react to action plays via Tavern triggers. Fire them on
+        # the replay so the helper-driven plays match the action-
+        # phase loop's behaviour.
+        self._call_tavern_triggers(player, "action_played", card)
         return True
 
     def _handle_hasty_start_of_turn(self, player: PlayerState) -> None:
         cards = self.hasty_set_aside.pop(id(player), [])
         for card in cards:
-            if card.is_action:
+            if self.is_action(card):
                 # A real Action play: route it through the shared helper so
                 # it is offered a Way and fires the per-play hooks (Citadel
                 # replay included) like any other play.
                 player.in_play.append(card)
                 self.play_action_indirectly(player, card)
-            elif card.is_treasure:
+            elif self.is_treasure(card):
                 player.in_play.append(card)
                 card.on_play(self)
             else:
@@ -2076,13 +2033,13 @@ class GameState:
     def _handle_patient_start_of_turn(self, player: PlayerState) -> None:
         cards = self.patient_mat.pop(id(player), [])
         for card in cards:
-            if card.is_action:
+            if self.is_action(card):
                 # A real Action play: route it through the shared helper so
                 # it is offered a Way and fires the per-play hooks (Citadel
                 # replay included) like any other play.
                 player.in_play.append(card)
                 self.play_action_indirectly(player, card)
-            elif card.is_treasure:
+            elif self.is_treasure(card):
                 player.in_play.append(card)
                 card.on_play(self)
             else:
@@ -2209,6 +2166,7 @@ class GameState:
             )
             if (
                 getattr(card, "duration_persistent", False)
+                and not getattr(card, "schedules_own_duration", False)
                 and player.duration.count(card) == pending_before
             ):
                 # Retain one entry per recurring play, including instructions
@@ -2243,24 +2201,16 @@ class GameState:
                 )
             action_cards = [
                 card for card in player.hand
-                if card.is_action and self._voyage_can_play_from_hand(player)
+                if self.is_action(card) and self._voyage_can_play_from_hand(player)
             ]
-            # Adventures Inheritance: each Estate in hand can be played as the
-            # inherited Action card.
-            inherited = getattr(player, "inherited_action_name", None)
-            if inherited:
-                action_cards += [
-                    card for card in player.hand
-                    if card.name == "Estate" and self._voyage_can_play_from_hand(player)
-                ]
             # Rising Sun: Enlightenment turns Treasures into Actions for all
             # purposes — they can be played from your hand in the Action phase.
             if enlightened:
                 action_cards += [
                     card for card in player.hand
                     if (
-                        card.is_treasure
-                        and not card.is_action
+                        self.is_treasure(card)
+                        and not self.is_action(card)
                         and self._voyage_can_play_from_hand(player)
                     )
                 ]
@@ -2387,22 +2337,6 @@ class GameState:
                     rush_extra = 1
                     self.rush_pending[id(player)] = rush_count - 1
 
-                # Adventures Inheritance: detect once (per chosen card) whether
-                # this play is an Estate proxying the inherited Action. Each
-                # iteration of the for-loop applies the overlay before play and
-                # tears it down after the post-play hooks, so:
-                #   - the inherited card's stats/play_effect drive the play,
-                #   - downstream type/name-gated hooks (kiln, prophecy, allies,
-                #     training, tavern, harbor-village, inspiring) see the
-                #     inherited identity, and
-                #   - Reserve cards that key on identity with the played card
-                #     (Royal Carriage's ``action_card in player.in_play``)
-                #     still find the actual Estate object in ``in_play``.
-                inheriting = (
-                    choice.name == "Estate"
-                    and bool(getattr(player, "inherited_action_name", None))
-                )
-
                 # Renaissance Citadel: first Action played each turn is
                 # replayed afterwards. Implemented as an extra iteration of
                 # the play loop (matches Daimyo / Reckless / Rush). Live
@@ -2410,7 +2344,7 @@ class GameState:
                 # Estates also count as Action plays here.
                 citadel_extra = 0
                 if (
-                    (self.is_action(choice) or inheriting)
+                    self.is_action(choice)
                     and not player.citadel_used
                     and any(p.name == "Citadel" for p in player.projects)
                 ):
@@ -2429,11 +2363,6 @@ class GameState:
                     if play_index:
                         player.actions_this_turn += 1
                         player.actions_played += 1
-                    inheritance_overlay = (
-                        self._begin_inherited_estate_overlay(player, choice)
-                        if inheriting
-                        else None
-                    )
                     self._maybe_kiln_gain(player, choice)
                     if enlightened and self.is_treasure(choice):
                         # Treasure played in Action phase under Enlightenment:
@@ -2444,7 +2373,7 @@ class GameState:
                         self._apply_external_play_bonuses(player, choice)
                         self._fire_urchin_reaction(player, choice)
                     elif (
-                        choice.is_action
+                        self.is_action(choice)
                         and getattr(player, "enchantress_active", False)
                         and not getattr(player, "enchantress_used_this_turn", False)
                     ):
@@ -2471,21 +2400,6 @@ class GameState:
                         # any Urchin in play still reacts. Card.on_play was
                         # not invoked, so fire the reaction explicitly here.
                         self._fire_urchin_reaction(player, choice)
-                    elif inheriting:
-                        # Adventures Inheritance: the Estate plays as the
-                        # inherited Action card. The overlay applied above
-                        # (``inheritance_overlay``) binds the inherited card's
-                        # name/stats/types/play_effect/on_duration onto the
-                        # Estate instance, so the Estate itself runs the play
-                        # — preserving identity for ``in_play`` lookups while
-                        # exposing the inherited type/name to downstream
-                        # hooks. The overlay is torn down at the end of this
-                        # iteration.
-                        self._resolve_play_with_decision_context(
-                            player, choice, lambda: choice.on_play(self),
-                            harbor_pending=harbor_pending, coins_before=coins_before_action,
-                            harbor_after_followups=True,
-                        )
                     else:
                         self._resolve_play_with_decision_context(
                             player, choice, lambda: choice.on_play(self),
@@ -2524,14 +2438,6 @@ class GameState:
                     # Adventures: Tavern triggers — Coin of the Realm and
                     # Royal Carriage may call themselves after an Action play.
                     self._call_tavern_triggers(player, "action_played", choice)
-
-                    # Tear down the Inheritance overlay applied above (no-op
-                    # if not inheriting). This restores the Estate's true
-                    # identity before the next iteration, the Harbor Village
-                    # check, and the Inspiring extra-play.
-                    self._end_inherited_estate_overlay(
-                        choice, inheritance_overlay
-                    )
 
             # Harbor Village bonus: +$1 if the action gave +$
             if harbor_pending > 0:
@@ -2573,7 +2479,7 @@ class GameState:
         candidates = [
             c for c in player.hand
             if (
-                c.is_action
+                self.is_action(c)
                 and c.name not in in_play_names
                 and not self._warlord_blocks_action_play(player, c)
                 and self._voyage_can_play_from_hand(player)
@@ -2617,7 +2523,7 @@ class GameState:
         return False
 
     def live_type_count(self, card: Card, player: PlayerState | None = None) -> int:
-        """Distinct current types, optionally including an owner's Inheritance.
+        """Distinct current types, including globally active Inheritance.
 
         Includes global modifiers such as Charlatan, Capitalism and Enlightenment.
         """
@@ -2628,27 +2534,38 @@ class GameState:
             types.add(CardType.ACTION)
         if self.is_treasure(card):
             types.add(CardType.TREASURE)
-        if player is not None and self.is_inherited_estate(player, card):
+        if self.players and self.is_inherited_estate(self.turn_player, card):
             # Current Inheritance adds Action and Command, not the types of
             # the set-aside Action (or that Action's Capitalism qualification).
             types.update((CardType.ACTION, CardType.COMMAND))
         return len(types)
 
     def is_inherited_estate(self, player: PlayerState, card: Card) -> bool:
-        """Whether this player's Estate can use Inheritance on this turn."""
+        """Whether Inheritance changes Estates everywhere on the actual turn.
+
+        ``player`` is retained for callers that build an owned-card menu; the
+        modifier is determined by the turn owner, even during a reaction play.
+        """
         return (
             card.name == "Estate"
-            and self.turn_player is player
-            and bool(player.inherited_action_name)
+            and bool(self.players)
+            and bool(self.turn_player.inherited_action_name)
         )
 
     def is_action(self, card: Card) -> bool:
         """Action type including Treasures made Actions by Enlightenment."""
         return card.is_action or (
+            bool(self.players) and self.is_inherited_estate(self.turn_player, card)
+        ) or (
             self.prophecy is not None
             and self.prophecy.is_active
             and self.prophecy.name == "Enlightenment"
             and self.is_treasure(card)
+        )
+
+    def is_command(self, card: Card) -> bool:
+        return card.is_command or (
+            bool(self.players) and self.is_inherited_estate(self.turn_player, card)
         )
 
     def is_treasure(self, card: Card) -> bool:
@@ -2664,7 +2581,7 @@ class GameState:
         if card.name == "Curse" and self.charlatan_curse_active():
             return True
         turn_player = self.turn_player if self.players else None
-        if card.is_action and card.stats.coins > 0 and turn_player is not None:
+        if card.is_action and card.name in ACTIONS_WITH_PRINTED_COINS and turn_player is not None:
             return any(p.name == "Capitalism" for p in turn_player.projects)
         return False
 
@@ -2859,7 +2776,7 @@ class GameState:
 
             coins_after = self.play_treasure_indirectly(player, choice)
 
-            remaining = [c.name for c in player.hand if c.is_treasure]
+            remaining = [c.name for c in player.hand if self.is_treasure(c)]
             context = {
                 "coins_before": coins_before,
                 "coins_added": coins_after - coins_before,
@@ -3074,7 +2991,7 @@ class GameState:
 
             # Rising Sun prophecy hooks may also care about Night plays
             if self.prophecy is not None and self.prophecy.is_active:
-                if choice.is_action:
+                if self.is_action(choice):
                     self.prophecy.on_play_action(self, player, choice)
                 if choice.is_attack:
                     self.prophecy.on_play_attack(self, player, choice)
@@ -3157,7 +3074,7 @@ class GameState:
             cost -= player.cost_reduction
 
         quarry_discount = sum(1 for c in player.in_play if c.name == "Quarry")
-        if quarry_discount and card.is_action:
+        if quarry_discount and self.is_action(card):
             cost -= 2 * quarry_discount
 
         # Rising Sun: Flourishing Trade and other cost-modifying Prophecies.
@@ -3186,7 +3103,11 @@ class GameState:
             # Every duration entry is one active reduction (a Throne Roomed
             # Troll is queued twice). A Troll still in in_play that is also
             # queued in duration is the same physical card, not a second one.
-            bt_count = sum(1 for c in owner.duration if c.name == "Bridge Troll")
+            bt_count = sum(
+                1 for c in owner.duration if c.name == "Bridge Troll"
+                and not getattr(c, "permanent_set_aside", False)
+                and not getattr(c, "virtual_supply_play", False)
+            )
             bt_count += sum(
                 1
                 for c in owner.in_play
@@ -3239,7 +3160,7 @@ class GameState:
                     and card.cost.potions <= player.potions
                     and pile_buyable
                     and card_name not in player.banned_buys
-                    and (not player.cannot_buy_actions or not card.is_action)
+                    and (not player.cannot_buy_actions or not self.is_action(card))
                 ):
                     affordable.append(card)
 
@@ -3351,6 +3272,7 @@ class GameState:
         retained = {
             card for card in player.duration + player.multiplied_durations
             if getattr(card, "virtual_supply_play", False)
+            or getattr(card, "permanent_set_aside", False)
             or (card in owned and card not in moved_from_play)
         }
         changed = True
@@ -3639,8 +3561,8 @@ class GameState:
 
     def player_is_stuck(self, player: PlayerState) -> bool:
         """Check if a player is stuck with no valid moves."""
-        has_actions = any(card.is_action for card in player.hand)
-        has_treasures = any(card.is_treasure for card in player.hand)
+        has_actions = any(self.is_action(card) for card in player.hand)
+        has_treasures = any(self.is_treasure(card) for card in player.hand)
         can_buy_copper = self.supply.get("Copper", 0) > 0
 
         total_cards = len(player.hand) + len(player.deck) + len(player.discard) + len(player.in_play)
@@ -4014,7 +3936,7 @@ class GameState:
         # off-turn reactor gaining a card is not in its own Buy phase.
         if player is self.turn_player and self.phase == "buy":
             player.cards_gained_this_buy_phase += 1
-            if actual_card.is_action or actual_card.is_treasure:
+            if self.is_action(actual_card) or self.is_treasure(actual_card):
                 player.gained_action_or_treasure_this_buy_phase = True
             if actual_card.is_victory:
                 player.gained_victory_this_buy_phase = True
@@ -4210,7 +4132,7 @@ class GameState:
         return self.gain_card(player, get_card(loot_name))
 
     def _handle_mirror_gain(self, player: PlayerState, gained_card: Card) -> None:
-        if not gained_card.is_action:
+        if not self.is_action(gained_card):
             return
         pending = self.mirror_pending.get(id(player), 0)
         if pending <= 0:
@@ -4227,7 +4149,7 @@ class GameState:
             self.gain_card(player, copy)
 
     def _handle_landing_party_gain(self, player: PlayerState, gained_card: Card, *, landing=None) -> None:
-        if not gained_card.is_treasure:
+        if not self.is_treasure(gained_card):
             return
         if landing is None:
             pending = self.landing_party_pending.get(id(player))
@@ -4250,7 +4172,8 @@ class GameState:
             player.duration.remove(landing)
         if landing in player.in_play:
             player.in_play.remove(landing)
-        player.deck.append(landing)
+        if not getattr(landing, "permanent_set_aside", False) and not getattr(landing, "virtual_supply_play", False):
+            player.deck.append(landing)
         player.deck.append(gained_card)
 
     def _handle_deliver_gain(self, player: PlayerState, gained_card: Card) -> None:
@@ -4287,7 +4210,7 @@ class GameState:
     def _handle_mining_road_gain(self, player: PlayerState, gained_card: Card, *, claimed=False) -> None:
         if player is not self.current_player:
             return
-        if not gained_card.is_treasure:
+        if not self.is_treasure(gained_card):
             return
         if not any(card.name == "Mining Road" for card in player.in_play):
             return
@@ -4297,7 +4220,7 @@ class GameState:
 
         candidates = []
         for _name, card, _count in self._iter_gainable_supply_cards():
-            if card.is_treasure:
+            if self.is_treasure(card):
                 candidates.append(card)
         if not candidates:
             return
@@ -4548,7 +4471,7 @@ class GameState:
                 candidates,
                 key=lambda c: (
                     c.name != "Curse",
-                    not (c.is_victory and not c.is_action and c.cost.coins <= 2),
+                    not (c.is_victory and not self.is_action(c) and c.cost.coins <= 2),
                     c.cost.coins,
                     c.name,
                 ),
@@ -4601,7 +4524,7 @@ class GameState:
             self.gain_card(player, choice)
 
     def _track_action_gain(self, player: PlayerState, card: Card, *, number=None, sources=None, claimed=False) -> None:
-        if not card.is_action:
+        if not self.is_action(card):
             return
 
         if number is None:
@@ -4830,6 +4753,8 @@ class GameState:
 
     def trash_card(self, player: PlayerState, card: Card) -> None:
         """Move a card to the trash and trigger related effects."""
+        if getattr(card, "permanent_set_aside", False):
+            return
         # A Frog-marked card that leaves play (Procession trashes it) is no
         # longer "this" Frog play: if the same instance is regained and
         # replayed this turn (Lurker + Innovation) cleanup must not topdeck it.
@@ -5195,7 +5120,7 @@ class GameState:
         """
         if card in player.in_play:
             player.in_play.remove(card)
-        player.tavern_mat.append(card)
+            player.tavern_mat.append(card)
 
     def call_from_tavern(self, player: PlayerState, card: Card) -> None:
         """Move ``card`` from the tavern mat to discard (the call has resolved)."""
@@ -5220,92 +5145,28 @@ class GameState:
                 continue
             card.on_call_from_tavern(self, player, trigger, *args, **kwargs)
 
-    def _begin_inherited_estate_overlay(
-        self, player: PlayerState, estate: Card
-    ) -> dict | None:
-        """Apply Inheritance overlay to ``estate`` and return a restore handle.
+    def play_inherited_action(self, player: PlayerState, estate: Card) -> None:
+        """An Estate plays its owner's physical target without moving it.
 
-        Binds the inherited card's name, stats, types, play_effect, and
-        on_duration onto the Estate instance so any Reserve / Duration /
-        Tavern interactions and any name- or type-gated downstream hooks
-        (allies, prophecy, kiln, training, tavern triggers, harbor-village,
-        inspiring) operate on the Estate as if it were the inherited card —
-        while the Estate retains its identity in ``player.in_play`` so
-        Royal Carriage and similar Reserve cards that re-enter via "the card
-        is still in play" can replay it. The caller must invoke
-        ``_end_inherited_estate_overlay`` once all play and post-play hooks
-        have completed.
+        Both plays retain their own name, type and observers. Pending instructions
+        hold the Estate in play, including Durations played by a multiplier target.
         """
-        inherited_name = getattr(player, "inherited_action_name", None)
-        if not inherited_name:
-            return None
-        inherited_card = get_card(inherited_name)
-        inherited_cls = inherited_card.__class__
-        # For ``on_duration`` and ``on_call_from_tavern`` we look at the
-        # instance ``__dict__`` rather than using ``getattr``: the base
-        # ``Card`` class defines both as no-op fallbacks, so ``getattr``
-        # would always return a method (the base) and the overlay would
-        # be immediately overwritten on teardown. Using ``__dict__``
-        # gives ``None`` when nothing has been bound on the instance,
-        # which is the signal to leave the inherited binding in place.
-        saved = {
-            "name": estate.name,
-            "stats": estate.stats,
-            "types": estate.types,
-            "play_effect": estate.play_effect,
-            "on_duration": estate.__dict__.get("on_duration"),
-            "on_call_from_tavern": estate.__dict__.get("on_call_from_tavern"),
-        }
-        # Name: pile-token lookups, training-token, and several other hooks
-        # key off ``card.name``; without overlaying name they'd treat the
-        # play as Estate's pile rather than the inherited card's pile.
-        estate.name = inherited_card.name
-        # Stats: the base Card.on_play applies +Cards/+Actions/+Coins/+Buys
-        # off ``self.stats``.
-        estate.stats = inherited_card.stats
-        # Types: ``Card.is_action``/``is_attack``/etc. are @property reads off
-        # ``self.types``, so overlaying types makes downstream type checks
-        # see the inherited card's type without any cache to invalidate.
-        estate.types = inherited_card.types
-        estate.play_effect = inherited_cls.play_effect.__get__(
-            estate, type(estate)
-        )
-        # Bind Reserve / Duration callbacks too. They are looked up by
-        # ``_call_tavern_triggers`` and ``do_duration_phase`` from the
-        # card sitting on the Tavern mat / in the duration zone — long
-        # after this method returns — so they must survive overlay
-        # teardown (see ``_end_inherited_estate_overlay``: when the
-        # original Estate didn't define one of these, we leave the
-        # binding in place so the inherited behavior persists across
-        # the Tavern / duration lifetime).
-        if hasattr(inherited_cls, "on_duration"):
-            estate.on_duration = inherited_cls.on_duration.__get__(
-                estate, type(estate)
-            )
-        if hasattr(inherited_cls, "on_call_from_tavern"):
-            estate.on_call_from_tavern = inherited_cls.on_call_from_tavern.__get__(
-                estate, type(estate)
-            )
-        return saved
-
-    def _end_inherited_estate_overlay(
-        self, estate: Card, saved: dict | None
-    ) -> None:
-        if not saved:
+        if not self.is_inherited_estate(player, estate):
             return
-        estate.name = saved["name"]
-        estate.stats = saved["stats"]
-        estate.types = saved["types"]
-        estate.play_effect = saved["play_effect"]
-        # Only restore on_duration / on_call_from_tavern if the Estate
-        # originally had them. When it didn't (the common case for an
-        # Estate inheriting a Reserve or Duration card), we leave the
-        # inherited binding in place so the Tavern mat / duration zone
-        # can fire it long after the play loop has finished.
-        if saved["on_duration"] is not None:
-            estate.on_duration = saved["on_duration"]
-        if saved["on_call_from_tavern"] is not None:
-            estate.on_call_from_tavern = saved["on_call_from_tavern"]
+        target = player.inherited_action
+        if target is None and player.inherited_action_name:
+            # Support programmatically configured games as well as event purchases.
+            target = player.inherited_action = get_card(player.inherited_action_name)
+        if target is None:
+            return
+        target.permanent_set_aside = True
+        before = Counter(player.duration + player.multiplied_durations)
+        try:
+            self.play_action_indirectly(player, target)
+        finally:
+            self._attach_supply_duration_targets(player, estate, target, before)
+            if getattr(target, "waiting_for_gain", False) and target not in player.virtual_gain_effects:
+                player.virtual_gain_effects.append(target)
 
     # ------------------------------------------------------------------
     # Adventures: Pile tokens (Lost Arts / Training / Pathfinding / Seaway /

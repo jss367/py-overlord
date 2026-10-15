@@ -213,6 +213,7 @@ class PlayerState:
     plan_trash_piles: set = field(default_factory=set)
     # Adventures Inheritance.
     inherited_action_name: str | None = None
+    inherited_action: Card | None = None
     inheritance_used: bool = False
     # Adventures Borrow / Alms once-per-turn locks.
     borrow_used_this_turn: bool = False
@@ -421,6 +422,7 @@ class PlayerState:
         self.expedition_extra_draws = 0
         self.plan_trash_piles = set()
         self.inherited_action_name = None
+        self.inherited_action = None
         self.inheritance_used = False
         self.borrow_used_this_turn = False
         self.alms_used_this_turn = False
@@ -615,6 +617,8 @@ class PlayerState:
             self.deliver_set_aside,
             getattr(self, "hound_set_aside", []),
         ]
+        if self.inherited_action is not None:
+            zones.append([self.inherited_action])
         game_state = getattr(self, "game_state", None)
         if game_state is not None:
             zones.extend([

@@ -25,6 +25,6 @@ class PearlDiver(Card):
         bottom = player.deck[0]
 
         # Heuristic: topdeck Action or expensive Treasure; otherwise leave it.
-        if bottom.is_action or (bottom.is_treasure and bottom.cost.coins >= 3):
+        if game_state.is_action(bottom) or (game_state.is_treasure(bottom) and bottom.cost.coins >= 3):
             player.deck.pop(0)
             player.deck.append(bottom)

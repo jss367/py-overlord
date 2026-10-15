@@ -38,7 +38,7 @@ class University(Card):
                     continue
                 if not candidate.may_be_gained(game_state):
                     continue
-            if not candidate.is_action:
+            if not game_state.is_action(candidate):
                 continue
             if candidate.cost.potions > 0:
                 continue

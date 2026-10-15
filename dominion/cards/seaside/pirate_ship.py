@@ -46,7 +46,7 @@ class PirateShip(Card):
                         break
                     revealed.append(target.deck.pop())
 
-                treasures = [c for c in revealed if c.is_treasure]
+                treasures = [c for c in revealed if game_state.is_treasure(c)]
                 if treasures:
                     # Attacker chooses which treasure to trash.
                     choice = player.ai.choose_treasure_to_trash_with_pirate_ship(

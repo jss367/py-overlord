@@ -26,7 +26,7 @@ class MountainVillage(Card):
         # cost Treasures.
         best = max(
             player.discard,
-            key=lambda c: (c.is_action, c.cost.coins, c.stats.cards, c.name),
+            key=lambda c: (game_state.is_action(c), c.cost.coins, c.stats.cards, c.name),
         )
         player.discard.remove(best)
         player.hand.append(best)

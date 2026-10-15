@@ -16,7 +16,7 @@ class Crypt(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        treasures = [card for card in player.in_play if card.is_treasure]
+        treasures = [card for card in player.in_play if game_state.is_treasure(card)]
 
         selected: list = []
         if treasures:

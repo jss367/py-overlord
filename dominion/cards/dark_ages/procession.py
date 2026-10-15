@@ -17,7 +17,7 @@ class Procession(Card):
         player = game_state.current_player
 
         # Choose a non-Duration Action from hand
-        actions = [c for c in player.hand if c.is_action and not c.is_duration]
+        actions = [c for c in player.hand if game_state.is_action(c) and not c.is_duration]
         if not actions:
             return
 
@@ -56,7 +56,7 @@ class Procession(Card):
             if count <= 0:
                 continue
             candidate = get_card(name)
-            if candidate.is_action and candidate.cost.coins == target_cost:
+            if game_state.is_action(candidate) and candidate.cost.coins == target_cost:
                 options.append(candidate)
 
         if not options:

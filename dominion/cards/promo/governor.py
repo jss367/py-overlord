@@ -127,7 +127,7 @@ class Governor(Card):
             # Mandatory: an AI that named nothing still has to give something up.
             to_trash = min(
                 chooser.hand,
-                key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
+                key=lambda c: (game_state.is_action(c), game_state.is_treasure(c), c.cost.coins, c.name),
             )
         chooser.hand.remove(to_trash)
         game_state.trash_card(chooser, to_trash)
@@ -146,7 +146,7 @@ class Governor(Card):
                 or gain.name not in game_state.supply
                 or game_state.supply[gain.name] <= 0
             ):
-                gain = max(targets, key=lambda c: (c.is_action, c.name))
+                gain = max(targets, key=lambda c: (game_state.is_action(c), c.name))
             game_state.supply[gain.name] -= 1
             game_state.gain_card(chooser, get_card(gain.name))
         return True

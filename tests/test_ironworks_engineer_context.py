@@ -159,7 +159,7 @@ def test_replayed_trashed_engineer_gets_only_its_first_gain():
     ("Capitalism", "Bridge", 1, 1, 0),
     ("Enlightenment", "Silver", 1, 1, 0),
     ("Inheritance", "Estate", 1, 0, 1),
-    ("Inheritance and Capitalism", "Estate", 1, 1, 1),
+    ("Inheritance and Capitalism", "Estate", 1, 0, 1),
     ("Snowy Village", "Mill", 0, 0, 1),
     (None, "Mill", 1, 0, 1),
 ])

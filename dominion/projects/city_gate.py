@@ -22,7 +22,7 @@ class CityGate(Project):
             choice = min(
                 player.hand,
                 key=lambda c: (
-                    0 if c.is_victory and not c.is_action else 1,
+                    0 if c.is_victory and not game_state.is_action(c) else 1,
                     c.cost.coins,
                     c.name,
                 ),

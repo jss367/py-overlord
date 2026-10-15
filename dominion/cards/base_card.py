@@ -335,7 +335,7 @@ class Card:
         """Effects that happen when card is gained."""
         bonus = getattr(game_state, "_gain_event_collection_bonus", None)
         bonus = player.collection_played if bonus is None else bonus
-        if self.is_action and bonus > 0:
+        if game_state.is_action(self) and bonus > 0:
             player.vp_tokens += bonus
         if self.cost.coins == 5:
             player.gained_five_this_turn = True

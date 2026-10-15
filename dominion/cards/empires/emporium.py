@@ -15,6 +15,6 @@ class Emporium(BottomSplitPileCard):
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
-        actions_in_play = sum(1 for card in player.in_play if card.is_action)
+        actions_in_play = sum(1 for card in player.in_play if game_state.is_action(card))
         if actions_in_play >= 5:
             player.vp_tokens += 2

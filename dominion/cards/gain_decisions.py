@@ -8,12 +8,7 @@ from dominion.cards.registry import get_card
 
 def gained_card_types(state, player, card):
     """Live gain-bonus types, including the active player's Inheritance."""
-    action, treasure = state.is_action(card), state.is_treasure(card)
-    if state.is_inherited_estate(player, card):
-        inherited = get_card(player.inherited_action_name)
-        action = True
-        treasure = treasure or state.is_treasure(inherited)
-    return action, treasure, card.is_victory
+    return state.is_action(card), state.is_treasure(card), card.is_victory
 
 
 def live_treasures(state, player, cards):

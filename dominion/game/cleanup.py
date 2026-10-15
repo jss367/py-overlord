@@ -114,7 +114,7 @@ def _resolve_cleanup_triggers(state: GameState, player: PlayerState) -> None:
         # retained because one of its ``duration_targets`` stays.
         staying = state._cards_retained_in_play(player)
         playable_actions = [
-            card for card in player.in_play if card.is_action and card not in staying
+            card for card in player.in_play if state.is_action(card) and card not in staying
         ]
         for _ in range(scheme_count):
             if not playable_actions:
@@ -152,7 +152,7 @@ def _discard_cards(state: GameState, player: PlayerState) -> tuple[list[Card], b
     journey_extra_turn = bool(getattr(player, "journey_extra_turn_pending", False))
     if journey_extra_turn:
         player.journey_retained_actions = [
-            card for card in player.in_play if card.is_action
+            card for card in player.in_play if state.is_action(card)
         ]
         for card in player.journey_retained_actions:
             durations_to_keep.add(card)
@@ -168,7 +168,7 @@ def _discard_cards(state: GameState, player: PlayerState) -> tuple[list[Card], b
         non_duration_in_play = [
             card for card in player.in_play if card not in durations_to_keep
         ]
-        treasures_in_play = [card for card in non_duration_in_play if card.is_treasure]
+        treasures_in_play = [card for card in non_duration_in_play if state.is_treasure(card)]
         if treasures_in_play:
             max_set_aside = min(trickster_uses, len(treasures_in_play))
             chosen = player.ai.choose_treasures_to_set_aside_with_trickster(
@@ -217,7 +217,7 @@ def _discard_cards(state: GameState, player: PlayerState) -> tuple[list[Card], b
         if card.name == "Border Guard" and getattr(card, "horn_topdeck_pending", False):
             return False
         if (
-            card.is_treasure
+            state.is_treasure(card)
             and getattr(player, "panic_active", False)
             and card.name in state.supply
         ):
@@ -298,7 +298,7 @@ def _discard_cards(state: GameState, player: PlayerState) -> tuple[list[Card], b
             card.horn_topdeck_pending = False
             player.deck.append(card)
         elif (
-            card.is_treasure
+            state.is_treasure(card)
             and getattr(player, "panic_active", False)
             and card.name in state.supply
         ):

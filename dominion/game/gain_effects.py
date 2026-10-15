@@ -29,7 +29,7 @@ def _ally_gain_applies(ally, state, player, gained, cost):
     if ally.name == "Trappers' Lodge":
         return player.favors >= 1
     if ally.name == 'City-state':
-        return player.favors >= 2 and player is state.turn_player and gained.is_action
+        return player.favors >= 2 and player is state.turn_player and state.is_action(gained)
     return True
 
 
@@ -206,7 +206,7 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
             eligible=lambda: any(c.name == gained.name for c in player.exile))
     from dominion.cards.base_card import Card
     if (getattr(gained.on_gain, '__func__', None) is not Card.on_gain
-            or gained.is_action and event.collection_bonus or gained.cost.coins == 5):
+            or state.is_action(gained) and event.collection_bonus or gained.cost.coins == 5):
         add('card_on_gain', lambda: gained.on_gain(state, player), source=gained, priority=20)
     if state.prophecy is not None and state.prophecy.is_active:
         from dominion.prophecies.base_prophecy import Prophecy
@@ -214,7 +214,7 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
         applies = getattr(prophecy.on_gain, '__func__', None) is not Prophecy.on_gain and not (prophecy.name == 'Harsh Winter' and player is not state.turn_player) and not (
             prophecy.name == 'Rapid Expansion' and not (action_gain or treasure_gain)
         ) and not (
-            prophecy.name == 'Growth' and not gained.is_treasure
+            prophecy.name == 'Growth' and not state.is_treasure(gained)
         ) and not (
             prophecy.name == 'Bureaucracy' and (gained.name == 'Copper' or gained.cost.coins <= 0)
         )
@@ -236,7 +236,7 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
                     add('project', lambda p=project: p.on_gain(state, player, gained, treasure_at_gain=treasure_gain), source=project, priority=35)
             else:
                 add('project', lambda p=project: p.on_gain(state, player, gained), source=project, priority=35,
-                    eligible=lambda p=project: p.name != 'Academy' or gained.is_action)
+                    eligible=lambda p=project: p.name != 'Academy' or state.is_action(gained))
     if player.groundskeeper_bonus and gained.is_victory:
         bonus = player.groundskeeper_bonus
         add('groundskeeper', lambda: setattr(player, 'vp_tokens', player.vp_tokens + bonus), priority=40)
@@ -264,7 +264,7 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
             elif hasattr(card, 'on_opponent_gain'):
                 event.add(owner, 'opponent_duration', lambda p=owner, c=card: c.on_opponent_gain(state, p, player, gained), source=card, priority=55,
                           eligible=lambda p=owner, c=card: _opponent_gain_applies(state, c, p, player, gained))
-    if gained.is_action:
+    if state.is_action(gained):
         player.actions_gained_this_turn += 1
         number = player.actions_gained_this_turn
         if number == 3 and not player.cauldron_triggered and any(c.name == 'Cauldron' for c in in_play):
@@ -300,14 +300,14 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
     if state.pile_trait(gained.name) in {'Cursed', 'Rich', 'Hasty'} or gained.name == 'Province' and state.trait_piles.get('Fawning'):
         add('trait', lambda: state._handle_trait_on_gain(player, gained), priority=70,
             eligible=event.movable if state.pile_trait(gained.name) == 'Hasty' else lambda: True)
-    if gained.is_action and state.mirror_pending.get(id(player), 0):
+    if state.is_action(gained) and state.mirror_pending.get(id(player), 0):
         pending = state.mirror_pending[id(player)]
         state.mirror_pending[id(player)] = 0
         def mirror():
             for _ in range(pending):
                 state.gain_from_supply(player, gained.name)
         add('mirror', mirror, priority=71)
-    if gained.is_treasure and state.landing_party_pending.get(id(player)):
+    if state.is_treasure(gained) and state.landing_party_pending.get(id(player)):
         pending_landings = list(state.landing_party_pending[id(player)])
         state.landing_party_pending[id(player)] = []
         for landing in pending_landings:
@@ -315,7 +315,7 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
                 # The source and the gain move independently. A virtual or
                 # trashed source cannot reappear as a physical owned card.
                 legacy_duration_zone = c in player.duration and c not in state.trash and not any(c in z for z in (player.hand,player.deck,player.discard)) and not getattr(c,'returned_to_supply',False)
-                if (c in player.in_play or legacy_duration_zone) and not getattr(c, 'virtual_supply_play', False):
+                if (c in player.in_play or legacy_duration_zone) and not getattr(c, 'virtual_supply_play', False) and not getattr(c, 'permanent_set_aside', False):
                     if c in player.in_play:
                         player.in_play.remove(c)
                     player.deck.append(c)
@@ -325,7 +325,7 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
                     c.duration_persistent = False
                 event.move(player.deck)
             add('landing_party', land, source=landing, priority=72)
-    if player is state.turn_player and gained.is_treasure and not player.mining_road_triggered and any(c.name == 'Mining Road' for c in in_play):
+    if player is state.turn_player and state.is_treasure(gained) and not player.mining_road_triggered and any(c.name == 'Mining Road' for c in in_play):
         player.mining_road_triggered = True
         add('mining_road', lambda: state._handle_mining_road_gain(player, gained, claimed=True), priority=73)
     for card in list(player.tavern_mat):

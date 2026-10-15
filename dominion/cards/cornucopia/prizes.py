@@ -134,7 +134,8 @@ class Princess(_PrizeCard):
         # to cleanup at end of turn, so this matches "while in play" closely
         # enough for our simulator.
         player = game_state.current_player
-        player.cost_reduction += 2
+        if self in player.in_play:
+            player.cost_reduction += 2
 
 
 class TrustySteed(_PrizeCard):

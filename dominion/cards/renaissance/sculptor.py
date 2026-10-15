@@ -34,7 +34,7 @@ class Sculptor(Card):
         if choice is None:
             choice = max(
                 options,
-                key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
+                key=lambda c: (game_state.is_action(c), game_state.is_treasure(c), c.cost.coins, c.name),
             )
 
         if game_state.supply.get(choice.name, 0) <= 0:

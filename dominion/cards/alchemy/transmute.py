@@ -30,8 +30,8 @@ class Transmute(Card):
         if target is None or target not in player.hand:
             return
 
-        is_action = target.is_action
-        is_treasure = target.is_treasure
+        is_action = game_state.is_action(target)
+        is_treasure = game_state.is_treasure(target)
         is_victory = target.is_victory
 
         player.hand.remove(target)

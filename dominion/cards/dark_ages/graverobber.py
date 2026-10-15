@@ -18,7 +18,7 @@ class Graverobber(Card):
         ]
         if trash_candidates:
             options.append("gain_from_trash")
-        action_in_hand = [c for c in player.hand if c.is_action]
+        action_in_hand = [c for c in player.hand if game_state.is_action(c)]
         if action_in_hand:
             options.append("upgrade")
         if not options:

@@ -12,7 +12,7 @@ class CropRotation(Project):
 
     def on_turn_start(self, game_state, player) -> None:
         victories = [
-            c for c in player.hand if c.is_victory and not c.is_action
+            c for c in player.hand if c.is_victory and not game_state.is_action(c)
         ]
         if not victories:
             return

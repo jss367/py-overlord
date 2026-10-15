@@ -16,7 +16,7 @@ class WitchsHut(Card):
             return
 
         discards = sorted(player.hand, key=self._discard_priority)[:2]
-        actions_discarded = len(discards) == 2 and all(card.is_action for card in discards)
+        actions_discarded = len(discards) == 2 and all(game_state.is_action(card) for card in discards)
 
         for card in discards:
             if card in player.hand:

@@ -296,7 +296,7 @@ class Siren(Card):
                 card = get_card(name)
             except ValueError:
                 continue
-            if card.is_action and not card.is_victory:
+            if game_state.is_action(card) and not card.is_victory:
                 candidates.append(card)
         if not candidates:
             return
@@ -459,7 +459,7 @@ class FortuneHunter(Card):
             if not player.deck:
                 break
             top.append(player.deck.pop())
-        treasures_top = [c for c in top if c.is_treasure]
+        treasures_top = [c for c in top if game_state.is_treasure(c)]
         if treasures_top:
             treasures_top.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
             played = treasures_top[0]
@@ -495,7 +495,7 @@ class Gondola(Card):
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
-        actions_in_hand = [c for c in player.hand if c.is_action]
+        actions_in_hand = [c for c in player.hand if game_state.is_action(c)]
         if not actions_in_hand:
             return
         choice = player.ai.choose_action(game_state, actions_in_hand + [None])
@@ -822,7 +822,7 @@ class Figurine(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        actions = [c for c in player.hand if c.is_action]
+        actions = [c for c in player.hand if game_state.is_action(c)]
         if not actions:
             return
         hook = getattr(player.ai, "choose_action_to_discard_for_figurine", None)
@@ -1018,7 +1018,7 @@ class KingsCache(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        treasures_in_hand = [c for c in player.hand if c.is_treasure]
+        treasures_in_hand = [c for c in player.hand if game_state.is_treasure(c)]
         if not treasures_in_hand:
             return
         treasures_in_hand.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)

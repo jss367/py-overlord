@@ -18,7 +18,7 @@ class Crown(Card):
         player = game_state.current_player
 
         if game_state.phase == "action":
-            targets = [card for card in player.hand if card.is_action]
+            targets = [card for card in player.hand if game_state.is_action(card)]
             if not targets:
                 return
 
@@ -37,7 +37,7 @@ class Crown(Card):
 
             player.actions += 1
         else:
-            treasures = [card for card in player.hand if card.is_treasure]
+            treasures = [card for card in player.hand if game_state.is_treasure(card)]
             if not treasures:
                 return
 

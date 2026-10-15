@@ -18,7 +18,7 @@ class Piazza(Project):
 
         top = player.deck.pop()
 
-        if top.is_action:
+        if game_state.is_action(top):
             player.in_play.append(top)
             top.on_play(game_state)
             game_state.fire_prophecy_action_hooks(player, top)

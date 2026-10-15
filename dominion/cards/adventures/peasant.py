@@ -126,7 +126,7 @@ class Disciple(Card):
         from ..registry import get_card
 
         player = game_state.current_player
-        actions = [c for c in player.hand if c.is_action]
+        actions = [c for c in player.hand if game_state.is_action(c)]
         if not actions:
             return
         chosen = player.ai.choose_disciple_action_to_replay(
@@ -214,7 +214,7 @@ class Teacher(Card):
                 card = get_card(name)
             except ValueError:
                 continue
-            if not card.is_action:
+            if not game_state.is_action(card):
                 continue
             idx = game_state.players.index(player)
             existing = game_state.pile_tokens.get((idx, game_state.supply_pile_key(name)), set())

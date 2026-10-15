@@ -35,4 +35,5 @@ class Crew(Card):
             player.duration.remove(self)
         if self in player.in_play:
             player.in_play.remove(self)
-        player.deck.append(self)
+        if not getattr(self, "permanent_set_aside", False):
+            player.deck.append(self)

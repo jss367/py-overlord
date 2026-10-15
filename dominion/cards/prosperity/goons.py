@@ -34,7 +34,7 @@ class Goons(Card):
             def discard_priority(card):
                 if card.name == "Curse":
                     return (0, card.name)
-                if card.is_victory and not card.is_action:
+                if card.is_victory and not game_state.is_action(card):
                     return (1, card.cost.coins, card.name)
                 if card.name == "Copper":
                     return (2, card.name)

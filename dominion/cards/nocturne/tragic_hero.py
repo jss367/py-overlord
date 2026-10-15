@@ -31,7 +31,7 @@ class TragicHero(Card):
                 candidate = get_card(card_name)
             except ValueError:
                 continue
-            if candidate.is_treasure:
+            if game_state.is_treasure(candidate):
                 available.append(candidate)
 
         choice = player.ai.choose_tragic_hero_treasure(game_state, player, available)

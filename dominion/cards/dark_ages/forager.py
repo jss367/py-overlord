@@ -21,5 +21,5 @@ class Forager(Card):
         game_state.trash_card(player, card_to_trash)
 
         # Count different treasures in trash
-        treasure_names = {c.name for c in game_state.trash if c.is_treasure}
+        treasure_names = {c.name for c in game_state.trash if game_state.is_treasure(c)}
         player.coins += len(treasure_names)

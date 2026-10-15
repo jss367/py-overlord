@@ -72,7 +72,7 @@ def test_cargo_ship_and_sleigh_cannot_both_move_the_gain(order):
     cargo.play_effect(state)
     player.ai.should_set_aside_cargo_ship = lambda *args: True
     gold = state.gain_from_supply(player,'Gold')
-    assert (cargo.set_aside is gold) is (order[0] == 'cargo_ship')
+    assert (cargo.set_aside == [gold]) is (order[0] == 'cargo_ship')
     assert (gold in player.deck) is (order[0] == 'sleigh')
     assert player.count('Gold') == 1
 
@@ -973,8 +973,8 @@ def test_guildhall_recognizes_live_treasure_gains(modifier, name, direct):
         guildhall.on_gain(state, player, gained)
     else:
         state.gain_card(player, gained)
-        assert any('Guildhall' in menu for menu in menus)
-    assert player.coin_tokens == 1
+        assert any('Guildhall' in menu for menu in menus) == (modifier != 'inheritance')
+    assert player.coin_tokens == int(modifier != 'inheritance')
 
 
 @pytest.mark.parametrize('active_capitalism', [False, True])

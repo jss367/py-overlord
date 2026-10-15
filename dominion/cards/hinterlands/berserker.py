@@ -22,7 +22,7 @@ class Berserker(Card):
         super().on_gain(game_state, player)
         if self in getattr(game_state, "_gain_destinations", {}) and not game_state.gain_is_movable(player, self):
             return
-        if any(card.is_action for card in player.in_play):
+        if any(game_state.is_action(card) for card in player.in_play):
             self._play_now(game_state, player)
 
     def _gain_cheaper_card(self, game_state, player):
@@ -51,11 +51,11 @@ class Berserker(Card):
         def discard_priority(card):
             if card.name == "Curse":
                 return (0, card.name)
-            if card.is_victory and not card.is_action:
+            if card.is_victory and not game_state.is_action(card):
                 return (1, card.cost.coins, card.name)
             if card.name == "Copper":
                 return (2, card.name)
-            if card.is_treasure:
+            if game_state.is_treasure(card):
                 return (3, card.cost.coins, card.name)
             return (4, card.cost.coins, card.name)
 

@@ -36,7 +36,7 @@ class Ghost(Card):
             if not player.deck:
                 break
             top = player.deck.pop()
-            if top.is_action:
+            if game_state.is_action(top):
                 action_card = top
                 break
             revealed.append(top)
