@@ -2159,6 +2159,14 @@ class GameState:
         if snapshot is None:
             snapshot = (list(player.duration), list(player.multiplied_durations))
         self._start_duration_snapshot = None
+        previous_sources = player._resolving_duration_sources
+        player._resolving_duration_sources = list(snapshot[0] + snapshot[1])
+        try:
+            self._resolve_duration_snapshot(player, snapshot)
+        finally:
+            player._resolving_duration_sources = previous_sources
+
+    def _resolve_duration_snapshot(self, player, snapshot):
         for zone, cards in zip((player.duration, player.multiplied_durations), snapshot):
             for card in cards:
                 if card in zone:
@@ -4933,7 +4941,12 @@ class GameState:
                 if hasattr(project, "on_opponent_gain"):
                     project.on_opponent_gain(self, player, gained_card)
             # Duration cards (Monkey, Blockade) can react to opponent gains.
+            blockades_seen = set()
             for card in list(player.duration):
+                if card.name == "Blockade":
+                    if card in blockades_seen:
+                        continue
+                    blockades_seen.add(card)
                 if hasattr(card, "on_opponent_gain"):
                     card.on_opponent_gain(self, player, gainer, gained_card)
             # Menagerie: Black Cat and Falconer (in-hand reactions to opponent gains)

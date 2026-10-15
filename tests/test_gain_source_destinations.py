@@ -124,14 +124,14 @@ def test_source_destination_precedes_reactions_and_never_redirects_exchange(sour
     elif mode == 'topdeck':
         assert all(c in player.deck and c not in player.hand for c, _ in observed)
     else:
-        final_zone = [card.set_aside] if source == 'Blockade' else card.set_aside if source == 'Quartermaster' else player.summon_set_aside if source == 'Summon' else player.in_play if source == 'Continue' else getattr(player, initial)
+        final_zone = card.set_aside if source in ('Blockade', 'Quartermaster') else player.summon_set_aside if source == 'Summon' else player.in_play if source == 'Continue' else getattr(player, initial)
         assert all(c in final_zone for c, _ in observed)
     if source == 'Sculptor':
         assert player.villagers == 1
     if source == 'Blockade':
-        assert card.watched_card_name == (target if mode == 'none' else None)
+        assert [c.name for c in card.set_aside] == ([target] if mode == 'none' else [])
         if mode != 'none':
-            assert card.set_aside is None
+            assert not card.set_aside
     if source == 'Quartermaster' and mode != 'none':
         assert not card.set_aside
     if source == 'Continue':

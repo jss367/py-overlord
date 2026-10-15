@@ -25,6 +25,8 @@ class PlayerState:
     in_play: list[Card] = field(default_factory=list)
     duration: list[Card] = field(default_factory=list)
     multiplied_durations: list[Card] = field(default_factory=list)
+    # Keep stored cards owned while their source callbacks leave the queue.
+    _resolving_duration_sources: list[Card] = field(default_factory=list)
     # Virtual Supply instruction objects with a rest-of-turn gain trigger.
     # They hold effects, never physical card ownership.
     virtual_gain_effects: list[Card] = field(default_factory=list)
@@ -281,6 +283,7 @@ class PlayerState:
         self.in_play = []
         self.duration = []
         self.multiplied_durations = []
+        self._resolving_duration_sources = []
         self.virtual_gain_effects = []
         self.projects = []
         self.exile = []
@@ -620,6 +623,7 @@ class PlayerState:
             ])
         for card in dict.fromkeys(
             self.in_play + self.duration + self.multiplied_durations + self.virtual_gain_effects
+            + self._resolving_duration_sources
         ):
             set_aside = getattr(card, "set_aside", None)
             if isinstance(set_aside, list):

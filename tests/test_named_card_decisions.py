@@ -404,9 +404,8 @@ def test_blockade_watches_only_a_real_set_aside_on_the_gainers_own_turn(reaction
     blockade = get_card("Blockade")
     player.in_play = [blockade]
     blockade.play_effect(state)
-    assert (blockade.set_aside is not None) == (reaction is None)
+    assert bool(blockade.set_aside) == (reaction is None)
     assert (blockade in player.duration) == (reaction is None)
-    assert blockade.watched_card_name == ("Village" if reaction is None else None)
     state.current_player_index = int(own_turn)
     victim = state.players[1]
     state.gain_from_supply(victim, "Village")
@@ -425,12 +424,12 @@ def test_failed_blockade_replay_preserves_its_existing_payload_and_immunity_snap
     blockade = get_card("Blockade")
     player.in_play = [blockade]
     blockade.play_effect(state)
-    stored = blockade.set_aside
+    stored = blockade.set_aside[0]
     player.hand = [get_card("Trader")]
     player.ai.strategy.should_reveal_trader = lambda *_args, **_kwargs: True
     state.players[1].duration = [get_card("Lighthouse")]
     blockade.play_effect(state)
-    assert blockade.set_aside is stored and player.duration == [blockade]
+    assert blockade.set_aside == [stored] and player.duration == [blockade]
     state.current_player_index = 1
     state.gain_from_supply(state.players[1], "Village")
     assert state.players[1].count("Curse") == 1  # Still the earlier unblocked attack.
@@ -553,14 +552,14 @@ def test_blockade_initial_storage_overrides_printed_placement_before_gain_reacti
     count = state.supply[name]
     blockade.play_effect(state)
     assert not player.pending_gain_set_aside
-    assert (blockade.set_aside is not None) == (reaction is None)
+    assert bool(blockade.set_aside) == (reaction is None)
     assert state.supply[name] == count - int(reaction != "trader")
     state.current_player_index = 1
     state.gain_from_supply(state.players[1], name)
     assert state.players[1].count("Curse") == int(reaction is None)
     state.current_player_index = 0
     if reaction is None:
-        stored = blockade.set_aside
+        stored = blockade.set_aside[0]
         assert stored is observed[0] and player.count(name) == 1
         blockade.on_duration(state)
         assert stored in player.hand and player.count(name) == 1
@@ -608,8 +607,8 @@ def test_villa_moves_from_blockade_initial_storage_without_arming_a_watcher():
     player.in_play = [blockade]
     blockade.play_effect(state)
     assert [c.name for c in player.hand] == ["Villa"] and player.actions == 1
-    assert not player.pending_gain_set_aside and blockade.set_aside is None
-    assert blockade not in player.duration and blockade.watched_card_name is None
+    assert not player.pending_gain_set_aside and not blockade.set_aside
+    assert blockade not in player.duration and not blockade.pending_plays
     state.current_player_index = 1
     state.gain_from_supply(state.players[1], "Villa")
     assert state.players[1].count("Curse") == 0
@@ -664,7 +663,7 @@ def test_on_gain_self_plays_recognize_blockade_storage_and_stop_after_prior_move
     blockade = get_card("Blockade")
     player.in_play = [blockade]
     blockade.play_effect(state)
-    assert blockade.set_aside is None and blockade not in player.duration
+    assert not blockade.set_aside and blockade not in player.duration
     assert not player.pending_gain_set_aside and player.count(name) == 1
     if not move_first:
         assert any(c.name == name for c in player.in_play)
@@ -690,7 +689,7 @@ def test_declined_trail_gain_reaction_preserves_blockade_storage_and_next_turn_r
     blockade = get_card("Blockade")
     player.in_play = [blockade]
     blockade.play_effect(state)
-    stored = blockade.set_aside
+    stored = blockade.set_aside[0]
     assert stored.name == "Trail" and player.count("Trail") == 1
     assert not player.pending_gain_set_aside and player.duration == [blockade]
     assert not any(c.name == "Trail" for c in player.in_play)
@@ -699,5 +698,5 @@ def test_declined_trail_gain_reaction_preserves_blockade_storage_and_next_turn_r
     assert state.players[1].count("Curse") == 1
     state.current_player_index = 0
     blockade.on_duration(state)
-    assert player.hand == [stored] and blockade.set_aside is None
+    assert player.hand == [stored] and not blockade.set_aside
     assert player.count("Trail") == 1 and player.actions == 0

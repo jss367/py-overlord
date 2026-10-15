@@ -16,11 +16,8 @@ def _opponent_gain_applies(state, source, owner, gainer, gained):
     if source.name == 'Monkey':
         return source in owner.duration and state.players[(state.players.index(owner) - 1) % len(state.players)] is gainer
     if source.name == 'Blockade':
-        stored = source.set_aside
-        return (source in owner.duration and stored is not None
-                and not getattr(stored, 'returned_to_supply', False)
-                and stored.name == source.watched_card_name == gained.name
-                and gainer is state.turn_player and id(gainer) in source._affected_player_ids)
+        return any(source.watch_applies(play, state, owner, gainer, gained)
+                   for play in source.pending_plays)
     return True
 
 
@@ -253,8 +250,18 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
             if hasattr(project, 'on_opponent_gain'):
                 event.add(owner, 'opponent_project', lambda p=owner, c=project: c.on_opponent_gain(state, p, gained), source=project, priority=55,
                           eligible=lambda p=owner, c=project: _opponent_gain_applies(state, c, p, player, gained))
+        blockades_seen = set()
         for card in list(owner.duration):
-            if hasattr(card, 'on_opponent_gain'):
+            if card.name == 'Blockade':
+                if card in blockades_seen:
+                    continue
+                blockades_seen.add(card)
+                for play in card.pending_plays:
+                    event.add(owner, 'opponent_duration',
+                              lambda p=owner, c=card, w=play: c.resolve_watch(w, state, p, player, gained),
+                              source=card, priority=55,
+                              eligible=lambda p=owner, c=card, w=play: c.watch_applies(w, state, p, player, gained))
+            elif hasattr(card, 'on_opponent_gain'):
                 event.add(owner, 'opponent_duration', lambda p=owner, c=card: c.on_opponent_gain(state, p, player, gained), source=card, priority=55,
                           eligible=lambda p=owner, c=card: _opponent_gain_applies(state, c, p, player, gained))
     if gained.is_action:

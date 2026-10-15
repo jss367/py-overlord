@@ -650,9 +650,9 @@ def test_trade_route_pending_instruction_refreshes_after_nested_gain_takes_token
     ('Road Network', 'Province', 1, True, True),
     ('Monkey', 'Gold', 1, True, True),
     ('Monkey', 'Gold', 2, True, False),
-    ('Blockade', 'Gold', 1, True, True),
-    ('Blockade', 'Silver', 1, True, False),
-    ('Blockade', 'Gold', 1, False, False),
+    ('Blockade', 'Silver', 1, True, True),
+    ('Blockade', 'Gold', 1, True, False),
+    ('Blockade', 'Silver', 1, False, False),
 ])
 def test_opponent_gain_menu_qualifies_project_and_duration_sources(source, gain, position, affected, expected):
     from dominion.projects.road_network import RoadNetwork
@@ -666,9 +666,13 @@ def test_opponent_gain_menu_qualifies_project_and_duration_sources(source, gain,
     else:
         owner.duration = [card]
     if source == 'Blockade':
-        card.watched_card_name = 'Gold'
-        card.set_aside = get_card('Gold')
-        card._affected_player_ids = {id(gainer)} if affected else set()
+        owner.duration = []
+        if not affected:
+            gainer.duration = [get_card('Lighthouse')]
+        owner.ai.choose_card_to_gain_with_blockade = lambda *_a, **_k: get_card('Silver')
+        state.current_player_index = position
+        card.play_effect(state)
+        state.current_player_index = 0
     owner.projects += [type('Observer', (), {'name': 'Observer', 'on_opponent_gain': lambda *args: None})() for _ in range(2)]
     menus = []
     def choose(s, p, gained, choices):
