@@ -16,8 +16,11 @@ def _opponent_gain_applies(state, source, owner, gainer, gained):
     if source.name == 'Monkey':
         return source in owner.duration and state.players[(state.players.index(owner) - 1) % len(state.players)] is gainer
     if source.name == 'Blockade':
-        return (source in owner.duration and not getattr(source, 'virtual_supply_play', False)
-                and source.watched_card_name == gained.name and id(gainer) in source._affected_player_ids)
+        stored = source.set_aside
+        return (source in owner.duration and stored is not None
+                and not getattr(stored, 'returned_to_supply', False)
+                and stored.name == source.watched_card_name == gained.name
+                and gainer is state.turn_player and id(gainer) in source._affected_player_ids)
     return True
 
 

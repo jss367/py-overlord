@@ -191,6 +191,15 @@ def reviewed_decisions():
         rules="Scoped original-gain type snapshot, printed Victory draw/Action and non-Supply Horse setup; general menus/costs unreviewed",
         tactical="Unreviewed: purchase-priority adapter tested; no isolated preference comparison",
         evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",), followups=(431,))
+    add(("Blockade",), "Stored-card watcher eligibility / turn / gain movement", (),
+        ("tests/test_named_card_decisions.py", "tests/test_command_supply_rules.py",
+         "tests/test_gain_effect_ordering.py", "tests/test_gain_source_destinations.py",
+         "tests/test_seaside_cards.py"),
+        rules="Scoped real storage / failed replay / own-turn / virtual-play watcher audit; successful multi-play storage open (#433)",
+        wiring="Automatic watcher tested; gain-choice strategy forwarding unreviewed",
+        tactical="Unreviewed: no isolated preference comparison",
+        evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",),
+        followups=(432, 433), adapter="dominion/cards/seaside/blockade.py")
     return audits
 
 
@@ -242,12 +251,13 @@ def render():
         if not audit:
             continue
         hooks = ", ".join(f"`{hook}`" for hook in audit.hooks)
+        hook_path = f" → {hooks}" if hooks else ""
         evidence = "; ".join(link(p) for p in audit.evidence)
         engine = Path(inspect.getfile(CARD_TYPES[name])).resolve().relative_to(Path.cwd())
         evidence = link(str(engine)) + "; " + evidence
         issues = ", ".join(f"[#{n}](https://github.com/jss367/py-overlord/issues/{n})" for n in audit.followups)
         lines.append(f"| {name} | {expansion} | {audit.decision} | {audit.rules} | "
-                     f"{audit.wiring}: {link(audit.adapter)} → {hooks} | {audit.tactical} | {evidence}; {issues} |")
+                     f"{audit.wiring}: {link(audit.adapter)}{hook_path} | {audit.tactical} | {evidence}; {issues} |")
     lines += ["", "## Explicitly unreviewed cards", "",
               "Each row has unreviewed rules, wiring and tactical quality in this inventory. "
               "A source link identifies the implementation to audit, not evidence of correctness.", "",

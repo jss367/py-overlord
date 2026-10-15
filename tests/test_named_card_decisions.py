@@ -392,6 +392,50 @@ def test_rebuild_does_not_restore_twice_after_trader_and_nested_duplicate():
     assert sorted(c.name for c in player.discard) == ["Dame Josephine", "Silver"]
 
 
+@pytest.mark.parametrize("reaction", [None, "trader", "topdeck", "trash"])
+@pytest.mark.parametrize("own_turn", [False, True])
+def test_blockade_watches_only_a_real_set_aside_on_the_gainers_own_turn(reaction, own_turn):
+    strategy = EnhancedStrategy()
+    strategy.should_reveal_trader = lambda *_args, **_kwargs: reaction == "trader"
+    strategy.choose_watchtower_reaction = lambda *_: reaction
+    state, player = make_state(strategy, ("Blockade", "Trader", "Watchtower", "Village"))
+    player.ai.choose_card_to_gain_with_blockade = lambda *_args, **_kwargs: get_card("Village")
+    player.hand = [get_card("Trader")] if reaction == "trader" else [get_card("Watchtower")] if reaction else []
+    blockade = get_card("Blockade")
+    player.in_play = [blockade]
+    blockade.play_effect(state)
+    assert (blockade.set_aside is not None) == (reaction is None)
+    assert (blockade in player.duration) == (reaction is None)
+    assert blockade.watched_card_name == ("Village" if reaction is None else None)
+    state.current_player_index = int(own_turn)
+    victim = state.players[1]
+    state.gain_from_supply(victim, "Village")
+    curses = int(reaction is None and own_turn)
+    assert victim.count("Curse") == curses
+    state.current_player_index = 0
+    blockade.on_duration(state)
+    state.current_player_index = 1
+    state.gain_from_supply(victim, "Village")
+    assert victim.count("Curse") == curses  # No watcher after returning the card.
+
+
+def test_failed_blockade_replay_preserves_its_existing_payload_and_immunity_snapshot():
+    state, player = make_state(kingdom=("Blockade", "Trader", "Village", "Lighthouse"))
+    player.ai.choose_card_to_gain_with_blockade = lambda *_args, **_kwargs: get_card("Village")
+    blockade = get_card("Blockade")
+    player.in_play = [blockade]
+    blockade.play_effect(state)
+    stored = blockade.set_aside
+    player.hand = [get_card("Trader")]
+    player.ai.strategy.should_reveal_trader = lambda *_args, **_kwargs: True
+    state.players[1].duration = [get_card("Lighthouse")]
+    blockade.play_effect(state)
+    assert blockade.set_aside is stored and player.duration == [blockade]
+    state.current_player_index = 1
+    state.gain_from_supply(state.players[1], "Village")
+    assert state.players[1].count("Curse") == 1  # Still the earlier unblocked attack.
+
+
 @pytest.mark.parametrize("name,pile", [("Gold", "Gold"), ("Sir Bailey", "Knights"), ("Ghost", "Ghost")])
 def test_rogue_trader_returns_trash_gain_to_its_physical_pile(name, pile):
     state, player = make_state(kingdom=("Rogue", "Trader", "Knights", "Exorcist"))

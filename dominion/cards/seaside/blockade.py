@@ -3,8 +3,8 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 class Blockade(Card):
     """Action-Duration-Attack ($4): Gain a card costing up to $4, setting it aside.
-    At the start of your next turn, put it into your hand. While this is in play,
-    when another player gains a copy of that card, they gain a Curse.
+    At the start of your next turn, put it into your hand. While that card is
+    set aside, opponents gaining a copy on their own turn gain a Curse.
     """
 
     def __init__(self):
@@ -26,10 +26,10 @@ class Blockade(Card):
 
         # Resolve the attack at play time so Moat / Lighthouse / Shield can
         # exempt opponents from the deferred-curse trigger for this Blockade.
-        self._affected_player_ids = set()
+        affected = set()
 
         def attack_target(target):
-            self._affected_player_ids.add(id(target))
+            affected.add(id(target))
 
         for other in game_state.players:
             if other is player:
@@ -46,14 +46,16 @@ class Blockade(Card):
         game_state.supply[choice.name] -= 1
         actual_gain = []
         game_state.gain_card(player, get_card(choice.name), gain_observer=actual_gain.append)
+        if not actual_gain:
+            return
         gained = actual_gain[0]
         # Set aside only the actual gain if no earlier effect moved it.
-        if game_state._remove_gained_card_from_zones(player, gained):
-            self.set_aside = gained
+        if not game_state._remove_gained_card_from_zones(player, gained):
+            return
+        self.set_aside = gained
 
-        # Always watch the pile name so opponents who gain a copy still get
-        # cursed (the watch effect is independent of where our copy went).
         self.watched_card_name = gained.name
+        self._affected_player_ids = affected
         player.duration.append(self)
         self.duration_persistent = True
 
@@ -67,21 +69,21 @@ class Blockade(Card):
         self.duration_persistent = False
 
     def on_opponent_gain(self, game_state, owner, gainer, gained_card):
-        """Curse opponents who gain a matching card while this is in play.
+        """Curse affected opponents while the matching card remains set aside.
 
         Only opponents who were actually hit by the original Attack play (i.e.
         not protected by Moat/Lighthouse/Shield at play time) are subject to
         the follow-up curse trigger.
         """
-        if self.watched_card_name is None:
-            return
-        if getattr(self, "virtual_supply_play", False):
-            # The gain/next-turn return are instructions, but the attack
-            # explicitly requires Blockade itself to be in play.
+        if (self.set_aside is None or self.watched_card_name is None
+                or getattr(self.set_aside, "returned_to_supply", False)
+                or self.set_aside.name != self.watched_card_name):
             return
         if self not in owner.duration:
             return
         if gained_card.name != self.watched_card_name:
+            return
+        if gainer is not game_state.turn_player:
             return
         if id(gainer) not in self._affected_player_ids:
             return

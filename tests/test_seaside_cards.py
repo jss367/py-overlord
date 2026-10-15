@@ -807,6 +807,7 @@ def test_blockade_does_not_curse_lighthouse_defender():
     play_action(state, player_a, blockade)
 
     # Player B (defended) gains the watched card → must not gain a Curse.
+    state.current_player_index = 1
     state.supply["Silver"] -= 1
     state.gain_card(player_b, get_card("Silver"))
     assert all(c.name != "Curse" for c in player_b.discard), \
@@ -825,6 +826,7 @@ def test_blockade_curses_opponent_who_gains_same_card():
     play_action(state, player_a, blockade)
 
     # Player B gains the same card → should also gain a Curse.
+    state.current_player_index = 1
     state.supply["Silver"] -= 1
     state.gain_card(player_b, get_card("Silver"))
     assert any(c.name == "Curse" for c in player_b.discard)

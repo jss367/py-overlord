@@ -310,14 +310,19 @@ def test_virtual_crew_never_moves_itself_on_duration():
     assert owner not in player.in_play
 
 
-def test_virtual_blockade_keeps_real_storage_but_has_no_while_in_play_attack():
+@pytest.mark.parametrize("on_turn", [False, True])
+def test_virtual_blockade_watches_real_storage_on_the_victims_own_turn(on_turn):
     state, player, owner = setup("Overlord", "Blockade", opponents=1)
     state.supply["Curse"] = 10
     player.ai.choose_card_to_gain_with_blockade = lambda s, p, max_cost: get_card("Blockade")
     state.play_action_indirectly(player, owner)
     assert player.count("Blockade") == 1  # The real gain, excluding the proxy.
+    if on_turn:
+        state.handle_cleanup_phase()
     state.gain_from_supply(state.players[1], "Blockade")
-    assert state.players[1].count("Curse") == 0
+    assert state.players[1].count("Curse") == int(on_turn)
+    if not on_turn:
+        state.handle_cleanup_phase()
     state.handle_cleanup_phase()
     state.current_player_index = 0
     state.do_duration_phase()

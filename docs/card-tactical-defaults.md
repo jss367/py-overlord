@@ -153,7 +153,7 @@ corrections have physical regressions rather than newly relabeled strategy games
 The saved named-card studies predate these review corrections and retain their
 original fingerprints; no study was rerun or relabeled. Trader adds a scoped
 rules/forwarding entry, not an isolated tactical evaluation. The inventory
-still explicitly lists 566 registered names without a scoped review.
+still explicitly lists 565 registered names without a scoped review.
 
 ## First implementation: Overlord and Quartermaster
 
@@ -791,3 +791,16 @@ bonus and required Horse setup (#431). Trader and Groom have separate inventory
 entries with unmeasured tactical preferences; neither is silently added to the
 fourteen-policy benchmark. Saved study inputs/results remain pinned to their
 original commit. General menus and unrelated card interactions remain unreviewed.
+
+
+## Blockade watcher scope
+
+Blockade arms its watcher only after physically storing the original gain.
+Trader and Watchtower movement cannot leave a phantom watcher. A failed later
+play preserves the earlier stored card and immunity snapshot. Virtual Supply
+plays can watch their real stored cards, and only opponents gaining a copy on
+their own turn receive a Curse; returning the stored card ends the watcher
+(#432). Synthetic physical regressions cover these conditions. Two successful
+plays still overwrite its single storage slot, separately reproduced in #433.
+The inventory records this bounded rules audit; gain-choice forwarding and
+preference strength remain unreviewed, and the frozen studies are not regraded.

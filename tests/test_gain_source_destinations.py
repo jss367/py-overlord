@@ -129,7 +129,7 @@ def test_source_destination_precedes_reactions_and_never_redirects_exchange(sour
     if source == 'Sculptor':
         assert player.villagers == 1
     if source == 'Blockade':
-        assert card.watched_card_name == target
+        assert card.watched_card_name == (target if mode == 'none' else None)
         if mode != 'none':
             assert card.set_aside is None
     if source == 'Quartermaster' and mode != 'none':
