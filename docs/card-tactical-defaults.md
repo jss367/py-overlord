@@ -153,7 +153,7 @@ corrections have physical regressions rather than newly relabeled strategy games
 The saved named-card studies predate these review corrections and retain their
 original fingerprints; no study was rerun or relabeled. Trader adds a scoped
 rules/forwarding entry, not an isolated tactical evaluation. The inventory
-still explicitly lists 567 registered names without a scoped review.
+still explicitly lists 566 registered names without a scoped review.
 
 ## First implementation: Overlord and Quartermaster
 
@@ -779,3 +779,15 @@ remain independent. The new benchmark varies tactical genes using production
 mutation with purchases fixed; it is not a full purchase-and-policy search or a
 new global tournament. It records every evaluated genotype and raw outcome,
 locks screen selection before disjoint validation, and reports capped games.
+
+
+## Original-gain follow-up identity
+
+Trader's physical return value is the received Silver, so callers that award
+gain-based bonuses use the original-gain observer. Groom, Replace and Wild Hunt
+now follow that contract; the existing Hoard purchase helper classifies what was
+bought. The scoped Groom audit also corrects the printed Victory draw/Action
+bonus and required Horse setup (#431). Trader and Groom have separate inventory
+entries with unmeasured tactical preferences; neither is silently added to the
+fourteen-policy benchmark. Saved study inputs/results remain pinned to their
+original commit. General menus and unrelated card interactions remain unreviewed.

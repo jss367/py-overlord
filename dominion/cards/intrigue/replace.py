@@ -42,12 +42,16 @@ class Replace(Card):
             ("supply_change", target.name, -1, game_state.supply[target.name])
         )
 
-        is_action_or_treasure = target.is_action or target.is_treasure
-        gained = game_state.gain_card(
-            player, target, to_deck=is_action_or_treasure
+        from ..gain_decisions import gained_card_types
+
+        action, treasure, _ = gained_card_types(game_state, player, target)
+        victory_at_gain = []
+        game_state.gain_card(
+            player, target, to_deck=action or treasure,
+            gain_observer=lambda c: victory_at_gain.append(c.is_victory),
         )
 
-        if gained.is_victory:
+        if victory_at_gain and victory_at_gain[0]:
             # Each other player gains a Curse. Replace is an Attack.
             def curse_target(other):
                 game_state.give_curse_to_player(other)

@@ -56,7 +56,7 @@ CURATED_STRATEGY_GUIDES = (
         description="Fourteen fixed-priority decision comparisons, scoped rules fixes, fresh validation and seventeen registered strategy compatibility checks; existing preferences retained and wider Inheritance work explicit.",
         kingdom_cards=("Courtier", "Courier", "Knights", "Rogue", "Stables", "Spice Merchant",
                        "Armory", "Artificer", "Scheme", "Chapel", "Junk Dealer", "Counterfeit",
-                       "Moneylender", "Minion"),
+                       "Moneylender", "Minion", "Trader", "Groom", "Replace", "Wild Hunt", "Hoard"),
         source_label="Publisher rules, physical engine scenarios and 29,280 seeded games",
     ),
     CuratedStrategyGuide(

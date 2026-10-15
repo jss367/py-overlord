@@ -186,6 +186,11 @@ def reviewed_decisions():
         rules="Scoped original gain identity / ordering / stop-moving / ordinary, ordered and present non-Supply pile returns",
         tactical="Unreviewed: baseline declines; reaction forwarding and rules tested, no isolated preference comparison",
         evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",), followups=(430,))
+    add(("Groom",), "Original live-type follow-up bonuses / Horse setup", ("choose_buy",),
+        ("tests/test_named_card_decisions.py", "tests/test_menagerie_cards.py"),
+        rules="Scoped original-gain type snapshot, printed Victory draw/Action and non-Supply Horse setup; general menus/costs unreviewed",
+        tactical="Unreviewed: purchase-priority adapter tested; no isolated preference comparison",
+        evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",), followups=(431,))
     return audits
 
 

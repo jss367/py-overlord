@@ -3901,6 +3901,10 @@ class GameState:
         False identifies gains from other locations. Trader returns its target
         to its pile regardless of the gain's origin, including from the trash.
 
+        The return value follows the physical card received after an exchange,
+        for compatibility with Changeling/Trader callers. Use ``gain_observer``
+        for the original gain's identity/types in follow-up bonuses.
+
         If the player has matching cards on their Exile mat, the gain still
         happens, and the player may then discard all Exiled copies (the
         Menagerie Exile rule), decided by ``should_discard_exiled_copies``.
@@ -4342,7 +4346,7 @@ class GameState:
         from ..cards.registry import get_card
 
         hoard_count = sum(1 for card in player.in_play if card.name == "Hoard")
-        if hoard_count and gained_card.is_victory:
+        if hoard_count and bought_card.is_victory:
             for _ in range(hoard_count):
                 if self.supply.get("Gold", 0) <= 0:
                     break

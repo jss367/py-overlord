@@ -291,6 +291,107 @@ def test_trader_obeys_owner_order_and_cannot_follow_a_moved_gain(first):
         assert not player.discard
 
 
+@pytest.mark.parametrize("name,capitalism,bonus_horse,victory", [
+    ("Village", False, True, False), ("Mill", False, True, True),
+    ("Estate", False, False, True), ("Militia", True, True, False),
+])
+def test_groom_bonuses_use_original_live_types_after_trader(name, capitalism, bonus_horse, victory):
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule(name)]
+    strategy.should_reveal_trader = lambda s, p, card, **kw: card.name == name
+    state, player = make_state(strategy, ("Groom", "Trader", "Village", "Mill", "Militia"))
+    if capitalism:
+        player.projects = [Capitalism()]
+    player.hand = [get_card("Trader")]
+    player.deck = [get_card("Gold")]
+    get_card("Groom").play_effect(state)
+    assert player.gained_cards_this_turn[0] == name
+    assert sum(c.name == "Horse" for c in player.discard) == bonus_horse
+    assert sum(c.name == "Silver" for c in player.discard) == (2 if capitalism else 1)
+    assert player.actions == int(victory)
+    assert any(c.name == "Gold" for c in player.hand) == victory
+    assert not state.players[1].discard
+
+
+def test_groom_victory_draw_respects_snowy_village_action_suppression():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Estate")]
+    state, player = make_state(strategy, ("Groom",))
+    player.ignore_action_bonuses = True
+    player.deck = [get_card("Gold")]
+    get_card("Groom").play_effect(state)
+    assert player.actions == 0 and [c.name for c in player.hand] == ["Gold"]
+
+
+@pytest.mark.parametrize("target,trash", [("Estate", "Copper"), ("Mill", "Estate")])
+def test_replace_attacks_for_original_victory_gain_after_trader(target, trash):
+    strategy = EnhancedStrategy()
+    strategy.trash_priority = [PriorityRule(trash)]
+    strategy.should_reveal_trader = lambda s, p, card, **kw: card.name == target
+    state, player = make_state(strategy, ("Replace", "Mill", "Trader"))
+    player.hand = [get_card(trash), get_card("Trader")]
+    player.ai.choose_card_to_gain_for_replace = lambda *_: get_card(target)
+    get_card("Replace").play_effect(state)
+    assert player.gained_cards_this_turn == [target]
+    assert [c.name for c in player.discard] == ["Silver"]
+    assert not player.deck
+    assert [c.name for c in state.players[1].discard] == ["Curse"]
+
+
+def test_wild_hunt_scores_original_estate_gain_after_trader_exchange():
+    strategy = EnhancedStrategy()
+    strategy.should_reveal_trader = lambda s, p, card, **kw: card.name == "Estate"
+    state, player = make_state(strategy, ("Wild Hunt", "Trader"))
+    player.hand = [get_card("Trader")]
+    player.ai.choose_wild_hunt_option = lambda *_: "estate"
+    state.wild_hunt_pile_tokens = 3
+    get_card("Wild Hunt").play_effect(state)
+    assert player.gained_cards_this_turn == ["Estate"]
+    assert player.vp_tokens == 3 and state.wild_hunt_pile_tokens == 0
+    assert [c.name for c in player.discard] == ["Silver"]
+
+
+def test_hoard_purchase_bonus_uses_original_victory_card_after_trader():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Estate")]
+    strategy.should_reveal_trader = lambda s, p, card, **kw: card.name == "Estate"
+    state, player = make_state(strategy, ("Hoard", "Trader"))
+    player.hand = [get_card("Trader")]
+    player.in_play = [get_card("Hoard")]
+    player.coins, player.buys = 2, 1
+    state.phase = "buy"
+    state.handle_buy_phase()
+    assert player.gained_cards_this_turn == ["Estate", "Gold"]
+    assert sorted(c.name for c in player.discard) == ["Gold", "Silver"]
+
+
+def test_rebuild_does_not_restore_twice_after_trader_and_nested_duplicate():
+    strategy = EnhancedStrategy()
+    strategy.gain_priority = [PriorityRule("Dame Josephine")]
+    strategy.choose_gain_effect = lambda s, p, card, choices: next(
+        (c for c in choices if c.kind == "trader"), choices[0]
+    )
+    trades = []
+    def reveal(s, p, card, **kw):
+        if card.name == "Dame Josephine" and not trades:
+            trades.append(card)
+            return True
+        return False
+    strategy.should_reveal_trader = reveal
+    state, player = make_state(strategy, ("Rebuild", "Trader", "Duplicate", "Knights"))
+    state.pile_order["Knights"].remove("Dame Josephine")
+    state.pile_order["Knights"].append("Dame Josephine")
+    player.hand = [get_card("Trader")]
+    player.deck = [get_card("Estate")]
+    player.tavern_mat = [get_card("Duplicate")]
+    player.ai.should_call_from_tavern = lambda *_: True
+    count = state.supply["Knights"]
+    get_card("Rebuild").play_effect(state)
+    assert state.supply["Knights"] == count - 1
+    assert len(state.pile_order["Knights"]) == count - 1
+    assert sorted(c.name for c in player.discard) == ["Dame Josephine", "Silver"]
+
+
 @pytest.mark.parametrize("name,pile", [("Gold", "Gold"), ("Sir Bailey", "Knights"), ("Ghost", "Ghost")])
 def test_rogue_trader_returns_trash_gain_to_its_physical_pile(name, pile):
     state, player = make_state(kingdom=("Rogue", "Trader", "Knights", "Exorcist"))
