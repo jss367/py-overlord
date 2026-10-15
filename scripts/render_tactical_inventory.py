@@ -195,11 +195,11 @@ def reviewed_decisions():
         ("tests/test_named_card_decisions.py", "tests/test_command_supply_rules.py",
          "tests/test_gain_effect_ordering.py", "tests/test_gain_source_destinations.py",
          "tests/test_seaside_cards.py", "tests/test_blockade_replays.py"),
-        rules="Scoped initial storage / printed placement / gain movement / failed replay / own-turn / virtual-play / repeated storage / per-play immunity / active-duration ownership / multiplier return audit; general menus and tactical choices unreviewed",
+        rules="Scoped initial storage / printed placement / gain movement / failed replay / own-turn / virtual-play / repeated storage / per-play immunity / active-duration ownership / source transfer / per-player returns / multiplier return audit; general menus and tactical choices unreviewed",
         wiring="Automatic watcher tested; gain-choice strategy forwarding unreviewed",
         tactical="Unreviewed: no isolated preference comparison",
         evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",),
-        followups=(432, 433, 434, 436), adapter="dominion/cards/seaside/blockade.py")
+        followups=(432, 433, 434, 436, 438), adapter="dominion/cards/seaside/blockade.py")
     add(("Nomad Camp", "Ghost Town", "Guardian", "Night Watchman", "Den of Sin"),
         "Printed initial gain destination / explicit source precedence", (),
         ("tests/test_named_card_decisions.py", "tests/test_gain_source_destinations.py"),

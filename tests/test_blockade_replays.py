@@ -253,3 +253,52 @@ def test_other_durations_see_stored_ownership_before_blockade_returns(location):
     assert not player._resolving_duration_sources
     assert sorted(c.name for c in player.hand) == ["Copper", "Silver", "Village"]
     assert not player.duration
+
+
+@pytest.mark.parametrize("return_order", [(0, 1), (1, 0)])
+@pytest.mark.parametrize("clone", [False, True])
+def test_transferred_physical_blockade_keeps_each_players_cards_watches_and_returns(return_order, clone):
+    state, first = make_state(kingdom=("Blockade", "Village", "Lurker", "Courier"), players=3)
+    second, victim = state.players[1:]
+    blockade = play_repeatedly(state, first, ("Silver",))
+    silver = blockade.set_aside[0]
+    first.in_play.remove(blockade)
+    state.trash_card(first, blockade)
+    state.current_player_index = 1
+    second.ai.choose_lurker_mode = lambda *_a, **_k: "gain"
+    second.ai.choose_action_to_gain_from_trash = lambda *_a: blockade
+    lurker = get_card("Lurker")
+    second.in_play = [lurker]
+    state.play_action_indirectly(second, lurker)
+    second.ai.choose_courier_target = lambda *_a, **_k: blockade
+    choose_gains(second, ("Village",))
+    courier = get_card("Courier")
+    second.in_play.append(courier)
+    state.play_action_indirectly(second, courier)
+    if clone:
+        state = copy.deepcopy(state)
+        first, second, victim = state.players
+        blockade = next(c for c in second.in_play if c.name == "Blockade")
+        silver = next(c for c in blockade.set_aside if c.name == "Silver")
+    village = next(c for c in blockade.set_aside if c.name == "Village")
+    assert first.count("Silver") == second.count("Village") == 1
+    assert first.count("Village") == second.count("Silver") == 0
+    assert first.count("Blockade") == 0 and second.count("Blockade") == 1
+    assert first.duration == second.duration == [blockade]
+    state.current_player_index = 2
+    for name in ("Silver", "Village"):
+        state.gain_from_supply(victim, name)
+    assert victim.count("Curse") == 2
+    expected = {0: silver, 1: village}
+    for index in return_order:
+        state.current_player_index = index
+        state.do_duration_phase()
+        assert state.players[index].hand == [expected[index]]
+        assert not state.players[index].duration
+        assert blockade not in first.in_play and blockade in second.in_play
+    assert not blockade.set_aside
+    state.current_player_index = 2
+    for name in ("Silver", "Village"):
+        state.gain_from_supply(victim, name)
+    assert victim.count("Curse") == 2
+    assert first.count("Silver") == second.count("Village") == 1

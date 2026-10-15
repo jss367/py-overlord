@@ -625,7 +625,8 @@ class PlayerState:
             self.in_play + self.duration + self.multiplied_durations + self.virtual_gain_effects
             + self._resolving_duration_sources
         ):
-            set_aside = getattr(card, "set_aside", None)
+            storage_for_owner = getattr(card, "set_aside_for_owner", None)
+            set_aside = storage_for_owner(self) if storage_for_owner else getattr(card, "set_aside", None)
             if isinstance(set_aside, list):
                 zones.append(set_aside)
             elif isinstance(set_aside, Card):

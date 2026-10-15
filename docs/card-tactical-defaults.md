@@ -801,7 +801,12 @@ play preserves the earlier stored card and immunity snapshot. Virtual Supply
 plays can watch their real stored cards, and only opponents gaining a copy on
 their own turn receive a Curse; returning the stored card ends the watcher
 (#432). The follow-up replay correction (#433) keeps one stored card and
-immunity snapshot per successful play. Each matching play has one gain-event
+immunity snapshot per successful play. The source-transfer follow-up (#438)
+binds each record to the player who made that play. If Lurker/Courier transfer and replay the same physical source before its old
+return, each player retains their own stored cards, watches and return order.
+The ownership collector asks for storage belonging to its player, including
+after the shared source is deep-copied across players' queues.
+Each matching play has one gain-event
 instruction and one next-turn return; duplicate Duration references do not
 multiply all watches again. The ownership collector sees every stored card,
 including when Blockade is virtual or trashed. The Duration resolver retains
