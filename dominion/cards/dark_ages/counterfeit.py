@@ -4,8 +4,8 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class Counterfeit(Card):
-    """+$1 +1 Buy. When you play this, you may play a Treasure from your hand
-    twice; if you do, trash it.
+    """+$1 +1 Buy. You may play a non-Duration Treasure from your hand
+    twice; if you do, trash it (2022 wording).
     """
 
     def __init__(self):
@@ -19,7 +19,8 @@ class Counterfeit(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
 
-        treasures = [c for c in player.hand if game_state.is_treasure(c)]
+        treasures = [c for c in player.hand
+                     if game_state.is_treasure(c) and not c.is_duration]
         if not treasures:
             return
         choice = player.ai.should_replay_treasure_with_counterfeit(

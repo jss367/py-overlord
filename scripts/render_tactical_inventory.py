@@ -157,16 +157,16 @@ def reviewed_decisions():
         "Rogue": ("should_gain_from_trash_with_rogue",),
         "Artificer": ("choose_artificer_discards", "choose_artificer_gain_after_discard"),
     }
-    rule_issues = {"Courtier": (421, 427, 429), "Rogue": (422,), "Knights": (423,),
+    rule_issues = {"Courtier": (421, 427, 429), "Rogue": (422, 430), "Knights": (423,),
                    "Artificer": (424,), "Stables": (425, 429), "Spice Merchant": (425, 429),
                    "Counterfeit": (426, 429)}
     for name in named:
         audit = audits[name]
         audits[name] = Audit(
             "Victim trash and mandatory trash-pile gain" if name == "Rogue" else audit.decision,
-            "Scoped physical choices / timing / live types audited; wider Inheritance and conditional Capitalism unreviewed (#427, #429)",
+            "Scoped physical choices / timing / live types audited; wider Inheritance / conditional Capitalism / Trader exchange unreviewed (#427, #429, #430)",
             "Connected/tested",
-            "Evaluated: fixed-priority diagnostic screen and fresh validation; no replacement established",
+            "Evaluated: fixed-priority diagnostic screen and fresh validation; no replacement established; saved study predates review-only rule follow-ups",
             audit.hooks + additional_hooks.get(name, ()),
             audit.evidence + (
                 "tests/test_named_card_decisions.py", "tests/test_named_card_evaluation.py",

@@ -3897,12 +3897,9 @@ class GameState:
         lower-level entry point also supports already-removed cards and gains
         from other locations, including legacy purchase and card-effect paths.
 
-        ``from_supply`` controls supply-restoration semantics. The default
-        (``True``) matches the historical contract: the caller has already
-        decremented the supply for ``card.name``, so Trader's reaction may
-        add 1 back when it replaces the gain. For trash-origin gains
-        (Lurker, Lich), pass ``False`` so the supply pile isn't inflated by
-        the restoration logic.
+        ``from_supply=True`` means the caller already decremented Supply;
+        False identifies gains from other locations. Trader returns its target
+        to its pile regardless of the gain's origin, including from the trash.
 
         If the player has matching cards on their Exile mat, the gain still
         happens, and the player may then discard all Exiled copies (the
@@ -4301,12 +4298,10 @@ class GameState:
         to_deck: bool,
         from_supply: bool = True,
     ) -> Card:
-        """Allow Trader reactions to replace a gain with a Silver.
+        """Legacy Trader replacement, with origin-independent pile returns.
 
-        ``from_supply`` mirrors ``gain_card``: when the caller decremented
-        supply for ``original_card`` (the normal case), Trader restores it.
-        For trash-origin gains the caller never touched supply so we must
-        not "restore" a count that was never decremented.
+        Current exchange timing/identity is tracked separately; a returned
+        physical card increases its pile even when this gain came from trash.
         """
 
         if self.supply.get("Silver", 0) <= 0:
@@ -4318,12 +4313,10 @@ class GameState:
         if not player.ai.should_reveal_trader(self, player, original_card, to_deck=to_deck):
             return actual_card
 
-        if from_supply:
-            # Pile-aware restoration: ordered piles (Knights, Ruins) need
-            # both the placeholder count and pile_order put back, not just
-            # ``supply[original_card.name]`` (which silently no-ops since
-            # the supply key is the placeholder name).
-            self._restore_to_supply_pile(original_card)
+        # Both cards must be available to exchange. Restore physical order
+        # as well as the count, including non-Supply piles that are present.
+        if not self._restore_to_supply_pile(original_card):
+            return actual_card
 
         self.supply["Silver"] -= 1
         replacement = get_card("Silver")
@@ -4528,10 +4521,9 @@ class GameState:
         )
         gained = self.gain_card(player, pick, from_supply=False)
         if gained is not pick and not getattr(pick, "returned_to_supply", False):
-            # The gain was replaced by Trader's Silver, so the chosen card
-            # never left the trash. (A Changeling exchange also returns a
-            # different card, but it has already put ``pick`` back on its
-            # Supply pile, flagged via ``returned_to_supply``.)
+            # Preserve the source for a replacement that did not return it.
+            # Normal Trader/Changeling returns mark the physical card, so it
+            # must not also be restored to the trash here.
             self.trash.append(pick)
 
     def _maybe_play_guard_dogs(self, player: PlayerState) -> None:

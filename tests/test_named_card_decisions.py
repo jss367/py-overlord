@@ -216,6 +216,54 @@ def test_counterfeit_does_not_trash_a_returned_spoils_or_accept_a_non_treasure()
     assert player.hand == [estate] and not state.trash
 
 
+@pytest.mark.parametrize("name", ["Merchant Ship", "Search", "Frigate"])
+def test_counterfeit_excludes_capitalism_duration_treasures(name):
+    state, player = make_state(kingdom=("Counterfeit", name))
+    player.projects = [Capitalism()]
+    card = get_card(name)
+    player.hand = [card]
+    assert state.is_treasure(card) and card.is_duration
+    player.ai.strategy.should_replay_treasure_with_counterfeit = lambda *_: pytest.fail("No legal target")
+    get_card("Counterfeit").play_effect(state)
+    assert player.hand == [card]
+    assert not player.duration and not player.in_play and not state.trash
+
+
+@pytest.mark.parametrize("name,pile", [("Gold", "Gold"), ("Sir Bailey", "Knights"), ("Ghost", "Ghost")])
+def test_rogue_trader_returns_trash_gain_to_its_physical_pile(name, pile):
+    state, player = make_state(kingdom=("Rogue", "Trader", "Knights", "Exorcist"))
+    if pile == "Knights":
+        # Expose the desired member, then take exactly that physical copy.
+        state.pile_order[pile].remove(name)
+        state.pile_order[pile].append(name)
+    card = state.take_top_supply_card(pile)
+    assert card.name == name
+    state.trash = [card]
+    player.hand = [get_card("Trader")]
+    player.ai.should_reveal_trader = lambda *_args, **_kwargs: True
+    count = state.supply[pile]
+    silvers = state.supply["Silver"]
+    get_card("Rogue").play_effect(state)
+    assert card not in state.trash and card not in player.all_cards()
+    assert card.returned_to_supply
+    assert state.supply[pile] == count + 1
+    assert state.top_supply_card(pile) == name
+    assert state.supply["Silver"] == silvers - 1
+    assert [c.name for c in player.discard] == ["Silver"]
+
+
+def test_rogue_trader_cannot_exchange_a_card_without_an_origin_pile():
+    state, player = make_state(kingdom=("Rogue", "Trader", "Necromancer"))
+    spy = next(c for c in state.trash if c.name == "Zombie Spy")
+    state.trash = [spy]
+    player.hand = [get_card("Trader")]
+    player.ai.should_reveal_trader = lambda *_args, **_kwargs: True
+    silvers = state.supply["Silver"]
+    get_card("Rogue").play_effect(state)
+    assert player.discard == [spy]
+    assert state.supply["Silver"] == silvers
+
+
 def test_artificer_can_discard_without_a_gain_and_choose_useful_cards():
     strategy = EnhancedStrategy()
     strategy.choose_artificer_discards = lambda s, p, choices: [choices[0], choices[0], get_card("Gold")]
