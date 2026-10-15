@@ -696,7 +696,9 @@ class BuriedTreasure(Card):
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
-        for zone in (player.discard, player.deck, player.hand):
+        if self in getattr(game_state, "_gain_destinations", {}) and not game_state.gain_is_movable(player, self):
+            return
+        for zone in (player.discard, player.deck, player.hand, player.pending_gain_set_aside):
             if self in zone:
                 zone.remove(self)
                 player.in_play.append(self)

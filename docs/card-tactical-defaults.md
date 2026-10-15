@@ -153,7 +153,7 @@ corrections have physical regressions rather than newly relabeled strategy games
 The saved named-card studies predate these review corrections and retain their
 original fingerprints; no study was rerun or relabeled. Trader adds a scoped
 rules/forwarding entry, not an isolated tactical evaluation. The inventory
-still explicitly lists 565 registered names without a scoped review.
+still explicitly lists 556 registered names without a scoped review.
 
 ## First implementation: Overlord and Quartermaster
 
@@ -816,3 +816,13 @@ Physical ownership is visible throughout, and shuffles still invalidate an
 original-zone reference. Synthetic regressions cover ordinary/explicit gains,
 reactions, subsequent opponent gains and next-turn returns. These scoped
 placement fixes do not add tactical strength evidence or regrade saved studies.
+
+Forge's selected gain now enters the shared gain event (#435), so printed
+placement, reactions and counters apply. The other direct non-super card
+on-gain callers are restricted to printed Treasures or fixed Copper/Silver/Gold;
+none selects these five placement cards. Their broader pipeline behavior is
+unreviewed. Trail, Berserker and reduced-cost Buried Treasure now recognize
+initial owned storage for on-gain self-plays, and respect prior gain movement
+(#436). Existing Trail discard/trash reactions retain their separate path.
+Nine additional inventory entries record these bounded placement/gain-path
+checks; other rules, choice forwarding and tactical strength stay unreviewed.

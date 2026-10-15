@@ -79,10 +79,7 @@ class GainEvent:
         self.pending[id(owner)].append(_Trigger(GainEffect(kind, source), callback, eligible, priority))
 
     def movable(self):
-        zone = self.state.gain_destination(self.card)
-        return zone is not None and self.card in zone and (zone is not self.player.deck or zone[-1] is self.card) and any(
-            zone is z for z in (self.player.hand, self.player.deck, self.player.discard, self.player.pending_gain_set_aside)
-        )
+        return self.state.gain_is_movable(self.player, self.card)
 
     def move(self, target):
         if not self.movable():
@@ -155,7 +152,6 @@ class GainEvent:
                 old_index, old_turn = state.current_player_index, state.reaction_turn_player_index
                 old_number = getattr(state, '_gain_event_number', None)
                 old_collection = getattr(state, '_gain_event_collection_bonus', None)
-                zone = state.gain_destination(self.card)
                 had_card = self.movable()
                 try:
                     state.reaction_turn_player_index = next(i for i, p in enumerate(state.players) if p is state.turn_player)
@@ -173,7 +169,7 @@ class GainEvent:
                     state.current_player_index, state.reaction_turn_player_index = old_index, old_turn
                     state._gain_event_number = old_number
                     state._gain_event_collection_bonus = old_collection
-                    if had_card and (self.card not in zone or zone is self.player.deck and zone[-1] is not self.card or not any(zone is z for z in (self.player.hand, self.player.deck, self.player.discard, self.player.pending_gain_set_aside))):
+                    if had_card and not self.movable():
                         state._gain_destinations[self.card] = None
         return self.result
 

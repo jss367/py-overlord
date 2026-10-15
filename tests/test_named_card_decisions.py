@@ -613,3 +613,91 @@ def test_villa_moves_from_blockade_initial_storage_without_arming_a_watcher():
     state.current_player_index = 1
     state.gain_from_supply(state.players[1], "Villa")
     assert state.players[1].count("Curse") == 0
+
+
+@pytest.mark.parametrize("name", ["Nomad Camp", "Ghost Town", "Guardian", "Night Watchman", "Den of Sin"])
+@pytest.mark.parametrize("reaction", [None, "trader", "trash"])
+def test_forge_uses_printed_initial_destinations_and_the_shared_gain_event(name, reaction):
+    state, player = make_state(kingdom=("Forge", name, "Trader", "Watchtower"))
+    doomed = get_card(name)
+    player.hand = [doomed, get_card("Trader" if reaction == "trader" else "Watchtower")]
+    player.ai.choose_card_to_trash = lambda _s, choices: doomed if doomed in choices else None
+    player.ai.choose_buy = lambda _s, choices: next(c for c in choices if c is not None and c.name == name)
+    player.ai.strategy.should_reveal_trader = lambda *_a, **_k: reaction == "trader"
+    observed = []
+    def watch(s, p, card):
+        observed.append(card)
+        assert card in (p.deck if name == "Nomad Camp" else p.hand)
+        return "trash" if reaction == "trash" else None
+    player.ai.strategy.choose_watchtower_reaction = watch
+    count = state.supply[name]
+    get_card("Forge").play_effect(state)
+    assert doomed in state.trash
+    assert player.gained_cards_this_turn == [name]
+    assert state.supply[name] == count - int(reaction != "trader")
+    assert player.count(name) == int(reaction is None)
+    if reaction == "trash":
+        assert observed[0] in state.trash and observed[0] is not doomed
+    elif reaction == "trader":
+        assert any(c.name == "Silver" for c in player.discard)
+    else:
+        assert observed[0] in (player.deck if name == "Nomad Camp" else player.hand)
+
+
+@pytest.mark.parametrize("name", ["Trail", "Berserker", "Buried Treasure"])
+@pytest.mark.parametrize("move_first", [False, True])
+def test_on_gain_self_plays_recognize_blockade_storage_and_stop_after_prior_movement(name, move_first):
+    state, player = make_state(kingdom=("Blockade", name, "Watchtower"))
+    player.deck = [get_card("Copper")]
+    state.players[1].hand = [get_card("Copper") for _ in range(5)]
+    player.cost_reduction = 1
+    player.ai.choose_card_to_gain_with_blockade = lambda *_a, **_k: get_card(name)
+    player.ai.choose_action = lambda _s, choices: next((c for c in choices if c is not None and c.name == "Trail"), None)
+    # Berserker's nested gain has a harmless, fixed target.
+    player.ai.choose_buy = lambda _s, choices: next((c for c in choices if c is not None and c.name == "Silver"), None)
+    if move_first:
+        player.hand = [get_card("Watchtower")]
+        player.ai.strategy.choose_watchtower_reaction = lambda _s, _p, card: "topdeck" if card.name == name else None
+        player.ai.strategy.choose_gain_effect = lambda _s, _p, card, choices: next(
+            (c for c in choices if c.kind == "watchtower"), choices[0]
+        )
+    blockade = get_card("Blockade")
+    player.in_play = [blockade]
+    blockade.play_effect(state)
+    assert blockade.set_aside is None and blockade not in player.duration
+    assert not player.pending_gain_set_aside and player.count(name) == 1
+    if not move_first:
+        assert any(c.name == name for c in player.in_play)
+        if name == "Trail":
+            assert player.actions == 1 and [c.name for c in player.hand] == ["Copper"]
+        elif name == "Berserker":
+            assert player.gained_cards_this_turn == ["Berserker", "Silver"]
+            assert len(state.players[1].hand) == 3
+        else:
+            assert any(c.name == name for c in player.duration)
+    else:
+        assert player.deck[-1].name == name
+        assert not any(c.name == name for c in player.in_play)
+    state.current_player_index = 1
+    state.gain_from_supply(state.players[1], name)
+    assert state.players[1].count("Curse") == 0
+
+
+def test_declined_trail_gain_reaction_preserves_blockade_storage_and_next_turn_return():
+    state, player = make_state(kingdom=("Blockade", "Trail"))
+    player.ai.choose_card_to_gain_with_blockade = lambda *_a, **_k: get_card("Trail")
+    player.ai.choose_action = lambda *_: None
+    blockade = get_card("Blockade")
+    player.in_play = [blockade]
+    blockade.play_effect(state)
+    stored = blockade.set_aside
+    assert stored.name == "Trail" and player.count("Trail") == 1
+    assert not player.pending_gain_set_aside and player.duration == [blockade]
+    assert not any(c.name == "Trail" for c in player.in_play)
+    state.current_player_index = 1
+    state.gain_from_supply(state.players[1], "Trail")
+    assert state.players[1].count("Curse") == 1
+    state.current_player_index = 0
+    blockade.on_duration(state)
+    assert player.hand == [stored] and blockade.set_aside is None
+    assert player.count("Trail") == 1 and player.actions == 0

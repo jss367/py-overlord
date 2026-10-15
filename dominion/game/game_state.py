@@ -185,6 +185,15 @@ class GameState:
     def gain_destination(self, card):
         return getattr(self, "_gain_destinations", {}).get(card)
 
+    def gain_is_movable(self, player, card):
+        """Whether the original gain still occupies its initial owned zone."""
+        zone = self.gain_destination(card)
+        return (zone is not None and card in zone
+                and (zone is not player.deck or zone[-1] is card)
+                and any(zone is z for z in (
+                    player.hand, player.deck, player.discard, player.pending_gain_set_aside
+                )))
+
     def _cover_gained_deck_top(self, player, incoming):
         """A gained deck card stops moving once another card covers it."""
         if player.deck and player.deck[-1] is not incoming:
@@ -4434,10 +4443,7 @@ class GameState:
         destinations = getattr(self, "_gain_destinations", {})
         if card in destinations:
             origin = destinations[card]
-            if (origin is None or card not in origin or origin is player.deck and origin[-1] is not card
-                    or not any(origin is zone for zone in (
-                        player.hand, player.deck, player.discard, player.pending_gain_set_aside
-                    ))):
+            if not self.gain_is_movable(player, card):
                 destinations[card] = None
                 return False
             origin.remove(card)

@@ -199,7 +199,32 @@ def reviewed_decisions():
         wiring="Automatic watcher tested; gain-choice strategy forwarding unreviewed",
         tactical="Unreviewed: no isolated preference comparison",
         evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",),
-        followups=(432, 433, 434), adapter="dominion/cards/seaside/blockade.py")
+        followups=(432, 433, 434, 436), adapter="dominion/cards/seaside/blockade.py")
+    add(("Nomad Camp", "Ghost Town", "Guardian", "Night Watchman", "Den of Sin"),
+        "Printed initial gain destination / explicit source precedence", (),
+        ("tests/test_named_card_decisions.py", "tests/test_gain_source_destinations.py"),
+        rules="Scoped initial placement / reactions / source override audit; play abilities and other interactions unreviewed",
+        wiring="Automatic initial placement tested; play-choice forwarding unreviewed",
+        tactical="Unreviewed: no isolated preference comparison",
+        evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",),
+        followups=(434, 435), adapter="dominion/game/game_state.py")
+    add(("Forge",), "Selected gain enters shared placement/reaction event", (),
+        ("tests/test_named_card_decisions.py",),
+        rules="Scoped gain-path placement / reactions / counters / conservation audit; trash and cost menus unreviewed",
+        wiring="Shared gain event tested; strategy choice forwarding unreviewed",
+        tactical="Unreviewed: no isolated preference comparison",
+        evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",),
+        followups=(435,), adapter="dominion/cards/prosperity/forge.py")
+    for name, adapter in (("Trail", "dominion/cards/hinterlands/trail.py"),
+                          ("Berserker", "dominion/cards/hinterlands/berserker.py"),
+                          ("Buried Treasure", "dominion/cards/plunder/kingdom_cards.py")):
+        add((name,), "On-gain self-play from initial owned storage", (),
+            ("tests/test_named_card_decisions.py", "tests/test_gain_effect_ordering.py"),
+            rules="Scoped initial-storage self-play / prior-movement stop / conservation audit; other instructions and choices unreviewed",
+            wiring="Shared indirect-play path tested; strategy choices unreviewed",
+            tactical="Unreviewed: no isolated preference comparison",
+            evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",),
+            followups=(436,), adapter=adapter)
     return audits
 
 
