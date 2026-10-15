@@ -800,8 +800,14 @@ Trader and Watchtower movement cannot leave a phantom watcher. A failed later
 play preserves the earlier stored card and immunity snapshot. Virtual Supply
 plays can watch their real stored cards, and only opponents gaining a copy on
 their own turn receive a Curse; returning the stored card ends the watcher
-(#432). Synthetic physical regressions cover these conditions. Two successful
-plays still overwrite its single storage slot, separately reproduced in #433.
+(#432). The follow-up replay correction (#433) keeps one stored card and
+immunity snapshot per successful play. Each matching play has one gain-event
+instruction and one next-turn return; duplicate Duration references do not
+multiply all watches again. The ownership collector sees every stored card,
+including when Blockade is virtual or trashed. Player references in snapshots
+remain valid in deep-copied game states. Failed/moved gains add no new record.
+Physical regressions cover same/different names, separate immunity, partial
+returns, scarce Curses, multiplier retention/cleanup and the legacy dispatcher.
 The inventory records this bounded rules audit; gain-choice forwarding and
 preference strength remain unreviewed, and the frozen studies are not regraded.
 

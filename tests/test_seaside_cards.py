@@ -743,11 +743,11 @@ def test_blockade_gains_card_to_hand_next_turn():
     player.hand = [blockade]
     play_action(state, player, blockade)
 
-    assert blockade.set_aside is not None
+    assert blockade.set_aside
     assert blockade in player.duration
 
     blockade.on_duration(state)
-    assert blockade.set_aside is None
+    assert not blockade.set_aside
     # The set-aside card landed in the hand.
     assert any(c.name == "Silver" for c in player.hand)
 
@@ -779,7 +779,7 @@ def test_blockade_does_not_set_aside_card_sailor_already_played():
     # as a Duration. Blockade must NOT also stash it for next turn.
     in_play_caravans = [c for c in player.in_play if c.name == "Caravan"]
     assert len(in_play_caravans) == 1
-    assert blockade.set_aside is None, \
+    assert not blockade.set_aside, \
         "Blockade must not set aside a card Sailor already moved into in_play"
 
     # Resolve next-turn duration; the Caravan must NOT be re-added to hand.

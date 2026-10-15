@@ -4933,7 +4933,12 @@ class GameState:
                 if hasattr(project, "on_opponent_gain"):
                     project.on_opponent_gain(self, player, gained_card)
             # Duration cards (Monkey, Blockade) can react to opponent gains.
+            blockades_seen = set()
             for card in list(player.duration):
+                if card.name == "Blockade":
+                    if card in blockades_seen:
+                        continue
+                    blockades_seen.add(card)
                 if hasattr(card, "on_opponent_gain"):
                     card.on_opponent_gain(self, player, gainer, gained_card)
             # Menagerie: Black Cat and Falconer (in-hand reactions to opponent gains)
