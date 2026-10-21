@@ -13,24 +13,9 @@ class Inn(Card):
         )
 
     def play_effect(self, game_state):
-        """Discard the player's hand and draw the same number of cards."""
+        from ._discard import discard_from_hand
 
-        player = game_state.current_player
-
-        if not player.hand:
-            return
-
-        discard_count = len(player.hand)
-
-        # Sort so cards with discard reactions (e.g. Trail) are discarded first,
-        # giving them a chance to react before the rest of the hand is gone.
-        cards_to_discard = list(player.hand)
-        cards_to_discard.sort(
-            key=lambda c: 0 if hasattr(c, "react_to_discard") else 1
-        )
-        player.hand = []
-        game_state.discard_cards(player, cards_to_discard)
-        game_state.draw_cards(player, discard_count)
+        discard_from_hand(game_state, game_state.current_player, 2, "inn")
 
     def on_gain(self, game_state, player):
         """Shuffle any Actions from the discard pile back into the deck."""

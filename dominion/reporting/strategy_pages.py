@@ -51,6 +51,15 @@ class CuratedStrategyGuide:
 
 CURATED_STRATEGY_GUIDES = (
     CuratedStrategyGuide(
+        filename="stables-highway-strategy-guide.html",
+        display_name="Stables, Highway and Margrave: Strategy Guide",
+        description="A user-supplied Hinterlands kingdom, a two-Margrave treasure recommendation, comparison with engine and reaction alternatives, and fresh validation with uncertainty.",
+        kingdom_cards=("Develop", "Guard Dog", "Weaver", "Cartographer", "Haggler", "Highway",
+                       "Inn", "Margrave", "Stables", "Witch's Hut"),
+        source_label="Reproducible policy search, finalist round robin and fresh seat-balanced validation",
+        strategy_slugs=("stables-highway-best-found",),
+    ),
+    CuratedStrategyGuide(
         filename="capitalism-and-inheritance-rules-and-policy-compatibility.html",
         display_name="Capitalism and Inheritance: Current Rules and Policy Compatibility",
         description="Explicit printed coin classification, distinct Estate and set-aside plays, Duration ownership regressions and 1,440 matched compatibility games on separate engine fingerprints.",

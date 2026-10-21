@@ -4583,21 +4583,22 @@ class GameState:
         for _ in range(haggler_count):
             options: list[Card] = []
             for _name, card, _count in self._iter_gainable_supply_cards():
-                if card.cost.coins < bought_card.cost.coins and not card.is_victory:
+                if (
+                    self.get_card_cost(player, card) < self.get_card_cost(player, bought_card)
+                    and card.cost.potions <= bought_card.cost.potions
+                    and card.cost.debt <= bought_card.cost.debt
+                    and not card.is_victory
+                ):
                     options.append(card)
 
             if not options:
                 break
 
-            choice = player.ai.choose_buy(self, options + [None])
-            if not choice:
-                break
+            from ..cards.gain_decisions import choose_free_gain
 
-            if self.supply.get(choice.name, 0) <= 0:
-                continue
-
-            self.supply[choice.name] -= 1
-            self.gain_card(player, choice)
+            choice = choose_free_gain(self, player, options, "Haggler")
+            if choice is not None:
+                self.gain_from_supply(player, choice.name)
 
     def _track_action_gain(self, player: PlayerState, card: Card, *, number=None, sources=None, claimed=False) -> None:
         if not self.is_action(card):
