@@ -29,19 +29,26 @@ class Develop(Card):
         from ..registry import get_card
 
         for delta in (-1, 1):
-            target_cost = to_trash.cost.coins + delta
+            target_cost = game_state.get_card_cost(player, to_trash) + delta
             if target_cost < 0:
                 continue
 
             options = [
                 get_card(name)
                 for name, count in game_state.supply.items()
-                if count > 0 and get_card(name).cost.coins == target_cost
+                if count > 0 and game_state.get_card_cost(player, get_card(name)) == target_cost
+                and get_card(name).cost.potions == to_trash.cost.potions
+                and get_card(name).cost.debt == to_trash.cost.debt
             ]
             if not options:
                 continue
 
-            choice = player.ai.choose_buy(game_state, options + [None])
+            from dominion.ai.gain_context import FreeGainContext
+
+            choice = player.ai.choose_free_gain(
+                game_state, player, options,
+                FreeGainContext.build(game_state, player, "Develop", "deck", sacrificed=to_trash),
+            )
             if not choice:
                 choice = max(options, key=lambda card: (card.cost.coins, card.name))
 

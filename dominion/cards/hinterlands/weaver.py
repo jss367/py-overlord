@@ -18,12 +18,18 @@ class Weaver(Card):
         affordable = [
             get_card(name)
             for name, count in game_state.supply.items()
-            if count > 0 and get_card(name).cost.coins <= 4
+            if count > 0 and game_state.get_card_cost(player, get_card(name)) <= 4
+            and not get_card(name).cost.potions and not get_card(name).cost.debt
         ]
 
         chosen = None
         if affordable:
-            chosen = player.ai.choose_buy(game_state, affordable + [None])
+            from dominion.ai.gain_context import FreeGainContext
+
+            chosen = player.ai.choose_free_gain(
+                game_state, player, affordable,
+                FreeGainContext.build(game_state, player, "Weaver", mandatory=False),
+            )
         if chosen:
             if game_state.supply.get(chosen.name, 0) > 0:
                 game_state.supply[chosen.name] -= 1

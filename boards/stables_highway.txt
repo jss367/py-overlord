@@ -1,0 +1,11 @@
+# User-supplied Hinterlands kingdom; two players, standard starting decks.
+Develop
+Guard Dog
+Weaver
+Cartographer
+Haggler
+Highway
+Inn
+Margrave
+Stables
+Witch's Hut

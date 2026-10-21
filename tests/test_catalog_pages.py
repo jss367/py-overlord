@@ -181,6 +181,7 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "boards/sample-board.html",
         "strategies/big-money.html",
         "strategies/strategy-retirement-review.html",
+        "strategies/stables-highway-strategy-guide.html",
         "strategies/free-gains-and-quartermaster-policy-evaluation.html",
         "strategies/barge-sleigh-and-torturer-policy-evaluation.html",
         "strategies/card-reactions-investment-and-exile-evaluation.html",

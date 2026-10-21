@@ -1,0 +1,116 @@
+{
+  "winner": {
+    "margrave": 2,
+    "terminal_limit": 2,
+    "silver": 99,
+    "duchy": 4,
+    "opening": "auto"
+  },
+  "selection": "Highest mean win-equivalent score in a 23-entrant, 120-games-per-pair round robin. Fixed before fresh validation.",
+  "labels": [
+    "One Margrave with unlimited Silver",
+    "Two Margraves; Duchies at three Provinces",
+    "Two Margraves; Duchies at five Provinces",
+    "Margrave and Weaver",
+    "Best finalist using Stables",
+    "Best finalist using Highway",
+    "Witch\u2019s Hut, Inn and Weaver",
+    "Margrave and Haggler",
+    "Four Stables with treasure buying",
+    "Treasure-only baseline"
+  ],
+  "opponents": [
+    {
+      "margrave": 1,
+      "terminal_limit": 1,
+      "silver": 99,
+      "duchy": 4,
+      "opening": "auto"
+    },
+    {
+      "margrave": 2,
+      "terminal_limit": 2,
+      "silver": 99,
+      "duchy": 3,
+      "opening": "auto"
+    },
+    {
+      "margrave": 2,
+      "terminal_limit": 2,
+      "silver": 99,
+      "duchy": 5,
+      "opening": "auto"
+    },
+    {
+      "weaver": 1,
+      "margrave": 1,
+      "terminal_limit": 2,
+      "silver": 5,
+      "gain_silver": 6,
+      "opening": "Weaver"
+    },
+    {
+      "stables": 5,
+      "highway": 0,
+      "margrave": 3,
+      "inn": 0,
+      "hut": 0,
+      "weaver": 0,
+      "dog": 0,
+      "haggler": 0,
+      "cartographer": 0,
+      "develop": 0,
+      "silver": 99,
+      "gold": 4,
+      "green": 10,
+      "duchy": 2,
+      "opening": "Develop",
+      "order": "attack",
+      "gain_silver": 2
+    },
+    {
+      "stables": 6,
+      "highway": 8,
+      "margrave": 1,
+      "inn": 3,
+      "hut": 2,
+      "weaver": 1,
+      "dog": 0,
+      "haggler": 0,
+      "cartographer": 2,
+      "develop": 0,
+      "silver": 99,
+      "gold": 2,
+      "green": 8,
+      "duchy": 4,
+      "opening": "Silver",
+      "order": "draw",
+      "gain_silver": 4,
+      "terminal_limit": 3
+    },
+    {
+      "hut": 1,
+      "weaver": 1,
+      "inn": 1,
+      "stables": 2,
+      "silver": 4,
+      "gold": 99,
+      "green": 0,
+      "opening": "Weaver",
+      "order": "attack"
+    },
+    {
+      "haggler": 1,
+      "stables": 0,
+      "margrave": 1,
+      "terminal_limit": 2,
+      "silver": 4,
+      "opening": "auto"
+    },
+    {
+      "stables": 4,
+      "silver": 5
+    },
+    {}
+  ]
+}

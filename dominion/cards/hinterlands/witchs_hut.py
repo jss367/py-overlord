@@ -12,33 +12,18 @@ class WitchsHut(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if not player.hand:
-            return
+        from ._discard import discard_from_hand
 
-        discards = sorted(player.hand, key=self._discard_priority)[:2]
+        discards = discard_from_hand(game_state, player, 2, "witchs_hut")
         actions_discarded = len(discards) == 2 and all(game_state.is_action(card) for card in discards)
 
-        for card in discards:
-            if card in player.hand:
-                player.hand.remove(card)
-                game_state.discard_card(player, card)
+        for other in game_state.players:
+            if other is player:
+                continue
 
-        if actions_discarded:
-            for other in game_state.players:
-                if other is player:
-                    continue
+            def attack(target):
+                if actions_discarded:
+                    game_state.give_curse_to_player(target)
 
-                def give_curse(target, _game_state=game_state):
-                    _game_state.give_curse_to_player(target)
-
-                game_state.attack_player(other, give_curse)
-
-    @staticmethod
-    def _discard_priority(card):
-        if card.name == "Curse":
-            return (0, card.name)
-        if not card.is_action and card.is_victory:
-            return (1, card.cost.coins, card.name)
-        if card.name == "Copper":
-            return (2, card.name)
-        return (3, card.cost.coins, card.name)
+            # Guard Dog can react to the Attack even when no Curse is given.
+            game_state.attack_player(other, attack)
