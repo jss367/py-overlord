@@ -37,7 +37,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Optional
 
-from dominion.analysis.calibration import wilson_interval
+from dominion.analysis.calibration import MatchOutcome
 from dominion.analysis.engine_archetypes import build_engine_seeds
 from dominion.boards.loader import BoardConfig, load_board
 from dominion.simulation.adversarial_league import (
@@ -81,14 +81,21 @@ def head_to_head(
         results = battle.run_battle(name_a, name_b, games)
     finally:
         battle.close()
-    wins = results["strategy1_wins"]
-    low, high = wilson_interval(wins, games)
+    outcome = MatchOutcome(
+        board="Reference matchup", strategy_a=name_a, strategy_b=name_b,
+        wins_a=results["strategy1_wins"], games=games,
+        ties=results.get("ties", 0), truncated=results.get("truncated", 0),
+    )
     return {
         "opponent": name_b,
         "games": games,
-        "wins": wins,
-        "win_rate": wins / games * 100.0,
-        "ci": [low * 100.0, high * 100.0],
+        "wins": outcome.wins_a,
+        "losses": results["strategy2_wins"],
+        "ties": outcome.ties,
+        "truncated": outcome.truncated,
+        "win_rate": results["strategy1_win_rate"],
+        "ci": list(outcome.ci_a),
+        "interval_method": outcome.to_dict()["interval_method"],
     }
 
 
@@ -303,14 +310,20 @@ def render_report(payload: dict) -> str:
             "",
             "## Gate: final champion vs reference strategies",
             "",
-            "| Opponent | Games | Champion win rate | 95% CI |",
-            "|---|---|---|---|",
+            "| Opponent | Games | Wins | Losses | Ties | Capped | Champion win share | 95% CI | Method |",
+            "|---|---|---|---|---|---|---|---|---|",
         ]
         for row in payload["gate"]:
             lines.append(
-                f"| {row['opponent']} | {row['games']} | {row['win_rate']:.1f}% | "
-                f"[{row['ci'][0]:.1f}%, {row['ci'][1]:.1f}%] |"
+                f"| {row['opponent']} | {row['games']} | {row['wins']} | "
+                f"{row.get('losses', 'not recorded')} | {row.get('ties', 'not recorded')} | "
+                f"{row.get('truncated', 'not recorded')} | {row['win_rate']:.1f}% | "
+                f"[{row['ci'][0]:.1f}%, {row['ci'][1]:.1f}%] | "
+                f"{row.get('interval_method', 'not recorded')} |"
             )
+        lines += ["", "Win shares give ties half credit and capped games none; all scheduled "
+                  "games remain in the denominator. Intervals use Wilson for decisive-only "
+                  "data and Hoeffding bounds when ties or caps occur."]
 
     lines += ["", "## Rounds", ""]
     for report in payload["round_reports"]:
