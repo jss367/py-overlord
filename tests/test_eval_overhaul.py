@@ -19,6 +19,8 @@ import types
 
 import pytest
 
+from tests.utils import played_game
+
 from dominion.simulation.genetic_trainer import (
     _SEED_PHASE_CONFIRM,
     _SEED_PHASE_SCREEN,
@@ -78,10 +80,10 @@ class TestSelectWinner:
         b = self._player(vp=20, turns=17)
         assert StrategyBattle._select_winner([a, b]) is b
 
-    def test_full_tie_falls_back_to_seat_order(self):
+    def test_full_tie_has_no_single_winner(self):
         a = self._player(vp=20, turns=18)
         b = self._player(vp=20, turns=18)
-        assert StrategyBattle._select_winner([a, b]) is a
+        assert StrategyBattle._select_winner([a, b]) is None
 
 
 # ---------------------------------------------------------------------------
@@ -393,7 +395,7 @@ class TestHallOfFame:
             for ai in (first_ai, second_ai):
                 if ai.strategy.name in games_against:
                     games_against[ai.strategy.name] += 1
-            return first_ai, {}, None, 0
+            return played_game(first_ai, second_ai, first_ai, {}, None, 0)
 
         monkeypatch.setattr(trainer.battle_system, "run_game", fake_run_game)
         trainer.evaluate_strategy(_make_strategy("Candidate", "Province"))
@@ -456,7 +458,7 @@ class TestConfirmationBudget:
             opponent = second if candidate_first else first
             counts = seen.setdefault(opponent.strategy.name, [0, 0])
             counts[0 if candidate_first else 1] += 1
-            return first, {}, None, 0
+            return played_game(first, second, first, {}, None, 0)
 
         monkeypatch.setattr(trainer.battle_system, 'run_game', game)
         trainer._consider_challenger(_make_strategy('Candidate', 'Silver'), 80, 0)

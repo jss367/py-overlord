@@ -153,13 +153,20 @@ class MatchOutcome:
     # hand-written strategies). Several outcomes for one board with distinct
     # seeds are what :func:`summarize_by_board` aggregates.
     seed: Optional[int] = None
+    ties: int = 0
+    truncated: int = 0
 
     @property
     def winrate_a(self) -> float:
-        return self.wins_a / self.games * 100 if self.games else 0.0
+        return (self.wins_a + self.ties / 2) / self.games * 100 if self.games else 0.0
 
     @property
     def ci_a(self) -> tuple[float, float]:
+        if self.ties or self.truncated:
+            # Win shares are bounded observations, rather than Bernoulli wins.
+            radius = math.sqrt(math.log(40) / (2 * self.games)) if self.games else 1.0
+            p = self.winrate_a / 100
+            return (max(0, p - radius) * 100, min(1, p + radius) * 100)
         lo, hi = wilson_interval(self.wins_a, self.games)
         return (lo * 100, hi * 100)
 
@@ -170,6 +177,9 @@ class MatchOutcome:
             "strategy_a": self.strategy_a,
             "strategy_b": self.strategy_b,
             "wins_a": self.wins_a,
+            "ties": self.ties,
+            "truncated": self.truncated,
+            "interval_method": "Hoeffding" if self.ties or self.truncated else "Wilson",
             "games": self.games,
             "winrate_a": round(self.winrate_a, 2),
             "ci_a": [round(lo, 2), round(hi, 2)],
@@ -185,6 +195,8 @@ class MatchOutcome:
             wins_a=int(data["wins_a"]),
             games=int(data["games"]),
             seed=data.get("seed"),
+            ties=int(data.get("ties", 0)),
+            truncated=int(data.get("truncated", 0)),
         )
 
 
@@ -192,7 +204,7 @@ class MatchOutcome:
 class BoardSummary:
     """All seeds' outcomes for one board, with across-seed statistics.
 
-    With one outcome the interval is that run's Wilson interval (deck luck
+    With one outcome the interval is that run's bounded-score interval (deck luck
     within the run); with several it is a Student-t interval over the seeds'
     win rates (trajectory luck across runs), which is the spread a pipeline
     change has to clear.
@@ -306,6 +318,8 @@ def run_match(
         strategy_b=strategy_b,
         wins_a=results["strategy1_wins"],
         games=games,
+        ties=results["ties"],
+        truncated=results["truncated"],
     )
 
 
@@ -405,16 +419,20 @@ def render_sanity_report(outcomes: Sequence[MatchOutcome]) -> str:
                 o.strategy_a,
                 o.strategy_b,
                 str(o.games),
+                str(o.ties),
+                str(o.truncated),
                 f"{o.winrate_a:.1f}%",
                 f"[{lo:.1f}%, {hi:.1f}%]",
                 _sanity_verdict(o),
             ]
         )
     table = _markdown_table(
-        ["Board", "Known best", "Baseline", "Games", "Win rate", "95% CI", "Verdict"],
+        ["Board", "Known best", "Baseline", "Games", "Ties", "Capped", "Win share", "95% CI", "Verdict"],
         rows,
     )
-    return "# Calibration sanity: known-best vs baseline\n\n" + table + "\n"
+    return ("# Calibration sanity: known-best vs baseline\n\n" + table + "\n\n"
+            "Ties earn half a win; capped games earn none and remain in the denominator. "
+            "Intervals use Wilson for decisive-only data and Hoeffding bounds when ties or caps occur.\n")
 
 
 def render_evolve_report(outcomes: Sequence[MatchOutcome]) -> str:
@@ -435,6 +453,8 @@ def render_evolve_report(outcomes: Sequence[MatchOutcome]) -> str:
                 s.known_best,
                 str(s.seeds),
                 str(s.games_per_seed),
+                str(sum(o.ties for o in s.outcomes)),
+                str(sum(o.truncated for o in s.outcomes)),
                 f"{s.mean_winrate:.1f}%",
                 "n/a" if s.seeds == 1 else f"{s.stdev:.1f}",
                 f"[{lo:.1f}%, {hi:.1f}%]",
@@ -448,7 +468,9 @@ def render_evolve_report(outcomes: Sequence[MatchOutcome]) -> str:
             "Known best",
             "Seeds",
             "Games/seed",
-            "Champion win rate",
+            "Ties (all seeds)",
+            "Capped (all seeds)",
+            "Champion win share",
             "Across-seed sd",
             "95% CI",
             "Gap (pp)",
@@ -460,7 +482,7 @@ def render_evolve_report(outcomes: Sequence[MatchOutcome]) -> str:
     behind = sum(1 for s in summaries if s.verdict == "BEHIND")
     interval_note = (
         "CI is a Student-t interval over seeds where there are several, "
-        "otherwise the single run's Wilson interval."
+        "otherwise a single-run Wilson interval for decisive-only data or a Hoeffding bound for win shares with ties/caps."
         if multi
         else "Single seed per board: the CI reflects deck luck within the run, "
         "not trajectory luck across runs — re-run with --seeds to measure that."

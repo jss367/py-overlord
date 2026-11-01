@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import Sequence
 
 from dominion.ai.genetic_ai import GeneticAI
+from dominion.game.outcome import OutcomeCounts
 from dominion.boards.loader import BoardConfig, load_board
 from dominion.simulation.strategy_battle import StrategyBattle
 
@@ -49,6 +50,8 @@ class MatchupStats:
     wins: int
     win_rate: float
     avg_score: float
+    ties: int = 0
+    truncated: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -143,7 +146,7 @@ def run_seeded_matchup(
     if battle.strategy_loader.get_strategy(opponent_name) is None:
         raise ValueError(f"Could not find opponent strategy: {opponent_name}")
 
-    wins = 0
+    counts = OutcomeCounts()
     total_score = 0
     kingdom_cards = list(board.kingdom_cards)
 
@@ -159,17 +162,19 @@ def run_seeded_matchup(
         opponent_ai = GeneticAI(opponent)
 
         if game_num % 2 == 0:
-            winner, scores, *_ = battle.run_game(strategy_ai, opponent_ai, kingdom_cards)
+            game = battle.run_game(strategy_ai, opponent_ai, kingdom_cards)
         else:
-            winner, scores, *_ = battle.run_game(opponent_ai, strategy_ai, kingdom_cards)
+            game = battle.run_game(opponent_ai, strategy_ai, kingdom_cards)
 
-        wins += int(winner == strategy_ai)
-        total_score += scores[strategy_ai.name]
+        counts.record(game.result_for(strategy_ai))
+        total_score += game.scores[strategy_ai.name]
 
     return MatchupStats(
         games=games,
-        wins=wins,
-        win_rate=wins / games * 100,
+        wins=counts.wins,
+        ties=counts.ties,
+        truncated=counts.truncated,
+        win_rate=counts.score_rate,
         avg_score=total_score / games,
     )
 

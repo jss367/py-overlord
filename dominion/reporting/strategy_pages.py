@@ -1365,7 +1365,11 @@ def render_strategy_leaderboard(
     for rank, (name, stats) in enumerate(ranked, 1):
         wins = int(stats.get("wins", 0))
         losses = int(stats.get("losses", 0))
-        games = int(stats.get("games", wins + losses))
+        ties = int(stats.get("ties", 0))
+        truncated = int(stats.get("truncated", 0))
+        games = int(stats.get("games", wins + losses + ties + truncated))
+        extra_record = (f"<br>{ties} ties; {truncated} capped"
+                        if "ties" in stats or "truncated" in stats else "")
         win_rate = float(stats.get("win_rate", 0))
         cards = list(stats.get("cards", []) or [])
         landscapes = list(stats.get("landscapes", []) or [])
@@ -1388,7 +1392,7 @@ def render_strategy_leaderboard(
             f'<td data-label="Rank"><span class="rank-badge">{rank}</span></td>'
             f"<td>{_strategy_leaderboard_label(name, loader=loader, prefix=strategy_link_prefix)}</td>"
             f'<td data-label="Description" class="leaderboard-description">{description_markup}</td>'
-            f'<td data-label="Record"><strong>{wins}-{losses}</strong></td>'
+            f'<td data-label="Record"><strong>{wins}-{losses}</strong>{extra_record}</td>'
             f'<td data-label="Win rate"><div class="rate-value">{win_rate:.1f}%</div>'
             f'<div class="rate-track" aria-hidden="true"><span style="width: {max(0, min(100, win_rate)):.1f}%"></span></div></td>'
             f'<td data-label="Games">{games}</td>'
@@ -1417,6 +1421,11 @@ def render_strategy_leaderboard(
 </div>
 """
 
+    outcome_note = (
+        '<p>Win rates count ties as half a win. Capped games are reported separately '
+        'and earn no win share; all scheduled games remain in the denominator.</p>'
+        if any("ties" in stats or "truncated" in stats for stats in results.values()) else ""
+    )
     board_nav = (
         f'<a href="{escape(board_index_href)}">Board index</a>'
         if board_index_href
@@ -1431,6 +1440,7 @@ def render_strategy_leaderboard(
   <p class="hero-description">Ranked by simulated win rate. Results reflect <strong>{escape(context_label)}</strong>; compare strategies on the same board before drawing broad conclusions.</p>
 </header>
 {podium}
+{outcome_note}
 {f'<p class="empty-state" role="status">{escape(results_notice)}</p>' if results_notice else ''}
 <section class="section">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">#</span><h2>Full standings</h2></div>

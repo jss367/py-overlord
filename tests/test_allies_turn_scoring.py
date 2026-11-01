@@ -22,8 +22,8 @@ def test_lich_skipped_turns_count_as_taken_for_the_tiebreak(skips):
     assert p.turns_to_skip == 0
     assert p.turns_taken == 1 + skips
     assert p.get_victory_points() == q.get_victory_points()
-    assert StrategyBattle._select_winner([q, p]) is q
-    assert StrategyBattle._select_winner([p, q]) is (p if skips == 1 else q)
+    assert StrategyBattle._select_winner([q, p]) is (None if skips == 1 else q)
+    assert StrategyBattle._select_winner([p, q]) is (None if skips == 1 else q)
 
 
 @pytest.mark.parametrize("copied", [False, True])

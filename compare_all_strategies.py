@@ -103,7 +103,7 @@ def _run_full_battle(
 
         compatible_names.append(name)
         all_meta[name] = {
-            "wins": 0, "losses": 0, "games": 0,
+            "wins": 0, "losses": 0, "ties": 0, "truncated": 0, "games": 0,
             "cards": kingdom_cards,
             "landscapes": landscape_names(refs),
             "description": desc,
@@ -129,15 +129,19 @@ def _run_full_battle(
         aggregated[strat1]["wins"] += results["strategy1_wins"]
         aggregated[strat1]["losses"] += results["strategy2_wins"]
         aggregated[strat1]["games"] += num_games
+        aggregated[strat1]["ties"] += results.get("ties", 0)
+        aggregated[strat1]["truncated"] += results.get("truncated", 0)
 
         aggregated[strat2]["wins"] += results["strategy2_wins"]
         aggregated[strat2]["losses"] += results["strategy1_wins"]
         aggregated[strat2]["games"] += num_games
+        aggregated[strat2]["ties"] += results.get("ties", 0)
+        aggregated[strat2]["truncated"] += results.get("truncated", 0)
 
     # Calculate win rates
     for stats in aggregated.values():
         if stats["games"]:
-            stats["win_rate"] = stats["wins"] / stats["games"] * 100
+            stats["win_rate"] = (stats["wins"] + stats["ties"] / 2) / stats["games"] * 100
         else:
             stats["win_rate"] = 0.0
 

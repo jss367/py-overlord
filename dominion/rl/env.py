@@ -10,7 +10,8 @@ import numpy as np
 from gymnasium import spaces
 
 from dominion.cards.registry import get_card
-from dominion.game.game_state import GAME_TURN_LIMIT, GameState
+from dominion.game.game_state import GameState
+from dominion.game.outcome import GameOutcome, episode_status, winning_seats
 from dominion.rl.action_encoder import ActionEncoder
 from dominion.rl.random_ai import RandomAI
 from dominion.rl.rl_ai import GameCancelled, RLAI
@@ -187,23 +188,11 @@ class DominionEnv(gym.Env):
 
 
 def game_reward(state, player_index):
-    """Official two-player result, including fewer-turns tiebreak."""
-    scores = [(p.get_victory_points(), -p.turns_taken) for p in state.players]
-    ours, theirs = scores[player_index], scores[1 - player_index]
-    return float((ours > theirs) - (ours < theirs))
-
-
-def episode_status(state, max_turns):
-    """Separate rule endings from both harness and engine safety caps.
-
-    A genuine game ending takes precedence when the final cleanup also
-    advances past the turn limit. Fleet must finish its extra round before
-    a depleted pile is treated as a completed game.
-    """
-    ended = state.is_game_over()
-    natural_end = ended and (state._normal_game_end_reached() or state.fleet_extra_round_active)
-    if natural_end:
-        return True, False
-    capped = (not state.fleet_extra_round_active and state.phase == "start"
-              and state.turn_number > min(max_turns, GAME_TURN_LIMIT))
-    return ended and not capped, capped
+    """Shared seat-based terminal reward, including complete ties."""
+    outcome = GameOutcome(
+        tuple(p.get_victory_points() for p in state.players),
+        tuple(p.turns_taken for p in state.players),
+        winning_seats(state.players),
+        "natural",
+    )
+    return outcome.reward(player_index)

@@ -144,26 +144,28 @@ def generate_html_report(results: dict, output_path: Path, *, verbose: bool = Fa
 
     game_numbers = [g["game_number"] for g in results["detailed_results"]]
     margins = [g["margin"] for g in results["detailed_results"]]
-    winners = [g["winner"] for g in results["detailed_results"]]
+    winners = [g["winner"] or g.get("outcome", "Tie").title() for g in results["detailed_results"]]
 
     # Statistical significance of win difference
+    decisive = results["strategy1_wins"] + results["strategy2_wins"]
     win_p = binomtest(
         results["strategy1_wins"],
         results["strategy1_wins"] + results["strategy2_wins"],
         p=0.5,
         alternative="two-sided",
-    ).pvalue
-    confidence = 1 - win_p
+    ).pvalue if decisive else 1.0
 
     # Histogram of turns taken when each strategy wins
     fig1, ax1 = plt.subplots()
-    bins = range(min(turns1 + turns2), max(turns1 + turns2) + 2)
+    finished_turns = turns1 + turns2
+    bins = range(min(finished_turns), max(finished_turns) + 2) if finished_turns else range(0, 2)
     sns.histplot(turns1, bins=bins, alpha=0.6, label=strat1, ax=ax1)
     sns.histplot(turns2, bins=bins, alpha=0.6, label=strat2, ax=ax1)
     ax1.set_xlabel("Turns to finish")
     ax1.set_ylabel("Games")
     ax1.set_title("Game length when each strategy wins")
-    ax1.legend()
+    if finished_turns:
+        ax1.legend()
     turn_hist = fig_to_base64(fig1)
     plt.close(fig1)
 
@@ -187,7 +189,8 @@ def generate_html_report(results: dict, output_path: Path, *, verbose: bool = Fa
     ax3.set_ylabel("Games")
     ax3.set_title("Margin of Victory")
     ax3.yaxis.set_major_locator(MaxNLocator(integer=True))
-    ax3.legend()
+    if margin1 or margin2:
+        ax3.legend()
     margin_hist = fig_to_base64(fig3)
     plt.close(fig3)
 
@@ -236,7 +239,12 @@ def generate_html_report(results: dict, output_path: Path, *, verbose: bool = Fa
     <body>
     <h1>{strat1_label} vs {strat2_label} Comparison</h1>
     <p>Games played: {results['games_played']}</p>
-    <p>Confidence the win-rate difference is real: {confidence:.1%} (p={win_p:.4f})</p>
+    <p>Wins: {results['strategy1_wins']} / {results['strategy2_wins']};
+    ties: {results.get('ties', 0)}; capped games: {results.get('truncated', 0)}.</p>
+    <p>Win shares (wins plus half of ties, divided by all scheduled games):
+    {results.get('strategy1_win_rate', 0):.1f}% / {results.get('strategy2_win_rate', 0):.1f}%.
+    Capped games earn no win share for either strategy.</p>
+    <p>Decisive-game sign test: p={win_p:.4f}; excludes ties and capped games.</p>
     <h2>Win Counts</h2>
     <img src="data:image/png;base64,{win_bar}" />
     <h2>Game Length (Turns)</h2>
@@ -303,6 +311,8 @@ def generate_sweep_report(
             f'<td>{v["name"]}</td>'
             f'<td>{v["wins"]}</td>'
             f'<td>{v["losses"]}</td>'
+            f'<td>{v.get("ties", 0)}</td>'
+            f'<td>{v.get("truncated", 0)}</td>'
             f'<td>{v["win_rate"]:.1f}%</td>'
             f"<td>{avg_str}</td>"
             f"<td>{p_str}</td>"
@@ -324,7 +334,7 @@ def generate_sweep_report(
         # Game length histogram
         fig_t, ax_t = plt.subplots()
         win_turns = [g["turns"] for g in detailed if g["variant_won"]]
-        loss_turns = [g["turns"] for g in detailed if not g["variant_won"]]
+        loss_turns = [g["turns"] for g in detailed if g.get("outcome", "loss" if not g["variant_won"] else "win") == "loss"]
         all_turns = win_turns + loss_turns
         if all_turns:
             t_bins = range(min(all_turns), max(all_turns) + 2)
@@ -387,9 +397,11 @@ def generate_sweep_report(
     <h2>Win Rate Comparison</h2>
     <img src="data:image/png;base64,{leaderboard_png}" />
 
+    <p>Ties count as half a win; capped games earn no win share.
+    P-values use decisive games only. The baseline row is a synthetic 50% reference.</p>
     <h2>Summary</h2>
     <table>
-        <tr><th>Variant</th><th>Wins</th><th>Losses</th><th>Win Rate</th><th>Avg Score</th><th>p-value</th></tr>
+        <tr><th>Variant</th><th>Wins</th><th>Losses</th><th>Ties</th><th>Capped</th><th>Win Rate</th><th>Avg Score</th><th>p-value</th></tr>
         {table_rows}
     </table>
 

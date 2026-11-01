@@ -27,6 +27,8 @@ from typing import Any, Optional
 
 import cloudpickle
 
+from dominion.game.outcome import GameOutcome
+
 log = logging.getLogger(__name__)
 
 DEFAULT_GAMES_PER_TASK = 4
@@ -79,12 +81,21 @@ class GameTask:
 @dataclass
 class GameResult:
     game_num: int
-    won: bool
+    outcome: GameOutcome
+    my_seat: int
     my_score: int
     opp_score: int
     turns: int
     log_path: Optional[str] = None
     decision_firings: Optional[dict[str, Any]] = None
+
+    @property
+    def result(self):
+        return self.outcome.result_for(self.my_seat)
+
+    @property
+    def win_share(self):
+        return self.outcome.win_share(self.my_seat)
 
 
 @dataclass
@@ -158,7 +169,7 @@ def run_game_task(task: GameTask) -> TaskResult:
             }
             decision_stats = {ai_me: firings["strategy1"], ai_opp: firings["strategy2"]}
         seats = (ai_me, ai_opp) if game_num % 2 == 0 else (ai_opp, ai_me)
-        winner, scores, log_path, turns = battle.run_game(
+        game = battle.run_game(
             seats[0],
             seats[1],
             task.kingdom_card_names,
@@ -168,11 +179,12 @@ def run_game_task(task: GameTask) -> TaskResult:
         result.games.append(
             GameResult(
                 game_num=game_num,
-                won=winner == ai_me,
-                my_score=scores.get(ai_me.name, 0) if scores else 0,
-                opp_score=scores.get(ai_opp.name, 0) if scores else 0,
-                turns=turns,
-                log_path=log_path,
+                outcome=game.outcome,
+                my_seat=game.seat(ai_me),
+                my_score=game.outcome.scores[game.seat(ai_me)],
+                opp_score=game.outcome.scores[game.seat(ai_opp)],
+                turns=game.turns,
+                log_path=game.log_path,
                 decision_firings=firings,
             )
         )

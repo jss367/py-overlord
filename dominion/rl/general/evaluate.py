@@ -11,7 +11,7 @@ import torch
 
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
-from dominion.rl.env import episode_status, game_reward
+from dominion.game.outcome import GameOutcome, OutcomeCounts, episode_status
 from dominion.rl.general.encoding import source_fingerprint, validate_kingdom
 from dominion.rl.general.opponents import BASELINES, make_opponent
 from dominion.rl.general.policy import GeneralAI, load_checkpoint
@@ -29,7 +29,10 @@ def play_game(kingdom, agent, opponent, seed, seat, max_turns=100):
         if terminated or truncated:
             break
         state.play_turn()
-    return {"reward": None if truncated else game_reward(state, seat),
+    outcome = GameOutcome.from_state(state, max_turns)
+    return {"reward": None if truncated else outcome.reward(seat),
+            "outcome": outcome.result_for(seat),
+            "termination_reason": outcome.termination_reason,
             "truncated": truncated,
             "vp": state.players[seat].get_victory_points(),
             "opponent_vp": state.players[1 - seat].get_victory_points(),
@@ -37,14 +40,11 @@ def play_game(kingdom, agent, opponent, seed, seat, max_turns=100):
 
 
 def summarize(games):
-    finished = [g for g in games if not g["truncated"]]
-    wins = sum(g["reward"] == 1 for g in finished)
-    ties = sum(g["reward"] == 0 for g in finished)
-    return {"games": len(games), "wins": wins,
-            "losses": sum(g["reward"] == -1 for g in finished), "ties": ties,
-            "truncated": len(games) - len(finished),
-            # A cap is a failure to finish, scored zero rather than as a draw.
-            "score_rate": (wins + ties / 2) / len(games),
+    counts = OutcomeCounts()
+    for game in games:
+        counts.record("truncated" if game["truncated"] else
+                      {1: "win", -1: "loss", 0: "tie"}[game["reward"]])
+    return {**counts.to_dict(), "score_rate": counts.score_rate / 100,
             "mean_vp": float(np.mean([g["vp"] for g in games])),
             "mean_opponent_vp": float(np.mean([g["opponent_vp"] for g in games]))}
 

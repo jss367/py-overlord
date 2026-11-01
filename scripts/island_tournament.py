@@ -233,7 +233,9 @@ def _run_matchup(
         log_frequency=0,
     )
 
-    a_wins = 0
+    from dominion.game.outcome import OutcomeCounts
+
+    counts = OutcomeCounts()
     a_total_score = 0
     b_total_score = 0
     total_turns = 0
@@ -243,15 +245,15 @@ def _run_matchup(
         ai_b = GeneticAI(b_strategy)
         # Alternate first player to remove the seat advantage.
         if i % 2 == 0:
-            winner, scores, _, turns = battle.run_game(
+            game = battle.run_game(
                 ai_a, ai_b, board_config.kingdom_cards
             )
         else:
-            winner, scores, _, turns = battle.run_game(
+            game = battle.run_game(
                 ai_b, ai_a, board_config.kingdom_cards
             )
-        if winner == ai_a:
-            a_wins += 1
+        counts.record(game.result_for(ai_a))
+        scores, turns = game.scores, game.turns
         a_total_score += scores.get(ai_a.name, 0)
         b_total_score += scores.get(ai_b.name, 0)
         total_turns += turns
@@ -260,9 +262,12 @@ def _run_matchup(
         "a_name": a_name,
         "b_name": b_name,
         "games": games,
-        "a_wins": a_wins,
-        "b_wins": games - a_wins,
-        "a_win_rate": a_wins / games * 100,
+        "a_wins": counts.wins,
+        "b_wins": counts.losses,
+        "ties": counts.ties,
+        "truncated": counts.truncated,
+        "a_win_rate": counts.score_rate,
+        "b_win_rate": (counts.losses + counts.ties / 2) / games * 100,
         "avg_a_score": a_total_score / games,
         "avg_b_score": b_total_score / games,
         "avg_margin": (a_total_score - b_total_score) / games,
@@ -451,13 +456,13 @@ def main() -> None:
 
     # Build cell maps. Each result for (a, b) gives us:
     #   - a_win_rate for cell (a, b)
-    #   - (100 - a_win_rate) for cell (b, a)
+    #   - b_win_rate for cell (b, a), excluding caps from both players' credit
     win_cell: dict[tuple[str, str], str] = {}
     margin_cell: dict[tuple[str, str], str] = {}
     for r in raw_results:
         a, b = r["a_name"], r["b_name"]
         win_cell[(a, b)] = f"{r['a_win_rate']:.1f}%"
-        win_cell[(b, a)] = f"{100 - r['a_win_rate']:.1f}%"
+        win_cell[(b, a)] = f"{r.get('b_win_rate', (r['b_wins'] + r.get('ties', 0) / 2) / r['games'] * 100):.1f}%"
         margin_cell[(a, b)] = f"{r['avg_margin']:+.1f}"
         margin_cell[(b, a)] = f"{-r['avg_margin']:+.1f}"
 

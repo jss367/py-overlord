@@ -126,11 +126,12 @@ def test_train_with_workers_closes_pool(tmp_path):
     assert trainer._pool is None
 
 
-def test_parallel_battle_is_reproducible_from_seed_and_complete():
+def test_parallel_battle_matches_serial_from_seed_and_is_complete():
     battle = StrategyBattle(kingdom_cards=KINGDOM, log_frequency=0, workers=2, games_per_task=3)
     try:
         random.seed(2024)
         first = battle.run_battle("Big Money", "Big Money Smithy", 8)
+        battle.workers = 1
         random.seed(2024)
         second = battle.run_battle("Big Money", "Big Money Smithy", 8)
     finally:
@@ -139,8 +140,8 @@ def test_parallel_battle_is_reproducible_from_seed_and_complete():
     assert first["games_played"] == 8
     assert len(first["detailed_results"]) == 8
     assert [g["game_number"] for g in first["detailed_results"]] == list(range(1, 9))
-    assert first["strategy1_wins"] + first["strategy2_wins"] == 8
-    assert first["strategy1_win_rate"] == pytest.approx(first["strategy1_wins"] / 8 * 100)
+    assert first["strategy1_wins"] + first["strategy2_wins"] + first["ties"] + first["truncated"] == 8
+    assert first["strategy1_win_rate"] == pytest.approx((first["strategy1_wins"] + first["ties"] / 2) / 8 * 100)
     assert first["log_paths"] == [None] * 8
 
     for key in ("strategy1_wins", "strategy2_wins", "strategy1_total_score", "strategy2_total_score", "decision_firings"):
