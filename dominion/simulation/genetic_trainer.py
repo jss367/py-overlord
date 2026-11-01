@@ -1481,6 +1481,7 @@ class GeneticTrainer:
             self._best_confirmed = float("-inf")
             self._best_win_rate = 0.0
             self.best_eval_breakdown = []
+            self.best_eval_outcomes = []
             self.hall_of_fame = []
 
             # Start training progress tracking

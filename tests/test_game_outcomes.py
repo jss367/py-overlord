@@ -247,3 +247,45 @@ def test_synthetic_hypothesis_reference_does_not_invent_wins_or_losses(games):
     assert row["wins"] == row["losses"] == row["truncated"] == 0
     assert row["ties"] == games and row["win_rate"] == 50
     assert row["synthetic_reference"]
+
+
+@pytest.mark.parametrize("second_run", ["zero_generations", "failed_evaluations"])
+def test_reused_trainer_without_a_new_champion_clears_prior_outcomes(monkeypatch, tmp_path, second_run):
+    """Only mocked evaluations run; no games, worker pools, or search execute."""
+    trainer = GeneticTrainer(
+        ["Village"], population_size=1, generations=1, games_per_eval=3,
+        workers=1, racing=False, shape_rewards=False, structured_genome=False,
+        simplify_genomes=False, immigrant_fraction=0, log_folder=str(tmp_path),
+    )
+    prior = [{"opponent": "Right", "wins": 1, "losses": 0,
+              "ties": 1, "truncated": 1, "games": 3}]
+    succeeds = True
+
+    def evaluate(_strategy):
+        trainer.last_eval_breakdown = [("Right", 50.0)] if succeeds else []
+        trainer.last_eval_outcomes = deepcopy(prior) if succeeds else []
+        return 50.0 if succeeds else float("-inf")
+
+    def no_game(*_args, **_kwargs):
+        pytest.fail("this reset regression must not run games")
+
+    monkeypatch.setattr(trainer, "create_random_strategy", lambda: passing_strategy("Left"))
+    monkeypatch.setattr(trainer, "create_next_generation", lambda population, *_args, **_kwargs: population)
+    monkeypatch.setattr(trainer, "evaluate_strategy", evaluate)
+    monkeypatch.setattr(trainer.battle_system, "run_game", no_game)
+
+    first_best, first_metrics = trainer.train()
+    assert first_best is not None and first_metrics["outcomes"] == prior
+    assert trainer.best_eval_outcomes == prior
+
+    succeeds = False
+    if second_run == "zero_generations":
+        trainer.generations = 0
+    second_best, second_metrics = trainer.train()
+
+    assert second_best is None
+    assert second_metrics["fitness"] == second_metrics["win_rate"] == 0
+    assert second_metrics["promotion_score"] is None
+    assert second_metrics["outcomes"] == trainer.best_eval_outcomes == []
+    assert trainer.best_eval_breakdown == []
+    assert first_metrics["outcomes"] == prior
