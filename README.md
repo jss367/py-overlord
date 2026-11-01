@@ -78,6 +78,10 @@ Strategy discovery includes built-in and generated strategies from this checkout
 or installed package, regardless of the current working directory. Wheels include
 the generated strategies shipped with the project. A `generated_strategies/`
 directory in an unrelated working directory is not searched automatically.
+Generated strategy modules and their sibling imports use the shipped package,
+preserving factory and class identity across discovery and direct imports. If an
+unrelated `generated_strategies` package was already imported, discovery raises
+an import error rather than mixing packages.
 
 For reusable card decisions, strategy override hooks, and the optimization
 backlog, see [Shared card decisions](docs/card-tactical-defaults.md), the

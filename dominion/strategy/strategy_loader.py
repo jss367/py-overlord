@@ -1,7 +1,9 @@
+import importlib
 import importlib.util
 import inspect
 import logging
 from pathlib import Path
+import sys
 from typing import Callable, Dict, Optional
 
 from dominion.strategy.enhanced_strategy import EnhancedStrategy
@@ -34,6 +36,7 @@ class StrategyLoader:
         # installed wheel. Never discover code from the caller's working directory.
         generated_dir = Path(__file__).resolve().parents[2] / "generated_strategies"
         if generated_dir.exists():
+            self._bind_generated_package(generated_dir)
             directories.append((generated_dir, generated_dir.name))
 
         loaded_any = False
@@ -46,6 +49,31 @@ class StrategyLoader:
         if not loaded_any:
             logging.getLogger(__name__).warning("No strategy directories found; expected %s", self.strategies_dir)
 
+    @staticmethod
+    def _bind_generated_package(directory: Path) -> None:
+        """Bind sibling imports to the shipped package before loading factories."""
+        name = "generated_strategies"
+        initializer = directory / "__init__.py"
+        existing = sys.modules.get(name)
+        if existing is not None:
+            origin = getattr(existing, "__file__", None)
+            if origin is None or Path(origin).resolve() != initializer.resolve():
+                raise ImportError(f"{name} is already imported from {origin}; expected {initializer}")
+            return
+
+        spec = importlib.util.spec_from_file_location(
+            name, initializer, submodule_search_locations=[str(directory)]
+        )
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Cannot load {name} from {initializer}")
+        package = importlib.util.module_from_spec(spec)
+        sys.modules[name] = package
+        try:
+            spec.loader.exec_module(package)
+        except BaseException:
+            sys.modules.pop(name, None)
+            raise
+
     def _load_from_directory(self, directory: Path, module_prefix: str) -> None:
         """Load strategies from *directory* using *module_prefix* for import names."""
 
@@ -57,12 +85,17 @@ class StrategyLoader:
             try:
                 # Import the module
                 module_name = f"{module_prefix}.{file_path.stem}"
-                spec = importlib.util.spec_from_file_location(module_name, file_path)
-                if spec is None or spec.loader is None:
-                    continue
+                if module_prefix == "generated_strategies":
+                    # Reuse the same canonical modules as sibling imports and
+                    # pickle, rather than executing a second copy of each class.
+                    module = importlib.import_module(module_name)
+                else:
+                    spec = importlib.util.spec_from_file_location(module_name, file_path)
+                    if spec is None or spec.loader is None:
+                        continue
 
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
 
                 # Look for strategy factory functions
                 # These are functions that return EnhancedStrategy and start with 'create_'
