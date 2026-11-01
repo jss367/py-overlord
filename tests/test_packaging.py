@@ -1,8 +1,12 @@
 import subprocess
 import sys
+from tempfile import TemporaryDirectory
 import zipfile
 
 import pytest
+
+from dominion.strategy.strategy_loader import StrategyLoader
+from tests.strategy_discovery_probe import catalog_snapshot, make_shadow_package, probe_discovery
 
 
 def test_wheel_packages_console_entrypoint_and_runtime_metadata(tmp_path):
@@ -41,3 +45,17 @@ def test_wheel_packages_console_entrypoint_and_runtime_metadata(tmp_path):
 
     for dependency in ("coloredlogs", "matplotlib", "PyYAML", "scipy", "seaborn", "tqdm"):
         assert f"Requires-Dist: {dependency}" in metadata
+
+    assert "generated_strategies/mine_guildhall.py" in names
+    assert "generated_strategies/tea_house_kind_emperor.py" in names
+    assert "generated_strategies/__init__.py" in names
+
+    # Keep cwd ahead of the wheel on sys.path in fresh ordinary processes.
+    expected = catalog_snapshot(StrategyLoader())
+    with TemporaryDirectory(prefix="dominion-wheel-test-") as directory:
+        with zipfile.ZipFile(wheel_path) as wheel:
+            wheel.extractall(directory)
+        for regular in (False, True):
+            working_directory = tmp_path / ("regular" if regular else "namespace")
+            make_shadow_package(working_directory, regular=regular)
+            assert probe_discovery(directory, working_directory) == expected
