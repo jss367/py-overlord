@@ -206,7 +206,7 @@ def test_render_evolve_report_aggregates_seeds():
         for i, w in enumerate((80, 100, 120))
     ]
     text = render_evolve_report(outcomes)
-    assert "| smithy_bm | Double Smithy | 3 | 200 | 50.0% | 10.0 |" in text
+    assert "| smithy_bm | Double Smithy | 3 | 200 | 0 | 0 | 50.0% | 10.0 |" in text
     assert "UNRESOLVED (3 seeds)" in text
     assert "Mean gap: 0.0" in text
     assert "Student-t interval over seeds" in text

@@ -124,7 +124,7 @@ the command-line tools, means one worker per CPU; `1` keeps everything
 in-process). Seeded runs give identical results either way: with common
 random numbers on, every game's seed is derived from the evaluation context,
 so a parallel `GeneticTrainer` reproduces the serial fitness, breakdown, and
-rule-firing flags exactly. A parallel `StrategyBattle` draws one seed per game
+rule-firing flags exactly. `StrategyBattle` draws one seed per game for both serial and parallel execution
 from the global RNG, so `random.seed(...)` before `run_battle` makes it
 reproducible too.
 
@@ -137,6 +137,42 @@ In code, pass `workers=` to `GeneticTrainer` or `StrategyBattle`; call
 `close()` (or use the battle as a context manager) to stop the pool early.
 Strategies cross the process boundary with `cloudpickle`, so hand-written
 conditions and decision hooks work unchanged.
+
+## Game outcomes and evaluation
+
+Battles, evolutionary training, and learning evaluation share seat-based results:
+points decide the winner, followed by fewer turns taken. Equal points and equal
+turns are a tie. A genuine rule ending at the turn-cap boundary takes precedence;
+Fleet finishes its extra round before the outcome is scored.
+
+Ties earn half a win in two-player evaluation. Games stopped by the turn limit
+are reported as `truncated`, earn no win share for either player, and remain in
+the denominator. Their unfinished score margins do not earn shaping credit.
+Training averages score margins over completed games and scales shaping by the
+fraction completed. Historical study artifacts and saved standings retain their
+original measurements; the catalog marks outdated standings after input changes.
+
+`StrategyBattle.run_game` returns a `PlayedGame` containing an immutable
+`GameOutcome`, including scores and turns by starting seat, winning seats, and a
+termination reason. Use `game.result_for(ai)` or `game.win_share(ai)` for scoring.
+Legacy four-value unpacking remains supported, but its winner is `None` for both
+ties and caps; callers must not infer an opponent win from that value.
+
+Battle summaries include actual `strategy1_wins`, `strategy2_wins`, `ties`, and
+`truncated` counts. Existing `strategy1_win_rate` and `strategy2_win_rate` fields
+now mean wins plus half of ties divided by all scheduled games; they need not sum
+to 100% when games are capped. Per-game rows include `outcome` and
+`termination_reason`. The trainer exposes matching counts in
+`last_eval_outcomes`, `last_population_outcomes`, `best_eval_outcomes`, and the
+returned champion metrics' `outcomes` field. Existing fitness breakdown tuple
+shapes remain unchanged. Calibration reports include ties and caps; their
+single-run intervals use Wilson for decisive-only data and conservative Hoeffding
+bounds when ties or caps occur.
+
+Serial and worker-process battles use the same per-game seeds. Seeding Python's
+random generator before `run_battle` reproduces results across worker counts;
+playing those games does not consume the parent generator beyond drawing their
+seeds. Direct `run_game` callers still control their own random stream.
 
 ## Board and strategy catalog
 

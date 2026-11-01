@@ -7,6 +7,7 @@ import cloudpickle
 import coloredlogs
 
 from dominion.boards.loader import BoardConfig
+from dominion.game.outcome import OutcomeCounts
 from dominion.simulation.adversarial_league import (
     ORIGIN_CHAMPION,
     AdversarialLeague,
@@ -195,6 +196,9 @@ class GeneticTrainer:
         # (not a dict) so multiple panel members sharing a name (e.g. two
         # BigMoneySmithy variants) each contribute independently.
         self.last_eval_breakdown: list[tuple] = []
+        self.last_eval_outcomes: list[dict] = []
+        self.last_population_outcomes: list[list[dict]] = []
+        self.best_eval_outcomes: list[dict] = []
         # Per-strategy breakdowns from the most recent ``evaluate_population``
         # call, parallel to the strategies it was given.
         self.last_population_breakdowns: list[list[tuple]] = []
@@ -561,7 +565,8 @@ class GeneticTrainer:
         per-opponent breakdown lands in ``last_eval_breakdown`` either way.
         """
         if self._use_workers():
-            fitness, breakdown = self._evaluate_population_parallel([strategy])[0]
+            fitness, breakdown, outcomes = self._evaluate_population_parallel([strategy])[0]
+            self.last_eval_outcomes = outcomes
             self.last_eval_breakdown = breakdown
             return fitness
         return self._evaluate_strategy_serial(strategy)
@@ -594,18 +599,22 @@ class GeneticTrainer:
             scored = []
             for strategy in strategies:
                 fitness = self.evaluate_strategy(strategy)
-                scored.append((fitness, list(self.last_eval_breakdown)))
-        self.last_population_breakdowns = [breakdown for _, breakdown in scored]
+                scored.append((fitness, list(self.last_eval_breakdown), list(self.last_eval_outcomes)))
+        self.last_population_breakdowns = [breakdown for _, breakdown, _ in scored]
+        self.last_population_outcomes = [outcomes for _, _, outcomes in scored]
         if scored:
             self.last_eval_breakdown = list(scored[-1][1])
-        return [fitness for fitness, _ in scored]
+            self.last_eval_outcomes = list(scored[-1][2])
+        return [fitness for fitness, _, _ in scored]
 
-    def _opponent_entry(self, opponent_name: str, wins: int, margin_total: float, games: int) -> tuple:
-        """Build one ``last_eval_breakdown`` entry from raw game outcomes."""
-        rate = wins / games * 100
-        avg_margin = margin_total / games
+    def _opponent_entry(self, opponent_name: str, counts: OutcomeCounts, margin_total: float) -> tuple:
+        """Caps earn no score or shaping; completed ties earn half a win."""
+        rate = counts.score_rate
+        avg_margin = margin_total / counts.completed if counts.completed else 0.0
         if self.shape_rewards:
-            return (opponent_name, rate, avg_margin, self._shape_fitness(rate, avg_margin))
+            shaped = (self._shape_fitness(counts.win_share / counts.completed * 100, avg_margin)
+                      * counts.completed / counts.games if counts.completed else 0.0)
+            return (opponent_name, rate, avg_margin, shaped)
         return (opponent_name, rate)
 
     def _fitness_from_breakdown(self, breakdown: list[tuple]) -> float:
@@ -629,7 +638,7 @@ class GeneticTrainer:
         }
         return list(board_references.kingdom_cards), landscape_kwargs
 
-    def _evaluate_population_parallel(self, strategies: list[BaseStrategy]) -> list[tuple[float, list[tuple]]]:
+    def _evaluate_population_parallel(self, strategies: list[BaseStrategy]) -> list[tuple[float, list[tuple], list[dict]]]:
         """Play every candidate's games in the worker pool.
 
         Games are seeded exactly as in :meth:`_evaluate_strategy_serial`
@@ -681,7 +690,7 @@ class GeneticTrainer:
 
         outcome = self._get_pool().run(tasks)
 
-        wins = [[0] * len(panel) for _ in strategies]
+        counts = [[OutcomeCounts() for _ in panel] for _ in strategies]
         margins = [[0.0] * len(panel) for _ in strategies]
         fired: list[dict[str, set[int]]] = [{} for _ in strategies]
         for task_id, task_result in outcome.items():
@@ -696,19 +705,19 @@ class GeneticTrainer:
                 failed.add(cand_index)
                 continue
             for game in task_result.games:
-                if game.won:
-                    wins[cand_index][opp_index] += 1
-                margins[cand_index][opp_index] += game.my_score - game.opp_score
+                counts[cand_index][opp_index].record(game.result)
+                if not game.outcome.truncated:
+                    margins[cand_index][opp_index] += game.my_score - game.opp_score
             for attr, indices in task_result.fired.items():
                 fired[cand_index].setdefault(attr, set()).update(indices)
 
-        scored: list[tuple[float, list[tuple]]] = []
+        scored: list[tuple[float, list[tuple], list[dict]]] = []
         for cand_index, strategy in enumerate(strategies):
             if cand_index in failed:
                 # Mirror the serial path: a failed eval can never outrank a
                 # legitimate one, and it must not inherit another candidate's
                 # breakdown.
-                scored.append((float("-inf"), []))
+                scored.append((float("-inf"), [], []))
                 continue
             for attr, indices in fired[cand_index].items():
                 rules = getattr(strategy, attr, None) or []
@@ -716,10 +725,12 @@ class GeneticTrainer:
                     if index < len(rules):
                         rules[index]._fired = True
             breakdown = [
-                self._opponent_entry(panel[opp_index].name, wins[cand_index][opp_index], margins[cand_index][opp_index], games_for_opp[opp_index])
+                self._opponent_entry(panel[opp_index].name, counts[cand_index][opp_index], margins[cand_index][opp_index])
                 for opp_index in range(len(panel))
             ]
-            scored.append((self._fitness_from_breakdown(breakdown), breakdown))
+            outcomes = [{"opponent": opponent.name, **count.to_dict()}
+                        for opponent, count in zip(panel, counts[cand_index])]
+            scored.append((self._fitness_from_breakdown(breakdown), breakdown, outcomes))
         return scored
 
     def _evaluate_strategy_serial(self, strategy: BaseStrategy) -> float:
@@ -753,10 +764,11 @@ class GeneticTrainer:
 
             games_for_opp = _distribute_games(self.games_per_eval, len(panel))
             breakdown: list[tuple] = []
+            outcomes = []
             for i, opponent in enumerate(panel):
                 games_per_opp = games_for_opp[i]
                 kingdom_card_names, landscape_kwargs = self._landscape_kwargs(strategy, opponent)
-                wins = 0
+                counts = OutcomeCounts()
                 margin_total = 0.0
                 for game_num in range(games_per_opp):
                     if seeding:
@@ -764,28 +776,25 @@ class GeneticTrainer:
                     ai1 = GeneticAI(strategy)
                     ai2 = GeneticAI(opponent)
                     if game_num % 2 == 0:
-                        winner, scores, _l, _t = self.battle_system.run_game(
+                        game = self.battle_system.run_game(
                             ai1,
                             ai2,
                             kingdom_card_names,
                             **landscape_kwargs,
                         )
                     else:
-                        winner, scores, _l, _t = self.battle_system.run_game(
+                        game = self.battle_system.run_game(
                             ai2,
                             ai1,
                             kingdom_card_names,
                             **landscape_kwargs,
                         )
-                    if winner == ai1:
-                        wins += 1
-                    # ``scores`` is keyed by ai.name; an empty dict means no
-                    # scores were reported, so treat margin as 0 for this game.
-                    if scores:
-                        my_score = scores.get(ai1.name, 0)
-                        opp_score = scores.get(ai2.name, 0)
-                        margin_total += my_score - opp_score
-                breakdown.append(self._opponent_entry(opponent.name, wins, margin_total, games_per_opp))
+                    counts.record(game.result_for(ai1))
+                    if not game.outcome.truncated:
+                        margin_total += game.scores[ai1.name] - game.scores[ai2.name]
+                breakdown.append(self._opponent_entry(opponent.name, counts, margin_total))
+                outcomes.append({"opponent": opponent.name, **counts.to_dict()})
+            self.last_eval_outcomes = outcomes
             self.last_eval_breakdown = breakdown
             return self._fitness_from_breakdown(breakdown)
         except Exception as e:
@@ -795,6 +804,7 @@ class GeneticTrainer:
             # a failed eval can never outrank legitimate (possibly negative)
             # shaped fitness in best-strategy tracking.
             self.last_eval_breakdown = []
+            self.last_eval_outcomes = []
             return float("-inf")
         finally:
             if rng_snapshot is not None:
@@ -836,6 +846,7 @@ class GeneticTrainer:
         """
         if not strategies:
             self.last_population_breakdowns = []
+            self.last_population_outcomes = []
             return []
         if self._use_workers():
             saved_games = self.games_per_eval
@@ -849,10 +860,13 @@ class GeneticTrainer:
                 self._eval_seed_context = saved_context
         fitness_values: list[float] = []
         breakdowns: list[list[tuple]] = []
+        outcomes = []
         for strategy in strategies:
             fitness_values.append(self._eval_with_budget(strategy, games, context))
             breakdowns.append(list(self.last_eval_breakdown))
+            outcomes.append(list(self.last_eval_outcomes))
         self.last_population_breakdowns = breakdowns
+        self.last_population_outcomes = outcomes
         return fitness_values
 
     @staticmethod
@@ -880,16 +894,17 @@ class GeneticTrainer:
             return float("-inf")
         return self._aggregate([entry[1] for entry in breakdown])
 
-    def _record_champion_result(self, fitness: float, breakdown: list[tuple]) -> None:
+    def _record_champion_result(self, fitness: float, breakdown: list[tuple], outcomes=None) -> None:
         """Update the champion's confirmed fitness, breakdown, and win rate."""
         self._best_confirmed = fitness
         self.best_eval_breakdown = list(breakdown)
+        self.best_eval_outcomes = deepcopy(outcomes if outcomes is not None else self.last_eval_outcomes)
         if breakdown:
             self._best_win_rate = sum(entry[1] for entry in breakdown) / len(breakdown)
 
-    def _set_champion(self, strategy: BaseStrategy, fitness: float, breakdown: list[tuple]) -> None:
+    def _set_champion(self, strategy: BaseStrategy, fitness: float, breakdown: list[tuple], outcomes=None) -> None:
         self._best_strategy = deepcopy(strategy)
-        self._record_champion_result(fitness, breakdown)
+        self._record_champion_result(fitness, breakdown, outcomes)
 
     def _consider_challenger(self, challenger: BaseStrategy, screen_fitness: float, gen: int) -> None:
         """Decide whether ``challenger`` (this generation's best) should
@@ -932,7 +947,8 @@ class GeneticTrainer:
         incumbent_score = self._promotion_score(incumbent_fitness, incumbent_breakdown)
         challenger_score = self._promotion_score(challenger_fitness, challenger_breakdown)
         if challenger_score > incumbent_score:
-            self._set_champion(challenger, challenger_fitness, challenger_breakdown)
+            self._set_champion(challenger, challenger_fitness, challenger_breakdown,
+                               self.last_population_outcomes[1] if self.last_population_outcomes else [])
             log.info(
                 "Champion replaced: win-rate score %.2f beat %.2f (confirmation, %d games each)",
                 challenger_score,
@@ -941,7 +957,8 @@ class GeneticTrainer:
             )
         else:
             if incumbent_fitness != float("-inf"):
-                self._record_champion_result(incumbent_fitness, incumbent_breakdown)
+                self._record_champion_result(incumbent_fitness, incumbent_breakdown,
+                                             self.last_population_outcomes[0] if self.last_population_outcomes else [])
             log.info(
                 "Champion retained: win-rate score %.2f vs %.2f (confirmation, %d games each)",
                 incumbent_score,
@@ -1464,6 +1481,7 @@ class GeneticTrainer:
             self._best_confirmed = float("-inf")
             self._best_win_rate = 0.0
             self.best_eval_breakdown = []
+            self.best_eval_outcomes = []
             self.hall_of_fame = []
 
             # Start training progress tracking
@@ -1498,14 +1516,15 @@ class GeneticTrainer:
                 fitness_scores = []
                 try:
                     fitness_scores = self.evaluate_population(population)
-                    for strategy, fitness, breakdown in zip(
+                    for candidate_index, (strategy, fitness, breakdown) in enumerate(zip(
                         population, fitness_scores, self.last_population_breakdowns
-                    ):
+                    )):
                         if not self.racing and fitness > self._best_confirmed:
                             # Legacy mode: champion = best single eval ever
                             # seen. Kept behind racing=False for comparison;
                             # subject to the winner's curse on noisy evals.
-                            self._set_champion(strategy, fitness, breakdown)
+                            self._set_champion(strategy, fitness, breakdown,
+                                               self.last_population_outcomes[candidate_index] if self.last_population_outcomes else [])
                             log.info("New best fitness: %.2f", fitness)
                             if len(breakdown) > 1:
                                 parts = ", ".join(
@@ -1609,6 +1628,7 @@ class GeneticTrainer:
 
             metrics = {
                 "win_rate": self._best_win_rate,
+                "outcomes": deepcopy(self.best_eval_outcomes),
                 "fitness": reported_fitness,
                 "promotion_score": self._promotion_score(
                     reported_fitness, self.best_eval_breakdown

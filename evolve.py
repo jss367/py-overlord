@@ -22,6 +22,7 @@ from pathlib import Path
 
 import coloredlogs
 
+from dominion.game.outcome import OutcomeCounts
 from dominion.ai.genetic_ai import GeneticAI
 from dominion.analysis.strategy_library import find_compatible_strategies
 from dominion.analysis.seed_genomes import build_seed_genomes, trick_signature
@@ -53,46 +54,50 @@ def _short_name(spec: str) -> str:
 
 
 def run_matchup(battle, factory_a, factory_b, num_games):
-    """Run a head-to-head matchup, return (a_wins, b_wins)."""
+    """Run a matchup and return explicit wins, losses, ties, and caps."""
     kingdom = battle.board_config.kingdom_cards if battle.board_config else None
-    a_wins = 0
+    counts = OutcomeCounts()
     for i in range(num_games):
         ai_a = GeneticAI(factory_a())
         ai_b = GeneticAI(factory_b())
         if i % 2 == 0:
-            winner, _, _, _ = battle.run_game(ai_a, ai_b, kingdom)
+            game = battle.run_game(ai_a, ai_b, kingdom)
         else:
-            winner, _, _, _ = battle.run_game(ai_b, ai_a, kingdom)
-        if winner == ai_a:
-            a_wins += 1
-    return a_wins, num_games - a_wins
+            game = battle.run_game(ai_b, ai_a, kingdom)
+        counts.record(game.result_for(ai_a))
+    return counts
 
 
 def round_robin(strategies, battle, num_games):
     """Run a round-robin tournament, return {name: {wins, losses, win_rate}}."""
     names = list(strategies.keys())
-    results = {n: {"wins": 0, "losses": 0} for n in names}
+    results = {n: {"wins": 0, "losses": 0, "ties": 0, "truncated": 0, "games": 0} for n in names}
 
     for i in range(len(names)):
         for j in range(i + 1, len(names)):
             na, nb = names[i], names[j]
             logger.info("  %s vs %s (%d games)...", na, nb, num_games)
-            a_wins, b_wins = run_matchup(
+            counts = run_matchup(
                 battle, strategies[na], strategies[nb], num_games
             )
+            a_wins, b_wins = counts.wins, counts.losses
             results[na]["wins"] += a_wins
             results[na]["losses"] += b_wins
             results[nb]["wins"] += b_wins
             results[nb]["losses"] += a_wins
+            for name in (na, nb):
+                results[name]["ties"] += counts.ties
+                results[name]["truncated"] += counts.truncated
+                results[name]["games"] += counts.games
             logger.info(
-                "    %s: %d wins (%.1f%%) | %s: %d wins (%.1f%%)",
-                na, a_wins, a_wins / num_games * 100,
-                nb, b_wins, b_wins / num_games * 100,
+                "    %s: %d wins (%.1f%% win share) | %s: %d wins (%.1f%% win share); %d ties, %d capped",
+                na, a_wins, counts.score_rate,
+                nb, b_wins, (b_wins + counts.ties / 2) / num_games * 100, counts.ties, counts.truncated,
             )
 
     for name, stats in results.items():
-        total = stats["wins"] + stats["losses"]
-        stats["win_rate"] = stats["wins"] / total * 100 if total else 0
+        total = stats["games"]
+        stats["win_rate"] = (stats["wins"] + stats["ties"] / 2) / total * 100 if total else 0
 
     return results
 
@@ -309,11 +314,10 @@ def main():
             ai1 = GeneticAI(best_strategy)
             ai2 = GeneticAI(best_seed_factory())
             if i % 2 == 0:
-                winner, _, _, _ = battle.run_game(ai1, ai2, kingdom)
+                game = battle.run_game(ai1, ai2, kingdom)
             else:
-                winner, _, _, _ = battle.run_game(ai2, ai1, kingdom)
-            if winner == ai1:
-                wins += 1
+                game = battle.run_game(ai2, ai1, kingdom)
+            wins += game.win_share(ai1)
         win_rate = wins / args.validation_games * 100
         logger.info("  Evolved from %s: %.1f%% vs best seed", seed_name, win_rate)
 

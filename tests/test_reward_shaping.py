@@ -9,6 +9,8 @@ import types
 
 import pytest
 
+from tests.utils import played_game
+
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.strategy.enhanced_strategy import PriorityRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
@@ -49,7 +51,7 @@ def _patch_run_game(trainer, monkeypatch, *, my_score, opp_score, my_wins):
             mine, other = second_ai, first_ai
         scores = {mine.name: my_score, other.name: opp_score}
         winner = mine if my_wins else other
-        return winner, scores, None, 0
+        return played_game(first_ai, second_ai, winner, scores, None, 0)
 
     monkeypatch.setattr(trainer.battle_system, "run_game", fake_run_game)
 
@@ -178,7 +180,7 @@ class TestShapeRewardsOn:
                 # Alternate winners -> 50% win rate
                 winner = mine if calls.n % 2 == 1 else other
                 scores = {mine.name: my_score, other.name: opp_score}
-                return winner, scores, None, 0
+                return played_game(first_ai, second_ai, winner, scores, None, 0)
 
             monkeypatch.setattr(trainer.battle_system, "run_game", fake_run_game)
             return trainer.evaluate_strategy(strategy)

@@ -51,3 +51,15 @@ class ChooseFirstActionAI(BuyEventAI):
             if ch is not None:
                 return ch
         return None
+
+
+def played_game(first_ai, second_ai, winner, scores=None, log_path=None, turns=0):
+    """Build a declared test outcome without running the rules engine."""
+    from dominion.game.outcome import GameOutcome, PlayedGame
+
+    players = (first_ai, second_ai)
+    scores = scores or {}
+    winners = tuple(i for i, player in enumerate(players) if player is winner)
+    outcome = GameOutcome(tuple(scores.get(ai.name, 0) for ai in players),
+                          (0, 0), winners, "province_depleted")
+    return PlayedGame(outcome, players, log_path, turns)

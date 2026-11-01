@@ -568,11 +568,10 @@ def main():
                     ai1 = GeneticAI(best_strategy)
                     ai2 = GeneticAI(opp)
                     if i % 2 == 0:
-                        winner, _, _, _ = validation_battle.run_game(ai1, ai2, validation_kingdom)
+                        game = validation_battle.run_game(ai1, ai2, validation_kingdom)
                     else:
-                        winner, _, _, _ = validation_battle.run_game(ai2, ai1, validation_kingdom)
-                    if winner == ai1:
-                        wins += 1
+                        game = validation_battle.run_game(ai2, ai1, validation_kingdom)
+                    wins += game.win_share(ai1)
                 rate = wins / games_per_opp * 100
                 per_opp.append((opp.name, rate))
                 logger.info("  vs %s: %.1f%%", opp.name, rate)

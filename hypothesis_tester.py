@@ -128,15 +128,17 @@ class HypothesisTester:
                 "is_baseline": is_baseline,
                 "wins": 0,
                 "losses": 0,
+                "ties": 0,
+                "truncated": 0,
                 "total_score": 0,
                 "baseline_total_score": 0,
                 "detailed_results": [],
             }
 
             if is_baseline:
-                # Baseline vs itself: report 50% by convention
-                entry["wins"] = num_games // 2
-                entry["losses"] = num_games - num_games // 2
+                # A synthetic self-reference is all ties, not invented wins/losses.
+                entry["ties"] = num_games
+                entry["synthetic_reference"] = True
                 entry["win_rate"] = 50.0
                 entry["avg_score"] = 0.0
                 entry["avg_baseline_score"] = 0.0
@@ -153,15 +155,17 @@ class HypothesisTester:
                 ai_baseline = GeneticAI(baseline_strat)
 
                 if game_num % 2 == 0:
-                    winner, scores, _, turns = battle.run_game(
+                    game = battle.run_game(
                         ai_variant, ai_baseline, kingdom_cards
                     )
                 else:
-                    winner, scores, _, turns = battle.run_game(
+                    game = battle.run_game(
                         ai_baseline, ai_variant, kingdom_cards
                     )
 
-                variant_won = winner == ai_variant
+                outcome = game.result_for(ai_variant)
+                variant_won = outcome == "win"
+                scores, turns = game.scores, game.turns
                 variant_score = scores[ai_variant.name]
                 baseline_score = scores[ai_baseline.name]
 
@@ -170,13 +174,19 @@ class HypothesisTester:
 
                 if variant_won:
                     entry["wins"] += 1
-                else:
+                elif outcome == "loss":
                     entry["losses"] += 1
+                elif outcome == "tie":
+                    entry["ties"] += 1
+                else:
+                    entry["truncated"] += 1
 
                 entry["detailed_results"].append(
                     {
                         "game_number": game_num + 1,
                         "variant_won": variant_won,
+                        "outcome": outcome,
+                        "termination_reason": game.outcome.termination_reason,
                         "variant_score": variant_score,
                         "baseline_score": baseline_score,
                         "margin": variant_score - baseline_score,
@@ -184,7 +194,7 @@ class HypothesisTester:
                     }
                 )
 
-            entry["win_rate"] = entry["wins"] / num_games * 100
+            entry["win_rate"] = (entry["wins"] + entry["ties"] / 2) / num_games * 100
             entry["avg_score"] = entry["total_score"] / num_games
             entry["avg_baseline_score"] = entry["baseline_total_score"] / num_games
 
@@ -192,8 +202,8 @@ class HypothesisTester:
             from scipy.stats import binomtest
 
             entry["p_value"] = binomtest(
-                entry["wins"], num_games, p=0.5, alternative="two-sided"
-            ).pvalue
+                entry["wins"], entry["wins"] + entry["losses"], p=0.5, alternative="two-sided"
+            ).pvalue if entry["wins"] + entry["losses"] else 1.0
 
             logger.info(
                 "%s: %d/%d (%.1f%%) p=%.4f",

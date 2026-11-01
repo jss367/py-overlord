@@ -122,8 +122,8 @@ def evaluate(pairs, seed):
                             probe, opponent = GeneticAI(strategy), GeneticAI(factory())
                             ais = [probe, opponent] if seat == 0 else [opponent, probe]
                             random.seed(seed_start + pair)
-                            winner, _, _, _ = battle.run_game(*ais, kingdom)
-                            won = int(winner is probe)
+                            game = battle.run_game(*ais, kingdom)
+                            won = game.win_share(probe)
                             outcomes[label] = won
                             result = results[label]
                             result["wins"] += won
