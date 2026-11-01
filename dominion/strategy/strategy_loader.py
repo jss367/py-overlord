@@ -30,7 +30,9 @@ class StrategyLoader:
         """Automatically load strategy factory functions from known directories."""
         directories = [(self.strategies_dir, "dominion.strategy.strategies")]
 
-        generated_dir = Path("generated_strategies")
+        # Generated strategies sit beside dominion in both a checkout and an
+        # installed wheel. Never discover code from the caller's working directory.
+        generated_dir = Path(__file__).resolve().parents[2] / "generated_strategies"
         if generated_dir.exists():
             directories.append((generated_dir, generated_dir.name))
 

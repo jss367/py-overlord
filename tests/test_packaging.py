@@ -1,8 +1,13 @@
+import json
 import subprocess
 import sys
+from tempfile import TemporaryDirectory
+from textwrap import dedent
 import zipfile
 
 import pytest
+
+from dominion.strategy.strategy_loader import StrategyLoader
 
 
 def test_wheel_packages_console_entrypoint_and_runtime_metadata(tmp_path):
@@ -41,3 +46,37 @@ def test_wheel_packages_console_entrypoint_and_runtime_metadata(tmp_path):
 
     for dependency in ("coloredlogs", "matplotlib", "PyYAML", "scipy", "seaborn", "tqdm"):
         assert f"Requires-Dist: {dependency}" in metadata
+
+    assert "generated_strategies/mine_guildhall.py" in names
+    assert "generated_strategies/tea_house_kind_emperor.py" in names
+
+    # Load the wheel's actual modules from outside the checkout, including a
+    # generated strategy that imports another generated strategy.
+    with TemporaryDirectory(prefix="dominion-wheel-test-") as directory:
+        with zipfile.ZipFile(wheel_path) as wheel:
+            wheel.extractall(directory)
+        process = subprocess.run(
+            [
+                sys.executable, "-I", "-c",
+                dedent("""\
+                    import inspect
+                    import json
+                    from pathlib import Path
+                    import sys
+
+                    sys.path.insert(0, sys.argv[1])
+                    from dominion.strategy.strategy_loader import StrategyLoader
+
+                    assert Path(inspect.getfile(StrategyLoader)).is_relative_to(Path(sys.argv[1]))
+                    loader = StrategyLoader()
+                    assert loader.get_strategy('mine_guildhall') is not None
+                    print(json.dumps(loader.list_strategies(include_retired=True)))
+                """),
+                directory,
+            ],
+            cwd=tmp_path,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    assert json.loads(process.stdout) == StrategyLoader().list_strategies(include_retired=True)

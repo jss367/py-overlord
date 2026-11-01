@@ -20,7 +20,7 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["dominion*"]
+include = ["dominion*", "generated_strategies"]
 
 [tool.setuptools.package-data]
 "dominion.reporting.curated_strategy_guides" = ["*.html"]

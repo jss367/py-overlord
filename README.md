@@ -74,6 +74,11 @@ python -m dominion.simulation.strategy_battle "Chapel Witch" "Big Money" --games
 
 Strategy names contain spaces, so be sure to wrap them in quotes when invoking the command line tools.
 
+Strategy discovery includes built-in and generated strategies from this checkout
+or installed package, regardless of the current working directory. Wheels include
+the generated strategies shipped with the project. A `generated_strategies/`
+directory in an unrelated working directory is not searched automatically.
+
 For reusable card decisions, strategy override hooks, and the optimization
 backlog, see [Shared card decisions](docs/card-tactical-defaults.md), the
 [complete card evidence inventory](docs/card-tactical-inventory.md), and the
