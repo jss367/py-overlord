@@ -325,9 +325,9 @@ def resolve_gain_effects(state, player, gained, *, in_play, cargo_ships, owner_c
                     c.duration_persistent = False
                 event.move(player.deck)
             add('landing_party', land, source=landing, priority=72)
-    if player is state.turn_player and state.is_treasure(gained) and not player.mining_road_triggered and any(c.name == 'Mining Road' for c in in_play):
-        player.mining_road_triggered = True
-        add('mining_road', lambda: state._handle_mining_road_gain(player, gained, claimed=True), priority=73)
+    if player is state.turn_player and state.is_treasure(gained) and player.mining_road_uses:
+        add('mining_road', lambda: state._handle_mining_road_gain(player, gained), priority=73,
+            eligible=lambda: player.mining_road_uses > 0 and event.movable())
     for card in list(player.tavern_mat):
         if card.name == 'Duplicate' and gained_cost.coins <= 6 and not (gained_cost.potions or gained_cost.debt):
             add('tavern', lambda c=card: c.on_call_from_tavern(state, player, 'gain', gained, cost_at_gain=gained_cost), source=card,

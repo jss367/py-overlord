@@ -176,7 +176,7 @@ def test_hasty_sets_aside_then_plays_next_turn():
 
 def test_hasty_sets_aside_card_gained_to_hand():
     """Regression for PR #193 review: Hasty must trigger even when the
-    gained card lands in hand (e.g. Mining Road's gain-to-hand)."""
+    gained card lands in hand (e.g. Mine's gain-to-hand)."""
     state = _make_state()
     apply_trait(state, "Hasty", "Village")
     player = state.current_player

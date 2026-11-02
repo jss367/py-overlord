@@ -120,7 +120,7 @@ class PlayerState:
     # Plunder cards / events / traits.
     fated_pile: str = ""
     cards_trashed_this_turn: int = 0
-    mining_road_triggered: bool = False
+    mining_road_uses: int = 0
     search_triggered: bool = False
     avoid_pending: int = 0
     deliver_pending: list = field(default_factory=list)
@@ -369,7 +369,7 @@ class PlayerState:
         self.highwayman_blocked_this_turn = False
         self.insignia_active = False
         self.cards_trashed_this_turn = 0
-        self.mining_road_triggered = False
+        self.mining_road_uses = 0
         self.search_triggered = False
         self.avoid_pending = 0
         self.deliver_pending = []

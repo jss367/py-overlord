@@ -11,9 +11,9 @@ from dominion.prophecies.registry import get_prophecy
 from tests.test_gain_effect_ordering import setup
 
 HAND_SOURCES = ('Mine', 'Artisan', 'Sculptor', 'Falconer', 'Transmogrify', 'Cobbler',
-                'Silver Mine', 'Explorer', 'Pirate', 'Trading Post', 'Wish', 'Mining Road', 'Kind Emperor')
+                'Silver Mine', 'Explorer', 'Pirate', 'Trading Post', 'Wish', 'Kind Emperor')
 CASES = [(name, mode) for name in HAND_SOURCES for mode in ('none', 'trash', 'topdeck', 'exchange')]
-CASES += [(name, mode) for name in ('Treasure Map', 'Jack of All Trades', 'Dismantle', 'Blockade', 'Summon', 'Continue', 'Quartermaster')
+CASES += [(name, mode) for name in ('Mining Road', 'Treasure Map', 'Jack of All Trades', 'Dismantle', 'Blockade', 'Summon', 'Continue', 'Quartermaster')
           for mode in ('none', 'trash', 'topdeck', 'exchange')]
 CASES += [(name, mode) for name in ('Sea Hag', 'Sickness', 'Pickaxe', 'Joust') for mode in ('none', 'trash', 'topdeck')]
 
@@ -25,7 +25,7 @@ def fixture(source, mode, monkeypatch):
     state.supply = {'Silver': 10, 'Village': 10, 'Gold': 10, 'Copper': 10,
                     'Estate': 10, 'Curse': 10, 'Changeling': 10}
     target = 'Village' if source in ('Kind Emperor', 'Summon', 'Continue') else 'Silver'
-    if source in ('Treasure Map', 'Dismantle', 'Pirate', 'Mining Road'):
+    if source in ('Treasure Map', 'Dismantle', 'Pirate'):
         target = 'Gold'
     elif source in ('Sea Hag', 'Sickness'):
         target = 'Curse'
@@ -46,6 +46,9 @@ def fixture(source, mode, monkeypatch):
         return mode if mode in ('trash', 'topdeck') else None
     player.ai.strategy.choose_watchtower_reaction = react
     player.ai.should_exchange_changeling = lambda *args: mode == 'exchange'
+    if source == 'Mining Road' and mode == 'exchange':
+        player.ai.strategy.choose_gain_effect = lambda s, p, c, choices: min(
+            choices, key=lambda effect: {'watchtower': 0, 'changeling': 1}.get(effect.kind, 2))
     def pick(choices):
         return next((c for c in choices if getattr(c, 'name', None) == target), None)
     player.ai.choose_buy = lambda s, choices: pick(choices)
@@ -100,7 +103,9 @@ def fixture(source, mode, monkeypatch):
             player.duration = [card]
             invoke = lambda: state._handle_quartermaster_start_of_turn(player)
         elif source == 'Mining Road':
-            invoke = lambda: state.gain_from_supply(player, 'Copper')
+            def invoke():
+                card.play_effect(state)
+                state.gain_from_supply(player, target)
         elif source == 'Sea Hag':
             attacker = PlayerState(GeneticAI(EnhancedStrategy()))
             state.players.append(attacker)
@@ -124,7 +129,7 @@ def test_source_destination_precedes_reactions_and_never_redirects_exchange(sour
     elif mode == 'topdeck':
         assert all(c in player.deck and c not in player.hand for c, _ in observed)
     else:
-        final_zone = card.set_aside if source in ('Blockade', 'Quartermaster') else player.summon_set_aside if source == 'Summon' else player.in_play if source == 'Continue' else getattr(player, initial)
+        final_zone = card.set_aside if source in ('Blockade', 'Quartermaster') else player.summon_set_aside if source == 'Summon' else player.in_play if source in ('Continue', 'Mining Road') else getattr(player, initial)
         assert all(c in final_zone for c, _ in observed)
     if source == 'Sculptor':
         assert player.villagers == 1

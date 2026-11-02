@@ -200,6 +200,8 @@ def test_catalog_pages_link_compatible_boards_and_strategies_both_ways(tmp_path)
         "strategies/old-witch-rabble-strategy-guide.html",
         "strategies/random-unused-card-kingdom-guide.html",
         "strategies/cursed-band-biding-time-strategy-guide.html",
+        "strategies/lucky-coin-lookahead-audit.html",
+        "strategies/lucky-coin-ruins-strategy-guide.html",
         "strategies/tea-house-kind-emperor-strategy-guide.html",
         "strategies/mine-guildhall-strategy-guide.html",
         "strategies/kimberley-mine-engine-strategy-guide.html",

@@ -11,6 +11,16 @@ from dominion.game.player_state import PlayerState
 class AI(ABC):
     """Base class for all AIs."""
 
+    def choose_scrounge_mode(self, state, player, estate_available):
+        hook = getattr(getattr(self, "strategy", None), "choose_scrounge_mode", None)
+        if hook:
+            return hook(state, player, estate_available)
+        return "gain" if estate_available else "trash"
+
+    def should_play_mining_road_treasure(self, state, player, card):
+        hook = getattr(getattr(self, "strategy", None), "should_play_mining_road_treasure", None)
+        return hook(state, player, card) if hook else True
+
     def choose_bauble_options(self, state, player, options, count):
         hook = getattr(getattr(self, "strategy", None), "choose_bauble_options", None)
         return hook(state, player, options, count) if hook else ["buy", "coin"]

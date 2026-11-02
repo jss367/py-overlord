@@ -1,0 +1,963 @@
+[
+  {
+    "lost": 1,
+    "daimyo": 4,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 2,
+    "daimyo": 8,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 0,
+    "daimyo": 2,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 2,
+    "daimyo": 8,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 1,
+    "daimyo": 0,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 1,
+    "daimyo": 0,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 0,
+    "daimyo": 2,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 1,
+    "daimyo": 2,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 3,
+    "daimyo": 0,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 1,
+    "daimyo": 4,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 3,
+    "daimyo": 8,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 3,
+    "daimyo": 4,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 2,
+    "daimyo": 4,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 3,
+    "daimyo": 2,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 0,
+    "daimyo": 4,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 3,
+    "daimyo": 0,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 0,
+    "daimyo": 0,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 2,
+    "daimyo": 0,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 0,
+    "daimyo": 4,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 0,
+    "daimyo": 4,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 1,
+    "daimyo": 4,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 2,
+    "daimyo": 8,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 0,
+    "daimyo": 2,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 1,
+    "daimyo": 2,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 2,
+    "daimyo": 0,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 0,
+    "daimyo": 0,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 1,
+    "daimyo": 2,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 2,
+    "daimyo": 8,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 3,
+    "daimyo": 2,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 1,
+    "daimyo": 2,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 3,
+    "daimyo": 4,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 1,
+    "daimyo": 0,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 3,
+    "daimyo": 4,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 2,
+    "daimyo": 4,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 2,
+    "daimyo": 4,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 0,
+    "daimyo": 2,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 1,
+    "daimyo": 8,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 3,
+    "daimyo": 4,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 0,
+    "daimyo": 4,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 0,
+    "daimyo": 8,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 1,
+    "daimyo": 0,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 2,
+    "daimyo": 0,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 3,
+    "daimyo": 8,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 1,
+    "daimyo": 8,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 1,
+    "daimyo": 4,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 2,
+    "daimyo": 4,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 3,
+    "daimyo": 8,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 2,
+    "daimyo": 2,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 3,
+    "daimyo": 8,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 3,
+    "daimyo": 0,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 2,
+    "daimyo": 2,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 1,
+    "daimyo": 8,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 1,
+    "daimyo": 0,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 3,
+    "daimyo": 0,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 3,
+    "daimyo": 0,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 0,
+    "daimyo": 0,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 0,
+    "daimyo": 0,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 1,
+    "daimyo": 2,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 1,
+    "daimyo": 0,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 1,
+    "daimyo": 8,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 2,
+    "daimyo": 2,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 1,
+    "daimyo": 4,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 2,
+    "daimyo": 4,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 2,
+    "daimyo": 2,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 3,
+    "daimyo": 4,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 2,
+    "daimyo": 0,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 2,
+    "daimyo": 8,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 1,
+    "daimyo": 4,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 2,
+    "daimyo": 2,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 3,
+    "daimyo": 8,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 3,
+    "daimyo": 2,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 0,
+    "daimyo": 8,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 0,
+    "daimyo": 0,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 2,
+    "daimyo": 4,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 0,
+    "daimyo": 0,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 0,
+    "daimyo": 8,
+    "mining": 0,
+    "highway": 2
+  },
+  {
+    "lost": 2,
+    "daimyo": 2,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 1,
+    "daimyo": 8,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 0,
+    "daimyo": 8,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 3,
+    "daimyo": 2,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 1,
+    "daimyo": 8,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 0,
+    "daimyo": 8,
+    "mining": 1,
+    "highway": 1
+  },
+  {
+    "lost": 0,
+    "daimyo": 2,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 3,
+    "daimyo": 0,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 0,
+    "daimyo": 8,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 2,
+    "daimyo": 0,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 2,
+    "daimyo": 8,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 0,
+    "daimyo": 4,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "lost": 0,
+    "daimyo": 2,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 1,
+    "daimyo": 2,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 3,
+    "daimyo": 8,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 3,
+    "daimyo": 2,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 3,
+    "daimyo": 2,
+    "mining": 1,
+    "highway": 2
+  },
+  {
+    "lost": 2,
+    "daimyo": 0,
+    "mining": 0,
+    "highway": 1
+  },
+  {
+    "lost": 0,
+    "daimyo": 4,
+    "mining": 1,
+    "highway": 0
+  },
+  {
+    "lost": 3,
+    "daimyo": 4,
+    "mining": 0,
+    "highway": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "change": 0,
+    "spice": 0,
+    "highway": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "change": 0,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "change": 1,
+    "spice": 0,
+    "highway": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "change": 1,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "change": 2,
+    "spice": 0,
+    "highway": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "change": 2,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Spice Merchant",
+    "shrine": 0,
+    "change": 0,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Spice Merchant",
+    "shrine": 0,
+    "change": 1,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Spice Merchant",
+    "shrine": 0,
+    "change": 2,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Spice Merchant",
+    "shrine": 1,
+    "change": 0,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Spice Merchant",
+    "shrine": 1,
+    "change": 1,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Spice Merchant",
+    "shrine": 1,
+    "change": 2,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Change",
+    "shrine": 0,
+    "change": 1,
+    "spice": 0,
+    "highway": 1
+  },
+  {
+    "opening": "Change",
+    "shrine": 0,
+    "change": 1,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Change",
+    "shrine": 0,
+    "change": 2,
+    "spice": 0,
+    "highway": 1
+  },
+  {
+    "opening": "Change",
+    "shrine": 0,
+    "change": 2,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Change",
+    "shrine": 1,
+    "change": 1,
+    "spice": 0,
+    "highway": 1
+  },
+  {
+    "opening": "Change",
+    "shrine": 1,
+    "change": 1,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Change",
+    "shrine": 1,
+    "change": 2,
+    "spice": 0,
+    "highway": 1
+  },
+  {
+    "opening": "Change",
+    "shrine": 1,
+    "change": 2,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Banquet",
+    "shrine": 0,
+    "change": 0,
+    "spice": 0,
+    "highway": 1
+  },
+  {
+    "opening": "Banquet",
+    "shrine": 0,
+    "change": 0,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Banquet",
+    "shrine": 0,
+    "change": 1,
+    "spice": 0,
+    "highway": 1
+  },
+  {
+    "opening": "Banquet",
+    "shrine": 0,
+    "change": 1,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Banquet",
+    "shrine": 0,
+    "change": 2,
+    "spice": 0,
+    "highway": 1
+  },
+  {
+    "opening": "Banquet",
+    "shrine": 0,
+    "change": 2,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Banquet",
+    "shrine": 1,
+    "change": 0,
+    "spice": 0,
+    "highway": 1
+  },
+  {
+    "opening": "Banquet",
+    "shrine": 1,
+    "change": 0,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Banquet",
+    "shrine": 1,
+    "change": 1,
+    "spice": 0,
+    "highway": 1
+  },
+  {
+    "opening": "Banquet",
+    "shrine": 1,
+    "change": 1,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "opening": "Banquet",
+    "shrine": 1,
+    "change": 2,
+    "spice": 0,
+    "highway": 1
+  },
+  {
+    "opening": "Banquet",
+    "shrine": 1,
+    "change": 2,
+    "spice": 1,
+    "highway": 1
+  },
+  {
+    "green": 0,
+    "tea": 2,
+    "free": "adaptive",
+    "highway": 1
+  },
+  {
+    "green": 0,
+    "tea": 2,
+    "free": "daimyo",
+    "highway": 1
+  },
+  {
+    "green": 0,
+    "tea": 4,
+    "free": "adaptive",
+    "highway": 1
+  },
+  {
+    "green": 0,
+    "tea": 4,
+    "free": "daimyo",
+    "highway": 1
+  },
+  {
+    "green": 0,
+    "tea": 7,
+    "free": "adaptive",
+    "highway": 1
+  },
+  {
+    "green": 0,
+    "tea": 7,
+    "free": "daimyo",
+    "highway": 1
+  },
+  {
+    "green": 1,
+    "tea": 2,
+    "free": "adaptive",
+    "highway": 1
+  },
+  {
+    "green": 1,
+    "tea": 2,
+    "free": "daimyo",
+    "highway": 1
+  },
+  {
+    "green": 1,
+    "tea": 4,
+    "free": "adaptive",
+    "highway": 1
+  },
+  {
+    "green": 1,
+    "tea": 4,
+    "free": "daimyo",
+    "highway": 1
+  },
+  {
+    "green": 1,
+    "tea": 7,
+    "free": "adaptive",
+    "highway": 1
+  },
+  {
+    "green": 1,
+    "tea": 7,
+    "free": "daimyo",
+    "highway": 1
+  },
+  {
+    "green": 3,
+    "tea": 2,
+    "free": "adaptive",
+    "highway": 1
+  },
+  {
+    "green": 3,
+    "tea": 2,
+    "free": "daimyo",
+    "highway": 1
+  },
+  {
+    "green": 3,
+    "tea": 4,
+    "free": "adaptive",
+    "highway": 1
+  },
+  {
+    "green": 3,
+    "tea": 4,
+    "free": "daimyo",
+    "highway": 1
+  },
+  {
+    "green": 3,
+    "tea": 7,
+    "free": "adaptive",
+    "highway": 1
+  },
+  {
+    "green": 3,
+    "tea": 7,
+    "free": "daimyo",
+    "highway": 1
+  },
+  {
+    "green": 4,
+    "tea": 2,
+    "free": "adaptive",
+    "highway": 1
+  },
+  {
+    "green": 4,
+    "tea": 2,
+    "free": "daimyo",
+    "highway": 1
+  },
+  {
+    "green": 4,
+    "tea": 4,
+    "free": "adaptive",
+    "highway": 1
+  },
+  {
+    "green": 4,
+    "tea": 4,
+    "free": "daimyo",
+    "highway": 1
+  },
+  {
+    "green": 4,
+    "tea": 7,
+    "free": "adaptive",
+    "highway": 1
+  },
+  {
+    "green": 4,
+    "tea": 7,
+    "free": "daimyo",
+    "highway": 1
+  },
+  {
+    "battle": 1,
+    "warlord": 2,
+    "highway": 1
+  },
+  {
+    "opening": "Scrounge",
+    "scrounge": true
+  },
+  {
+    "scrounge": true,
+    "highway": 1
+  },
+  {
+    "banquet": false,
+    "highway": 1
+  }
+]
