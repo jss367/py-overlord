@@ -36,6 +36,7 @@ def owned_ids(player):
 @pytest.mark.parametrize("corruption,match", [
     ("lost", r"missing=\{'Gold': 1\}, extra=\{\}"),
     ("extra", r"missing=\{\}, extra=\{'Gold': 1\}"),
+    ("same_name", "physical card disappeared: Gold"),
     ("duplicate", "multiple physical zones"),
     ("second_owner", "multiple physical zones"),
     ("negative_supply", "negative Supply count"),
@@ -53,6 +54,8 @@ def test_checker_rejects_corruption_and_identifies_the_failing_transition(corrup
                 player.hand.clear()
             elif corruption == "extra":
                 player.hand.append(get_card("Gold"))
+            elif corruption == "same_name":
+                player.hand[:] = [get_card("Gold")]
             elif corruption == "duplicate":
                 player.deck.append(card)
                 assert len(player.all_cards()) == 1  # Ownership deduplication hides this error.
@@ -64,6 +67,42 @@ def test_checker_rejects_corruption_and_identifies_the_failing_transition(corrup
                 card.virtual_supply_play = True
     assert any("seed=1729; step=deliberate corruption; phase=action; turn=1; player=0" in note
                for note in failure.value.__notes__)
+
+
+def test_checker_accepts_supply_gain_trash_return_and_same_name_regain():
+    state = make_state()
+    player = state.players[0]
+    conservation = CardConservation(state, seed=17)
+    with conservation.step(state, "gain a newly allocated Supply card"):
+        original = state.gain_from_supply(player, "Gold", destination="hand")
+    with conservation.step(state, "move the same physical card to trash"):
+        player.hand.remove(original)
+        state.trash_card(player, original)
+    with conservation.step(state, "return to Supply and regain the same name"):
+        state.trash.remove(original)
+        assert state._restore_to_supply_pile(original)
+        replacement = state.gain_from_supply(player, "Gold", destination="hand")
+        assert replacement is not original
+    with conservation.step(state, "return without regaining"):
+        player.hand.remove(replacement)
+        assert state._restore_to_supply_pile(replacement)
+
+
+@pytest.mark.parametrize("corrupt", [False, True], ids=["faithful-copy", "same-name-substitution"])
+def test_checker_requires_exact_deepcopy_identities(corrupt):
+    state = make_state()
+    state.players[0].hand = [get_card("Gold")]
+    conservation = CardConservation(state, seed=101)
+    memo = {}
+    cloned = copy.deepcopy(state, memo)
+    if corrupt:
+        cloned.players[0].hand[:] = [get_card("Gold")]
+        with pytest.raises(AssertionError, match="deepcopy changed physical card identities"):
+            conservation.check(cloned, "corrupt deepcopy", copy_memo=memo)
+    else:
+        conservation.check(cloned, "faithful deepcopy", copy_memo=memo)
+        with conservation.step(cloned, "continue checking the cloned state"):
+            cloned.players[0].deck.append(cloned.players[0].hand.pop())
 
 
 def test_checker_counts_ordered_pile_members_and_rejects_mismatched_counts():
@@ -240,7 +279,7 @@ def test_transferred_blockade_preserves_each_owners_cards_and_single_returns(see
         second_stored = [memo[id(card)] for card in second_stored]
         first, second, victim = state.players
         blockade = next(card for card in second.in_play if card.name == "Blockade")
-        conservation.check(state, "deepcopy preserves inventories and owner references")
+        conservation.check(state, "deepcopy preserves inventories and owner references", copy_memo=memo)
     stored = {0: first_stored, 1: second_stored}
     with conservation.step(state, "storage belongs to the player who made each play"):
         assert Counter(c.name for c in stored[0]) == Counter(names[0])

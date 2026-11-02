@@ -25,6 +25,10 @@ ownership deduplication. Pending Duration instructions are references, including
 references to a source now owned by someone else. The fixtures explicitly check
 physical card identities, ownership, and single returns as well as total counts;
 setup-only cards and other global decks require separate inventory support.
+The checker retains physical identities between transitions, allowing new cards
+when Supply decreases and removed cards when the engine marks a Supply return.
+After `copy.deepcopy(state, memo)`, pass `copy_memo=memo` to `check` to verify
+the exact copied identities before continuing checks on the copy.
 
 Run the focused gain, replay, and ownership-transfer checks with:
 

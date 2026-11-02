@@ -12,6 +12,11 @@ from contextlib import contextmanager
 
 def inventory(state):
     """Count Supply, owned zones, and trash; reject invalid physical locations."""
+    return _snapshot(state)[0]
+
+
+def _snapshot(state):
+    """Also retain physical objects and named Supply counts for transitions."""
     for name, count in state.supply.items():
         assert count >= 0, f"negative Supply count: {name}={count}"
     counts = Counter({name: n for name, n in state.supply.items() if name not in state.pile_order})
@@ -20,8 +25,10 @@ def inventory(state):
             f"pile accounting mismatch: {pile} has {state.supply[pile]} in Supply but {len(names)} ordered cards"
         )
         counts.update(names)
+    supply = counts.copy()
 
     locations = {}
+    cards = {}
 
     def add(card, location):
         assert not getattr(card, "virtual_supply_play", False), f"virtual card {card.name} in {location}"
@@ -29,6 +36,7 @@ def inventory(state):
         previous = locations.get(id(card))
         assert previous is None, f"{card.name} occupies multiple physical zones: {previous} and {location}"
         locations[id(card)] = location
+        cards[id(card)] = (card, card.name)
         counts[card.name] += 1
 
     for index, player in enumerate(state.players):
@@ -50,7 +58,7 @@ def inventory(state):
             assert previous == index, f"{card.name} has only pending references from multiple owners"
             if id(card) not in locations:
                 add(card, f"player[{index}].duration_only")
-    return +counts
+    return +counts, cards, supply
 
 
 class CardConservation:
@@ -59,7 +67,7 @@ class CardConservation:
     def __init__(self, state, *, seed):
         self.seed = seed
         try:
-            self.expected = inventory(state)
+            self.expected, self._cards, self._supply = _snapshot(state)
         except Exception as error:
             self._annotate(error, state, "initial inventory")
             raise
@@ -70,14 +78,36 @@ class CardConservation:
         if context not in getattr(error, "__notes__", []):
             error.add_note(context)
 
-    def check(self, state, step):
-        """Assert card totals and locations without using the ownership deduper."""
+    def check(self, state, step, *, copy_memo=None):
+        """Check totals and identities; explicitly rebind a deepcopy via its memo."""
         try:
-            actual = inventory(state)
+            actual, cards, supply = _snapshot(state)
             assert actual == self.expected, (
                 f"card inventory changed: missing={dict(self.expected - actual)}, "
                 f"extra={dict(actual - self.expected)}"
             )
+            if copy_memo is not None:
+                assert supply == self._supply, "deepcopy changed Supply"
+                assert all(key in copy_memo for key in self._cards), "deepcopy memo is missing physical cards"
+                expected_cards = {id(copy_memo[key]): name for key, (_card, name) in self._cards.items()}
+                assert {key: name for key, (_card, name) in cards.items()} == expected_cards, (
+                    "deepcopy changed physical card identities"
+                )
+            else:
+                returned = Counter()
+                for key, (card, name) in self._cards.items():
+                    if key in cards:
+                        assert cards[key][1] == name, f"physical card changed name: {name} to {cards[key][1]}"
+                    else:
+                        assert getattr(card, "returned_to_supply", False), f"physical card disappeared: {name}"
+                        returned[name] += 1
+                gained = Counter(name for key, (_card, name) in cards.items() if key not in self._cards)
+                expected_supply = self._supply.copy()
+                expected_supply.update(returned)
+                expected_supply.subtract(gained)
+                assert supply == expected_supply, "physical gains and returns do not match Supply changes"
+            # Keep strong references so a lost object's id cannot be reused.
+            self._cards, self._supply = cards, supply
         except Exception as error:
             self._annotate(error, state, step)
             raise
