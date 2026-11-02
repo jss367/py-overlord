@@ -34,8 +34,8 @@ def owned_ids(player):
 
 
 @pytest.mark.parametrize("corruption,match", [
-    ("lost", "missing="),
-    ("extra", "extra="),
+    ("lost", r"missing=\{'Gold': 1\}, extra=\{\}"),
+    ("extra", r"missing=\{\}, extra=\{'Gold': 1\}"),
     ("duplicate", "multiple physical zones"),
     ("second_owner", "multiple physical zones"),
     ("negative_supply", "negative Supply count"),
