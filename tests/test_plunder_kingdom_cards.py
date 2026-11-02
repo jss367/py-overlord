@@ -477,17 +477,20 @@ def test_landing_party_top_decks_treasure():
     assert "Landing Party" in top_two
 
 
-def test_mining_road_gains_treasure_to_hand():
+def test_mining_road_plays_gained_treasure_without_gaining_another():
     state = _make_state()
     player = state.current_player
     mr = get_card("Mining Road")
     player.in_play.append(mr)
-    pre_treasures = sum(1 for c in player.hand if c.is_treasure)
+    mr.on_play(state)
+    silver = get_card("Silver")
+    gold_before = state.supply["Gold"]
     state.supply["Silver"] -= 1
-    state.gain_card(player, get_card("Silver"))
-    # Mining Road triggers gain of a Treasure to hand → at least 1 more treasure in hand.
-    post_treasures = sum(1 for c in player.hand if c.is_treasure)
-    assert post_treasures >= pre_treasures + 1
+    state.gain_card(player, silver)
+    assert silver in player.in_play
+    assert player.coins == 3  # Road's $1 and the gained Silver's $2.
+    assert state.supply["Gold"] == gold_before
+    assert player.mining_road_uses == 0
 
 
 def test_crucible_gives_one_per_trashed():
@@ -610,7 +613,7 @@ def test_fortune_hunter_plays_treasure_from_top_of_deck():
 def test_landing_party_top_decks_treasure_gained_to_hand():
     """Regression for PR #193 review: Landing Party should resolve even when
     the gained Treasure was placed somewhere other than discard/deck (e.g.
-    Mining Road's gain-to-hand)."""
+    Mine's gain-to-hand)."""
     state = _make_state()
     player = state.current_player
     lp = get_card("Landing Party")

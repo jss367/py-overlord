@@ -1,0 +1,93 @@
+[
+  {
+    "opening": "Banquet",
+    "shrine": 0,
+    "spice": 0,
+    "lost": 0,
+    "highway": 1,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 2
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "spice": 0,
+    "lost": 0,
+    "highway": 1,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 2
+  },
+  {
+    "opening": "Spice Merchant",
+    "shrine": 0,
+    "spice": 1,
+    "lost": 1,
+    "highway": 2,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 2
+  },
+  {
+    "opening": "Spice Merchant",
+    "shrine": 0,
+    "spice": 1,
+    "lost": 1,
+    "highway": 1,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 2
+  },
+  {
+    "opening": "Banquet",
+    "shrine": 0,
+    "spice": 0,
+    "lost": 0,
+    "highway": 2,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 2
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "spice": 0,
+    "lost": 0,
+    "highway": 1,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 2
+  },
+  {
+    "opening": "Battle Plan",
+    "battle": 1,
+    "warlord": 1,
+    "shrine": 0,
+    "lost": 0,
+    "highway": 1,
+    "daimyo": 2
+  },
+  {
+    "opening": "Banquet",
+    "shrine": 0,
+    "lost": 1,
+    "highway": 2,
+    "daimyo": 4,
+    "tea": 6,
+    "change": 1
+  },
+  {
+    "money": true
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 2,
+    "highway": 1
+  },
+  {
+    "opening": "Daimyo",
+    "free": "daimyo"
+  }
+]

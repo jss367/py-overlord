@@ -1,0 +1,10 @@
+{
+  "samples": 4,
+  "refine": 4,
+  "adaptive_refine": 12,
+  "live_verify": 32,
+  "schedule": "cleanup",
+  "decision_budget": 2,
+  "legacy_change_pass": false,
+  "search_kinds": null
+}

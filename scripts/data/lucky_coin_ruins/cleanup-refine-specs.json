@@ -1,0 +1,732 @@
+[
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 0,
+    "banquet": true,
+    "daimyo": 0,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 0,
+    "banquet": true,
+    "daimyo": 0,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 0,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 0,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 0,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 0,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 0,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 0,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 2,
+    "banquet": true,
+    "daimyo": 0,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 2,
+    "banquet": true,
+    "daimyo": 0,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 2,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 2,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 2,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 2,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 0,
+    "banquet": true,
+    "daimyo": 0,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 0,
+    "banquet": true,
+    "daimyo": 0,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 0,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 0,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 0,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 0,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 0,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 0,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 2,
+    "banquet": true,
+    "daimyo": 0,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 2,
+    "banquet": true,
+    "daimyo": 0,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 2,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 2,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 2,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 1,
+    "highway": 2,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "lost": 0,
+    "highway": 0,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "free_shrine": "coin",
+      "reserve": "breakpoints"
+    }
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "free_shrine": "coin",
+      "reserve": "breakpoints"
+    }
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "lost": 0,
+    "highway": 2,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "free_shrine": "coin",
+      "reserve": "breakpoints"
+    }
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "lost": 1,
+    "highway": 0,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "free_shrine": "coin",
+      "reserve": "breakpoints"
+    }
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "lost": 1,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "free_shrine": "coin",
+      "reserve": "breakpoints"
+    }
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "lost": 1,
+    "highway": 2,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "free_shrine": "coin",
+      "reserve": "breakpoints"
+    }
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 0,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "none"
+    },
+    "tea": 3
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 0,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "three"
+    },
+    "tea": 3
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 0,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "none"
+    },
+    "tea": 5
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 0,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "three"
+    },
+    "tea": 5
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 2,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "none"
+    },
+    "tea": 3
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 2,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "three"
+    },
+    "tea": 3
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 2,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "none"
+    },
+    "tea": 5
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 2,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "three"
+    },
+    "tea": 5
+  }
+]

@@ -1,5 +1,6 @@
 """Empires Events."""
 
+from dominion.ai.gain_context import FreeGainContext
 from dominion.cards.base_card import CardCost
 from dominion.cards.registry import get_card
 
@@ -148,10 +149,17 @@ class Banquet(Event):
                 continue
             if card.cost.coins > 5 or card.cost.potions > 0 or card.cost.debt > 0:
                 continue
-            candidates.append(card)
+            if card.may_be_bought(game_state):
+                candidates.append(card)
         if candidates:
-            candidates.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
-            gain = candidates[0]
+            hook = getattr(player.ai, "choose_free_gain", None)
+            gain = (
+                hook(game_state, player, candidates,
+                     FreeGainContext.build(game_state, player, "Banquet"))
+                if hook else None
+            )
+            if gain not in candidates:
+                gain = max(candidates, key=lambda c: (c.cost.coins, c.name))
             game_state.supply[gain.name] -= 1
             game_state.gain_card(player, gain)
 

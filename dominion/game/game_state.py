@@ -1652,6 +1652,8 @@ class GameState:
             card for card in player.flagship_pending if card in player.duration
         ]
         player.highwayman_blocked_this_turn = False
+        # Expire last turn's allowances before any start-of-turn gains or plays.
+        player.mining_road_uses = 0
         player.actions_this_turn = 0
         player.bought_this_turn = []
         player.coins_spent_this_turn = 0
@@ -1912,7 +1914,6 @@ class GameState:
         # (e.g. Secluded Shrine) count toward this turn's "cards trashed
         # this turn" total used by Crucible.
         self.current_player.cards_trashed_this_turn = 0
-        self.current_player.mining_road_triggered = False
         self.current_player.search_triggered = False
         # Plunder Launch event: reset the once-per-turn lockout.
         self.current_player.launch_used = False
@@ -4283,27 +4284,20 @@ class GameState:
             return
         player.deliver_set_aside.append(gained_card)
 
-    def _handle_mining_road_gain(self, player: PlayerState, gained_card: Card, *, claimed=False) -> None:
-        if player is not self.current_player:
+    def _handle_mining_road_gain(self, player: PlayerState, gained_card: Card) -> None:
+        """Spend one Mining Road allowance to play this gained Treasure."""
+        if player is not self.turn_player or player.mining_road_uses <= 0:
             return
-        if not self.is_treasure(gained_card):
+        if not self.is_treasure(gained_card) or not self.gain_is_movable(player, gained_card):
             return
-        if not any(card.name == "Mining Road" for card in player.in_play):
+        hook = getattr(player.ai, "should_play_mining_road_treasure", None)
+        if hook and not hook(self, player, gained_card):
             return
-        if not claimed and getattr(player, "mining_road_triggered", False):
-            return
-        player.mining_road_triggered = True
-
-        candidates = []
-        for _name, card, _count in self._iter_gainable_supply_cards():
-            if self.is_treasure(card):
-                candidates.append(card)
-        if not candidates:
-            return
-        candidates.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
-        choice = candidates[0]
-        self.supply[choice.name] -= 1
-        self.gain_card(player, choice, to_hand=True)
+        player.mining_road_uses -= 1
+        if self._remove_gained_card_from_zones(player, gained_card):
+            player.in_play.append(gained_card)
+            self._gain_destinations[gained_card] = None
+            self.play_treasure_indirectly(player, gained_card)
 
     def _handle_gatekeeper_exile(
         self, player: PlayerState, card: Card, on_deck: bool, had_exiled_copy: bool, *, qualified=False

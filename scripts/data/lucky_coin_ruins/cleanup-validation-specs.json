@@ -1,0 +1,59 @@
+[
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false
+    },
+    "spice": 1
+  },
+  {
+    "opening": "Spice Merchant",
+    "spice": 1,
+    "shrine": 0,
+    "lost": 1,
+    "highway": 1,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "spice_mode": "adaptive",
+      "spice_silver": true,
+      "trigger": "fallback"
+    }
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 2,
+    "green": 1,
+    "cleanup": {
+      "free_shrine": "coin",
+      "reserve": "breakpoints"
+    }
+  }
+]

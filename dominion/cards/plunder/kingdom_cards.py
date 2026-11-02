@@ -894,8 +894,7 @@ class Longship(Card):
 
 
 class MiningRoad(Card):
-    """$5 Action: +1 Action +1 Buy +$1. First Treasure gained on your turn,
-    gain a Treasure to hand."""
+    """$5: +1 Action, +1 Buy, +$1; once this turn, play a gained Treasure."""
 
     def __init__(self):
         super().__init__(
@@ -906,7 +905,7 @@ class MiningRoad(Card):
         )
 
     def play_effect(self, game_state):
-        pass
+        game_state.current_player.mining_road_uses += 1
 
 
 class Pendant(Card):

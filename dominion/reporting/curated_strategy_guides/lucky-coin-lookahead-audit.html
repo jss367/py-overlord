@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Decision Quality and Lookahead on the Lucky Coin Board</title>
+<style>body{margin:0;background:#faf9f4;color:#233438;font:17px/1.65 system-ui,sans-serif}main{max-width:1050px;margin:auto;padding:44px 24px 80px}h1{font-size:clamp(2rem,5vw,3.2rem);line-height:1.15}h2{margin-top:40px;line-height:1.3}a{color:#185d50}.lead{font-size:1.2rem}.callout{background:#e5f0e8;border-left:5px solid #185d50;padding:18px 24px}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;background:white;font-size:.94rem;margin:20px 0}th,td{padding:12px;border-bottom:1px solid #d4ded6;text-align:left;vertical-align:top}th{background:#e7eee8}pre{background:#203236;color:#edf3ee;padding:20px;overflow:auto;font:13px/1.65 ui-monospace,monospace;border-radius:5px}.note{font-size:.93rem;color:#526369}li{margin:8px 0}code{font-size:.9em}footer{border-top:1px solid #d4ded6;margin-top:40px;padding-top:20px}</style></head><body><main>
+<p class="note">Dominion research · November 2026</p>
+<h1>Decision quality and shared lookahead</h1>
+<p class="lead">The earlier Tea House-versus-Shrine comparison measured limited heuristic players. This follow-up saves real decision points, tests alternative legal moves, and adds the same information-limited rollout planner to both strategy families.</p>
+<div class="callout"><strong>Focused planning now improves the tested players in small fresh pilots.</strong> It reserves cleanup searches and independently confirms useful Shrine and Spice Merchant choices. The Tea House and Shrine families remain unresolved against each other with planning enabled; these results do not establish optimal play.</div>
+
+<h2>The board and starting deck</h2>
+<p>Two players, eight Provinces, no Colonies. Each starts with Lucky Coin, Survivors, Ruined Village, Ruined Market, Ruined Library, Abandoned Mine, and four Coppers. The Kingdom is Daimyo, Clashes starting with Battle Plan, Fool, Secluded Shrine, Change, Spice Merchant, Highwayman, Lost City, Mining Road, and Tea House. Kind Emperor is the Prophecy; Banquet and Scrounge are Events.</p>
+<p>The frozen continuation families are the previous Tea House winner and the corrected Shrine/Spice Merchant build. Their complete settings are in <a href="../../scripts/data/lucky_coin_ruins/rollout-policy-specs.json">the policy inputs</a>. The <a href="lucky-coin-ruins-strategy-guide.html">original board guide</a> preserves the earlier searches and the 10,000-game comparison.</p>
+
+<h2>What the planner can change</h2>
+<ul>
+<li>Choose among legal Actions and Treasures, including stopping a phase.</li>
+<li>Choose purchases or pass, without requiring the old purchase sequence to remain unchanged.</li>
+<li>Choose trash targets from the actual legal menu, including good cards that the old junk list never selected.</li>
+<li>Choose free gains and Kind Emperor gains according to the current position.</li>
+<li>Choose Spice Merchant's Treasure sacrifice and draw-versus-money mode, and order simultaneous gain effects.</li>
+</ul>
+<p>For each candidate, the planner replays the current phase to the exact decision, applies that choice, and plays a sampled continuation to game end. The objective is winning the continuation, rather than minimizing Copper counts or preserving the old purchase. The original live budget was one strategic search and one tactical search per player turn. The cleanup-focused follow-up below replaces those shared slots with separate quotas. Both families receive the same configuration, though actual simulation counts depend on their legal menus.</p>
+
+<h2>Information boundaries and exact replay</h2>
+<p>At a decision, unseen own deck order is resampled. Opponent hand and deck are pooled and resampled while preserving their sizes. Remaining Boon order is resampled. Canonical sorting before sampling prevents the actual hidden arrangement from influencing which sampled worlds are used. Own observed top cards are retained, and top-card memory expires on a shuffle.</p>
+<p>A phase checkpoint and decision tape preserve already observed actions and draws. Sampling happens only at the target decision, so earlier observations stay fixed. Replay also checks that the public observation matches the original. This supports choices partway through Shrine or Spice Merchant without losing the remaining card instructions or Mining Road effects. AI objects are replaced on simulated copies; live game state and random state are preserved.</p>
+<p class="note">The belief model is deliberately limited: it does not infer hidden cards from an opponent's strategy or maintain every possible opponent reveal. The exercised card-memory paths include Survivors and the board's topdeck hooks. Pile rotation, Boon ordering, and many other ancillary choices still use the continuation policy.</p>
+
+<h2>Saved-position audit</h2>
+<p>From 24 baseline games, the audit retained <strong>72 actual decisions</strong>: eight each for Actions, Treasures, purchases, trashing, free gains, Kind Emperor, gain-effect order, Spice Merchant sacrifice, and Spice Merchant mode. Reservoir sampling spreads the audit over the encountered positions. This balances decision categories; it is not a frequency-weighted estimate of whole-game policy weakness.</p>
+<p>Each legal alternative initially received 16 sampled continuations. The selected alternative was tested against the baseline on 32 independent sampled worlds. The audit selected a different move in 24 of 72 positions; most apparent gains were uncertain. Two nominally positive positions received an additional independent 256-sample paired confirmation, with Bonferroni-adjusted intervals across those two tests.</p>
+<div class="table-wrap"><table><thead><tr><th>Saved decision</th><th>Baseline move</th><th>Alternative</th><th>Baseline continuation win share</th><th>Alternative continuation win share</th><th>Estimated gain, adjusted interval</th></tr></thead><tbody>
+<tr><td>Seed 10,000,009, swapped seats, turn 5 purchase; $3 and one Buy</td><td>Banquet</td><td>Daimyo</td><td>62.50%</td><td>71.48%</td><td>+8.98 points (0.44–17.53)</td></tr>
+<tr><td>Seed 10,000,002, turn 9 Kind Emperor gain; hand includes Mining Road, two Coppers, and two Ruins</td><td>Tea House</td><td>Daimyo</td><td>49.22%</td><td>78.52%</td><td>+29.30 points (22.22–36.37)</td></tr>
+</tbody></table></div>
+<p>Both confirmed comparisons were rerun under the corrected mandatory-Change rules and produced identical estimates. These are conditional estimates under the sampled hidden-state model and fixed continuation players. They show that the fixed rules can miss valuable context-specific choices. They do not measure how much an entire strategy would improve if all decisions were optimized.</p>
+
+<h2>Exploratory player pilots under the earlier rule model</h2>
+<p><strong>Rule-version qualification:</strong> the comparative pilots below preceded a newly detected Change bug: its gain menu allowed a player to trash a card and decline the mandatory gain. They are retained as diagnostics of that earlier model, not validated strategy-strength results under the corrected rules. Recorded changed moves in the revised pilots did not include a declined Change gain; the rule correction still requires fresh performance validation before promotion.</p>
+<p>The first live planner used two samples per candidate, refined the leading choices with four more, and required an estimated paired advantage larger than one standard error before switching. It performed poorly in self-comparisons. Increasing the set of possible moves was insufficient at that sampling budget.</p>
+<div class="table-wrap"><table><thead><tr><th>Exploratory matchup</th><th>First player's win share</th><th>Paired 95% interval</th><th>Games</th></tr></thead><tbody>
+<tr><td>Low-budget Tea planner vs same Tea heuristic</td><td>34.38%</td><td>19.62–49.13%</td><td>32</td></tr>
+<tr><td>Low-budget Shrine planner vs same Shrine heuristic</td><td>40.63%</td><td>24.57–56.68%</td><td>32</td></tr>
+<tr><td>Low-budget Tea planner vs low-budget Shrine planner</td><td>67.71%</td><td>53.72–81.69%</td><td>48</td></tr>
+</tbody></table></div>
+<p>The last row should not be read as an improvement over the original Tea winner: both planned players were weaker than their corresponding heuristics in these exploratory pilots.</p>
+<h3>Independent verification before switching</h3>
+<p>The revised live configuration uses four initial samples per candidate and four refinement samples. A proposed departure from the baseline then receives 16 independent paired continuations. It is adopted only when its mean improvement is positive and a one-sided paired sign test reaches 0.05. This is a conservative per-decision acceptance rule, not a guarantee of better play or a whole-game familywise significance claim.</p>
+<div class="table-wrap"><table><thead><tr><th>Revised matchup</th><th>Planner's win share</th><th>Paired 95% interval</th><th>Games</th></tr></thead><tbody id="verified-results"><tr><td>Verified Tea planner vs same Tea heuristic</td><td>51.56%</td><td>42.11–61.02%</td><td>32</td></tr><tr><td>Verified Shrine planner vs same Shrine heuristic</td><td>50.00%</td><td>34.50–65.50%</td><td>32</td></tr></tbody></table></div>
+<p id="verified-conclusion">The independently verified Tea planner scored 51.56%; the verified Shrine planner scored 50.00%. Both intervals include parity. There is no demonstrated whole-game strength gain from this small revised pilot, so the existing heuristic winner remains the default. The verified players adopted 16 different choices across 64 games; these changes were purchases, Kind Emperor gains, and one Action choice. No new trash choice was adopted in these budget-limited live pilots, even though the saved-position audit and replay engine support trash alternatives.</p>
+<p>Win shares count ties as half. Every shuffle seed is played in both starting seats. These are small exploratory player pilots, substantially less precise than the earlier 10,000-game heuristic comparison. They support testing the architecture and diagnosing noise; they do not establish an optimal board strategy.</p>
+
+<h2>Rule validation exposed by broader search</h2>
+<p>The engine now enforces Change's mandatory trash and more-expensive gain by default, including fallback handling if an AI declines. Only an explicit <code>--legacy-change-pass</code> research option restores the old menu for reproduction. Unit tests cover both the strict default and the opt-in compatibility behavior.</p>
+<p>The strict default completed a four-game, two-planner smoke run with 6,872 sampled continuations and no replay or game-ending errors. That checks the corrected path; four games are insufficient for a strength comparison. The legacy pilots above do not justify replacing the previous winner.</p>
+<h2 id="cleanup-focused">Follow-up: reserve searches for cleanup and purchases</h2>
+<p>The original shared slots were consumed too early: an Action could use the tactical slot before Shrine's trash choices, and a Kind Emperor gain could use the strategic slot before purchasing. The new <strong>cleanup-focused schedule</strong> reserves separate per-player-turn quotas. It searches one purchase, one gain, up to two trash choices (enough for one Shrine trigger), one Treasure play-or-stop choice while Shrine is armed, and one Spice Merchant mode choice. Actions, gain-effect order, and Spice Merchant's Treasure sacrifice retain the continuation heuristic in this profile. The older schedule remains available for reproduction.</p>
+<p>Discovery starts with four sampled worlds for every legal alternative. In batches of four, it gives the baseline and current leaders up to twelve extra worlds, stopping early for a promising alternative or a baseline that wins every sampled continuation. Candidate comparisons use matching world indices even when the leaders change. A proposed switch then receives <strong>32 independent paired continuations</strong>; adoption still requires a positive mean and a one-sided paired sign-test result at 0.05. Adaptive stopping only proposes a choice; it never bypasses that independent gate.</p>
+<p>The <a href="../../scripts/data/lucky_coin_ruins/cleanup-focused-planner-config.json">planner settings</a> were frozen before screening. Both strategy families receive the same settings. This package also increases the available searches and verification budget, so a performance difference cannot be attributed to scheduling alone. The named schedule replaces the old numeric decision budget; fixed refinement is unused when adaptive refinement is enabled.</p>
+
+<h3>Independent decision checks under strict rules</h3>
+<p>A new stratified sample retained 84 positions from 32 baseline games: twelve each for Treasures, purchases, trashing, free gains, Kind Emperor, Spice Merchant's sacrifice, and Spice Merchant's mode. Discovery proposed alternatives in 29 positions. Fresh 64-world checks found two nominally positive cases and eight negative ones; the remaining estimates were uncertain or unchanged. These raw proposals are not adopted live moves. This is direct evidence that independent verification is necessary at the cheap discovery budget.</p>
+<p>Both positive cases received another 256 independent paired worlds, with Bonferroni-adjusted 95% intervals across the two confirmations. All these new experiments use mandatory Change rules.</p>
+<div class="table-wrap"><table><thead><tr><th>Saved decision</th><th>Baseline</th><th>Alternative</th><th>Continuation win share, baseline → alternative</th><th>Gain, adjusted interval</th></tr></thead><tbody>
+<tr><td>Kind Emperor, seed 21,000,009, swapped seats, ninth turn; hand contains Daimyo, Silver, Copper, and two Ruins</td><td>Tea House</td><td>Mining Road</td><td>60.94% → 86.72%</td><td>+25.78 points (19.40–32.17)</td></tr>
+<tr><td>Spice Merchant, seed 21,000,007, swapped seats, turn 10; $13, two Buys, two Provinces already in hand</td><td>Draw two cards and get an Action</td><td>Get $2 and a Buy</td><td>71.88% → 99.61%</td><td>+27.73 points (21.45–34.02)</td></tr>
+</tbody></table></div>
+<p>The trash alternatives in the saved-position audit did not establish an improvement. That does not prove the heuristic trash choices optimal: it covers only twelve sampled trash positions, uses fixed continuations, and cannot discover every coordinated sequence of holding and trashing cards. The confirmed Spice Merchant result does demonstrate a cleanup-card decision that the old fixed rules missed.</p>
+<h3>An adopted Shrine choice survives fresh confirmation</h3>
+<p>The 16-game Shrine screen searched 108 trash decisions and adopted one change: <strong>decline a Copper trash</strong> in seed 22,010,005, swapped seats, turn 10. At that decision the player had $9 and two Buys; the remaining hand contained two Coppers, one Silver, and one Province. The independent live gate had favored keeping the card. To check selection noise, the confirmation runner reproduced the exact game and decision, then tested every adopted trash change from that screen on 256 new paired worlds using a sample stream separate from discovery, live verification, and the earlier audit.</p>
+<p>Trashing the Copper won <strong>67.97%</strong> of those continuations; passing won <strong>96.09%</strong>. The estimated gain was <strong>28.13 percentage points, 95% interval 22.50–33.75</strong>. There was one adopted trash change in the screen, so the multiple-comparison adjustment covered one test. This establishes a useful conditional Shrine improvement under the continuation model. It supports choosing when to trash, rather than assuming either that every Copper should go or that cleanup is always unnecessary.</p>
+
+<h3>Strict-rule player comparisons</h3>
+<p>The initial screen used sixteen games per mirror comparison. The settings then remained unchanged for thirty-two fresh games per matchup, including a direct comparison with planning on both sides. Every seed is played in both starting seats; ties count half. Screening and validation seeds are disjoint.</p>
+<h4>Initial screen</h4><div class="table-wrap"><table><thead><tr><th>Matchup</th><th>First policy win share</th><th>Pointwise paired 95% interval</th><th>Games</th></tr></thead><tbody><tr><td>Focused Tea planner vs same Tea heuristic</td><td>62.50%</td><td>46.46–78.54%</td><td>16</td></tr><tr><td>Focused Shrine planner vs same Shrine heuristic</td><td>68.75%</td><td>50.82–86.68%</td><td>16</td></tr></tbody></table></div><h4>Fresh validation</h4><div class="table-wrap"><table><thead><tr><th>Matchup</th><th>First policy win share</th><th>Pointwise paired 95% interval</th><th>Games</th></tr></thead><tbody><tr><td>Focused Tea planner vs same Tea heuristic</td><td>64.06%</td><td>51.44–76.69%</td><td>32</td></tr><tr><td>Focused Shrine planner vs same Shrine heuristic</td><td>68.75%</td><td>53.58–83.92%</td><td>32</td></tr><tr><td>Focused Tea planner vs focused Shrine planner</td><td>56.25%</td><td>44.00–68.50%</td><td>32</td></tr></tbody></table></div>
+<p><strong>The focused planner improved both mirror pilots.</strong> Both pointwise intervals exclude parity, though these are small samples. Correcting across the two prespecified mirror comparisons gives a 49.62–78.50% interval for Tea and 51.40–86.10% for Shrine. Thus the Tea improvement is suggestive under that stricter joint criterion, while the Shrine improvement remains positive. The direct family comparison is inconclusive: Tea's 56.25% has a 44.00–68.50% interval. These data support continuing with the focused planner, but do not establish which planned family is strongest.</p>
+<p>In the fresh Shrine mirror, the planner searched 213 trash choices and 79 Spice Merchant mode choices. It adopted two trash changes, two mode changes, and three Treasure choices, as well as purchase and gain changes. Across all 96 fresh games it ran 277,012 sampled continuations. The new schedule therefore reaches cleanup decisions in live play, rather than only in an offline audit. Whole-player gains cannot be assigned specifically to trashing: purchases and Kind Emperor choices also changed, and the search budget increased.</p>
+<p><strong>Strategy recommendation:</strong> retain Tea House/Banquet as the practical starting family, with contextual gains and cleanup choices. The old claim should be “best tested heuristic family,” not “optimal play never trashes.” The new evidence supports decision-specific planning and leaves the best cleanup investment unresolved. A larger frozen-policy comparison would improve precision; a richer continuation policy is still needed to test coordinated departures from the heuristics.</p>
+
+<h2>What remains restricted</h2>
+<ul>
+<li>After the candidate move, rollouts use fixed continuation policies rather than recursively planning every later decision. Combinations needing several coordinated deviations may be missed.</li>
+<li>The opponent model is the copied continuation policy. It does not forecast a future opponent that itself replans.</li>
+<li>The focused schedule protects cleanup and purchase searches but leaves Actions, effect order, and later choices beyond each quota at their heuristic defaults. The first gain can still consume the shared gain quota, and other trash effects can consume the two trash slots before Shrine.</li>
+<li>Small samples can misrank alternatives. Independent verification filters proposals but also rejects some genuine small improvements.</li>
+<li>The position sampler is stratified by decision type and covers only this scenario and the frozen continuation families.</li>
+</ul>
+
+<h2>Implementation and reproduction</h2>
+<p><a href="../../scripts/data/lucky_coin_ruins_cleanup_focused_research.json">Cleanup-focused research, public positions, and exact reproduction commands</a> · <a href="../../scripts/benchmark_focused_lucky_coin.py">Strict-rule benchmark runner</a> · <a href="../../scripts/confirm_lucky_coin_trash_changes.py">Independent confirmation of adopted trash changes</a></p>
+<p><a href="../../dominion/ai/lucky_coin_rollout.py">Shared planner and hidden-state sampling</a> · <a href="../../scripts/research_lucky_coin_rollout.py">Collection, audit, confirmation, and evaluation runner</a> · <a href="../../tests/test_lucky_coin_rollout.py">Replay, information-boundary, and verification tests</a> · <a href="../../scripts/data/lucky_coin_ruins_rollout_research.json">Public saved positions, results, and exact commands</a></p>
+<p>The research runner calls the phase-checkpoint driver. Ordinary strategy catalog runners do not automatically activate this AI wrapper. Saved binary checkpoints are local working files; regenerate them using the first command. Public observations and position identifiers are retained with the research evidence.</p>
+<pre>PYTHONPATH=. python scripts/research_lucky_coin_rollout.py collect \
+  --games 24 --seed 10000000 --output .context/lucky-rollout-positions.pkl
+
+PYTHONPATH=. python scripts/research_lucky_coin_rollout.py audit \
+  --positions .context/lucky-rollout-positions.pkl --samples 16 --verify 32 \
+  --output .context/lucky-rollout-audit.json
+
+PYTHONPATH=. python scripts/research_lucky_coin_rollout.py confirm \
+  --positions .context/lucky-rollout-positions.pkl \
+  --audit .context/lucky-rollout-audit.json --verify 256 \
+  --output .context/lucky-rollout-confirm.json
+
+PYTHONPATH=. python scripts/research_lucky_coin_rollout.py evaluate \
+  --matchup tea-mirror --planned first --games 32 --seed 16000000 \
+  --samples 4 --refine 4 --live-verify 16 --legacy-change-pass \
+  --output .context/lucky-rollout-verified-tea.json
+
+PYTHONPATH=. python scripts/research_lucky_coin_rollout.py evaluate \
+  --matchup shrine-mirror --planned first --games 32 --seed 17000000 \
+  --samples 4 --refine 4 --live-verify 16 --legacy-change-pass \
+  --output .context/lucky-rollout-verified-shrine.json</pre>
+<p>To reproduce the new strict-rule follow-up, regenerate its local checkpoints and run:</p>
+<pre>PYTHONPATH=. python scripts/research_lucky_coin_rollout.py collect \
+  --games 32 --seed 21000000 --per-kind 12 \
+  --collect-kinds treasure,buy,trash,free_gain,emperor,spice_trash,spice_mode \
+  --output .context/lucky-focused-positions.pkl
+
+PYTHONPATH=. python scripts/research_lucky_coin_rollout.py audit \
+  --positions .context/lucky-focused-positions.pkl --samples 4 \
+  --adaptive-refine 12 --verify 64 --workers 6 \
+  --output .context/lucky-focused-audit.json
+
+PYTHONPATH=. python scripts/research_lucky_coin_rollout.py confirm \
+  --positions .context/lucky-focused-positions.pkl \
+  --audit .context/lucky-focused-audit.json --verify 256 --workers 2 \
+  --output .context/lucky-focused-confirm.json
+
+PYTHONPATH=. python scripts/benchmark_focused_lucky_coin.py \
+  --games 16 --seed 22000000 --matchups mirrors --workers 6 \
+  --output .context/lucky-focused-screen.json
+
+PYTHONPATH=. python scripts/confirm_lucky_coin_trash_changes.py \
+  --benchmark .context/lucky-focused-screen.json --samples 256 \
+  --output .context/lucky-focused-trash-confirm.json
+
+PYTHONPATH=. python scripts/benchmark_focused_lucky_coin.py \
+  --games 32 --seed 23000000 --matchups all --workers 6 \
+  --output .context/lucky-focused-validation.json</pre>
+<footer class="note"><a href="index.html">Strategy catalog</a> · <a href="lucky-coin-ruins-strategy-guide.html">Board strategy and previous comparisons</a></footer>
+</main></body></html>

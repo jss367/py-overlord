@@ -252,15 +252,38 @@ def test_prepare_sets_aside_and_plays_next_turn():
     assert sum(1 for c in player.in_play if c.is_treasure) == 2
 
 
-def test_scrounge_trashes_estate_and_gains_card_up_to_5():
+def test_scrounge_trash_mode_does_not_gain_a_card():
     state = _make_state()
     player = state.current_player
     player.hand = [get_card("Estate")]
-    sc = get_event("Scrounge")
-    sc.on_buy(state, player)
+    player.discard = []
+    get_event("Scrounge").on_buy(state, player)
     assert any(c.name == "Estate" for c in state.trash)
-    # A card up to $5 in discard.
-    assert len(player.discard) >= 1
+    assert not player.discard
+
+
+def test_scrounge_gains_estate_from_trash_then_supply_card():
+    state = _make_state()
+    player = state.current_player
+    player.discard = []
+    estate = get_card("Estate")
+    state.trash = [estate]
+    count = state.supply["Estate"]
+    get_event("Scrounge").on_buy(state, player)
+    assert estate not in state.trash
+    assert estate in player.discard
+    assert state.supply["Estate"] == count
+    assert len(player.discard) == 2
+
+
+def test_scrounge_without_trash_estate_never_touches_estate_supply():
+    state = _make_state()
+    player = state.current_player
+    player.hand = []
+    count = state.supply["Estate"]
+    get_event("Scrounge").on_buy(state, player)
+    assert state.supply["Estate"] == count
+    assert not state.trash
 
 
 def test_maelstrom_trashes_three_from_hand_and_attacks():

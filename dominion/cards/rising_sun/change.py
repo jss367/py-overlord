@@ -27,9 +27,12 @@ class Change(Card):
         if not player.hand:
             return
 
+        legacy = getattr(player.ai, "allow_legacy_change_pass", False)
         trash_choice = player.ai.choose_card_to_trash(game_state, list(player.hand))
         if trash_choice is None or trash_choice not in player.hand:
-            return
+            if legacy:
+                return
+            trash_choice = min(player.hand, key=lambda c: (c.cost.coins, c.name))
 
         trashed_cost = game_state.get_card_cost(player, trash_choice)
         player.hand.remove(trash_choice)
@@ -55,9 +58,13 @@ class Change(Card):
         if not candidates:
             return
 
-        chosen = player.ai.choose_buy(game_state, candidates + [None])
-        if chosen is None:
-            return
+        chosen = player.ai.choose_buy(
+            game_state, candidates + ([None] if legacy else [])
+        )
+        if chosen is None or chosen not in candidates:
+            if legacy:
+                return
+            chosen = max(candidates, key=lambda c: (c.cost.coins, c.name))
 
         if game_state.supply.get(chosen.name, 0) <= 0:
             return

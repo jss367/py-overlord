@@ -1,0 +1,2654 @@
+{
+  "question": "Does the best corrected Shrine build beat the previous Tea House winner?",
+  "selection": "Select the highest Shrine win share among 16 corrected Shrine-opening configurations, then freeze its exact settings before evaluating new seeds.",
+  "policy_limits": "Strongest tested Shrine build in this search; globally optimal Shrine play is not established.",
+  "screen": {
+    "opponent": {
+      "opening": "Tea House",
+      "shrine": 0,
+      "spice": 0,
+      "lost": 0,
+      "highway": 1,
+      "green": 1,
+      "double": "adaptive",
+      "daimyo": 2
+    },
+    "seed": 8000000,
+    "games_per_policy": 400,
+    "scoring": "Win share for Shrine; ties count half. Paired 95% intervals use one observation per seat-swapped seed.",
+    "results": [
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 177,
+        "ties": 0,
+        "rate": 0.4425,
+        "ci95": [
+          0.39428061494090383,
+          0.4907193850590962
+        ],
+        "scores": [
+          25.9325,
+          28.07
+        ],
+        "deck": {
+          "Abandoned Mine": 0.265,
+          "Copper": 4.2625,
+          "Daimyo": 3.31,
+          "Duchy": 0.9875,
+          "Estate": 0.17,
+          "Highwayman": 1.0,
+          "Lost City": 0.0025,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.8,
+          "Ruined Library": 0.2325,
+          "Ruined Market": 0.1825,
+          "Ruined Village": 0.1875,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.07,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.1875,
+          "Tea House": 3.0675
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 172,
+        "ties": 0,
+        "rate": 0.43,
+        "ci95": [
+          0.38235325972013945,
+          0.47764674027986054
+        ],
+        "scores": [
+          25.785,
+          28.245
+        ],
+        "deck": {
+          "Abandoned Mine": 0.29,
+          "Copper": 4.48,
+          "Daimyo": 2.2425,
+          "Duchy": 0.9725,
+          "Estate": 0.1275,
+          "Highwayman": 1.0,
+          "Lost City": 0.0025,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.79,
+          "Ruined Library": 0.2625,
+          "Ruined Market": 0.195,
+          "Ruined Village": 0.2075,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.0275,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.2025,
+          "Tea House": 4.1375
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 168,
+        "ties": 0,
+        "rate": 0.42,
+        "ci95": [
+          0.3726581044382791,
+          0.46734189556172084
+        ],
+        "scores": [
+          25.6375,
+          28.9425
+        ],
+        "deck": {
+          "Abandoned Mine": 0.2375,
+          "Copper": 4.215,
+          "Daimyo": 2.9675,
+          "Duchy": 1.1525,
+          "Estate": 0.175,
+          "Highwayman": 2.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.995,
+          "Province": 3.6675,
+          "Ruined Library": 0.21,
+          "Ruined Market": 0.1325,
+          "Ruined Village": 0.205,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.2325,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.145,
+          "Tea House": 2.91
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 163,
+        "ties": 0,
+        "rate": 0.4075,
+        "ci95": [
+          0.3588323077251778,
+          0.4561676922748221
+        ],
+        "scores": [
+          25.41,
+          29.185
+        ],
+        "deck": {
+          "Abandoned Mine": 0.2425,
+          "Copper": 4.34,
+          "Daimyo": 2.105,
+          "Duchy": 1.1425,
+          "Estate": 0.1275,
+          "Highwayman": 2.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.995,
+          "Province": 3.6425,
+          "Ruined Library": 0.24,
+          "Ruined Market": 0.135,
+          "Ruined Village": 0.2225,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.1725,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.16,
+          "Tea House": 3.7925
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 163,
+        "ties": 0,
+        "rate": 0.4075,
+        "ci95": [
+          0.35933068440569116,
+          0.4556693155943088
+        ],
+        "scores": [
+          25.9275,
+          28.5225
+        ],
+        "deck": {
+          "Abandoned Mine": 0.3475,
+          "Copper": 7.4425,
+          "Daimyo": 3.68,
+          "Duchy": 1.0275,
+          "Estate": 0.15,
+          "Gold": 0.0075,
+          "Highwayman": 1.0,
+          "Lost City": 0.0125,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.7825,
+          "Ruined Library": 0.325,
+          "Ruined Market": 0.2325,
+          "Ruined Village": 0.2575,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.6225,
+          "Survivors": 0.2625,
+          "Tea House": 3.57
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 162,
+        "ties": 0,
+        "rate": 0.405,
+        "ci95": [
+          0.35871480369508063,
+          0.4512851963049194
+        ],
+        "scores": [
+          25.55,
+          28.61
+        ],
+        "deck": {
+          "Abandoned Mine": 0.3,
+          "Copper": 7.7825,
+          "Daimyo": 3.3875,
+          "Duchy": 0.96,
+          "Estate": 0.155,
+          "Gold": 0.005,
+          "Highwayman": 2.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.7525,
+          "Ruined Library": 0.2825,
+          "Ruined Market": 0.215,
+          "Ruined Village": 0.22,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.705,
+          "Survivors": 0.28,
+          "Tea House": 3.13
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 160,
+        "ties": 0,
+        "rate": 0.4,
+        "ci95": [
+          0.353918577632226,
+          0.44608142236777404
+        ],
+        "scores": [
+          25.505,
+          28.8225
+        ],
+        "deck": {
+          "Abandoned Mine": 0.225,
+          "Copper": 4.0725,
+          "Daimyo": 2.62,
+          "Duchy": 1.0575,
+          "Estate": 0.1775,
+          "Highwayman": 1.0,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.99,
+          "Province": 3.6925,
+          "Ruined Library": 0.1925,
+          "Ruined Market": 0.145,
+          "Ruined Village": 0.18,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.1525,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.1125,
+          "Tea House": 2.72
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 158,
+        "ties": 0,
+        "rate": 0.395,
+        "ci95": [
+          0.3491337776598204,
+          0.44086622234017964
+        ],
+        "scores": [
+          25.15,
+          29.0625
+        ],
+        "deck": {
+          "Abandoned Mine": 0.2925,
+          "Copper": 7.5425,
+          "Daimyo": 3.1575,
+          "Duchy": 1.0775,
+          "Estate": 0.1375,
+          "Highwayman": 1.0,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.63,
+          "Ruined Library": 0.2675,
+          "Ruined Market": 0.2325,
+          "Ruined Village": 0.245,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.72,
+          "Survivors": 0.225,
+          "Tea House": 2.97
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 157,
+        "ties": 0,
+        "rate": 0.3925,
+        "ci95": [
+          0.34648276977710485,
+          0.4385172302228952
+        ],
+        "scores": [
+          25.1775,
+          29.325
+        ],
+        "deck": {
+          "Abandoned Mine": 0.295,
+          "Copper": 7.415,
+          "Daimyo": 2.7075,
+          "Duchy": 1.13,
+          "Estate": 0.1275,
+          "Highwayman": 2.0,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.9975,
+          "Province": 3.61,
+          "Ruined Library": 0.2375,
+          "Ruined Market": 0.1675,
+          "Ruined Village": 0.215,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.88,
+          "Survivors": 0.1825,
+          "Tea House": 2.6725
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 154,
+        "ties": 0,
+        "rate": 0.385,
+        "ci95": [
+          0.3355294951079802,
+          0.4344705048920198
+        ],
+        "scores": [
+          25.65,
+          28.615
+        ],
+        "deck": {
+          "Abandoned Mine": 0.3475,
+          "Copper": 7.45,
+          "Daimyo": 2.6075,
+          "Duchy": 0.9725,
+          "Estate": 0.1575,
+          "Gold": 0.0125,
+          "Highwayman": 1.0,
+          "Lost City": 0.005,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.7625,
+          "Ruined Library": 0.3425,
+          "Ruined Market": 0.24,
+          "Ruined Village": 0.2575,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.5875,
+          "Survivors": 0.28,
+          "Tea House": 4.5625
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 151,
+        "ties": 0,
+        "rate": 0.3775,
+        "ci95": [
+          0.3311587927710425,
+          0.4238412072289575
+        ],
+        "scores": [
+          25.0275,
+          29.12
+        ],
+        "deck": {
+          "Abandoned Mine": 0.3125,
+          "Copper": 7.6075,
+          "Daimyo": 2.165,
+          "Duchy": 1.0525,
+          "Estate": 0.15,
+          "Highwayman": 1.0,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.62,
+          "Ruined Library": 0.31,
+          "Ruined Market": 0.26,
+          "Ruined Village": 0.2625,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.66,
+          "Survivors": 0.2325,
+          "Tea House": 3.94
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 149,
+        "ties": 0,
+        "rate": 0.3725,
+        "ci95": [
+          0.32694656404135697,
+          0.418053435958643
+        ],
+        "scores": [
+          25.295,
+          28.8875
+        ],
+        "deck": {
+          "Abandoned Mine": 0.33,
+          "Copper": 7.7025,
+          "Daimyo": 2.26,
+          "Duchy": 0.9675,
+          "Estate": 0.1025,
+          "Gold": 0.005,
+          "Highwayman": 2.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.715,
+          "Ruined Library": 0.3225,
+          "Ruined Market": 0.2375,
+          "Ruined Village": 0.2425,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.635,
+          "Survivors": 0.2975,
+          "Tea House": 4.2
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 149,
+        "ties": 0,
+        "rate": 0.3725,
+        "ci95": [
+          0.3285644607630656,
+          0.4164355392369344
+        ],
+        "scores": [
+          25.165,
+          29.125
+        ],
+        "deck": {
+          "Abandoned Mine": 0.2425,
+          "Copper": 4.1975,
+          "Daimyo": 1.9475,
+          "Duchy": 1.025,
+          "Estate": 0.145,
+          "Highwayman": 1.0,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.99,
+          "Province": 3.6575,
+          "Ruined Library": 0.2075,
+          "Ruined Market": 0.1475,
+          "Ruined Village": 0.19,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.11,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.1175,
+          "Tea House": 3.405
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 149,
+        "ties": 0,
+        "rate": 0.3725,
+        "ci95": [
+          0.3274794022573497,
+          0.41752059774265027
+        ],
+        "scores": [
+          24.86,
+          29.5925
+        ],
+        "deck": {
+          "Abandoned Mine": 0.295,
+          "Copper": 7.465,
+          "Daimyo": 1.975,
+          "Duchy": 1.1025,
+          "Estate": 0.1325,
+          "Highwayman": 2.0,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.9975,
+          "Province": 3.57,
+          "Ruined Library": 0.245,
+          "Ruined Market": 0.1825,
+          "Ruined Village": 0.245,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.8375,
+          "Survivors": 0.1975,
+          "Tea House": 3.445
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 141,
+        "ties": 0,
+        "rate": 0.3525,
+        "ci95": [
+          0.3029868328765674,
+          0.40201316712343255
+        ],
+        "scores": [
+          24.7375,
+          29.6725
+        ],
+        "deck": {
+          "Abandoned Mine": 0.2,
+          "Copper": 3.975,
+          "Daimyo": 1.655,
+          "Duchy": 1.1125,
+          "Estate": 0.13,
+          "Highwayman": 1.99,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.9825,
+          "Province": 3.545,
+          "Ruined Library": 0.19,
+          "Ruined Market": 0.1475,
+          "Ruined Village": 0.1875,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.21,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.1225,
+          "Tea House": 2.8425
+        },
+        "truncated": 0
+      },
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "games": 400,
+        "seed_pairs": 200,
+        "wins": 141,
+        "ties": 0,
+        "rate": 0.3525,
+        "ci95": [
+          0.3029868328765674,
+          0.40201316712343255
+        ],
+        "scores": [
+          24.83,
+          29.6675
+        ],
+        "deck": {
+          "Abandoned Mine": 0.1825,
+          "Copper": 3.91,
+          "Daimyo": 2.015,
+          "Duchy": 1.1425,
+          "Estate": 0.1475,
+          "Highwayman": 1.99,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.9825,
+          "Province": 3.5425,
+          "Ruined Library": 0.1775,
+          "Ruined Market": 0.14,
+          "Ruined Village": 0.1725,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.24,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.1175,
+          "Tea House": 2.48
+        },
+        "truncated": 0
+      }
+    ],
+    "chunks": [
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.385,
+        "ci95": [
+          0.3355294951079802,
+          0.4344705048920198
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 55.0,
+        "wins": 154,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.2275,
+        "scores": [
+          25.65,
+          28.615
+        ],
+        "deck": {
+          "Abandoned Mine": 0.3475,
+          "Copper": 7.45,
+          "Daimyo": 2.6075,
+          "Duchy": 0.9725,
+          "Estate": 0.1575,
+          "Gold": 0.0125,
+          "Highwayman": 1.0,
+          "Lost City": 0.005,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.7625,
+          "Ruined Library": 0.3425,
+          "Ruined Market": 0.24,
+          "Ruined Village": 0.2575,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.5875,
+          "Survivors": 0.28,
+          "Tea House": 4.5625
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.43,
+        "ci95": [
+          0.38235325972013945,
+          0.47764674027986054
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 60.5,
+        "wins": 172,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.295,
+        "scores": [
+          25.785,
+          28.245
+        ],
+        "deck": {
+          "Abandoned Mine": 0.29,
+          "Copper": 4.48,
+          "Daimyo": 2.2425,
+          "Duchy": 0.9725,
+          "Estate": 0.1275,
+          "Highwayman": 1.0,
+          "Lost City": 0.0025,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.79,
+          "Ruined Library": 0.2625,
+          "Ruined Market": 0.195,
+          "Ruined Village": 0.2075,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.0275,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.2025,
+          "Tea House": 4.1375
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.3725,
+        "ci95": [
+          0.32694656404135697,
+          0.418053435958643
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 49.25,
+        "wins": 149,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.335,
+        "scores": [
+          25.295,
+          28.8875
+        ],
+        "deck": {
+          "Abandoned Mine": 0.33,
+          "Copper": 7.7025,
+          "Daimyo": 2.26,
+          "Duchy": 0.9675,
+          "Estate": 0.1025,
+          "Gold": 0.005,
+          "Highwayman": 2.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.715,
+          "Ruined Library": 0.3225,
+          "Ruined Market": 0.2375,
+          "Ruined Village": 0.2425,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.635,
+          "Survivors": 0.2975,
+          "Tea House": 4.2
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.4075,
+        "ci95": [
+          0.3588323077251778,
+          0.4561676922748221
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 57.75,
+        "wins": 163,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.5525,
+        "scores": [
+          25.41,
+          29.185
+        ],
+        "deck": {
+          "Abandoned Mine": 0.2425,
+          "Copper": 4.34,
+          "Daimyo": 2.105,
+          "Duchy": 1.1425,
+          "Estate": 0.1275,
+          "Highwayman": 2.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.995,
+          "Province": 3.6425,
+          "Ruined Library": 0.24,
+          "Ruined Market": 0.135,
+          "Ruined Village": 0.2225,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.1725,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.16,
+          "Tea House": 3.7925
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.3775,
+        "ci95": [
+          0.3311587927710425,
+          0.4238412072289575
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 50.75,
+        "wins": 151,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.08,
+        "scores": [
+          25.0275,
+          29.12
+        ],
+        "deck": {
+          "Abandoned Mine": 0.3125,
+          "Copper": 7.6075,
+          "Daimyo": 2.165,
+          "Duchy": 1.0525,
+          "Estate": 0.15,
+          "Highwayman": 1.0,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.62,
+          "Ruined Library": 0.31,
+          "Ruined Market": 0.26,
+          "Ruined Village": 0.2625,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.66,
+          "Survivors": 0.2325,
+          "Tea House": 3.94
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.3725,
+        "ci95": [
+          0.3285644607630656,
+          0.4164355392369344
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 47.75,
+        "wins": 149,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.1675,
+        "scores": [
+          25.165,
+          29.125
+        ],
+        "deck": {
+          "Abandoned Mine": 0.2425,
+          "Copper": 4.1975,
+          "Daimyo": 1.9475,
+          "Duchy": 1.025,
+          "Estate": 0.145,
+          "Highwayman": 1.0,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.99,
+          "Province": 3.6575,
+          "Ruined Library": 0.2075,
+          "Ruined Market": 0.1475,
+          "Ruined Village": 0.19,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.11,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.1175,
+          "Tea House": 3.405
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.3725,
+        "ci95": [
+          0.3274794022573497,
+          0.41752059774265027
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 48.75,
+        "wins": 149,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.195,
+        "scores": [
+          24.86,
+          29.5925
+        ],
+        "deck": {
+          "Abandoned Mine": 0.295,
+          "Copper": 7.465,
+          "Daimyo": 1.975,
+          "Duchy": 1.1025,
+          "Estate": 0.1325,
+          "Highwayman": 2.0,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.9975,
+          "Province": 3.57,
+          "Ruined Library": 0.245,
+          "Ruined Market": 0.1825,
+          "Ruined Village": 0.245,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.8375,
+          "Survivors": 0.1975,
+          "Tea House": 3.445
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 2,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.3525,
+        "ci95": [
+          0.3029868328765674,
+          0.40201316712343255
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 50.25,
+        "wins": 141,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.325,
+        "scores": [
+          24.7375,
+          29.6725
+        ],
+        "deck": {
+          "Abandoned Mine": 0.2,
+          "Copper": 3.975,
+          "Daimyo": 1.655,
+          "Duchy": 1.1125,
+          "Estate": 0.13,
+          "Highwayman": 1.99,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.9825,
+          "Province": 3.545,
+          "Ruined Library": 0.19,
+          "Ruined Market": 0.1475,
+          "Ruined Village": 0.1875,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.21,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.1225,
+          "Tea House": 2.8425
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.4075,
+        "ci95": [
+          0.35933068440569116,
+          0.4556693155943088
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 57.25,
+        "wins": 163,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.23,
+        "scores": [
+          25.9275,
+          28.5225
+        ],
+        "deck": {
+          "Abandoned Mine": 0.3475,
+          "Copper": 7.4425,
+          "Daimyo": 3.68,
+          "Duchy": 1.0275,
+          "Estate": 0.15,
+          "Gold": 0.0075,
+          "Highwayman": 1.0,
+          "Lost City": 0.0125,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.7825,
+          "Ruined Library": 0.325,
+          "Ruined Market": 0.2325,
+          "Ruined Village": 0.2575,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.6225,
+          "Survivors": 0.2625,
+          "Tea House": 3.57
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.4425,
+        "ci95": [
+          0.39428061494090383,
+          0.4907193850590962
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 63.25,
+        "wins": 177,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.2675,
+        "scores": [
+          25.9325,
+          28.07
+        ],
+        "deck": {
+          "Abandoned Mine": 0.265,
+          "Copper": 4.2625,
+          "Daimyo": 3.31,
+          "Duchy": 0.9875,
+          "Estate": 0.17,
+          "Highwayman": 1.0,
+          "Lost City": 0.0025,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.8,
+          "Ruined Library": 0.2325,
+          "Ruined Market": 0.1825,
+          "Ruined Village": 0.1875,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.07,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.1875,
+          "Tea House": 3.0675
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.405,
+        "ci95": [
+          0.35871480369508063,
+          0.4512851963049194
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 55.0,
+        "wins": 162,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.34,
+        "scores": [
+          25.55,
+          28.61
+        ],
+        "deck": {
+          "Abandoned Mine": 0.3,
+          "Copper": 7.7825,
+          "Daimyo": 3.3875,
+          "Duchy": 0.96,
+          "Estate": 0.155,
+          "Gold": 0.005,
+          "Highwayman": 2.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.7525,
+          "Ruined Library": 0.2825,
+          "Ruined Market": 0.215,
+          "Ruined Village": 0.22,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.705,
+          "Survivors": 0.28,
+          "Tea House": 3.13
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.42,
+        "ci95": [
+          0.3726581044382791,
+          0.46734189556172084
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 58.5,
+        "wins": 168,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.505,
+        "scores": [
+          25.6375,
+          28.9425
+        ],
+        "deck": {
+          "Abandoned Mine": 0.2375,
+          "Copper": 4.215,
+          "Daimyo": 2.9675,
+          "Duchy": 1.1525,
+          "Estate": 0.175,
+          "Highwayman": 2.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.995,
+          "Province": 3.6675,
+          "Ruined Library": 0.21,
+          "Ruined Market": 0.1325,
+          "Ruined Village": 0.205,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.2325,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.145,
+          "Tea House": 2.91
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.395,
+        "ci95": [
+          0.3491337776598204,
+          0.44086622234017964
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 53.0,
+        "wins": 158,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.0575,
+        "scores": [
+          25.15,
+          29.0625
+        ],
+        "deck": {
+          "Abandoned Mine": 0.2925,
+          "Copper": 7.5425,
+          "Daimyo": 3.1575,
+          "Duchy": 1.0775,
+          "Estate": 0.1375,
+          "Highwayman": 1.0,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.63,
+          "Ruined Library": 0.2675,
+          "Ruined Market": 0.2325,
+          "Ruined Village": 0.245,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.72,
+          "Survivors": 0.225,
+          "Tea House": 2.97
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.4,
+        "ci95": [
+          0.353918577632226,
+          0.44608142236777404
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 54.0,
+        "wins": 160,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.1475,
+        "scores": [
+          25.505,
+          28.8225
+        ],
+        "deck": {
+          "Abandoned Mine": 0.225,
+          "Copper": 4.0725,
+          "Daimyo": 2.62,
+          "Duchy": 1.0575,
+          "Estate": 0.1775,
+          "Highwayman": 1.0,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.99,
+          "Province": 3.6925,
+          "Ruined Library": 0.1925,
+          "Ruined Market": 0.145,
+          "Ruined Village": 0.18,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.1525,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.1125,
+          "Tea House": 2.72
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 0
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.3925,
+        "ci95": [
+          0.34648276977710485,
+          0.4385172302228952
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 52.75,
+        "wins": 157,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.1525,
+        "scores": [
+          25.1775,
+          29.325
+        ],
+        "deck": {
+          "Abandoned Mine": 0.295,
+          "Copper": 7.415,
+          "Daimyo": 2.7075,
+          "Duchy": 1.13,
+          "Estate": 0.1275,
+          "Highwayman": 2.0,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.9975,
+          "Province": 3.61,
+          "Ruined Library": 0.2375,
+          "Ruined Market": 0.1675,
+          "Ruined Village": 0.215,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.88,
+          "Survivors": 0.1825,
+          "Tea House": 2.6725
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 1,
+          "highway": 2,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 400,
+        "seed": 8000000,
+        "rate": 0.3525,
+        "ci95": [
+          0.3029868328765674,
+          0.40201316712343255
+        ],
+        "seed_pairs": 200,
+        "pair_score_sum_squares": 50.25,
+        "wins": 141,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.3175,
+        "scores": [
+          24.83,
+          29.6675
+        ],
+        "deck": {
+          "Abandoned Mine": 0.1825,
+          "Copper": 3.91,
+          "Daimyo": 2.015,
+          "Duchy": 1.1425,
+          "Estate": 0.1475,
+          "Highwayman": 1.99,
+          "Lost City": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.9825,
+          "Province": 3.5425,
+          "Ruined Library": 0.1775,
+          "Ruined Market": 0.14,
+          "Ruined Village": 0.1725,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.24,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.1175,
+          "Tea House": 2.48
+        }
+      }
+    ]
+  },
+  "validation": {
+    "opponent": {
+      "opening": "Tea House",
+      "shrine": 0,
+      "spice": 0,
+      "lost": 0,
+      "highway": 1,
+      "green": 1,
+      "double": "adaptive",
+      "daimyo": 2
+    },
+    "seed": 9000000,
+    "games_per_policy": 10000,
+    "scoring": "Win share for Shrine; ties count half. Paired 95% intervals use one observation per seat-swapped seed.",
+    "results": [
+      {
+        "params": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "games": 10000,
+        "seed_pairs": 5000,
+        "wins": 4493,
+        "ties": 0,
+        "rate": 0.4493,
+        "ci95": [
+          0.4397178885158176,
+          0.45888211148418234
+        ],
+        "scores": [
+          26.0224,
+          28.1394
+        ],
+        "deck": {
+          "Abandoned Mine": 0.2433,
+          "Copper": 4.2591,
+          "Daimyo": 3.3141,
+          "Duchy": 1.0277,
+          "Estate": 0.1711,
+          "Gold": 0.0012,
+          "Highwayman": 0.9999,
+          "Lost City": 0.0022,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.9996,
+          "Province": 3.7947,
+          "Ruined Library": 0.2196,
+          "Ruined Market": 0.1633,
+          "Ruined Village": 0.178,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.002,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.1641,
+          "Tea House": 3.1065
+        },
+        "truncated": 0
+      }
+    ],
+    "chunks": [
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 1000,
+        "seed": 9000000,
+        "rate": 0.445,
+        "ci95": [
+          0.4140438554440069,
+          0.4759561445559931
+        ],
+        "seed_pairs": 500,
+        "pair_score_sum_squares": 161.25,
+        "wins": 445,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.234,
+        "scores": [
+          25.968,
+          28.284
+        ],
+        "deck": {
+          "Abandoned Mine": 0.236,
+          "Copper": 4.227,
+          "Daimyo": 3.308,
+          "Duchy": 1.045,
+          "Estate": 0.171,
+          "Highwayman": 1.0,
+          "Lost City": 0.003,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.777,
+          "Ruined Library": 0.25,
+          "Ruined Market": 0.172,
+          "Ruined Village": 0.197,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.025,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.19,
+          "Tea House": 3.088
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 1000,
+        "seed": 9000500,
+        "rate": 0.443,
+        "ci95": [
+          0.4124473796800204,
+          0.47355262031997963
+        ],
+        "seed_pairs": 500,
+        "pair_score_sum_squares": 158.75,
+        "wins": 443,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.287,
+        "scores": [
+          26.146,
+          28.142
+        ],
+        "deck": {
+          "Abandoned Mine": 0.256,
+          "Copper": 4.221,
+          "Daimyo": 3.369,
+          "Duchy": 1.055,
+          "Estate": 0.163,
+          "Gold": 0.002,
+          "Highwayman": 1.0,
+          "Lost City": 0.004,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.803,
+          "Ruined Library": 0.214,
+          "Ruined Market": 0.168,
+          "Ruined Village": 0.17,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.045,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.157,
+          "Tea House": 3.163
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 1000,
+        "seed": 9001000,
+        "rate": 0.44,
+        "ci95": [
+          0.409936478738823,
+          0.470063521261177
+        ],
+        "seed_pairs": 500,
+        "pair_score_sum_squares": 155.5,
+        "wins": 440,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.213,
+        "scores": [
+          25.948,
+          28.057
+        ],
+        "deck": {
+          "Abandoned Mine": 0.225,
+          "Copper": 4.146,
+          "Daimyo": 3.312,
+          "Duchy": 1.015,
+          "Estate": 0.151,
+          "Gold": 0.002,
+          "Highwayman": 1.0,
+          "Lost City": 0.003,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.792,
+          "Ruined Library": 0.208,
+          "Ruined Market": 0.179,
+          "Ruined Village": 0.172,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.005,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.163,
+          "Tea House": 3.151
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 1000,
+        "seed": 9001500,
+        "rate": 0.462,
+        "ci95": [
+          0.43204473844899405,
+          0.491955261551006
+        ],
+        "seed_pairs": 500,
+        "pair_score_sum_squares": 165.0,
+        "wins": 462,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.227,
+        "scores": [
+          25.977,
+          28.075
+        ],
+        "deck": {
+          "Abandoned Mine": 0.219,
+          "Copper": 4.266,
+          "Daimyo": 3.323,
+          "Duchy": 1.005,
+          "Estate": 0.162,
+          "Gold": 0.001,
+          "Highwayman": 1.0,
+          "Lost City": 0.003,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.999,
+          "Province": 3.8,
+          "Ruined Library": 0.212,
+          "Ruined Market": 0.158,
+          "Ruined Village": 0.169,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.005,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.151,
+          "Tea House": 3.113
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 1000,
+        "seed": 9002000,
+        "rate": 0.476,
+        "ci95": [
+          0.44505019778230187,
+          0.506949802217698
+        ],
+        "seed_pairs": 500,
+        "pair_score_sum_squares": 175.5,
+        "wins": 476,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.291,
+        "scores": [
+          26.394,
+          27.935
+        ],
+        "deck": {
+          "Abandoned Mine": 0.24,
+          "Copper": 4.195,
+          "Daimyo": 3.328,
+          "Duchy": 1.068,
+          "Estate": 0.162,
+          "Gold": 0.001,
+          "Highwayman": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.838,
+          "Ruined Library": 0.206,
+          "Ruined Market": 0.145,
+          "Ruined Village": 0.16,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.024,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.173,
+          "Tea House": 3.112
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 1000,
+        "seed": 9002500,
+        "rate": 0.448,
+        "ci95": [
+          0.41769468939440146,
+          0.47830531060559855
+        ],
+        "seed_pairs": 500,
+        "pair_score_sum_squares": 160.0,
+        "wins": 448,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.237,
+        "scores": [
+          25.953,
+          28.193
+        ],
+        "deck": {
+          "Abandoned Mine": 0.248,
+          "Copper": 4.333,
+          "Daimyo": 3.302,
+          "Duchy": 1.01,
+          "Estate": 0.177,
+          "Gold": 0.003,
+          "Highwayman": 1.0,
+          "Lost City": 0.002,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.999,
+          "Province": 3.791,
+          "Ruined Library": 0.196,
+          "Ruined Market": 0.15,
+          "Ruined Village": 0.192,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.992,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.153,
+          "Tea House": 3.07
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 1000,
+        "seed": 9003000,
+        "rate": 0.417,
+        "ci95": [
+          0.38781867833238975,
+          0.4461813216676102
+        ],
+        "seed_pairs": 500,
+        "pair_score_sum_squares": 142.25,
+        "wins": 417,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.254,
+        "scores": [
+          25.744,
+          28.382
+        ],
+        "deck": {
+          "Abandoned Mine": 0.242,
+          "Copper": 4.356,
+          "Daimyo": 3.301,
+          "Duchy": 1.018,
+          "Estate": 0.19,
+          "Highwayman": 1.0,
+          "Lost City": 0.003,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.999,
+          "Province": 3.75,
+          "Ruined Library": 0.204,
+          "Ruined Market": 0.185,
+          "Ruined Village": 0.183,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.972,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.16,
+          "Tea House": 3.129
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 1000,
+        "seed": 9003500,
+        "rate": 0.443,
+        "ci95": [
+          0.4119475122221361,
+          0.4740524877778639
+        ],
+        "seed_pairs": 500,
+        "pair_score_sum_squares": 160.75,
+        "wins": 443,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.215,
+        "scores": [
+          25.91,
+          28.226
+        ],
+        "deck": {
+          "Abandoned Mine": 0.269,
+          "Copper": 4.303,
+          "Daimyo": 3.285,
+          "Duchy": 1.016,
+          "Estate": 0.176,
+          "Gold": 0.001,
+          "Highwayman": 1.0,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.781,
+          "Ruined Library": 0.244,
+          "Ruined Market": 0.164,
+          "Ruined Village": 0.184,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.963,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.17,
+          "Tea House": 3.101
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 1000,
+        "seed": 9004000,
+        "rate": 0.458,
+        "ci95": [
+          0.4283443605852412,
+          0.4876556394147588
+        ],
+        "seed_pairs": 500,
+        "pair_score_sum_squares": 162.0,
+        "wins": 458,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.218,
+        "scores": [
+          26.093,
+          28.252
+        ],
+        "deck": {
+          "Abandoned Mine": 0.237,
+          "Copper": 4.366,
+          "Daimyo": 3.296,
+          "Duchy": 1.049,
+          "Estate": 0.188,
+          "Highwayman": 1.0,
+          "Lost City": 0.004,
+          "Lucky Coin": 1.0,
+          "Mining Road": 1.0,
+          "Province": 3.793,
+          "Ruined Library": 0.238,
+          "Ruined Market": 0.161,
+          "Ruined Village": 0.17,
+          "Secluded Shrine": 1.0,
+          "Silver": 4.971,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.156,
+          "Tea House": 3.086
+        }
+      },
+      {
+        "a": {
+          "opening": "Secluded Shrine",
+          "shrine": 1,
+          "lost": 0,
+          "highway": 1,
+          "banquet": true,
+          "daimyo": 4,
+          "green": 1,
+          "cleanup": {
+            "trigger": "fallback",
+            "reserve": "breakpoints",
+            "double_shrine": false,
+            "hold_copper": true,
+            "mining_first": true
+          },
+          "spice": 1
+        },
+        "b": {
+          "opening": "Tea House",
+          "shrine": 0,
+          "spice": 0,
+          "lost": 0,
+          "highway": 1,
+          "green": 1,
+          "double": "adaptive",
+          "daimyo": 2
+        },
+        "games": 1000,
+        "seed": 9004500,
+        "rate": 0.461,
+        "ci95": [
+          0.4307349806609812,
+          0.49126501933901884
+        ],
+        "seed_pairs": 500,
+        "pair_score_sum_squares": 165.75,
+        "wins": 461,
+        "ties": 0,
+        "truncated": 0,
+        "turns": 11.194,
+        "scores": [
+          26.091,
+          27.848
+        ],
+        "deck": {
+          "Abandoned Mine": 0.261,
+          "Copper": 4.178,
+          "Daimyo": 3.317,
+          "Duchy": 0.996,
+          "Estate": 0.171,
+          "Gold": 0.002,
+          "Highwayman": 0.999,
+          "Lucky Coin": 1.0,
+          "Mining Road": 0.999,
+          "Province": 3.822,
+          "Ruined Library": 0.224,
+          "Ruined Market": 0.151,
+          "Ruined Village": 0.183,
+          "Secluded Shrine": 1.0,
+          "Silver": 5.018,
+          "Spice Merchant": 1.0,
+          "Survivors": 0.168,
+          "Tea House": 3.052
+        }
+      }
+    ]
+  },
+  "total_fresh_games": 16400,
+  "commands": [
+    "PYTHONPATH=. python scripts/compare_lucky_coin_shrine.py --specs scripts/data/lucky_coin_ruins/shrine-headtohead-screen-specs.json --games 400 --seed 8000000 --output .context/lucky-shrine-headtohead-screen.json",
+    "PYTHONPATH=. python scripts/compare_lucky_coin_shrine.py --specs scripts/data/lucky_coin_ruins/shrine-headtohead-validation-specs.json --games 10000 --seed 9000000 --output .context/lucky-shrine-headtohead-validation.json"
+  ]
+}
