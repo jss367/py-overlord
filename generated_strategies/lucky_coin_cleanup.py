@@ -270,7 +270,7 @@ class LuckyCoinCleanup(LuckyCoinRuins):
 
 
 def create_lucky_coin_shrine_cleanup() -> EnhancedStrategy:
-    """Best corrected Shrine build, frozen before the 10,000-game comparison."""
+    """Historical Shrine candidate; revalidate with Mining Road granting $2."""
     strategy = LuckyCoinCleanup(
         opening="Secluded Shrine",
         shrine=1,
@@ -289,5 +289,5 @@ def create_lucky_coin_shrine_cleanup() -> EnhancedStrategy:
         ),
     )
     strategy.name = "Lucky Coin Shrine Cleanup"
-    strategy.description = "Reserve surplus Coppers for Shrine, use Mining Road income before trashing, and preserve purchases."
+    strategy.description = "Experimental Shrine/Spice Merchant candidate; historical results used incorrect Mining Road income and need revalidation."
     return strategy

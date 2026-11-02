@@ -3,13 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lucky Coin and Ruins Strategy Guide</title>
-<meta name="description" content="A tested strategy for the Lucky Coin and five Ruins start: Banquet, Tea House, Highwayman, Mining Road, and free Daimyos.">
+<title>Lucky Coin and Ruins: Validation Pending</title>
+<meta name="description" content="Historical Lucky Coin and Ruins research; validation is pending after correcting Mining Road income.">
 <style>
 :root{color-scheme:light;--ink:#243238;--muted:#526469;--green:#185d50;--paper:#faf9f4;--line:#d6dfd8}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.65 system-ui,sans-serif}main{max-width:1050px;margin:auto;padding:48px 24px 80px}h1{font-size:clamp(2.1rem,5vw,3.5rem);line-height:1.12;max-width:850px;margin:16px 0 24px}h2{font-size:1.55rem;margin-top:44px;line-height:1.3}h3{line-height:1.3}.eyebrow{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--green);font-weight:750}.lede{font-size:1.25rem;max-width:840px}.verdict{padding:24px 28px;background:#e5f0e8;border-left:5px solid var(--green);border-radius:5px;margin:28px 0}.verdict p{margin:8px 0}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.step{padding:18px;background:white;border:1px solid var(--line);border-radius:8px}.step h3{margin:0 0 12px;color:var(--green)}a{color:var(--green)}table{border-collapse:collapse;width:100%;background:white;margin:20px 0;font-size:.94rem}th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#eaf0e9}code,pre{font-family:ui-monospace,monospace;font-size:.84rem}pre{background:#202f33;color:#e8f1ed;padding:20px;overflow:auto;border-radius:6px}.note{color:var(--muted);font-size:.94rem}.table-wrap{overflow-x:auto}li{margin-bottom:8px}.pill{display:inline-block;margin:3px;padding:3px 9px;border:1px solid var(--line);border-radius:4px;font-size:.9rem;background:white}footer{border-top:1px solid var(--line);margin-top:40px;padding-top:20px}@media(max-width:700px){main{padding:28px 18px 60px}.steps{grid-template-columns:1fr}th,td{padding:10px;font-size:.88rem}}
 </style>
 </head>
 <body><main>
+<h1>Lucky Coin and Ruins: strategy validation pending</h1>
+<p class="lead lede">This board starts each player with Lucky Coin, five different Ruins, and four Coppers. Its previous Tea House and Shrine recommendations need fresh evaluation after a rules correction.</p>
+<aside class="verdict callout"><strong>Mining Road correction: strategy results await revalidation.</strong><p>The experiments below gave Mining Road $1 per play. The printed card grants <strong>$2 per play</strong>, as shown in the <a href="https://www.riograndegames.com/wp-content/uploads/2022/08/DomPlunder.pdf#page=6">publisher’s Plunder rules, page 6</a>. The engine now uses $2. All archived win rates and local decision improvements below are historical results from the incorrect model; they do not establish a current winner or a stronger planner.</p><p>No new strategy-performance results were generated in this review pass. New checkpoints and fresh, seat-balanced evaluations are required before restoring performance recommendations. The runnable strategies remain experimental candidates.</p></aside>
+<details><summary><strong>Archived research from the $1 Mining Road model</strong></summary>
+
 <span class="eyebrow">Dominion · tested board strategy · November 2026</span>
 <h1>Lucky Coin and Ruins:<br>race with Tea Houses</h1>
 <p class="lede">The recommended policy opens <strong>Tea House at $5, or Banquet for Tea House at $3–$4</strong>, adds <strong>one Highwayman and one Mining Road</strong>, and uses <strong>Kind Emperor to gain Daimyos without debt</strong>. Start buying Provinces early. A direct 10,000-game comparison against the retuned Shrine/Spice Merchant build favored this plan, 55.07% to 44.93%.</p>
@@ -127,5 +132,8 @@ PYTHONPATH=. python scripts/search_lucky_coin_ruins.py validate \
   --specs scripts/data/lucky_coin_ruins/validation-specs.json \
   --games 2000 --seed 3000000 --output .context/lucky-validation.json</pre>
 <p>Full stage commands, candidate settings, screening results, tournament pairings, and validation data are preserved in <a href="../../scripts/data/lucky_coin_ruins_search_summary.json">the search evidence</a>. The <a href="../../generated_strategies/lucky_coin_ruins.py">runnable strategy</a> exposes the selected policy through <code>create_lucky_coin_ruins()</code>; the <a href="../../scripts/search_lucky_coin_ruins.py">search runner</a> records setup and scoring.</p>
-<footer class="note"><a href="index.html">Strategy catalog</a> · Evidence collected with the corrected simulator in this workspace.</footer>
+<footer class="note"><a href="index.html">Strategy catalog</a> · Historical evidence from the $1 Mining Road model.</footer>
+
+</details>
+<footer class="note"><a href="index.html">Strategy catalog</a> · Historical evidence retained for traceability; current performance validation is pending.</footer>
 </main></body></html>

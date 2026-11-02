@@ -59,6 +59,20 @@ def test_mining_road_allowances_stack_and_declining_preserves_them(decline):
     assert sum(c.name == "Silver" for c in p.in_play) == (0 if decline else 2)
 
 
+@pytest.mark.parametrize("plays", [1, 2])
+def test_mining_road_printed_bonuses_apply_on_every_play(plays):
+    s = setup({}, {}, 123)
+    p = s.current_player
+    p.coins, p.actions, p.buys = 0, 1, 1
+    road = get_card("Mining Road")
+    for _ in range(plays):
+        road.on_play(s)
+    assert p.coins == 2 * plays
+    assert p.actions == 1 + plays
+    assert p.buys == 1 + plays
+    assert p.mining_road_uses == plays
+
+
 def test_banquet_uses_free_gain_policy_and_respects_exposed_pile():
     s = setup({}, {}, 123)
     p = s.current_player

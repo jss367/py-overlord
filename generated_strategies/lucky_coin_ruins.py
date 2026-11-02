@@ -52,7 +52,7 @@ class LuckyCoinRuins(EnhancedStrategy):
     ):
         super().__init__()
         self.name = "Lucky Coin Ruins Engine"
-        self.description = "Buy Tea House or use Banquet, add Highwayman and Mining Road, and gain free Daimyos."
+        self.description = "Experimental Tea House/Banquet candidate; historical results used incorrect Mining Road income and need revalidation."
         self.p = dict(
             opening=opening,
             second=second,
@@ -296,7 +296,7 @@ class LuckyCoinRuins(EnhancedStrategy):
 
 
 def create_lucky_coin_ruins() -> EnhancedStrategy:
-    """Selected before validation on fresh, seat-balanced seeds."""
+    """Historical Tea candidate; revalidate with Mining Road granting $2."""
     return LuckyCoinRuins(
         opening="Tea House",
         shrine=0,

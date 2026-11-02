@@ -488,7 +488,7 @@ def test_mining_road_plays_gained_treasure_without_gaining_another():
     state.supply["Silver"] -= 1
     state.gain_card(player, silver)
     assert silver in player.in_play
-    assert player.coins == 3  # Road's $1 and the gained Silver's $2.
+    assert player.coins == 4  # Road's $2 and the gained Silver's $2.
     assert state.supply["Gold"] == gold_before
     assert player.mining_road_uses == 0
 

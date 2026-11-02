@@ -894,13 +894,13 @@ class Longship(Card):
 
 
 class MiningRoad(Card):
-    """$5: +1 Action, +1 Buy, +$1; once this turn, play a gained Treasure."""
+    """$5: +1 Action, +1 Buy, +$2; once this turn, play a gained Treasure."""
 
     def __init__(self):
         super().__init__(
             name="Mining Road",
             cost=CardCost(coins=5),
-            stats=CardStats(actions=1, buys=1, coins=1),
+            stats=CardStats(actions=1, buys=1, coins=2),
             types=[CardType.ACTION],
         )
 

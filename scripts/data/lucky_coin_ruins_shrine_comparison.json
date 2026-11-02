@@ -1,4 +1,13 @@
 {
+  "rule_model_provenance": {
+    "status": "invalidated_pending_revalidation",
+    "valid_for_current_rules": false,
+    "mining_road_coins_used": 1,
+    "mining_road_coins_corrected": 2,
+    "historical_engine_commit": "fad9ca83e565b7eac2d91c2e1faea5f5efcbba60",
+    "reason": "All recorded games and sampled continuations used an underpowered Mining Road. Neither the comparative win rates nor the local decision gains validate the corrected rules.",
+    "reproduction": "The commands in this archive reproduce the historical inputs only when run at the historical engine commit. Current code uses corrected rules and distinct menu identities; collect new checkpoints and rerun before making strategy claims."
+  },
   "question": "Does the best corrected Shrine build beat the previous Tea House winner?",
   "selection": "Select the highest Shrine win share among 16 corrected Shrine-opening configurations, then freeze its exact settings before evaluating new seeds.",
   "policy_limits": "Strongest tested Shrine build in this search; globally optimal Shrine play is not established.",

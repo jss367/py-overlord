@@ -392,20 +392,20 @@ CURATED_STRATEGY_GUIDES = (
     ),
     CuratedStrategyGuide(
         filename="lucky-coin-lookahead-audit.html",
-        display_name="Decision Quality and Lookahead on the Lucky Coin Board",
+        display_name="Lucky Coin Decision Planning: Validation Pending",
         description=(
-            "Saved-position audits, a shared hidden-information rollout planner, "
-            "confirmed cleanup choices, and fresh player comparisons."
+            "Shared decision planning and historical audits; performance needs "
+            "revalidation after correcting Mining Road income."
         ),
         kingdom_cards=("Tea House", "Secluded Shrine", "Spice Merchant", "Daimyo", "Mining Road"),
         source_label="Saved decisions, sampled continuations, and fresh player pilots",
     ),
     CuratedStrategyGuide(
         filename="lucky-coin-ruins-strategy-guide.html",
-        display_name="Lucky Coin and Ruins Strategy Guide",
+        display_name="Lucky Coin and Ruins: Validation Pending",
         description=(
-            "Banquet into Tea House, Highwayman draw, Mining Road, and free "
-            "Daimyos for a custom Lucky Coin and five Ruins start."
+            "Historical Tea House and Shrine candidates for a custom start; "
+            "all recorded comparisons used incorrect Mining Road income."
         ),
         kingdom_cards=("Tea House", "Highwayman", "Mining Road", "Daimyo", "Secluded Shrine"),
         source_label="Seat-balanced strategy search and official publisher rules",
