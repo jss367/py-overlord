@@ -19,6 +19,23 @@ For local work without reinforcement learning, install `.[dev]`; tests under
 `tests/rl/` are omitted when Torch or Gymnasium is unavailable. Ruff's shared
 configuration enables all Pyflakes checks, including unused and shadowed names.
 
+Card-conservation regressions use [the shared inventory checker](tests/card_conservation.py)
+to count normal Supply piles, declared physical player zones, and trash without
+ownership deduplication. Pending Duration instructions are references, including
+references to a source now owned by someone else. The fixtures explicitly check
+physical card identities, ownership, and single returns as well as total counts;
+setup-only cards and other global decks require separate inventory support.
+
+Run the focused gain, replay, and ownership-transfer checks with:
+
+```bash
+python -m pytest -q tests/test_gain_from_supply.py tests/test_card_conservation.py
+```
+
+The replay cases use fixed seeds and check each transition and individual
+Duration callback. Failure notes include the seed, operation, phase, turn, and
+player; use the exact test node ID reported by pytest to reproduce a case.
+
 For card-effect implementation, see [Gaining cards from the Supply](docs/supply-gains.md)
 for the shared gain operation and migration guidance.
 
