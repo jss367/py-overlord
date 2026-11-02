@@ -1,6 +1,5 @@
 """Supply gain accounting stays consistent through replacements and reactions."""
 
-from collections import Counter
 import random
 
 import pytest
@@ -8,6 +7,7 @@ import pytest
 from dominion.cards.registry import get_card
 from dominion.game.game_state import GameState
 from dominion.game.player_state import PlayerState
+from tests.card_conservation import CardConservation, inventory
 from tests.utils import DummyAI
 
 
@@ -31,30 +31,6 @@ def make_state(supply=None):
     state = GameState([player], supply=dict(supply or {"Village": 2, "Silver": 4}))
     state.log_callback = lambda *_: None
     return state, player
-
-
-def inventory(state):
-    """Count physical cards in these fixtures, excluding Duration bookkeeping."""
-    counts = Counter(
-        {name: n for name, n in state.supply.items() if name not in state.pile_order}
-    )
-    for names in state.pile_order.values():
-        counts.update(names)
-    owned = [
-        card
-        for player in state.players
-        for zone in player._physical_card_zones()
-        for card in zone
-    ]
-    cards = owned + state.trash
-    assert len({id(card) for card in cards}) == len(cards), (
-        "card occupies multiple physical zones"
-    )
-    counts.update(card.name for card in cards)
-    assert all(n >= 0 for n in state.supply.values())
-    for pile, names in state.pile_order.items():
-        assert state.supply[pile] == len(names)
-    return +counts
 
 
 @pytest.mark.parametrize(
@@ -218,7 +194,7 @@ def test_seeded_gain_sequences_conserve_cards_and_never_duplicate_locations(seed
     )
     state.pile_order["Knights"] = ["Dame Anna", "Sir Martin"]
     player.hand = [get_card("Trader"), get_card("Watchtower")]
-    before = inventory(state)
+    conservation = CardConservation(state, seed=seed)
     names = [
         "Village",
         "Silver",
@@ -228,7 +204,7 @@ def test_seeded_gain_sequences_conserve_cards_and_never_duplicate_locations(seed
         "Sir Martin",
         "Dame Anna",
     ]
-    for _ in range(100):
+    for step in range(100):
         player.ai.reveal_trader = rng.choice([False, True])
         player.ai.watchtower = rng.choice([None, "topdeck", "trash"])
         state.gain_from_supply(
@@ -236,7 +212,7 @@ def test_seeded_gain_sequences_conserve_cards_and_never_duplicate_locations(seed
             rng.choice(names),
             destination=rng.choice(["discard", "deck", "hand"]),
         )
-        assert inventory(state) == before
+        conservation.check(state, f"gain {step}")
 
 
 def test_named_split_member_can_be_gained_without_an_empty_partner_key():
@@ -317,7 +293,7 @@ def test_seeded_games_with_migrated_gainers_conserve_cards_each_phase(
     state.initialize_game(
         [GeneticAI(s) for s in strategies], [get_card(n) for n in kingdom]
     )
-    before = inventory(state)
+    conservation = CardConservation(state, seed=seed_rng)
     committed = []
     gain = GameState.gain_from_supply
 
@@ -329,10 +305,10 @@ def test_seeded_games_with_migrated_gainers_conserve_cards_each_phase(
 
     monkeypatch.setattr(GameState, "gain_from_supply", checked_gain)
     # play_turn advances a single phase; allow enough steps for the turn cap.
-    for _ in range(3000):
+    for step in range(3000):
         if state.is_game_over():
             break
         state.play_turn()
-        assert inventory(state) == before
+        conservation.check(state, f"phase {step}")
     assert state.is_game_over()
     assert committed, "the game must exercise the migrated gain operation"
