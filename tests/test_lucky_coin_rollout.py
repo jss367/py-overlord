@@ -3,18 +3,114 @@
 import copy
 import random
 
+import pytest
+
 from dominion.ai.lucky_coin_rollout import (
+    ReplayMismatch,
     RolloutController,
     determinize,
+    menu,
+    option_key,
     public_observation,
 )
 from dominion.cards.registry import get_card
+from dominion.game.gain_effects import GainEffect
 from scripts.research_lucky_coin_rollout import policies
 from scripts.search_lucky_coin_ruins import setup
 
 
 def card_names(cards):
     return [c.name for c in cards]
+
+
+def test_menu_preserves_distinct_same_named_options_across_copies():
+    first, second = get_card("Secluded Shrine"), get_card("Secluded Shrine")
+    first.shrine_charges, second.shrine_charges = 1, 2
+    choices = [
+        get_card("Copper"),
+        get_card("Copper"),
+        GainEffect("secluded_shrine", first),
+        GainEffect("secluded_shrine", second),
+        None,
+    ]
+    offered = menu(choices)
+    assert len(offered) == len(choices)
+    assert all(a is b for a, b in zip(offered.values(), choices))
+    assert list(menu(copy.deepcopy(choices))) == list(offered)
+    assert option_key(offered, choices[0]) != option_key(offered, choices[1])
+    assert option_key(offered, choices[2]) != option_key(offered, choices[3])
+    assert option_key(offered, get_card("Copper")) is None
+    assert option_key(menu(["cards", "coins"]), "".join(["co", "ins"])) == "coins"
+
+
+def duplicate_shrine_effects(state):
+    return [GainEffect("secluded_shrine", c) for c in state.current_player.in_play]
+
+
+def test_disabled_controller_keeps_baseline_effect_identity():
+    a, b = policies()
+    s = setup(a, b, 123)
+    p = s.current_player
+    p.in_play = [get_card("Secluded Shrine"), get_card("Secluded Shrine")]
+    p.in_play[0].shrine_charges, p.in_play[1].shrine_charges = 1, 2
+    p.ai.strategy.choose_gain_effect = lambda s, p, card, choices: choices[0]
+    saved = []
+    c = RolloutController(enabled=(False, False), observer=saved.append)
+    c.install(s)
+    c.begin(s)
+    choices = duplicate_shrine_effects(s)
+    chosen = p.ai.choose_gain_effect(s, p, get_card("Silver"), choices)
+    assert chosen is choices[0]
+    assert chosen.source.shrine_charges == 1
+    assert saved[0].baseline == saved[0].options[0]
+    assert len(saved[0].options) == 2
+    assert len(set(saved[0].option_labels.values())) == 1
+    assert not c.records and c.rollouts == 0
+
+
+def test_replay_preserves_duplicate_effect_prefix_and_forced_alternative(monkeypatch):
+    a, b = policies()
+    s = setup(a, b, 123)
+    p = s.current_player
+    p.in_play = [get_card("Secluded Shrine"), get_card("Secluded Shrine")]
+    p.in_play[0].shrine_charges, p.in_play[1].shrine_charges = 1, 2
+    saved = []
+    c = RolloutController(enabled=(False, False), observer=saved.append)
+    c.install(s)
+    c.begin(s)
+    choices = duplicate_shrine_effects(s)
+    for _ in range(2):
+        assert c.choose("effect", s, p, choices, lambda: choices[0]) is choices[0]
+    target = saved[-1]
+    other = copy.deepcopy(s)
+    copied_choices = duplicate_shrine_effects(other)
+    c.replay = dict(
+        state=other,
+        decision=target,
+        position=0,
+        hit=False,
+        choice=target.options[1],
+        seed=123,
+    )
+    sampled = []
+    monkeypatch.setattr(
+        "dominion.ai.lucky_coin_rollout.determinize",
+        lambda *args: sampled.append(args[2]),
+    )
+
+    def choose():
+        return c.choose(
+            "effect",
+            other,
+            other.current_player,
+            copied_choices,
+            lambda: copied_choices[0],
+        )
+
+    assert choose() is copied_choices[0]  # Recorded prefix selected source one.
+    assert choose() is copied_choices[1]  # Forced target selects source two.
+    assert c.replay["hit"] and sampled == [123]
+    assert copied_choices[1].source.shrine_charges == 2
 
 
 def test_hidden_sampling_is_invariant_to_the_actual_hidden_order_and_hand():
@@ -89,6 +185,13 @@ def test_purchase_alternatives_include_cleanup_debt_cards_and_passing():
         "Banquet",
         "pass",
     } <= set(d.options)
+
+
+def test_old_checkpoints_cannot_be_reinterpreted_under_corrected_rules():
+    _, c, d = capture_buy()
+    d.model_version = None
+    with pytest.raises(ReplayMismatch, match="collect fresh checkpoints"):
+        c.outcome(d, d.baseline, 123)
 
 
 def test_rollout_is_pure_and_cannot_use_actual_unseen_order():

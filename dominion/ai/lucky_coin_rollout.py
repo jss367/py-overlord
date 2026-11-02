@@ -16,6 +16,8 @@ import random
 
 from dominion.ai.genetic_ai import GeneticAI
 
+MODEL_VERSION = "mining-road-2/option-identities-2"
+
 
 class ReplayMismatch(RuntimeError):
     pass
@@ -32,7 +34,37 @@ def label(choice):
 
 
 def menu(choices):
-    return dict((label(c), c) for c in choices)
+    """Keep every offered object with a key stable across checkpoint copies.
+
+    Unique labels retain their historical keys. Ambiguous labels use the menu
+    position, never a process-local object ID, to distinguish physical cards
+    and effects whose same-named sources may have different pending state.
+    """
+    choices = list(choices)
+    labels = [label(c) for c in choices]
+    counts = Counter(labels)
+    offered = {}
+    for index, (name, choice) in enumerate(zip(labels, choices)):
+        key = name
+        if counts[name] > 1:
+            key = f"option:{index}:{name}"
+            while key in counts or key in offered:
+                key = f"option:{key}"
+        offered[key] = choice
+    return offered
+
+
+def option_key(offered, choice):
+    for key, option in offered.items():
+        if option is choice:
+            return key
+    # Mode hooks may construct an equal string rather than returning the same
+    # string instance. Cards and effects must be actual members of the menu.
+    if type(choice) in (str, int, float, bool):
+        for key, option in offered.items():
+            if type(option) is type(choice) and option == choice:
+                return key
+    return None
 
 
 def public_observation(state, player, known_top=()):
@@ -101,6 +133,8 @@ class Decision:
     observation: dict
     known_top: list
     identifier: dict
+    option_labels: dict | None = None
+    model_version: str | None = None
 
 
 def detached_copy(state):
@@ -335,15 +369,15 @@ class RolloutController:
         baseline = baseline_fn()
         if s is not self.live or self.replay is not None:
             return baseline
-        base_label = label(baseline)
-        if base_label not in offered:
+        base_label = option_key(offered, baseline)
+        if base_label is None:
             # Mandatory engine fallbacks are retained, not treated as legal passes.
             if baseline is None:
                 self.prefix.append(
                     dict(kind=kind, player=index, options=list(offered), choice="pass")
                 )
                 return baseline
-            raise ReplayMismatch(f"Baseline {base_label} absent from {kind} menu")
+            raise ReplayMismatch(f"Baseline {label(baseline)} absent from {kind} menu")
         known = self.known_top(s, p)
         d = Decision(
             self.checkpoint,
@@ -356,6 +390,8 @@ class RolloutController:
             public_observation(s, p, known),
             known,
             dict(self.identifier, decision=len(self.prefix)),
+            {key: label(option) for key, option in offered.items()},
+            MODEL_VERSION,
         )
         if self.observer is not None and len(offered) > 1:
             self.observer(d)
@@ -435,6 +471,10 @@ class RolloutController:
         return offered[chosen]
 
     def outcome(self, decision, choice, seed):
+        if getattr(decision, "model_version", None) != MODEL_VERSION:
+            raise ReplayMismatch(
+                "Saved decision predates the current rule/menu model; collect fresh checkpoints"
+            )
         saved_rng = random.getstate()
         previous = self.replay
         try:
@@ -545,4 +585,6 @@ class RolloutController:
                 name: dict(mean=sum(v.values()) / len(v), samples=len(v))
                 for name, v in values.items()
             },
+            option_labels=d.option_labels,
+            model_version=d.model_version,
         )

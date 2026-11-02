@@ -11,7 +11,7 @@ import time
 
 import cloudpickle
 
-from dominion.ai.lucky_coin_rollout import RolloutController
+from dominion.ai.lucky_coin_rollout import MODEL_VERSION, RolloutController
 from scripts.search_lucky_coin_ruins import setup
 
 KINDS = (
@@ -122,6 +122,7 @@ def collect(args):
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_bytes(cloudpickle.dumps(positions))
     meta = dict(
+        model_version=MODEL_VERSION,
         seed=args.seed,
         games=args.games,
         positions=len(positions),
@@ -134,6 +135,7 @@ def collect(args):
                 kind=d.kind,
                 baseline=d.baseline,
                 options=d.options,
+                option_labels=d.option_labels,
                 observation=d.observation,
             )
             for d in positions
