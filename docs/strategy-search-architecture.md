@@ -10,14 +10,16 @@ making genetic edits strategically meaningful.
 
 `dominion/simulation/strategic_genome.py` defines the current modules:
 
-- opening targets, including an exact copy count and opening turn window;
+- opening targets, including an exact copy count, first-gain gate and opening turn window;
 - build targets, including copy count, start/end timing, dependencies, and
   their priority relative to Province, Duchy, Gold, and Silver;
 - economy policy, including deliberate no-Gold rushes;
-- Province, Duchy, and Estate greening policy;
+- Colony resource/commitment gates and Province, Duchy, and Estate greening policy;
 - score-aware third-pile endings;
 - trashing thresholds;
-- action and Treasure play order.
+- action and Treasure play order;
+- deck-count balancing, conditional Treasure retention, balanced Anvil gains,
+  and main-phase multiplier payload protection.
 
 The compiler attaches the typed genome to an ordinary `BaseStrategy` as
 `_strategic_genome`. Semantic mutation changes one of the modules and then
@@ -33,6 +35,11 @@ The initial representability targets are all covered directly:
 - two Rebuilds followed by unconditional Duchies, with Gold disabled;
 - an Estate that takes the third pile only when it ends the game without
   falling behind.
+
+The schema 2 Oslo audit also encodes the Refined and Multi Colony references
+as fresh base strategies. The [published coverage audit](../reports/strategies/oslo-strategic-genome-coverage.html)
+records decision equivalence and its finite-state limitations. Schema 1 remains
+available for the earlier reflective pilot; new search runs use schema 2.
 
 ## Validation standard
 
@@ -158,3 +165,19 @@ Workers' Village/Magnate topology on Oslo and beat Big Money before any
 evolution. Apply the same standard to future boards whose best strategy
 the search initially missed: encode the board, hide the library, and
 require the enumerator to produce a competitive seed of the right shape.
+
+## Optional reflective proposals
+
+`scripts/reflective_evolve.py` adds a GEPA-proposed typed strategy seed to the
+existing genetic search and compares it with a control using the same trainer
+settings and board-derived engines. Reflection reads actual game traces and
+per-opponent feedback; strict JSON decoding constrains proposals to the current
+compiler. Pareto selection preserves matchup specialists, while final seed
+selection uses the league's worst-tail objective on validation games. Held-out
+games never select a candidate. See
+[Reflective strategy search with GEPA](reflective-strategy-search.md) for the
+evaluation contract, shared-game allowances, legacy additional-compute mode, and
+representability limits. `SimulationBudget` preflights complete evaluations in
+serial and worker paths. The runner reserves recommendation-selection games,
+stops before incomplete generations, then spends remaining whole pair blocks
+on balanced selection. Fresh evaluation uses a separate fixed budget.

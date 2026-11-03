@@ -141,6 +141,13 @@ def save_strategy_as_python(
         getattr(strategy, "bounty_hunter_exile_priority", None),
     )
     emit("discard_priority", getattr(strategy, "discard_priority", None))
+    for attribute, default in (
+        ("balanced_gain_source", None), ("balanced_gain_targets", []),
+        ("protected_multipliers", []),
+    ):
+        if hasattr(strategy, attribute):
+            lines.append(f"        self.{attribute} = {getattr(strategy, attribute, default)!r}")
+    lines.append("")
     if needs_way_rule or always:
         lines.extend(format_way_policy(list(getattr(strategy, "way_policy", None) or [])))
         lines.append("")

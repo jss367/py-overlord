@@ -115,6 +115,7 @@ def test_evaluate_strategy_counts_second_seat_wins(monkeypatch):
     win_rate = trainer.evaluate_strategy(strategy)
 
     assert call_counter.count == 2
+    assert trainer.evaluated_games == 2
     assert win_rate == 50.0
 
 

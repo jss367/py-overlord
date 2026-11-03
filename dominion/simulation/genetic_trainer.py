@@ -21,6 +21,7 @@ from dominion.simulation.parallel_games import (
     chunk_games,
 )
 from dominion.simulation.strategy_battle import StrategyBattle, canonical_way_name
+from dominion.simulation.simulation_budget import SimulationBudget
 from dominion.strategy.enhanced_strategy import PriorityRule, WayRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
 
@@ -89,6 +90,9 @@ class GeneticTrainer:
         workers: int = 1,
         games_per_task: int = DEFAULT_GAMES_PER_TASK,
         confirm_min_games_per_opponent: int = 100,
+        genome_schema_version: int = 2,
+        simulation_budget: SimulationBudget | None = None,
+        budget_reserve_games: int = 0,
     ):
         if kingdom_cards is None:
             if board_config is None:
@@ -129,10 +133,18 @@ class GeneticTrainer:
         if confirm_min_games_per_opponent < 0:
             raise ValueError("confirm_min_games_per_opponent must be nonnegative")
         self.confirm_min_games_per_opponent = confirm_min_games_per_opponent
+        if genome_schema_version not in (1, 2):
+            raise ValueError("genome_schema_version must be 1 or 2")
         # Common random numbers: every candidate in the same evaluation phase
         # plays the same seeded shuffles, so candidate-vs-candidate comparisons
         # cancel deck luck instead of compounding it.
         self.common_random_numbers = common_random_numbers
+        # Completed games across screening, refinement, confirmation and rebasing.
+        self.evaluated_games = 0
+        self.simulation_budget = simulation_budget
+        if type(budget_reserve_games) is not int or budget_reserve_games < 0:
+            raise ValueError("budget_reserve_games must be a nonnegative integer")
+        self.budget_reserve_games = budget_reserve_games
         self._eval_seed_base = eval_seed if eval_seed is not None else random.randrange(2**31)
         # When not None, evaluate_strategy seeds each game from this
         # (phase, generation) context. None = legacy unseeded behavior.
@@ -179,6 +191,7 @@ class GeneticTrainer:
         if self.structured_genome:
             from dominion.simulation.structured_genome import KingdomInfo
             self._kingdom_info = KingdomInfo.from_kingdom(kingdom_cards or [])
+            self._kingdom_info.strategy_schema_version = genome_schema_version
 
         self.battle_system = StrategyBattle(kingdom_cards, log_folder, board_config=board_config)
         if not self.kingdom_cards:
@@ -588,6 +601,8 @@ class GeneticTrainer:
         :meth:`evaluate_strategy` in a loop; with workers every game of every
         candidate is submitted to the pool at once.
         """
+        if self.simulation_budget is not None:
+            self._require_simulation_games(self._evaluation_games(self.games_per_eval) * len(strategies))
         if self._use_workers():
             scored = self._evaluate_population_parallel(strategies)
         else:
@@ -640,6 +655,9 @@ class GeneticTrainer:
         rule pruning is unaffected.
         """
         from dominion.strategy.rule_pruning import reset_fire_flags
+
+        if self.simulation_budget is not None:
+            self._require_simulation_games(self._evaluation_games(self.games_per_eval) * len(strategies))
 
         seeding = self._eval_seed_context is not None
         panel = list(self._resolve_panel())
@@ -696,13 +714,21 @@ class GeneticTrainer:
                 failed.add(cand_index)
                 continue
             for game in task_result.games:
+                self.evaluated_games += 1
+                if self.simulation_budget is not None:
+                    self.simulation_budget.consume(1, "genetic")
                 if game.won:
                     wins[cand_index][opp_index] += 1
                 margins[cand_index][opp_index] += game.my_score - game.opp_score
+            if (self.simulation_budget is not None
+                    and len(task_result.games) != len(tasks[task_id].games)):
+                failed.add(cand_index)
             for attr, indices in task_result.fired.items():
                 fired[cand_index].setdefault(attr, set()).update(indices)
 
         scored: list[tuple[float, list[tuple]]] = []
+        if failed and self.simulation_budget is not None:
+            raise RuntimeError("Budgeted simulation failed; comparison cannot be completed")
         for cand_index, strategy in enumerate(strategies):
             if cand_index in failed:
                 # Mirror the serial path: a failed eval can never outrank a
@@ -736,6 +762,8 @@ class GeneticTrainer:
         (common random numbers). The global RNG state is restored afterward so
         seeding can't make the GA's own mutation stream deterministic.
         """
+        if self.simulation_budget is not None:
+            self._require_simulation_games(self._evaluation_games(self.games_per_eval))
         seeding = self._eval_seed_context is not None
         rng_snapshot = random.getstate() if seeding else None
         try:
@@ -779,6 +807,9 @@ class GeneticTrainer:
                         )
                     if winner == ai1:
                         wins += 1
+                    self.evaluated_games += 1
+                    if self.simulation_budget is not None:
+                        self.simulation_budget.consume(1, "genetic")
                     # ``scores`` is keyed by ai.name; an empty dict means no
                     # scores were reported, so treat margin as 0 for this game.
                     if scores:
@@ -789,6 +820,8 @@ class GeneticTrainer:
             self.last_eval_breakdown = breakdown
             return self._fitness_from_breakdown(breakdown)
         except Exception as e:
+            if self.simulation_budget is not None:
+                raise
             log.exception("Error evaluating strategy %s. Got error: %s", strategy.name, e)
             # Clear the breakdown so train() can't credit this strategy with
             # the prior candidate's per-opponent results, and return -inf so
@@ -812,6 +845,32 @@ class GeneticTrainer:
         """
         pair_index = game_num // 2
         return hash((self._eval_seed_base, self._eval_seed_context, opponent_index, pair_index)) & 0x7FFFFFFF
+
+    def _evaluation_games(self, requested: int) -> int:
+        opponents = len(self._resolve_panel()) + len(self._pool_opponents())
+        return sum(_distribute_games(requested, opponents))
+
+    def _require_simulation_games(self, games: int) -> None:
+        if self.simulation_budget is not None:
+            self.simulation_budget.require(games + self.budget_reserve_games)
+
+    def _generation_game_reserve(self, population_size: int, gen: int) -> int:
+        """Upper bound before starting a complete screen/refine/confirm cycle."""
+        games = population_size * self._evaluation_games(self.games_per_eval)
+        if self.racing:
+            if self.refine_games > 0 and population_size > 1:
+                top_k = min(population_size, max(1, int(round(population_size * self.race_top_fraction))))
+                games += top_k * self._evaluation_games(self.refine_games)
+            games += self._confirmation_budget() * (1 if self._best_strategy is None else 2)
+        if ((gen + 1) % self.hall_of_fame_interval == 0 and gen + 1 < self.generations
+                and (self.league is not None or self.hall_of_fame_size > 0)):
+            # Adding an opponent can increase the per-opponent confirmation
+            # floor. Reserve the largest panel possible after this update.
+            opponents = len(self._resolve_panel()) + len(self._pool_opponents()) + 1
+            per_opponent = max(self.confirm_min_games_per_opponent,
+                               (self.confirm_games + opponents - 1) // opponents, 2)
+            games += opponents * (per_opponent + per_opponent % 2)
+        return games
 
     def _eval_with_budget(self, strategy: BaseStrategy, games: int, context: Optional[tuple]) -> float:
         """Run evaluate_strategy with a temporary games budget and seed context."""
@@ -837,6 +896,8 @@ class GeneticTrainer:
         if not strategies:
             self.last_population_breakdowns = []
             return []
+        if self.simulation_budget is not None:
+            self._require_simulation_games(self._evaluation_games(games) * len(strategies))
         if self._use_workers():
             saved_games = self.games_per_eval
             saved_context = self._eval_seed_context
@@ -1417,6 +1478,9 @@ class GeneticTrainer:
 
     def train(self) -> Tuple[Optional[BaseStrategy], dict]:
         """Run the genetic algorithm training process"""
+        self.evaluated_games = 0
+        completed_generations = 0
+        stop_reason = "generation_limit"
         try:
             log.info("Initializing population...")
             population = [self.create_random_strategy() for _ in range(self.population_size)]
@@ -1466,6 +1530,13 @@ class GeneticTrainer:
             self.logger.start_training(self.generations)
 
             for gen in range(self.generations):
+                if self.simulation_budget is not None:
+                    required = self._generation_game_reserve(len(population), gen) + self.budget_reserve_games
+                    if required > self.simulation_budget.remaining:
+                        stop_reason = "simulation_budget"
+                        log.info("Stopping before generation %d: need %d games, %d remain",
+                                 gen + 1, required, self.simulation_budget.remaining)
+                        break
                 self.current_generation = gen
                 log.info("Generation %d/%d", gen + 1, self.generations)
 
@@ -1573,6 +1644,7 @@ class GeneticTrainer:
 
                 # Update progress
                 self.logger.update_training(gen, self._best_confirmed, avg_fitness)
+                completed_generations += 1
 
                 # Diversity pressure: shared fitness for selection, random immigrants
                 similarity = None
@@ -1611,7 +1683,10 @@ class GeneticTrainer:
                 ) if self._best_strategy is not None else None,
                 "confirmation_games": self._confirmation_budget() if self.racing else 0,
                 "generations": self.generations,
-                "final_generation": self.generations,
+                "final_generation": completed_generations,
+                "evaluated_games": self.evaluated_games,
+                "stop_reason": stop_reason,
+                "simulation_budget": self.simulation_budget.snapshot() if self.simulation_budget else None,
             }
 
             return self._best_strategy, metrics

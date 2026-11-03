@@ -64,9 +64,12 @@ class GeneticAI(AI):
             return hook(state, player, treasures, choices)
         target = self.choose_anvil_gain(state, player, choices)
         treasure = self.choose_anvil_treasure_to_discard(state, player, treasures)
-        if any(getattr(self.strategy, name, None) is not None for name in (
-            "choose_anvil_gain", "choose_anvil_treasure_to_discard"
-        )):
+        explicit_policy = getattr(self.strategy, "balanced_gain_source", None) == "Anvil" or any(
+            getattr(self.strategy, name, None) is not None for name in (
+                "choose_anvil_gain", "choose_anvil_treasure_to_discard"
+            )
+        )
+        if explicit_policy:
             return treasure, target
         return tactical_defaults.choose_anvil_option(state, player, treasures, target)
 

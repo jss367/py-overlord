@@ -346,6 +346,26 @@ improvements. Because confirmation scales with pool size, the league and
 control arms can consume different numbers of games even at identical search
 settings; account for this when comparing strength per simulation budget.
 
+## Reflective strategy proposals
+
+An optional experiment uses GEPA (Genetic-Pareto) to read simulation feedback
+and propose a validated JSON strategic plan as an additional genetic-search
+seed. It compares both arms on fresh games against strong opponents and records
+actual game allowances, simulation usage, and model costs. Use
+`--search-game-budget` for shared hard game allowances, counting GEPA against
+the assisted arm. See
+[Reflective strategy search with GEPA](docs/reflective-strategy-search.md)
+for installation, the Oslo experiment command, supported decisions, and budget
+limits. The default reflection backend uses your Codex CLI ChatGPT subscription;
+paid API access is optional. Gameplay remains ordinary compiled Python strategy rules.
+The [Oslo policy coverage audit](reports/strategies/oslo-strategic-genome-coverage.html)
+checks that the expanded typed policy can reproduce both strong Oslo references.
+The [shared-budget benchmark](reports/strategies/oslo-reflective-shared-budget-benchmark.html)
+reports the subsequent five-seed comparison and its uncertainty.
+The [saved-proposal comparison](reports/strategies/oslo-reflective-proposals-and-final-recommendations.html)
+isolates the original reflective proposals from the final assisted recommendations
+on another fresh set of games.
+
 ## Calibration suite
 
 `boards/calibration/` pairs boards with community-known best strategies so

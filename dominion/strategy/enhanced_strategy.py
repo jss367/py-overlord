@@ -85,6 +85,36 @@ class PriorityRule:
         return PriorityRule._tag_source(fn, f"PriorityRule.colonies_left({op!r}, {amount!r})")
 
     @staticmethod
+    def multi_buy_greening(card: str, copies: int, fallback_turn: int):
+        """Commit after the first scoring card, or when a multi-buy is affordable."""
+        def condition(state, player):
+            from dominion.cards.registry import get_card
+
+            if player.count_in_deck(card) > 0 or state.turn_number >= fallback_turn:
+                return True
+            cost = state.get_card_cost(player, get_card(card))
+            return player.buys >= copies and player.coins >= copies * cost
+
+        return PriorityRule._tag_source(
+            condition, f"PriorityRule.multi_buy_greening({card!r}, {copies!r}, {fallback_turn!r})"
+        )
+
+    @staticmethod
+    def reserve_treasure_for_gains(gainer: str, targets: list[tuple[str, int]]):
+        """Play this Treasure unless an in-play gainer still needs a discard."""
+        targets = list(targets)
+
+        def condition(state, player):
+            if not any(card.name == gainer for card in player.in_play):
+                return True
+            return not any(player.count_in_deck(card) < copies and state.supply.get(card, 0) > 0
+                           for card, copies in targets)
+
+        return PriorityRule._tag_source(
+            condition, f"PriorityRule.reserve_treasure_for_gains({gainer!r}, {targets!r})"
+        )
+
+    @staticmethod
     def turn_number(op: str, amount: int) -> Callable[[GameState, PlayerState], bool]:
         cmp = PriorityRule._OP_MAP[op]
         fn = lambda s, _me, _amount=amount, _cmp=cmp: _cmp(s.turn_number, _amount)
@@ -461,6 +491,12 @@ class EnhancedStrategy:
 
     # ------------------------------------------------------------------
     def choose_action(self, state, player, choices):
+        if getattr(state, "_choosing_main_action_phase", False):
+            for multiplier in getattr(self, "protected_multipliers", []):
+                real = [card for card in choices if card is not None]
+                selected = next((card for card in real if card.name == multiplier), None)
+                if selected is not None and len([card for card in real if card.name != multiplier]) == 1:
+                    return selected
         # Handle Trail reaction trigger: if Trail is the only real option
         # (on-gain/on-discard/on-trash reaction) and butterfly trick is
         # available, always play it so the Way fires.
@@ -739,6 +775,15 @@ class EnhancedStrategy:
         priorities exclude their cards from the fallback where possible;
         mandatory gains still select a legal card when all rules fail.
         """
+        if (getattr(self, "balanced_gain_source", None) is not None
+                and context.source == self.balanced_gain_source):
+            targets = dict(getattr(self, "balanced_gain_targets", []))
+            eligible = [card for card in choices if card is not None
+                        and card.name in targets and player.count_in_deck(card.name) < targets[card.name]]
+            if eligible:
+                return min(eligible, key=lambda card: player.count_in_deck(card.name) / targets[card.name])
+            # An explicit source policy can intentionally decline a gain.
+            return self.choose_gain(state, player, choices)
         rules = getattr(self, "free_gain_priority", None)
         if rules is None:
             choice = self.choose_gain(state, player, choices)

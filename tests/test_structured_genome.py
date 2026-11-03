@@ -192,10 +192,11 @@ class TestRandomMenuStrategy:
         for _ in range(30):
             s = random_menu_strategy(info)
             names = [r.card_name for r in s.gain_priority]
-            # Colony leads the normal greening block. Explicit opening/endgame
-            # rules may precede it, but Colony itself remains unconditional.
+            # Colony leads the normal greening block; schema 2 can gate it on
+            # a multi-buy turn rather than buying a single Colony immediately.
             colony_rule = next(rule for rule in s.gain_priority if rule.card_name == "Colony")
-            assert colony_rule.condition is None
+            assert (colony_rule.condition is None or
+                    "multi_buy_greening" in colony_rule.condition._source)
             assert "Province" in names
             # Platinum joins the backbone and is never a capped pick. Gold may
             # be deliberately omitted by a typed rush plan.
