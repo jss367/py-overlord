@@ -12,12 +12,13 @@ table{width:100%;border-collapse:collapse;background:white}th,td{padding:12px 16
 pre{padding:20px;background:#edf3ee;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:10px}code{font-size:.9em;overflow-wrap:anywhere}footer{margin-top:40px;color:var(--muted)}
 </style></head><body><main>
 <nav><a href="index.html">Strategy catalog</a> · <a href="../boards/oslo.html">Oslo board</a></nav>
-<p class="muted"><strong>Historical simulator:</strong> These October 2026 results were recorded before main's
-explicit tie and capped-game scoring update. They retain the original scoring and engine behavior;
-they are not measurements of the updated implementation. Reproduce them from
-<a href="https://github.com/jss367/py-overlord/commit/2e1479e32e44dce93585733b97bc6afa48a7c885">the recorded-code checkpoint</a>
-with the saved input fingerprint and artifacts. New runs give half credit for natural ties,
-zero credit for capped games, and preserve explicit outcome counts.</p>
+<p class="muted"><strong>Historical simulator:</strong> This October 2026 pilot predates main's
+explicit tie and capped-game scoring update. Its original results, evidence and reproduction command
+are preserved below; they are not measurements of the updated implementation. The
+<a href="https://github.com/jss367/py-overlord/commit/2e1479e32e44dce93585733b97bc6afa48a7c885">pre-integration code checkpoint</a>
+contains the legacy-compatible runner and policy fixtures, but is not the exact original tree for this
+earlier study. It exactly matches the later shared-budget benchmark and saved-candidate comparison.
+New runs give half credit for natural ties, zero credit for capped games, and retain explicit outcomes.</p>
 
 <p class="muted">October 14, 2026 · Prototype evaluation</p>
 <h1>Oslo: Reflective Strategy Search with Subscription Access</h1>

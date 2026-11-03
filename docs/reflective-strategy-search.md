@@ -19,7 +19,11 @@ fresh shuffle block without making model calls or selecting new recommendations.
 These are historical October 2026 studies. Their recorded engine used the old
 tie/capped-game behavior. The complete pre-integration code is preserved at
 `2e1479e32e44dce93585733b97bc6afa48a7c885`; check out that commit to reproduce
-those exact inputs with the trusted local artifacts. The current implementation
+the later shared-budget benchmark and saved-candidate diagnostic with the trusted
+local artifacts: their recorded simulator fingerprint exactly matches that commit.
+The earlier pilot and coverage audit retain their own original evidence and
+commands; the checkpoint supplies compatibility modes, not their exact original
+trees. The current implementation
 uses main's explicit outcome contract. The saved-candidate runner deliberately
 rejects old checkpoints when their simulator fingerprint differs from the
 current tree. Updating this PR to main did not rerun or relabel historical results.
@@ -148,8 +152,8 @@ strong Oslo reference configurations now reproduce their recorded decisions
 without inheriting custom hooks. Balanced gains are currently supported for
 Anvil; other custom tactics may still lie outside the JSON space.
 
-Use `--genome-schema 1` to retain the older pilot's fields and genetic random
-stream. Saved schema 1 JSON remains strictly readable; omitted new policies
+Use `--genome-schema 1` to retain the older pilot's fields. Reproducing the
+historical search also requires the corresponding historical engine. Saved schema 1 JSON remains strictly readable; omitted new policies
 receive neutral defaults. A supplied `--seed-genome` must match the chosen
 schema. Schema 2 is the default for new experiments.
 
