@@ -90,11 +90,13 @@ def test_seeded_parallel_evaluation_matches_serial(tmp_path):
         assert serial_fitness == parallel_fitness
         assert serial.last_population_breakdowns == parallel.last_population_breakdowns
         assert _fired(serial_pop) == _fired(parallel_pop)
+        assert serial.evaluated_games == parallel.evaluated_games == len(serial_pop) * serial.games_per_eval
         assert _fired(parallel_pop)[0]["free_gain_priority"] == [0]
         assert any(any(v) for v in _fired(parallel_pop)), "expected some rules to fire"
 
         # Single-strategy entry point goes through the same pool.
         single = parallel.evaluate_strategy(parallel_pop[0])
+        assert parallel.evaluated_games == (len(serial_pop) + 1) * parallel.games_per_eval
         assert single == serial_fitness[0]
         assert parallel.last_eval_breakdown == serial.last_population_breakdowns[0]
     finally:

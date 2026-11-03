@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oslo: Reflective Strategy Search with Subscription Access</title>
+<meta name="description" content="A three-seed Oslo pilot compares genetic search with subscription-backed reflective strategy proposals.">
+<style>
+:root{color-scheme:light;--ink:#183229;--muted:#56695f;--line:#d5dfd8;--accent:#12694a}
+*{box-sizing:border-box}body{margin:0;background:#f7faf7;color:var(--ink);font:16px/1.65 system-ui,sans-serif}
+main{max-width:1050px;margin:auto;padding:32px 24px 64px}a{color:var(--accent)}h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.12;max-width:24ch}
+h2{margin-top:42px}p,li{max-width:90ch}.verdict{padding:24px;background:#e5f1e7;border:1px solid #b6d4bf;border-radius:12px}
+.verdict strong{font-size:1.35rem}.muted{color:var(--muted)}.table{overflow:auto;border:1px solid var(--line);border-radius:10px;margin:24px 0}
+table{width:100%;border-collapse:collapse;background:white}th,td{padding:12px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}th{background:#edf3ee}
+pre{padding:20px;background:#edf3ee;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:10px}code{font-size:.9em;overflow-wrap:anywhere}footer{margin-top:40px;color:var(--muted)}
+</style></head><body><main>
+<nav><a href="index.html">Strategy catalog</a> · <a href="../boards/oslo.html">Oslo board</a></nav>
+<p class="muted"><strong>Historical simulator:</strong> This October 2026 pilot predates main's
+explicit tie and capped-game scoring update. Its original results, evidence and reproduction command
+are preserved below; they are not measurements of the updated implementation. The
+<a href="https://github.com/jss367/py-overlord/commit/2e1479e32e44dce93585733b97bc6afa48a7c885">pre-integration code checkpoint</a>
+contains the legacy-compatible runner and policy fixtures, but is not the exact original tree for this
+earlier study. It exactly matches the later shared-budget benchmark and saved-candidate comparison.
+New runs give half credit for natural ties, zero credit for capped games, and retain explicit outcomes.</p>
+
+<p class="muted">October 14, 2026 · Prototype evaluation</p>
+<h1>Oslo: Reflective Strategy Search with Subscription Access</h1>
+<div class="verdict"><strong>Subscription-backed reflection works.</strong>
+<p>The reflective-assisted recommendations won 197 of 300 fresh direct games against the genetic control
+(65.7%) across three search seeds. This is an exploratory result from a small search budget.</p></div>
+<p>GEPA (Genetic-Pareto) uses a language model to reflect on execution feedback and evolve text configurations.
+Here it edits a validated JSON strategic plan, which the existing compiler turns into ordinary strategy rules.
+The reflection model runs through the Codex command-line interface (CLI) using the user's saved ChatGPT subscription sign-in.
+Gameplay requires no model calls or API credentials.</p>
+<h2>Fresh-game comparison</h2>
+<p>Each search seed trained both arms with the same opponents, genetic settings, and board-derived engine seeds.
+The assisted arm additionally received a GEPA proposal. Both recommendations were locked on validation games
+before their held-out games. Each recommendation played 100 games per opponent; the direct matchup used a
+separate set of 100 seat-balanced games for that seed. The direct matchup reused the first panel
+opponent's random seed block, so those two sets of outcomes should not be treated as independent.
+Later studies with a shared hard game allowance use a separate direct-matchup seed block.</p>
+<div class="table"><table><thead><tr><th>Search seed</th><th>Control: panel mean</th><th>Assisted: panel mean</th><th>Assisted wins against control</th></tr></thead><tbody><tr><td>2</td><td>49.6%</td><td>73.4%</td><td>72/100 (72.0%)</td></tr><tr><td>3</td><td>53.0%</td><td>63.6%</td><td>55/100 (55.0%)</td></tr><tr><td>4</td><td>51.2%</td><td>60.4%</td><td>70/100 (70.0%)</td></tr></tbody></table></div>
+<p>The direct win-rate mean across search seeds was 65.7%; the 95% Student-t interval across the
+three seed-level rates was 42.6% to 88.7%. The interval includes 50%, so this pilot does not resolve a mean direct-matchup advantage across search runs. Three seeds give a rough description of variation,
+not a precise estimate of performance on other kingdoms. Games within seat pairs share a seed and are dependent.</p>
+<div class="table"><table><thead><tr><th>Held-out opponent</th><th>Control wins</th><th>Assisted wins</th></tr></thead><tbody><tr><td>Big Money</td><td>77.0%</td><td>78.3%</td></tr><tr><td>Oslo Workers Village Magnate Refined Engine</td><td>17.0%</td><td>44.3%</td></tr><tr><td>Oslo Workers Village Magnate Multi Colony Engine</td><td>14.7%</td><td>35.7%</td></tr><tr><td>Engine Workers&#x27; Village + Magnate</td><td>48.7%</td><td>72.0%</td></tr><tr><td>Engine Workers&#x27; Village + Watchtower</td><td>99.0%</td><td>98.7%</td></tr></tbody></table></div>
+<p>These opponent rates average the three runs, each with 100 games against that opponent.
+The training objective blends half the panel mean with half the mean of its worst half.
+The table shows ordinary mean win rates, rather than that training score.</p>
+<h2>What changed and what remains uncertain</h2>
+<p>GEPA produced a behaviorally new selected seed in 3 of three runs. Its editable decisions include
+opening targets, staged copy limits, build timing, dependencies, economy, scoring timing, and play order.
+The saved plans show the exact coordinated changes; the JSON evidence below includes both starting and proposed configurations.
+That establishes which decisions were expressible, not which individual edit caused an improvement.</p>
+<p>This was a small pilot: 8 individuals, 2 genetic generations, 4 screening games per opponent,
+20 validation/confirmation games per opponent, and at most 20 GEPA matchup evaluations per search seed.
+It is below the repository's published calibration budget. GEPA added compute; this is not an equal-compute
+comparison. A stronger study should use the full calibration budget, more search seeds and kingdoms,
+400 or more fresh games per opponent, and a control with comparable total simulation resources.</p>
+<p>The pilot's original schema 1 typed plan could not express every reference tactic, including a multi-Colony resource gate,
+custom Treasure conditions, or direct village/draw deck-count balancing. Reference strategies remain
+opponents and may use those custom policies. A later <a href="oslo-strategic-genome-coverage.html">policy coverage audit</a>
+extends schema 2 to reproduce both strong references; it does not change this historical pilot's results.
+The simulator uses victory points, then fewer turns,
+with a seat-order fallback for full ties; swapping seats balances that fallback.
+The largest final turn counter among held-out games was 57. Turn counts and scores are retained in the evidence.</p>
+<h2>Subscription usage and simulation cost</h2>
+<p>The three completed runs used 6 Codex reflection requests, 121,197 input tokens and
+7,103 output tokens. They consumed the subscription's Codex allowance. API-dollar estimates are
+recorded as null, rather than treating subscription usage as free API access. Codex CLI version observed:
+codex-cli 0.162.0.</p>
+<div class="table"><table><thead><tr><th>Seed</th><th>GEPA evaluations</th><th>CLI requests</th><th>GEPA games</th><th>Control training games</th><th>Assisted training games</th><th>All games</th></tr></thead><tbody><tr><td>2</td><td>14</td><td>2</td><td>216</td><td>500</td><td>700</td><td>3416</td></tr><tr><td>3</td><td>19</td><td>2</td><td>316</td><td>500</td><td>700</td><td>3516</td></tr><tr><td>4</td><td>19</td><td>2</td><td>316</td><td>500</td><td>700</td><td>3516</td></tr></tbody></table></div>
+<p>The completed study played 10,448 games, including reflection evaluations, both genetic arms,
+recommendation selection, held-out opponent panels, and direct matchups. These counts exclude the earlier
+connection check, one-seed integration pilot, and an interrupted run that exposed the default prompt's ambiguity.
+The completed study used the corrected configuration-specific reflection prompt.</p>
+<h2>Evidence and reproduction</h2>
+<p>A later <a href="oslo-reflective-shared-budget-benchmark.html">five-seed comparison with shared hard game allowances</a>
+uses the expanded policy space and a larger search. Its results are reported separately from this historical pilot.</p>
+<p><a href="../research/oslo-reflective-strategy-comparison.json">Download the recorded study, per-game results, selection records and proposed plans</a>.
+The experiment records its simulation-input fingerprint. Full request prompts and local checkpoints remain
+under <code>.context/reflective-oslo-subscription-comparison/</code>. Live model proposals are stochastic;
+rerunning the command can produce different plans even when simulator/search seeds are fixed.</p>
+<pre><code>python -m pip install -e '.[gepa]'
+codex login
+PYTHONPATH=. python scripts/reflective_evolve.py \
+  --board boards/oslo.txt --reflection-backend codex --genome-schema 1 --seeds 2 3 4 \
+  --reference "Oslo Workers Village Magnate Refined Engine" \
+  --reference "Oslo Workers Village Magnate Multi Colony Engine" \
+  --max-metric-calls 20 --population 8 --generations 2 \
+  --train-games 4 --validation-games 20 --test-games 100 --workers 4 \
+  --output .context/reflective-oslo-reproduction</code></pre>
+<p>The adapter requires a ChatGPT login, removes API credentials only in its child environment,
+disables shell, connector and web-search access, ignores custom CLI configuration, and runs in an empty
+read-only directory. A failed provider request fails the experiment. JSON decoding rejects unsupported plans
+before simulation. No account credentials are copied into the study artifacts.</p>
+<p>Implementation: <code>dominion/simulation/codex_reflection.py</code>,
+<code>dominion/simulation/reflective_strategy_search.py</code> and <code>scripts/reflective_evolve.py</code>.
+See <a href="https://github.com/gepa-ai/gepa">the official GEPA implementation</a>,
+<a href="https://learn.chatgpt.com/docs/non-interactive-mode">Codex non-interactive mode</a> and
+<a href="https://learn.chatgpt.com/docs/auth">subscription authentication</a> for the underlying interfaces.</p>
+<footer>Recommendation: keep reflective proposals available as an experimental search option and validate them at the full calibration budget before adopting a default.</footer>
+</main></body></html>

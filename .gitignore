@@ -180,6 +180,12 @@ battle_logs/*
 !/reports/boards/**
 !/reports/strategies/
 !/reports/strategies/**
+!/reports/research/
+/reports/research/*
+!/reports/research/oslo-reflective-strategy-comparison.json
+!/reports/research/oslo-strategic-genome-coverage.json
+!/reports/research/oslo-reflective-shared-budget-benchmark.json
+!/reports/research/oslo-reflective-proposals-and-final-recommendations.json
 /training_logs
 .worktrees/
 /checkpoints

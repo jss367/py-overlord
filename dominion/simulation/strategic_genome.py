@@ -31,6 +31,7 @@ class OpeningTarget:
     card: str
     copies: int = 1
     through_turn: int = 4
+    only_first_gain: bool = False
 
 
 @dataclass
@@ -50,6 +51,9 @@ class BuildTarget:
         "before_silver",
         "fallback",
     ] = "build"
+    requires_copies: int = 1
+    balance_card: str | None = None
+    balance_max_lead: int = 0
 
     def normalize_timing(self) -> None:
         """Keep independently mutated phase bounds as a reachable window."""
@@ -76,13 +80,18 @@ class EconomyPlan:
 class GreeningPlan:
     """Victory-card policy, independent of the build and opening blocks."""
 
-    province_mode: Literal["always", "threshold"] = "always"
+    province_mode: Literal["always", "threshold", "colony_or_turn"] = "always"
     province_threshold: int = 8
     duchy_mode: Literal["never", "threshold", "always"] = "threshold"
     duchy_threshold: int = 4
     estate_mode: Literal["never", "threshold", "pile_pressure"] = "never"
     estate_threshold: int = 2
     estate_empty_piles: int = 2
+    province_colony_threshold: int = 2
+    province_from_turn: int = 18
+    colony_mode: Literal["always", "multi_buy"] = "always"
+    colony_min_copies: int = 4
+    colony_fallback_turn: int = 20
 
 
 @dataclass
@@ -102,6 +111,26 @@ class TrashPlan:
 
 
 @dataclass
+class DeckTarget:
+    card: str
+    copies: int = 7
+
+
+@dataclass
+class TreasureReservePlan:
+    treasure: str = "Copper"
+    gainer: str = "Anvil"
+    targets: list[DeckTarget] = field(default_factory=list)
+
+
+@dataclass
+class TacticalPlan:
+    balanced_gain_source: str | None = None
+    balanced_gain_targets: list[DeckTarget] = field(default_factory=list)
+    protected_multipliers: list[str] = field(default_factory=list)
+
+
+@dataclass
 class StrategicGenome:
     """A complete high-level strategy that compiles to priority lists."""
 
@@ -118,6 +147,18 @@ class StrategicGenome:
     #: :meth:`BaseAI.choose_card_to_exile_for_bounty_hunter` decides.
     bounty_exile_order: list[str] = field(default_factory=list)
     card_decision_policies: dict | None = None
+    treasure_reserve: TreasureReservePlan | None = None
+    tactics: TacticalPlan = field(default_factory=TacticalPlan)
+
+    def __setstate__(self, state):
+        """Keep trusted schema-1 pickle checkpoints usable after the extension."""
+        self.__dict__.update(state)
+        if "card_decision_policies" not in state:
+            self.card_decision_policies = None
+        if "tactics" not in state:
+            self.tactics = TacticalPlan()
+        if "treasure_reserve" not in state:
+            self.treasure_reserve = None
 
     def compile_into(self, strategy: BaseStrategy, info) -> BaseStrategy:
         """Replace phenotype rule lists while preserving identity and Ways."""
@@ -143,13 +184,14 @@ class StrategicGenome:
         # Explicit opening rules sit above green/build rules.  The max-in-deck
         # condition makes "one Chapel on turns 1-2" a single reachable edit.
         for opening in self.openings:
+            conditions = [PriorityRule.max_in_deck(opening.card, opening.copies)]
+            if opening.only_first_gain:
+                conditions.append(PriorityRule.cards_gained_this_turn("==", 0))
+            conditions.append(PriorityRule.turn_number("<=", opening.through_turn))
             gain.append(
                 PriorityRule(
                     opening.card,
-                    PriorityRule.and_(
-                        PriorityRule.max_in_deck(opening.card, opening.copies),
-                        PriorityRule.turn_number("<=", opening.through_turn),
-                    ),
+                    PriorityRule.and_(*conditions),
                 )
             )
 
@@ -165,7 +207,11 @@ class StrategicGenome:
                     PriorityRule.provinces_left(">", target.while_provinces_above)
                 )
             if target.requires_card is not None:
-                conditions.append(PriorityRule.has_cards([target.requires_card], 1))
+                conditions.append(PriorityRule.has_cards([target.requires_card], target.requires_copies))
+            if target.balance_card is not None:
+                conditions.append(PriorityRule.deck_count_diff(
+                    target.card, target.balance_card, "<=", target.balance_max_lead,
+                ))
             condition = (
                 conditions[0]
                 if len(conditions) == 1
@@ -180,10 +226,20 @@ class StrategicGenome:
         )
 
         if info.has_colony:
-            gain.append(PriorityRule("Colony"))
+            colony_condition = None
+            if self.greening.colony_mode == "multi_buy":
+                colony_condition = PriorityRule.multi_buy_greening(
+                    "Colony", self.greening.colony_min_copies, self.greening.colony_fallback_turn,
+                )
+            gain.append(PriorityRule("Colony", colony_condition))
 
         if self.greening.province_mode == "always":
             gain.append(PriorityRule("Province"))
+        elif self.greening.province_mode == "colony_or_turn":
+            gain.append(PriorityRule("Province", PriorityRule.or_(
+                PriorityRule.colonies_left("<=", self.greening.province_colony_threshold),
+                PriorityRule.turn_number(">=", self.greening.province_from_turn),
+            )))
         else:
             gain.append(
                 PriorityRule(
@@ -276,6 +332,17 @@ class StrategicGenome:
         strategy.gain_priority = gain
         strategy.action_priority = [PriorityRule(card) for card in self.action_order]
         strategy.treasure_priority = [PriorityRule(card) for card in self.treasure_order]
+        if self.treasure_reserve is not None:
+            reserve = self.treasure_reserve
+            for rule in strategy.treasure_priority:
+                if rule.card_name == reserve.treasure:
+                    rule.condition = PriorityRule.reserve_treasure_for_gains(
+                        reserve.gainer, [(target.card, target.copies) for target in reserve.targets],
+                    )
+        strategy.balanced_gain_source = self.tactics.balanced_gain_source
+        strategy.balanced_gain_targets = [(target.card, target.copies)
+                                         for target in self.tactics.balanced_gain_targets]
+        strategy.protected_multipliers = list(self.tactics.protected_multipliers)
         # Assigned unconditionally: the genome is authoritative for every rule
         # list it owns, so recompiling after a mutation that cleared the order
         # correctly drops back to the generic Bounty Hunter policy.
@@ -449,6 +516,10 @@ def promote_legacy_strategy(strategy: BaseStrategy, info) -> bool:
     exile = list(getattr(strategy, "bounty_hunter_exile_priority", []) or [])
 
     if _has_custom_decision_hooks(strategy):
+        return False
+    if (getattr(strategy, "balanced_gain_source", None)
+            or getattr(strategy, "balanced_gain_targets", [])
+            or getattr(strategy, "protected_multipliers", [])):
         return False
     if any(
         rule.condition is not None
@@ -787,6 +858,8 @@ def synchronize_strategic_genome(strategy: BaseStrategy, info) -> bool:
 
     genome.action_order = [card for card in action_names if card in genome.action_order]
     genome.treasure_order = [card for card in treasure_names if card in genome.treasure_order]
+    if genome.treasure_reserve and genome.treasure_reserve.treasure not in genome.treasure_order:
+        genome.treasure_reserve = None
     genome.bounty_exile_order = [
         card for card in exile_names if card in genome.bounty_exile_order
     ]
@@ -939,7 +1012,7 @@ def random_strategic_genome(info, rng=_random_module) -> StrategicGenome:
                 rng.randint(0, len(bounty_exile_order)), rng.choice(info.gainable)
             )
 
-    return StrategicGenome(
+    genome = StrategicGenome(
         openings=openings,
         build_targets=targets,
         economy=EconomyPlan(
@@ -970,6 +1043,57 @@ def random_strategic_genome(info, rng=_random_module) -> StrategicGenome:
         treasure_order=treasures,
         bounty_exile_order=bounty_exile_order,
     )
+    if getattr(info, "strategy_schema_version", 2) >= 2:
+        _mutate_extended_policies(genome, info, 0.25, rng)
+    return genome
+
+
+def _mutate_extended_policies(genome, info, rate, rng):
+    """Search reusable resource, composition and play decisions in schema 2."""
+    from dominion.analysis.card_capabilities import kingdom_capabilities
+
+    if info.has_colony and rng.random() < rate:
+        genome.greening.colony_mode = rng.choice(["always", "multi_buy"])
+        genome.greening.colony_min_copies = rng.randint(2, 5)
+        genome.greening.colony_fallback_turn = rng.randint(16, 26)
+    if info.has_colony and rng.random() < rate:
+        genome.greening.province_mode = rng.choice(["always", "threshold", "colony_or_turn"])
+        genome.greening.province_colony_threshold = rng.randint(0, 4)
+        genome.greening.province_from_turn = rng.randint(14, 24)
+    for opening in genome.openings:
+        if rng.random() < rate:
+            opening.only_first_gain = not opening.only_first_gain
+            opening.through_turn = rng.randint(2, 8)
+    for target in genome.build_targets:
+        if target.requires_card is not None and rng.random() < rate:
+            target.requires_copies = rng.randint(1, 4)
+        if rng.random() < rate * 0.3:
+            companions = [other.card for other in genome.build_targets if other.card != target.card]
+            target.balance_card = rng.choice([None, *companions])
+            target.balance_max_lead = rng.randint(-2, 3)
+    if "Anvil" in info.kingdom_cards and rng.random() < rate:
+        # Coordinate free gains and Treasure retention around one composition.
+        candidates = [card for card in info.villages + info.terminal_draw
+                      if info.costs.get(card, 100) <= 4]
+        # Printed costs can exceed the gain ceiling on discounted boards.
+        if len(candidates) < 2:
+            candidates = list(dict.fromkeys(info.villages + info.terminal_draw))
+        targets = [DeckTarget(card, rng.randint(3, 9)) for card in candidates[:2]]
+        if targets and rng.random() < 0.75:
+            genome.tactics.balanced_gain_source = "Anvil"
+            genome.tactics.balanced_gain_targets = targets
+            genome.treasure_reserve = (
+                TreasureReservePlan(targets=deepcopy(targets))
+                if "Copper" in genome.treasure_order else None
+            )
+        else:
+            genome.tactics.balanced_gain_source = None
+            genome.tactics.balanced_gain_targets = []
+            genome.treasure_reserve = None
+    multipliers = [name for name, caps in kingdom_capabilities(info.kingdom_cards).items()
+                   if caps.is_action and caps.is_multiplier]
+    if multipliers and rng.random() < rate:
+        genome.tactics.protected_multipliers = rng.choice([[], multipliers])
 
 
 def random_strategic_strategy(info, rng=_random_module) -> BaseStrategy:
@@ -1114,6 +1238,8 @@ def mutate_strategic_strategy(strategy: BaseStrategy, info, rate: float, rng=_ra
 
     # Later mutations can remove a target/opening or disable an economy card
     # selected as an anchor. Revalidate after the complete semantic edit.
+    if getattr(info, "strategy_schema_version", 2) >= 2:
+        _mutate_extended_policies(genome, info, rate, rng)
     _normalize_build_dependencies(genome, info)
 
     way_policy = deepcopy(getattr(strategy, "way_policy", []))
@@ -1140,9 +1266,12 @@ def crossover_strategic_strategies(parent1: BaseStrategy, parent2: BaseStrategy,
     for field_name in (
         "openings", "build_targets", "economy", "greening", "endgame",
         "trash", "action_order", "treasure_order", "bounty_exile_order",
-    ):
+    ) + (("treasure_reserve", "tactics") if getattr(info, "strategy_schema_version", 2) >= 2 else ()):
         if rng.random() < 0.5:
             setattr(child_genome, field_name, deepcopy(getattr(second, field_name)))
+    if (child_genome.treasure_reserve is not None
+            and child_genome.treasure_reserve.treasure not in child_genome.treasure_order):
+        child_genome.treasure_reserve = None
 
     # Build targets can arrive from one parent while their opening or economy
     # roots arrive from the other. Do not compile stranded dependencies.

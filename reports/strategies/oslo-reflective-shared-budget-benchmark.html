@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oslo: Reflective Search with Equal Game Allowances</title>
+<meta name="description" content="Five search seeds compare reflective-assisted and genetic search under a shared 60,000-game allowance per arm, with fresh evaluation and recorded uncertainty.">
+<style>
+:root{color-scheme:light;--ink:#183229;--muted:#56695f;--line:#d5dfd8;--accent:#12694a}
+*{box-sizing:border-box}body{margin:0;background:#f7faf7;color:var(--ink);font:16px/1.65 system-ui,sans-serif}
+main{max-width:1100px;margin:auto;padding:32px 24px 64px}a{color:var(--accent)}h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.12;max-width:24ch}
+h2{margin-top:38px}p,li{max-width:90ch}.verdict{padding:24px;background:#e5f1e7;border:1px solid #b6d4bf;border-radius:12px}
+.verdict strong{font-size:1.3rem}.muted{color:var(--muted)}.table{overflow:auto;border:1px solid var(--line);border-radius:10px;margin:24px 0}
+table{width:100%;border-collapse:collapse;background:white}th,td{padding:12px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}th{background:#edf3ee}
+pre{padding:20px;background:#edf3ee;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:10px}code{font-size:.9em;overflow-wrap:anywhere}footer{margin-top:40px;color:var(--muted)}
+</style></head><body><main>
+<nav><a href="index.html">Strategy catalog</a> · <a href="../boards/oslo.html">Oslo board</a> · <a href="oslo-strategic-genome-coverage.html">Policy coverage audit</a></nav>
+<p class="muted"><strong>Historical simulator:</strong> These October 2026 results were recorded before main's
+explicit tie and capped-game scoring update. They retain the original scoring and engine behavior;
+they are not measurements of the updated implementation. Reproduce them from
+<a href="https://github.com/jss367/py-overlord/commit/2e1479e32e44dce93585733b97bc6afa48a7c885">the recorded-code checkpoint</a>
+with the saved input fingerprint and artifacts. New runs give half credit for natural ties,
+zero credit for capped games, and preserve explicit outcome counts.</p>
+
+<p class="muted">October 14, 2026 · Five-seed benchmark</p>
+<h1>Oslo: Reflective Search with Equal Game Allowances</h1>
+<div class="verdict"><strong>The study did not resolve a direct-matchup advantage across search runs.</strong>
+<p>Assisted recommendations won 1,352 of 2,000 fresh games against their genetic controls
+(67.6%). The 95% Student-t interval across five search-seed rates was
+46.2% to 89.0%. Both arms received a 60,000-game search allowance per seed.</p>
+<p>On the planned secondary measure, average opponent-panel wins rose from
+58.2% to 74.0%.
+All 5 runs improved on that measure; the mean paired gain was
+15.8 percentage points (95% seed-level interval: 9.5 to 22.2).</p></div>
+<p>The reflective method, GEPA (Genetic-Pareto), used execution feedback to revise a validated JSON
+strategic plan. Both arms used the current genetic trainer with the expanded typed policy from the
+<a href="oslo-strategic-genome-coverage.html">reference coverage audit</a> enabled, alongside shared board-derived rule-list seeds.
+They began with the same board-derived plans and engine seeds; the assisted arm additionally received a
+selected reflective proposal with a distinct compiled rule/policy fingerprint in 5 of five runs.
+The audit's explicit reference encodings were not injected into search.</p>
+<h2>Fresh comparison</h2>
+<div class="table"><table><thead><tr><th>Search seed</th><th>Control: panel mean</th><th>Assisted: panel mean</th><th>Assisted wins against control</th></tr></thead><tbody><tr><td>21</td><td>57.2%</td><td>66.8%</td><td>150/400 (37.5%)</td></tr><tr><td>22</td><td>58.2%</td><td>74.2%</td><td>286/400 (71.5%)</td></tr><tr><td>23</td><td>58.5%</td><td>76.9%</td><td>320/400 (80.0%)</td></tr><tr><td>24</td><td>55.7%</td><td>78.4%</td><td>311/400 (77.8%)</td></tr><tr><td>25</td><td>61.2%</td><td>73.7%</td><td>285/400 (71.2%)</td></tr></tbody></table></div>
+<p>Each locked recommendation played 400 fresh games against each of five opponents. The direct matchup
+used a separate block of 400 games per search seed. Complete seat-swapped pairs shared shuffle seeds;
+the arms also shared panel test seeds. Recommendations were saved before these outcomes were observed.</p>
+<p>The primary analysis, declared before the run, was the mean direct win rate across search seeds.
+The paired difference in ordinary opponent-panel means was 15.8 percentage points
+(95% seed-level Student-t interval: 9.5 to 22.2).
+The intervals use five search runs as their units, rather than treating all games as independent.
+They are approximate and rely on the seed-level distribution; five runs and one kingdom limit generalization.</p>
+<div class="table"><table><thead><tr><th>Fresh opponent</th><th>Control wins</th><th>Assisted wins</th></tr></thead><tbody><tr><td>Big Money</td><td>86.2%</td><td>83.2%</td></tr><tr><td>Oslo Workers Village Magnate Refined Engine</td><td>29.3%</td><td>55.6%</td></tr><tr><td>Oslo Workers Village Magnate Multi Colony Engine</td><td>19.7%</td><td>51.2%</td></tr><tr><td>Engine Workers&#x27; Village + Magnate</td><td>55.7%</td><td>80.8%</td></tr><tr><td>Engine Workers&#x27; Village + Watchtower</td><td>99.9%</td><td>99.2%</td></tr></tbody></table></div>
+<p>Each opponent rate averages five runs with 400 games per run. The assisted arm also won more than half its games against both strong references on average.
+The training and selection objective blended half the panel mean with half the mean of its worst half.
+The tables show ordinary win-rate means; the complete evidence also preserves robust scores.</p>
+<div class="table"><table><thead><tr><th>Search seed</th><th>Assisted wins against Refined Engine</th><th>Assisted wins against Multi Colony Engine</th></tr></thead><tbody><tr><td>21</td><td>38.0%</td><td>75.2%</td></tr><tr><td>22</td><td>58.5%</td><td>42.5%</td></tr><tr><td>23</td><td>60.8%</td><td>44.2%</td></tr><tr><td>24</td><td>63.0%</td><td>49.8%</td></tr><tr><td>25</td><td>57.8%</td><td>44.2%</td></tr></tbody></table></div>
+<p>The averages pool different recommendations: 0 of five recorded panels exceeded 50%
+against both strong references. Seed 21 performed well against Multi Colony but lost its direct
+matchup against the control; the other four recommendations improved against Refined and the control
+while remaining below 50% against Multi Colony. This opponent dependence is material when choosing
+which strategy to use.</p>
+<h2>Shared allowance and actual spending</h2>
+<div class="table"><table><thead><tr><th>Seed</th><th>Control generations</th><th>Assisted generations</th><th>GEPA games</th><th>Control search games</th><th>Assisted search games</th></tr></thead><tbody><tr><td>21</td><td>23</td><td>23</td><td>1540</td><td>59980</td><td>59990</td></tr><tr><td>22</td><td>22</td><td>25</td><td>1040</td><td>59980</td><td>59990</td></tr><tr><td>23</td><td>21</td><td>20</td><td>1540</td><td>59980</td><td>60000</td></tr><tr><td>24</td><td>21</td><td>30</td><td>1540</td><td>59980</td><td>60000</td></tr><tr><td>25</td><td>21</td><td>24</td><td>1540</td><td>59980</td><td>59990</td></tr></tbody></table></div>
+<p>The hard cap covered reflective evaluations, genetic screening, refinement and confirmation, and
+recommendation selection. Both arms trained against the same fixed reference panel without adding
+hall-of-fame opponents. Thirty individuals and a ceiling of 30 generations were used. The trainer stopped
+before any generation whose full evaluation cycle and selection reserve could not fit.</p>
+<p>After training, remaining games funded equal, complete seat pairs for every unique recommendation
+option and opponent within an arm. Thus selection sample sizes could differ between arms. Completed
+search expenditure ranged from 59,980 to 60,000 games; unused allowance ranged from
+0 to 20 games, less than one complete selection pair block. The caps were equal;
+actual spending is reported rather than padded with discarded games.</p>
+<p>The study played 621,870 simulator games, including 22,000 fixed-cost fresh games.
+GEPA used 7,200 search games and 10 Codex reflection requests, with
+232862 input tokens and 12091 output tokens.
+Reflection used saved ChatGPT subscription sign-in; API-dollar estimates remain null.
+Equal game allowances do not equalize model computation or wall-clock time. Gameplay made no model calls.</p>
+<h2>Evidence and reproduction</h2>
+<p>The <a href="oslo-reflective-proposals-and-final-recommendations.html">saved-proposal follow-up</a>
+compares each original reflective proposal, final assisted recommendation and genetic-only control
+on another fresh, seat-balanced shuffle block. It separates candidate quality from this equal-budget
+comparison without changing the recorded recommendations.</p>
+<p><a href="../research/oslo-reflective-shared-budget-benchmark.json">Download the recorded benchmark</a>:
+settings and analysis plan, input fingerprint, cost ledgers, all fresh-game seeds/seats/outcomes/turns,
+selection summaries, selected rules and typed plans, GEPA lineage and raw proposal responses.
+Game records use named column arrays to keep the artifact compact. Full selection game records,
+trusted local strategy checkpoints, request logs, and the implementation source snapshot remain in
+<code>.context/oslo-reflective-shared-budget-benchmark/</code>.</p>
+<pre><code>python -m pip install -e '.[gepa]'
+PYTHONPATH=. python scripts/reflective_evolve.py \
+  --board boards/oslo.txt --reflection-backend codex --genome-schema 2 \
+  --seeds 21 22 23 24 25 \
+  --reference "Oslo Workers Village Magnate Refined Engine" \
+  --reference "Oslo Workers Village Magnate Multi Colony Engine" \
+  --max-metric-calls 20 --population 30 --generations 30 \
+  --train-games 10 --validation-games 100 --test-games 400 \
+  --workers 12 --search-game-budget 60000 \
+  --output .context/oslo-shared-budget-reproduction</code></pre>
+<p>Model proposals remain stochastic. Fixed simulator/search seeds do not guarantee identical plans
+from another live reflection run. The <a href="oslo-reflective-strategy-search-pilot.html">earlier three-seed pilot</a>
+used schema 1, a smaller search, a dynamic league and extra assisted compute; it is a separate experiment.
+The simulator judges victory points, then fewer turns, with a seat-order fallback for full ties,
+balanced here by swapping seats.</p>
+<p>The measured intervention includes language-model proposals, GEPA selection, and their interaction
+with the current genetic operators. A broader comparison should include additional kingdoms and
+alternative ways of proposing seeds under the same accounting contract.</p>
+<footer>This benchmark measures discovery under a shared game allowance on Oslo. Broader adoption requires replication on other kingdoms.</footer>
+</main></body></html>

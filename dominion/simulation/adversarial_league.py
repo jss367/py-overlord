@@ -271,6 +271,9 @@ def genome_signature(strategy: BaseStrategy) -> tuple:
         rule_sig(getattr(strategy, "trash_priority", [])),
         rule_sig(getattr(strategy, "bounty_hunter_exile_priority", [])),
         way_sig,
+        getattr(strategy, "balanced_gain_source", None),
+        tuple(getattr(strategy, "balanced_gain_targets", [])),
+        tuple(getattr(strategy, "protected_multipliers", [])),
         policy_signature(strategy),
     )
 

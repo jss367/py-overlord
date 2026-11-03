@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oslo: Search Policy Coverage and Reference Equivalence</title>
+<meta name="description" content="A typed strategy genome reproduces the Refined and Multi Colony Oslo references across 200 paired games and 62,070 decisions.">
+<style>
+:root{color-scheme:light;--ink:#183229;--muted:#56695f;--line:#d5dfd8;--accent:#12694a}
+*{box-sizing:border-box}body{margin:0;background:#f7faf7;color:var(--ink);font:16px/1.65 system-ui,sans-serif}
+main{max-width:1050px;margin:auto;padding:32px 24px 64px}a{color:var(--accent)}h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.12;max-width:25ch}
+h2{margin-top:38px}p,li{max-width:90ch}.verdict{padding:24px;background:#e5f1e7;border:1px solid #b6d4bf;border-radius:12px}
+.verdict strong{font-size:1.3rem}.muted{color:var(--muted)}.table{overflow:auto;border:1px solid var(--line);border-radius:10px;margin:24px 0}
+table{width:100%;border-collapse:collapse;background:white}th,td{padding:12px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}th{background:#edf3ee}
+pre{padding:20px;background:#edf3ee;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:10px}code{font-size:.9em;overflow-wrap:anywhere}footer{margin-top:40px;color:var(--muted)}
+</style></head><body><main>
+<nav><a href="index.html">Strategy catalog</a> · <a href="../boards/oslo.html">Oslo board</a> · <a href="oslo-reflective-strategy-search-pilot.html">Earlier reflection pilot</a></nav>
+<p class="muted"><strong>Historical simulator:</strong> This October 2026 coverage audit predates main's
+explicit tie and capped-game scoring update. Its original results, evidence and reproduction command
+are preserved below; they are not measurements of the updated implementation. The
+<a href="https://github.com/jss367/py-overlord/commit/2e1479e32e44dce93585733b97bc6afa48a7c885">pre-integration code checkpoint</a>
+contains the legacy-compatible runner and policy fixtures, but is not the exact original tree for this
+earlier study. It exactly matches the later shared-budget benchmark and saved-candidate comparison.
+New runs give half credit for natural ties, zero credit for capped games, and retain explicit outcomes.</p>
+
+<p class="muted">October 14, 2026 · Search representation audit</p>
+<h1>Oslo: Search Policy Coverage and Reference Equivalence</h1>
+<div class="verdict"><strong>Both strong references can now be expressed by the typed search policy.</strong>
+<p>The compiled policies matched every recorded decision and game outcome in 200 paired games:
+400 simulator runs and 62,070 decision comparisons. This establishes coverage on the audited games
+and boundary scenarios. It does not establish that a search run will discover these configurations.</p></div>
+<h2>Why extend the search space?</h2>
+<p>The <a href="oslo-reflective-strategy-search-pilot.html">earlier three-seed reflection pilot</a>
+improved on its genetic control but still lost more often than it won against the strong Oslo references.
+Its original JSON schema could not express important reference decisions. That limited what either
+genetic mutation or reflective proposals could achieve.</p>
+<p>Schema 2 adds reusable fields to the existing compiler and genetic operators. The reference classes
+remain unchanged. Their audit encodings compile into fresh base strategies; they do not inherit a
+reference class or call its custom predicates or decision hooks. The normal reflective experiment
+continues to start from board-derived seeds. These explicit reference encodings are audit fixtures.</p>
+<div class="table"><table><thead><tr><th>Decision</th><th>Typed policy now available</th><th>Reference behavior</th></tr></thead><tbody>
+<tr><td>Opening gains</td><td>First gain of the turn plus copy and turn limits</td><td>At most two Anvils, only as the first gain, through turn 7</td></tr>
+<tr><td>Engine dependency</td><td>Required card and required copies</td><td>King's Court purchases wait for three Magnates</td></tr>
+<tr><td>Deck composition</td><td>Purchase count difference and balanced Anvil gain targets</td><td>Anvil chooses the offered Village or Magnate with the lowest owned-count / target-count ratio; ties follow offered order</td></tr>
+<tr><td>Treasure retention</td><td>Hold a specified Treasure while its gainer is in play and a target still needs copies with supply remaining</td><td>Preserve Copper for Anvil until seven Villages and seven Magnates are reached or unavailable</td></tr>
+<tr><td>Victory timing</td><td>Colony coins-and-buys gate, commitment after first Colony, fallback turn, and Colony-or-turn Province gate</td><td>Multi Colony waits for four affordable Colonies or turn 20; both references allow Province with two Colonies left or from turn 18</td></tr>
+<tr><td>Multiplier play</td><td>Protect the last other Action during the main Action phase</td><td>Multi Colony plays King's Court before its sole remaining payload; payload selection retains normal priorities</td></tr>
+</tbody></table></div>
+<p>The Colony gate uses the live discounted price and checks both coins and buys again on each decision.
+Once a Colony is owned, the gate stays open. The balanced gain policy is currently validated for Anvil;
+other gain sources retain their existing policies.</p>
+<h2>Recorded equivalence</h2>
+<div class="table"><table><thead><tr><th>Reference</th><th>Paired games</th><th>Decisions compared</th><th>Differences</th></tr></thead><tbody>
+<tr><td>Workers' Village / Magnate Refined Engine</td><td>100</td><td>30,934</td><td>0</td></tr>
+<tr><td>Workers' Village / Magnate Multi Colony Engine</td><td>100</td><td>31,136</td><td>0</td></tr>
+</tbody></table></div>
+<p>Each reference and its compiled counterpart played against Big Money and the other strong reference.
+For each opponent, 25 shuffle seeds were tested in both seats. Each paired game ran the original and
+compiled policy separately with the same seed, seat, board and opponent. The audit compared the full
+ordered sequence of public decision requests and returned choices for both players, then winner, scores
+and final turn count. Nested implementation calls were excluded because the generic compiler and custom
+reference hook can delegate differently while making the same simulator-facing decision.</p>
+<p>This is a finite regression audit, rather than a proof over all possible game states. Boundary tests
+separately cover changing prices, exact affordability and buy limits, commitment and fallback timing,
+first-gain opening limits, dependency counts, purchase balance, unequal gain ratios, gain caps and ties,
+empty gain piles, multiplier payload selection, export/reload, fingerprints, mutation and crossover.
+The equivalence games test behavior preservation; they are not fresh evidence of a strength advantage.</p>
+<h2>Evidence and reproduction</h2>
+<p><a href="../research/oslo-strategic-genome-coverage.json">Download the complete audit</a>, including both
+typed reference plans, per-game seeds and outcomes, decision counts and trace hashes, and the simulator
+input fingerprint. Full decision sequences are compared in memory; hashes are saved for reproducibility.</p>
+<pre><code>PYTHONPATH=. python scripts/audit_oslo_genome.py \
+  --pairs 25 --seed 1729 --output .context/oslo-policy-audit-reproduction
+python -m pytest -q tests/test_genome_policy_coverage.py \
+  tests/test_structured_genome.py tests/test_reflective_strategy_search.py</code></pre>
+<p>This audit runs locally without model requests or API credentials. Schema 1 JSON plans are still
+strictly decoded with the earlier fields and migrated to neutral defaults. The experiment accepts
+<code>--genome-schema 1</code> to retain the earlier search decisions; new experiments default to schema 2.
+The pilot's recorded findings and reproduction command are preserved with that explicit version.</p>
+<h2>Next experiment</h2>
+<p>The subsequent <a href="oslo-reflective-shared-budget-benchmark.html">five-seed benchmark with equal game allowances</a>
+is now complete. The design below was the next step after this coverage audit; its recorded results and uncertainty are in that report.</p>
+<p>With these reference decisions expressible, a larger comparison can test discovery. Use at least
+five search seeds, 30 individuals, 30 generations, and 400 fresh seat-balanced games per opponent.
+Lock recommendations before those fresh games. Match the arms on total search simulation resources,
+including reflective evaluations and selection, and report subscription requests separately. The current
+reflective runner supports a shared hard game allowance through <code>--search-game-budget</code>,
+including GEPA, genetic search and selection. The original extra-compute mode remains available.
+Measure performance against the strong references as well as against the
+genetic control.</p>
+<footer>The audit removes known representation gaps for these two references. It makes no new claim about reflective search strength.</footer>
+</main></body></html>

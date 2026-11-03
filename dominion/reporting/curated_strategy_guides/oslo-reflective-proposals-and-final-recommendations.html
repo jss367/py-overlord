@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oslo: Reflective Proposals and Final Search Recommendations</title>
+<meta name="description" content="Fresh seat-balanced comparisons of saved reflective proposals, final assisted recommendations and genetic-only controls, with search-run uncertainty.">
+<style>
+:root{color-scheme:light;--ink:#183229;--muted:#56695f;--line:#d5dfd8;--accent:#12694a}
+*{box-sizing:border-box}body{margin:0;background:#f7faf7;color:var(--ink);font:16px/1.65 system-ui,sans-serif}
+main{max-width:1120px;margin:auto;padding:32px 24px 64px}a{color:var(--accent)}
+h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1.12;max-width:28ch}h2{margin-top:38px}
+p,li{max-width:92ch}.muted{color:var(--muted)}.verdict{padding:24px;background:#e5f1e7;border:1px solid #b6d4bf;border-radius:12px}
+.verdict strong{font-size:1.3rem}.table{overflow:auto;border:1px solid var(--line);border-radius:10px;margin:24px 0}
+table{width:100%;border-collapse:collapse;background:white}th,td{padding:12px 16px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}th{background:#edf3ee}
+pre{padding:20px;background:#edf3ee;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:10px}code{font-size:.9em;overflow-wrap:anywhere}
+footer{margin-top:40px;color:var(--muted)}
+</style></head><body><main>
+<nav><a href="index.html">Strategy catalog</a> · <a href="oslo-reflective-shared-budget-benchmark.html">Original equal-budget benchmark</a></nav>
+<p class="muted"><strong>Historical simulator:</strong> These October 2026 results were recorded before main's
+explicit tie and capped-game scoring update. They retain the original scoring and engine behavior;
+they are not measurements of the updated implementation. Reproduce them from
+<a href="https://github.com/jss367/py-overlord/commit/2e1479e32e44dce93585733b97bc6afa48a7c885">the recorded-code checkpoint</a>
+with the saved input fingerprint and artifacts. New runs give half credit for natural ties,
+zero credit for capped games, and preserve explicit outcome counts.</p>
+
+<p class="muted">2026-10-15 · Saved-candidate diagnostic · 5 search runs</p>
+<h1>Oslo: Reflective Proposals and Final Search Recommendations</h1>
+<div class="verdict"><strong>The study did not resolve a consistent benefit from further genetic search.</strong>
+<p>The original GEPA proposals averaged 67.0% wins against the five-opponent panel;
+the final assisted recommendations averaged 73.4%, and genetic-only controls
+averaged 58.2%.</p>
+<p>Final recommendations changed the panel win rate by +6.5 percentage points versus their proposals
+(95% interval across search runs: -1.0 to +14.0 points).
+2 of 5 final recommendations were identical to their original proposals.</p></div>
+<p>This follow-up reused the five saved runs from the <a href="oslo-reflective-shared-budget-benchmark.html">shared-budget benchmark</a>.
+GEPA is the reflective optimization method that revised typed strategy plans using simulator feedback.
+The original proposal is GEPA's selected plan before genetic training. The final assisted recommendation was selected
+from the assisted search's starting policies and genetic champion. It can be a different starting policy or a mutation;
+this comparison does not establish ancestry from the proposal.</p>
+<h2>Fresh opponent-panel results</h2>
+<div class="table"><table><thead><tr><th scope="col">Search seed</th><th scope="col">Original proposal</th><th scope="col">Final assisted</th><th scope="col">Genetic control</th><th scope="col">Change in percentage points</th><th scope="col">Proposal retained?</th></tr></thead><tbody><tr><td>21</td><td>55.4%</td><td>64.1%</td><td>58.3%</td><td>+8.8</td><td>No</td></tr><tr><td>22</td><td>62.9%</td><td>74.1%</td><td>57.8%</td><td>+11.2</td><td>No</td></tr><tr><td>23</td><td>77.9%</td><td>77.9%</td><td>59.3%</td><td>+0.0</td><td>Yes</td></tr><tr><td>24</td><td>77.2%</td><td>77.2%</td><td>55.4%</td><td>+0.0</td><td>Yes</td></tr><tr><td>25</td><td>61.4%</td><td>73.9%</td><td>60.2%</td><td>+12.5</td><td>No</td></tr></tbody></table></div>
+<p>Each distinct candidate played 1,000 games against each of the same five opponents.
+Every shuffle seed was played in both seats. Candidates shared shuffle seeds within each opponent matchup.
+All policies were frozen before any new games, and the new outcomes did not select or alter a recommendation.</p>
+<div class="table"><table><thead><tr><th scope="col">Opponent</th><th scope="col">Original proposal</th><th scope="col">Final assisted</th><th scope="col">Genetic control</th><th scope="col">Change in percentage points</th></tr></thead><tbody><tr><td>Big Money</td><td>78.0%</td><td>82.8%</td><td>86.8%</td><td>+4.8</td></tr><tr><td>Oslo Workers Village Magnate Refined Engine</td><td>48.3%</td><td>53.7%</td><td>29.1%</td><td>+5.4</td></tr><tr><td>Oslo Workers Village Magnate Multi Colony Engine</td><td>35.0%</td><td>52.7%</td><td>19.2%</td><td>+17.6</td></tr><tr><td>Engine Workers&#x27; Village + Magnate</td><td>75.3%</td><td>79.0%</td><td>56.1%</td><td>+3.7</td></tr><tr><td>Engine Workers&#x27; Village + Watchtower</td><td>98.1%</td><td>99.0%</td><td>99.8%</td><td>+0.9</td></tr></tbody></table></div>
+<h2>Uncertainty across search runs</h2>
+<div class="table"><table><thead><tr><th scope="col">Panel comparison</th><th scope="col">Mean change in percentage points</th><th scope="col">95% interval in percentage points</th></tr></thead><tbody><tr><td>Final assisted recommendation minus Original GEPA proposal</td><td>+6.5</td><td>-1.0 to +14.0</td></tr><tr><td>Original GEPA proposal minus Genetic-only control</td><td>+8.7</td><td>-4.8 to +22.2</td></tr><tr><td>Final assisted recommendation minus Genetic-only control</td><td>+15.2</td><td>+7.7 to +22.7</td></tr></tbody></table></div>
+<p>The primary analysis was the paired change in ordinary opponent-panel mean, final assisted minus original proposal.
+It was written to the run manifest before evaluation. Two-sided Student-t intervals use the 5 search runs
+as observations, including exact zero differences when the final policy equals the proposal. Games and seat pairs
+are not treated as independent search replications. These approximate intervals are wide with only five runs;
+secondary comparisons are descriptive and have no multiple-comparison correction.</p>
+<h2>Direct pairwise games</h2>
+<div class="table"><table><thead><tr><th scope="col">Search seed</th><th scope="col">Final wins vs proposal</th><th scope="col">Proposal wins vs control</th><th scope="col">Final wins vs control</th></tr></thead><tbody><tr><td>21</td><td>90.6%</td><td>39.6%</td><td>40.2%</td></tr><tr><td>22</td><td>67.0%</td><td>60.3%</td><td>69.5%</td></tr><tr><td>23</td><td>Identical policy</td><td>79.6%</td><td>79.6%</td></tr><tr><td>24</td><td>Identical policy</td><td>81.3%</td><td>81.3%</td></tr><tr><td>25</td><td>64.9%</td><td>48.7%</td><td>70.9%</td></tr></tbody></table></div>
+<p>Each distinct pair played 1,000 games on a separate fresh block, with both seats.
+Direct pairs within a search run shared their shuffle block. Identical policies were not played against themselves;
+their panel and control-matchup results were reused. Percentages use the simulator's winner, including its
+seat-order fallback when points and turn counts are fully tied.</p>
+<h2>What this tells us about the next experiment</h2>
+<p>This diagnostic measures the quality of particular saved proposals and recommendations. It does not compare
+equally funded GEPA-only and assisted algorithms: the original proposals consumed much less search computation,
+and the assisted procedure can fall back to another starting seed. The runs were inspected in the previous study,
+so this is a post-hoc follow-up with fresh shuffle evidence, rather than five new independent search runs.</p>
+<p>The next algorithm comparison should give a proposal-only arm its own explicit budget for additional reflective
+proposals and validation, then compare it with assisted and genetic-only arms on new search seeds. Keep all three
+recommendations eligible during validation and lock them before a separate test block. Additional kingdoms are
+needed before choosing a general default; these findings apply to the Oslo board and this policy representation.</p>
+<h2>Evidence and reproduction</h2>
+<p>The comparison completed 76,000 fresh games with no model requests.
+<a href="../research/oslo-reflective-proposals-and-final-recommendations.json">Download all outcomes, seeds, seats, candidate hashes and analysis</a>.
+The <a href="../research/oslo-reflective-shared-budget-benchmark.json">original benchmark evidence</a> preserves the
+proposed JSON plans and final rule lists. The local run folder contains frozen trusted checkpoints, opponents and
+a snapshot of the evaluator command. Raw game arrays have named columns.</p>
+<p>The runner checked its new shuffle seeds against 8,620
+distinct saved source-game seeds, with zero overlap. That covers saved reflection, selection and held-out games;
+genetic training's unsaved game seeds could not be enumerated. New cases use a separate hashed seed namespace.
+The simulator input fingerprint matched the original benchmark before and after evaluation.</p>
+<pre><code>PYTHONPATH=. python scripts/compare_saved_reflective_candidates.py \
+  --source .context/oslo-reflective-shared-budget-benchmark \
+  --games 1000 --workers 12 \
+  --output .context/oslo-saved-candidate-reproduction</code></pre>
+<p>This command requires the trusted local checkpoints from the earlier experiment. Pickle checkpoints are executable
+Python data and must not be loaded from an untrusted source. A clean clone has the public evidence, but not the
+gitignored checkpoints. Re-running the original live reflective search can produce different proposals.</p>
+<details><summary>Locked candidate names for traceability</summary><div class="table"><table><thead><tr><th scope="col">Search seed</th><th scope="col">Candidate</th><th scope="col">Saved name</th></tr></thead><tbody><tr><td>21</td><td>Original GEPA proposal</td><td>GEPA proposed seed</td></tr><tr><td>21</td><td>Final assisted recommendation</td><td>seed-variant-4739302416</td></tr><tr><td>21</td><td>Genetic-only control</td><td>gen20-4743554752</td></tr><tr><td>22</td><td>Original GEPA proposal</td><td>GEPA proposed seed</td></tr><tr><td>22</td><td>Final assisted recommendation</td><td>gen23-4613054992</td></tr><tr><td>22</td><td>Genetic-only control</td><td>gen20-4736317584</td></tr><tr><td>23</td><td>Original GEPA proposal</td><td>GEPA proposed seed</td></tr><tr><td>23</td><td>Final assisted recommendation</td><td>GEPA proposed seed</td></tr><tr><td>23</td><td>Genetic-only control</td><td>gen4-4726173248</td></tr><tr><td>24</td><td>Original GEPA proposal</td><td>GEPA proposed seed</td></tr><tr><td>24</td><td>Final assisted recommendation</td><td>GEPA proposed seed</td></tr><tr><td>24</td><td>Genetic-only control</td><td>gen8-4735534096</td></tr><tr><td>25</td><td>Original GEPA proposal</td><td>GEPA proposed seed</td></tr><tr><td>25</td><td>Final assisted recommendation</td><td>gen22-4739137072</td></tr><tr><td>25</td><td>Genetic-only control</td><td>gen15-4730010704</td></tr></tbody></table></div></details>
+<footer>Simulation fingerprint: <code>891d5557047f57f14261922fb5b456c7758edc4d3ba4d460099857e23ab8f721</code>.
+No saved standings or runnable catalog strategies were changed by this diagnostic.</footer>
+</main></body></html>

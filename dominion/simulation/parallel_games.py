@@ -21,6 +21,7 @@ import logging
 import multiprocessing as mp
 import os
 import random
+from copy import deepcopy
 from concurrent.futures import Future, ProcessPoolExecutor
 from dataclasses import dataclass, field
 from typing import Any, Optional
@@ -76,6 +77,7 @@ class GameTask:
     collect_decisions: bool = False
     strategy_label: str = ""
     opponent_label: str = ""
+    fresh_strategy_per_game: bool = False
 
 
 @dataclass
@@ -158,8 +160,8 @@ def run_game_task(task: GameTask) -> TaskResult:
     result = TaskResult(task_id=task.task_id)
     for game_num, seed in task.games:
         random.seed(seed)
-        ai_me = GeneticAI(strategy)
-        ai_opp = GeneticAI(opponent)
+        ai_me = GeneticAI(deepcopy(strategy) if task.fresh_strategy_per_game else strategy)
+        ai_opp = GeneticAI(deepcopy(opponent) if task.fresh_strategy_per_game else opponent)
         decision_stats = None
         firings = None
         if task.collect_decisions:

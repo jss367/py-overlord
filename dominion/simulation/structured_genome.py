@@ -53,6 +53,7 @@ class KingdomInfo:
     costs: dict[str, int] = field(default_factory=dict)
     has_colony: bool = False
     has_platinum: bool = False
+    strategy_schema_version: int = 2
 
     @classmethod
     def from_kingdom(cls, kingdom_cards: list[str]) -> KingdomInfo:
