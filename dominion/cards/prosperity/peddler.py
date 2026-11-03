@@ -14,5 +14,5 @@ class Peddler(Card):
         # Discount only applies "during your Buy phase" per card text.
         if getattr(game_state, "phase", None) != "buy":
             return 0
-        actions_in_play = sum(1 for c in player.in_play if c.is_action)
+        actions_in_play = sum(1 for c in player.in_play if game_state.is_action(c))
         return -2 * actions_in_play

@@ -55,3 +55,51 @@ def test_later_rounds_inherit_previous_champion(monkeypatch, use_league):
     assert ('Reference' in [s.name for s in carried]) == use_league
     carried[0].gain_priority.clear()
     assert champions[0].gain_priority
+
+
+@pytest.mark.parametrize("wins,losses,ties,truncated,rate", [
+    (0, 0, 200, 0, 50.0),
+    (0, 0, 0, 200, 0.0),
+    (40, 20, 60, 80, 35.0),
+    (120, 80, 0, 0, 60.0),
+])
+def test_reference_gate_uses_win_shares_and_retains_outcome_counts(monkeypatch, wins, losses, ties, truncated, rate):
+    """Feed summaries directly; no battle or evolutionary evaluation executes."""
+    from types import SimpleNamespace
+    from dominion.analysis.calibration import wilson_interval
+
+    result = {"strategy1_wins": wins, "strategy2_wins": losses,
+              "ties": ties, "truncated": truncated, "strategy1_win_rate": rate}
+    closed = []
+
+    class Battle:
+        def __init__(self, **kwargs):
+            self.strategy_loader = SimpleNamespace()
+
+        def run_battle(self, first, second, games):
+            assert (first, second, games) == ("Candidate", "Reference", 200)
+            return result
+
+        def close(self):
+            closed.append(True)
+
+    monkeypatch.setattr(league_evolve, "StrategyBattle", Battle)
+    row = league_evolve.head_to_head(BoardConfig(["Village"]), "Candidate", None, "Reference", None, 200)
+    assert closed == [True]
+    assert row["win_rate"] == rate
+    assert (row["wins"], row["losses"], row["ties"], row["truncated"]) == (wins, losses, ties, truncated)
+    assert row["ci"][0] <= rate <= row["ci"][1]
+    if ties or truncated:
+        assert row["interval_method"] == "Hoeffding"
+        assert row["ci"][1] > rate
+    else:
+        assert row["interval_method"] == "Wilson"
+        assert row["ci"] == pytest.approx([v * 100 for v in wilson_interval(wins, 200)])
+
+    rendered = league_evolve.render_report({
+        "board": "Test kingdom", "arm": "league", "rounds": 0,
+        "worst_case_weight": .5, "capacity": 1, "final_league": [],
+        "gate": [row], "round_reports": [],
+    })
+    assert f"| {wins} | {losses} | {ties} | {truncated} | {rate:.1f}% |" in rendered
+    assert row["interval_method"] in rendered

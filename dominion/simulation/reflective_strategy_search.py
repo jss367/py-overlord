@@ -31,6 +31,7 @@ from dominion.simulation.parallel_games import GamePool, GameTask, chunk_games, 
 from dominion.simulation.simulation_budget import SimulationBudget
 from dominion.simulation.structured_genome import BASIC_CARDS, KingdomInfo
 from dominion.strategy.strategies.base_strategy import BaseStrategy
+from dominion.strategy.card_policies import validate_policies
 
 
 SCHEMA_VERSION = 2
@@ -66,6 +67,12 @@ def genome_text(genome: StrategicGenome, schema_version: int = SCHEMA_VERSION) -
     def encode(value):
         if hasattr(value, "__dataclass_fields__"):
             omitted = _V2_FIELDS.get(type(value).__name__, set()) if schema_version == 1 else set()
+            if isinstance(value, StrategicGenome):
+                # Keep historical JSON readable; preserve new bounded trainer
+                # overrides whenever present rather than silently dropping them.
+                validate_policies(value.card_decision_policies)
+                if value.card_decision_policies is None:
+                    omitted = omitted | {"card_decision_policies"}
             if any(getattr(value, key) != getattr(type(value)(), key) for key in omitted
                    if type(value).__name__ not in {"OpeningTarget", "BuildTarget"}):
                 raise ValueError("Schema 1 cannot serialize schema 2 decisions")
@@ -89,6 +96,8 @@ def genome_text(genome: StrategicGenome, schema_version: int = SCHEMA_VERSION) -
 
 def _decode(value, annotation, path, schema_version=SCHEMA_VERSION):
     """Strictly decode only the known dataclass schema, including nested types."""
+    if path == "genome.card_decision_policies":
+        return validate_policies(value)
     origin, args = get_origin(annotation), get_args(annotation)
     if origin is UnionType:
         for option in args:
@@ -109,6 +118,8 @@ def _decode(value, annotation, path, schema_version=SCHEMA_VERSION):
         return [_decode(item, args[0], f"{path}[{i}]", schema_version) for i, item in enumerate(value)]
     if hasattr(annotation, "__dataclass_fields__"):
         expected = {f.name for f in fields(annotation)}
+        if annotation is StrategicGenome and isinstance(value, dict) and "card_decision_policies" not in value:
+            expected -= {"card_decision_policies"}
         if schema_version == 1:
             expected -= _V2_FIELDS.get(annotation.__name__, set())
         if not isinstance(value, dict) or set(value) != expected:
@@ -304,7 +315,9 @@ class MatchupEvaluator:
                 if self.simulation_budget is not None:
                     self.simulation_budget.consume(1, self.budget_phase)
                 rows.append({"seed": game_seed(case.seed, game.game_num // 2), "seat": game.game_num % 2,
-                             "won": game.won, "score": game.my_score, "opponent_score": game.opp_score,
+                             "won": game.result == "win", "win_share": game.win_share,
+                             "result": game.result, "termination_reason": game.outcome.termination_reason,
+                             "score": game.my_score, "opponent_score": game.opp_score,
                              "turns": game.turns, "log_path": None, "decision_firings": None})
         return rows
 
@@ -327,13 +340,19 @@ class MatchupEvaluator:
                 rows = self._serial_rows(strategy, opponent, case, folder, trace)
         finally:
             random.setstate(saved_rng)
+        completed = [row for row in rows if row["result"] != "truncated"]
         result = {
             "case": asdict(case), "games": rows,
-            "win_rate": sum(row["won"] for row in rows) / case.games,
-            "mean_score_margin": sum(row["score"] - row["opponent_score"] for row in rows) / case.games,
+            # Preserve the adapter's score key, now using main's half-tie,
+            # zero-credit-for-capped-games scoring contract.
+            "win_rate": sum(row["win_share"] for row in rows) / case.games,
+            "outcomes": {key: sum(row["result"] == value for row in rows) for key, value in
+                         (("wins", "win"), ("losses", "loss"), ("ties", "tie"), ("truncated", "truncated"))},
+            "mean_score_margin": (sum(row["score"] - row["opponent_score"] for row in completed)
+                                  / len(completed) if completed else 0.0),
         }
         if trace:
-            representative = next((row for row in rows if not row["won"]), rows[0])
+            representative = next((row for row in rows if row["win_share"] < 1), rows[0])
             log = Path(representative["log_path"]).read_text() if representative["log_path"] else ""
             summaries = [line for line in log.splitlines() if "Summary:" in line]
             result["representative_game"] = {
@@ -352,7 +371,7 @@ class MatchupEvaluator:
                 me, other = GeneticAI(deepcopy(strategy)), GeneticAI(deepcopy(opponent))
                 stats = battle._empty_decision_firings("Candidate")
                 first, second = (me, other) if index % 2 == 0 else (other, me)
-                winner, scores, log_path, turns = battle.run_game(
+                game = battle.run_game(
                     first, second, self.board.kingdom_cards,
                     decision_stats_by_ai={me: stats} if trace else None,
                 )
@@ -361,9 +380,10 @@ class MatchupEvaluator:
                     self.simulation_budget.consume(1, self.budget_phase)
                 rows.append({
                     "seed": game_seed(case.seed, index // 2), "seat": index % 2,
-                    "won": winner is me, "score": scores[me.name],
-                    "opponent_score": scores[other.name], "turns": turns,
-                    "log_path": log_path, "decision_firings": stats if trace else None,
+                    "won": game.result_for(me) == "win", "win_share": game.win_share(me),
+                    "result": game.result_for(me), "termination_reason": game.outcome.termination_reason,
+                    "score": game.scores[me.name], "opponent_score": game.scores[other.name], "turns": game.turns,
+                    "log_path": game.log_path, "decision_firings": stats if trace else None,
                 })
         return rows
 

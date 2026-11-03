@@ -1,0 +1,48 @@
+{
+  "tea": {
+    "opening": "Tea House",
+    "shrine": 0,
+    "spice": 0,
+    "lost": 0,
+    "highway": 1,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 2,
+    "cleanup": {
+      "hold_copper": true,
+      "mining_first": true,
+      "reserve": "breakpoints"
+    }
+  },
+  "shrine": {
+    "opening": "Secluded Shrine",
+    "second": "Tea House",
+    "tea": 5,
+    "lost": 0,
+    "daimyo": 4,
+    "shrine": 1,
+    "change": 0,
+    "spice": 1,
+    "highway": 1,
+    "mining": 1,
+    "fool": 0,
+    "battle": 0,
+    "warlord": 0,
+    "free": "adaptive",
+    "green": 1,
+    "banquet": true,
+    "money": false,
+    "double": "adaptive",
+    "scrounge": false,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false,
+      "spice_mode": "cards",
+      "spice_silver": false,
+      "free_shrine": false,
+      "hold_copper": true,
+      "mining_first": true
+    }
+  }
+}

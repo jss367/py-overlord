@@ -57,12 +57,6 @@ class Transmogrify(Card):
             )
             if choice is not None and game_state.supply.get(choice.name, 0) > 0:
                 game_state.supply[choice.name] -= 1
-                gained = game_state.gain_card(player, get_card(choice.name))
-                if gained in player.discard:
-                    player.discard.remove(gained)
-                    player.hand.append(gained)
-                elif gained in player.deck:
-                    player.deck.remove(gained)
-                    player.hand.append(gained)
+                game_state.gain_card(player, get_card(choice.name), to_hand=True)
         game_state.call_from_tavern(player, self)
         return True

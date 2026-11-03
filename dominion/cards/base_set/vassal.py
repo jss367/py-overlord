@@ -28,7 +28,7 @@ class Vassal(Card):
         top = player.deck.pop()
 
         # Non-action: discard and stop.
-        if not top.is_action:
+        if not game_state.is_action(top):
             game_state.discard_card(player, top)
             game_state.log_callback(
                 (

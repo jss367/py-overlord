@@ -11,6 +11,16 @@ from dominion.game.player_state import PlayerState
 class AI(ABC):
     """Base class for all AIs."""
 
+    def choose_scrounge_mode(self, state, player, estate_available):
+        hook = getattr(getattr(self, "strategy", None), "choose_scrounge_mode", None)
+        if hook:
+            return hook(state, player, estate_available)
+        return "gain" if estate_available else "trash"
+
+    def should_play_mining_road_treasure(self, state, player, card):
+        hook = getattr(getattr(self, "strategy", None), "should_play_mining_road_treasure", None)
+        return hook(state, player, card) if hook else True
+
     def choose_bauble_options(self, state, player, options, count):
         hook = getattr(getattr(self, "strategy", None), "choose_bauble_options", None)
         return hook(state, player, options, count) if hook else ["buy", "coin"]
@@ -51,6 +61,10 @@ class AI(ABC):
     def choose_card_to_trash(self, state: GameState, choices: list[Card]) -> Optional[Card]:
         """Choose a card to trash from available choices."""
         pass
+
+    def choose_gain_effect(self, state, player, gained_card, choices):
+        """Choose the next simultaneous gain effect from an owner-specific menu."""
+        return choices[0] if choices else None
 
     def choose_free_gain(self, state, player, choices, context):
         # Reuse an adapter's selector, not the engine's purchase operation.
@@ -1135,12 +1149,8 @@ class AI(ABC):
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Optional[Card]:
         """Choose which card to reveal for Courtier (more types -> more bonuses)."""
-        if not choices:
-            return None
-        return max(
-            choices,
-            key=lambda c: (len(c.types), c.cost.coins, c.name),
-        )
+        from .tactical_defaults import courtier_reveal
+        return courtier_reveal(state, player, choices)
 
     def choose_minion_mode(
         self, state: GameState, player: PlayerState
@@ -1940,7 +1950,7 @@ class AI(ABC):
             if any(c.name == "Fool's Gold" for c in state.trash):
                 return False
             players = list(state.players)
-            gainer = state.current_player
+            gainer = state.turn_player
             if gainer not in players or gainer is player:
                 return False
             # A skipped turn (Lich) means this player does not act next.
@@ -2036,9 +2046,8 @@ class AI(ABC):
         """
         if not can_trash_this:
             return "coin"
-        treasures = [c for c in player.hand if state.is_treasure(c)]
-        distinct = {c.name for c in treasures}
-        if len(distinct) >= 2:
+        from dominion.strategy.card_policies import investment_points
+        if investment_points(state, player) >= 2:
             return "trash"
         return "coin"
 
@@ -2314,7 +2323,7 @@ class AI(ABC):
     def choose_card_to_inherit(
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Card | None:
-        """Pick which non-Victory Action ($0-$4) to set aside via Inheritance."""
+        """Pick a non-Command Action costing up to $4 to set aside."""
         if not choices:
             return None
         return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
@@ -2618,13 +2627,7 @@ class AI(ABC):
         hook = getattr(getattr(self, "strategy", None), "should_replay_treasure_with_counterfeit", None)
         if hook:
             return hook(state, player, choices)
-        if not choices:
-            return None
-        # Prefer to trash Copper; otherwise highest-coin treasure.
-        coppers = [c for c in choices if c.name == "Copper"]
-        if coppers:
-            return coppers[0]
-        return max(choices, key=lambda c: (c.cost.coins, c.name))
+        return tactical_defaults.counterfeit_treasure(state, player, choices)
 
     def should_play_cultist_chain(
         self, state: GameState, player: PlayerState
@@ -2667,10 +2670,9 @@ class AI(ABC):
     def should_gain_from_trash_with_rogue(
         self, state: GameState, player: PlayerState, choices: list[Card]
     ) -> Card | None:
-        """Rogue: pick a $3-$6 card from trash to gain when none in deck-tops."""
-        if not choices:
-            return None
-        return max(choices, key=lambda c: (c.cost.coins, c.is_action, c.name))
+        """Rogue: choose its mandatory gain when an eligible trash card exists."""
+        from .tactical_defaults import rogue_gain
+        return rogue_gain(state, player, choices)
 
     def choose_card_to_trash_for_altar(
         self, state: GameState, player: PlayerState, choices: list[Card]
@@ -2867,6 +2869,21 @@ class AI(ABC):
         if chosen is not None and chosen in choices:
             return chosen
         return max(choices, key=lambda c: (c.cost.coins, c.stats.cards, c.name))
+
+    def choose_artificer_discards(self, state, player, choices):
+        """Return physical discards, or None to use the legacy gain budget."""
+        return None
+
+    def choose_artificer_gain_after_discard(self, state, player, choices, planned):
+        """Optional gain from the fresh exact-cost menu after discarding.
+
+        Keep a legal legacy plan. An invalidated plan can select another gain
+        through purchase preferences; an unplanned gain is declined by default.
+        """
+        if planned is None:
+            return None
+        matching = next((c for c in choices if c.name == planned.name), None)
+        return matching or self.choose_buy(state, list(choices) + [None])
 
     def choose_artificer_gain(
         self, state: GameState, player: PlayerState, choices: list[Card]

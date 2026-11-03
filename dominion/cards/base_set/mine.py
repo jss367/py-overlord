@@ -15,7 +15,7 @@ class Mine(Card):
         player = game_state.current_player
 
         # Find treasures in hand
-        treasure_cards = [card for card in player.hand if card.is_treasure]
+        treasure_cards = [card for card in player.hand if game_state.is_treasure(card)]
 
         if not treasure_cards:
             return
@@ -31,7 +31,7 @@ class Mine(Card):
             # Find treasures that can be gained
             possible_gains = []
             for _name, candidate, _count in game_state._iter_gainable_supply_cards():
-                if not candidate.is_treasure:
+                if not game_state.is_treasure(candidate):
                     continue
                 if candidate.cost.coins > treasure_to_trash.cost.coins + 3:
                     continue
@@ -44,11 +44,4 @@ class Mine(Card):
                 if chosen_card and game_state.supply.get(chosen_card.name, 0) > 0:
                     # Gain the chosen treasure to hand
                     game_state.supply[chosen_card.name] -= 1
-                    gained_card = game_state.gain_card(player, chosen_card)
-                    if gained_card:
-                        if gained_card in player.discard:
-                            player.discard.remove(gained_card)
-                            player.hand.append(gained_card)
-                        elif gained_card in player.deck:
-                            player.deck.remove(gained_card)
-                            player.hand.append(gained_card)
+                    game_state.gain_card(player, chosen_card, to_hand=True)

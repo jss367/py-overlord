@@ -24,7 +24,7 @@ class Salvager(Card):
         if choice is None or choice not in player.hand:
             choice = min(
                 player.hand,
-                key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
+                key=lambda c: (game_state.is_action(c), game_state.is_treasure(c), c.cost.coins, c.name),
             )
 
         cost = game_state.get_card_cost(player, choice)

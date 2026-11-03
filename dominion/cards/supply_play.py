@@ -27,7 +27,7 @@ def supply_action_choices(state, player, max_cost, *, allow_duration=True):
         seen.add(card.name)
         if (
             state.is_action(card)
-            and not card.is_command
+            and not state.is_command(card)
             and (allow_duration or not card.is_duration)
             and not card.cost.potions
             and not card.cost.debt

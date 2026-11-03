@@ -177,15 +177,16 @@ def test_search_pairs_both_seats_and_is_reproducible():
 
 
 
-def test_magic_lamp_does_not_count_astrolabe_trashed_by_counterfeit():
+def test_counterfeit_keeps_astrolabe_in_hand_and_out_of_magic_lamp_count():
     state, player = setup()
     lamp, counterfeit, astrolabe = map(get_card, ["Magic Lamp", "Counterfeit", "Astrolabe"])
     player.ai.should_replay_treasure_with_counterfeit = lambda *_: astrolabe
     player.hand = [astrolabe]
     player.in_play = [counterfeit] + [get_card(n) for n in ["Copper", "Silver", "Gold"]]
     counterfeit.on_play(state)
-    assert astrolabe in player.duration
-    assert astrolabe in state.trash
+    assert player.hand == [astrolabe]
+    assert not player.duration
+    assert astrolabe not in state.trash
     player.in_play.append(lamp)
     lamp.on_play(state)
     assert lamp not in state.trash

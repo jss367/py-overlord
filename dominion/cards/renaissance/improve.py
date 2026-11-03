@@ -24,7 +24,7 @@ class Improve(Card):
         candidates = [
             c
             for c in player.in_play
-            if c.is_action and c not in durations and c is not self
+            if game_state.is_action(c) and c not in durations and c is not self
         ]
         if not candidates:
             return
@@ -61,7 +61,7 @@ class Improve(Card):
 
         gain = max(
             gain_options,
-            key=lambda c: (c.is_action, c.is_treasure, c.stats.cards, c.cost.coins, c.name),
+            key=lambda c: (game_state.is_action(c), game_state.is_treasure(c), c.stats.cards, c.cost.coins, c.name),
         )
         if game_state.supply.get(gain.name, 0) <= 0:
             return

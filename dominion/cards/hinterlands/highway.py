@@ -12,4 +12,5 @@ class Highway(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        player.cost_reduction += 1
+        if self in player.in_play:
+            player.cost_reduction += 1

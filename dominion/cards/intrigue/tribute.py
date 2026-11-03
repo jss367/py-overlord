@@ -36,9 +36,9 @@ class Tribute(Card):
             if card.name in seen_names:
                 continue
             seen_names.add(card.name)
-            if card.is_action:
+            if game_state.is_action(card):
                 player.actions += 2
-            if card.is_treasure:
+            if game_state.is_treasure(card):
                 player.coins += 2
             if card.is_victory:
                 game_state.draw_cards(player, 2)

@@ -28,7 +28,7 @@ class Necromancer(Card):
         # Identify non-Command Action cards in the trash
         choices = [
             c for c in game_state.trash
-            if c.is_action and not c.is_command
+            if game_state.is_action(c) and not game_state.is_command(c)
         ]
         if not choices:
             return

@@ -22,7 +22,7 @@ class Pooka(Card):
         player = game_state.current_player
         treasures = [
             c for c in player.hand
-            if c.is_treasure and c.name != "Cursed Gold"
+            if game_state.is_treasure(c) and c.name != "Cursed Gold"
         ]
         if not treasures:
             return

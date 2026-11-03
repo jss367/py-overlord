@@ -14,6 +14,7 @@ from dominion.boards.loader import BoardConfig, load_board
 from dominion.cards.registry import CARD_ALIASES, CARD_TYPES, get_card
 from dominion.events.registry import EVENT_TYPES, get_event
 from dominion.game.game_state import GameState
+from dominion.game.outcome import GameOutcome, PlayedGame, winning_seats
 from dominion.landmarks.registry import LANDMARK_TYPES, get_landmark
 from dominion.projects.registry import PROJECT_TYPES, get_project
 from dominion.prophecies.registry import get_prophecy
@@ -182,7 +183,7 @@ class StrategyBattle:
         self.close()
 
     def _extract_cards_from_strategy(self, strat: EnhancedStrategy) -> set[str]:
-        """Return all names referenced by a strategy's priority lists."""
+        """Return names referenced by priority rules and bounded card policies."""
         references: set[str] = set()
         for priority_list in [
             strat.gain_priority,
@@ -205,6 +206,11 @@ class StrategyBattle:
                 references.add(card_name)
             if way_name:
                 references.add(way_name)
+
+        from dominion.strategy.card_policies import FAMILY_CARDS, validate_policies
+        policies = validate_policies(getattr(strat, "card_decision_policies", None)) or {}
+        for family in policies:
+            references.update(FAMILY_CARDS[family])
 
         references.update(getattr(strat, "landscapes", None) or [])
 
@@ -440,6 +446,8 @@ class StrategyBattle:
 
     def run_battle(self, strategy1_name: str, strategy2_name: str, num_games: int = 100) -> dict[str, Any]:
         """Run multiple games between two strategies"""
+        if num_games < 1:
+            raise ValueError("num_games must be positive")
         # Get strategies from loader
         strategy1 = self.strategy_loader.get_strategy(strategy1_name)
         strategy2 = self.strategy_loader.get_strategy(strategy2_name)
@@ -459,6 +467,8 @@ class StrategyBattle:
             "strategy2_name": strategy2_name,
             "strategy1_wins": 0,
             "strategy2_wins": 0,
+            "ties": 0,
+            "truncated": 0,
             "strategy1_total_score": 0,
             "strategy2_total_score": 0,
             "games_played": num_games,
@@ -512,9 +522,10 @@ class StrategyBattle:
                 or "(no landscapes)",
             )
 
+        games = [(game_num, random.getrandbits(31)) for game_num in range(num_games)]
         if self.parallel and num_games > 1:
             log_paths = self._play_games_parallel(
-                strategy1, strategy2, strategy1_name, strategy2_name, num_games, board_references, results
+                strategy1, strategy2, strategy1_name, strategy2_name, num_games, board_references, results, games
             )
             return self._finalize_results(results, num_games, log_paths)
 
@@ -536,7 +547,8 @@ class StrategyBattle:
 
             # Alternate who goes first
             if game_num % 2 == 0:
-                winner, scores, log_path, turns = self.run_game(
+                game = self._run_seeded_game(
+                    games[game_num][1],
                     ai1,
                     ai2,
                     kingdom_card_names,
@@ -548,7 +560,8 @@ class StrategyBattle:
                     allies=board_references.allies,
                 )
             else:
-                winner, scores, log_path, turns = self.run_game(
+                game = self._run_seeded_game(
+                    games[game_num][1],
                     ai2,
                     ai1,
                     kingdom_card_names,
@@ -560,41 +573,46 @@ class StrategyBattle:
                     allies=board_references.allies,
                 )
 
-            # Record results
-            game_result = {
-                "game_number": game_num + 1,
-                "winner": strategy1_name if winner == ai1 else strategy2_name,
-                "strategy1_score": scores[ai1.name],
-                "strategy2_score": scores[ai2.name],
-                "margin": abs(scores[ai1.name] - scores[ai2.name]),
-                "turns": turns,
-                "log_path": log_path,
-                "decision_firings": game_decision_firings,
-            }
-            results["detailed_results"].append(game_result)
-            self._merge_decision_firings(
-                results["decision_firings"]["strategy1"],
-                game_decision_firings["strategy1"],
+            outcome = game.result_for(ai1)
+            self._record_result(
+                results, game_num, outcome, game.outcome.termination_reason,
+                game.scores[ai1.name], game.scores[ai2.name], game.turns,
+                game.log_path, game_decision_firings,
             )
-            self._merge_decision_firings(
-                results["decision_firings"]["strategy2"],
-                game_decision_firings["strategy2"],
-            )
-
-            if winner == ai1:
-                results["strategy1_wins"] += 1
-            else:
-                results["strategy2_wins"] += 1
-
-            results["strategy1_total_score"] += scores[ai1.name]
-            results["strategy2_total_score"] += scores[ai2.name]
 
         return self._finalize_results(results, num_games, list(self.logger.game_logs))
 
+    def _run_seeded_game(self, seed, *args, **kwargs):
+        """Use the same per-game stream as workers without consuming the parent RNG."""
+        rng_state = random.getstate()
+        try:
+            random.seed(seed)
+            return self.run_game(*args, **kwargs)
+        finally:
+            random.setstate(rng_state)
+
+    def _record_result(self, results, game_num, outcome, reason, score1, score2, turns, log_path, firings):
+        winner = (results["strategy1_name"] if outcome == "win" else
+                  results["strategy2_name"] if outcome == "loss" else None)
+        results["detailed_results"].append({
+            "game_number": game_num + 1, "winner": winner,
+            "outcome": outcome, "termination_reason": reason,
+            "strategy1_score": score1, "strategy2_score": score2,
+            "margin": abs(score1 - score2), "turns": turns,
+            "log_path": log_path, "decision_firings": firings,
+        })
+        counter = {"win": "strategy1_wins", "loss": "strategy2_wins",
+                   "tie": "ties", "truncated": "truncated"}[outcome]
+        results[counter] += 1
+        results["strategy1_total_score"] += score1
+        results["strategy2_total_score"] += score2
+        for label in ("strategy1", "strategy2"):
+            self._merge_decision_firings(results["decision_firings"][label], firings[label])
+
     @staticmethod
     def _finalize_results(results: dict[str, Any], num_games: int, log_paths: list[Optional[str]]) -> dict[str, Any]:
-        results["strategy1_win_rate"] = results["strategy1_wins"] / num_games * 100
-        results["strategy2_win_rate"] = results["strategy2_wins"] / num_games * 100
+        results["strategy1_win_rate"] = (results["strategy1_wins"] + results["ties"] / 2) / num_games * 100
+        results["strategy2_win_rate"] = (results["strategy2_wins"] + results["ties"] / 2) / num_games * 100
         results["strategy1_avg_score"] = results["strategy1_total_score"] / num_games
         results["strategy2_avg_score"] = results["strategy2_total_score"] / num_games
         results["log_paths"] = log_paths
@@ -609,6 +627,7 @@ class StrategyBattle:
         num_games: int,
         board_references: StrategyBoardReferences,
         results: dict[str, Any],
+        games: list[tuple[int, int]],
     ) -> list[Optional[str]]:
         """Play ``num_games`` in the worker pool and fill ``results`` in game order.
 
@@ -628,7 +647,6 @@ class StrategyBattle:
             "landmarks": board_references.landmarks,
             "allies": board_references.allies,
         }
-        games = [(game_num, random.getrandbits(31)) for game_num in range(num_games)]
         blob1 = cloudpickle.dumps(strategy1)
         blob2 = cloudpickle.dumps(strategy2)
         tasks = [
@@ -659,39 +677,19 @@ class StrategyBattle:
                 "strategy1": self._empty_decision_firings(strategy1_name),
                 "strategy2": self._empty_decision_firings(strategy2_name),
             }
-            results["detailed_results"].append(
-                {
-                    "game_number": game.game_num + 1,
-                    "winner": strategy1_name if game.won else strategy2_name,
-                    "strategy1_score": game.my_score,
-                    "strategy2_score": game.opp_score,
-                    "margin": abs(game.my_score - game.opp_score),
-                    "turns": game.turns,
-                    "log_path": game.log_path,
-                    "decision_firings": game_decision_firings,
-                }
+            self._record_result(
+                results, game.game_num, game.result, game.outcome.termination_reason,
+                game.my_score, game.opp_score, game.turns, game.log_path,
+                game_decision_firings,
             )
-            self._merge_decision_firings(results["decision_firings"]["strategy1"], game_decision_firings["strategy1"])
-            self._merge_decision_firings(results["decision_firings"]["strategy2"], game_decision_firings["strategy2"])
-            if game.won:
-                results["strategy1_wins"] += 1
-            else:
-                results["strategy2_wins"] += 1
-            results["strategy1_total_score"] += game.my_score
-            results["strategy2_total_score"] += game.opp_score
 
         return [game.log_path for game in game_results]
 
     @staticmethod
     def _select_winner(players):
-        """Pick the winner per the official Dominion tie-break: highest VP,
-        and on equal VP the player who took fewer turns. A full tie (equal VP
-        and equal turns) falls back to seat order, which callers neutralize by
-        alternating seats across games."""
-        return max(
-            players,
-            key=lambda p: (p.get_victory_points(), -p.turns_taken),
-        )
+        """Return the sole rule winner, or None when seats are fully tied."""
+        winners = winning_seats(players)
+        return players[winners[0]] if len(winners) == 1 else None
 
     def run_game(
         self,
@@ -705,63 +703,80 @@ class StrategyBattle:
         ways: Optional[list[str]] = None,
         landmarks: Optional[list[str]] = None,
         allies: Optional[list[str]] = None,
-    ) -> tuple[GeneticAI, dict[str, int], Optional[str], int]:
-        """Run a single game between two AIs."""
-        if decision_stats_by_ai:
-            for ai, stats in decision_stats_by_ai.items():
-                self._instrument_ai_decisions(ai, stats)
+    ) -> PlayedGame:
+        """Run a game and preserve natural outcomes separately from safety caps."""
+        restore = []
+        try:
+            if decision_stats_by_ai:
+                for ai, stats in decision_stats_by_ai.items():
+                    for obj, attr in ((ai.strategy, "_decision_trace_callback"),
+                                      (ai, "choose_way"), (ai, "choose_buy")):
+                        restore.append((obj, attr, attr in vars(obj), vars(obj).get(attr)))
+                    self._instrument_ai_decisions(ai, stats)
 
-        # Start game logging with actual AI objects for better descriptions
-        self.logger.start_game([ai1, ai2])
+            # Start game logging with actual AI objects for better descriptions
+            self.logger.start_game([ai1, ai2])
 
-        # Set up game state and attach logger for structured logging
-        game_state = GameState(players=[], supply={})
-        game_state.set_logger(self.logger)
+            # Set up game state and attach logger for structured logging
+            game_state = GameState(players=[], supply={})
+            game_state.set_logger(self.logger)
 
-        # Initialize game
-        kingdom_cards, event_objs, project_objs, way_objs, landmark_objs, ally_objs = self._prepare_board_components(
-            kingdom_card_names,
-            events,
-            projects,
-            ways,
-            landmarks,
-            allies,
-        )
-        # Pin the board's Prophecy when one is declared; a fresh instance per
-        # game because Prophecy objects hold per-game activation state.
-        prophecy_obj = None
-        if self.board_config and self.board_config.prophecy:
-            prophecy_obj = get_prophecy(self.board_config.prophecy)
+            # Initialize game
+            kingdom_cards, event_objs, project_objs, way_objs, landmark_objs, ally_objs = self._prepare_board_components(
+                kingdom_card_names,
+                events,
+                projects,
+                ways,
+                landmarks,
+                allies,
+            )
+            # Pin the board's Prophecy when one is declared; a fresh instance per
+            # game because Prophecy objects hold per-game activation state.
+            prophecy_obj = None
+            if self.board_config and self.board_config.prophecy:
+                prophecy_obj = get_prophecy(self.board_config.prophecy)
 
-        game_state.initialize_game(
-            [ai1, ai2],
-            kingdom_cards,
-            use_shelters=self.use_shelters,
-            events=event_objs,
-            projects=project_objs,
-            ways=way_objs,
-            landmarks=landmark_objs,
-            allies=ally_objs,
-            prophecy=prophecy_obj,
-            card_cost_reduction=(
-                self.board_config.card_cost_reduction if self.board_config else 0
-            ),
-            traits=self.board_config.traits if self.board_config else None,
-        )
+            game_state.initialize_game(
+                [ai1, ai2],
+                kingdom_cards,
+                use_shelters=self.use_shelters,
+                events=event_objs,
+                projects=project_objs,
+                ways=way_objs,
+                landmarks=landmark_objs,
+                allies=ally_objs,
+                prophecy=prophecy_obj,
+                card_cost_reduction=(
+                    self.board_config.card_cost_reduction if self.board_config else 0
+                ),
+                traits=self.board_config.traits if self.board_config else None,
+            )
 
-        # Run game
-        while not game_state.is_game_over():
-            game_state.play_turn()
+            # Run game
+            while not game_state.is_game_over():
+                game_state.play_turn()
 
-        # Get results
-        final_turns = game_state.turn_number
-        scores = {p.ai.name: p.get_victory_points() for p in game_state.players}
-        winner = self._select_winner(game_state.players).ai
+            # Get results
+            final_turns = game_state.turn_number
+            scores = {p.ai.name: p.get_victory_points() for p in game_state.players}
+            outcome = GameOutcome.from_state(game_state)
+            result = PlayedGame(outcome, tuple(p.ai for p in game_state.players), None, final_turns)
+            winner_label = result.winner.name if result.winner is not None else (
+                "Truncated" if outcome.truncated else "Tie"
+            )
 
-        # End game logging and capture log path if any
-        log_path = self.logger.end_game(winner.name, scores, game_state.supply, game_state.players)
+            # End game logging and capture log path if any
+            log_path = self.logger.end_game(winner_label, scores, game_state.supply, game_state.players)
 
-        return winner, scores, log_path, final_turns
+            return PlayedGame(outcome, result.players, log_path, final_turns)
+        finally:
+            # Strategies can be reused across games and worker batches. Restore
+            # observers even on errors so callbacks cannot retain prior results.
+            for obj, attr, existed, value in reversed(restore):
+                if existed:
+                    setattr(obj, attr, value)
+                else:
+                    vars(obj).pop(attr, None)
 
 
 def main():
@@ -872,10 +887,13 @@ def log_results(results: dict[str, Any]):
 
     log_decision_firings(results)
 
+    logger.info("Ties: %d; capped games: %d", results["ties"], results["truncated"])
+    logger.info("Win rates include half of ties; capped games earn no win share.")
     logger.info("\nDetailed game results:")
     for game in results["detailed_results"]:
         logger.info("\nGame %d:", game['game_number'])
-        logger.info("  Winner: %s", game['winner'])
+        logger.info("  Outcome: %s (%s)", game["outcome"], game["termination_reason"])
+        logger.info("  Winner: %s", game["winner"])
         logger.info(
             "  Scores: %s=%d, %s=%d",
             results['strategy1_name'],

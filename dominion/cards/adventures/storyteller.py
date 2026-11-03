@@ -8,14 +8,14 @@ class Storyteller(Card):
         super().__init__(
             name="Storyteller",
             cost=CardCost(coins=5),
-            stats=CardStats(actions=1),
+            stats=CardStats(actions=1, coins=1),
             types=[CardType.ACTION],
         )
 
     def play_effect(self, game_state):
         player = game_state.current_player
         # Play up to 3 Treasures from hand.
-        treasures_in_hand = [c for c in player.hand if c.is_treasure]
+        treasures_in_hand = [c for c in player.hand if game_state.is_treasure(c)]
         picks = player.ai.choose_treasures_to_play_for_storyteller(
             game_state, player, treasures_in_hand
         )
@@ -24,7 +24,7 @@ class Storyteller(Card):
                 continue
             if not game_state.move_card_from_hand_to_play(player, card):
                 break
-            card.on_play(game_state)
+            game_state.play_treasure_indirectly(player, card)
         # Pay all your $.
         coins_to_spend = player.coins
         player.coins = 0

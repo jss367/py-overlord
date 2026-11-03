@@ -25,7 +25,7 @@ class Imp(Card):
         in_play_names = {c.name for c in player.in_play + player.duration}
         choices = [
             c for c in player.hand
-            if c.is_action and c.name not in in_play_names
+            if game_state.is_action(c) and c.name not in in_play_names
         ]
         if not choices:
             return

@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import pytest
 
 from dominion.boards.loader import BoardConfig, load_board
+from dominion.game.outcome import GameOutcome
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.simulation.parallel_games import GameResult, TaskResult
 from dominion.simulation.reflective_strategy_search import MatchupEvaluator, board_seed, compile_genome, genome_text, matchup_cases
@@ -133,7 +134,8 @@ def test_budgeted_trainer_rejects_incomplete_worker_results(tmp_path):
     trainer = GeneticTrainer(board.kingdom_cards, board_config=board, games_per_eval=2,
                              workers=2, simulation_budget=SimulationBudget(4), log_folder=str(tmp_path))
     trainer._pool = SimpleNamespace(
-        run=lambda tasks: {task.task_id: TaskResult(task.task_id, [GameResult(0, True, 3, 2, 10)])
+        run=lambda tasks: {task.task_id: TaskResult(task.task_id, [
+            GameResult(0, GameOutcome((3, 2), (5, 5), (0,), "province_depleted"), 0, 3, 2, 10)])
                            for task in tasks}, close=lambda: None,
     )
     strategy = compile_genome(genome_text(board_seed(board)), trainer._kingdom_info)

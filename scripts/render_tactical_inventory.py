@@ -77,18 +77,20 @@ def reviewed_decisions():
     reaction_evidence = (
         "scripts/data/reaction_duration_tactics_evaluation.json",
         "scripts/data/reaction_duration_selective_response_evaluation.json",
+        "scripts/data/gain-effect-ordering-reaction-validation.json",
+        "reports/strategies/gain-effect-ordering-and-searchable-card-policies.html",
         "reports/strategies/barge-sleigh-and-torturer-policy-evaluation.html",
     )
     for name, hook in (("Barge", "should_resolve_barge_now"), ("Sleigh", "choose_sleigh_reaction")):
         add((name,), "Timing / gain destination", (hook,),
-            ("tests/test_reaction_duration_tactics.py", "tests/test_menagerie_cards.py"),
-            rules="Scoped replay/destination audit; other interactions unreviewed",
-            tactical="Evaluated: historical fixed-policy panel; merged Supply inputs not reevaluated",
+            ("tests/test_reaction_duration_tactics.py", "tests/test_menagerie_cards.py", "tests/test_gain_effect_ordering.py"),
+            rules="Scoped owner-ordered gains, replay and original-destination tracking audit",
+            tactical="Evaluated: fixed-policy and registered-board contrasts rerun on owner-ordered gain engine",
             evidence=reaction_evidence, followups=(410,))
     add(("Torturer",), "Attack mode and discards", ("choose_torturer_attack", "choose_cards_to_discard"),
         ("tests/test_reaction_duration_tactics.py", "tests/test_groundskeeper_margrave.py"),
         rules="Scoped choices, physical discards, gain reactions and attack order audit",
-        tactical="Evaluated: historical fixed-policy panel; merged Supply inputs not reevaluated",
+        tactical="Evaluated: fixed-policy and registered-board contrasts rerun on owner-ordered gain engine",
         evidence=reaction_evidence, followups=(410,))
 
     for name, hooks in (
@@ -100,11 +102,15 @@ def reviewed_decisions():
         add((name,), "Gain reaction" if name == "Watchtower" else "Attack response / start-turn reaction" if name == "Clerk"
             else "Mandatory hand trash / self-trash mode" if name == "Investment" else "Exile target / first-name bonus",
             hooks, ("tests/test_card_tactics_evaluation.py", "tests/test_genetic_ai_hooks.py",
+                    "tests/test_searchable_card_policies.py",
                     "tests/test_menagerie_cards.py" if name == "Bounty Hunter" else "tests/test_prosperity_cards.py"),
-            tactical="Evaluated: fixed money panel; Clerk reaction timing unchanged" if name == "Clerk"
-                else "Evaluated: fixed money panel; no universal improvement",
+            tactical="Evaluated: bounded mutation screen and fresh fixed-purchase validation; no improvement established",
             evidence=("scripts/data/card_tactics_screen.json", "scripts/data/card_tactics_validation.json",
-                      "reports/strategies/card-reactions-investment-and-exile-evaluation.html"),
+                      "reports/strategies/card-reactions-investment-and-exile-evaluation.html",
+                      "scripts/data/contextual-policy-search-screen.json",
+                      "scripts/data/contextual-policy-search-validation.json",
+                      "scripts/data/investment-accounting-validation.json",
+                      "reports/strategies/gain-effect-ordering-and-searchable-card-policies.html"),
             followups=(394, 411, 413) if name == "Investment" else (394, 413))
 
     extra = (
@@ -142,7 +148,94 @@ def reviewed_decisions():
         ("tests/test_groundskeeper_margrave.py",))
     add(("Minion",), "Money vs redraw", ("choose_minion_mode",), ("tests/test_three_unused_kingdoms.py",))
     add(("Courtier",), "Reveal and bonus combination", ("choose_courtier_reveal", "choose_courtier_options"),
-        ("tests/test_three_unused_kingdoms.py",), wiring="Needs forwarding for reveal; bonuses connected/tested", followups=(344,))
+        ("tests/test_three_unused_kingdoms.py",), followups=(344, 421))
+
+    named = ("Courtier", "Courier", "Knights", "Rogue", "Stables", "Spice Merchant",
+             "Armory", "Artificer", "Scheme", "Chapel", "Junk Dealer", "Counterfeit",
+             "Moneylender", "Minion", *KNIGHT_NAMES)
+    additional_hooks = {
+        "Rogue": ("should_gain_from_trash_with_rogue",),
+        "Artificer": ("choose_artificer_discards", "choose_artificer_gain_after_discard"),
+    }
+    rule_issues = {"Courtier": (421, 427, 429), "Rogue": (422, 430), "Knights": (423,),
+                   "Artificer": (424,), "Stables": (425, 429), "Spice Merchant": (425, 429),
+                   "Counterfeit": (426, 429)}
+    for name in named:
+        audit = audits[name]
+        audits[name] = Audit(
+            "Victim trash and mandatory trash-pile gain" if name == "Rogue" else audit.decision,
+            "Scoped physical choices / timing / live types audited; current Inheritance and printed Capitalism classification covered separately (#427, #429)",
+            "Connected/tested",
+            "Evaluated: fixed-priority diagnostic screen and fresh validation; no replacement established; saved study predates review-only rule follow-ups",
+            audit.hooks + additional_hooks.get(name, ()),
+            audit.evidence + (
+                "tests/test_named_card_decisions.py", "tests/test_named_card_evaluation.py",
+                "scripts/data/named-card-decisions-screen.json",
+                "scripts/data/named-card-decisions-validation.json",
+                "scripts/data/named-card-registered-before.json",
+                "scripts/data/named-card-registered-after.json",
+                "reports/strategies/remaining-named-card-decisions-and-rules.html"),
+            tuple(dict.fromkeys(audit.followups + rule_issues.get(name, (423,) if name in KNIGHT_NAMES else ()))),
+            audit.adapter,
+        )
+    add(("Trader",), "Optional owner-ordered post-gain exchange",
+        ("should_reveal_trader", "choose_gain_effect"),
+        ("tests/test_named_card_decisions.py", "tests/test_trader.py",
+         "tests/test_trash_gain_supply.py", "tests/test_gain_from_supply.py",
+         "tests/test_gain_source_destinations.py"),
+        rules="Scoped original gain identity / ordering / stop-moving / ordinary, ordered and present non-Supply pile returns",
+        tactical="Unreviewed: baseline declines; reaction forwarding and rules tested, no isolated preference comparison",
+        evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",), followups=(430,))
+    add(("Groom",), "Original live-type follow-up bonuses / Horse setup", ("choose_buy",),
+        ("tests/test_named_card_decisions.py", "tests/test_menagerie_cards.py"),
+        rules="Scoped original-gain type snapshot, printed Victory draw/Action and non-Supply Horse setup; general menus/costs unreviewed",
+        tactical="Unreviewed: purchase-priority adapter tested; no isolated preference comparison",
+        evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",), followups=(431,))
+    add(("Blockade",), "Per-play storage / independent watches / one-shot returns", (),
+        ("tests/test_named_card_decisions.py", "tests/test_command_supply_rules.py",
+         "tests/test_gain_effect_ordering.py", "tests/test_gain_source_destinations.py",
+         "tests/test_seaside_cards.py", "tests/test_blockade_replays.py"),
+        rules="Scoped initial storage / printed placement / gain movement / failed replay / own-turn / virtual-play / repeated storage / per-play immunity / active-duration ownership / source transfer / per-player returns / multiplier return audit; general menus and tactical choices unreviewed",
+        wiring="Automatic watcher tested; gain-choice strategy forwarding unreviewed",
+        tactical="Unreviewed: no isolated preference comparison",
+        evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",),
+        followups=(432, 433, 434, 436, 438), adapter="dominion/cards/seaside/blockade.py")
+    add(("Nomad Camp", "Ghost Town", "Guardian", "Night Watchman", "Den of Sin"),
+        "Printed initial gain destination / explicit source precedence", (),
+        ("tests/test_named_card_decisions.py", "tests/test_gain_source_destinations.py"),
+        rules="Scoped initial placement / reactions / source override audit; play abilities and other interactions unreviewed",
+        wiring="Automatic initial placement tested; play-choice forwarding unreviewed",
+        tactical="Unreviewed: no isolated preference comparison",
+        evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",),
+        followups=(434, 435), adapter="dominion/game/game_state.py")
+    add(("Forge",), "Selected gain enters shared placement/reaction event", (),
+        ("tests/test_named_card_decisions.py",),
+        rules="Scoped gain-path placement / reactions / counters / conservation audit; trash and cost menus unreviewed",
+        wiring="Shared gain event tested; strategy choice forwarding unreviewed",
+        tactical="Unreviewed: no isolated preference comparison",
+        evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",),
+        followups=(435,), adapter="dominion/cards/prosperity/forge.py")
+    for name, adapter in (("Trail", "dominion/cards/hinterlands/trail.py"),
+                          ("Berserker", "dominion/cards/hinterlands/berserker.py"),
+                          ("Buried Treasure", "dominion/cards/plunder/kingdom_cards.py")):
+        add((name,), "On-gain self-play from initial owned storage", (),
+            ("tests/test_named_card_decisions.py", "tests/test_gain_effect_ordering.py"),
+            rules="Scoped initial-storage self-play / prior-movement stop / conservation audit; other instructions and choices unreviewed",
+            wiring="Shared indirect-play path tested; strategy choices unreviewed",
+            tactical="Unreviewed: no isolated preference comparison",
+            evidence=("reports/strategies/remaining-named-card-decisions-and-rules.html",),
+            followups=(436,), adapter=adapter)
+    for name, hooks in (
+        ("Archive", ("choose_archive_card",)),
+        ("Cargo Ship", ("should_set_aside_cargo_ship",)),
+        ("Church", ("choose_cards_to_set_aside_for_church", "choose_church_trash")),
+    ):
+        add((name,), "Repeated physical source storage and next-turn instructions", hooks,
+            ("tests/test_inheritance_reserve_duration.py",),
+            rules="Scoped Inheritance / replay storage / return / ownership audit; other interactions unreviewed",
+            wiring="Existing callbacks exercised through physical source plays",
+            evidence=("reports/strategies/capitalism-and-inheritance-rules-and-policy-compatibility.html",),
+            followups=(427,), adapter="dominion/ai/base_ai.py")
     return audits
 
 
@@ -194,12 +287,13 @@ def render():
         if not audit:
             continue
         hooks = ", ".join(f"`{hook}`" for hook in audit.hooks)
+        hook_path = f" → {hooks}" if hooks else ""
         evidence = "; ".join(link(p) for p in audit.evidence)
         engine = Path(inspect.getfile(CARD_TYPES[name])).resolve().relative_to(Path.cwd())
         evidence = link(str(engine)) + "; " + evidence
         issues = ", ".join(f"[#{n}](https://github.com/jss367/py-overlord/issues/{n})" for n in audit.followups)
         lines.append(f"| {name} | {expansion} | {audit.decision} | {audit.rules} | "
-                     f"{audit.wiring}: {link(audit.adapter)} → {hooks} | {audit.tactical} | {evidence}; {issues} |")
+                     f"{audit.wiring}: {link(audit.adapter)}{hook_path} | {audit.tactical} | {evidence}; {issues} |")
     lines += ["", "## Explicitly unreviewed cards", "",
               "Each row has unreviewed rules, wiring and tactical quality in this inventory. "
               "A source link identifies the implementation to audit, not evidence of correctness.", "",
@@ -211,17 +305,27 @@ def render():
             continue
         source = Path(inspect.getfile(CARD_TYPES[name])).resolve().relative_to(root)
         lines.append(f"| {name} | {expansion} | Unreviewed | Unreviewed | Unreviewed | Unreviewed | {link(str(source))} |")
+    lines += ["", "## Shared gain-source destination checks", "",
+        "`tests/test_gain_source_destinations.py` separately checks initial placement, "
+        "Watchtower trash/topdeck reactions and legal Changeling exchanges through 24 source callbacks. "
+        "Hand/deck gains declare their destination before reactions; independent storage/play "
+        "instructions keep the actual observed gain and respect movement tracking. This is scoped "
+        "shared-pipeline rules coverage, not a complete audit of these cards' internal choices, "
+        "other effects or tactical policies. The decision-family statuses above remain scoped "
+        "to their stated audits; the current HTML gain-ordering guide records this distinction.", ""]
     lines += ["", "## Optimizer coverage is separate", "",
-        "Bounty Hunter's `bounty_hunter_exile_priority` already round-trips through "
-        "`dominion/simulation/structured_genome.py`, mutates in the genetic trainer, and has "
-        "tests in `tests/test_structured_genome.py`. This exposes priority rules, not the complete "
-        "contextual bonus policy in the benchmark. Free-gain preferences also round-trip, but arbitrary "
-        "Python Watchtower, Clerk, Investment, supply-target, timing and storage overrides are not "
-        "automatically searchable genes. A callable hook and a parameterized policy are separate claims.", "",
+        "`card_decision_policies` exposes validated finite Watchtower, Clerk, Investment, "
+        "Bounty Hunter and gain-order settings through structured genomes, native mutation, "
+        "crossover and Python export/discovery. None, empty mappings and explicit settings "
+        "remain distinct; custom callables and explicit priority rules keep precedence. "
+        "Existing supply, free-gain and trash lists remain independent. The linked new study "
+        "records each genotype and actual varied fields, then validates its locked selection "
+        "on fresh seeds with fixed purchases. This bounded screen is not a joint search of "
+        "all purchase, storage and tactical decisions; arbitrary Python hooks are not genes.", "",
         "Baseline-change rule: freeze the candidate and purchases before fresh seat-balanced validation, "
         "record decision firings and raw seed outcomes, and reevaluate every affected registered strategy "
-        "on its own board before changing production defaults. This measurement changes no defaults; "
-        "existing supply, free-gain and storage studies contain their own strategy reevaluations. "
+        "on its own board before changing production defaults. The current Investment accounting fix preserves ordinary-hand choices; optional search settings do not change other shared defaults. "
+        "Existing supply, free-gain and storage studies contain their own strategy reevaluations. "
         "Historical standings remain historical evidence.", ""]
     return "\n".join(lines)
 

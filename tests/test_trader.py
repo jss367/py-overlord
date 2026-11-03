@@ -80,18 +80,15 @@ def test_trader_reaction_exchanges_gain_for_silver():
     gained = state.gain_card(player, estate, to_deck=True)
 
     assert gained.name == "Silver"
-    assert player.deck[-1].name == "Silver"
+    assert not player.deck
+    assert [c.name for c in player.discard] == ["Silver"]
     assert all(card.name != "Estate" for card in player.deck + player.discard)
     assert state.supply["Estate"] == 8
     assert state.supply["Silver"] == 39
 
 
-def test_trader_swap_discards_exiled_silvers_not_original():
-    """Exile-discard on gain must track the card actually gained post-Trader.
-
-    Gaining an Estate that Trader swaps to Silver is a Silver gain: exiled
-    Silvers may be discarded from Exile, exiled Estates may not.
-    """
+def test_trader_exchange_discards_exiled_original_copies_not_silvers():
+    """The Estate was gained; the exchanged Silver was not gained."""
 
     ai = TraderTestAI(reveal_for={"Estate"})
     state, player = _prepare_state(ai)
@@ -105,13 +102,13 @@ def test_trader_swap_discards_exiled_silvers_not_original():
     gained = state.gain_card(player, get_card("Estate"))
 
     assert gained.name == "Silver"
-    # Both exiled Silvers come off the mat; the exiled Estate stays.
-    assert [card.name for card in player.exile] == ["Estate"]
-    assert sum(1 for card in player.discard if card.name == "Silver") == 3
+    assert [card.name for card in player.exile] == ["Silver", "Silver"]
+    assert sorted(c.name for c in player.discard) == ["Estate", "Silver"]
+    assert player.gained_cards_this_turn == ["Estate"]
 
 
-def test_trader_swap_keeps_exiled_copies_of_original_card():
-    """Exiled copies of the originally-gained card stay put after a Trader swap."""
+def test_trader_exchange_preserves_original_gain_exile_trigger():
+    """Original-gain Exile triggers survive an exchange."""
 
     ai = TraderTestAI(reveal_for={"Estate"})
     state, player = _prepare_state(ai)
@@ -125,16 +122,12 @@ def test_trader_swap_keeps_exiled_copies_of_original_card():
     gained = state.gain_card(player, get_card("Estate"))
 
     assert gained.name == "Silver"
-    assert [card.name for card in player.exile] == ["Estate"]
-    assert [card.name for card in player.discard] == ["Silver"]
+    assert player.exile == []
+    assert sorted(card.name for card in player.discard) == ["Estate", "Silver"]
 
 
-def test_trader_swap_gatekeeper_exiles_gained_silver():
-    """Gatekeeper's exiled-copy check must use the post-Trader gained card.
-
-    An exiled copy of the original card must not shield the gained Silver
-    from Gatekeeper's exile.
-    """
+def test_trader_exchange_does_not_create_a_silver_gain_for_gatekeeper():
+    """Gatekeeper cannot exile the Silver received by exchange."""
 
     ai = TraderTestAI(reveal_for={"Estate"})
     state, player = _prepare_state(ai)
@@ -149,5 +142,6 @@ def test_trader_swap_gatekeeper_exiles_gained_silver():
     gained = state.gain_card(player, get_card("Estate"))
 
     assert gained.name == "Silver"
-    assert sorted(card.name for card in player.exile) == ["Estate", "Silver"]
-    assert not player.discard
+    assert player.exile == []
+    assert sorted(c.name for c in player.discard) == ["Estate", "Silver"]
+    assert player.gained_cards_this_turn == ["Estate"]

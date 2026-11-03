@@ -331,7 +331,38 @@ def _cobbler_shepherd(strategy) -> dict[str, DecisionInstructions]:
 
 # Keys identify the class that implements the hook, including its module.
 # StrategyLoader imports modules afresh, so Python class identity is not stable.
+def _stables_highway(strategy) -> dict[str, DecisionInstructions]:
+    p = strategy.params
+    caps = ", ".join(f"{cap} {name}" for name, cap in strategy.caps.items() if cap)
+    return {
+        "choose_action": DecisionInstructions(
+            "Play support before terminal Actions.",
+            ("Inn, Highway, then Cartographer.",
+             "Play Stables while a Treasure is in hand; play Develop while Curse, Estate or Copper is in hand.",
+             "Then Margrave, Guard Dog, Witch's Hut, Haggler, and Weaver.")),
+        "choose_trash": DecisionInstructions(
+            "Develop's mandatory trash.",
+            ("Curse, Estate, then Copper; otherwise the cheapest card by printed cost and name.",)),
+        "choose_cards_to_discard": DecisionInstructions(
+            "Make the required discard before reactions resolve.",
+            (("For Witch's Hut, prefer two Actions while Curses remain." if p["curse"] else
+              "For Witch's Hut, use the normal discard order."),
+             "Otherwise Weaver first, then Curse or pure Victory, Copper, expendable terminals, and other cards by increasing printed cost.")),
+        "choose_gain": DecisionInstructions(
+            "Follow the searched purchase plan.",
+            (f"Province from turn {p['green']} or with four or fewer Provinces remaining; Duchy with {p['duchy']} or fewer; Estate with one or fewer.",
+             (f"On the first turn, prefer the first {p['opening']} if offered, then use the ordinary plan." if p["opening"] != "auto" else "Use the ordinary purchase plan from the opening."),
+             f"Action targets: {caps or 'none'}. Take first copies before additional copies; add draw or coin terminals up to the Inn count plus {p['terminal_limit']} permitted unsupported terminals. See the board guide for the selected purchase order.",
+             f"Then Gold below {p['gold']} copies, then Silver below {p['silver']} copies; otherwise pass.")),
+        "choose_free_gain": DecisionInstructions(
+            "Free-gain priorities are separate from the opening purchase.",
+            (f"Weaver chooses two Silvers below {p['gain_silver']} Silvers owned.",
+             "Otherwise use scoring and deck targets as for purchases, skipping the opening preference; mandatory gains fall back to Gold, Silver, Copper, then Estate.")),
+    }
+
+
 _PROVIDERS = {
+    "dominion.strategy.strategies.stables_highway.StablesHighway": _stables_highway,
     "dominion.strategy.strategies.shepherd_tragic_hero.ShepherdTragicHero": _shepherd_tragic_hero,
     "dominion.strategy.strategies.collection_imperial_envoy.CollectionImperialEnvoy": _collection_imperial_envoy,
     "dominion.strategy.strategies.hunting_grounds_ghost_ship.HuntingGroundsPolicy": _hunting_grounds_ghost_ship,

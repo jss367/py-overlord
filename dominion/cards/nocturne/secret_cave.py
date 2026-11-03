@@ -40,7 +40,7 @@ class SecretCave(Card):
         self._pending_bonuses += 1
         if self in player.in_play:
             player.in_play.remove(self)
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
         self.duration_persistent = True
 

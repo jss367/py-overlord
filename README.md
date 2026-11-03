@@ -19,6 +19,27 @@ For local work without reinforcement learning, install `.[dev]`; tests under
 `tests/rl/` are omitted when Torch or Gymnasium is unavailable. Ruff's shared
 configuration enables all Pyflakes checks, including unused and shadowed names.
 
+Card-conservation regressions use [the shared inventory checker](tests/card_conservation.py)
+to count normal Supply piles, declared physical player zones, and trash without
+ownership deduplication. Pending Duration instructions are references, including
+references to a source now owned by someone else. The fixtures explicitly check
+physical card identities, ownership, and single returns as well as total counts;
+setup-only cards and other global decks require separate inventory support.
+The checker retains physical identities between transitions, allowing new cards
+when Supply decreases and removed cards when the engine marks a Supply return.
+After `copy.deepcopy(state, memo)`, pass `copy_memo=memo` to `check` to verify
+the exact copied identities before continuing checks on the copy.
+
+Run the focused gain, replay, and ownership-transfer checks with:
+
+```bash
+python -m pytest -q tests/test_gain_from_supply.py tests/test_card_conservation.py
+```
+
+The replay cases use fixed seeds and check each transition and individual
+Duration callback. Failure notes include the seed, operation, phase, turn, and
+player; use the exact test node ID reported by pytest to reproduce a case.
+
 For card-effect implementation, see [Gaining cards from the Supply](docs/supply-gains.md)
 for the shared gain operation and migration guidance.
 
@@ -74,6 +95,15 @@ python -m dominion.simulation.strategy_battle "Chapel Witch" "Big Money" --games
 
 Strategy names contain spaces, so be sure to wrap them in quotes when invoking the command line tools.
 
+Strategy discovery includes built-in and generated strategies from this checkout
+or installed package, regardless of the current working directory. Wheels include
+the generated strategies shipped with the project. A `generated_strategies/`
+directory in an unrelated working directory is not searched automatically.
+Generated strategy modules and their sibling imports use the shipped package,
+preserving factory and class identity across discovery and direct imports. If an
+unrelated `generated_strategies` package was already imported, discovery raises
+an import error rather than mixing packages.
+
 For reusable card decisions, strategy override hooks, and the optimization
 backlog, see [Shared card decisions](docs/card-tactical-defaults.md), the
 [complete card evidence inventory](docs/card-tactical-inventory.md), and the
@@ -115,7 +145,7 @@ the command-line tools, means one worker per CPU; `1` keeps everything
 in-process). Seeded runs give identical results either way: with common
 random numbers on, every game's seed is derived from the evaluation context,
 so a parallel `GeneticTrainer` reproduces the serial fitness, breakdown, and
-rule-firing flags exactly. A parallel `StrategyBattle` draws one seed per game
+rule-firing flags exactly. `StrategyBattle` draws one seed per game for both serial and parallel execution
 from the global RNG, so `random.seed(...)` before `run_battle` makes it
 reproducible too.
 
@@ -128,6 +158,42 @@ In code, pass `workers=` to `GeneticTrainer` or `StrategyBattle`; call
 `close()` (or use the battle as a context manager) to stop the pool early.
 Strategies cross the process boundary with `cloudpickle`, so hand-written
 conditions and decision hooks work unchanged.
+
+## Game outcomes and evaluation
+
+Battles, evolutionary training, and learning evaluation share seat-based results:
+points decide the winner, followed by fewer turns taken. Equal points and equal
+turns are a tie. A genuine rule ending at the turn-cap boundary takes precedence;
+Fleet finishes its extra round before the outcome is scored.
+
+Ties earn half a win in two-player evaluation. Games stopped by the turn limit
+are reported as `truncated`, earn no win share for either player, and remain in
+the denominator. Their unfinished score margins do not earn shaping credit.
+Training averages score margins over completed games and scales shaping by the
+fraction completed. Historical study artifacts and saved standings retain their
+original measurements; the catalog marks outdated standings after input changes.
+
+`StrategyBattle.run_game` returns a `PlayedGame` containing an immutable
+`GameOutcome`, including scores and turns by starting seat, winning seats, and a
+termination reason. Use `game.result_for(ai)` or `game.win_share(ai)` for scoring.
+Legacy four-value unpacking remains supported, but its winner is `None` for both
+ties and caps; callers must not infer an opponent win from that value.
+
+Battle summaries include actual `strategy1_wins`, `strategy2_wins`, `ties`, and
+`truncated` counts. Existing `strategy1_win_rate` and `strategy2_win_rate` fields
+now mean wins plus half of ties divided by all scheduled games; they need not sum
+to 100% when games are capped. Per-game rows include `outcome` and
+`termination_reason`. The trainer exposes matching counts in
+`last_eval_outcomes`, `last_population_outcomes`, `best_eval_outcomes`, and the
+returned champion metrics' `outcomes` field. Existing fitness breakdown tuple
+shapes remain unchanged. Calibration reports include ties and caps; their
+single-run intervals use Wilson for decisive-only data and conservative Hoeffding
+bounds when ties or caps occur.
+
+Serial and worker-process battles use the same per-game seeds. Seeding Python's
+random generator before `run_battle` reproduces results across worker counts;
+playing those games does not consume the parent generator beyond drawing their
+seeds. Direct `run_game` callers still control their own random stream.
 
 ## Board and strategy catalog
 

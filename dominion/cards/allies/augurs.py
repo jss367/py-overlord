@@ -53,7 +53,7 @@ class Acolyte(_Augurs):
 
     def play_effect(self, game_state):
         p = game_state.current_player
-        eligible = [c for c in p.hand if c.is_action or c.is_victory]
+        eligible = [c for c in p.hand if game_state.is_action(c) or c.is_victory]
         default = (
             min(eligible, key=lambda c: effective_cost(game_state, c).coins)
             if eligible

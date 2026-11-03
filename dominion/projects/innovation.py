@@ -8,20 +8,13 @@ class Innovation(Project):
     def __init__(self):
         super().__init__("Innovation", CardCost(coins=6))
 
-    def on_gain(self, game_state, player, card):
-        if not card.is_action or player.innovation_used:
+    def on_gain(self, game_state, player, card, *, claimed=False):
+        if not game_state.is_action(card) or (player.innovation_used and not claimed):
             return
 
         player.innovation_used = True
 
-        # Remove the card from wherever it was gained
-        if card in player.discard:
-            player.discard.remove(card)
-        elif card in player.deck:
-            player.deck.remove(card)
-        elif card in player.hand:
-            player.hand.remove(card)
-        else:
+        if not game_state._remove_gained_card_from_zones(player, card):
             return
 
         player.in_play.append(card)

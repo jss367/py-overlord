@@ -69,7 +69,7 @@ maintained pool that fixes the three properties that let this happen:
   the mean of the worst half (a CVaR — pure `min` over a screening budget is
   mostly deck luck). Under a plain mean, a specialist going 70/40 outscores a
   balanced 55/50; with worst-case weight the ordering flips. The
-  `worst_case_weight` trainer knob defaults to 0, preserving legacy behaviour.
+  `worst_case_weight` trainer knob defaults to 0, preserving legacy behavior.
 - **Retention by difficulty, not recency.** `hall_of_fame[-size:]` keeps the
   newest champions, so a drifting lineage fills the pool with its own drift.
   `AdversarialLeague.prune` evicts the member the champion beats most

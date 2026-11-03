@@ -49,7 +49,7 @@ class ScryingPool(Card):
                 break
             card = attacker.deck.pop()
             revealed.append(card)
-            if not card.is_action:
+            if not game_state.is_action(card):
                 break
         if revealed:
             attacker.hand.extend(revealed)

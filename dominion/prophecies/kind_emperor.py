@@ -47,11 +47,4 @@ class KindEmperor(Prophecy):
         if game_state.supply.get(chosen.name, 0) <= 0:
             return
         game_state.supply[chosen.name] -= 1
-        gained = game_state.gain_card(player, chosen)
-        # Move the gained card from wherever it landed (typically discard)
-        # into hand.
-        for zone in (player.discard, player.deck):
-            if gained in zone:
-                zone.remove(gained)
-                player.hand.append(gained)
-                return
+        game_state.gain_card(player, chosen, to_hand=True)

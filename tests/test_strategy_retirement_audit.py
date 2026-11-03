@@ -103,3 +103,62 @@ def test_source_fingerprint_detects_uncommitted_simulator_edits(tmp_path, monkey
     after = audit.source_provenance()
     assert before["source_revision"] == after["source_revision"]
     assert before["source_fingerprint"] != after["source_fingerprint"]
+
+
+@pytest.mark.parametrize("wins,losses,ties,truncated,rate", [
+    (0, 0, 200, 0, .5),
+    (0, 0, 0, 200, .0),
+    (40, 20, 60, 80, .35),
+])
+def test_retirement_screen_records_win_shares_and_does_not_select_all_ties(
+    tmp_path, monkeypatch, wins, losses, ties, truncated, rate
+):
+    """Run only reporting/selection with synthetic summaries, never games."""
+    from dominion.boards.loader import BoardConfig
+    from dominion.simulation.strategy_battle import StrategyBoardReferences
+
+    board = BoardConfig(["Village"])
+    calls = []
+    monkeypatch.setattr(audit, "source_provenance", lambda: PROVENANCE)
+    monkeypatch.setattr(audit, "cohorts", lambda: [
+        ("Test kingdom", board, False, ["Candidate"], "Replacement", [])
+    ])
+
+    class Battle:
+        def __init__(self, **kwargs):
+            self.strategy_loader = SimpleNamespace(get_strategy=lambda _: object())
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+        def _extract_cards_from_strategy(self, strategy):
+            return set()
+
+        def _split_board_references(self, refs):
+            return StrategyBoardReferences([], [], [], [], [], [])
+
+        def run_battle(self, candidate, opponent, games):
+            calls.append((candidate, opponent, games))
+            assert games == 200
+            return {"strategy1_wins": wins, "strategy2_wins": losses,
+                    "ties": ties, "truncated": truncated, "strategy1_win_rate": rate * 100}
+
+    monkeypatch.setattr(audit, "StrategyBattle", Battle)
+    output = tmp_path / "screen.json"
+    monkeypatch.setattr("sys.argv", ["audit", "--stage", "screen", "--output", str(output)])
+    audit.main()
+    row = json.loads(output.read_text())["results"][0]
+    assert row["win_rate"] == pytest.approx(rate)
+    assert (row["wins"], row["losses"], row["ties"], row["truncated"]) == (wins, losses, ties, truncated)
+    assert calls == [("Candidate", "Replacement", 200)]
+
+    if ties == 200:
+        validation = tmp_path / "validation.json"
+        monkeypatch.setattr("sys.argv", ["audit", "--stage", "validate", "--screen", str(output),
+                                         "--output", str(validation)])
+        audit.main()
+        assert json.loads(validation.read_text())["results"] == []
+        assert len(calls) == 1  # A 50% all-tie candidate is above the retirement screen's threshold.

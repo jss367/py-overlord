@@ -1,0 +1,1871 @@
+{
+  "rule_model_provenance": {
+    "status": "invalidated_pending_revalidation",
+    "valid_for_current_rules": false,
+    "mining_road_coins_used": 1,
+    "mining_road_coins_corrected": 2,
+    "historical_engine_commit": "fad9ca83e565b7eac2d91c2e1faea5f5efcbba60",
+    "reason": "All recorded games and sampled continuations used an underpowered Mining Road. Neither the comparative win rates nor the local decision gains validate the corrected rules.",
+    "reproduction": "The commands in this archive reproduce the historical inputs only when run at the historical engine commit. Current code uses corrected rules and distinct menu identities; collect new checkpoints and rerun before making strategy claims."
+  },
+  "question": "Does the Shrine player leave unplayed Coppers in hand for Buy-phase trashing?",
+  "baseline_replay": {
+    "spec": {
+      "opening": "Secluded Shrine",
+      "shrine": 1,
+      "lost": 0,
+      "highway": 1,
+      "banquet": true,
+      "daimyo": 4,
+      "green": 1,
+      "cleanup": {
+        "trigger": "fallback",
+        "reserve": "breakpoints",
+        "double_shrine": false
+      },
+      "spice": 0
+    },
+    "seed": 5000000,
+    "games": 400,
+    "turns": 4185,
+    "games_with_misses": 17,
+    "missed_turns": 17,
+    "copper_held_at_buy": 0,
+    "truncated": 0,
+    "examples": [
+      {
+        "seed": 5000025,
+        "swap": false,
+        "turn": 10,
+        "treasure_start": {
+          "turn": 10,
+          "phase": "treasure",
+          "coins": 3,
+          "buys": 4,
+          "hand": {
+            "Ruined Library": 1,
+            "Copper": 3,
+            "Province": 1
+          },
+          "shrine_charges": 1,
+          "highwayman_block_pending": false
+        },
+        "after_treasures": {
+          "turn": 10,
+          "phase": "buy",
+          "coins": 6,
+          "buys": 4,
+          "hand": {
+            "Ruined Library": 1,
+            "Province": 1
+          },
+          "shrine_charges": 1,
+          "highwayman_block_pending": false
+        },
+        "purchases": [
+          {
+            "name": "Duchy",
+            "cost": 5,
+            "coins": 6
+          },
+          {
+            "name": "Copper",
+            "cost": 0,
+            "coins": 1
+          }
+        ],
+        "declined_trash": {
+          "turn": 10,
+          "phase": "buy",
+          "coins": 1,
+          "buys": 2,
+          "hand": {
+            "Province": 1
+          },
+          "shrine_charges": 0,
+          "highwayman_block_pending": false,
+          "decision": "choose_trash",
+          "choice": null
+        },
+        "unspent_coins": 2,
+        "events": [
+          {
+            "turn": 10,
+            "phase": "action",
+            "coins": 0,
+            "buys": 1,
+            "hand": {
+              "Ruined Library": 1,
+              "Copper": 3,
+              "Mining Road": 1,
+              "Daimyo": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_action",
+            "choice": "Daimyo"
+          },
+          {
+            "turn": 10,
+            "phase": "action",
+            "coins": 0,
+            "buys": 1,
+            "hand": {
+              "Ruined Library": 1,
+              "Copper": 3,
+              "Mining Road": 1,
+              "Daimyo": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_action",
+            "choice": "Daimyo"
+          },
+          {
+            "turn": 10,
+            "phase": "action",
+            "coins": 0,
+            "buys": 1,
+            "hand": {
+              "Ruined Library": 1,
+              "Copper": 3,
+              "Mining Road": 1,
+              "Province": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_action",
+            "choice": "Mining Road"
+          },
+          {
+            "turn": 10,
+            "phase": "action",
+            "coins": 3,
+            "buys": 4,
+            "hand": {
+              "Ruined Library": 1,
+              "Copper": 3,
+              "Province": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_action",
+            "choice": null
+          },
+          {
+            "turn": 10,
+            "phase": "treasure",
+            "coins": 3,
+            "buys": 4,
+            "hand": {
+              "Ruined Library": 1,
+              "Copper": 3,
+              "Province": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_treasure",
+            "choice": "Copper"
+          },
+          {
+            "turn": 10,
+            "phase": "treasure",
+            "coins": 4,
+            "buys": 4,
+            "hand": {
+              "Ruined Library": 1,
+              "Copper": 2,
+              "Province": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_treasure",
+            "choice": "Copper"
+          },
+          {
+            "turn": 10,
+            "phase": "treasure",
+            "coins": 5,
+            "buys": 4,
+            "hand": {
+              "Ruined Library": 1,
+              "Copper": 1,
+              "Province": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_treasure",
+            "choice": "Copper"
+          },
+          {
+            "turn": 10,
+            "phase": "buy",
+            "coins": 6,
+            "buys": 4,
+            "hand": {
+              "Ruined Library": 1,
+              "Province": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_gain",
+            "choice": "Duchy"
+          },
+          {
+            "turn": 10,
+            "phase": "buy",
+            "coins": 1,
+            "buys": 3,
+            "hand": {
+              "Ruined Library": 1,
+              "Province": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_gain",
+            "choice": "Copper"
+          },
+          {
+            "turn": 10,
+            "phase": "buy",
+            "coins": 1,
+            "buys": 2,
+            "hand": {
+              "Ruined Library": 1,
+              "Province": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_gain_effect",
+            "choice": "secluded_shrine",
+            "gained_card": "Copper",
+            "options": [
+              "secluded_shrine",
+              "mining_road"
+            ]
+          },
+          {
+            "turn": 10,
+            "phase": "buy",
+            "coins": 1,
+            "buys": 2,
+            "hand": {
+              "Ruined Library": 1,
+              "Province": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_trash",
+            "choice": "Ruined Library"
+          },
+          {
+            "turn": 10,
+            "phase": "buy",
+            "coins": 1,
+            "buys": 2,
+            "hand": {
+              "Province": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_trash",
+            "choice": null
+          },
+          {
+            "turn": 10,
+            "phase": "buy",
+            "coins": 2,
+            "buys": 2,
+            "hand": {
+              "Province": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_gain",
+            "choice": null
+          }
+        ]
+      },
+      {
+        "seed": 5000028,
+        "swap": false,
+        "turn": 6,
+        "treasure_start": {
+          "turn": 6,
+          "phase": "treasure",
+          "coins": 1,
+          "buys": 1,
+          "hand": {
+            "Ruined Village": 1,
+            "Copper": 2,
+            "Highwayman": 1
+          },
+          "shrine_charges": 1,
+          "highwayman_block_pending": true
+        },
+        "after_treasures": {
+          "turn": 6,
+          "phase": "buy",
+          "coins": 2,
+          "buys": 1,
+          "hand": {
+            "Ruined Village": 1,
+            "Highwayman": 1
+          },
+          "shrine_charges": 1,
+          "highwayman_block_pending": false
+        },
+        "purchases": [
+          {
+            "name": "Copper",
+            "cost": 0,
+            "coins": 2
+          }
+        ],
+        "declined_trash": {
+          "turn": 6,
+          "phase": "buy",
+          "coins": 2,
+          "buys": 0,
+          "hand": {
+            "Highwayman": 1
+          },
+          "shrine_charges": 0,
+          "highwayman_block_pending": false,
+          "decision": "choose_trash",
+          "choice": null
+        },
+        "unspent_coins": 2,
+        "events": [
+          {
+            "turn": 6,
+            "phase": "action",
+            "coins": 0,
+            "buys": 1,
+            "hand": {
+              "Ruined Village": 1,
+              "Copper": 2,
+              "Secluded Shrine": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": true,
+            "decision": "choose_action",
+            "choice": "Secluded Shrine"
+          },
+          {
+            "turn": 6,
+            "phase": "treasure",
+            "coins": 1,
+            "buys": 1,
+            "hand": {
+              "Ruined Village": 1,
+              "Copper": 2,
+              "Highwayman": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": true,
+            "decision": "choose_treasure",
+            "choice": "Copper"
+          },
+          {
+            "turn": 6,
+            "phase": "treasure",
+            "coins": 1,
+            "buys": 1,
+            "hand": {
+              "Ruined Village": 1,
+              "Copper": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_treasure",
+            "choice": "Copper"
+          },
+          {
+            "turn": 6,
+            "phase": "buy",
+            "coins": 2,
+            "buys": 1,
+            "hand": {
+              "Ruined Village": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_gain",
+            "choice": "Copper"
+          },
+          {
+            "turn": 6,
+            "phase": "buy",
+            "coins": 2,
+            "buys": 0,
+            "hand": {
+              "Ruined Village": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_trash",
+            "choice": "Ruined Village"
+          },
+          {
+            "turn": 6,
+            "phase": "buy",
+            "coins": 2,
+            "buys": 0,
+            "hand": {
+              "Highwayman": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_trash",
+            "choice": null
+          }
+        ]
+      },
+      {
+        "seed": 5000038,
+        "swap": true,
+        "turn": 6,
+        "treasure_start": {
+          "turn": 6,
+          "phase": "treasure",
+          "coins": 3,
+          "buys": 1,
+          "hand": {
+            "Copper": 2,
+            "Abandoned Mine": 1,
+            "Highwayman": 1
+          },
+          "shrine_charges": 1,
+          "highwayman_block_pending": true
+        },
+        "after_treasures": {
+          "turn": 6,
+          "phase": "buy",
+          "coins": 4,
+          "buys": 1,
+          "hand": {
+            "Abandoned Mine": 1,
+            "Highwayman": 1
+          },
+          "shrine_charges": 1,
+          "highwayman_block_pending": false
+        },
+        "purchases": [
+          {
+            "name": "Banquet",
+            "cost": 3,
+            "coins": 4
+          }
+        ],
+        "declined_trash": {
+          "turn": 6,
+          "phase": "buy",
+          "coins": 1,
+          "buys": 0,
+          "hand": {
+            "Highwayman": 1
+          },
+          "shrine_charges": 0,
+          "highwayman_block_pending": false,
+          "decision": "choose_trash",
+          "choice": null
+        },
+        "unspent_coins": 1,
+        "events": [
+          {
+            "turn": 6,
+            "phase": "action",
+            "coins": 0,
+            "buys": 1,
+            "hand": {
+              "Copper": 2,
+              "Secluded Shrine": 1,
+              "Abandoned Mine": 1,
+              "Tea House": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": true,
+            "decision": "choose_action",
+            "choice": "Tea House"
+          },
+          {
+            "turn": 6,
+            "phase": "action",
+            "coins": 2,
+            "buys": 1,
+            "hand": {
+              "Copper": 2,
+              "Secluded Shrine": 1,
+              "Abandoned Mine": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": true,
+            "decision": "choose_action",
+            "choice": "Secluded Shrine"
+          },
+          {
+            "turn": 6,
+            "phase": "treasure",
+            "coins": 3,
+            "buys": 1,
+            "hand": {
+              "Copper": 2,
+              "Abandoned Mine": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": true,
+            "decision": "choose_treasure",
+            "choice": "Copper"
+          },
+          {
+            "turn": 6,
+            "phase": "treasure",
+            "coins": 3,
+            "buys": 1,
+            "hand": {
+              "Copper": 1,
+              "Abandoned Mine": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_treasure",
+            "choice": "Copper"
+          },
+          {
+            "turn": 6,
+            "phase": "buy",
+            "coins": 4,
+            "buys": 1,
+            "hand": {
+              "Abandoned Mine": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_gain",
+            "choice": "Banquet"
+          },
+          {
+            "turn": 6,
+            "phase": "buy",
+            "coins": 1,
+            "buys": 0,
+            "hand": {
+              "Abandoned Mine": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_trash",
+            "choice": "Abandoned Mine"
+          },
+          {
+            "turn": 6,
+            "phase": "buy",
+            "coins": 1,
+            "buys": 0,
+            "hand": {
+              "Highwayman": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_trash",
+            "choice": null
+          }
+        ]
+      },
+      {
+        "seed": 5000046,
+        "swap": false,
+        "turn": 7,
+        "treasure_start": {
+          "turn": 7,
+          "phase": "treasure",
+          "coins": 1,
+          "buys": 1,
+          "hand": {
+            "Survivors": 1,
+            "Province": 1,
+            "Copper": 1,
+            "Silver": 1
+          },
+          "shrine_charges": 1,
+          "highwayman_block_pending": false
+        },
+        "after_treasures": {
+          "turn": 7,
+          "phase": "buy",
+          "coins": 4,
+          "buys": 1,
+          "hand": {
+            "Survivors": 1,
+            "Province": 1
+          },
+          "shrine_charges": 1,
+          "highwayman_block_pending": false
+        },
+        "purchases": [
+          {
+            "name": "Banquet",
+            "cost": 3,
+            "coins": 4
+          }
+        ],
+        "declined_trash": {
+          "turn": 7,
+          "phase": "buy",
+          "coins": 1,
+          "buys": 0,
+          "hand": {
+            "Province": 1
+          },
+          "shrine_charges": 0,
+          "highwayman_block_pending": false,
+          "decision": "choose_trash",
+          "choice": null
+        },
+        "unspent_coins": 1,
+        "events": [
+          {
+            "turn": 7,
+            "phase": "action",
+            "coins": 0,
+            "buys": 1,
+            "hand": {
+              "Survivors": 1,
+              "Province": 1,
+              "Copper": 1,
+              "Silver": 1,
+              "Secluded Shrine": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_action",
+            "choice": "Secluded Shrine"
+          },
+          {
+            "turn": 7,
+            "phase": "treasure",
+            "coins": 1,
+            "buys": 1,
+            "hand": {
+              "Survivors": 1,
+              "Province": 1,
+              "Copper": 1,
+              "Silver": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_treasure",
+            "choice": "Silver"
+          },
+          {
+            "turn": 7,
+            "phase": "treasure",
+            "coins": 3,
+            "buys": 1,
+            "hand": {
+              "Survivors": 1,
+              "Province": 1,
+              "Copper": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_treasure",
+            "choice": "Copper"
+          },
+          {
+            "turn": 7,
+            "phase": "buy",
+            "coins": 4,
+            "buys": 1,
+            "hand": {
+              "Survivors": 1,
+              "Province": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_gain",
+            "choice": "Banquet"
+          },
+          {
+            "turn": 7,
+            "phase": "buy",
+            "coins": 1,
+            "buys": 0,
+            "hand": {
+              "Survivors": 1,
+              "Province": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_trash",
+            "choice": "Survivors"
+          },
+          {
+            "turn": 7,
+            "phase": "buy",
+            "coins": 1,
+            "buys": 0,
+            "hand": {
+              "Province": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_trash",
+            "choice": null
+          }
+        ]
+      },
+      {
+        "seed": 5000048,
+        "swap": false,
+        "turn": 7,
+        "treasure_start": {
+          "turn": 7,
+          "phase": "treasure",
+          "coins": 3,
+          "buys": 1,
+          "hand": {
+            "Copper": 2,
+            "Highwayman": 1,
+            "Survivors": 1
+          },
+          "shrine_charges": 1,
+          "highwayman_block_pending": true
+        },
+        "after_treasures": {
+          "turn": 7,
+          "phase": "buy",
+          "coins": 4,
+          "buys": 1,
+          "hand": {
+            "Highwayman": 1,
+            "Survivors": 1
+          },
+          "shrine_charges": 1,
+          "highwayman_block_pending": false
+        },
+        "purchases": [
+          {
+            "name": "Banquet",
+            "cost": 3,
+            "coins": 4
+          }
+        ],
+        "declined_trash": {
+          "turn": 7,
+          "phase": "buy",
+          "coins": 1,
+          "buys": 0,
+          "hand": {
+            "Highwayman": 1
+          },
+          "shrine_charges": 0,
+          "highwayman_block_pending": false,
+          "decision": "choose_trash",
+          "choice": null
+        },
+        "unspent_coins": 1,
+        "events": [
+          {
+            "turn": 7,
+            "phase": "action",
+            "coins": 0,
+            "buys": 1,
+            "hand": {
+              "Copper": 2,
+              "Tea House": 1,
+              "Secluded Shrine": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": true,
+            "decision": "choose_action",
+            "choice": "Tea House"
+          },
+          {
+            "turn": 7,
+            "phase": "action",
+            "coins": 2,
+            "buys": 1,
+            "hand": {
+              "Copper": 2,
+              "Secluded Shrine": 1,
+              "Highwayman": 1,
+              "Survivors": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": true,
+            "decision": "choose_action",
+            "choice": "Secluded Shrine"
+          },
+          {
+            "turn": 7,
+            "phase": "treasure",
+            "coins": 3,
+            "buys": 1,
+            "hand": {
+              "Copper": 2,
+              "Highwayman": 1,
+              "Survivors": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": true,
+            "decision": "choose_treasure",
+            "choice": "Copper"
+          },
+          {
+            "turn": 7,
+            "phase": "treasure",
+            "coins": 3,
+            "buys": 1,
+            "hand": {
+              "Copper": 1,
+              "Highwayman": 1,
+              "Survivors": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_treasure",
+            "choice": "Copper"
+          },
+          {
+            "turn": 7,
+            "phase": "buy",
+            "coins": 4,
+            "buys": 1,
+            "hand": {
+              "Highwayman": 1,
+              "Survivors": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_gain",
+            "choice": "Banquet"
+          },
+          {
+            "turn": 7,
+            "phase": "buy",
+            "coins": 1,
+            "buys": 0,
+            "hand": {
+              "Highwayman": 1,
+              "Survivors": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_trash",
+            "choice": "Survivors"
+          },
+          {
+            "turn": 7,
+            "phase": "buy",
+            "coins": 1,
+            "buys": 0,
+            "hand": {
+              "Highwayman": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_trash",
+            "choice": null
+          }
+        ]
+      }
+    ]
+  },
+  "corrected_replay": {
+    "spec": {
+      "opening": "Secluded Shrine",
+      "shrine": 1,
+      "lost": 0,
+      "highway": 1,
+      "banquet": true,
+      "daimyo": 4,
+      "green": 1,
+      "cleanup": {
+        "trigger": "fallback",
+        "reserve": "breakpoints",
+        "double_shrine": false,
+        "hold_copper": true,
+        "mining_first": true
+      },
+      "spice": 0
+    },
+    "seed": 5000000,
+    "games": 400,
+    "turns": 4165,
+    "games_with_misses": 0,
+    "missed_turns": 0,
+    "copper_held_at_buy": 113,
+    "truncated": 0,
+    "examples": []
+  },
+  "exact_corrected_example": {
+    "spec": {
+      "opening": "Secluded Shrine",
+      "shrine": 1,
+      "lost": 0,
+      "highway": 1,
+      "banquet": true,
+      "daimyo": 4,
+      "green": 1,
+      "cleanup": {
+        "trigger": "fallback",
+        "reserve": "breakpoints",
+        "double_shrine": false,
+        "hold_copper": true,
+        "mining_first": true
+      },
+      "spice": 0
+    },
+    "seed": 5000028,
+    "games": 2,
+    "turns": 19,
+    "games_with_misses": 0,
+    "missed_turns": 0,
+    "copper_held_at_buy": 1,
+    "truncated": 0,
+    "examples": [],
+    "held_examples": [
+      {
+        "seed": 5000028,
+        "swap": false,
+        "turn": 6,
+        "treasure_start": {
+          "turn": 6,
+          "phase": "treasure",
+          "coins": 1,
+          "buys": 1,
+          "hand": {
+            "Ruined Village": 1,
+            "Copper": 2,
+            "Highwayman": 1
+          },
+          "shrine_charges": 1,
+          "highwayman_block_pending": true
+        },
+        "after_treasures": {
+          "turn": 6,
+          "phase": "buy",
+          "coins": 1,
+          "buys": 1,
+          "hand": {
+            "Ruined Village": 1,
+            "Copper": 1,
+            "Highwayman": 1
+          },
+          "shrine_charges": 1,
+          "highwayman_block_pending": false
+        },
+        "purchases": [
+          {
+            "name": "Copper",
+            "cost": 0,
+            "coins": 1
+          }
+        ],
+        "events": [
+          {
+            "turn": 6,
+            "phase": "action",
+            "coins": 0,
+            "buys": 1,
+            "hand": {
+              "Ruined Village": 1,
+              "Copper": 2,
+              "Secluded Shrine": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": true,
+            "decision": "choose_action",
+            "choice": "Secluded Shrine"
+          },
+          {
+            "turn": 6,
+            "phase": "treasure",
+            "coins": 1,
+            "buys": 1,
+            "hand": {
+              "Ruined Village": 1,
+              "Copper": 2,
+              "Highwayman": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": true,
+            "decision": "choose_treasure",
+            "choice": "Copper"
+          },
+          {
+            "turn": 6,
+            "phase": "treasure",
+            "coins": 1,
+            "buys": 1,
+            "hand": {
+              "Ruined Village": 1,
+              "Copper": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_treasure",
+            "choice": null
+          },
+          {
+            "turn": 6,
+            "phase": "buy",
+            "coins": 1,
+            "buys": 1,
+            "hand": {
+              "Ruined Village": 1,
+              "Copper": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 1,
+            "highwayman_block_pending": false,
+            "decision": "choose_gain",
+            "choice": "Copper"
+          },
+          {
+            "turn": 6,
+            "phase": "buy",
+            "coins": 1,
+            "buys": 0,
+            "hand": {
+              "Ruined Village": 1,
+              "Copper": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_trash",
+            "choice": "Ruined Village"
+          },
+          {
+            "turn": 6,
+            "phase": "buy",
+            "coins": 1,
+            "buys": 0,
+            "hand": {
+              "Copper": 1,
+              "Highwayman": 1
+            },
+            "shrine_charges": 0,
+            "highwayman_block_pending": false,
+            "decision": "choose_trash",
+            "choice": "Copper"
+          }
+        ]
+      }
+    ]
+  },
+  "performance_validation": [
+    {
+      "a": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false,
+          "hold_copper": true,
+          "mining_first": false
+        },
+        "spice": 0
+      },
+      "b": {
+        "opening": "Tea House",
+        "shrine": 0,
+        "spice": 0,
+        "lost": 0,
+        "highway": 1,
+        "green": 1,
+        "double": "adaptive",
+        "daimyo": 2
+      },
+      "games": 1000,
+      "seed": 6000000,
+      "rate": 0.411,
+      "ci95": [
+        0.38040608314882524,
+        0.4415939168511747
+      ],
+      "wins": 411,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 11.236,
+      "scores": [
+        25.759,
+        28.535
+      ],
+      "deck": {
+        "Abandoned Mine": 0.308,
+        "Copper": 7.614,
+        "Daimyo": 3.707,
+        "Duchy": 0.981,
+        "Estate": 0.16,
+        "Gold": 0.011,
+        "Highwayman": 1.0,
+        "Lost City": 0.01,
+        "Lucky Coin": 1.0,
+        "Mining Road": 1.0,
+        "Province": 3.776,
+        "Ruined Library": 0.281,
+        "Ruined Market": 0.28,
+        "Ruined Village": 0.251,
+        "Secluded Shrine": 1.0,
+        "Silver": 4.616,
+        "Survivors": 0.257,
+        "Tea House": 3.607
+      }
+    },
+    {
+      "a": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false,
+          "hold_copper": true,
+          "mining_first": false
+        },
+        "spice": 0
+      },
+      "b": {
+        "opening": "Spice Merchant",
+        "shrine": 0,
+        "spice": 1,
+        "lost": 1,
+        "highway": 2,
+        "green": 1,
+        "double": "adaptive",
+        "daimyo": 2
+      },
+      "games": 1000,
+      "seed": 6002000,
+      "rate": 0.486,
+      "ci95": [
+        0.455377786940436,
+        0.516622213059564
+      ],
+      "wins": 486,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 11.283,
+      "scores": [
+        27.02,
+        27.13
+      ],
+      "deck": {
+        "Abandoned Mine": 0.266,
+        "Copper": 7.224,
+        "Daimyo": 3.661,
+        "Duchy": 0.813,
+        "Estate": 0.185,
+        "Gold": 0.004,
+        "Highwayman": 1.0,
+        "Lucky Coin": 1.0,
+        "Mining Road": 1.0,
+        "Province": 4.066,
+        "Ruined Library": 0.295,
+        "Ruined Market": 0.217,
+        "Ruined Village": 0.248,
+        "Secluded Shrine": 1.0,
+        "Silver": 4.746,
+        "Survivors": 0.238,
+        "Tea House": 3.638
+      }
+    },
+    {
+      "a": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false,
+          "hold_copper": true,
+          "mining_first": false
+        },
+        "spice": 0
+      },
+      "b": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "spice": 0
+      },
+      "games": 1000,
+      "seed": 6004000,
+      "rate": 0.504,
+      "ci95": [
+        0.47797398656053713,
+        0.5300260134394629
+      ],
+      "wins": 504,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 11.63,
+      "scores": [
+        26.631,
+        26.809
+      ],
+      "deck": {
+        "Abandoned Mine": 0.289,
+        "Copper": 7.574,
+        "Daimyo": 3.671,
+        "Duchy": 0.842,
+        "Estate": 0.153,
+        "Gold": 0.021,
+        "Highwayman": 1.0,
+        "Lost City": 0.01,
+        "Lucky Coin": 1.0,
+        "Mining Road": 1.0,
+        "Province": 3.992,
+        "Ruined Library": 0.279,
+        "Ruined Market": 0.225,
+        "Ruined Village": 0.279,
+        "Secluded Shrine": 1.0,
+        "Silver": 4.751,
+        "Survivors": 0.267,
+        "Tea House": 3.837
+      }
+    },
+    {
+      "a": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false,
+          "hold_copper": false,
+          "mining_first": true
+        },
+        "spice": 0
+      },
+      "b": {
+        "opening": "Tea House",
+        "shrine": 0,
+        "spice": 0,
+        "lost": 0,
+        "highway": 1,
+        "green": 1,
+        "double": "adaptive",
+        "daimyo": 2
+      },
+      "games": 1000,
+      "seed": 6010000,
+      "rate": 0.416,
+      "ci95": [
+        0.38664336932942306,
+        0.4453566306705769
+      ],
+      "wins": 416,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 11.217,
+      "scores": [
+        25.86,
+        28.449
+      ],
+      "deck": {
+        "Abandoned Mine": 0.309,
+        "Copper": 7.781,
+        "Daimyo": 3.675,
+        "Duchy": 1.03,
+        "Estate": 0.174,
+        "Gold": 0.002,
+        "Highwayman": 1.0,
+        "Lost City": 0.004,
+        "Lucky Coin": 1.0,
+        "Mining Road": 1.0,
+        "Province": 3.766,
+        "Ruined Library": 0.319,
+        "Ruined Market": 0.256,
+        "Ruined Village": 0.26,
+        "Secluded Shrine": 1.0,
+        "Silver": 4.58,
+        "Survivors": 0.235,
+        "Tea House": 3.628
+      }
+    },
+    {
+      "a": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false,
+          "hold_copper": false,
+          "mining_first": true
+        },
+        "spice": 0
+      },
+      "b": {
+        "opening": "Spice Merchant",
+        "shrine": 0,
+        "spice": 1,
+        "lost": 1,
+        "highway": 2,
+        "green": 1,
+        "double": "adaptive",
+        "daimyo": 2
+      },
+      "games": 1000,
+      "seed": 6012000,
+      "rate": 0.517,
+      "ci95": [
+        0.48570549173264754,
+        0.5482945082673525
+      ],
+      "wins": 517,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 11.221,
+      "scores": [
+        27.099,
+        26.711
+      ],
+      "deck": {
+        "Abandoned Mine": 0.32,
+        "Copper": 7.364,
+        "Daimyo": 3.719,
+        "Duchy": 0.772,
+        "Estate": 0.159,
+        "Gold": 0.011,
+        "Highwayman": 1.0,
+        "Lucky Coin": 1.0,
+        "Mining Road": 1.0,
+        "Province": 4.104,
+        "Ruined Library": 0.276,
+        "Ruined Market": 0.212,
+        "Ruined Village": 0.261,
+        "Secluded Shrine": 1.0,
+        "Silver": 4.712,
+        "Survivors": 0.248,
+        "Tea House": 3.647
+      }
+    },
+    {
+      "a": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false,
+          "hold_copper": false,
+          "mining_first": true
+        },
+        "spice": 0
+      },
+      "b": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "spice": 0
+      },
+      "games": 1000,
+      "seed": 6014000,
+      "rate": 0.492,
+      "ci95": [
+        0.4655409819821495,
+        0.5184590180178505
+      ],
+      "wins": 492,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 11.646,
+      "scores": [
+        26.845,
+        26.755
+      ],
+      "deck": {
+        "Abandoned Mine": 0.328,
+        "Copper": 7.902,
+        "Daimyo": 3.709,
+        "Duchy": 0.864,
+        "Estate": 0.169,
+        "Gold": 0.016,
+        "Highwayman": 1.0,
+        "Lost City": 0.005,
+        "Lucky Coin": 1.0,
+        "Mining Road": 1.0,
+        "Province": 4.014,
+        "Ruined Library": 0.273,
+        "Ruined Market": 0.229,
+        "Ruined Village": 0.268,
+        "Secluded Shrine": 1.0,
+        "Silver": 4.735,
+        "Survivors": 0.228,
+        "Tea House": 3.8
+      }
+    },
+    {
+      "a": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false,
+          "hold_copper": true,
+          "mining_first": true
+        },
+        "spice": 0
+      },
+      "b": {
+        "opening": "Tea House",
+        "shrine": 0,
+        "spice": 0,
+        "lost": 0,
+        "highway": 1,
+        "green": 1,
+        "double": "adaptive",
+        "daimyo": 2
+      },
+      "games": 1000,
+      "seed": 6020000,
+      "rate": 0.376,
+      "ci95": [
+        0.34642390479432367,
+        0.40557609520567633
+      ],
+      "wins": 376,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 11.215,
+      "scores": [
+        25.189,
+        28.904
+      ],
+      "deck": {
+        "Abandoned Mine": 0.327,
+        "Copper": 7.778,
+        "Daimyo": 3.667,
+        "Duchy": 0.969,
+        "Estate": 0.178,
+        "Gold": 0.012,
+        "Highwayman": 1.0,
+        "Lost City": 0.007,
+        "Lucky Coin": 1.0,
+        "Mining Road": 1.0,
+        "Province": 3.684,
+        "Ruined Library": 0.296,
+        "Ruined Market": 0.258,
+        "Ruined Village": 0.27,
+        "Secluded Shrine": 1.0,
+        "Silver": 4.585,
+        "Survivors": 0.26,
+        "Tea House": 3.642
+      }
+    },
+    {
+      "a": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false,
+          "hold_copper": true,
+          "mining_first": true
+        },
+        "spice": 0
+      },
+      "b": {
+        "opening": "Spice Merchant",
+        "shrine": 0,
+        "spice": 1,
+        "lost": 1,
+        "highway": 2,
+        "green": 1,
+        "double": "adaptive",
+        "daimyo": 2
+      },
+      "games": 1000,
+      "seed": 6022000,
+      "rate": 0.465,
+      "ci95": [
+        0.43639635658113346,
+        0.4936036434188666
+      ],
+      "wins": 465,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 11.277,
+      "scores": [
+        26.733,
+        27.442
+      ],
+      "deck": {
+        "Abandoned Mine": 0.282,
+        "Copper": 7.212,
+        "Daimyo": 3.695,
+        "Duchy": 0.798,
+        "Estate": 0.171,
+        "Gold": 0.006,
+        "Highwayman": 1.0,
+        "Lucky Coin": 1.0,
+        "Mining Road": 1.0,
+        "Province": 4.028,
+        "Ruined Library": 0.272,
+        "Ruined Market": 0.206,
+        "Ruined Village": 0.239,
+        "Secluded Shrine": 1.0,
+        "Silver": 4.713,
+        "Survivors": 0.203,
+        "Tea House": 3.634
+      }
+    },
+    {
+      "a": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false,
+          "hold_copper": true,
+          "mining_first": true
+        },
+        "spice": 0
+      },
+      "b": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "spice": 0
+      },
+      "games": 1000,
+      "seed": 6024000,
+      "rate": 0.51,
+      "ci95": [
+        0.48171777504337765,
+        0.5382822249566224
+      ],
+      "wins": 510,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 11.62,
+      "scores": [
+        26.837,
+        26.637
+      ],
+      "deck": {
+        "Abandoned Mine": 0.322,
+        "Copper": 7.52,
+        "Daimyo": 3.719,
+        "Duchy": 0.855,
+        "Estate": 0.176,
+        "Gold": 0.02,
+        "Highwayman": 1.0,
+        "Lost City": 0.006,
+        "Lucky Coin": 1.0,
+        "Mining Road": 1.0,
+        "Province": 4.016,
+        "Ruined Library": 0.267,
+        "Ruined Market": 0.229,
+        "Ruined Village": 0.244,
+        "Secluded Shrine": 1.0,
+        "Silver": 4.722,
+        "Survivors": 0.223,
+        "Tea House": 3.824
+      }
+    }
+  ],
+  "matched_ablation": [
+    {
+      "a": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false,
+          "hold_copper": true,
+          "mining_first": false
+        },
+        "spice": 0
+      },
+      "b": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false
+        },
+        "spice": 0
+      },
+      "games": 1000,
+      "seed": 7000000,
+      "rate": 0.524,
+      "ci95": [
+        0.5082006545885325,
+        0.5397993454114676
+      ],
+      "wins": 524,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 11.619,
+      "scores": [
+        27.069,
+        26.589
+      ],
+      "deck": {
+        "Abandoned Mine": 0.304,
+        "Copper": 7.555,
+        "Daimyo": 3.696,
+        "Duchy": 0.902,
+        "Estate": 0.165,
+        "Gold": 0.017,
+        "Highwayman": 1.0,
+        "Lost City": 0.002,
+        "Lucky Coin": 1.0,
+        "Mining Road": 1.0,
+        "Province": 4.033,
+        "Ruined Library": 0.293,
+        "Ruined Market": 0.243,
+        "Ruined Village": 0.24,
+        "Secluded Shrine": 1.0,
+        "Silver": 4.763,
+        "Survivors": 0.225,
+        "Tea House": 3.814
+      }
+    },
+    {
+      "a": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false,
+          "hold_copper": false,
+          "mining_first": true
+        },
+        "spice": 0
+      },
+      "b": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false
+        },
+        "spice": 0
+      },
+      "games": 1000,
+      "seed": 7002000,
+      "rate": 0.5,
+      "ci95": [
+        0.49445073078887364,
+        0.5055492692111264
+      ],
+      "wins": 500,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 11.645,
+      "scores": [
+        26.945,
+        26.855
+      ],
+      "deck": {
+        "Abandoned Mine": 0.296,
+        "Copper": 7.999,
+        "Daimyo": 3.688,
+        "Duchy": 0.898,
+        "Estate": 0.173,
+        "Gold": 0.012,
+        "Highwayman": 1.0,
+        "Lost City": 0.006,
+        "Lucky Coin": 1.0,
+        "Mining Road": 1.0,
+        "Province": 4.013,
+        "Ruined Library": 0.287,
+        "Ruined Market": 0.25,
+        "Ruined Village": 0.272,
+        "Secluded Shrine": 1.0,
+        "Silver": 4.667,
+        "Survivors": 0.238,
+        "Tea House": 3.811
+      }
+    },
+    {
+      "a": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false,
+          "hold_copper": true,
+          "mining_first": true
+        },
+        "spice": 0
+      },
+      "b": {
+        "opening": "Secluded Shrine",
+        "shrine": 1,
+        "lost": 0,
+        "highway": 1,
+        "banquet": true,
+        "daimyo": 4,
+        "green": 1,
+        "cleanup": {
+          "trigger": "fallback",
+          "reserve": "breakpoints",
+          "double_shrine": false
+        },
+        "spice": 0
+      },
+      "games": 1000,
+      "seed": 7004000,
+      "rate": 0.512,
+      "ci95": [
+        0.4963396515931334,
+        0.5276603484068666
+      ],
+      "wins": 512,
+      "ties": 0,
+      "truncated": 0,
+      "turns": 11.592,
+      "scores": [
+        26.999,
+        26.513
+      ],
+      "deck": {
+        "Abandoned Mine": 0.295,
+        "Copper": 7.4,
+        "Daimyo": 3.717,
+        "Duchy": 0.857,
+        "Estate": 0.182,
+        "Gold": 0.014,
+        "Highwayman": 1.0,
+        "Lost City": 0.001,
+        "Lucky Coin": 1.0,
+        "Mining Road": 1.0,
+        "Province": 4.041,
+        "Ruined Library": 0.303,
+        "Ruined Market": 0.233,
+        "Ruined Village": 0.215,
+        "Secluded Shrine": 1.0,
+        "Silver": 4.77,
+        "Survivors": 0.248,
+        "Tea House": 3.761
+      }
+    }
+  ],
+  "fresh_validation_games": 12000,
+  "diagnostic_replays_counted_as_new_validation": false,
+  "miss_definition": "An armed Shrine declines a Buy-phase trash with no Copper in hand after at least one Copper produced $1; withholding that $1 preserves affordability at every actual purchase and leaves at least $1 unused at the end.",
+  "limitations": [
+    "The detector is conservative and does not enumerate every missed cleanup opportunity.",
+    "The fix optimizes visible purchases and Copper trashing in the current Buy phase, not future-turn strategy.",
+    "Matched ablations isolate the new flags from the previously expanded cleanup policy; the other panel retains its original-policy control."
+  ],
+  "commands": [
+    "PYTHONPATH=. python scripts/audit_lucky_coin_shrine.py --games 400 --seed 5000000 --output .context/lucky-shrine-copper-audit.json",
+    "PYTHONPATH=. python scripts/audit_lucky_coin_shrine.py --specs scripts/data/lucky_coin_ruins/treasure-management-validation-specs.json --index 2 --games 400 --seed 5000000 --output .context/lucky-shrine-copper-audit-fixed.json",
+    "PYTHONPATH=. python scripts/audit_lucky_coin_shrine.py --specs scripts/data/lucky_coin_ruins/treasure-management-validation-specs.json --index 2 --games 2 --seed 5000028 --output .context/lucky-shrine-fixed-example.json",
+    "PYTHONPATH=. python scripts/search_lucky_coin_cleanup.py validate --specs scripts/data/lucky_coin_ruins/treasure-management-validation-specs.json --games 1000 --seed 6000000 --output .context/lucky-shrine-treasure-validation.json",
+    "PYTHONPATH=. python scripts/search_lucky_coin_cleanup.py matched --specs scripts/data/lucky_coin_ruins/treasure-management-validation-specs.json --games 1000 --seed 7000000 --output .context/lucky-shrine-treasure-matched.json"
+  ]
+}

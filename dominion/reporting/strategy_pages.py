@@ -91,6 +91,42 @@ CURATED_STRATEGY_GUIDES = (
                         "oslo-workers-village-magnate-multi-colony-engine"),
     ),
     CuratedStrategyGuide(
+        filename="stables-highway-strategy-guide.html",
+        display_name="Stables, Highway and Margrave: Strategy Guide",
+        description="A user-supplied Hinterlands kingdom, a two-Margrave treasure recommendation, comparison with engine and reaction alternatives, and fresh validation with uncertainty.",
+        kingdom_cards=("Develop", "Guard Dog", "Weaver", "Cartographer", "Haggler", "Highway",
+                       "Inn", "Margrave", "Stables", "Witch's Hut"),
+        source_label="Reproducible policy search, finalist round robin and fresh seat-balanced validation",
+        strategy_slugs=("stables-highway-best-found",),
+    ),
+    CuratedStrategyGuide(
+        filename="capitalism-and-inheritance-rules-and-policy-compatibility.html",
+        display_name="Capitalism and Inheritance: Current Rules and Policy Compatibility",
+        description="Explicit printed coin classification, distinct Estate and set-aside plays, Duration ownership regressions and 1,440 matched compatibility games on separate engine fingerprints.",
+        kingdom_cards=("Courtier", "Stables", "Spice Merchant", "Counterfeit", "Moneylender", "Minion", "Merchant", "Cargo Ship", "Church", "Archive"),
+        source_label="Publisher rules, physical engine regressions and 1,440 matched games",
+    ),
+    CuratedStrategyGuide(
+        filename="remaining-named-card-decisions-and-rules.html",
+        display_name="Remaining Card Decisions: Rules and Tactical Evaluation",
+        description="Fourteen fixed-priority decision comparisons, scoped rules fixes, fresh validation and seventeen registered strategy compatibility checks; existing preferences retained; later type-rule compatibility evidence linked separately.",
+        kingdom_cards=("Courtier", "Courier", "Knights", "Rogue", "Stables", "Spice Merchant",
+                       "Armory", "Artificer", "Scheme", "Chapel", "Junk Dealer", "Counterfeit",
+                       "Moneylender", "Minion", "Trader", "Groom", "Replace", "Wild Hunt", "Hoard"),
+        source_label="Publisher rules, physical engine scenarios and 29,280 seeded games",
+    ),
+    CuratedStrategyGuide(
+        filename="gain-effect-ordering-and-searchable-card-policies.html",
+        display_name="Ordering Gain Effects and Searching Card Policies",
+        description="Owner-ordered gain events, live Investment accounting, bounded genome parameters and 17,280 seeded games with frozen selections, rejected regressions and capped-game sensitivity.",
+        kingdom_cards=("Watchtower", "Clerk", "Investment", "Bounty Hunter", "Sleigh",
+                       "Sheepdog", "Cargo Ship", "Barge", "Torturer"),
+        source_label="Official rules, physical gain scenarios and fresh seat-balanced policy comparisons",
+        strategy_slugs=("lisbon-investment-rush", "black-cat-and-livery-board-ox-engine",
+                        "black-cat-and-livery-board-fisherman-infirmary", "black-cat-and-livery-board-cavalry-horses",
+                        "collection-swindler-rush", "selective-envoy-collection", "village-envoy-collection-engine"),
+    ),
+    CuratedStrategyGuide(
         filename="ironworks-and-engineer-contextual-gain-evaluation.html",
         display_name="Ironworks and Engineer: Contextual Gains and Policy Evaluation",
         description="Separate purchase and free-gain priorities, live Ironworks bonuses, Engineer's sequential gains, locked policy comparisons and registered strategy compatibility checks with uncertainty.",
@@ -393,6 +429,26 @@ CURATED_STRATEGY_GUIDES = (
         ),
         kingdom_cards=("Shaman", "Feodum", "Hermit", "Fool's Gold", "Anvil"),
         source_label="Repository strategy search and recorded simulation results",
+    ),
+    CuratedStrategyGuide(
+        filename="lucky-coin-lookahead-audit.html",
+        display_name="Lucky Coin Decision Planning: Validation Pending",
+        description=(
+            "Shared decision planning and historical audits; performance needs "
+            "revalidation after correcting Mining Road income."
+        ),
+        kingdom_cards=("Tea House", "Secluded Shrine", "Spice Merchant", "Daimyo", "Mining Road"),
+        source_label="Saved decisions, sampled continuations, and fresh player pilots",
+    ),
+    CuratedStrategyGuide(
+        filename="lucky-coin-ruins-strategy-guide.html",
+        display_name="Lucky Coin and Ruins: Validation Pending",
+        description=(
+            "Historical Tea House and Shrine candidates for a custom start; "
+            "all recorded comparisons used incorrect Mining Road income."
+        ),
+        kingdom_cards=("Tea House", "Highwayman", "Mining Road", "Daimyo", "Secluded Shrine"),
+        source_label="Seat-balanced strategy search and official publisher rules",
     ),
     CuratedStrategyGuide(
         filename="tea-house-kind-emperor-strategy-guide.html",
@@ -1369,7 +1425,11 @@ def render_strategy_leaderboard(
     for rank, (name, stats) in enumerate(ranked, 1):
         wins = int(stats.get("wins", 0))
         losses = int(stats.get("losses", 0))
-        games = int(stats.get("games", wins + losses))
+        ties = int(stats.get("ties", 0))
+        truncated = int(stats.get("truncated", 0))
+        games = int(stats.get("games", wins + losses + ties + truncated))
+        extra_record = (f"<br>{ties} ties; {truncated} capped"
+                        if "ties" in stats or "truncated" in stats else "")
         win_rate = float(stats.get("win_rate", 0))
         cards = list(stats.get("cards", []) or [])
         landscapes = list(stats.get("landscapes", []) or [])
@@ -1392,7 +1452,7 @@ def render_strategy_leaderboard(
             f'<td data-label="Rank"><span class="rank-badge">{rank}</span></td>'
             f"<td>{_strategy_leaderboard_label(name, loader=loader, prefix=strategy_link_prefix)}</td>"
             f'<td data-label="Description" class="leaderboard-description">{description_markup}</td>'
-            f'<td data-label="Record"><strong>{wins}-{losses}</strong></td>'
+            f'<td data-label="Record"><strong>{wins}-{losses}</strong>{extra_record}</td>'
             f'<td data-label="Win rate"><div class="rate-value">{win_rate:.1f}%</div>'
             f'<div class="rate-track" aria-hidden="true"><span style="width: {max(0, min(100, win_rate)):.1f}%"></span></div></td>'
             f'<td data-label="Games">{games}</td>'
@@ -1421,6 +1481,11 @@ def render_strategy_leaderboard(
 </div>
 """
 
+    outcome_note = (
+        '<p>Win rates count ties as half a win. Capped games are reported separately '
+        'and earn no win share; all scheduled games remain in the denominator.</p>'
+        if any("ties" in stats or "truncated" in stats for stats in results.values()) else ""
+    )
     board_nav = (
         f'<a href="{escape(board_index_href)}">Board index</a>'
         if board_index_href
@@ -1435,6 +1500,7 @@ def render_strategy_leaderboard(
   <p class="hero-description">Ranked by simulated win rate. Results reflect <strong>{escape(context_label)}</strong>; compare strategies on the same board before drawing broad conclusions.</p>
 </header>
 {podium}
+{outcome_note}
 {f'<p class="empty-state" role="status">{escape(results_notice)}</p>' if results_notice else ''}
 <section class="section">
   <div class="section-heading"><span class="section-icon" aria-hidden="true">#</span><h2>Full standings</h2></div>
@@ -2283,7 +2349,7 @@ def render_strategy_page(
         else ""
     )
     guide_nav = "".join(
-        f'<a href="{escape(guide.filename)}">Read the strategy guide</a>'
+        f'<a href="{escape(guide.filename)}">{escape(guide.display_name)}</a>'
         for guide in CURATED_STRATEGY_GUIDES
         if item.slug in guide.strategy_slugs
         or guide.filename == f"{item.slug}-strategy-guide.html"

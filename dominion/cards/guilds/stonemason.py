@@ -68,7 +68,7 @@ class Stonemason(Card):
                 if count <= 0:
                     continue
                 card = get_card(name)
-                if not card.is_action:
+                if not game_state.is_action(card):
                     continue
                 if card.cost.coins != amount:
                     continue

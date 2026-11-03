@@ -25,6 +25,8 @@ class PlayerState:
     in_play: list[Card] = field(default_factory=list)
     duration: list[Card] = field(default_factory=list)
     multiplied_durations: list[Card] = field(default_factory=list)
+    # Keep stored cards owned while their source callbacks leave the queue.
+    _resolving_duration_sources: list[Card] = field(default_factory=list)
     # Virtual Supply instruction objects with a rest-of-turn gain trigger.
     # They hold effects, never physical card ownership.
     virtual_gain_effects: list[Card] = field(default_factory=list)
@@ -68,6 +70,7 @@ class PlayerState:
     cauldron_triggered: bool = False
     trickster_uses_remaining: int = 0
     trickster_set_aside: list[Card] = field(default_factory=list)
+    pending_gain_set_aside: list[Card] = field(default_factory=list)
     charm_next_buy_copies: int = 0
     walled_villages_played: int = 0
     fortune_doubled_this_turn: bool = False
@@ -80,6 +83,8 @@ class PlayerState:
     donate_pending: int = 0
     # Rising Sun: Daimyo replays the next non-Command Action card played
     daimyo_pending: int = 0
+    daimyo_sources: list[Card] = field(default_factory=list)
+    daimyo_turn: tuple | None = None
     continue_used_this_turn: bool = False
     foresight_set_aside: list = field(default_factory=list)
     # Rising Sun: Kintsugi event cares whether Gold has ever been gained.
@@ -115,7 +120,7 @@ class PlayerState:
     # Plunder cards / events / traits.
     fated_pile: str = ""
     cards_trashed_this_turn: int = 0
-    mining_road_triggered: bool = False
+    mining_road_uses: int = 0
     search_triggered: bool = False
     avoid_pending: int = 0
     deliver_pending: list = field(default_factory=list)
@@ -210,6 +215,8 @@ class PlayerState:
     plan_trash_piles: set = field(default_factory=set)
     # Adventures Inheritance.
     inherited_action_name: str | None = None
+    inherited_action: Card | None = None
+    inherited_duration_plays: dict = field(default_factory=dict)
     inheritance_used: bool = False
     # Adventures Borrow / Alms once-per-turn locks.
     borrow_used_this_turn: bool = False
@@ -280,6 +287,7 @@ class PlayerState:
         self.in_play = []
         self.duration = []
         self.multiplied_durations = []
+        self._resolving_duration_sources = []
         self.virtual_gain_effects = []
         self.projects = []
         self.exile = []
@@ -319,6 +327,7 @@ class PlayerState:
         self.cauldron_triggered = False
         self.trickster_uses_remaining = 0
         self.trickster_set_aside = []
+        self.pending_gain_set_aside = []
         self.charm_next_buy_copies = 0
         self.walled_villages_played = 0
         self.fortune_doubled_this_turn = False
@@ -329,6 +338,8 @@ class PlayerState:
         self.warlord_restriction_count = 0
         self.donate_pending = 0
         self.daimyo_pending = 0
+        self.daimyo_sources = []
+        self.daimyo_turn = None
         self.continue_used_this_turn = False
         self.foresight_set_aside = []
         self.kintsugi_has_gained_gold = False
@@ -358,7 +369,7 @@ class PlayerState:
         self.highwayman_blocked_this_turn = False
         self.insignia_active = False
         self.cards_trashed_this_turn = 0
-        self.mining_road_triggered = False
+        self.mining_road_uses = 0
         self.search_triggered = False
         self.avoid_pending = 0
         self.deliver_pending = []
@@ -416,6 +427,8 @@ class PlayerState:
         self.expedition_extra_draws = 0
         self.plan_trash_piles = set()
         self.inherited_action_name = None
+        self.inherited_action = None
+        self.inherited_duration_plays = {}
         self.inheritance_used = False
         self.borrow_used_this_turn = False
         self.alms_used_this_turn = False
@@ -599,6 +612,7 @@ class PlayerState:
             self.native_village_mat,
             self.island_mat,
             self.trickster_set_aside,
+            self.pending_gain_set_aside,
             self.delayed_cards,
             self.flagship_pending,
             self.clerk_pending_replay,
@@ -609,6 +623,8 @@ class PlayerState:
             self.deliver_set_aside,
             getattr(self, "hound_set_aside", []),
         ]
+        if self.inherited_action is not None:
+            zones.append([self.inherited_action])
         game_state = getattr(self, "game_state", None)
         if game_state is not None:
             zones.extend([
@@ -617,8 +633,10 @@ class PlayerState:
             ])
         for card in dict.fromkeys(
             self.in_play + self.duration + self.multiplied_durations + self.virtual_gain_effects
+            + self._resolving_duration_sources
         ):
-            set_aside = getattr(card, "set_aside", None)
+            storage_for_owner = getattr(card, "set_aside_for_owner", None)
+            set_aside = storage_for_owner(self) if storage_for_owner else getattr(card, "set_aside", None)
             if isinstance(set_aside, list):
                 zones.append(set_aside)
             elif isinstance(set_aside, Card):

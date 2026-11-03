@@ -94,9 +94,10 @@ def _play(battle, board, strategy, opponent, seed, seat):
     _record_decisions(me, trace)
     _record_decisions(other, trace)
     first, second = (me, other) if seat == 0 else (other, me)
-    winner, scores, _, turns = battle.run_game(first, second, board.kingdom_cards)
-    return trace, {"won": winner is me, "score": scores[me.name],
-                   "opponent_score": scores[other.name], "turns": turns}
+    game = battle.run_game(first, second, board.kingdom_cards)
+    return trace, {"won": game.result_for(me) == "win", "win_share": game.win_share(me),
+                   "result": game.result_for(me), "termination_reason": game.outcome.termination_reason,
+                   "score": game.scores[me.name], "opponent_score": game.scores[other.name], "turns": game.turns}
 
 
 def audit_equivalence(board, original, compiled, opponents, *, pairs=25, seed=1729,

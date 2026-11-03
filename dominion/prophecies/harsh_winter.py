@@ -19,7 +19,7 @@ class HarshWinter(Prophecy):
     def on_gain(self, game_state, player, card) -> None:
         # Per rulebook clarification: "When it's not your turn, gaining a
         # card neither puts on the pile nor removes from the pile."
-        if player is not game_state.current_player:
+        if player is not game_state.turn_player:
             return
 
         pile_name = card.name

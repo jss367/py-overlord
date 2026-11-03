@@ -131,6 +131,9 @@ def save_strategy_as_python(
     else:
         lines.extend(format_list("free_gain_priority", free_gain))
         lines.append("")
+    from dominion.strategy.card_policies import validate_policies
+    policies = validate_policies(getattr(strategy, "card_decision_policies", None))
+    lines.extend([f"        self.card_decision_policies = {policies!r}", ""])
     emit("action_priority", strategy.action_priority)
     emit("captain_target_priority", getattr(strategy, "captain_target_priority", None))
     emit("band_of_misfits_target_priority", getattr(strategy, "band_of_misfits_target_priority", None))
@@ -572,11 +575,10 @@ def main():
                     ai1 = GeneticAI(best_strategy)
                     ai2 = GeneticAI(opp)
                     if i % 2 == 0:
-                        winner, _, _, _ = validation_battle.run_game(ai1, ai2, validation_kingdom)
+                        game = validation_battle.run_game(ai1, ai2, validation_kingdom)
                     else:
-                        winner, _, _, _ = validation_battle.run_game(ai2, ai1, validation_kingdom)
-                    if winner == ai1:
-                        wins += 1
+                        game = validation_battle.run_game(ai2, ai1, validation_kingdom)
+                    wins += game.win_share(ai1)
                 rate = wins / games_per_opp * 100
                 per_opp.append((opp.name, rate))
                 logger.info("  vs %s: %.1f%%", opp.name, rate)

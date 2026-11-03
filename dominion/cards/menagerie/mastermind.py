@@ -18,7 +18,7 @@ class Mastermind(Card):
 
     def on_duration(self, game_state):
         player = game_state.current_player
-        actions = [card for card in player.hand if card.is_action]
+        actions = [card for card in player.hand if game_state.is_action(card)]
         if not actions:
             self.duration_persistent = False
             return

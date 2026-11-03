@@ -4,6 +4,8 @@ import types
 
 import pytest
 
+from tests.utils import played_game
+
 from dominion.simulation.genetic_trainer import GeneticTrainer
 from dominion.strategy.enhanced_strategy import PriorityRule
 from dominion.strategy.strategies.base_strategy import BaseStrategy
@@ -108,7 +110,7 @@ def test_evaluate_strategy_counts_second_seat_wins(monkeypatch):
         # Our strategy (second_ai in the second call) wins when going second.
         # Provide minimal scores so reward shaping (when on) has data.
         scores = {first_ai.name: 0, second_ai.name: 1}
-        return second_ai, scores, None, 0
+        return played_game(first_ai, second_ai, second_ai, scores, None, 0)
 
     monkeypatch.setattr(trainer.battle_system, "run_game", fake_run_game)
 
@@ -616,7 +618,7 @@ class TestPanelEvaluation:
             for ai in (first_ai, second_ai):
                 if ai.strategy.name in games_against:
                     games_against[ai.strategy.name] += 1
-            return first_ai, {}, None, 0
+            return played_game(first_ai, second_ai, first_ai, {}, None, 0)
 
         monkeypatch.setattr(trainer.battle_system, "run_game", fake_run_game)
         trainer.evaluate_strategy(strategy)
@@ -640,7 +642,7 @@ class TestPanelEvaluation:
                 winner = first_ai if first_ai.strategy.name == "Stub" else second_ai
             else:  # AlwaysWin matchup
                 winner = first_ai if first_ai.strategy.name == "AlwaysWin" else second_ai
-            return winner, {}, None, 0
+            return played_game(first_ai, second_ai, winner, {}, None, 0)
 
         monkeypatch.setattr(trainer.battle_system, "run_game", fake_run_game)
 
@@ -665,7 +667,7 @@ class TestPanelEvaluation:
             for ai in (first_ai, second_ai):
                 if ai.strategy.name in games:
                     games[ai.strategy.name] += 1
-            return first_ai, {}, None, 0
+            return played_game(first_ai, second_ai, first_ai, {}, None, 0)
 
         monkeypatch.setattr(trainer.battle_system, "run_game", fake_run_game)
         trainer.evaluate_strategy(strategy)
@@ -692,11 +694,11 @@ class TestPanelEvaluation:
             for ai in (first_ai, second_ai):
                 if ai.strategy is opp_a1:
                     winner = first_ai if first_ai.strategy.name == "Stub" else second_ai
-                    return winner, {}, None, 0
+                    return played_game(first_ai, second_ai, winner, {}, None, 0)
                 if ai.strategy is opp_a2:
                     winner = first_ai if first_ai.strategy is opp_a2 else second_ai
-                    return winner, {}, None, 0
-            return first_ai, {}, None, 0
+                    return played_game(first_ai, second_ai, winner, {}, None, 0)
+            return played_game(first_ai, second_ai, first_ai, {}, None, 0)
 
         monkeypatch.setattr(trainer.battle_system, "run_game", fake_run_game)
         trainer.evaluate_strategy(strategy)
@@ -721,7 +723,7 @@ class TestPanelEvaluation:
                 winner = first_ai if first_ai.strategy.name == "Stub" else second_ai
             else:
                 winner = first_ai if first_ai.strategy.name == "AlwaysWin" else second_ai
-            return winner, {}, None, 0
+            return played_game(first_ai, second_ai, winner, {}, None, 0)
 
         monkeypatch.setattr(trainer.battle_system, "run_game", fake_run_game)
         trainer.evaluate_strategy(strategy)

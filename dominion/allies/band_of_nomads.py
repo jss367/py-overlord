@@ -6,8 +6,9 @@ class BandOfNomads(Ally):
     def __init__(self):
         super().__init__("Band of Nomads")
 
-    def on_owner_gain(self, game_state, player, gained_card):
-        if player.favors < 1 or effective_cost(game_state, gained_card).coins < 3:
+    def on_owner_gain(self, game_state, player, gained_card, *, cost_at_gain=None):
+        cost = cost_at_gain or effective_cost(game_state, gained_card)
+        if player.favors < 1 or cost.coins < 3:
             return
         default = (
             "action"

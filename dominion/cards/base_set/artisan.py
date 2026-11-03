@@ -32,22 +32,11 @@ class Artisan(Card):
         if options:
             chosen = player.ai.choose_buy(game_state, options + [None])
             if chosen is None or chosen not in options:
-                chosen = max(options, key=lambda c: (c.cost.coins, c.is_action, c.name))
+                chosen = max(options, key=lambda c: (c.cost.coins, game_state.is_action(c), c.name))
 
             if game_state.supply.get(chosen.name, 0) > 0:
                 game_state.supply[chosen.name] -= 1
-                gained = game_state.gain_card(player, chosen)
-                # Only redirect the gain into hand if reactions (Watchtower
-                # trash/topdeck, Royal Seal, Gatekeeper exile, etc.) haven't
-                # already moved the card object out of discard/deck. If the
-                # card is in trash/exile we must not resurrect it.
-                if gained is not None:
-                    if gained in player.discard:
-                        player.discard.remove(gained)
-                        player.hand.append(gained)
-                    elif gained in player.deck:
-                        player.deck.remove(gained)
-                        player.hand.append(gained)
+                game_state.gain_card(player, chosen, to_hand=True)
 
         # 2) Put a card from hand onto your deck.
         if not player.hand:

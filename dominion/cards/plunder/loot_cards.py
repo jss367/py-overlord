@@ -143,8 +143,8 @@ class Orb(Loot):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        actions = [c for c in player.discard if c.is_action]
-        treasures = [c for c in player.discard if c.is_treasure]
+        actions = [c for c in player.discard if game_state.is_action(c)]
+        treasures = [c for c in player.discard if game_state.is_treasure(c)]
         chosen = None
         if actions:
             chosen = player.ai.choose_action(game_state, actions + [None])
@@ -267,7 +267,7 @@ class SpellScroll(Loot):
             gain = get_card(affordable[0])
         game_state.supply[gain.name] -= 1
         game_state.gain_card(player, gain)
-        if gain.is_action or gain.is_treasure:
+        if game_state.is_action(gain) or game_state.is_treasure(gain):
             if gain in player.discard:
                 player.discard.remove(gain)
             player.in_play.append(gain)
@@ -281,7 +281,7 @@ class Staff(Loot):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        actions = [c for c in player.hand if c.is_action]
+        actions = [c for c in player.hand if game_state.is_action(c)]
         if actions:
             card = player.ai.choose_action(game_state, actions + [None])
             if card:

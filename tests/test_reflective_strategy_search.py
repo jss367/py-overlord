@@ -9,6 +9,8 @@ from types import SimpleNamespace
 import pytest
 
 from dominion.boards.loader import BoardConfig, load_board
+from dominion.game.outcome import GameOutcome, PlayedGame
+from dominion.simulation.parallel_games import GameResult, TaskResult
 from dominion.simulation.reflective_strategy_search import (
     DominionGEPAAdapter, FailFastReflection, MatchupEvaluator, board_seed, compile_genome,
     genome_text, matchup_cases, optimize_strategy, parse_genome,
@@ -20,6 +22,52 @@ from dominion.strategy.strategy_loader import StrategyLoader
 @pytest.fixture
 def board():
     return load_board("boards/oslo.txt")
+
+
+@pytest.mark.parametrize("workers", [1, 2])
+def test_reflective_scores_preserve_ties_and_caps(board, tmp_path, monkeypatch, workers):
+    from dominion.simulation.strategy_battle import StrategyBattle
+    outcomes = [GameOutcome((7, 7), (4, 4), (0, 1), "three_piles_depleted")] * 2 + [
+        GameOutcome((100, 0), (200, 200), (), "turn_limit")] * 2
+    calls = iter(outcomes)
+
+    def run_game(self, first, second, *args, **kwargs):
+        return PlayedGame(next(calls), (first, second), None, 8)
+
+    monkeypatch.setattr(StrategyBattle, "run_game", run_game)
+    evaluator = MatchupEvaluator(board, {"Big Money": StrategyLoader().get_strategy("Big Money")},
+                                 tmp_path, workers=workers)
+    if workers > 1:
+        def run(tasks):
+            return {task.task_id: TaskResult(task.task_id, [
+                GameResult(index, outcomes[index], index % 2,
+                           outcomes[index].scores[index % 2], outcomes[index].scores[1 - index % 2], 8)
+                for index, _ in task.games]) for task in tasks}
+        evaluator._pool = SimpleNamespace(run=run, close=lambda: None)
+    try:
+        result = evaluator.evaluate(compile_genome(genome_text(board_seed(board)), evaluator.info),
+                                    matchup_cases(evaluator.opponents, 42, 4, "test")[0])
+        assert result["win_rate"] == 0.25
+        assert result["outcomes"] == {"wins": 0, "losses": 0, "ties": 2, "truncated": 2}
+        assert result["mean_score_margin"] == 0
+        assert [row["win_share"] for row in result["games"]] == [0.5, 0.5, 0, 0]
+        assert all(not row["won"] for row in result["games"])
+    finally:
+        evaluator.close()
+
+
+def test_reflective_json_preserves_bounded_card_policies_and_accepts_old_plans(board):
+    info = KingdomInfo.from_kingdom(board.kingdom_cards)
+    genome = board_seed(board)
+    historical = genome_text(genome)
+    assert "card_decision_policies" not in json.loads(historical)["genome"]
+    assert parse_genome(historical, info).card_decision_policies is None
+    genome.card_decision_policies = {"watchtower": {"terminal_limit": 4}}
+    assert parse_genome(genome_text(genome), info).card_decision_policies == genome.card_decision_policies
+    payload = json.loads(genome_text(genome))
+    payload["genome"]["card_decision_policies"]["watchtower"]["terminal_limit"] = "execute code"
+    with pytest.raises(ValueError, match="Invalid card policy"):
+        parse_genome(json.dumps(payload), info)
 
 
 def test_typed_seed_round_trips_and_compiles_without_changing_genome(board):

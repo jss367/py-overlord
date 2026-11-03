@@ -80,13 +80,12 @@ def main() -> None:
             ai1 = GeneticAI(best)
             ai2 = GeneticAI(opp_factory())
             if i % 2 == 0:
-                winner, _, _, _ = battle.run_game(ai1, ai2, cfg.kingdom_cards)
+                game = battle.run_game(ai1, ai2, cfg.kingdom_cards)
             else:
-                winner, _, _, _ = battle.run_game(ai2, ai1, cfg.kingdom_cards)
-            if winner == ai1:
-                wins += 1
+                game = battle.run_game(ai2, ai1, cfg.kingdom_cards)
+            wins += game.win_share(ai1)
         rate = wins / args.validation_games * 100
-        logger.info("Evolved vs %s: %d/%d (%.1f%%)", name, wins, args.validation_games, rate)
+        logger.info("Evolved vs %s: %.1f/%d win shares (%.1f%%)", name, wins, args.validation_games, rate)
 
     head_to_head(create_wizards_lich_engine, "WizardsLichEngine (hand-written)")
     head_to_head(lambda: loader.get_strategy("Big Money"), "Big Money")

@@ -23,7 +23,7 @@ class Hostelry(Card):
         if not player.hand:
             return
 
-        treasures_in_hand = [c for c in player.hand if c.is_treasure]
+        treasures_in_hand = [c for c in player.hand if game_state.is_treasure(c)]
         if not treasures_in_hand:
             return
 

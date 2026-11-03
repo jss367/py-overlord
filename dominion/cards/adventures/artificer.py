@@ -16,75 +16,78 @@ class Artificer(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
 
-        max_discard = len(player.hand)
-        candidates = []
-        for pile_name in list(game_state.supply):
-            card = _exposed_supply_card(game_state, pile_name)
-            if card is None:
-                continue
-            if card.cost.potions > 0 or card.cost.debt > 0:
-                continue
-            if game_state.get_card_cost(player, card) <= max_discard:
-                candidates.append(card)
-
-        if not candidates:
-            return
-
-        chosen = player.ai.choose_artificer_gain(game_state, player, candidates)
-        if chosen is None or chosen not in candidates:
-            return
-
-        target_cost = game_state.get_card_cost(player, chosen)
-        if target_cost > max_discard:
-            return
-
-        cards_to_discard: list = []
-        if target_cost > 0:
-            # The default gain hook budgets the cost by the junk in hand, so
-            # spend that junk first. The generic discard ordering ranks by
-            # printed cost and would otherwise throw a $3 Scheme before a
-            # Duchy. Useful cards are only offered when a strategy's own
-            # ``choose_artificer_gain`` chose a cost the junk cannot cover.
-            remaining_hand = list(player.hand)
-            junk = [c for c in remaining_hand if is_artificer_junk(c)]
-            useful = [c for c in remaining_hand if not is_artificer_junk(c)]
-            for pool in (junk, useful):
-                needed = target_cost - len(cards_to_discard)
+        # Strategies can select the discard independently of a desired gain.
+        # None preserves the legacy plan-a-gain policy; [] explicitly discards 0.
+        selected = player.ai.choose_artificer_discards(
+            game_state, player, list(player.hand)
+        )
+        planned = None
+        if selected is None:
+            candidates = _gain_candidates(game_state, player, len(player.hand))
+            planned = player.ai.choose_artificer_gain(game_state, player, candidates)
+            if planned not in candidates:
+                planned = None
+            target_cost = game_state.get_card_cost(player, planned) if planned else 0
+            selected = []
+            remaining = list(player.hand)
+            # Retain the existing junk-first baseline for legacy gain hooks.
+            for junk in (True, False):
+                pool = [c for c in remaining if is_artificer_junk(c) == junk]
+                needed = target_cost - len(selected)
                 if needed <= 0 or not pool:
                     continue
-                discard_order = player.ai.choose_cards_to_discard(
-                    game_state, player, pool, needed, reason="artificer",
+                order = player.ai.choose_cards_to_discard(
+                    game_state, player, list(pool), needed, reason="artificer"
                 )
-                for card in discard_order:
-                    if card not in pool:
-                        continue  # only cards from the offered pool count
-                    if card in remaining_hand and len(cards_to_discard) < target_cost:
-                        cards_to_discard.append(card)
-                        remaining_hand.remove(card)
-                # Exhaust this pool before the next one is offered: junk is
-                # spent before any useful card, even if the discard hook
-                # ignored part of the offer.
-                leftovers = [c for c in pool if c in remaining_hand]
-                while len(cards_to_discard) < target_cost and leftovers:
-                    fallback = min(leftovers, key=lambda c: (c.cost.coins, c.name))
-                    leftovers.remove(fallback)
-                    cards_to_discard.append(fallback)
-                    remaining_hand.remove(fallback)
+                for card in order or []:
+                    if card in pool and card in remaining and len(selected) < target_cost:
+                        selected.append(card)
+                        remaining.remove(card)
+                for card in sorted(pool, key=lambda c: (c.cost.coins, c.name)):
+                    if card in remaining and len(selected) < target_cost:
+                        selected.append(card)
+                        remaining.remove(card)
 
-            while len(cards_to_discard) < target_cost and remaining_hand:
-                fallback = min(remaining_hand, key=lambda c: (c.cost.coins, c.name))
-                cards_to_discard.append(fallback)
-                remaining_hand.remove(fallback)
-
-            if len(cards_to_discard) < target_cost:
-                return
-
-        for card in cards_to_discard:
+        # Validate the whole selection against the original physical hand.
+        original = list(player.hand)
+        discards = []
+        for card in selected:
+            if card in original:
+                discards.append(card)
+                original.remove(card)
+        discarded = 0
+        for card in discards:
             if card in player.hand:
                 player.hand.remove(card)
+                discarded += 1
                 game_state.discard_card(player, card)
 
-        game_state.gain_from_supply(player, chosen.name, destination="deck")
+        # Discard reactions may change costs or consume an exposed pile member.
+        candidates = [c for c in _gain_candidates(game_state, player, discarded)
+                      if game_state.get_card_cost(player, c) == discarded]
+        chosen = player.ai.choose_artificer_gain_after_discard(
+            game_state, player, list(candidates), planned
+        )
+        from ..gain_decisions import resolve_gain
+
+        chosen = resolve_gain(chosen, candidates)
+        if chosen is not None:
+            game_state.gain_from_supply(player, chosen.name, destination="deck")
+
+
+def _gain_candidates(game_state, player, maximum):
+    choices = []
+    seen = set()
+    for pile in game_state.supply:
+        card = _exposed_supply_card(game_state, pile)
+        if card is not None and card.name not in seen and (
+            card.cost.potions == 0 and card.cost.debt == 0
+            and game_state.get_card_cost(player, card) <= maximum
+        ):
+            choices.append(card)
+            seen.add(card.name)
+    return choices
+
 
 
 def is_artificer_junk(card) -> bool:

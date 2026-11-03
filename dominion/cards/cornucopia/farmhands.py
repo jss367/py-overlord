@@ -24,7 +24,7 @@ class Farmhands(Card):
         super().on_gain(game_state, player)
         eligible = [
             c for c in player.hand
-            if (c.is_action or c.is_treasure) and c.cost.coins <= 4
+            if (game_state.is_action(c) or game_state.is_treasure(c)) and c.cost.coins <= 4
             and c.cost.potions == 0 and c.cost.debt == 0
         ]
         if not eligible:
@@ -52,19 +52,19 @@ class Farmhands(Card):
         # May play a non-Duration Action or Treasure from hand.
         playable = [
             c for c in player.hand
-            if (c.is_action or c.is_treasure) and not c.is_duration
+            if (game_state.is_action(c) or game_state.is_treasure(c)) and not c.is_duration
         ]
         if playable:
             choice = None
-            actions = [c for c in playable if c.is_action]
-            treasures = [c for c in playable if c.is_treasure and not c.is_action]
+            actions = [c for c in playable if game_state.is_action(c)]
+            treasures = [c for c in playable if game_state.is_treasure(c) and not game_state.is_action(c)]
             if actions:
                 choice = player.ai.choose_action(game_state, actions + [None])
             if choice is None and treasures:
                 choice = player.ai.choose_treasure(game_state, treasures + [None])
             if choice is not None and choice in player.hand:
                 if game_state.move_card_from_hand_to_play(player, choice):
-                    if choice.is_action:
+                    if game_state.is_action(choice):
                         game_state.play_action_indirectly(
                             player, choice, blocked_return_zone=player.hand
                         )

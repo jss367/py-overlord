@@ -35,7 +35,8 @@ ARMS = ("proposal", "assisted", "control")
 LABELS = {"proposal": "Original GEPA proposal", "assisted": "Final assisted recommendation",
           "control": "Genetic-only control"}
 NAMESPACE = int.from_bytes(sha256(b"saved-reflective-candidates-diagnostic-v1").digest()[:8], "big")
-GAME_COLUMNS = ("seed", "seat", "won", "score", "opponent_score", "turns")
+GAME_COLUMNS = ("seed", "seat", "won", "score", "opponent_score", "turns",
+                "win_share", "result", "termination_reason")
 
 
 def fresh_cases(opponents, seed, games, *, direct=False):
@@ -162,6 +163,8 @@ def run_comparison(source, output, *, games=1000, workers=1):
         "runner_sha256": sha256(Path(__file__).read_bytes()).hexdigest(), "python": platform.python_version(),
         "board": asdict(board), "opponents": list(opponents), "search_seeds": seeds,
         "games_per_matchup": games, "workers": workers, "seed_namespace": NAMESPACE,
+        "scoring_version": "explicit_outcomes_v1",
+        "scoring": "Half credit for natural ties; zero credit for truncated games; explicit outcome counts",
         "freshness_check": {"recorded_source_shuffle_seeds": len(old_seeds), "new_shuffle_seeds": len(all_new),
                             "overlap": 0, "scope": "All saved reflection, selection and held-out game records; unsaved genetic training games cannot be enumerated"},
         "analysis_plan": {

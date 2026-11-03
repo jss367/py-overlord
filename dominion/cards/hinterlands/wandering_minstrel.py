@@ -26,8 +26,8 @@ class WanderingMinstrel(Card):
                 break
             revealed.append(player.deck.pop())
 
-        actions = [c for c in revealed if c.is_action]
-        non_actions = [c for c in revealed if not c.is_action]
+        actions = [c for c in revealed if game_state.is_action(c)]
+        non_actions = [c for c in revealed if not game_state.is_action(c)]
 
         ordered = player.ai.order_cards_for_topdeck(game_state, player, list(actions))
         # Defensive: a malformed AI response (duplicates, omissions, or

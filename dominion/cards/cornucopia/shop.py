@@ -22,13 +22,13 @@ class Shop(Card):
         # play (the engine moves it to ``in_play`` before resolving its
         # play effect), so a second Shop in hand is excluded too.
         in_play_action_names = {
-            c.name for c in player.in_play if c.is_action
+            c.name for c in player.in_play if game_state.is_action(c)
         } | {
-            c.name for c in player.duration if c.is_action
+            c.name for c in player.duration if game_state.is_action(c)
         }
         playable = [
             c for c in player.hand
-            if c.is_action and c.name not in in_play_action_names
+            if game_state.is_action(c) and c.name not in in_play_action_names
         ]
         if not playable:
             return

@@ -743,11 +743,11 @@ def test_blockade_gains_card_to_hand_next_turn():
     player.hand = [blockade]
     play_action(state, player, blockade)
 
-    assert blockade.set_aside is not None
+    assert blockade.set_aside
     assert blockade in player.duration
 
     blockade.on_duration(state)
-    assert blockade.set_aside is None
+    assert not blockade.set_aside
     # The set-aside card landed in the hand.
     assert any(c.name == "Silver" for c in player.hand)
 
@@ -779,7 +779,7 @@ def test_blockade_does_not_set_aside_card_sailor_already_played():
     # as a Duration. Blockade must NOT also stash it for next turn.
     in_play_caravans = [c for c in player.in_play if c.name == "Caravan"]
     assert len(in_play_caravans) == 1
-    assert blockade.set_aside is None, \
+    assert not blockade.set_aside, \
         "Blockade must not set aside a card Sailor already moved into in_play"
 
     # Resolve next-turn duration; the Caravan must NOT be re-added to hand.
@@ -807,6 +807,7 @@ def test_blockade_does_not_curse_lighthouse_defender():
     play_action(state, player_a, blockade)
 
     # Player B (defended) gains the watched card → must not gain a Curse.
+    state.current_player_index = 1
     state.supply["Silver"] -= 1
     state.gain_card(player_b, get_card("Silver"))
     assert all(c.name != "Curse" for c in player_b.discard), \
@@ -825,6 +826,7 @@ def test_blockade_curses_opponent_who_gains_same_card():
     play_action(state, player_a, blockade)
 
     # Player B gains the same card → should also gain a Curse.
+    state.current_player_index = 1
     state.supply["Silver"] -= 1
     state.gain_card(player_b, get_card("Silver"))
     assert any(c.name == "Curse" for c in player_b.discard)

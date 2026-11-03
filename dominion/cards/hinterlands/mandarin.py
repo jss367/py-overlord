@@ -23,7 +23,7 @@ class Mandarin(Card):
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
 
-        treasures = [card for card in player.in_play if card.is_treasure]
+        treasures = [card for card in player.in_play if game_state.is_treasure(card)]
         for card in reversed(treasures):
             player.in_play.remove(card)
             player.deck.append(card)

@@ -19,7 +19,7 @@ class WealthyVillage(Card):
         from ..registry import get_card
 
         super().on_gain(game_state, player)
-        treasures = {card.name for card in player.in_play if card.is_treasure}
+        treasures = {card.name for card in player.in_play if game_state.is_treasure(card)}
         if len(treasures) < 3:
             return
 

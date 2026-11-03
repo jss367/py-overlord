@@ -73,6 +73,10 @@ def referenced_cards(strategy: EnhancedStrategy) -> frozenset[str]:
         if card:
             names.add(card)
 
+    from dominion.strategy.card_policies import FAMILY_CARDS, validate_policies
+    settings = validate_policies(getattr(strategy, "card_decision_policies", None)) or {}
+    for family in settings:
+        names.update(FAMILY_CARDS[family])
     return frozenset(names)
 
 

@@ -61,7 +61,7 @@ def test_city_state_can_resolve_before_or_after_gain_movers(mover, city_first):
         assert village not in p.hand + p.deck + p.discard + p.exile + s.trash
         assert village not in s.hasty_set_aside.get(id(p), []) + p.deliver_set_aside
         if mover == "Cargo Ship":
-            assert cargo.set_aside is None
+            assert cargo.set_aside == []
     elif mover == "Watchtower trash":
         assert village in s.trash
     elif mover in {"Watchtower topdeck", "Royal Seal", "Sleigh deck"}:
@@ -69,7 +69,7 @@ def test_city_state_can_resolve_before_or_after_gain_movers(mover, city_first):
     elif mover == "Sleigh hand":
         assert village in p.hand
     elif mover == "Cargo Ship":
-        assert cargo.set_aside is village
+        assert cargo.set_aside == [village]
     elif mover == "Gatekeeper":
         assert village in p.exile
     elif mover == "Hasty":
@@ -104,9 +104,9 @@ def test_city_state_played_cargo_ship_only_sets_aside_a_subsequent_gain():
     cargo = s.take_top_supply_card("Cargo Ship")
     s.gain_card(p, cargo)
     assert cargo in p.in_play
-    assert cargo.set_aside is None
+    assert cargo.set_aside == []
     assert cargo.waiting_for_gain
     gold = s.take_top_supply_card("Gold")
     s.gain_card(p, gold)
-    assert cargo.set_aside is gold
+    assert cargo.set_aside == [gold]
     assert gold not in p.hand + p.deck + p.discard

@@ -17,7 +17,7 @@ class Flagship(Card):
         player = game_state.current_player
         if self not in player.flagship_pending:
             player.flagship_pending.append(self)
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):

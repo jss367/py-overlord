@@ -24,11 +24,7 @@ class Sickness(Prophecy):
                 game_state.supply["Curse"] -= 1
                 # Per rulebook: gain to deck. If pile is empty, the player
                 # may still choose to gain a Curse (gain nothing then).
-                gained = game_state.gain_card(player, get_card("Curse"), to_deck=True)
-                # Ensure on top of deck
-                if gained in player.discard:
-                    player.discard.remove(gained)
-                    player.deck.append(gained)
+                game_state.gain_card(player, get_card("Curse"), to_deck=True)
             return
 
         # Discard 3 cards from hand (as many as you can if fewer than 3)

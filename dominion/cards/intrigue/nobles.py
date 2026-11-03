@@ -18,7 +18,7 @@ class Nobles(Card):
         # (b) there's at least one Action card in hand to play. Otherwise
         # +3 Cards is strictly better (cards may be Actions themselves, but
         # that's already covered by the "actions in hand" check).
-        action_cards_in_hand = any(card.is_action for card in player.hand)
+        action_cards_in_hand = any(game_state.is_action(card) for card in player.hand)
         draw = not (player.actions == 0 and action_cards_in_hand)
         from ..allies._rules import select_modes
 

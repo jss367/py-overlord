@@ -30,10 +30,7 @@ class SeaHag(Card):
             # Gain a Curse onto the top of the deck.
             if game_state.supply.get("Curse", 0) > 0:
                 game_state.supply["Curse"] -= 1
-                gained = game_state.gain_card(target, get_card("Curse"))
-                if gained in target.discard:
-                    target.discard.remove(gained)
-                    target.deck.append(gained)
+                game_state.gain_card(target, get_card("Curse"), to_deck=True)
 
         for other in game_state.players:
             if other is player:

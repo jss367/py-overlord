@@ -155,9 +155,10 @@ def test_rogue_victim_default_does_not_sacrifice_a_knight():
 
     rogue.play_effect(state)
 
-    # The Silver was trashed (Rogue then gains it from the trash); the Knight
+    # The Silver was trashed and stays there; the Knight
     # was only discarded.
     assert silver not in victim.discard and silver not in victim.deck
+    assert silver in state.trash and silver not in attacker.discard
     assert bailey in victim.discard and bailey not in state.trash
     assert rogue in attacker.in_play
 

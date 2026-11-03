@@ -21,7 +21,7 @@ class Trail(Card):
         if self in player.in_play:
             game_state.play_action_as_owner_indirectly(player, self)
         else:
-            for zone in (player.discard, player.deck, player.hand, game_state.trash):
+            for zone in (player.discard, player.deck, player.hand, player.pending_gain_set_aside, game_state.trash):
                 if self in zone:
                     game_state.play_action_from_zone_indirectly(player, self, zone)
                     break
@@ -37,6 +37,8 @@ class Trail(Card):
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
+        if self in getattr(game_state, "_gain_destinations", {}) and not game_state.gain_is_movable(player, self):
+            return
         self.maybe_play_on_reaction(game_state, player)
 
     def on_trash(self, game_state, player):

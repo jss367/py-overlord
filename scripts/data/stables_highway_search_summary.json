@@ -1,0 +1,7921 @@
+{
+  "board": "boards/stables_highway.txt",
+  "date": "2026-10-20",
+  "note": "Scores are within-stage panel averages, with ties worth half. Panels differ by stage; scores are not comparable between stages. Opening preference applies on the first turn and can add a card even with a zero later-copy target. Exploratory rule-debugging runs are excluded.",
+  "stages": [
+    {
+      "name": "Broad screen",
+      "matches": 1086,
+      "games": 26064,
+      "truncated": 0,
+      "ranking": [
+        {
+          "score": 0.7777777777777777,
+          "parameters": {
+            "margrave": 1,
+            "silver": 5
+          }
+        },
+        {
+          "score": 0.7152777777777777,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.7013888888888888,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.6875,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.6666666666666666,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.6527777777777778,
+          "parameters": {
+            "stables": 6,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.6458333333333334,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.6388888888888888,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 3,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 2,
+            "green": 8,
+            "duchy": 3,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.6111111111111112,
+          "parameters": {
+            "stables": 4,
+            "margrave": 1,
+            "highway": 3,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.6111111111111112,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.6041666666666667,
+          "parameters": {
+            "stables": 4,
+            "highway": 6,
+            "margrave": 2,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 2,
+            "green": 12,
+            "duchy": 3,
+            "opening": "Silver",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.5972222222222222,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 3,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.5972222222222222,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 4,
+            "hut": 1,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 6,
+            "gold": 2,
+            "green": 8,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.5902777777777778,
+          "parameters": {
+            "stables": 2,
+            "margrave": 2,
+            "highway": 0,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.5902777777777778,
+          "parameters": {
+            "stables": 4,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.5902777777777778,
+          "parameters": {
+            "stables": 6,
+            "margrave": 1,
+            "highway": 6,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.5902777777777778,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.5833333333333334,
+          "parameters": {
+            "stables": 2,
+            "margrave": 2,
+            "highway": 6,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.5833333333333333,
+          "parameters": {
+            "stables": 5,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 1,
+            "silver": 4,
+            "gold": 99,
+            "green": 14,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.576388888888889,
+          "parameters": {
+            "stables": 2,
+            "highway": 0,
+            "margrave": 0,
+            "inn": 0,
+            "hut": 2,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.5763888888888888,
+          "parameters": {
+            "stables": 6,
+            "highway": 6,
+            "margrave": 3,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 6,
+            "gold": 99,
+            "green": 12,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.5694444444444445,
+          "parameters": {
+            "stables": 4,
+            "highway": 3,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 2,
+            "silver": 4,
+            "gold": 3,
+            "green": 10,
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.5694444444444444,
+          "parameters": {
+            "stables": 0,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 3,
+            "opening": "Develop",
+            "order": "highway",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.5625,
+          "parameters": {
+            "stables": 6,
+            "margrave": 1,
+            "highway": 3,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.5555555555555555,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 6,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.5486111111111112,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 4,
+            "green": 12,
+            "duchy": 3,
+            "opening": "Weaver",
+            "order": "attack",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.548611111111111,
+          "parameters": {
+            "dog": 1,
+            "silver": 5
+          }
+        },
+        {
+          "score": 0.548611111111111,
+          "parameters": {
+            "stables": 4,
+            "margrave": 2,
+            "highway": 3,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.5416666666666667,
+          "parameters": {
+            "stables": 3,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 2,
+            "gold": 4,
+            "green": 12,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "highway",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.5347222222222222,
+          "parameters": {
+            "stables": 5,
+            "highway": 8,
+            "margrave": 3,
+            "inn": 1,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 8,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.5347222222222222,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 1,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 2,
+            "gold": 4,
+            "green": 12,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "highway",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.5277777777777778,
+          "parameters": {
+            "stables": 3,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 99,
+            "gold": 4,
+            "green": 12,
+            "duchy": 2,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.5277777777777778,
+          "parameters": {
+            "stables": 0,
+            "highway": 0,
+            "margrave": 0,
+            "inn": 1,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 0,
+            "duchy": 2,
+            "opening": "Weaver",
+            "order": "attack",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.5208333333333334,
+          "parameters": {
+            "stables": 4,
+            "highway": 5,
+            "margrave": 2,
+            "inn": 2,
+            "silver": 4,
+            "gold": 3,
+            "green": 10
+          }
+        },
+        {
+          "score": 0.5208333333333334,
+          "parameters": {
+            "stables": 2,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 2,
+            "gold": 4,
+            "green": 0,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.5208333333333334,
+          "parameters": {
+            "stables": 4,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 1,
+            "develop": 1,
+            "silver": 4,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.5208333333333333,
+          "parameters": {
+            "stables": 6,
+            "margrave": 2,
+            "highway": 6,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.5208333333333333,
+          "parameters": {
+            "stables": 2,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 14,
+            "duchy": 3,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.513888888888889,
+          "parameters": {
+            "stables": 3,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 2,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 1,
+            "silver": 99,
+            "gold": 99,
+            "green": 10,
+            "duchy": 3,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.5138888888888888,
+          "parameters": {
+            "stables": 6,
+            "margrave": 2,
+            "highway": 0,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.5138888888888888,
+          "parameters": {
+            "stables": 6,
+            "margrave": 2,
+            "highway": 3,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.5138888888888888,
+          "parameters": {
+            "stables": 3,
+            "highway": 2,
+            "margrave": 1,
+            "inn": 4,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 99,
+            "green": 8,
+            "duchy": 2,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.5069444444444444,
+          "parameters": {
+            "stables": 6,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.5069444444444444,
+          "parameters": {
+            "stables": 4,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 2,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 2,
+            "gold": 4,
+            "green": 14,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.5069444444444444,
+          "parameters": {
+            "stables": 6,
+            "highway": 2,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 2,
+            "gold": 99,
+            "green": 10,
+            "duchy": 3,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.5069444444444443,
+          "parameters": {
+            "stables": 2,
+            "highway": 6,
+            "margrave": 3,
+            "inn": 2,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 99,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.5000000000000001,
+          "parameters": {
+            "stables": 6,
+            "margrave": 1,
+            "highway": 3,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.5000000000000001,
+          "parameters": {
+            "stables": 3,
+            "highway": 6,
+            "margrave": 3,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 2,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 12,
+            "duchy": 2,
+            "opening": "Silver",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.5000000000000001,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 4,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "duchy": 3,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.5,
+          "parameters": {
+            "stables": 2,
+            "margrave": 0,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.4930555555555556,
+          "parameters": {
+            "stables": 5,
+            "highway": 4,
+            "margrave": 3,
+            "inn": 4,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 2,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 6,
+            "gold": 4,
+            "green": 12,
+            "duchy": 3,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.4930555555555556,
+          "parameters": {
+            "stables": 0,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 8,
+            "duchy": 3,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.4930555555555555,
+          "parameters": {
+            "stables": 2,
+            "highway": 8,
+            "margrave": 0,
+            "inn": 4,
+            "hut": 1,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 6,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.4930555555555555,
+          "parameters": {
+            "stables": 6,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 4,
+            "hut": 1,
+            "weaver": 1,
+            "dog": 1,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 12,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.48611111111111116,
+          "parameters": {
+            "stables": 4,
+            "margrave": 1,
+            "highway": 3,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.48611111111111116,
+          "parameters": {
+            "stables": 6,
+            "margrave": 1,
+            "highway": 6,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.4861111111111111,
+          "parameters": {
+            "stables": 4,
+            "margrave": 1,
+            "highway": 6,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.4861111111111111,
+          "parameters": {
+            "stables": 3,
+            "highway": 2,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.4791666666666667,
+          "parameters": {
+            "stables": 3,
+            "highway": 6,
+            "margrave": 1,
+            "inn": 4,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 8,
+            "duchy": 2,
+            "opening": "Silver",
+            "order": "highway",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.4791666666666666,
+          "parameters": {
+            "stables": 2,
+            "highway": 6,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 2,
+            "gold": 2,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "attack",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.47222222222222227,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 3,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.47222222222222227,
+          "parameters": {
+            "stables": 6,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.47222222222222227,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 3,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 2,
+            "gold": 4,
+            "green": 12,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.47222222222222215,
+          "parameters": {
+            "stables": 3,
+            "highway": 4,
+            "margrave": 2,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 14,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.46527777777777785,
+          "parameters": {
+            "stables": 3,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 1,
+            "hut": 1,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 14,
+            "duchy": 2,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.46527777777777785,
+          "parameters": {
+            "stables": 3,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 4,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 2,
+            "green": 0,
+            "duchy": 2,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.46527777777777773,
+          "parameters": {
+            "stables": 4,
+            "margrave": 2,
+            "highway": 0,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.4583333333333334,
+          "parameters": {
+            "stables": 5,
+            "highway": 6,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 10,
+            "duchy": 3,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.4583333333333333,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 6,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.4513888888888889,
+          "parameters": {
+            "stables": 2,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 2,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 2,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.4513888888888889,
+          "parameters": {
+            "stables": 5,
+            "highway": 6,
+            "margrave": 2,
+            "inn": 1,
+            "hut": 1,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 6,
+            "gold": 99,
+            "green": 14,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.45138888888888884,
+          "parameters": {
+            "stables": 2,
+            "margrave": 2,
+            "highway": 3,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.45138888888888884,
+          "parameters": {
+            "stables": 4,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.45138888888888884,
+          "parameters": {
+            "stables": 4,
+            "margrave": 2,
+            "highway": 6,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.45138888888888884,
+          "parameters": {
+            "stables": 0,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "highway",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.45138888888888884,
+          "parameters": {
+            "stables": 4,
+            "highway": 6,
+            "margrave": 0,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 4,
+            "gold": 4,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.4444444444444445,
+          "parameters": {
+            "stables": 4,
+            "highway": 8,
+            "margrave": 3,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 1,
+            "silver": 4,
+            "gold": 2,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.4444444444444445,
+          "parameters": {
+            "stables": 5,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 99,
+            "gold": 4,
+            "green": 12,
+            "duchy": 3,
+            "opening": "Weaver",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.4444444444444445,
+          "parameters": {
+            "stables": 6,
+            "highway": 2,
+            "margrave": 2,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 0,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.4444444444444444,
+          "parameters": {
+            "stables": 4,
+            "highway": 2,
+            "margrave": 2,
+            "inn": 2,
+            "hut": 2,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 2,
+            "gold": 4,
+            "green": 12,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.4444444444444444,
+          "parameters": {
+            "stables": 0,
+            "highway": 6,
+            "margrave": 3,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 6,
+            "gold": 4,
+            "green": 12,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.4444444444444444,
+          "parameters": {
+            "stables": 2,
+            "highway": 4,
+            "margrave": 0,
+            "inn": 0,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 6,
+            "gold": 4,
+            "green": 8,
+            "duchy": 3,
+            "opening": "Weaver",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.4375,
+          "parameters": {
+            "stables": 0,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 12,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.4375,
+          "parameters": {
+            "stables": 4,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.4305555555555556,
+          "parameters": {
+            "stables": 3,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 0,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 12,
+            "duchy": 2,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.4305555555555556,
+          "parameters": {
+            "stables": 6,
+            "highway": 2,
+            "margrave": 3,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 2,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 8,
+            "duchy": 3,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.4305555555555556,
+          "parameters": {
+            "stables": 0,
+            "highway": 2,
+            "margrave": 2,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.4305555555555555,
+          "parameters": {
+            "stables": 5,
+            "highway": 6,
+            "margrave": 3,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.4305555555555555,
+          "parameters": {
+            "stables": 0,
+            "highway": 4,
+            "margrave": 3,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 14,
+            "duchy": 3,
+            "opening": "Weaver",
+            "order": "attack",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.4236111111111111,
+          "parameters": {
+            "stables": 4,
+            "margrave": 1,
+            "highway": 6,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.4166666666666667,
+          "parameters": {
+            "stables": 4,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 8,
+            "duchy": 2,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.4166666666666667,
+          "parameters": {
+            "stables": 2,
+            "highway": 6,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 1,
+            "silver": 99,
+            "gold": 99,
+            "green": 14,
+            "duchy": 2,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.4166666666666667,
+          "parameters": {
+            "stables": 5,
+            "highway": 4,
+            "margrave": 0,
+            "inn": 0,
+            "hut": 1,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 12,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.4166666666666667,
+          "parameters": {
+            "stables": 0,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.4166666666666667,
+          "parameters": {
+            "stables": 2,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 2,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.40972222222222227,
+          "parameters": {
+            "stables": 4,
+            "highway": 2,
+            "margrave": 1,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.40972222222222215,
+          "parameters": {
+            "stables": 4,
+            "highway": 6,
+            "margrave": 0,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 1,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 0,
+            "duchy": 2,
+            "opening": "Weaver",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.40277777777777785,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 8,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.40277777777777785,
+          "parameters": {
+            "stables": 4,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 0,
+            "duchy": 2,
+            "opening": "Weaver",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.40277777777777773,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.3958333333333333,
+          "parameters": {
+            "stables": 5,
+            "highway": 4,
+            "margrave": 3,
+            "inn": 2,
+            "hut": 2,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 1,
+            "silver": 6,
+            "gold": 2,
+            "green": 14,
+            "duchy": 2,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.3888888888888889,
+          "parameters": {
+            "stables": 0,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 1,
+            "dog": 2,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 12,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "highway",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.38888888888888884,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 0,
+            "inn": 4,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 99,
+            "green": 0,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "highway",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.3819444444444445,
+          "parameters": {
+            "stables": 0,
+            "highway": 2,
+            "margrave": 1,
+            "inn": 4,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 4,
+            "green": 0,
+            "duchy": 2,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.3819444444444444,
+          "parameters": {
+            "stables": 3,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 2,
+            "weaver": 2,
+            "dog": 2,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 2,
+            "gold": 4,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.3819444444444444,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 6,
+            "gold": 4,
+            "green": 0,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.375,
+          "parameters": {
+            "stables": 0,
+            "highway": 4,
+            "margrave": 3,
+            "inn": 4,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.3680555555555556,
+          "parameters": {
+            "stables": 0,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 99,
+            "gold": 2,
+            "green": 14,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.3680555555555556,
+          "parameters": {
+            "stables": 4,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 12,
+            "duchy": 2,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.3680555555555556,
+          "parameters": {
+            "stables": 6,
+            "highway": 6,
+            "margrave": 0,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 1,
+            "silver": 99,
+            "gold": 2,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.3680555555555555,
+          "parameters": {
+            "stables": 3,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 2,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 2,
+            "gold": 2,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.36111111111111116,
+          "parameters": {
+            "stables": 4,
+            "margrave": 0,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.3611111111111111,
+          "parameters": {
+            "stables": 6,
+            "highway": 6,
+            "margrave": 2,
+            "inn": 0,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 2,
+            "gold": 2,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.3611111111111111,
+          "parameters": {
+            "stables": 3,
+            "highway": 8,
+            "margrave": 0,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 0,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.3611111111111111,
+          "parameters": {
+            "stables": 3,
+            "highway": 4,
+            "margrave": 0,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 2,
+            "dog": 1,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.35763888888888884,
+          "parameters": {
+            "stables": 5,
+            "highway": 6,
+            "margrave": 1,
+            "inn": 0,
+            "hut": 2,
+            "weaver": 1,
+            "dog": 2,
+            "haggler": 2,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Silver",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.3541666666666667,
+          "parameters": {
+            "stables": 6,
+            "margrave": 0,
+            "highway": 3,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.34722222222222227,
+          "parameters": {
+            "stables": 2,
+            "highway": 0,
+            "margrave": 0,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 6,
+            "gold": 2,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.34722222222222215,
+          "parameters": {
+            "stables": 2,
+            "margrave": 0,
+            "highway": 3,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.34027777777777773,
+          "parameters": {
+            "stables": 4,
+            "silver": 5
+          }
+        },
+        {
+          "score": 0.34027777777777773,
+          "parameters": {
+            "stables": 0,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 1,
+            "silver": 4,
+            "gold": 99,
+            "green": 14,
+            "duchy": 2,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.3333333333333333,
+          "parameters": {
+            "stables": 4,
+            "margrave": 0,
+            "highway": 6,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.3333333333333333,
+          "parameters": {
+            "stables": 3,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 2,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 1,
+            "silver": 4,
+            "gold": 2,
+            "green": 0,
+            "duchy": 2,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.3333333333333333,
+          "parameters": {
+            "stables": 5,
+            "highway": 6,
+            "margrave": 0,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 1,
+            "silver": 2,
+            "gold": 99,
+            "green": 12,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.3333333333333333,
+          "parameters": {
+            "stables": 3,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 0,
+            "hut": 2,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 2,
+            "develop": 1,
+            "silver": 2,
+            "gold": 99,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.3263888888888889,
+          "parameters": {
+            "stables": 2,
+            "margrave": 0,
+            "highway": 6,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.3194444444444445,
+          "parameters": {
+            "stables": 0,
+            "highway": 0,
+            "margrave": 0,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 10,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.31250000000000006,
+          "parameters": {
+            "stables": 2,
+            "highway": 8,
+            "margrave": 0,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 1,
+            "dog": 1,
+            "haggler": 2,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 8,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.3055555555555556,
+          "parameters": {
+            "stables": 4,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 2,
+            "gold": 99,
+            "green": 0,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.3055555555555556,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 0,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 10,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.3055555555555556,
+          "parameters": {
+            "stables": 4,
+            "highway": 4,
+            "margrave": 0,
+            "inn": 0,
+            "hut": 1,
+            "weaver": 1,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 2,
+            "green": 12,
+            "duchy": 2,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.3055555555555555,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 0,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.3055555555555555,
+          "parameters": {
+            "stables": 2,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 1,
+            "weaver": 1,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 14,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.2986111111111111,
+          "parameters": {
+            "stables": 6,
+            "margrave": 0,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.2986111111111111,
+          "parameters": {
+            "stables": 2,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 2,
+            "green": 14,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.2986111111111111,
+          "parameters": {
+            "stables": 0,
+            "highway": 6,
+            "margrave": 2,
+            "inn": 1,
+            "hut": 1,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 6,
+            "gold": 4,
+            "green": 12,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.29861111111111105,
+          "parameters": {}
+        },
+        {
+          "score": 0.2916666666666667,
+          "parameters": {
+            "stables": 4,
+            "margrave": 0,
+            "highway": 3,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.2916666666666667,
+          "parameters": {
+            "stables": 6,
+            "margrave": 0,
+            "highway": 6,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.2916666666666667,
+          "parameters": {
+            "stables": 2,
+            "highway": 0,
+            "margrave": 0,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 1,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 4,
+            "green": 8,
+            "duchy": 3,
+            "opening": "Develop",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.2916666666666667,
+          "parameters": {
+            "stables": 4,
+            "highway": 4,
+            "margrave": 2,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 2,
+            "dog": 2,
+            "haggler": 1,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 6,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.28472222222222227,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 0,
+            "hut": 2,
+            "weaver": 1,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 0,
+            "duchy": 2,
+            "opening": "Silver",
+            "order": "highway",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.2847222222222222,
+          "parameters": {
+            "stables": 2,
+            "highway": 2,
+            "margrave": 0,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 2,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 2,
+            "gold": 2,
+            "green": 0,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.2847222222222222,
+          "parameters": {
+            "stables": 4,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 4,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 2,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 14,
+            "duchy": 2,
+            "opening": "Silver",
+            "order": "highway",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.27777777777777773,
+          "parameters": {
+            "stables": 4,
+            "highway": 6,
+            "margrave": 3,
+            "inn": 0,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 14,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.2708333333333333,
+          "parameters": {
+            "stables": 0,
+            "highway": 4,
+            "margrave": 3,
+            "inn": 0,
+            "hut": 1,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 2,
+            "gold": 2,
+            "green": 8,
+            "duchy": 2,
+            "opening": "Silver",
+            "order": "attack",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.2638888888888889,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 0,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 99,
+            "green": 14,
+            "duchy": 2,
+            "opening": "Silver",
+            "order": "highway",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.2569444444444445,
+          "parameters": {
+            "stables": 4,
+            "highway": 2,
+            "margrave": 0,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.2569444444444445,
+          "parameters": {
+            "stables": 4,
+            "highway": 2,
+            "margrave": 3,
+            "inn": 0,
+            "hut": 1,
+            "weaver": 1,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 2,
+            "gold": 2,
+            "green": 14,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.2569444444444444,
+          "parameters": {
+            "stables": 0,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 2,
+            "dog": 1,
+            "haggler": 2,
+            "cartographer": 2,
+            "develop": 1,
+            "silver": 2,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.2569444444444444,
+          "parameters": {
+            "stables": 4,
+            "highway": 8,
+            "margrave": 2,
+            "inn": 0,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 2,
+            "gold": 2,
+            "green": 12,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.2569444444444444,
+          "parameters": {
+            "stables": 0,
+            "highway": 6,
+            "margrave": 3,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 2,
+            "gold": 4,
+            "green": 0,
+            "duchy": 2,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.2569444444444444,
+          "parameters": {
+            "stables": 2,
+            "highway": 2,
+            "margrave": 1,
+            "inn": 4,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 2,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.25,
+          "parameters": {
+            "stables": 2,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 2,
+            "gold": 4,
+            "green": 0,
+            "duchy": 2,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.24999999999999997,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 0,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 12,
+            "duchy": 2,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.24305555555555555,
+          "parameters": {
+            "stables": 4,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 0,
+            "hut": 1,
+            "weaver": 2,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 1,
+            "silver": 2,
+            "gold": 99,
+            "green": 0,
+            "duchy": 2,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.24305555555555555,
+          "parameters": {
+            "stables": 5,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 1,
+            "weaver": 1,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 2,
+            "green": 14,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.23611111111111113,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 14,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.22222222222222224,
+          "parameters": {
+            "stables": 6,
+            "margrave": 0,
+            "highway": 6,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.2222222222222222,
+          "parameters": {
+            "stables": 0,
+            "highway": 0,
+            "margrave": 0,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 8,
+            "duchy": 3,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.22222222222222218,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 2,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 2,
+            "gold": 4,
+            "green": 0,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.21527777777777776,
+          "parameters": {
+            "stables": 2,
+            "margrave": 0,
+            "highway": 0,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.2083333333333333,
+          "parameters": {
+            "stables": 2,
+            "margrave": 0,
+            "highway": 3,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.20138888888888887,
+          "parameters": {
+            "stables": 6,
+            "margrave": 0,
+            "highway": 3,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.20138888888888887,
+          "parameters": {
+            "stables": 5,
+            "highway": 2,
+            "margrave": 0,
+            "inn": 1,
+            "hut": 1,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 2,
+            "gold": 2,
+            "green": 12,
+            "duchy": 3,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.1875,
+          "parameters": {
+            "stables": 2,
+            "highway": 0,
+            "margrave": 0,
+            "inn": 2,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 6,
+            "gold": 2,
+            "green": 14,
+            "duchy": 2,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.1875,
+          "parameters": {
+            "stables": 3,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.18055555555555558,
+          "parameters": {
+            "stables": 3,
+            "highway": 2,
+            "margrave": 0,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 99,
+            "gold": 2,
+            "green": 12,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.17361111111111113,
+          "parameters": {
+            "stables": 6,
+            "margrave": 0,
+            "highway": 0,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.17361111111111113,
+          "parameters": {
+            "stables": 0,
+            "highway": 2,
+            "margrave": 0,
+            "inn": 4,
+            "hut": 1,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 8,
+            "duchy": 2,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.16666666666666666,
+          "parameters": {
+            "stables": 4,
+            "margrave": 0,
+            "highway": 0,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.1527777777777778,
+          "parameters": {
+            "stables": 2,
+            "margrave": 0,
+            "highway": 6,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.1527777777777778,
+          "parameters": {
+            "stables": 5,
+            "highway": 4,
+            "margrave": 2,
+            "inn": 1,
+            "hut": 2,
+            "weaver": 1,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 14,
+            "duchy": 2,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.1527777777777778,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 0,
+            "inn": 4,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.15277777777777776,
+          "parameters": {
+            "stables": 4,
+            "margrave": 0,
+            "highway": 6,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.14583333333333334,
+          "parameters": {
+            "stables": 3,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 0,
+            "duchy": 4,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.13888888888888892,
+          "parameters": {
+            "stables": 4,
+            "margrave": 0,
+            "highway": 3,
+            "inn": 2,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.125,
+          "parameters": {
+            "stables": 0,
+            "highway": 2,
+            "margrave": 0,
+            "inn": 4,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 99,
+            "green": 14,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "highway",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.10416666666666667,
+          "parameters": {
+            "stables": 3,
+            "highway": 0,
+            "margrave": 0,
+            "inn": 4,
+            "hut": 0,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 99,
+            "gold": 99,
+            "green": 12,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "highway",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.06944444444444445,
+          "parameters": {
+            "stables": 6,
+            "highway": 2,
+            "margrave": 0,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 2,
+            "gold": 99,
+            "green": 14,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.06250000000000001,
+          "parameters": {
+            "stables": 3,
+            "highway": 0,
+            "margrave": 0,
+            "inn": 4,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 14,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "Joint refinement",
+      "matches": 1989,
+      "games": 47736,
+      "truncated": 0,
+      "ranking": [
+        {
+          "score": 0.7962962962962963,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 99,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7962962962962963,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 99,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7916666666666666,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 99,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7824074074074073,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 99,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7777777777777777,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 6,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7685185185185186,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 99,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7546296296296295,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 6,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.75,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 6,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7499999999999999,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 5,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7453703703703705,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 6,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7453703703703703,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 99,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7453703703703703,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 6,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7453703703703703,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 99,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7407407407407407,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 6,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7361111111111112,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 99,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7268518518518519,
+          "parameters": {
+            "stables": 0,
+            "highway": 0,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7222222222222221,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 5,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7175925925925926,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 5,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7129629629629629,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 99,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7083333333333334,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 5,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.7037037037037037,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 6,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.699074074074074,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 99,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.699074074074074,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 4,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.699074074074074,
+          "parameters": {
+            "margrave": 2,
+            "silver": 5,
+            "green": 6,
+            "terminal_limit": 3
+          }
+        },
+        {
+          "score": 0.6944444444444445,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 6,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6944444444444444,
+          "parameters": {
+            "margrave": 1,
+            "silver": 5
+          }
+        },
+        {
+          "score": 0.6944444444444444,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 99,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6944444444444444,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 99,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6944444444444444,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.6944444444444444,
+          "parameters": {
+            "margrave": 1,
+            "silver": 5,
+            "develop": 0
+          }
+        },
+        {
+          "score": 0.6851851851851853,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 6,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6851851851851851,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 5,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.675925925925926,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 5,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6759259259259259,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 6,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6759259259259259,
+          "parameters": {
+            "stables": 1,
+            "highway": 0,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6712962962962963,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 5,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6666666666666667,
+          "parameters": {
+            "stables": 0,
+            "highway": 1,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6620370370370371,
+          "parameters": {
+            "margrave": 1,
+            "silver": 5,
+            "hut": 1
+          }
+        },
+        {
+          "score": 0.662037037037037,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 4,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6574074074074074,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 4,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6574074074074073,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 5,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6527777777777778,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 5,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6481481481481483,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 6,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6481481481481483,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 6,
+            "gold": 4,
+            "green": 8,
+            "duchy": 2,
+            "develop": 0
+          }
+        },
+        {
+          "score": 0.6435185185185186,
+          "parameters": {
+            "margrave": 1,
+            "silver": 5,
+            "terminal_limit": 1,
+            "haggler": 2
+          }
+        },
+        {
+          "score": 0.6435185185185185,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 4,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.638888888888889,
+          "parameters": {
+            "margrave": 1,
+            "silver": 5,
+            "stables": 0,
+            "highway": 0
+          }
+        },
+        {
+          "score": 0.6342592592592592,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 4,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6342592592592592,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 4,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.625,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 4,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.6203703703703705,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 5,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6203703703703703,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 4,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6203703703703703,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 12,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.6157407407407408,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 6,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6157407407407408,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8,
+            "terminal_limit": 3
+          }
+        },
+        {
+          "score": 0.6111111111111112,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 4,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6111111111111112,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 4,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6111111111111112,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 5,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6064814814814814,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 5,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6064814814814814,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 3,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6064814814814814,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 4,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6018518518518519,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 4,
+            "terminal_limit": 3
+          }
+        },
+        {
+          "score": 0.6018518518518519,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 1,
+            "inn": 0,
+            "silver": 8,
+            "gold": 4,
+            "green": 8,
+            "order": "attack",
+            "duchy": 3
+          }
+        },
+        {
+          "score": 0.5925925925925926,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.5925925925925926,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8,
+            "terminal_limit": 1
+          }
+        },
+        {
+          "score": 0.587962962962963,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 3,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.587962962962963,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 4,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5879629629629629,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8,
+            "duchy": 4,
+            "develop": 1,
+            "order": "draw"
+          }
+        },
+        {
+          "score": 0.5787037037037037,
+          "parameters": {
+            "stables": 0,
+            "highway": 2,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5787037037037037,
+          "parameters": {
+            "stables": 2,
+            "highway": 0,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5787037037037037,
+          "parameters": {
+            "stables": 8,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.5740740740740741,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.5740740740740741,
+          "parameters": {
+            "margrave": 1,
+            "silver": 5,
+            "develop": 0,
+            "highway": 3,
+            "gain_silver": 6,
+            "terminal_limit": 2
+          }
+        },
+        {
+          "score": 0.5740740740740741,
+          "parameters": {
+            "stables": 6,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 6,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 6,
+            "terminal_limit": 2
+          }
+        },
+        {
+          "score": 0.574074074074074,
+          "parameters": {
+            "stables": 6,
+            "highway": 2,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.574074074074074,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2,
+            "terminal_limit": 2
+          }
+        },
+        {
+          "score": 0.574074074074074,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 4,
+            "terminal_limit": 1
+          }
+        },
+        {
+          "score": 0.574074074074074,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99,
+            "terminal_limit": 3
+          }
+        },
+        {
+          "score": 0.5694444444444444,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.5694444444444444,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 3,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5694444444444444,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 3,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5694444444444444,
+          "parameters": {
+            "stables": 0,
+            "highway": 3,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5694444444444444,
+          "parameters": {
+            "margrave": 1,
+            "silver": 5,
+            "inn": 1,
+            "weaver": 1,
+            "stables": 6
+          }
+        },
+        {
+          "score": 0.5648148148148148,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.5648148148148148,
+          "parameters": {
+            "stables": 1,
+            "highway": 1,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5648148148148148,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.5601851851851852,
+          "parameters": {
+            "stables": 5,
+            "highway": 2,
+            "margrave": 3,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.5601851851851851,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 3,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5555555555555557,
+          "parameters": {
+            "stables": 1,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 99,
+            "green": 12
+          }
+        },
+        {
+          "score": 0.5555555555555556,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 3,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5555555555555555,
+          "parameters": {
+            "stables": 2,
+            "highway": 1,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.550925925925926,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 3,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2,
+            "terminal_limit": 3
+          }
+        },
+        {
+          "score": 0.550925925925926,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8,
+            "haggler": 2
+          }
+        },
+        {
+          "score": 0.5462962962962963,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 8,
+            "duchy": 2,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.5416666666666666,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.5416666666666666,
+          "parameters": {
+            "stables": 0,
+            "highway": 1,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5370370370370371,
+          "parameters": {
+            "stables": 6,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.537037037037037,
+          "parameters": {
+            "stables": 0,
+            "highway": 0,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.537037037037037,
+          "parameters": {
+            "stables": 2,
+            "highway": 2,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.537037037037037,
+          "parameters": {
+            "margrave": 2,
+            "silver": 5,
+            "dog": 2,
+            "haggler": 2,
+            "hut": 1
+          }
+        },
+        {
+          "score": 0.5324074074074074,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8
+          }
+        },
+        {
+          "score": 0.5324074074074074,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 4,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5324074074074074,
+          "parameters": {
+            "stables": 1,
+            "highway": 2,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5324074074074074,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 4,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 99,
+            "terminal_limit": 2
+          }
+        },
+        {
+          "score": 0.5324074074074073,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 3,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5324074074074073,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.5277777777777779,
+          "parameters": {
+            "stables": 4,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.5277777777777779,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.5277777777777778,
+          "parameters": {
+            "margrave": 1,
+            "silver": 5,
+            "opening": "Guard Dog",
+            "cartographer": 1,
+            "green": 0
+          }
+        },
+        {
+          "score": 0.5231481481481481,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 3,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5185185185185185,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.5185185185185185,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 1,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2,
+            "terminal_limit": 3
+          }
+        },
+        {
+          "score": 0.5138888888888888,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8,
+            "duchy": 5,
+            "develop": 0,
+            "hut": 2,
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.5092592592592593,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 2,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5092592592592593,
+          "parameters": {
+            "stables": 1,
+            "highway": 3,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5092592592592592,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.5092592592592592,
+          "parameters": {
+            "stables": 1,
+            "highway": 0,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5046296296296297,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99,
+            "terminal_limit": 2
+          }
+        },
+        {
+          "score": 0.5046296296296295,
+          "parameters": {
+            "stables": 4,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.5,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 4,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8,
+            "gain_silver": 4,
+            "cartographer": 0
+          }
+        },
+        {
+          "score": 0.5,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.49537037037037046,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 3,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.49537037037037035,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.49537037037037035,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 3,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.49537037037037035,
+          "parameters": {
+            "stables": 3,
+            "highway": 0,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.49537037037037035,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 0,
+            "duchy": 5,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.49074074074074076,
+          "parameters": {
+            "stables": 6,
+            "highway": 1,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4907407407407407,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 1,
+            "develop": 1,
+            "silver": 4,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.4907407407407407,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.4861111111111111,
+          "parameters": {
+            "stables": 3,
+            "highway": 1,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.48148148148148157,
+          "parameters": {
+            "stables": 0,
+            "highway": 2,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.48148148148148157,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 6,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.48148148148148145,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 12,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.48148148148148145,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 2,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 0,
+            "green": 10,
+            "duchy": 5,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.47685185185185186,
+          "parameters": {
+            "stables": 3,
+            "highway": 2,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4768518518518518,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 3,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4768518518518518,
+          "parameters": {
+            "stables": 4,
+            "highway": 0,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4722222222222222,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 2,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4722222222222222,
+          "parameters": {
+            "stables": 2,
+            "highway": 3,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4722222222222222,
+          "parameters": {
+            "stables": 3,
+            "highway": 3,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4722222222222222,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 1,
+            "silver": 99,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.46759259259259267,
+          "parameters": {
+            "stables": 4,
+            "highway": 2,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.46759259259259256,
+          "parameters": {
+            "stables": 4,
+            "highway": 1,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.462962962962963,
+          "parameters": {
+            "stables": 6,
+            "highway": 3,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.462962962962963,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 3,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 0,
+            "green": 10,
+            "duchy": 3,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.462962962962963,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.4629629629629629,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 99,
+            "green": 10,
+            "duchy": 4,
+            "opening": "auto",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.4583333333333333,
+          "parameters": {
+            "stables": 8,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 99,
+            "green": 8,
+            "haggler": 2
+          }
+        },
+        {
+          "score": 0.4583333333333333,
+          "parameters": {
+            "stables": 1,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 6,
+            "terminal_limit": 1
+          }
+        },
+        {
+          "score": 0.45833333333333326,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 2,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4537037037037038,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 3,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4537037037037038,
+          "parameters": {
+            "stables": 5,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 1,
+            "silver": 6,
+            "gold": 99,
+            "green": 8,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.4537037037037038,
+          "parameters": {
+            "stables": 6,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.45370370370370366,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 3,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 2,
+            "green": 8,
+            "duchy": 3,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.45370370370370366,
+          "parameters": {
+            "stables": 2,
+            "highway": 0,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.449074074074074,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.4444444444444444,
+          "parameters": {
+            "stables": 3,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.4444444444444444,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 6,
+            "terminal_limit": 3
+          }
+        },
+        {
+          "score": 0.4444444444444444,
+          "parameters": {
+            "stables": 6,
+            "highway": 1,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 0,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.4444444444444444,
+          "parameters": {
+            "stables": 6,
+            "highway": 1,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 8,
+            "duchy": 4,
+            "opening": "auto",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.4444444444444444,
+          "parameters": {
+            "stables": 5,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 2,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 1,
+            "silver": 4,
+            "gold": 4,
+            "green": 8,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 99,
+            "terminal_limit": 3
+          }
+        },
+        {
+          "score": 0.43518518518518523,
+          "parameters": {
+            "stables": 1,
+            "highway": 2,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.43518518518518523,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 2,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 2,
+            "green": 6,
+            "duchy": 3,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.43518518518518523,
+          "parameters": {
+            "stables": 5,
+            "highway": 3,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 1,
+            "silver": 4,
+            "gold": 99,
+            "green": 14,
+            "duchy": 5,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.4351851851851851,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.4305555555555556,
+          "parameters": {
+            "margrave": 2,
+            "terminal_limit": 2,
+            "silver": 2,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4305555555555556,
+          "parameters": {
+            "stables": 4,
+            "highway": 3,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4305555555555556,
+          "parameters": {
+            "stables": 3,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 2,
+            "hut": 1,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.4305555555555556,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.4259259259259259,
+          "parameters": {
+            "stables": 5,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 1,
+            "silver": 4,
+            "gold": 99,
+            "green": 14,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.4259259259259259,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 2,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.42129629629629634,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4212962962962963,
+          "parameters": {
+            "stables": 2,
+            "highway": 3,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4212962962962962,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 2,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4166666666666667,
+          "parameters": {
+            "stables": 4,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 10,
+            "opening": "Guard Dog"
+          }
+        },
+        {
+          "score": 0.41666666666666663,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 2,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.41203703703703703,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 2,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.40740740740740744,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 2,
+            "duchy": 3,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.40740740740740744,
+          "parameters": {
+            "stables": 1,
+            "highway": 1,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.40740740740740744,
+          "parameters": {
+            "stables": 3,
+            "highway": 2,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4074074074074074,
+          "parameters": {
+            "margrave": 1,
+            "terminal_limit": 1,
+            "silver": 2,
+            "duchy": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4027777777777778,
+          "parameters": {
+            "stables": 1,
+            "highway": 3,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4027777777777778,
+          "parameters": {
+            "stables": 4,
+            "highway": 2,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.40277777777777773,
+          "parameters": {
+            "stables": 6,
+            "highway": 2,
+            "inn": 0,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.3981481481481482,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 3,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2,
+            "terminal_limit": 2
+          }
+        },
+        {
+          "score": 0.39814814814814814,
+          "parameters": {
+            "stables": 0,
+            "highway": 3,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.3935185185185186,
+          "parameters": {
+            "stables": 3,
+            "highway": 1,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.3888888888888889,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 2,
+            "duchy": 2,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.3842592592592593,
+          "parameters": {
+            "stables": 3,
+            "highway": 0,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.3842592592592593,
+          "parameters": {
+            "stables": 6,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 1,
+            "silver": 2,
+            "gold": 99,
+            "green": 14,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.37962962962962965,
+          "parameters": {
+            "stables": 4,
+            "highway": 1,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.37962962962962965,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.37500000000000006,
+          "parameters": {
+            "stables": 6,
+            "highway": 3,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.375,
+          "parameters": {
+            "stables": 6,
+            "highway": 2,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.375,
+          "parameters": {
+            "stables": 0,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 6,
+            "gold": 99,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Weaver",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.3703703703703704,
+          "parameters": {
+            "stables": 2,
+            "highway": 2,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.3703703703703704,
+          "parameters": {
+            "stables": 5,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 1,
+            "develop": 1,
+            "silver": 2,
+            "gold": 99,
+            "green": 14,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.3657407407407408,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 2,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.36574074074074076,
+          "parameters": {
+            "stables": 4,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 2,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 6,
+            "terminal_limit": 1
+          }
+        },
+        {
+          "score": 0.36574074074074076,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 4
+          }
+        },
+        {
+          "score": 0.3657407407407407,
+          "parameters": {
+            "stables": 2,
+            "highway": 1,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.3611111111111111,
+          "parameters": {
+            "stables": 4,
+            "highway": 3,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.3564814814814815,
+          "parameters": {
+            "stables": 3,
+            "highway": 3,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.35648148148148145,
+          "parameters": {
+            "stables": 2,
+            "margrave": 1,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8,
+            "weaver": 2
+          }
+        },
+        {
+          "score": 0.3472222222222222,
+          "parameters": {
+            "stables": 6,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 1,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 0,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.3425925925925926,
+          "parameters": {
+            "stables": 4,
+            "highway": 0,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.33333333333333326,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 2,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "auto",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.3287037037037037,
+          "parameters": {
+            "stables": 3,
+            "highway": 8,
+            "margrave": 3,
+            "inn": 2,
+            "hut": 0,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 4,
+            "gold": 2,
+            "green": 8,
+            "duchy": 3,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.3240740740740741,
+          "parameters": {
+            "margrave": 3,
+            "terminal_limit": 3,
+            "silver": 2,
+            "duchy": 5,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.3240740740740741,
+          "parameters": {
+            "stables": 6,
+            "highway": 1,
+            "inn": 1,
+            "margrave": 1,
+            "silver": 5,
+            "gold": 99,
+            "green": 0,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.30092592592592593,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 3,
+            "inn": 0,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.30092592592592593,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 1,
+            "silver": 2,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 6
+          }
+        },
+        {
+          "score": 0.30092592592592593,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 2,
+            "dog": 1,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 4,
+            "terminal_limit": 3
+          }
+        },
+        {
+          "score": 0.30092592592592593,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 1,
+            "inn": 0,
+            "hut": 0,
+            "weaver": 1,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 10,
+            "duchy": 3,
+            "opening": "Weaver",
+            "order": "highway",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.27314814814814814,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 0,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99,
+            "terminal_limit": 1
+          }
+        },
+        {
+          "score": 0.26388888888888884,
+          "parameters": {
+            "stables": 5,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 1,
+            "cartographer": 1,
+            "develop": 1,
+            "silver": 4,
+            "gold": 99,
+            "green": 14,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "highway",
+            "gain_silver": 99
+          }
+        },
+        {
+          "score": 0.2546296296296296,
+          "parameters": {
+            "stables": 2,
+            "margrave": 0,
+            "highway": 0,
+            "inn": 0,
+            "silver": 5,
+            "gold": 4,
+            "green": 8,
+            "develop": 1,
+            "weaver": 1,
+            "cartographer": 2
+          }
+        },
+        {
+          "score": 0.25,
+          "parameters": {
+            "margrave": 1,
+            "silver": 5,
+            "highway": 3,
+            "green": 14,
+            "dog": 1
+          }
+        },
+        {
+          "score": 0.24537037037037038,
+          "parameters": {
+            "stables": 6,
+            "highway": 8,
+            "margrave": 1,
+            "inn": 3,
+            "hut": 2,
+            "weaver": 0,
+            "dog": 2,
+            "haggler": 0,
+            "cartographer": 2,
+            "develop": 0,
+            "silver": 99,
+            "gold": 2,
+            "green": 8,
+            "duchy": 4,
+            "opening": "Silver",
+            "order": "draw",
+            "gain_silver": 99,
+            "terminal_limit": 3
+          }
+        },
+        {
+          "score": 0.212962962962963,
+          "parameters": {
+            "stables": 5,
+            "highway": 0,
+            "margrave": 0,
+            "inn": 1,
+            "hut": 0,
+            "weaver": 0,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 0,
+            "develop": 0,
+            "silver": 99,
+            "gold": 4,
+            "green": 6,
+            "duchy": 2,
+            "opening": "Develop",
+            "order": "attack",
+            "gain_silver": 2
+          }
+        },
+        {
+          "score": 0.1898148148148148,
+          "parameters": {
+            "stables": 5,
+            "highway": 4,
+            "margrave": 1,
+            "inn": 2,
+            "hut": 2,
+            "weaver": 2,
+            "dog": 0,
+            "haggler": 0,
+            "cartographer": 1,
+            "develop": 1,
+            "silver": 4,
+            "gold": 2,
+            "green": 14,
+            "duchy": 3,
+            "opening": "Guard Dog",
+            "order": "attack",
+            "gain_silver": 99,
+            "terminal_limit": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clean alternative families",
+      "matches": 368,
+      "games": 8832,
+      "truncated": 0,
+      "ranking": [
+        {
+          "score": 0.6614583333333334,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "stables": 0,
+            "gain_silver": 99,
+            "silver": 5,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.65625,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "stables": 0,
+            "gain_silver": 6,
+            "silver": 5,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.6458333333333334,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "stables": 2,
+            "gain_silver": 6,
+            "silver": 5,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.6145833333333334,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "stables": 2,
+            "gain_silver": 99,
+            "silver": 5,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.6093750000000001,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "stables": 0,
+            "gain_silver": 4,
+            "silver": 5,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.5989583333333334,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "stables": 2,
+            "gain_silver": 4,
+            "silver": 5,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.5937499999999999,
+          "parameters": {
+            "haggler": 1,
+            "stables": 0,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5885416666666667,
+          "parameters": {
+            "dog": 1,
+            "stables": 0,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 4,
+            "opening": "Guard Dog"
+          }
+        },
+        {
+          "score": 0.5729166666666666,
+          "parameters": {
+            "develop": 1,
+            "stables": 0,
+            "margrave": 1,
+            "silver": 4,
+            "opening": "Develop"
+          }
+        },
+        {
+          "score": 0.5260416666666667,
+          "parameters": {
+            "haggler": 1,
+            "stables": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5104166666666666,
+          "parameters": {
+            "hut": 1,
+            "weaver": 1,
+            "inn": 1,
+            "stables": 2,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.5104166666666666,
+          "parameters": {
+            "hut": 2,
+            "weaver": 1,
+            "inn": 1,
+            "stables": 2,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.4895833333333333,
+          "parameters": {
+            "haggler": 1,
+            "stables": 2,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4635416666666667,
+          "parameters": {
+            "hut": 1,
+            "weaver": 1,
+            "inn": 1,
+            "stables": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.4583333333333333,
+          "parameters": {
+            "hut": 2,
+            "weaver": 1,
+            "inn": 1,
+            "stables": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.453125,
+          "parameters": {
+            "hut": 2,
+            "weaver": 1,
+            "inn": 2,
+            "stables": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.45312499999999994,
+          "parameters": {
+            "hut": 1,
+            "weaver": 1,
+            "inn": 2,
+            "stables": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.4427083333333333,
+          "parameters": {
+            "hut": 1,
+            "weaver": 0,
+            "inn": 1,
+            "stables": 2,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.4375,
+          "parameters": {
+            "hut": 2,
+            "weaver": 1,
+            "inn": 2,
+            "stables": 2,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.4375,
+          "parameters": {
+            "develop": 1,
+            "stables": 2,
+            "margrave": 1,
+            "silver": 4,
+            "opening": "Develop"
+          }
+        },
+        {
+          "score": 0.42708333333333337,
+          "parameters": {
+            "hut": 2,
+            "weaver": 0,
+            "inn": 1,
+            "stables": 2,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.42708333333333337,
+          "parameters": {
+            "haggler": 1,
+            "stables": 4,
+            "margrave": 0,
+            "terminal_limit": 2,
+            "silver": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.41666666666666663,
+          "parameters": {
+            "hut": 2,
+            "weaver": 0,
+            "inn": 1,
+            "stables": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.41666666666666663,
+          "parameters": {
+            "haggler": 1,
+            "stables": 4,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4114583333333333,
+          "parameters": {
+            "hut": 1,
+            "weaver": 2,
+            "inn": 2,
+            "stables": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.40625,
+          "parameters": {
+            "hut": 2,
+            "weaver": 2,
+            "inn": 1,
+            "stables": 2,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.40625,
+          "parameters": {
+            "dog": 1,
+            "stables": 2,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 4,
+            "opening": "Guard Dog"
+          }
+        },
+        {
+          "score": 0.40624999999999994,
+          "parameters": {
+            "haggler": 1,
+            "stables": 2,
+            "margrave": 0,
+            "terminal_limit": 2,
+            "silver": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.4010416666666667,
+          "parameters": {
+            "haggler": 1,
+            "stables": 1,
+            "margrave": 0,
+            "terminal_limit": 2,
+            "silver": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.3958333333333333,
+          "parameters": {
+            "hut": 1,
+            "weaver": 0,
+            "inn": 1,
+            "stables": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.390625,
+          "parameters": {
+            "haggler": 1,
+            "stables": 0,
+            "margrave": 0,
+            "terminal_limit": 2,
+            "silver": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.3854166666666667,
+          "parameters": {
+            "hut": 1,
+            "weaver": 2,
+            "inn": 2,
+            "stables": 2,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.375,
+          "parameters": {
+            "hut": 2,
+            "weaver": 2,
+            "inn": 1,
+            "stables": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.37499999999999994,
+          "parameters": {
+            "hut": 2,
+            "weaver": 2,
+            "inn": 2,
+            "stables": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.37499999999999994,
+          "parameters": {
+            "hut": 2,
+            "weaver": 2,
+            "inn": 2,
+            "stables": 2,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.3697916666666667,
+          "parameters": {
+            "hut": 2,
+            "weaver": 0,
+            "inn": 2,
+            "stables": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.36458333333333337,
+          "parameters": {
+            "hut": 2,
+            "weaver": 0,
+            "inn": 2,
+            "stables": 2,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.34895833333333337,
+          "parameters": {
+            "hut": 1,
+            "weaver": 2,
+            "inn": 1,
+            "stables": 2,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.34375,
+          "parameters": {
+            "hut": 1,
+            "weaver": 1,
+            "inn": 2,
+            "stables": 2,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.34375,
+          "parameters": {
+            "dog": 1,
+            "stables": 2,
+            "margrave": 0,
+            "terminal_limit": 2,
+            "silver": 4,
+            "opening": "Guard Dog"
+          }
+        },
+        {
+          "score": 0.3333333333333333,
+          "parameters": {
+            "hut": 1,
+            "weaver": 2,
+            "inn": 1,
+            "stables": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.3229166666666667,
+          "parameters": {
+            "hut": 1,
+            "weaver": 0,
+            "inn": 2,
+            "stables": 0,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        },
+        {
+          "score": 0.31250000000000006,
+          "parameters": {
+            "develop": 1,
+            "stables": 0,
+            "margrave": 0,
+            "silver": 4,
+            "opening": "Develop"
+          }
+        },
+        {
+          "score": 0.3072916666666667,
+          "parameters": {
+            "develop": 1,
+            "stables": 2,
+            "margrave": 0,
+            "silver": 4,
+            "opening": "Develop"
+          }
+        },
+        {
+          "score": 0.2916666666666667,
+          "parameters": {
+            "dog": 1,
+            "stables": 0,
+            "margrave": 0,
+            "terminal_limit": 2,
+            "silver": 4,
+            "opening": "Guard Dog"
+          }
+        },
+        {
+          "score": 0.25520833333333337,
+          "parameters": {
+            "hut": 1,
+            "weaver": 0,
+            "inn": 2,
+            "stables": 2,
+            "silver": 4,
+            "gold": 99,
+            "green": 0,
+            "opening": "Weaver",
+            "order": "attack"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Weaver refinement",
+      "matches": 192,
+      "games": 6144,
+      "truncated": 0,
+      "ranking": [
+        {
+          "score": 0.69140625,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 5,
+            "gain_silver": 4,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.671875,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 5,
+            "gain_silver": 6,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.66015625,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 5,
+            "gain_silver": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.65234375,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 5,
+            "gain_silver": 99,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.625,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 5,
+            "gain_silver": 6,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.6171875,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 5,
+            "gain_silver": 99,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.6015625,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 3,
+            "gain_silver": 4,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.58984375,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 3,
+            "gain_silver": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.58984375,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 3,
+            "gain_silver": 6,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.58203125,
+          "parameters": {
+            "weaver": 2,
+            "margrave": 1,
+            "terminal_limit": 3,
+            "silver": 5,
+            "gain_silver": 6,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.58203125,
+          "parameters": {
+            "weaver": 2,
+            "margrave": 1,
+            "terminal_limit": 3,
+            "silver": 5,
+            "gain_silver": 6,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.58203125,
+          "parameters": {
+            "weaver": 2,
+            "margrave": 1,
+            "terminal_limit": 3,
+            "silver": 5,
+            "gain_silver": 99,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.578125,
+          "parameters": {
+            "weaver": 2,
+            "margrave": 1,
+            "terminal_limit": 3,
+            "silver": 5,
+            "gain_silver": 99,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5703125,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 3,
+            "gain_silver": 99,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.5625,
+          "parameters": {
+            "weaver": 2,
+            "margrave": 1,
+            "terminal_limit": 3,
+            "silver": 5,
+            "gain_silver": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.546875,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 3,
+            "gain_silver": 6,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.53515625,
+          "parameters": {
+            "weaver": 1,
+            "margrave": 1,
+            "terminal_limit": 2,
+            "silver": 3,
+            "gain_silver": 99,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.53515625,
+          "parameters": {
+            "weaver": 2,
+            "margrave": 1,
+            "terminal_limit": 3,
+            "silver": 3,
+            "gain_silver": 6,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.5078125,
+          "parameters": {
+            "weaver": 2,
+            "margrave": 1,
+            "terminal_limit": 3,
+            "silver": 5,
+            "gain_silver": 4,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.4921875,
+          "parameters": {
+            "weaver": 2,
+            "margrave": 1,
+            "terminal_limit": 3,
+            "silver": 3,
+            "gain_silver": 99,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.48828125,
+          "parameters": {
+            "weaver": 2,
+            "margrave": 1,
+            "terminal_limit": 3,
+            "silver": 3,
+            "gain_silver": 4,
+            "opening": "auto"
+          }
+        },
+        {
+          "score": 0.48828125,
+          "parameters": {
+            "weaver": 2,
+            "margrave": 1,
+            "terminal_limit": 3,
+            "silver": 3,
+            "gain_silver": 4,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.46484375,
+          "parameters": {
+            "weaver": 2,
+            "margrave": 1,
+            "terminal_limit": 3,
+            "silver": 3,
+            "gain_silver": 6,
+            "opening": "Weaver"
+          }
+        },
+        {
+          "score": 0.44140625,
+          "parameters": {
+            "weaver": 2,
+            "margrave": 1,
+            "terminal_limit": 3,
+            "silver": 3,
+            "gain_silver": 99,
+            "opening": "Weaver"
+          }
+        }
+      ]
+    }
+  ],
+  "tournament": {
+    "entrants": 23,
+    "matches": 253,
+    "games": 30360,
+    "truncated": 0,
+    "ranking": [
+      {
+        "score": 0.6859848484848485,
+        "parameters": {
+          "margrave": 2,
+          "terminal_limit": 2,
+          "silver": 99,
+          "duchy": 4,
+          "opening": "auto"
+        }
+      },
+      {
+        "score": 0.671969696969697,
+        "parameters": {
+          "margrave": 1,
+          "terminal_limit": 1,
+          "silver": 99,
+          "duchy": 4,
+          "opening": "auto"
+        }
+      },
+      {
+        "score": 0.6621212121212121,
+        "parameters": {
+          "margrave": 2,
+          "terminal_limit": 2,
+          "silver": 99,
+          "duchy": 3,
+          "opening": "auto"
+        }
+      },
+      {
+        "score": 0.6606060606060606,
+        "parameters": {
+          "margrave": 1,
+          "terminal_limit": 1,
+          "silver": 99,
+          "duchy": 3,
+          "opening": "auto"
+        }
+      },
+      {
+        "score": 0.6583333333333333,
+        "parameters": {
+          "margrave": 2,
+          "terminal_limit": 2,
+          "silver": 99,
+          "duchy": 5,
+          "opening": "auto"
+        }
+      },
+      {
+        "score": 0.6185606060606061,
+        "parameters": {
+          "margrave": 2,
+          "terminal_limit": 2,
+          "silver": 6,
+          "duchy": 5,
+          "opening": "auto"
+        }
+      },
+      {
+        "score": 0.5909090909090908,
+        "parameters": {
+          "margrave": 1,
+          "silver": 5,
+          "hut": 1
+        }
+      },
+      {
+        "score": 0.5727272727272728,
+        "parameters": {
+          "margrave": 1,
+          "silver": 5
+        }
+      },
+      {
+        "score": 0.5636363636363636,
+        "parameters": {
+          "weaver": 1,
+          "margrave": 1,
+          "terminal_limit": 2,
+          "silver": 5,
+          "gain_silver": 6,
+          "opening": "Weaver"
+        }
+      },
+      {
+        "score": 0.5583333333333332,
+        "parameters": {
+          "weaver": 1,
+          "margrave": 1,
+          "terminal_limit": 2,
+          "stables": 0,
+          "gain_silver": 99,
+          "silver": 5,
+          "opening": "Weaver"
+        }
+      },
+      {
+        "score": 0.5553030303030302,
+        "parameters": {
+          "stables": 5,
+          "highway": 0,
+          "margrave": 3,
+          "inn": 0,
+          "hut": 0,
+          "weaver": 0,
+          "dog": 0,
+          "haggler": 0,
+          "cartographer": 0,
+          "develop": 0,
+          "silver": 99,
+          "gold": 4,
+          "green": 10,
+          "duchy": 2,
+          "opening": "Develop",
+          "order": "attack",
+          "gain_silver": 2
+        }
+      },
+      {
+        "score": 0.5545454545454545,
+        "parameters": {
+          "weaver": 1,
+          "margrave": 1,
+          "terminal_limit": 2,
+          "silver": 5,
+          "gain_silver": 4,
+          "opening": "auto"
+        }
+      },
+      {
+        "score": 0.5469696969696969,
+        "parameters": {
+          "weaver": 1,
+          "margrave": 1,
+          "terminal_limit": 2,
+          "silver": 5,
+          "gain_silver": 4,
+          "opening": "Weaver"
+        }
+      },
+      {
+        "score": 0.5204545454545455,
+        "parameters": {
+          "dog": 1,
+          "stables": 0,
+          "margrave": 1,
+          "terminal_limit": 2,
+          "silver": 4,
+          "opening": "Guard Dog"
+        }
+      },
+      {
+        "score": 0.4753787878787879,
+        "parameters": {
+          "haggler": 1,
+          "stables": 0,
+          "margrave": 1,
+          "terminal_limit": 2,
+          "silver": 4,
+          "opening": "auto"
+        }
+      },
+      {
+        "score": 0.46325757575757576,
+        "parameters": {
+          "stables": 6,
+          "highway": 8,
+          "margrave": 1,
+          "inn": 3,
+          "hut": 2,
+          "weaver": 1,
+          "dog": 0,
+          "haggler": 0,
+          "cartographer": 2,
+          "develop": 0,
+          "silver": 99,
+          "gold": 2,
+          "green": 8,
+          "duchy": 4,
+          "opening": "Silver",
+          "order": "draw",
+          "gain_silver": 4,
+          "terminal_limit": 3
+        }
+      },
+      {
+        "score": 0.425,
+        "parameters": {
+          "develop": 1,
+          "stables": 0,
+          "margrave": 1,
+          "silver": 4,
+          "opening": "Develop"
+        }
+      },
+      {
+        "score": 0.42348484848484846,
+        "parameters": {
+          "hut": 1,
+          "weaver": 1,
+          "inn": 1,
+          "stables": 2,
+          "silver": 4,
+          "gold": 99,
+          "green": 0,
+          "opening": "Weaver",
+          "order": "attack"
+        }
+      },
+      {
+        "score": 0.37689393939393945,
+        "parameters": {
+          "stables": 4,
+          "highway": 3,
+          "margrave": 1,
+          "inn": 3,
+          "hut": 2,
+          "weaver": 2,
+          "silver": 4,
+          "gold": 3,
+          "green": 10,
+          "order": "attack"
+        }
+      },
+      {
+        "score": 0.331060606060606,
+        "parameters": {
+          "dog": 1,
+          "silver": 5
+        }
+      },
+      {
+        "score": 0.24090909090909093,
+        "parameters": {
+          "stables": 4,
+          "highway": 5,
+          "margrave": 2,
+          "inn": 2,
+          "silver": 4,
+          "gold": 3,
+          "green": 10
+        }
+      },
+      {
+        "score": 0.20643939393939392,
+        "parameters": {
+          "stables": 4,
+          "silver": 5
+        }
+      },
+      {
+        "score": 0.1371212121212121,
+        "parameters": {}
+      }
+    ]
+  },
+  "validation": {
+    "matches": 10,
+    "games": 10000,
+    "truncated": 0,
+    "selection": "scripts/data/stables_highway_selection.json"
+  },
+  "formal_games": 129136
+}

@@ -81,7 +81,7 @@ class Peril(Event):
         super().__init__("Peril", CardCost(coins=2))
 
     def on_buy(self, game_state, player) -> None:
-        actions = [c for c in player.hand if c.is_action]
+        actions = [c for c in player.hand if game_state.is_action(c)]
         if not actions:
             return
         # Greedy: trash the cheapest Action.
@@ -184,46 +184,44 @@ class Prepare(Event):
 
 
 class Scrounge(Event):
-    """$3: Trash an Estate from hand or supply. If from hand: gain a card up to $5.
-    If from supply: gain an Estate."""
+    """$3: Trash a card; or gain an Estate from trash, then a card up to $5."""
 
     def __init__(self):
         super().__init__("Scrounge", CardCost(coins=3))
 
     def on_buy(self, game_state, player) -> None:
-        # Greedy: trash from hand if possible (worth more).
-        estates_in_hand = [c for c in player.hand if c.name == "Estate"]
-        if estates_in_hand:
-            estate = estates_in_hand[0]
-            player.hand.remove(estate)
-            game_state.trash_card(player, estate)
-            # Gain a card up to $5.
-            candidates = []
-            for name, count in game_state.supply.items():
-                if count <= 0:
-                    continue
-                try:
-                    card = get_card(name)
-                except ValueError:
-                    continue
-                if (
-                    card.cost.coins <= 5
-                    and card.cost.potions == 0
-                    and card.cost.debt == 0
-                ):
-                    candidates.append(card)
-            if candidates:
-                candidates.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
-                pick = candidates[0]
-                game_state.supply[pick.name] -= 1
-                game_state.gain_card(player, pick)
-        elif game_state.supply.get("Estate", 0) > 0:
-            # Trash an Estate from the supply (not really standard, but per text):
-            game_state.supply["Estate"] -= 1
-            game_state.trash.append(get_card("Estate"))
-            if game_state.supply.get("Estate", 0) > 0:
-                game_state.supply["Estate"] -= 1
-                game_state.gain_card(player, get_card("Estate"))
+        from dominion.ai.gain_context import FreeGainContext
+
+        estate = next((c for c in game_state.trash if c.name == "Estate"), None)
+        mode = "gain" if estate is not None else "trash"
+        hook = getattr(player.ai, "choose_scrounge_mode", None)
+        if hook:
+            mode = hook(game_state, player, estate is not None)
+        if mode != "gain":
+            if player.hand:
+                choice = player.ai.choose_card_to_trash(game_state, list(player.hand))
+                if choice not in player.hand:
+                    choice = min(player.hand, key=lambda c: (c.cost.coins, c.name))
+                player.hand.remove(choice)
+                game_state.trash_card(player, choice)
+            return
+        if estate is None:
+            return
+        game_state.trash.remove(estate)
+        game_state.gain_card(player, estate)
+        candidates = [c for _, c, _ in game_state._iter_gainable_supply_cards()
+                      if c.cost.coins <= 5 and not c.cost.potions and not c.cost.debt]
+        if candidates:
+            hook = getattr(player.ai, "choose_free_gain", None)
+            choice = (
+                hook(game_state, player, candidates,
+                     FreeGainContext.build(game_state, player, "Scrounge"))
+                if hook else None
+            )
+            if choice not in candidates:
+                choice = max(candidates, key=lambda c: (c.cost.coins, c.name))
+            game_state.supply[choice.name] -= 1
+            game_state.gain_card(player, choice)
 
 
 class Maelstrom(Event):
@@ -279,7 +277,7 @@ class Invasion(Event):
                 card = get_card(name)
             except ValueError:
                 continue
-            if card.is_action and not card.is_victory:
+            if game_state.is_action(card) and not card.is_victory:
                 action_candidates.append(card)
         if action_candidates:
             action_candidates.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)

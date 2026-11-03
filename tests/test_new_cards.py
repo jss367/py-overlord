@@ -238,7 +238,7 @@ def test_cargo_ship_sets_aside_gained_card():
     state.supply["Silver"] -= 1
     gained = state.gain_card(player, silver)
 
-    assert cargo_ship.set_aside is gained
+    assert cargo_ship.set_aside == [gained]
     assert cargo_ship.waiting_for_gain is False
     assert cargo_ship in player.duration
 
@@ -248,7 +248,7 @@ def test_cargo_ship_duration_returns_card():
     state, player = _setup(ai)
     cargo_ship = get_card("Cargo Ship")
     silver = get_card("Silver")
-    cargo_ship.set_aside = silver
+    cargo_ship.set_aside = [silver]
     cargo_ship.duration_persistent = True
     player.duration = [cargo_ship]
     player.hand = []
@@ -256,7 +256,7 @@ def test_cargo_ship_duration_returns_card():
     cargo_ship.on_duration(state)
 
     assert silver in player.hand
-    assert cargo_ship.set_aside is None
+    assert cargo_ship.set_aside == []
 
 
 # --- Pickaxe ---

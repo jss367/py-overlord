@@ -27,7 +27,7 @@ class Training(Event):
                 card = get_card(name)
             except ValueError:
                 continue
-            if not card.is_action:
+            if not game_state.is_action(card):
                 continue
 
             # Score based on how many copies the player has

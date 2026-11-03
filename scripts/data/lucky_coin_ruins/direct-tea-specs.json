@@ -1,0 +1,82 @@
+[
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "spice": 0,
+    "lost": 0,
+    "highway": 1,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 0
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "spice": 0,
+    "lost": 0,
+    "highway": 1,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 2
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "spice": 0,
+    "lost": 0,
+    "highway": 2,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 0
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "spice": 0,
+    "lost": 0,
+    "highway": 2,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 2
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "spice": 0,
+    "lost": 1,
+    "highway": 1,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 0
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "spice": 0,
+    "lost": 1,
+    "highway": 1,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 2
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "spice": 0,
+    "lost": 1,
+    "highway": 2,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 0
+  },
+  {
+    "opening": "Tea House",
+    "shrine": 0,
+    "spice": 0,
+    "lost": 1,
+    "highway": 2,
+    "green": 1,
+    "double": "adaptive",
+    "daimyo": 2
+  }
+]

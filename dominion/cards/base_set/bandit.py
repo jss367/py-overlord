@@ -51,7 +51,7 @@ class Bandit(Card):
 
             # Identify trashable Treasures (anything except Copper).
             trashable = [
-                c for c in revealed if c.is_treasure and c.name != "Copper"
+                c for c in revealed if game_state.is_treasure(c) and c.name != "Copper"
             ]
 
             if trashable:

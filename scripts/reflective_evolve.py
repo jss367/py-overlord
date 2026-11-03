@@ -305,7 +305,7 @@ def main():
                        "remaining games fund balanced selection; unused residual is reported"
                        if args.search_game_budget is not None else
                        "GEPA adds compute and one initial seed; genetic settings are shared"),
-        "scoring": "Existing simulator wins, including its seat-order fallback for full ties; seat balanced",
+        "scoring": "Half credit for natural ties; zero credit for truncated games; explicit outcome counts; seat balanced",
         "analysis_plan": {
             "primary": "Mean assisted-vs-control fresh win rate across search seeds",
             "uncertainty": "95% Student-t interval across seed-level rates; shuffle pairs are dependent",

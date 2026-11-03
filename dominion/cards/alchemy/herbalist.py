@@ -19,7 +19,7 @@ class Herbalist(Card):
         )
 
     def on_discard_from_play(self, game_state, player):
-        treasures = [c for c in player.in_play if c.is_treasure]
+        treasures = [c for c in player.in_play if game_state.is_treasure(c)]
         if not treasures:
             return
         choice = player.ai.choose_treasure_to_topdeck_with_herbalist(
@@ -27,7 +27,7 @@ class Herbalist(Card):
         )
         if choice is None or choice not in player.in_play:
             return
-        if not choice.is_treasure:
+        if not game_state.is_treasure(choice):
             return
         player.in_play.remove(choice)
         player.deck.append(choice)

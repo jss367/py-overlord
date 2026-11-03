@@ -25,8 +25,8 @@ class RiceBroker(Card):
         if chosen is None or chosen not in player.hand:
             return
 
-        is_treasure = chosen.is_treasure
-        is_action = chosen.is_action
+        is_treasure = game_state.is_treasure(chosen)
+        is_action = game_state.is_action(chosen)
 
         player.hand.remove(chosen)
         game_state.trash_card(player, chosen)

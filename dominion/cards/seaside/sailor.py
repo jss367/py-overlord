@@ -51,25 +51,17 @@ class Sailor(Card):
         if not owner.ai.should_play_gain_with_sailor(game_state, owner, gained_card):
             return False
 
-        owner.sailor_play_uses -= 1
-
-        # Move the gained card from discard/deck into in_play, then play it.
-        return_zone = None
-        if gained_card in owner.discard:
-            owner.discard.remove(gained_card)
-            return_zone = owner.discard
-        elif gained_card in owner.deck:
-            owner.deck.remove(gained_card)
-            return_zone = owner.deck
-        else:
+        return_zone = game_state.gain_destination(gained_card)
+        if not game_state._remove_gained_card_from_zones(owner, gained_card):
             return False
+        owner.sailor_play_uses -= 1
 
         owner.in_play.append(gained_card)
         # Sailor can play any gained Duration — including non-Action
         # Treasure-Durations (Astrolabe, Cargo Ship). Only treat the play
         # as an Action play (bumping actions_this_turn / firing
         # action-played hooks) when the gained card actually is an Action.
-        if gained_card.is_action:
+        if game_state.is_action(gained_card):
             game_state.play_action_indirectly(
                 owner, gained_card, blocked_return_zone=return_zone
             )

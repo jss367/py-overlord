@@ -31,7 +31,7 @@ class DeathCart(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
 
-        actions_in_hand = [c for c in player.hand if c.is_action]
+        actions_in_hand = [c for c in player.hand if game_state.is_action(c)]
         choice = player.ai.should_trash_action_for_death_cart(
             game_state, player, actions_in_hand
         )

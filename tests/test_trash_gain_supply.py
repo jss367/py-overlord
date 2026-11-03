@@ -1,13 +1,7 @@
-"""Regression: Lurker/Lich trash gains must not inflate supply via Trader.
+"""Trader returns trash-origin gains to their piles instead of losing them.
 
-When ``GameState.gain_card`` runs, it assumes the caller has already
-decremented the supply for the original card (true for normal buys and
-Workshop-style gainers). For Lurker and Lich, the gain comes from the
-trash and the caller did *not* decrement supply. Trader's reaction logic
-then runs `self.supply[original.name] += 1` to "restore" the supply,
-inflating it. The fix is to pass an explicit `from_supply=False` flag
-through to suppress the restoration and the analogous Exile-reclamation
-restoration when the gain didn't come from the supply pile.
+The caller removes a physical card from trash without taking another Supply
+copy. Returning that card through Trader increases its pile by one.
 """
 
 from dominion.cards.allies.wizards import Lich
@@ -61,22 +55,22 @@ def _setup() -> tuple[GameState, PlayerState]:
     return state, state.players[0]
 
 
-def test_lurker_trash_gain_with_trader_does_not_inflate_supply():
+def test_lurker_trash_gain_with_trader_returns_the_card_to_its_pile():
     state, player = _setup()
+    state.trash.append(state.take_top_supply_card("Village"))
     village_supply_before = state.supply["Village"]
     silver_supply_before = state.supply["Silver"]
 
     # Set up: Village in trash for Lurker to gain; Trader in hand.
-    state.trash.append(get_card("Village"))
     player.hand = [get_card("Trader")]
 
     Lurker().play_effect(state)
 
     # Trader replaced the gain with Silver. Pile-count invariants:
-    #   - Village supply is unchanged (we took it from trash, not supply).
+    #   - Village returns to Supply (it came from trash).
     #   - Silver supply went down by exactly 1.
-    assert state.supply["Village"] == village_supply_before, (
-        f"Village supply should be unchanged; before={village_supply_before}, after={state.supply['Village']}"
+    assert state.supply["Village"] == village_supply_before + 1, (
+        f"Village supply should increase by the returned copy; before={village_supply_before}, after={state.supply['Village']}"
     )
     assert state.supply["Silver"] == silver_supply_before - 1, (
         f"Silver supply should decrement by 1; before={silver_supply_before}, after={state.supply['Silver']}"
@@ -86,18 +80,18 @@ def test_lurker_trash_gain_with_trader_does_not_inflate_supply():
     )
 
 
-def test_lich_trash_gain_with_trader_does_not_inflate_supply():
+def test_lich_trash_gain_with_trader_returns_the_card_to_its_pile():
     state, player = _setup()
+    state.trash.append(state.take_top_supply_card("Village"))
     village_supply_before = state.supply["Village"]
     silver_supply_before = state.supply["Silver"]
 
-    state.trash.append(get_card("Village"))
     player.hand = [get_card("Trader"), get_card("Copper"), get_card("Copper")]
 
     state.trash_card(player, Lich())
 
-    assert state.supply["Village"] == village_supply_before, (
-        f"Village supply should be unchanged; before={village_supply_before}, after={state.supply['Village']}"
+    assert state.supply["Village"] == village_supply_before + 1, (
+        f"Village supply should increase by the returned copy; before={village_supply_before}, after={state.supply['Village']}"
     )
     assert state.supply["Silver"] == silver_supply_before - 1
     assert any(c.name == "Silver" for c in player.discard)

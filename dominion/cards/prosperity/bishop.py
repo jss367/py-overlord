@@ -23,7 +23,7 @@ class Bishop(Card):
             if trash_choice not in player.hand:
                 trash_choice = min(
                     player.hand,
-                    key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
+                    key=lambda c: (game_state.is_action(c), game_state.is_treasure(c), c.cost.coins, c.name),
                 )
             trashed_cost = game_state.get_card_cost(player, trash_choice)
             player.hand.remove(trash_choice)

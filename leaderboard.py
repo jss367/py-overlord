@@ -22,6 +22,7 @@ from pathlib import Path
 
 import coloredlogs
 
+from dominion.game.outcome import OutcomeCounts
 from dominion.ai.genetic_ai import GeneticAI
 from dominion.boards.loader import load_board
 from dominion.reporting.html_report import generate_leaderboard_html
@@ -129,7 +130,7 @@ def discover_strategies(board_kingdom: set[str]) -> dict[str, callable]:
 def round_robin(strategies, battle, num_games):
     """Run a round-robin tournament, return {name: {wins, losses, win_rate}}."""
     names = list(strategies.keys())
-    results = {n: {"wins": 0, "losses": 0} for n in names}
+    results = {n: {"wins": 0, "losses": 0, "ties": 0, "truncated": 0, "games": 0} for n in names}
     total = len(names) * (len(names) - 1) // 2
     done = 0
 
@@ -140,30 +141,33 @@ def round_robin(strategies, battle, num_games):
             na, nb = names[i], names[j]
             done += 1
             logger.info("[%d/%d] %s vs %s (%d games)...", done, total, na, nb, num_games)
-            a_wins = 0
+            counts = OutcomeCounts()
             for g in range(num_games):
                 ai_a = GeneticAI(strategies[na]())
                 ai_b = GeneticAI(strategies[nb]())
                 if g % 2 == 0:
-                    winner, _, _, _ = battle.run_game(ai_a, ai_b, kingdom)
+                    game = battle.run_game(ai_a, ai_b, kingdom)
                 else:
-                    winner, _, _, _ = battle.run_game(ai_b, ai_a, kingdom)
-                if winner == ai_a:
-                    a_wins += 1
-            b_wins = num_games - a_wins
+                    game = battle.run_game(ai_b, ai_a, kingdom)
+                counts.record(game.result_for(ai_a))
+            a_wins, b_wins = counts.wins, counts.losses
             results[na]["wins"] += a_wins
             results[na]["losses"] += b_wins
             results[nb]["wins"] += b_wins
             results[nb]["losses"] += a_wins
+            for name in (na, nb):
+                results[name]["ties"] += counts.ties
+                results[name]["truncated"] += counts.truncated
+                results[name]["games"] += counts.games
             logger.info(
-                "  %s: %d (%.1f%%) | %s: %d (%.1f%%)",
-                na, a_wins, a_wins / num_games * 100,
-                nb, b_wins, b_wins / num_games * 100,
+                "  %s: %d wins (%.1f%% win share) | %s: %d wins (%.1f%% win share); %d ties, %d capped",
+                na, a_wins, counts.score_rate,
+                nb, b_wins, (b_wins + counts.ties / 2) / num_games * 100, counts.ties, counts.truncated,
             )
 
     for name, stats in results.items():
-        total_games = stats["wins"] + stats["losses"]
-        stats["win_rate"] = stats["wins"] / total_games * 100 if total_games else 0
+        total_games = stats["games"]
+        stats["win_rate"] = (stats["wins"] + stats["ties"] / 2) / total_games * 100 if total_games else 0
 
     return results
 

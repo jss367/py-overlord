@@ -40,7 +40,7 @@ class Cage(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
         gained_names = list(getattr(player, "gained_cards_this_turn", []))
         gained_in_discard = [c for c in player.discard if c.name in gained_names]
@@ -103,7 +103,7 @@ class Grotto(Card):
             player.hand.remove(card)
             self.set_aside.append(card)
         self.duration_persistent = True
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):
@@ -156,7 +156,7 @@ class Search(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):
@@ -230,7 +230,7 @@ class SecludedShrine(Card):
         player = game_state.current_player
         self.shrine_charges += 1
         self.duration_persistent = True
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):
@@ -238,11 +238,12 @@ class SecludedShrine(Card):
         # waiting until its owner gains a Treasure.
         self.duration_persistent = self.shrine_armed
 
-    def on_owner_gains_treasure(self, game_state, player):
+    def on_owner_gains_treasure(self, game_state, player, *, charges=None):
         """Resolve every pending "next time you gain a Treasure" trigger."""
-        if not self.shrine_armed:
-            return
-        charges, self.shrine_charges = self.shrine_charges, 0
+        if charges is None:
+            if not self.shrine_armed:
+                return
+            charges, self.shrine_charges = self.shrine_charges, 0
         self.duration_persistent = False
         for _ in range(2 * charges):
             if not player.hand:
@@ -252,7 +253,7 @@ class SecludedShrine(Card):
                 break
             player.hand.remove(choice)
             game_state.trash_card(player, choice)
-        if self in player.duration:
+        while self in player.duration:
             # The Shrine has nothing left to do, so it leaves the duration
             # list whether or not it is the owner's turn. It stays in
             # ``in_play`` and the owner's next Clean-up discards it like any
@@ -295,7 +296,7 @@ class Siren(Card):
                 card = get_card(name)
             except ValueError:
                 continue
-            if card.is_action and not card.is_victory:
+            if game_state.is_action(card) and not card.is_victory:
                 candidates.append(card)
         if not candidates:
             return
@@ -321,7 +322,7 @@ class Stowaway(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):
@@ -358,7 +359,7 @@ class Abundance(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):
@@ -382,7 +383,7 @@ class CabinBoy(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):
@@ -458,7 +459,7 @@ class FortuneHunter(Card):
             if not player.deck:
                 break
             top.append(player.deck.pop())
-        treasures_top = [c for c in top if c.is_treasure]
+        treasures_top = [c for c in top if game_state.is_treasure(c)]
         if treasures_top:
             treasures_top.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
             played = treasures_top[0]
@@ -484,7 +485,7 @@ class Gondola(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):
@@ -494,7 +495,7 @@ class Gondola(Card):
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
-        actions_in_hand = [c for c in player.hand if c.is_action]
+        actions_in_hand = [c for c in player.hand if game_state.is_action(c)]
         if not actions_in_hand:
             return
         choice = player.ai.choose_action(game_state, actions_in_hand + [None])
@@ -521,7 +522,7 @@ class LandingParty(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
         game_state.landing_party_pending.setdefault(id(player), []).append(self)
 
@@ -602,7 +603,7 @@ class Rope(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):
@@ -695,7 +696,9 @@ class BuriedTreasure(Card):
 
     def on_gain(self, game_state, player):
         super().on_gain(game_state, player)
-        for zone in (player.discard, player.deck, player.hand):
+        if self in getattr(game_state, "_gain_destinations", {}) and not game_state.gain_is_movable(player, self):
+            return
+        for zone in (player.discard, player.deck, player.hand, player.pending_gain_set_aside):
             if self in zone:
                 zone.remove(self)
                 player.in_play.append(self)
@@ -734,7 +737,7 @@ class Cutthroat(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
         for other in game_state.players:
             if other is player:
@@ -769,7 +772,7 @@ class Enlarge(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
         self._trash_and_gain(game_state, player)
 
@@ -819,7 +822,7 @@ class Figurine(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        actions = [c for c in player.hand if c.is_action]
+        actions = [c for c in player.hand if game_state.is_action(c)]
         if not actions:
             return
         hook = getattr(player.ai, "choose_action_to_discard_for_figurine", None)
@@ -848,7 +851,7 @@ class Frigate(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):
@@ -881,7 +884,7 @@ class Longship(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):
@@ -891,19 +894,18 @@ class Longship(Card):
 
 
 class MiningRoad(Card):
-    """$5 Action: +1 Action +1 Buy +$1. First Treasure gained on your turn,
-    gain a Treasure to hand."""
+    """$5: +1 Action, +1 Buy, +$2; once this turn, play a gained Treasure."""
 
     def __init__(self):
         super().__init__(
             name="Mining Road",
             cost=CardCost(coins=5),
-            stats=CardStats(actions=1, buys=1, coins=1),
+            stats=CardStats(actions=1, buys=1, coins=2),
             types=[CardType.ACTION],
         )
 
     def play_effect(self, game_state):
-        pass
+        game_state.current_player.mining_road_uses += 1
 
 
 class Pendant(Card):
@@ -967,7 +969,7 @@ class SilverMine(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):
@@ -977,10 +979,7 @@ class SilverMine(Card):
         if game_state.supply.get("Silver", 0) > 0:
             game_state.supply["Silver"] -= 1
             silver = get_card("Silver")
-            gained = game_state.gain_card(player, silver)
-            if gained in player.discard:
-                player.discard.remove(gained)
-                player.hand.append(gained)
+            game_state.gain_card(player, silver, to_hand=True)
         self.duration_persistent = False
 
 
@@ -1018,7 +1017,7 @@ class KingsCache(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        treasures_in_hand = [c for c in player.hand if c.is_treasure]
+        treasures_in_hand = [c for c in player.hand if game_state.is_treasure(c)]
         if not treasures_in_hand:
             return
         treasures_in_hand.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)

@@ -17,7 +17,7 @@ class Prince(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
         affordable = [
-            card for card in player.hand if card.is_action and card.cost.coins <= 4
+            card for card in player.hand if game_state.is_action(card) and card.cost.coins <= 4
         ]
         if not affordable:
             return
@@ -26,7 +26,7 @@ class Prince(Card):
             choice = affordable[0]
         player.hand.remove(choice)
         self.set_aside_card = choice
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
 
     def on_duration(self, game_state):

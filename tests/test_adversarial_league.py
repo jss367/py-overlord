@@ -14,6 +14,8 @@ the population actually faces.
 
 import pytest
 
+from tests.utils import played_game
+
 from dominion.simulation.adversarial_league import (
     ORIGIN_CHAMPION,
     ORIGIN_SEED,
@@ -355,7 +357,7 @@ class TestTrainerIntegration:
             for ai in (ai1, ai2):
                 if ai.strategy.name in {"Baseline", "Pool"}:
                     games_against[ai.strategy.name] = games_against.get(ai.strategy.name, 0) + 1
-            return ai1, {}, None, 0
+            return played_game(ai1, ai2, ai1, {}, None, 0)
 
         monkeypatch.setattr(trainer.battle_system, "run_game", fake_run_game)
 

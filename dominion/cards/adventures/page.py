@@ -134,7 +134,7 @@ class Hero(Card):
                 card = get_card(name)
             except ValueError:
                 continue
-            if card.is_treasure:
+            if game_state.is_treasure(card):
                 treasures.append(card)
         if not treasures:
             return

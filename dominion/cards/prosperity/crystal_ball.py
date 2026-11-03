@@ -40,7 +40,7 @@ class CrystalBall(Card):
             return
 
         if choice == "play" and (
-            top_card.is_action or game_state.is_treasure(top_card)
+            game_state.is_action(top_card) or game_state.is_treasure(top_card)
         ):
             player.deck.pop()
             player.in_play.append(top_card)

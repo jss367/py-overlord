@@ -16,7 +16,7 @@ class SpiceMerchant(Card):
     def play_effect(self, game_state):
         player = game_state.current_player
 
-        treasures = [card for card in player.hand if card.is_treasure]
+        treasures = [c for c in player.hand if game_state.is_treasure(c)]
         if not treasures:
             return
 
@@ -36,7 +36,8 @@ class SpiceMerchant(Card):
         def resolve(draw):
             if draw:
                 game_state.draw_cards(player, 2)
-                player.actions += 1
+                if not player.ignore_action_bonuses:
+                    player.actions += 1
             else:
                 player.coins += 2
                 player.buys += 1

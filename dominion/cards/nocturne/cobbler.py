@@ -20,7 +20,7 @@ class Cobbler(Card):
         # Add to duration so on_duration fires at start of next turn.
         if self in player.in_play:
             player.in_play.remove(self)
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
         self.duration_persistent = True
 
@@ -51,13 +51,6 @@ class Cobbler(Card):
 
         if game_state.supply.get(choice.name, 0) > 0:
             game_state.supply[choice.name] -= 1
-            gained = game_state.gain_card(player, choice)
-            if gained:
-                if gained in player.discard:
-                    player.discard.remove(gained)
-                elif gained in player.deck:
-                    player.deck.remove(gained)
-                if gained not in player.hand:
-                    player.hand.append(gained)
+            game_state.gain_card(player, choice, to_hand=True)
 
         self.duration_persistent = False

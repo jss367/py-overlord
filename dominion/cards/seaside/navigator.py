@@ -34,7 +34,7 @@ class Navigator(Card):
             for c in revealed
             if c.name == "Curse"
             or c.name == "Copper"
-            or (c.is_victory and not c.is_action)
+            or (c.is_victory and not game_state.is_action(c))
         )
 
         if junk_count >= 3:

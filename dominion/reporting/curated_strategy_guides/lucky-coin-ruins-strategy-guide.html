@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lucky Coin and Ruins: Validation Pending</title>
+<meta name="description" content="Historical Lucky Coin and Ruins research; validation is pending after correcting Mining Road income.">
+<style>
+:root{color-scheme:light;--ink:#243238;--muted:#526469;--green:#185d50;--paper:#faf9f4;--line:#d6dfd8}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.65 system-ui,sans-serif}main{max-width:1050px;margin:auto;padding:48px 24px 80px}h1{font-size:clamp(2.1rem,5vw,3.5rem);line-height:1.12;max-width:850px;margin:16px 0 24px}h2{font-size:1.55rem;margin-top:44px;line-height:1.3}h3{line-height:1.3}.eyebrow{font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;color:var(--green);font-weight:750}.lede{font-size:1.25rem;max-width:840px}.verdict{padding:24px 28px;background:#e5f0e8;border-left:5px solid var(--green);border-radius:5px;margin:28px 0}.verdict p{margin:8px 0}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.step{padding:18px;background:white;border:1px solid var(--line);border-radius:8px}.step h3{margin:0 0 12px;color:var(--green)}a{color:var(--green)}table{border-collapse:collapse;width:100%;background:white;margin:20px 0;font-size:.94rem}th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}th{background:#eaf0e9}code,pre{font-family:ui-monospace,monospace;font-size:.84rem}pre{background:#202f33;color:#e8f1ed;padding:20px;overflow:auto;border-radius:6px}.note{color:var(--muted);font-size:.94rem}.table-wrap{overflow-x:auto}li{margin-bottom:8px}.pill{display:inline-block;margin:3px;padding:3px 9px;border:1px solid var(--line);border-radius:4px;font-size:.9rem;background:white}footer{border-top:1px solid var(--line);margin-top:40px;padding-top:20px}@media(max-width:700px){main{padding:28px 18px 60px}.steps{grid-template-columns:1fr}th,td{padding:10px;font-size:.88rem}}
+</style>
+</head>
+<body><main>
+<h1>Lucky Coin and Ruins: strategy validation pending</h1>
+<p class="lead lede">This board starts each player with Lucky Coin, five different Ruins, and four Coppers. Its previous Tea House and Shrine recommendations need fresh evaluation after a rules correction.</p>
+<aside class="verdict callout"><strong>Mining Road correction: strategy results await revalidation.</strong><p>The experiments below gave Mining Road $1 per play. The printed card grants <strong>$2 per play</strong>, as shown in the <a href="https://www.riograndegames.com/wp-content/uploads/2022/08/DomPlunder.pdf#page=6">publisher’s Plunder rules, page 6</a>. The engine now uses $2. All archived win rates and local decision improvements below are historical results from the incorrect model; they do not establish a current winner or a stronger planner.</p><p>No new strategy-performance results were generated in this review pass. New checkpoints and fresh, seat-balanced evaluations are required before restoring performance recommendations. The runnable strategies remain experimental candidates.</p></aside>
+<details><summary><strong>Archived research from the $1 Mining Road model</strong></summary>
+
+<span class="eyebrow">Dominion · tested board strategy · November 2026</span>
+<h1>Lucky Coin and Ruins:<br>race with Tea Houses</h1>
+<p class="lede">The recommended policy opens <strong>Tea House at $5, or Banquet for Tea House at $3–$4</strong>, adds <strong>one Highwayman and one Mining Road</strong>, and uses <strong>Kind Emperor to gain Daimyos without debt</strong>. Start buying Provinces early. A direct 10,000-game comparison against the retuned Shrine/Spice Merchant build favored this plan, 55.07% to 44.93%.</p>
+<aside class="verdict"><strong>The recommendation is a strategy family, not a proven mathematical optimum.</strong><p>Banquet and direct-purchase openings lead to the same core deck. Initial validation found a small advantage for buying Tea House directly at $5. That improvement was selected before a second independent validation run.</p></aside>
+
+<p><strong>Decision-quality follow-up:</strong> <a href="lucky-coin-lookahead-audit.html">Saved-position audits and shared lookahead player</a> now include focused cleanup searches, independently confirmed Shrine and Spice Merchant choices, and fresh full-game comparisons. These tests do not establish optimal human play.</p>
+<h2>Your exact setup</h2>
+<p>Two players, shuffled starting decks, eight Provinces, no Platinum or Colony. Each player starts with <strong>one Lucky Coin, Survivors, Ruined Village, Ruined Market, Ruined Library, Abandoned Mine, and four Coppers</strong>: ten cards, zero Estates, zero starting points.</p>
+<p><span class="pill">Daimyo</span><span class="pill">Battle Plan → Archer → Warlord → Territory</span><span class="pill">Fool</span><span class="pill">Secluded Shrine</span><span class="pill">Change</span><span class="pill">Spice Merchant</span><span class="pill">Highwayman</span><span class="pill">Lost City</span><span class="pill">Mining Road</span><span class="pill">Tea House</span></p>
+<p><strong>Prophecy:</strong> Kind Emperor, initially five Sun tokens. <strong>Events:</strong> Banquet and Scrounge. The Clashes pile begins with four Battle Plans over four Archers, four Warlords, and four Territories.</p>
+
+<h2 id="shrine-comparison">Direct comparison after the Shrine fixes</h2>
+<p><strong>The previous Tea House winner remains the recommendation.</strong> The strongest corrected Shrine-opening build found in a new tuning screen included <strong>one Shrine, one Spice Merchant, one Highwayman, one Mining Road, no Lost Cities, and a target of four free Daimyos before completing five Tea Houses</strong>. It reserves surplus Coppers for Buy-phase trashing and resolves Mining Road income before Shrine's trash choices.</p>
+<div class="table-wrap"><table><thead><tr><th>Strategy</th><th>Wins in 10,000 fresh games</th><th>Win rate</th><th>Paired 95% interval</th></tr></thead><tbody>
+<tr><td>Corrected Shrine + Spice Merchant</td><td>4,493</td><td>44.93%</td><td>43.97–45.89%</td></tr>
+<tr><td>Previous Tea House winner</td><td>5,507</td><td>55.07%</td><td>54.11–56.03%</td></tr>
+</tbody></table></div>
+<p>There were no ties and no turn-limit truncations. Mean final scores were 26.02 points for Shrine and 28.14 for the previous winner. The matchup used your exact Lucky Coin and five Ruins start, two players, and the board recorded below.</p>
+<p>Before validation, a 6,400-game screen compared 16 corrected Shrine-opening policies, varying two or four Daimyos, zero or one Lost City, one or two Highwaymen, and zero or one Spice Merchant. The selected build scored 44.25% in screening. Its settings were frozen before a separate 10,000-game validation using 5,000 new shuffle seeds, each played in both starting seats. Confidence intervals treat each seat-swapped pair as one observation. Evaluation was split into deterministic chunks; a regression test verifies that merged results and intervals match an unsplit run.</p>
+<p>This is a comparison with the <em>best tested Shrine build</em>, not a proof of globally optimal Shrine play. The direct result supports keeping the Tea House recommendation after correcting the demonstrated Shrine mistakes and retuning the deck around them.</p>
+<p><a href="../../scripts/data/lucky_coin_ruins_shrine_comparison.json">Exact settings, screening results, validation chunks, and reproduction commands</a> · <a href="../../generated_strategies/lucky_coin_cleanup.py">Selected runnable Shrine factory</a></p>
+<pre>PYTHONPATH=. python scripts/compare_lucky_coin_shrine.py \
+  --specs scripts/data/lucky_coin_ruins/shrine-headtohead-validation-specs.json \
+  --games 10000 --seed 9000000 \
+  --output .context/lucky-shrine-headtohead-validation.json</pre>
+
+<h2>How to play it</h2>
+<div class="steps">
+<div class="step"><h3>1. Get income moving</h3><p>On each of your first two turns, buy Tea House directly at $5. With $3–$4, use Banquet to gain Tea House and two Coppers. Prefer this immediate income to a slow cleanup project. Pass if you cannot afford a useful purchase.</p></div>
+<div class="step"><h3>2. Add draw and Buys</h3><p>After two Tea Houses, add one Highwayman and one Mining Road. Build toward five Tea Houses. Lucky Coin supplies Silvers; Mining Road can immediately play a gained Silver. Highwayman provides three cards next turn.</p></div>
+<div class="step"><h3>3. Gain free multipliers</h3><p>When Kind Emperor activates, use its immediate gain and later start-of-turn gains to finish missing components and take Daimyos. Play them before Tea House. Buy Provinces whenever $8 is available once you have a Tea House.</p></div>
+</div>
+
+<h3>Exact purchase and free-gain priorities</h3>
+<p>After the opening, prioritize Province; add Duchy at three or fewer Provinces and Estate at one or fewer. For development, first reach two Tea Houses, then one Highwayman, then one Mining Road, then five Tea Houses. When a desired $5 card is unaffordable, Banquet can gain it for $3 while adding two Coppers. The policy stops using Banquet once it owns five Tea Houses.</p>
+<p>Kind Emperor gains to your hand: finish two Tea Houses → get Highwayman → get Mining Road → reach two Daimyos → reach five Tea Houses. Once those targets are met, keep taking Daimyos while available. If a pile is gone, move to the next available target. The runnable source records the remaining fallbacks.</p>
+<p>Stack Daimyos before the next non-Command Action: two Daimyos make a Tea House play three times. With this build, Tea House is the preferred target; Mining Road is the next useful target when Tea House is absent. Mining Road replays supply additional Buys, coins, and opportunities to play gained Treasures. Kind Emperor's free Daimyo gains never incur its purchase debt. See the publisher's <a href="https://www.riograndegames.com/wp-content/uploads/2024/04/DomRisingSunRules.pdf">Rising Sun rules, pages 5 and 9</a>.</p>
+<p>Under Highwayman, play a Copper first to absorb the first-Treasure block, then Lucky Coin. Otherwise play Lucky Coin first. Multiple Highwayman attacks still suppress only the first Treasure; additional copies primarily supply more duration draw. Mining Road plays the <em>Treasure just gained</em>; it does not gain a Gold or another Treasure. Each play supplies a separate allowance, and the same gained Treasure cannot use two allowances. See the <a href="https://www.riograndegames.com/wp-content/uploads/2022/08/DomPlunder.pdf">Plunder rules, pages 4–6</a>.</p>
+
+<h2>What about the other plans?</h2>
+<ul>
+<li><strong>Spice Merchant + Lost City:</strong> the closest distinct competitor. Open Spice Merchant when affordable, otherwise use Banquet for Tea House. Build two Tea Houses, one Lost City, one Spice Merchant, one or two Highwaymen, one Mining Road, and free Daimyos. Trash Coppers for two cards and an Action. This family narrowly led the ten-way tournament; the faster Banquet build led the later comparison of the top four policies.</li>
+<li><strong>Secluded Shrine + Lucky Coin:</strong> a real synergy. Play Shrine, leave unwanted Ruins in hand, then play Lucky Coin to trigger up to two trashes. The original policy had important limitations; the dedicated cleanup audit below tests stronger decisions. Its results still favor the Tea House recommendation, without establishing optimal Shrine play.</li>
+<li><strong>Battle Plan into Warlord:</strong> rotate Clashes twice to expose Warlord. The dedicated search included one or two Warlords, with and without Shrine, Lost City, and Highwayman. It trailed the leading economy builds. If your opponent plays Warlord, remember that it limits physical copies played from hand; Daimyo replays still work. Two Tea Houses can therefore produce more than two plays. See the <a href="https://www.riograndegames.com/wp-content/uploads/2021/09/DomAllies.pdf">Allies rules, pages 8–9</a>.</li>
+<li><strong>Change:</strong> Ruins can become Tea Houses for five debt or Provinces for eight debt; a subsequent Change play while debt remains produces $3. These upgrades are legal, but the tested Change builds lost too much development time. Those Change-specific results also predate the mandatory-gain correction described in the <a href="lucky-coin-lookahead-audit.html">lookahead audit</a>; rerun them under the strict rules before using them as current strength evidence. Do not infer that every possible Change policy is inferior.</li>
+<li><strong>Scrounge:</strong> it can trash any card from hand. Its other mode retrieves an Estate already in the trash and then gains a card costing up to $5. There are no initial Estates here, so that mode needs setup. It cannot trash an Estate from the Supply. See the <a href="https://www.riograndegames.com/wp-content/uploads/2022/08/DomPlunder.pdf">Plunder rules, page 11</a>.</li>
+<li><strong>Fool or purchased Daimyo openings:</strong> neither led the opening screen. Fool also supplies Lucky Coin at setup without requiring you to buy Fool.</li>
+</ul>
+
+<h2>Initial independent validation</h2>
+<p id="validation-intro">The revised Tea House-at-$5 policy was frozen before 20,000 new games: 2,000 against each opponent below, using fresh seeds starting at 3,000,000. None hit the turn cap. It beat the Spice Merchant engines narrowly; the two-Highwayman Banquet build remained statistically tied.</p>
+<div class="table-wrap"><table><thead><tr><th>Opponent</th><th>Selected policy's win share</th><th>Paired 95% interval</th><th>Games</th></tr></thead><tbody id="validation-rows"><tr><td>Always-Banquet opening; one Highwayman</td><td>52.75%</td><td>51.8–53.7%</td><td>2,000</td></tr>
+<tr><td>Spice Merchant, Lost City, two Highwaymen</td><td>53.00%</td><td>50.9–55.1%</td><td>2,000</td></tr>
+<tr><td>Spice Merchant, Lost City, one Highwayman</td><td>54.00%</td><td>51.9–56.1%</td><td>2,000</td></tr>
+<tr><td>Banquet opening; two Highwaymen</td><td>50.45%</td><td>48.4–52.5%</td><td>2,000</td></tr>
+<tr><td>Secluded Shrine opening; lighter engine</td><td>62.00%</td><td>60.0–64.0%</td><td>2,000</td></tr>
+<tr><td>Battle Plan opening into Warlord</td><td>65.40%</td><td>63.3–67.5%</td><td>2,000</td></tr>
+<tr><td>Banquet, Lost City, Change engine</td><td>67.27%</td><td>65.3–69.3%</td><td>2,000</td></tr>
+<tr><td>Money purchases with adaptive free Actions</td><td>88.70%</td><td>87.3–90.1%</td><td>2,000</td></tr>
+<tr><td>Secluded Shrine opening; heavier engine</td><td>65.20%</td><td>63.2–67.2%</td><td>2,000</td></tr>
+<tr><td>Purchased Daimyo opening; repeated free Daimyos</td><td>84.50%</td><td>82.9–86.1%</td><td>2,000</td></tr></tbody></table></div>
+<p class="note">A tie counts as half a win. Each shuffle seed is played in both starting seats. Intervals treat a seat-swapped pair as one observation. A result near 50% supports treating those policies as competitive alternatives.</p>
+
+<h2>Follow-up: was cleanup played well enough?</h2>
+<p><strong>The original search did not establish optimal Shrine play.</strong> Its player could choose Highwayman over Shrine on its last Action, spend Ruins that could instead be trashed through Banquet's Copper gains, and fail to buy a Treasure specifically to activate an armed Shrine. Those limitations made the initial dismissal of cleanup too strong.</p>
+<p>The follow-up preserved the original policy and added a separate cleanup player. It reserves Ruins while Shrine is armed, considers useful Shrine plays before other terminals, can buy Copper or Silver to trigger trashing, and can preserve a $3/$5/$8 buying threshold instead of trashing every available Copper. Variants also tested doubling Shrine, one or two Shrines, one or two Highwaymen, more or less Lost City draw, combined Spice Merchant cleanup, avoiding Banquet, Spice Merchant's money mode and Silver fuel, and gaining Shrine free when Lucky Coin and at least two Ruins are in hand.</p>
+<p>There were <strong>62,560 additional games</strong>: 22,560 screening games for 94 candidates, 16,000 refinement games for 50 settings, and 24,000 fresh validation games. Four candidates were selected before validation. Each faced the frozen Tea House recommendation, the original strong two-Highwayman Spice Merchant engine, and the original decision policy with its own deck targets, for 2,000 games per matchup. No game hit the turn cap.</p>
+<p><strong>Every percentage in this table is the cleanup candidate's win share.</strong> The first column of results includes paired 95% intervals. Remaining Ruins is the mean number of the five starting Ruins still owned at game end against the Tea House recommendation.</p>
+<div class="table-wrap"><table><thead><tr><th>Cleanup candidate</th><th>Against recommended Tea House</th><th>Against original strong Spice engine</th><th>Against original policy, same deck targets</th><th>Remaining Ruins</th></tr></thead><tbody><tr><td>Shrine opening, Tea House and Highwayman</td><td>40.05% (37.9–42.2%)</td><td>46.65%</td><td>50.20%</td><td>1.36</td></tr><tr><td>Shrine opening with Spice Merchant</td><td>43.60% (41.5–45.7%)</td><td>47.55%</td><td>48.10%</td><td>0.97</td></tr><tr><td>Spice Merchant with adaptive mode and Silver fuel</td><td>45.60% (43.5–47.7%)</td><td>49.00%</td><td>48.15%</td><td>5.00</td></tr><tr><td>Tea House opening; free Shrine timed to Lucky Coin</td><td>47.65% (46.7–48.6%)</td><td>51.15%</td><td>47.25%</td><td>4.53</td></tr></tbody></table></div>
+<p><strong>The recommendation survives this audit, with a narrower claim.</strong> The Shrine/Spice hybrid removed about four of its five Ruins but still won only 43.6% against the Tea House build. The Shrine opening won 40.05%, and its 50.2% against the original same-target policy shows no clear net improvement from the new decision package. Timed free Shrine was closer at 47.65%, though still below 50% in this validation. Cleaner decks did not translate into faster scoring in these policies.</p>
+<p>This does not prove optimal Shrine play or rule out a stronger cleanup policy. It does support retaining Tea House as the current recommendation after a dedicated cleanup search, rather than treating the original large simulation count as proof that Shrine was adequately optimized.</p>
+<p><a href="../../scripts/data/lucky_coin_ruins_cleanup_summary.json">Full cleanup audit evidence and all reproduction commands</a> · <a href="../../generated_strategies/lucky_coin_cleanup.py">Expanded cleanup policies and the selected Shrine-opening factory</a></p>
+<pre>PYTHONPATH=. python scripts/search_lucky_coin_cleanup.py validate \
+  --specs scripts/data/lucky_coin_ruins/cleanup-validation-specs.json \
+  --games 2000 --seed 5000000 --output .context/lucky-cleanup-validation.json</pre>
+
+<h2 id="treasure-audit">Game trace audit: saving Copper for Shrine</h2>
+<p><strong>The previous cleanup player still played every Copper before buying.</strong> Replaying the first 400 games of its earlier validation (seeds 5,000,000–5,000,199, both seats) found zero turns with Copper carried into the Buy phase. A conservative detector found <strong>17 missed opportunities in 17 games</strong>: Shrine left a trash unused, an income-producing Copper had already been played, and withholding its $1 would have preserved affordability at every actual purchase.</p>
+<h3>An actual turn, before and after</h3>
+<p>Seed <strong>5,000,028</strong>, first player, turn <strong>6</strong>. The hand was Secluded Shrine, Highwayman, Ruined Village, and two Coppers, under an opponent's Highwayman attack. The player used its Action on Shrine, giving $1 and arming two trashes. Both replays reached this exact same hand and decision point.</p>
+<div class="table-wrap"><table><thead><tr><th>Decision</th><th>Previous policy</th><th>Corrected policy</th></tr></thead><tbody>
+<tr><td>First Copper</td><td>Play it to absorb Highwayman; +$0.</td><td>Play it to absorb Highwayman; +$0.</td></tr>
+<tr><td>Second Copper</td><td>Play it; reach $2.</td><td>Keep it in hand; stay at $1.</td></tr>
+<tr><td>Purchase</td><td>Buy Copper for $0, activating Shrine.</td><td>Buy Copper for $0, activating Shrine.</td></tr>
+<tr><td>Shrine trashes</td><td>Ruined Village; decline the second trash.</td><td>Ruined Village and the Copper left in hand.</td></tr>
+</tbody></table></div>
+<p>The corrected line makes the same purchase and ends with one fewer Copper than the previous line. The extra dollar in the old line was unused. The retained trace includes every Action, Treasure, purchase, and trash decision for this turn.</p>
+<h3>What changed</h3>
+<p>When Shrine is armed and only Coppers remain to be played, the new policy compares playing them all with withholding up to the available trash capacity. It simulates only the remaining Copper plays and the current Buy phase, preserving all non-Copper purchases, debt payments, and Ruins cleanup. It holds Copper when that produces a lower ending Copper count. Random state is restored and no future-turn or hidden-draw outcome is scored.</p>
+<p>It also stops treating an unplayed Copper as spendable income once purchases have begun: on this board, that Copper can no longer be played normally, so trashing it cannot reduce buying power. A separate ordering option lets Mining Road play a newly gained Silver before Shrine chooses its trashes, making that income available to the purchase-threshold calculation.</p>
+<p>In a 400-game replay with both corrections, Copper was carried into the Buy phase on <strong>113 turns</strong> and the conservative missed-opportunity count fell to <strong>zero</strong>. These are diagnostic replays, not extra independent validation games. Observational trace tests confirm that recording decisions leaves the previous policy's game outcomes unchanged.</p>
+<h3>Does better local play improve the strategy?</h3>
+<p>There were 12,000 additional fresh evaluation games: 9,000 against the existing comparison panel and 3,000 matched ablation games. The table compares each new option against the preceding cleanup player with identical deck targets and all other cleanup settings retained.</p>
+<div class="table-wrap"><table><thead><tr><th>Change</th><th>Win share against preceding Shrine policy</th><th>Paired 95% interval</th><th>Games</th></tr></thead><tbody><tr><td>Reserve surplus Copper</td><td>52.4%</td><td>50.8–54.0%</td><td>1,000</td></tr><tr><td>Play Mining Road gains before Shrine trashes</td><td>50.0%</td><td>49.4–50.6%</td><td>1,000</td></tr><tr><td>Both changes</td><td>51.2%</td><td>49.6–52.8%</td><td>1,000</td></tr></tbody></table></div>
+<p>Holding Copper alone improved this matched comparison modestly. The combined policy scored 37.6% against the Tea House recommendation in its separate 1,000-game panel matchup; it did not overturn that recommendation. Correcting these local decisions does not establish globally optimal Shrine play, and a Copper can still have future value as income or Highwayman bait. The purchase-preservation check protects the current Buy phase, not every future consideration.</p>
+<p><a href="../../scripts/data/lucky_coin_ruins_treasure_audit.json">Trace samples, counts, evaluation results, and exact reproduction commands</a> · <a href="../../scripts/audit_lucky_coin_shrine.py">Game trace audit script</a></p>
+
+<h2>Evidence and limits</h2>
+<p id="search-count">The initial investigation contained <strong>146,540 games</strong>: 82,540 screening and refinement games, an 18,000-game ten-policy tournament, a 6,000-game comparison of four leaders, 20,000 initial validation games that identified the opening improvement, and 20,000 final validation games. No recorded game hit the turn cap.</p>
+<p>The search varied openings, engine size, trashing, attack counts, free gains, multiplier targets, and Province timing. It included clean Tea House builds before adding support, then refined interacting settings together. Purchase decisions and Banquet/Scrounge free gains use separate selectors; Kind Emperor has its own hand-aware selector. Finalists retained the best Spice Merchant, Shrine, Change, and Warlord families. The first independent validation favored a direct $5 Tea House purchase over always buying Banquet. The revised recommendation was selected before the second independent validation seeds were run.</p>
+<p>Before collecting results, the simulator was corrected for Scrounge's two modes, Mining Road's gained-Treasure play and cumulative allowances, Banquet's choice and exposed-pile legality, and Fool's transfer of the unique Lost in the Woods state. Regression tests cover these interactions and the exact custom start.</p>
+<p><strong>Limits:</strong> this searches parameterized heuristic policies, not the complete space of legal play. It does not optimize every opening-hand decision, every Boon order, arbitrary debt repayment timing, or every tactical pile ending. Fool uses the simulator's existing Boon resolution order. Different player counts, starting-card order, Colonies, or additional scenario rules can change the recommendation.</p>
+
+<h2>Reproduce the games</h2>
+<p>The dedicated runner constructs this exact starting deck. Ordinary board runners still use their normal starting-deck setup; use this script for these results. Run from the repository root:</p>
+<pre>PYTHONPATH=. python scripts/search_lucky_coin_ruins.py finalists \
+  --specs scripts/data/lucky_coin_ruins/finalists-specs.json \
+  --games 400 --seed 100000 --output .context/lucky-finalists.json
+
+PYTHONPATH=. python scripts/search_lucky_coin_ruins.py finalists \
+  --specs scripts/data/lucky_coin_ruins/confirmation-specs.json \
+  --games 1000 --seed 200000 --output .context/lucky-confirmation.json
+
+PYTHONPATH=. python scripts/search_lucky_coin_ruins.py validate \
+  --specs scripts/data/lucky_coin_ruins/validation-specs.json \
+  --games 2000 --seed 3000000 --output .context/lucky-validation.json</pre>
+<p>Full stage commands, candidate settings, screening results, tournament pairings, and validation data are preserved in <a href="../../scripts/data/lucky_coin_ruins_search_summary.json">the search evidence</a>. The <a href="../../generated_strategies/lucky_coin_ruins.py">runnable strategy</a> exposes the selected policy through <code>create_lucky_coin_ruins()</code>; the <a href="../../scripts/search_lucky_coin_ruins.py">search runner</a> records setup and scoring.</p>
+<footer class="note"><a href="index.html">Strategy catalog</a> · Historical evidence from the $1 Mining Road model.</footer>
+
+</details>
+<footer class="note"><a href="index.html">Strategy catalog</a> · Historical evidence retained for traceability; current performance validation is pending.</footer>
+</main></body></html>

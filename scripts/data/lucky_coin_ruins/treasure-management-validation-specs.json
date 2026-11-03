@@ -1,0 +1,53 @@
+[
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false,
+      "hold_copper": true,
+      "mining_first": false
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false,
+      "hold_copper": false,
+      "mining_first": true
+    },
+    "spice": 0
+  },
+  {
+    "opening": "Secluded Shrine",
+    "shrine": 1,
+    "lost": 0,
+    "highway": 1,
+    "banquet": true,
+    "daimyo": 4,
+    "green": 1,
+    "cleanup": {
+      "trigger": "fallback",
+      "reserve": "breakpoints",
+      "double_shrine": false,
+      "hold_copper": true,
+      "mining_first": true
+    },
+    "spice": 0
+  }
+]

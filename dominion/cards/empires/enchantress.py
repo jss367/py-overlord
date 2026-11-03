@@ -29,7 +29,7 @@ class Enchantress(Card):
                 continue
             game_state.attack_player(other, attack, attacker=player, attack_card=self)
 
-        if self not in player.duration:
+        if self not in player.duration or getattr(self, "permanent_set_aside", False):
             player.duration.append(self)
         # Move from in_play if it ended up there too (Throne Room flows etc.)
         if self in player.in_play:

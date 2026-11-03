@@ -14,7 +14,7 @@ class ThroneRoom(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        actions_in_hand = [card for card in player.hand if card.is_action]
+        actions_in_hand = [card for card in player.hand if game_state.is_action(card)]
 
         if not actions_in_hand:
             return

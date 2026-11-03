@@ -30,7 +30,7 @@ class Scepter(Card):
         replayable = [
             c
             for c in player.in_play
-            if c.is_action
+            if game_state.is_action(c)
             and c is not self
             and c.name != "Scepter"
             and (not c.is_duration or id(c) in active_durations)

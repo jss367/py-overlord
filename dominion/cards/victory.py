@@ -5,6 +5,9 @@ class Estate(Card):
     def __init__(self):
         super().__init__(name="Estate", cost=CardCost(coins=2), stats=CardStats(vp=1), types=[CardType.VICTORY])
 
+    def play_effect(self, game_state):
+        game_state.play_inherited_action(game_state.current_player, self)
+
     def starting_supply(self, game_state) -> int:
         return 8 if len(game_state.players) <= 2 else 12
 

@@ -46,6 +46,10 @@ class GeneticAI(AI):
 
         return self.strategy.choose_gain(state, state.current_player, choices)
 
+    def choose_gain_effect(self, state, player, gained_card, choices):
+        hook = getattr(self.strategy, "choose_gain_effect", None)
+        return hook(state, player, gained_card, choices) if hook else super().choose_gain_effect(state, player, gained_card, choices)
+
     def choose_free_gain(self, state, player, choices, context):
         hook = getattr(self.strategy, "choose_free_gain", None)
         if hook is not None:
@@ -191,6 +195,24 @@ class GeneticAI(AI):
         return super().choose_topdeck_or_discard(
             state, chooser, target, revealed, is_self=is_self
         )
+
+    def choose_courtier_reveal(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_courtier_reveal", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_courtier_reveal(state, player, choices)
+
+    def should_gain_from_trash_with_rogue(self, state, player, choices):
+        hook = getattr(self.strategy, "should_gain_from_trash_with_rogue", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().should_gain_from_trash_with_rogue(state, player, choices)
+
+    def should_reveal_trader(self, state, player, gained_card, *, to_deck):
+        hook = getattr(self.strategy, "should_reveal_trader", None)
+        if hook is not None:
+            return hook(state, player, gained_card, to_deck=to_deck)
+        return super().should_reveal_trader(state, player, gained_card, to_deck=to_deck)
 
     def choose_courtier_options(self, state, player, options, num_choices):
         hook = getattr(self.strategy, "choose_courtier_options", None)
@@ -343,6 +365,18 @@ class GeneticAI(AI):
         if hook is not None:
             return hook(state, player, choices)
         return super().choose_armory_gain(state, player, choices)
+
+    def choose_artificer_discards(self, state, player, choices):
+        hook = getattr(self.strategy, "choose_artificer_discards", None)
+        if hook is not None:
+            return hook(state, player, choices)
+        return super().choose_artificer_discards(state, player, choices)
+
+    def choose_artificer_gain_after_discard(self, state, player, choices, planned):
+        hook = getattr(self.strategy, "choose_artificer_gain_after_discard", None)
+        if hook is not None:
+            return hook(state, player, choices, planned)
+        return super().choose_artificer_gain_after_discard(state, player, choices, planned)
 
     def choose_artificer_gain(self, state, player, choices):
         hook = getattr(self.strategy, "choose_artificer_gain", None)

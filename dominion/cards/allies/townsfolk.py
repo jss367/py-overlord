@@ -102,8 +102,8 @@ class Miller(_Townsfolk):
         keep = max(
             revealed,
             key=lambda c: (
-                c.is_action,
-                c.is_treasure,
+                game_state.is_action(c),
+                game_state.is_treasure(c),
                 c.cost.coins,
                 c.stats.cards * 2 + c.stats.actions + c.stats.coins,
                 c.name,
@@ -126,7 +126,7 @@ class Elder(_Townsfolk):
 
     def play_effect(self, game_state):
         p = game_state.current_player
-        actions = [c for c in p.hand if c.is_action]
+        actions = [c for c in p.hand if game_state.is_action(c)]
         choice = p.ai.choose_action(game_state, actions + [None])
         if choice not in actions or not game_state.move_card_from_hand_to_play(
             p, choice

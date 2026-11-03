@@ -14,7 +14,7 @@ class Plaza(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        treasures = [card for card in player.hand if card.is_treasure]
+        treasures = [card for card in player.hand if game_state.is_treasure(card)]
         if not treasures:
             return
 

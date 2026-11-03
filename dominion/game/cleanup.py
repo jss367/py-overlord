@@ -22,9 +22,29 @@ def cleanup_turn(state: GameState) -> None:
     player = state.current_player
     _resolve_cleanup_triggers(state, player)
     tireless_set_aside, journey_extra_turn = _discard_cards(state, player)
-    outpost_extra_turn = _draw_next_hand(state, player, tireless_set_aside)
+    off_turn_tireless = _discard_off_turn_duplicates(state)
+    outpost_extra_turn = _draw_next_hand(state, player, tireless_set_aside, off_turn_tireless=off_turn_tireless)
+    # A redraw/shuffle effect can itself gain cards and call another Duplicate.
+    for owner, card in _discard_off_turn_duplicates(state):
+        state._cover_gained_deck_top(owner, card)
+        owner.deck.append(card)
     _finish_turn(state, player, outpost_extra_turn)
     _advance_player(state, player, outpost_extra_turn, journey_extra_turn)
+
+
+def _discard_off_turn_duplicates(state: GameState) -> list[tuple[PlayerState, Card]]:
+    """Discard other owners' calls; return Tireless cards for after the redraw."""
+    tireless = []
+    while getattr(state, "_off_turn_called_duplicates", []):
+        pending, state._off_turn_called_duplicates = state._off_turn_called_duplicates, []
+        for owner, card in pending:
+            if card in owner.in_play:
+                owner.in_play.remove(card)
+                if state.supply_pile_key(card.name) in state.tireless_piles:
+                    tireless.append((owner, card))
+                else:
+                    state.discard_card(owner, card, from_cleanup=True)
+    return tireless
 
 
 def _resolve_cleanup_triggers(state: GameState, player: PlayerState) -> None:
@@ -94,7 +114,7 @@ def _resolve_cleanup_triggers(state: GameState, player: PlayerState) -> None:
         # retained because one of its ``duration_targets`` stays.
         staying = state._cards_retained_in_play(player)
         playable_actions = [
-            card for card in player.in_play if card.is_action and card not in staying
+            card for card in player.in_play if state.is_action(card) and card not in staying
         ]
         for _ in range(scheme_count):
             if not playable_actions:
@@ -132,7 +152,7 @@ def _discard_cards(state: GameState, player: PlayerState) -> tuple[list[Card], b
     journey_extra_turn = bool(getattr(player, "journey_extra_turn_pending", False))
     if journey_extra_turn:
         player.journey_retained_actions = [
-            card for card in player.in_play if card.is_action
+            card for card in player.in_play if state.is_action(card)
         ]
         for card in player.journey_retained_actions:
             durations_to_keep.add(card)
@@ -148,7 +168,7 @@ def _discard_cards(state: GameState, player: PlayerState) -> tuple[list[Card], b
         non_duration_in_play = [
             card for card in player.in_play if card not in durations_to_keep
         ]
-        treasures_in_play = [card for card in non_duration_in_play if card.is_treasure]
+        treasures_in_play = [card for card in non_duration_in_play if state.is_treasure(card)]
         if treasures_in_play:
             max_set_aside = min(trickster_uses, len(treasures_in_play))
             chosen = player.ai.choose_treasures_to_set_aside_with_trickster(
@@ -197,7 +217,7 @@ def _discard_cards(state: GameState, player: PlayerState) -> tuple[list[Card], b
         if card.name == "Border Guard" and getattr(card, "horn_topdeck_pending", False):
             return False
         if (
-            card.is_treasure
+            state.is_treasure(card)
             and getattr(player, "panic_active", False)
             and card.name in state.supply
         ):
@@ -278,7 +298,7 @@ def _discard_cards(state: GameState, player: PlayerState) -> tuple[list[Card], b
             card.horn_topdeck_pending = False
             player.deck.append(card)
         elif (
-            card.is_treasure
+            state.is_treasure(card)
             and getattr(player, "panic_active", False)
             and card.name in state.supply
         ):
@@ -340,7 +360,7 @@ def _discard_cards(state: GameState, player: PlayerState) -> tuple[list[Card], b
 
 
 def _draw_next_hand(
-    state: GameState, player: PlayerState, tireless_set_aside: list[Card]
+    state: GameState, player: PlayerState, tireless_set_aside: list[Card], *, off_turn_tireless=()
 ) -> bool:
     """Draw and resolve post-draw effects, including Donate; report an Outpost turn."""
     # Outpost: schedule an extra turn for this player with a 3-card hand.
@@ -382,8 +402,12 @@ def _draw_next_hand(
         player.foresight_set_aside = []
 
     # Tireless: put set-aside cards on top of deck after drawing
+    other_tireless = list(off_turn_tireless) + _discard_off_turn_duplicates(state)
     for card in tireless_set_aside:
         player.deck.append(card)
+    for owner, card in other_tireless:
+        state._cover_gained_deck_top(owner, card)
+        owner.deck.append(card)
 
     # Nocturne — Faithful Hound: set-aside Hounds return to hand at end of turn
     if getattr(player, "hound_set_aside", None):
@@ -464,6 +488,9 @@ def _finish_turn(
     player.cost_reduction = 0
     player.innovation_used = False
     player.citadel_used = False
+    player.daimyo_pending = 0
+    player.daimyo_sources = []
+    player.daimyo_turn = None
 
     # Empires Landmarks: end-of-turn hook (Baths). Fired before
     # cards_gained_this_turn resets so the landmark can inspect it.

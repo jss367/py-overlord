@@ -25,7 +25,7 @@ class BustlingVillage(BottomSplitPileCard):
             revealed.append(player.deck.pop())
 
         for card in revealed:
-            if card.is_action:
+            if game_state.is_action(card):
                 player.hand.append(card)
             else:
                 game_state.discard_card(player, card)

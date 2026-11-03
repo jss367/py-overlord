@@ -23,6 +23,7 @@ class Fool(Card):
         player = game_state.current_player
         if getattr(player, "lost_in_the_woods", False):
             return
+        for other in game_state.players:
+            other.lost_in_the_woods = other is player
         for _ in range(3):
             game_state.receive_boon(player)
-        player.lost_in_the_woods = True

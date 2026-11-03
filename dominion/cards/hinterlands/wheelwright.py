@@ -34,7 +34,7 @@ class Wheelwright(Card):
                 candidate = get_card(name)
             except ValueError:
                 continue
-            if not candidate.is_action:
+            if not game_state.is_action(candidate):
                 continue
             if candidate.cost.potions or candidate.cost.debt:
                 continue

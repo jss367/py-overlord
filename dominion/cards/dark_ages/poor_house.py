@@ -14,6 +14,6 @@ class PoorHouse(Card):
 
     def play_effect(self, game_state):
         player = game_state.current_player
-        treasure_count = sum(1 for card in player.hand if card.is_treasure)
+        treasure_count = sum(1 for card in player.hand if game_state.is_treasure(card))
         coins = max(0, 4 - treasure_count)
         player.coins += coins

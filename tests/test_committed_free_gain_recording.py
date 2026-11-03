@@ -85,14 +85,19 @@ def test_all_effects_commit_only_successful_matching_gains(source, outcome, monk
     else:
         get_card(source).play_effect(state)
     gain_examples = [e for e in teacher.examples if e[3] == "buy"]
-    if outcome in {"failed", "trader", "empty"}:
+    if outcome in {"failed", "empty"}:
         assert gain_examples == []
         return
     assert len(gain_examples) == 1
     observation, mask, target, _ = gain_examples[0]
     assert target == teacher.actions.card_to_action(get_card("Village")) and mask[target]
-    assert observation["supply"]["Village"] == 10 and state.supply["Village"] == 9
+    assert observation["supply"]["Village"] == 10
+    assert state.supply["Village"] == (10 if outcome == "trader" else 9)
     assert observation["stored"] == ()
+    if outcome == "trader":
+        assert player.gained_cards_this_turn == ["Village"]
+        assert player.discard[-1].name == "Silver"
+        return
     destination = player.deck if outcome == "topdeck" else state.trash if outcome == "trash" else player.duration[0].set_aside if source == "Quartermaster" else player.discard
     assert destination[-1].name == "Village"
 

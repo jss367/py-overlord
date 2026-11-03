@@ -5,7 +5,7 @@ from ..base_card import Card, CardCost, CardStats, CardType
 
 class Groom(Card):
     """Gain a card costing up to $4. If it's an Action, gain a Horse; if a
-    Treasure, gain a Silver; if a Victory, each other player gains a Horse.
+    Treasure, gain a Silver; if a Victory, +1 Card and +1 Action.
     """
 
     def __init__(self):
@@ -15,6 +15,11 @@ class Groom(Card):
             stats=CardStats(),
             types=[CardType.ACTION],
         )
+
+    def get_additional_non_supply_piles(self) -> dict[str, int]:
+        from .supplies import HORSE_PILE_COUNT
+
+        return {"Horse": HORSE_PILE_COUNT}
 
     def play_effect(self, game_state):
         from ..registry import get_card
@@ -46,21 +51,25 @@ class Groom(Card):
             return
 
         game_state.supply[choice.name] -= 1
-        gained = game_state.gain_card(player, choice)
+        from ..gain_decisions import gained_card_types
 
-        if gained.is_action:
+        types_at_gain = []
+        game_state.gain_card(player, choice, gain_observer=lambda c: types_at_gain.append(
+            gained_card_types(game_state, player, c)
+        ))
+        if not types_at_gain:
+            return
+        action, treasure, victory = types_at_gain[0]
+
+        if action:
             if game_state.supply.get("Horse", 0) > 0:
                 game_state.supply["Horse"] -= 1
                 game_state.gain_card(player, get_card("Horse"))
-        if gained.is_treasure:
+        if treasure:
             if game_state.supply.get("Silver", 0) > 0:
                 game_state.supply["Silver"] -= 1
                 game_state.gain_card(player, get_card("Silver"))
-        if gained.is_victory:
-            for other in game_state.players:
-                if other is player:
-                    continue
-                if game_state.supply.get("Horse", 0) <= 0:
-                    break
-                game_state.supply["Horse"] -= 1
-                game_state.gain_card(other, get_card("Horse"))
+        if victory:
+            game_state.draw_cards(player, 1)
+            if not player.ignore_action_bonuses:
+                player.actions += 1

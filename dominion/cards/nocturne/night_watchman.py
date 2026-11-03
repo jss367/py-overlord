@@ -1,13 +1,15 @@
 """Night Watchman — $3 Night.
 
 Look at top 5 cards. Discard or put back any in any order.
-When you gain this, you may play it.
+This is gained to your hand instead of your discard pile.
 """
 
 from ..base_card import Card, CardCost, CardStats, CardType
 
 
 class NightWatchman(Card):
+    default_gain_destination = "hand"
+
     def __init__(self):
         super().__init__(
             name="Night Watchman",
@@ -15,22 +17,6 @@ class NightWatchman(Card):
             stats=CardStats(),
             types=[CardType.NIGHT],
         )
-
-    def on_gain(self, game_state, player):
-        super().on_gain(game_state, player)
-        if player.ai.should_play_night_watchman_now(game_state, player):
-            # Play it from wherever it is now
-            if self in player.discard:
-                player.discard.remove(self)
-            elif self in player.deck:
-                player.deck.remove(self)
-            elif self in player.hand:
-                player.hand.remove(self)
-            else:
-                return
-            player.in_play.append(self)
-            self.on_play(game_state)
-            game_state.fire_ally_play_hooks(player, self)
 
     def play_effect(self, game_state):
         player = game_state.current_player

@@ -73,10 +73,12 @@ this inventory rather than maintaining a second divergent card table.
 The supply, free-gain, and set-aside implementations merged in
 [#404](https://github.com/jss367/py-overlord/pull/404),
 [#403](https://github.com/jss367/py-overlord/pull/403), and
-[#402](https://github.com/jss367/py-overlord/pull/402). This branch adds Barge and Sleigh
+[#402](https://github.com/jss367/py-overlord/pull/402).
+[#416](https://github.com/jss367/py-overlord/pull/416) merged Barge and Sleigh
 strategy forwarding and the scoped Torturer rules/tactical audit under #393;
-see the reaction and Duration evaluation below. Simultaneous gain ordering
-remains in #410. Quartermaster's
+see the reaction and Duration evaluation below. Owner-ordered simultaneous gain menus now address #410; the
+[current gain-ordering and policy guide](../reports/strategies/gain-effect-ordering-and-searchable-card-policies.html)
+records scoped rules coverage and new-engine measurements. Quartermaster's
 one-card collection, independent storage and replay/scheduling audit are in
 #391's merged evidence, rather than an outstanding generic storage task.
 Anvil and Junk Dealer dedicated overrides are connected and tested.
@@ -84,16 +86,20 @@ Anvil and Junk Dealer dedicated overrides are connected and tested.
 Watchtower's gain reaction, Clerk's victim topdeck, Investment's self-trash
 mode, and Bounty Hunter's exile choice now have targeted four-stage scenarios
 and measured fixed-policy panels. Clerk's start-turn reaction is connected and
-tested but unchanged between comparison arms; its timing remains unevaluated.
+tested. Its timing was held constant in the historical comparison; the new
+bounded search varies it without claiming an isolated timing improvement.
 Investment's forwarded legacy Treasure-selection helper is not an engine
 choice: after mandatory hand trash, the engine can trash Investment itself
-and score every remaining Treasure name. Policy accounting and cash-out timing
-remain in [#411](https://github.com/jss367/py-overlord/issues/411).
+and score every remaining Treasure name. Actual live Treasure-name accounting now addresses
+[#411](https://github.com/jss367/py-overlord/issues/411). The conservative mode
+preserves ordinary-hand choices; separately screened hand trash, play order,
+future trashing value, excessive copies, closing points and buy breakpoints
+are documented in the current guide.
 Ironworks and Engineer now use contextual free gains with inherited purchase
 priorities until a separate policy opts in. Their rules and measurements are
 published in the [Ironworks and Engineer evaluation](../reports/strategies/ironworks-and-engineer-contextual-gain-evaluation.html)
-for [#412](https://github.com/jss367/py-overlord/issues/412). Courtier bonuses are
-connected; its reveal choice still lacks strategy forwarding. A scoped reviewed
+for [#412](https://github.com/jss367/py-overlord/issues/412). Courtier's reveal and bonus
+choices are now both connected. A scoped reviewed
 entry never certifies all of that card's other decisions or interactions.
 
 Traceability: choice forwarding is in
@@ -102,8 +108,9 @@ Traceability: choice forwarding is in
 [`EnhancedStrategy`](../dominion/strategy/enhanced_strategy.py). Quartermaster's
 decisions are in [`GameState`](../dominion/game/game_state.py).
 
-The earlier inventory's other connected defaults remain unevaluated as
-independent policies: Knight victims give up a revealed Knight (also trashing
+The earlier inventory's other connected defaults now have a separate
+[named-decision evaluation](../reports/strategies/remaining-named-card-decisions-and-rules.html).
+Their inherited policies remain: Knight victims give up a revealed Knight (also trashing
 the attacker), otherwise the cheapest eligible card; Rogue victims give up the
 cheapest card. Stables prefers Copper, then Spoils, then Silver and can decline.
 Spice Merchant only trashes Copper by default and favors draw unless short of
@@ -112,7 +119,41 @@ including the top Knight. Artificer budgets junk discards, skips $0 gains and
 uses generic discards with `reason="artificer"`. Scheme selects the most
 expensive discarded Action, excluding Durations retained in play. The linked
 card modules and `tests/test_kolkata_board_cards.py` retain rules and hook
-evidence for these choices; none is promoted to evaluated by this study.
+evidence for these choices. The new study compares diagnostic alternatives with
+fixed priorities, independent screen/validation seeds and both seats; it does
+not claim universal strength or replace historical study identities. Artificer
+also exposes independent physical discards and a refreshed optional gain menu
+through `choose_artificer_discards` and `choose_artificer_gain_after_discard`.
+The legacy gain hook and junk-first default remain compatible.
+
+The rules audit is separate from those preference comparisons. Courtier uses
+current types and mandatory reveal/bonus fallbacks. Rogue gains from existing
+trash **or** attacks, never both. Knights finish one victim's instructions,
+including self-trash triggers, before the next victim. Both attacks exclude
+Potion/Debt prices. Stables, Spice Merchant and Counterfeit offer live Treasure
+types; conditional Action bonuses respect Snowy Village. Counterfeit uses the
+shared Treasure play helper, excludes Duration targets, checks the initial Warlord
+hand-play gate and cannot trash a target that already left play. Trader now
+resolves as an owner-ordered post-gain exchange with original gain identity,
+Silver-to-discard without a gain, and physical pile/stop-moving checks (#430).
+The dedicated strategy reaction hook is forwarded without changing its decline baseline.
+Issues #421–#426 track these fixes individually.
+
+The audit also exposed [#427](https://github.com/jss367/py-overlord/issues/427):
+Inheritance's wider execution and gain-type paths still use legacy overlays.
+Courtier counts the current Action–Command–Victory Estate types, and the three
+Treasure menus above do not transfer the set-aside Action's Capitalism type.
+This scoped correction does not certify the rest of Inheritance.
+The shared Capitalism predicate also misses conditional/delayed coin text
+([#429](https://github.com/jss367/py-overlord/issues/429)); the new card paths
+follow that predicate and test its immediate-coin case, without certifying the
+wider classification. Saved named-card studies predate the two review corrections (Duration targets
+and Trader pile returns). Their fingerprints/outcomes remain preserved; the
+corrections have physical regressions rather than newly relabeled strategy games.
+The saved named-card studies predate these review corrections and retain their
+original fingerprints; no study was rerun or relabeled. Trader adds a scoped
+rules/forwarding entry, not an isolated tactical evaluation. The inventory
+still explicitly lists 556 registered names without a scoped review.
 
 ## First implementation: Overlord and Quartermaster
 
@@ -711,4 +752,91 @@ immediate bonuses and stranded Actions. The Engineer diagnostic projects
 complete gain pairs and cashes out only at the endgame or with excessive
 copies; projected pairs do not model reactions. These diagnostics do not
 replace inherited priorities or the default keep-Engineer policy. No optimizer
-parameters are added by this change; searchable policy families remain #413.
+parameters were added by that historical change; the current bounded families
+are documented below for #413.
+
+## Bounded card policy search and gain order
+
+The [current guide](../reports/strategies/gain-effect-ordering-and-searchable-card-policies.html)
+records #410, #411 and #413 together. `choose_gain_effect(state, player, gained,
+choices)` chooses one offered simultaneous effect for its owner; individual
+reaction decisions still choose whether to use it. Eligibility refreshes after
+each effect, owners resolve in turn order starting with the real turn player,
+and nested gains reserve once-per-event instructions before invoking callbacks.
+The default is the first offered legal effect. New hand reactions join the
+current gain; each physical reaction is offered at most once, with an explicit
+256-effect guard against unbounded custom loops.
+
+`EnhancedStrategy.card_decision_policies` and `StrategicGenome` carry finite,
+validated settings from `dominion/strategy/card_policies.py`. Families cover
+Watchtower destinations/thresholds, Clerk response/timing, Investment self-trash,
+Bounty Hunter bonuses and gain-effect order. `None` inherits; `{}` declares no
+family overrides and remains distinct in signatures and exports. Empty priority
+lists, explicit priority rules and custom Python overrides retain their existing
+semantics. Arbitrary callables are preserved where supported, not inferred into
+search genes. Existing purchase, supply-play, free-gain and trash preferences
+remain independent. The new benchmark varies tactical genes using production
+mutation with purchases fixed; it is not a full purchase-and-policy search or a
+new global tournament. It records every evaluated genotype and raw outcome,
+locks screen selection before disjoint validation, and reports capped games.
+
+
+## Original-gain follow-up identity
+
+Trader's physical return value is the received Silver, so callers that award
+gain-based bonuses use the original-gain observer. Groom, Replace and Wild Hunt
+now follow that contract; the existing Hoard purchase helper classifies what was
+bought. The scoped Groom audit also corrects the printed Victory draw/Action
+bonus and required Horse setup (#431). Trader and Groom have separate inventory
+entries with unmeasured tactical preferences; neither is silently added to the
+fourteen-policy benchmark. Saved study inputs/results remain pinned to their
+original commit. General menus and unrelated card interactions remain unreviewed.
+
+
+## Blockade watcher scope
+
+Blockade arms its watcher only after physically storing the original gain.
+Trader and Watchtower movement cannot leave a phantom watcher. A failed later
+play preserves the earlier stored card and immunity snapshot. Virtual Supply
+plays can watch their real stored cards, and only opponents gaining a copy on
+their own turn receive a Curse; returning the stored card ends the watcher
+(#432). The follow-up replay correction (#433) keeps one stored card and
+immunity snapshot per successful play. The source-transfer follow-up (#438)
+binds each record to the player who made that play. If Lurker/Courier transfer and replay the same physical source before its old
+return, each player retains their own stored cards, watches and return order.
+The ownership collector asks for storage belonging to its player, including
+after the shared source is deep-copied across players' queues.
+Each matching play has one gain-event
+instruction and one next-turn return; duplicate Duration references do not
+multiply all watches again. The ownership collector sees every stored card,
+including when Blockade is virtual or trashed. The Duration resolver retains
+temporary references to sources removed from the queue, so their stored cards
+remain owned while earlier callbacks (such as Cobbler's gain choice) run.
+Player references in snapshots
+remain valid in deep-copied game states. Failed/moved gains add no new record.
+Physical regressions cover same/different names, separate immunity, partial
+returns, scarce Curses, multiplier retention/cleanup and the legacy dispatcher.
+The inventory records this bounded rules audit; gain-choice forwarding and
+preference strength remain unreviewed, and the frozen studies are not regraded.
+
+Blockade declares its initial owned set-aside zone before gain effects (#434).
+Nomad Camp and the four printed Nocturne hand-default cards (Ghost Town,
+Guardian, Night Watchman and Den of Sin) now use initial placement metadata;
+explicit source destinations override those defaults. Night Watchman's old
+optional-play-on-gain hook was inconsistent with printed hand placement and
+is removed, without claiming a full audit of its play choices. Villa's actual
+on-gain move, Trader and Watchtower can move the original from initial storage.
+Physical ownership is visible throughout, and shuffles still invalidate an
+original-zone reference. Synthetic regressions cover ordinary/explicit gains,
+reactions, subsequent opponent gains and next-turn returns. These scoped
+placement fixes do not add tactical strength evidence or regrade saved studies.
+
+Forge's selected gain now enters the shared gain event (#435), so printed
+placement, reactions and counters apply. The other direct non-super card
+on-gain callers are restricted to printed Treasures or fixed Copper/Silver/Gold;
+none selects these five placement cards. Their broader pipeline behavior is
+unreviewed. Trail, Berserker and reduced-cost Buried Treasure now recognize
+initial owned storage for on-gain self-plays, and respect prior gain movement
+(#436). Existing Trail discard/trash reactions retain their separate path.
+Nine additional inventory entries record these bounded placement/gain-path
+checks; other rules, choice forwarding and tactical strength stay unreviewed.

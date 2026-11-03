@@ -27,7 +27,7 @@ class Clerk(Card):
             if choice is None or choice not in target.hand:
                 choice = min(
                     target.hand,
-                    key=lambda c: (c.is_action, c.is_treasure, c.cost.coins, c.name),
+                    key=lambda c: (game_state.is_action(c), game_state.is_treasure(c), c.cost.coins, c.name),
                 )
             target.hand.remove(choice)
             target.deck.append(choice)

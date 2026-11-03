@@ -23,7 +23,7 @@ class HauntedMirror(Card):
         return 0
 
     def on_discard_from_play(self, game_state, player):
-        actions_in_hand = [c for c in player.hand if c.is_action]
+        actions_in_hand = [c for c in player.hand if game_state.is_action(c)]
         if not actions_in_hand:
             return
         chosen = player.ai.should_play_haunted_mirror_action_discard(

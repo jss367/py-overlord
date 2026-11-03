@@ -1,5 +1,6 @@
 """Empires Events."""
 
+from dominion.ai.gain_context import FreeGainContext
 from dominion.cards.base_card import CardCost
 from dominion.cards.registry import get_card
 
@@ -63,7 +64,7 @@ class Advance(Event):
         super().__init__("Advance", CardCost(coins=0))
 
     def on_buy(self, game_state, player) -> None:
-        actions_in_hand = [c for c in player.hand if c.is_action]
+        actions_in_hand = [c for c in player.hand if game_state.is_action(c)]
         if not actions_in_hand:
             return
         chosen = player.ai.choose_card_to_trash(game_state, actions_in_hand + [None])
@@ -77,7 +78,7 @@ class Advance(Event):
             if count <= 0:
                 continue
             card = get_card(name)
-            if card.is_action and card.cost.coins <= 6 and card.cost.potions == 0 and card.cost.debt == 0:
+            if game_state.is_action(card) and card.cost.coins <= 6 and card.cost.potions == 0 and card.cost.debt == 0:
                 candidates.append(card)
         if candidates:
             candidates.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
@@ -148,10 +149,17 @@ class Banquet(Event):
                 continue
             if card.cost.coins > 5 or card.cost.potions > 0 or card.cost.debt > 0:
                 continue
-            candidates.append(card)
+            if card.may_be_bought(game_state):
+                candidates.append(card)
         if candidates:
-            candidates.sort(key=lambda c: (c.cost.coins, c.name), reverse=True)
-            gain = candidates[0]
+            hook = getattr(player.ai, "choose_free_gain", None)
+            gain = (
+                hook(game_state, player, candidates,
+                     FreeGainContext.build(game_state, player, "Banquet"))
+                if hook else None
+            )
+            if gain not in candidates:
+                gain = max(candidates, key=lambda c: (c.cost.coins, c.name))
             game_state.supply[gain.name] -= 1
             game_state.gain_card(player, gain)
 

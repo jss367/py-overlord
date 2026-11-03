@@ -2,6 +2,8 @@
 
 Run from the repository root with PYTHONPATH=.; results are resumable JSON.
 Archived factories remain explicitly addressable through StrategyLoader.
+New runs preserve wins, losses, ties, and caps and score ties as half a win;
+historical evidence remains pinned to its original source provenance.
 """
 
 import argparse
@@ -140,11 +142,15 @@ def main():
                     "key": key, "cohort": label, "candidate": candidate, "opponent": opponent,
                     "seed": seed, "board": asdict(board), "use_shelters": shelters,
                     "games": games, "wins": result["strategy1_wins"],
-                    "win_rate": result["strategy1_wins"] / games,
+                    "losses": result["strategy2_wins"],
+                    "ties": result.get("ties", 0), "truncated": result.get("truncated", 0),
+                    "win_rate": result["strategy1_win_rate"] / 100,
                 }
                 report["results"].append(row)
                 save_report(args.output, report, provenance)
-                print(f"{label}: {candidate} vs {opponent}: {row['wins']}/{games}", flush=True)
+                print(f"{label}: {candidate} vs {opponent}: {row['win_rate']:.1%} win share "
+                      f"({row['wins']} wins, {row['losses']} losses, {row['ties']} ties, "
+                      f"{row['truncated']} capped; {games} games)", flush=True)
     save_report(args.output, report, provenance)
 
 

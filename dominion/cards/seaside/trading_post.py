@@ -48,7 +48,4 @@ class TradingPost(Card):
 
             silver = get_card("Silver")
             game_state.supply["Silver"] -= 1
-            gained = game_state.gain_card(player, silver)
-            if gained in player.discard:
-                player.discard.remove(gained)
-                player.hand.append(gained)
+            game_state.gain_card(player, silver, to_hand=True)

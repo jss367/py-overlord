@@ -37,7 +37,9 @@ def test_copy_gain_cannot_take_card_buried_by_city_state(effect, rotate):
     if effect == "Mirror":
         assert s.mirror_pending[id(p)] == 0
     else:
-        assert bool(p.tavern_mat) is rotate
+        # Calling is legal even when rotation prevents the subsequent gain.
+        assert not p.tavern_mat
+        assert any(c.name == "Duplicate" for c in p.in_play)
 
 
 @pytest.mark.parametrize("effect", ["Mirror", "Duplicate"])

@@ -33,12 +33,4 @@ class Explorer(Card):
             return
 
         game_state.supply[target_name] -= 1
-        gained = game_state.gain_card(player, get_card(target_name))
-
-        # Move into hand.
-        if gained in player.discard:
-            player.discard.remove(gained)
-        elif gained in player.deck:
-            player.deck.remove(gained)
-        if gained not in player.hand:
-            player.hand.append(gained)
+        game_state.gain_card(player, get_card(target_name), to_hand=True)

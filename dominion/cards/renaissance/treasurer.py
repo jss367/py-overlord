@@ -25,7 +25,7 @@ class Treasurer(Card):
             "key"
             if key is not None and key.holder is not player
             else "gain"
-            if any(c.is_treasure for c in game_state.trash)
+            if any(game_state.is_treasure(c) for c in game_state.trash)
             else "trash"
         )
         for mode in select_modes(
@@ -33,11 +33,11 @@ class Treasurer(Card):
         ):
             if mode == "trash":
                 trash_from_hand(
-                    game_state, player, [c for c in player.hand if c.is_treasure]
+                    game_state, player, [c for c in player.hand if game_state.is_treasure(c)]
                 )
             elif mode == "gain":
                 choice = choose_gain(
-                    game_state, player, [c for c in game_state.trash if c.is_treasure]
+                    game_state, player, [c for c in game_state.trash if game_state.is_treasure(c)]
                 )
                 if choice is not None:
                     game_state.trash.remove(choice)

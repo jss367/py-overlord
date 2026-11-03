@@ -15,14 +15,6 @@ class Progress(Prophecy):
     )
 
     def on_gain(self, game_state, player, card) -> None:
-        # Move from wherever the gain landed to the top of the deck.
-        for zone in (player.discard, player.hand, player.deck):
-            if card in zone and zone is not player.deck:
-                zone.remove(card)
-                player.deck.append(card)
-                return
-        # Already on the deck (e.g. via insignia / royal seal)? Re-place it
-        # on top in case it was placed at the bottom.
-        if card in player.deck:
-            player.deck.remove(card)
+        if game_state._remove_gained_card_from_zones(player, card, target=player.deck):
+            game_state._cover_gained_deck_top(player, card)
             player.deck.append(card)

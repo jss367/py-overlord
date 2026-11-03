@@ -32,7 +32,16 @@ def direct_rate(result, left, right):
     if left == right:
         return "Identical policy"
     forward = result["direct"].get(f"{left}_vs_{right}")
-    rate = forward["win_rate"] if forward is not None else 1 - result["direct"][f"{right}_vs_{left}"]["win_rate"]
+    if forward is not None:
+        rate = forward["win_rate"]
+    else:
+        reverse = result["direct"][f"{right}_vs_{left}"]
+        columns, rows = reverse["games"]["columns"], reverse["games"]["rows"]
+        if "result" in columns:
+            share, outcome = columns.index("win_share"), columns.index("result")
+            rate = mean(0.0 if row[outcome] == "truncated" else 1 - row[share] for row in rows)
+        else:
+            rate = 1 - reverse["win_rate"]
     return percent(rate)
 
 
@@ -67,6 +76,11 @@ def render_guide(report, *, board_name, evidence_name):
                       for r in results for arm in ARMS]
     title = f"{board_name}: Reflective Proposals and Final Search Recommendations"
     escaped_title = escape(title)
+    scoring = ("Scores give half credit for natural ties and zero credit for capped games; "
+               "the evidence preserves wins, losses, ties, and truncations."
+               if report.get("scoring_version") == "explicit_outcomes_v1" else
+               "These historical percentages use the former simulator's winner, including its "
+               "seat-order fallback when points and turn counts are fully tied.")
     return f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{escaped_title}</title>
@@ -114,8 +128,7 @@ secondary comparisons are descriptive and have no multiple-comparison correction
 {table(['Search seed', 'Final wins vs proposal', 'Proposal wins vs control', 'Final wins vs control'], direct_rows)}
 <p>Each distinct pair played {report['games_per_matchup']:,} games on a separate fresh block, with both seats.
 Direct pairs within a search run shared their shuffle block. Identical policies were not played against themselves;
-their panel and control-matchup results were reused. Percentages use the simulator's winner, including its
-seat-order fallback when points and turn counts are fully tied.</p>
+their panel and control-matchup results were reused. {scoring}</p>
 <h2>What this tells us about the next experiment</h2>
 <p>This diagnostic measures the quality of particular saved proposals and recommendations. It does not compare
 equally funded GEPA-only and assisted algorithms: the original proposals consumed much less search computation,

@@ -16,16 +16,12 @@ class RapidExpansion(Prophecy):
     )
 
     def on_gain(self, game_state, player, card) -> None:
-        if not (card.is_action or card.is_treasure):
+        from dominion.cards.gain_decisions import gained_card_types
+        action, treasure, _ = gained_card_types(game_state, player, card)
+        if not (action or treasure):
             return
-        # An earlier gain trigger may already have moved the card (for
-        # example Buried Treasure plays itself or Gatekeeper exiles it).
-        # Stop-moving prevents setting it aside a second time.
-        for zone in (player.discard, player.hand, player.deck):
-            if card in zone:
-                zone.remove(card)
-                player.rapid_expansion_set_aside.append(card)
-                return
+        if game_state._remove_gained_card_from_zones(player, card):
+            player.rapid_expansion_set_aside.append(card)
 
     def on_turn_start(self, game_state, player) -> None:
         if not player.rapid_expansion_set_aside:

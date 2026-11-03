@@ -10,5 +10,5 @@ class Academy(Project):
         super().__init__("Academy", CardCost(coins=5))
 
     def on_gain(self, game_state, player, card) -> None:
-        if card.is_action:
+        if game_state.is_action(card):
             player.villagers += 1

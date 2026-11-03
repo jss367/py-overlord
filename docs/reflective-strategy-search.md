@@ -16,6 +16,14 @@ The [saved-candidate follow-up](../reports/strategies/oslo-reflective-proposals-
 compares original proposals, final assisted recommendations, and controls on a separate
 fresh shuffle block without making model calls or selecting new recommendations.
 
+These are historical October 2026 studies. Their recorded engine used the old
+tie/capped-game behavior. The complete pre-integration code is preserved at
+`2e1479e32e44dce93585733b97bc6afa48a7c885`; check out that commit to reproduce
+those exact inputs with the trusted local artifacts. The current implementation
+uses main's explicit outcome contract. The saved-candidate runner deliberately
+rejects old checkpoints when their simulator fingerprint differs from the
+current tree. Updating this PR to main did not rerun or relabel historical results.
+
 ## Install and run
 
 Use Python 3.14 and install the optional dependencies:
@@ -145,6 +153,12 @@ stream. Saved schema 1 JSON remains strictly readable; omitted new policies
 receive neutral defaults. A supplied `--seed-genome` must match the chosen
 schema. Schema 2 is the default for new experiments.
 
+The optional `card_decision_policies` mapping also round-trips when present,
+using the trainer's finite policy vocabularies and strict value validation.
+Historical JSON without this field retains `None`; generated schemas omit a
+neutral mapping. This preserves current genetic mutations without rewriting
+the stored historical plans.
+
 ```bash
 PYTHONPATH=. python scripts/audit_oslo_genome.py \
   --pairs 25 --seed 1729 --output .context/oslo-policy-coverage
@@ -164,10 +178,14 @@ at most 4,096 output tokens per API request and disables provider retries.
 Subscription runs use the evaluator-call cap and a default 300-second timeout
 per CLI request (`--reflection-timeout`); the dollar threshold does not apply.
 
-Scoring follows the existing strategy simulator: wins use VP, then fewer turns;
-full ties use its seat-order fallback, balanced by swapping seats. This is not
-the learned agent's half-tie/zero-credit-for-capped-games evaluation contract.
-Per-game turns and scores are saved so unusually long games can be audited.
+Scoring follows main's shared outcome contract: compare victory points, then
+fewer turns; fully tied natural games give each player half credit. Safety-capped
+games give neither player credit and retain a distinct `truncated` outcome.
+The historical adapter key `win_rate` now contains mean win share over all games,
+including capped games in its denominator. Rows preserve `won`, `win_share`,
+`result`, and `termination_reason`, and panels retain explicit outcome counts.
+Mean score margin excludes capped games. The published October evidence retains
+its original boolean-win columns and scoring and is clearly marked historical.
 
 ## Compare saved proposals without model access
 

@@ -52,7 +52,7 @@ class March(Event):
         super().__init__("March", CardCost(coins=3))
 
     def on_buy(self, game_state, player) -> None:
-        actions = [c for c in player.discard if c.is_action]
+        actions = [c for c in player.discard if game_state.is_action(c)]
         if not actions:
             return
         choice = player.ai.choose_action(game_state, actions + [None])
@@ -70,7 +70,7 @@ class Toil(Event):
         super().__init__("Toil", CardCost(coins=4))
 
     def on_buy(self, game_state, player) -> None:
-        actions = [c for c in player.hand if c.is_action]
+        actions = [c for c in player.hand if game_state.is_action(c)]
         if not actions:
             return
         choice = player.ai.choose_action(game_state, actions + [None])
@@ -226,7 +226,7 @@ class Invest(Event):
             if count <= 0:
                 continue
             card = get_card(name)
-            if card.is_action:
+            if game_state.is_action(card):
                 available.append(card)
 
         if not available:
@@ -254,7 +254,7 @@ class Populate(Event):
             if count <= 0:
                 continue
             card = get_card(name)
-            if card.is_action:
+            if game_state.is_action(card):
                 action_names.append(name)
 
         for name in action_names:
@@ -414,7 +414,7 @@ class Transport(Event):
         super().__init__("Transport", CardCost(coins=3))
 
     def on_buy(self, game_state, player) -> None:
-        exiled_actions = [card for card in player.exile if card.is_action]
+        exiled_actions = [card for card in player.exile if game_state.is_action(card)]
         if exiled_actions:
             card = exiled_actions[0]
             player.exile.remove(card)
@@ -428,7 +428,7 @@ class Transport(Event):
             if count <= 0:
                 continue
             card = get_card(name)
-            if card.is_action:
+            if game_state.is_action(card):
                 available.append(card)
 
         if not available:

@@ -13,6 +13,7 @@ from dominion.strategy.strategy_loader import StrategyLoader
 from scripts.compare_saved_reflective_candidates import (
     analyze, case_seeds, fresh_cases, interval, run_comparison,
 )
+from scripts.render_saved_reflective_comparison import direct_rate
 
 
 @pytest.fixture
@@ -95,3 +96,12 @@ def test_seed_level_uncertainty_includes_unchanged_runs():
     assert estimate["ci95"] == pytest.approx([-0.0418886, 0.2818886], abs=1e-5)
     with pytest.raises(ValueError, match="At least two"):
         interval([0.2])
+
+
+def test_reversed_direct_display_does_not_give_credit_for_caps():
+    result = {"aliases": {"proposal": "proposal", "assisted": "assisted"},
+              "direct": {"proposal_vs_assisted": {
+                  "win_rate": 0.125,
+                  "games": {"columns": ["win_share", "result"],
+                            "rows": [[0.5, "tie"], [0, "loss"], [0, "truncated"], [0, "truncated"]]}}}}
+    assert direct_rate(result, "assisted", "proposal") == "37.5%"
