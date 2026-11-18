@@ -15,7 +15,10 @@ A base retarget invalidates prior approval.
 Every nonempty top-level comment or review body from a GitHub-authenticated
 `OWNER` or `COLLABORATOR` human must strictly predate Codex's approval reaction.
 Comment creation/edit times and review submission/edit times count; REST reviews
-are joined to GraphQL `updatedAt` by database ID to detect edited review bodies.
+are joined to GraphQL `updatedAt` by `fullDatabaseId` to detect edited review
+bodies. Full decimal IDs are normalized without floating-point conversion so
+REST integers and GraphQL BigInt strings match beyond the 32-bit range; invalid,
+missing, duplicate or unmatched IDs fail closed.
 Missing or ambiguous timestamps fail closed, and a same-second tie blocks.
 This intentionally treats even positive feedback and automation notices posted
 through a human account as requiring a fresh clean review/approval. There are no
@@ -43,5 +46,5 @@ attention; it cannot undo an already completed merge. No deployment or release
 workflow is dispatched. Branches are retained to avoid destructive stack cleanup.
 
 Regression tests feed synthetic paginated GitHub responses to the jq parsers and
-Python orchestrator. Run `python -m pytest -q tests/test_auto_merge*.py` with jq
+Python orchestrator. Run `python -m pytest -q tests/test_auto_merge*.py` with jq and PyYAML
 installed. Keep the CI run names synchronized with `ci_run.jq` and `gate.py`.

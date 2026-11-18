@@ -48,7 +48,9 @@ def transport(data, calls):
         if path == "graphql":
             if "reviewThreads" in kwargs["fields"]["query"]:
                 return data["threads"]
-            nodes = [{"databaseId": r["id"], "updatedAt": r.get("edited_at", r["submitted_at"])}
+            nodes = [{"databaseId": r.get("legacy_id", r["id"]),
+                      "fullDatabaseId": r.get("graphql_id", r["id"]),
+                      "updatedAt": r.get("edited_at", r["submitted_at"])}
                      for page in data["reviews"] for r in page]
             return [{"data": {"repository": {"pullRequest": {"reviews": {"nodes": nodes}}}}}]
         for suffix, key in [("/pulls/7", "pr"), ("/reactions?", "reactions"),
@@ -290,3 +292,69 @@ def test_new_trusted_feedback_during_second_snapshot_blocks(channel):
             pytest.raises(ValueError, match="trusted feedback"):
         gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
     assert not any(path.endswith("/merge") for path, _ in calls)
+
+
+@pytest.mark.parametrize("rest_id, graphql_id", [
+    (5949252876, "5949252876"),
+    ("5949252876", 5949252876),
+    (9007199254740993, "9007199254740993"),
+    ("9223372036854775807", 9223372036854775807),
+])
+def test_full_database_ids_join_across_json_types(rest_id, graphql_id):
+    data = fixture()
+    entry = feedback("reviews", at="2026-10-26T16:00:00Z")
+    entry.update(id=rest_id, graphql_id=graphql_id, legacy_id=None)
+    data["reviews"][0].append(entry)
+    calls = merge(data)
+    queries = [args["fields"]["query"] for path, args in calls if path == "graphql"]
+    assert any("fullDatabaseId" in query for query in queries)
+    assert all("nodes{databaseId" not in query for query in queries)
+    assert any(path.endswith("/merge") for path, _ in calls)
+
+
+@pytest.mark.parametrize("field", ["id", "graphql_id"])
+@pytest.mark.parametrize("invalid", [None, True, False, 5949252876.0, 0, -1,
+                                    "", " 42", "+42", "-42", "42.0", "4e2", "٤٢", {}, []])
+def test_invalid_review_database_ids_fail_closed(field, invalid):
+    data = fixture()
+    entry = feedback("reviews", at="2026-10-26T16:00:00Z")
+    entry.update(id=5949252876, graphql_id="5949252876", legacy_id=None)
+    entry[field] = invalid
+    data["reviews"][0].append(entry)
+    calls = []
+    with patch.object(gate, "api", transport(data, calls)), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="review database ID"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+    assert not any(path.endswith("/merge") for path, _ in calls)
+
+
+def test_large_review_id_still_blocks_newer_edit():
+    data = fixture()
+    entry = feedback("reviews", at="2026-10-26T16:00:00Z")
+    entry.update(id=5949252876, graphql_id="5949252876", legacy_id=None,
+                 edited_at="2026-10-26T16:16:00Z")
+    data["reviews"][0].append(entry)
+    with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="trusted feedback review"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+
+
+def test_unmatched_full_review_id_does_not_use_legacy_id():
+    data = fixture()
+    entry = feedback("reviews", at="2026-10-26T16:00:00Z")
+    entry.update(id=5949252876, graphql_id="5949252877", legacy_id=5949252876)
+    data["reviews"][0].append(entry)
+    with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="missing trusted feedback timestamp"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+
+
+def test_duplicate_normalized_ids_fail_closed():
+    data = fixture()
+    for key in [5949252876, "5949252876"]:
+        entry = feedback("reviews", at="2026-10-26T16:00:00Z")
+        entry.update(id=key, graphql_id=key)
+        data["reviews"][0].append(entry)
+    with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="duplicate review database ID"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)

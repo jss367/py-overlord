@@ -17,7 +17,7 @@ THREAD_QUERY = """query($owner:String!,$name:String!,$number:Int!,$endCursor:Str
 FEEDBACK_QUERY = """query($owner:String!,$name:String!,$number:Int!,$endCursor:String){
  repository(owner:$owner,name:$name){pullRequest(number:$number){
  reviews(first:100,after:$endCursor){pageInfo{hasNextPage endCursor}
- nodes{databaseId updatedAt}}}}}"""
+ nodes{fullDatabaseId updatedAt}}}}}"""
 
 
 def api(path, *, method="GET", fields=None, pages=False):
@@ -62,6 +62,26 @@ def feedback_time(value):
     return parsed
 
 
+def review_id(value):
+    # GitHub BigInt may be a decimal JSON string while REST uses an integer.
+    # Never round through float or accept bool (a subclass of int in Python).
+    require(type(value) is int or (isinstance(value, str) and value.isascii() and value.isdecimal()),
+            "invalid review database ID")
+    number = int(value)
+    require(number > 0, "invalid review database ID")
+    return str(number)
+
+
+def review_edit_times(pages):
+    result = {}
+    for page in pages:
+        for review in page["data"]["repository"]["pullRequest"]["reviews"]["nodes"]:
+            key = review_id(review["fullDatabaseId"])
+            require(key not in result, "duplicate review database ID")
+            result[key] = review["updatedAt"]
+    return result
+
+
 def check_feedback(comments, reviews, review_updates, thumbs):
     cutoff = feedback_time(thumbs)
     for page in comments:
@@ -78,7 +98,7 @@ def check_feedback(comments, reviews, review_updates, thumbs):
                 # REST omits review edit times. Join GraphQL's updatedAt by
                 # database ID so editing an old COMMENTED review also blocks.
                 require(feedback_time(entry.get("submitted_at")) < cutoff
-                        and feedback_time(review_updates.get(entry["id"])) < cutoff,
+                        and feedback_time(review_updates.get(review_id(entry["id"]))) < cutoff,
                         "trusted feedback review is not older than Codex approval")
 
 
@@ -117,8 +137,7 @@ def snapshot(repo, number, head, default, workflows):
     if any(trusted_feedback(r) for page in reviews for r in page):
         updates = api("graphql", method="POST", fields={"owner": repo.split("/")[0],
                       "name": repo.split("/")[1], "number": number, "query": FEEDBACK_QUERY}, pages=True)
-        review_updates = {r["databaseId"]: r["updatedAt"] for page in updates
-                          for r in page["data"]["repository"]["pullRequest"]["reviews"]["nodes"]}
+        review_updates = review_edit_times(updates)
     check_feedback(comments, reviews, review_updates, thumbs)
     threads = api("graphql", method="POST", fields={"owner": repo.split("/")[0],
                   "name": repo.split("/")[1], "number": number, "query": THREAD_QUERY}, pages=True)
