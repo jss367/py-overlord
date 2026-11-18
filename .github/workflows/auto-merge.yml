@@ -1,174 +1,46 @@
 name: Auto Merge
-
-# Enables auto-merge on a PR when a trusted actor (the repo owner or
-# the Codex review bot) signals approval via:
-#   - a 👍 reaction on the PR, made AFTER the most recent push (polled
-#     every 15 minutes), or
-#   - a comment on the PR containing 👍 (event-driven).
-#
-# Skip conditions:
-#   - The comment is Codex's review-summary comment. Its boilerplate
-#     "About Codex in GitHub" block always contains the literal text
-#     "reacts with 👍 once all reviews finish with no findings", so a
-#     naive body match armed auto-merge on *every* Codex review —
-#     including ones that went on to post P2 findings, and roughly two
-#     minutes before those findings landed. Codex signals approval with a
-#     reaction, not a comment, so the scheduled poll below is the real
-#     path for bot approval; this job now only serves human 👍 comments.
-#   - PR targets a branch other than main (event-driven posts a comment
-#     explaining; scheduled poll skips silently).
-#   - Open child PRs still target this PR's head branch (event-driven
-#     posts a comment; scheduled poll skips silently). This avoids
-#     merging the bottom of a stack and orphaning children.
-#
-# Auto-merge itself defers to GitHub's branch protection — the PR will
-# only actually merge once required status checks (test, lint) pass.
-#
-# Note: by design, this workflow does NOT check whether review threads
-# are resolved. The post-push reaction cutoff (and Codex's behavior of
-# only +1ing when it has no further suggestions) is the safety net.
-
 on:
-  issue_comment:
-    types: [created]
   schedule:
     - cron: '*/15 * * * *'
+  issue_comment:
+    types: [created, edited]
   workflow_dispatch:
-
-concurrency:
-  group: auto-merge-${{ github.event.issue.number || github.sha }}
-  cancel-in-progress: false
-
 permissions:
   contents: write
   pull-requests: write
-  issues: write
-
+  issues: read
+  actions: write
+concurrency:
+  group: auto-merge
+  cancel-in-progress: false
 jobs:
-  merge-on-thumbsup-comment:
+  auto-merge:
     if: >-
-      github.event_name == 'issue_comment'
-      && github.event.issue.pull_request
-      && contains(github.event.comment.body, '👍')
-      && !contains(github.event.comment.body, '<!-- codex-pull-request-review-summary -->')
-      && (github.event.comment.author_association == 'OWNER'
-          || github.event.comment.author_association == 'COLLABORATOR'
-          || github.actor == 'chatgpt-codex-connector[bot]')
+      github.event_name != 'issue_comment' ||
+      (github.event.issue.pull_request &&
+       github.event.comment.user.login == 'chatgpt-codex-connector[bot]' &&
+       contains(github.event.comment.body, 'codex-pull-request-review-summary'))
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Enable auto-merge
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          PR: ${{ github.event.issue.number }}
-        run: |
-          base=$(gh pr view "$PR" --repo "$REPO" --json baseRefName -q .baseRefName)
-          head=$(gh pr view "$PR" --repo "$REPO" --json headRefName -q .headRefName)
-          head_repo=$(gh pr view "$PR" --repo "$REPO" \
-            --json headRepositoryOwner,headRepository \
-            -q '.headRepositoryOwner.login + "/" + .headRepository.name')
-
-          if [[ "$base" != "main" ]]; then
-            gh pr comment "$PR" --repo "$REPO" --body "🤖 Auto-merge skipped: PR targets \`$base\` instead of \`main\`. Stacked PRs must be merged manually from leaf to root."
-            exit 0
-          fi
-
-          # Child-PR gate only applies to same-repo PRs. For a fork PR whose
-          # head branch happens to share a name with one in this repo,
-          # `gh pr list --base "$head"` would count unrelated upstream PRs.
-          if [[ "$head_repo" == "$REPO" ]]; then
-            children=$(gh pr list --repo "$REPO" --base "$head" --state open --json number -q 'length')
-            if [[ "$children" -gt 0 ]]; then
-              gh pr comment "$PR" --repo "$REPO" --body "🤖 Auto-merge skipped: $children open child PR(s) still target \`$head\`. Resolve or close children first, then re-react."
-              exit 0
-            fi
-          fi
-
-          title=$(gh pr view "$PR" --repo "$REPO" --json title -q .title)
-          gh pr merge "$PR" --repo "$REPO" --squash --auto --delete-branch \
-            --subject "${title} (#${PR})"
-          echo "Auto-merge enabled on PR #${PR}. GitHub will merge when CI passes."
-
-  merge-on-reaction:
-    if: >-
-      github.event_name == 'schedule'
-      || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Find approved open PRs
-        id: approved
+      - name: Find default branch
+        id: default
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
         run: |
-          TRUSTED_ACTORS="jss367 chatgpt-codex-connector[bot]"
-
-          prs=$(gh pr list --repo "$REPO" --state open --json number -q '.[].number')
-
-          if [[ -z "$prs" ]]; then
-            echo "No open PRs."
-            echo "has_approved=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          approved_prs=""
-          for pr in $prs; do
-            last_push=$(gh pr view "$pr" --repo "$REPO" \
-              --json commits --jq '.commits[-1].committedDate')
-
-            reaction_match=$(gh api "repos/${REPO}/issues/${pr}/reactions" \
-              | jq --arg cutoff "$last_push" \
-                '[.[] | select(.content == "+1" and .created_at > $cutoff) | .user.login]')
-
-            for actor in $TRUSTED_ACTORS; do
-              if echo "$reaction_match" | jq -e "index(\"$actor\")" > /dev/null 2>&1; then
-                echo "PR #${pr} has +1 from ${actor} after latest push (${last_push})"
-                approved_prs="${approved_prs} ${pr}"
-                break
-              fi
-            done
-          done
-
-          approved_prs=$(echo "$approved_prs" | xargs)
-          if [[ -z "$approved_prs" ]]; then
-            echo "No PRs with trusted +1 reactions."
-            echo "has_approved=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "Approved PRs: $approved_prs"
-            echo "has_approved=true" >> "$GITHUB_OUTPUT"
-            echo "pr_numbers=$approved_prs" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Enable auto-merge on each approved PR
-        if: steps.approved.outputs.has_approved == 'true'
+          set -euo pipefail
+          branch=$(gh api "repos/$REPO" --jq '.default_branch // empty')
+          test -n "$branch"
+          git check-ref-format "refs/heads/$branch" >/dev/null
+          printf 'branch=%s\n' "$branch" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.default.outputs.branch }}
+          sparse-checkout: .github/auto-merge
+          persist-credentials: false
+      - name: Evaluate exact-head reviews and repository CI
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-        run: |
-          for pr in ${{ steps.approved.outputs.pr_numbers }}; do
-            echo "=== Processing PR #${pr} ==="
-            base=$(gh pr view "$pr" --repo "$REPO" --json baseRefName -q .baseRefName)
-            head=$(gh pr view "$pr" --repo "$REPO" --json headRefName -q .headRefName)
-            head_repo=$(gh pr view "$pr" --repo "$REPO" \
-              --json headRepositoryOwner,headRepository \
-              -q '.headRepositoryOwner.login + "/" + .headRepository.name')
-
-            if [[ "$base" != "main" ]]; then
-              echo "PR #${pr}: targets '${base}' not 'main' — skipping (no comment posted by scheduled poll)."
-              continue
-            fi
-
-            # Child-PR gate only applies to same-repo PRs (see merge-on-thumbsup-comment).
-            if [[ "$head_repo" == "$REPO" ]]; then
-              children=$(gh pr list --repo "$REPO" --base "$head" --state open --json number -q 'length')
-              if [[ "$children" -gt 0 ]]; then
-                echo "PR #${pr}: ${children} open child PR(s) target '${head}' — skipping (no comment posted by scheduled poll)."
-                continue
-              fi
-            fi
-
-            title=$(gh pr view "$pr" --repo "$REPO" --json title -q .title)
-            gh pr merge "$pr" --repo "$REPO" --squash --auto --delete-branch \
-              --subject "${title} (#${pr})" \
-              || echo "WARNING: Auto-merge failed for PR #${pr}"
-          done
+        run: python3 .github/auto-merge/gate.py
