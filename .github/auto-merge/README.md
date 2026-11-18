@@ -12,6 +12,17 @@ repository. Standing change requests and unresolved human review threads (even
 outdated ones) block. Codex threads are governed by its structured findings state.
 A base retarget invalidates prior approval.
 
+Every nonempty top-level comment or review body from a GitHub-authenticated
+`OWNER` or `COLLABORATOR` human must strictly predate Codex's approval reaction.
+Comment creation/edit times and review submission/edit times count; REST reviews
+are joined to GraphQL `updatedAt` by database ID to detect edited review bodies.
+Missing or ambiguous timestamps fail closed, and a same-second tie blocks.
+This intentionally treats even positive feedback and automation notices posted
+through a human account as requiring a fresh clean review/approval. There are no
+text-marker exemptions. GitHub `Bot` identities and other author associations do
+not set this cutoff; standing change requests and unresolved threads still block
+independently. A new reaction alone cannot replace the exact-head clean summary.
+
 `required-ci.json` lists actual workflow filenames and mandatory job names.
 The latest PR run must test the exact head and current base revision, match the
 PR, source repository/branch and target name, and complete successfully. Every

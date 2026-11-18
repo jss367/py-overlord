@@ -46,7 +46,11 @@ def transport(data, calls):
         if path == f"repos/{REPO}":
             return {"default_branch": "main"}
         if path == "graphql":
-            return data["threads"]
+            if "reviewThreads" in kwargs["fields"]["query"]:
+                return data["threads"]
+            nodes = [{"databaseId": r["id"], "updatedAt": r.get("edited_at", r["submitted_at"])}
+                     for page in data["reviews"] for r in page]
+            return [{"data": {"repository": {"pullRequest": {"reviews": {"nodes": nodes}}}}}]
         for suffix, key in [("/pulls/7", "pr"), ("/reactions?", "reactions"),
                             ("/timeline?", "timeline"), ("/reviews?", "reviews"),
                             ("/comments?", "comments"), ("/runs?", "runs"),
@@ -99,7 +103,7 @@ def test_full_gate_blocks_unsafe_evidence(change):
     if change == "retargeted": data["timeline"] = [[{
         "event": "base_ref_changed", "created_at": "2026-10-26T16:30:00Z"}]]
     calls = []
-    with patch.object(gate, "api", transport(data, calls)), pytest.raises(ValueError):
+    with patch.object(gate, "api", transport(data, calls)), patch.object(gate, "dispatch"), pytest.raises(ValueError):
         gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
     assert not any(path.endswith("/merge") for path, _ in calls)
 
@@ -118,7 +122,7 @@ def test_new_objection_during_second_snapshot_prevents_merge():
                 data["threads"] = [thread_page(thread("alice"))]
         return fake(path, **kwargs)
 
-    with patch.object(gate, "api", mutate), pytest.raises(ValueError):
+    with patch.object(gate, "api", mutate), patch.object(gate, "dispatch"), pytest.raises(ValueError):
         gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
     assert not any(path.endswith("/merge") for path, _ in calls)
 
@@ -137,7 +141,7 @@ def test_head_moving_at_final_recheck_never_calls_merge():
                 data["pr"]["head"]["sha"] = OLD
         return fake(path, **kwargs)
 
-    with patch.object(gate, "api", mutate), pytest.raises(ValueError):
+    with patch.object(gate, "api", mutate), patch.object(gate, "dispatch"), pytest.raises(ValueError):
         gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
     assert not any(path.endswith("/merge") for path, _ in calls)
 
@@ -152,3 +156,137 @@ def test_legacy_auto_request_is_disabled_even_when_new_gate_blocks(monkeypatch):
             patch.object(gate.subprocess, "run") as run:
         gate.main()
     run.assert_called_once_with(["gh", "pr", "merge", "7", "--repo", REPO, "--disable-auto"], check=True)
+
+
+def feedback(channel, *, association="OWNER", at="2026-10-26T16:16:00Z", body="Hold this merge: the safety check is missing.", kind="User"):
+    entry = {"user": {"login": "alice", "type": kind},
+             "author_association": association, "body": body}
+    if channel == "comments":
+        entry.update(created_at=at, updated_at=at)
+    else:
+        entry.update(id=42, state="COMMENTED", submitted_at=at)
+    return entry
+
+
+@pytest.mark.parametrize("channel", ["comments", "reviews"])
+@pytest.mark.parametrize("association", ["OWNER", "COLLABORATOR"])
+def test_trusted_top_level_feedback_in_both_snapshots_blocks(channel, association):
+    data = fixture()
+    data[channel][0].append(feedback(channel, association=association))
+    calls = []
+    with patch.object(gate, "api", transport(data, calls)), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="trusted feedback"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+    assert not any(path.endswith("/merge") for path, _ in calls)
+
+
+@pytest.mark.parametrize("channel", ["comments", "reviews"])
+@pytest.mark.parametrize("at", ["2026-10-26T16:15:50Z", "2026-10-26T16:16:00Z"])
+def test_trusted_feedback_at_or_after_approval_blocks(channel, at):
+    data = fixture()
+    data[channel][0].append(feedback(channel, at=at))
+    with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="trusted feedback"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+
+
+@pytest.mark.parametrize("channel", ["comments", "reviews"])
+def test_approval_strictly_newer_than_trusted_feedback_allows_merge(channel):
+    data = fixture()
+    data[channel][0].append(feedback(channel, at="2026-10-26T16:15:49Z"))
+    assert any(path.endswith("/merge") for path, _ in merge(data))
+
+
+@pytest.mark.parametrize("channel, field", [("comments", "updated_at"), ("reviews", "edited_at")])
+def test_old_feedback_edited_after_approval_blocks(channel, field):
+    data = fixture()
+    entry = feedback(channel, at="2026-10-26T16:00:00Z")
+    entry[field] = "2026-10-26T16:16:00Z"
+    data[channel][0].append(entry)
+    calls = []
+    with patch.object(gate, "api", transport(data, calls)), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="trusted feedback"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+    assert not any(path.endswith("/merge") for path, _ in calls)
+
+
+@pytest.mark.parametrize("channel", ["comments", "reviews"])
+@pytest.mark.parametrize("association, kind", [("NONE", "User"), ("CONTRIBUTOR", "User"),
+                                               ("MEMBER", "User"), ("OWNER", "Bot")])
+def test_only_authenticated_owner_or_collaborator_human_feedback_sets_cutoff(channel, association, kind):
+    data = fixture()
+    data[channel][0].append(feedback(channel, association=association, kind=kind))
+    assert any(path.endswith("/merge") for path, _ in merge(data))
+
+
+@pytest.mark.parametrize("body", ["LGTM", "<!-- automated-notice -->\nHold the merge", "@codex review"])
+def test_human_text_cannot_exempt_feedback_as_benign_automation(body):
+    data = fixture()
+    data["comments"][0].append(feedback("comments", body=body))
+    with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="trusted feedback"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+
+
+@pytest.mark.parametrize("channel", ["comments", "reviews"])
+def test_empty_approval_or_comment_body_adds_no_feedback_cutoff(channel):
+    data = fixture()
+    data[channel][0].append(feedback(channel, body="  \n"))
+    assert any(path.endswith("/merge") for path, _ in merge(data))
+
+
+def test_unknown_trusted_author_type_fails_closed():
+    data = fixture()
+    data["comments"][0].append(feedback("comments", kind="Unknown"))
+    with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="trusted feedback author"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+
+
+@pytest.mark.parametrize("timestamp", [None, "2026-10-26T16:00:00"])
+def test_missing_or_ambiguous_issue_edit_time_fails_closed(timestamp):
+    data = fixture()
+    entry = feedback("comments", at="2026-10-26T16:00:00Z")
+    entry["updated_at"] = timestamp
+    data["comments"][0].append(entry)
+    with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="trusted feedback timestamp"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+
+
+def test_missing_graphql_review_edit_time_fails_closed():
+    data = fixture()
+    data["reviews"][0].append(feedback("reviews", at="2026-10-26T16:00:00Z"))
+    data["reviews"][0][-1]["edited_at"] = None
+    with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="trusted feedback timestamp"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+
+
+def test_trusted_comment_on_second_page_blocks():
+    data = fixture()
+    data["comments"].append([feedback("comments")])
+    with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="trusted feedback"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+
+
+@pytest.mark.parametrize("channel", ["comments", "reviews"])
+def test_new_trusted_feedback_during_second_snapshot_blocks(channel):
+    data = fixture()
+    calls = []
+    fake = transport(data, calls)
+    count = 0
+
+    def mutate(path, **kwargs):
+        nonlocal count
+        if path.endswith("/pulls/7"):
+            count += 1
+            if count == 2:
+                data[channel][0].append(feedback(channel))
+        return fake(path, **kwargs)
+
+    with patch.object(gate, "api", mutate), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="trusted feedback"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+    assert not any(path.endswith("/merge") for path, _ in calls)

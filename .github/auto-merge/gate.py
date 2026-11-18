@@ -3,6 +3,7 @@
 import json
 import os
 import subprocess
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -12,6 +13,11 @@ THREAD_QUERY = """query($owner:String!,$name:String!,$number:Int!,$endCursor:Str
  repository(owner:$owner,name:$name){pullRequest(number:$number){
  reviewThreads(first:100,after:$endCursor){pageInfo{hasNextPage endCursor}
  nodes{isResolved isOutdated path line comments(first:1){nodes{author{login}}}}}}}}"""
+
+FEEDBACK_QUERY = """query($owner:String!,$name:String!,$number:Int!,$endCursor:String){
+ repository(owner:$owner,name:$name){pullRequest(number:$number){
+ reviews(first:100,after:$endCursor){pageInfo{hasNextPage endCursor}
+ nodes{databaseId updatedAt}}}}}"""
 
 
 def api(path, *, method="GET", fields=None, pages=False):
@@ -35,6 +41,45 @@ def verdict(program, data, **args):
 def require(condition, reason):
     if not condition:
         raise ValueError(reason)
+
+
+def trusted_feedback(entry):
+    # GitHub supplies author_association and user.type, not comment text.
+    # No textual automation marker exempts a real owner's feedback.
+    if entry.get("author_association") not in {"OWNER", "COLLABORATOR"}:
+        return False
+    kind = entry["user"]["type"]
+    require(kind in {"User", "Bot"}, "unknown trusted feedback author type")
+    body = entry.get("body")
+    require(body is None or isinstance(body, str), "unreadable trusted feedback body")
+    return kind == "User" and bool(body and body.strip())
+
+
+def feedback_time(value):
+    require(isinstance(value, str), "missing trusted feedback timestamp")
+    parsed = datetime.fromisoformat(value)
+    require(parsed.tzinfo is not None, "ambiguous trusted feedback timestamp")
+    return parsed
+
+
+def check_feedback(comments, reviews, review_updates, thumbs):
+    cutoff = feedback_time(thumbs)
+    for page in comments:
+        for entry in page:
+            if trusted_feedback(entry):
+                # Both creation and edits matter, including an old comment
+                # changed into an objection after the approval.
+                require(all(feedback_time(entry.get(field)) < cutoff
+                            for field in ("created_at", "updated_at")),
+                        "trusted feedback comment is not older than Codex approval")
+    for page in reviews:
+        for entry in page:
+            if trusted_feedback(entry):
+                # REST omits review edit times. Join GraphQL's updatedAt by
+                # database ID so editing an old COMMENTED review also blocks.
+                require(feedback_time(entry.get("submitted_at")) < cutoff
+                        and feedback_time(review_updates.get(entry["id"])) < cutoff,
+                        "trusted feedback review is not older than Codex approval")
 
 
 def children(repo, pr):
@@ -68,6 +113,13 @@ def snapshot(repo, number, head, default, workflows):
     comments = api(f"{root}/issues/{number}/comments?per_page=100", pages=True)
     require(verdict("codex_state.jq", comments, bot=BOT, head=head, thumbs=thumbs) == "ok",
             "no clean exact-head structured Codex review")
+    review_updates = {}
+    if any(trusted_feedback(r) for page in reviews for r in page):
+        updates = api("graphql", method="POST", fields={"owner": repo.split("/")[0],
+                      "name": repo.split("/")[1], "number": number, "query": FEEDBACK_QUERY}, pages=True)
+        review_updates = {r["databaseId"]: r["updatedAt"] for page in updates
+                          for r in page["data"]["repository"]["pullRequest"]["reviews"]["nodes"]}
+    check_feedback(comments, reviews, review_updates, thumbs)
     threads = api("graphql", method="POST", fields={"owner": repo.split("/")[0],
                   "name": repo.split("/")[1], "number": number, "query": THREAD_QUERY}, pages=True)
     require(verdict("threads.jq", threads, author="chatgpt-codex-connector") == "ok",
@@ -90,7 +142,7 @@ def snapshot(repo, number, head, default, workflows):
         evidence.append((runs, jobs))
     # Comparing complete fetched evidence also detects reruns, edited summaries,
     # newly added objections, retargeting and children during the first pass.
-    return pr, child_pages, reactions, timeline, reviews, comments, threads, evidence
+    return pr, child_pages, reactions, timeline, reviews, comments, review_updates, threads, evidence
 
 
 def dispatch(repo, workflow, default):
