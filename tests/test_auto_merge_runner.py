@@ -1,0 +1,154 @@
+"""Exercise the complete decision with synthetic GitHub responses, without a token."""
+
+import copy
+import importlib.util
+from pathlib import Path
+from unittest.mock import patch
+
+import pytest
+
+FIXTURE_SPEC = importlib.util.spec_from_file_location("merge_fixtures", Path(__file__).with_name("test_auto_merge.py"))
+fixtures = importlib.util.module_from_spec(FIXTURE_SPEC)
+FIXTURE_SPEC.loader.exec_module(fixtures)
+BOT, HEAD, OLD = fixtures.BOT, fixtures.HEAD, fixtures.OLD
+job, review, summary, thread, thread_page = fixtures.job, fixtures.review, fixtures.summary, fixtures.thread, fixtures.thread_page
+
+PATH = Path(__file__).resolve().parents[1] / ".github/auto-merge/gate.py"
+SPEC = importlib.util.spec_from_file_location("merge_gate", PATH)
+gate = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(gate)
+REPO = "jss367/example"
+WORKFLOWS = {"tests.yml": ["test"]}
+
+
+def fixture():
+    pr = {"number": 7, "state": "open", "draft": False, "labels": [],
+          "mergeable": True, "auto_merge": None,
+          "head": {"sha": HEAD, "ref": "feature", "repo": {"full_name": REPO}},
+          "base": {"ref": "main", "sha": OLD}}
+    run = {"id": 12, "run_number": 12, "event": "pull_request", "head_sha": HEAD,
+           "head_branch": "feature", "head_repository": {"full_name": REPO},
+           "pull_requests": [{"number": 7, "base": {"sha": OLD}}],
+           "display_title": "Tests for pull request #7 against main",
+           "created_at": "2026-10-26T16:20:00Z", "status": "completed", "conclusion": "success"}
+    return {"pr": pr, "children": [[]], "reactions": [[{
+        "content": "+1", "user": {"login": BOT}, "created_at": "2026-10-26T16:15:50Z"}]],
+        "timeline": [[]], "reviews": [[]], "comments": [[summary()]],
+        "threads": [thread_page()], "runs": [{"workflow_runs": [run]}],
+        "jobs": [{"jobs": [job(1, "success", 1, name="test")]}]}
+
+
+def transport(data, calls):
+    def fake(path, **kwargs):
+        calls.append((path, kwargs))
+        if path.endswith('/merge'):
+            return {"merged": True}
+        if path == f"repos/{REPO}":
+            return {"default_branch": "main"}
+        if path == "graphql":
+            return data["threads"]
+        for suffix, key in [("/pulls/7", "pr"), ("/reactions?", "reactions"),
+                            ("/timeline?", "timeline"), ("/reviews?", "reviews"),
+                            ("/comments?", "comments"), ("/runs?", "runs"),
+                            ("/jobs?", "jobs"), ("/pulls?", "children")]:
+            if (path.endswith(suffix) if key == "pr" else suffix in path):
+                return copy.deepcopy(data[key])
+        raise AssertionError(path)
+    return fake
+
+
+def merge(data):
+    calls = []
+    with patch.object(gate, "api", transport(data, calls)), patch.object(gate, "dispatch") as run:
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+        run.assert_called_once_with(REPO, "tests.yml", "main")
+    return calls
+
+
+def test_complete_clean_snapshot_merges_synchronously_at_exact_head():
+    calls = merge(fixture())
+    merges = [kwargs for path, kwargs in calls if path.endswith("/merge")]
+    assert merges == [{"method": "PUT", "fields": {"sha": HEAD, "merge_method": "squash"}}]
+    assert sum(path.endswith("/pulls/7") for path, _ in calls) == 3
+
+
+@pytest.mark.parametrize("change", [
+    "draft", "optout", "new_head", "findings", "stale_review", "human_reaction",
+    "missing_ci", "pending_ci", "failed_ci", "skipped_job", "missing_job", "old_base",
+    "human_changes", "human_thread", "child", "native_auto", "retargeted",
+])
+def test_full_gate_blocks_unsafe_evidence(change):
+    data = fixture()
+    if change == "draft": data["pr"]["draft"] = True
+    if change == "optout": data["pr"]["labels"] = [{"name": "no-automerge"}]
+    if change == "new_head": data["pr"]["head"]["sha"] = OLD
+    if change == "findings": data["comments"] = [[summary(review(any_findings=True))]]
+    if change == "stale_review": data["comments"] = [[summary(review(commit=OLD))]]
+    if change == "human_reaction": data["reactions"][0][0]["user"]["login"] = "jss367"
+    if change == "missing_ci": data["runs"] = [{"workflow_runs": []}]
+    if change == "pending_ci": data["runs"][0]["workflow_runs"][0]["status"] = "in_progress"
+    if change == "failed_ci": data["runs"][0]["workflow_runs"][0]["conclusion"] = "failure"
+    if change == "skipped_job": data["jobs"][0]["jobs"][0]["conclusion"] = "skipped"
+    if change == "missing_job": data["jobs"] = [{"jobs": []}]
+    if change == "old_base": data["pr"]["base"]["sha"] = "d" * 40
+    if change == "human_changes": data["reviews"] = [[{
+        "user": {"login": "alice"}, "state": "CHANGES_REQUESTED", "id": 1, "submitted_at": "2026-10-26T16:00:00Z"}]]
+    if change == "human_thread": data["threads"] = [thread_page(thread("alice"))]
+    if change == "child": data["children"] = [[{"number": 8}]]
+    if change == "native_auto": data["pr"]["auto_merge"] = {"enabled_by": {"login": "alice"}}
+    if change == "retargeted": data["timeline"] = [[{
+        "event": "base_ref_changed", "created_at": "2026-10-26T16:30:00Z"}]]
+    calls = []
+    with patch.object(gate, "api", transport(data, calls)), pytest.raises(ValueError):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+    assert not any(path.endswith("/merge") for path, _ in calls)
+
+
+def test_new_objection_during_second_snapshot_prevents_merge():
+    data = fixture()
+    calls = []
+    fake = transport(data, calls)
+    count = 0
+
+    def mutate(path, **kwargs):
+        nonlocal count
+        if path.endswith("/pulls/7"):
+            count += 1
+            if count == 2:
+                data["threads"] = [thread_page(thread("alice"))]
+        return fake(path, **kwargs)
+
+    with patch.object(gate, "api", mutate), pytest.raises(ValueError):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+    assert not any(path.endswith("/merge") for path, _ in calls)
+
+
+def test_head_moving_at_final_recheck_never_calls_merge():
+    data = fixture()
+    calls = []
+    fake = transport(data, calls)
+    count = 0
+
+    def mutate(path, **kwargs):
+        nonlocal count
+        if path.endswith("/pulls/7"):
+            count += 1
+            if count == 3:
+                data["pr"]["head"]["sha"] = OLD
+        return fake(path, **kwargs)
+
+    with patch.object(gate, "api", mutate), pytest.raises(ValueError):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+    assert not any(path.endswith("/merge") for path, _ in calls)
+
+
+def test_legacy_auto_request_is_disabled_even_when_new_gate_blocks(monkeypatch):
+    data = fixture()
+    data["pr"]["auto_merge"] = {"enabled_by": {"login": "jss367"}}
+    data["pr"]["draft"] = True
+    monkeypatch.setenv("REPO", REPO)
+    with patch.object(gate, "api", side_effect=[{"default_branch": "main"}, [[data["pr"]]]]), \
+            patch.object(gate, "merge_candidate", side_effect=ValueError("draft")), \
+            patch.object(gate.subprocess, "run") as run:
+        gate.main()
+    run.assert_called_once_with(["gh", "pr", "merge", "7", "--repo", REPO, "--disable-auto"], check=True)
