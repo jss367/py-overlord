@@ -28,7 +28,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-        run: echo "branch=$(gh api "repos/$REPO" --jq .default_branch)" >> "$GITHUB_OUTPUT"
+        run: |
+          set -euo pipefail
+          branch=$(gh api "repos/$REPO" --jq '.default_branch // empty')
+          test -n "$branch"
+          git check-ref-format "refs/heads/$branch" >/dev/null
+          printf 'branch=%s\n' "$branch" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v4
         with:
           ref: ${{ steps.default.outputs.branch }}

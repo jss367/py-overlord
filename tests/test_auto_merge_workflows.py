@@ -26,3 +26,45 @@ def test_required_workflow_yaml_title_is_accepted_by_ci_selector(workflow):
     selected = fixtures.ci_run(run)
     assert selected is not None, f"{workflow}: parsed YAML run-name {title!r} cannot pass the merge gate"
     assert selected["id"] == run["id"]
+
+
+@pytest.mark.parametrize("branch, exit_code", [("main", 17), ("", 0), ("bad branch", 0), ("main\nother", 0)])
+def test_default_branch_lookup_failure_never_writes_checkout_output(tmp_path, branch, exit_code):
+    import os
+    import subprocess
+
+    document = yaml.safe_load((ROOT / ".github/workflows/auto-merge.yml").read_text())
+    steps = document["jobs"]["auto-merge"]["steps"]
+    script = next(step["run"] for step in steps if step.get("id") == "default")
+    gh = tmp_path / "gh"
+    gh.write_text('#!/bin/sh\nprintf "%s" "$STUB_BRANCH"\nexit "$STUB_EXIT"\n')
+    gh.chmod(0o755)
+    output = tmp_path / "output"
+    env = dict(os.environ, PATH=f"{tmp_path}{os.pathsep}{os.environ['PATH']}",
+               STUB_BRANCH=branch, STUB_EXIT=str(exit_code), GH_TOKEN="synthetic-token", REPO="owner/repo",
+               GITHUB_OUTPUT=str(output))
+    result = subprocess.run(["bash", "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", script],
+                            env=env, capture_output=True, text=True, check=False)
+    assert result.returncode != 0
+    assert not output.exists() or output.read_text() == ""
+
+
+@pytest.mark.parametrize("branch", ["main", "release/next"])
+def test_successful_default_lookup_selects_validated_checkout_ref(tmp_path, branch):
+    import os
+    import subprocess
+
+    document = yaml.safe_load((ROOT / ".github/workflows/auto-merge.yml").read_text())
+    steps = document["jobs"]["auto-merge"]["steps"]
+    script = next(step["run"] for step in steps if step.get("id") == "default")
+    checkout = next(step for step in steps if step.get("uses", "").startswith("actions/checkout@"))
+    assert checkout["with"]["ref"] == "${{ steps.default.outputs.branch }}"
+    gh = tmp_path / "gh"
+    gh.write_text('#!/bin/sh\nprintf "%s" "$STUB_BRANCH"\n')
+    gh.chmod(0o755)
+    output = tmp_path / "output"
+    env = dict(os.environ, PATH=f"{tmp_path}{os.pathsep}{os.environ['PATH']}",
+               STUB_BRANCH=branch, GH_TOKEN="synthetic-token", REPO="owner/repo", GITHUB_OUTPUT=str(output))
+    subprocess.run(["bash", "--noprofile", "--norc", "-e", "-o", "pipefail", "-c", script],
+                   env=env, capture_output=True, text=True, check=True)
+    assert output.read_text() == f"branch={branch}\n"

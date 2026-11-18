@@ -3,6 +3,7 @@
 import json
 import os
 import subprocess
+from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlencode
@@ -12,7 +13,7 @@ BOT = "chatgpt-codex-connector[bot]"
 THREAD_QUERY = """query($owner:String!,$name:String!,$number:Int!,$endCursor:String){
  repository(owner:$owner,name:$name){pullRequest(number:$number){
  reviewThreads(first:100,after:$endCursor){pageInfo{hasNextPage endCursor}
- nodes{isResolved isOutdated path line comments(first:1){nodes{author{login}}}}}}}}"""
+ nodes{isResolved isOutdated path line comments(first:1){nodes{id author{login}}}}}}}}"""
 
 FEEDBACK_QUERY = """query($owner:String!,$name:String!,$number:Int!,$endCursor:String){
  repository(owner:$owner,name:$name){pullRequest(number:$number){
@@ -102,6 +103,56 @@ def check_feedback(comments, reviews, review_updates, thumbs):
                         "trusted feedback review is not older than Codex approval")
 
 
+def thread_participants(threads, inline):
+    # The thread query returns its first comment only. REST independently
+    # paginates every inline comment/reply, including edited and outdated ones.
+    by_id, by_node, replies = {}, {}, {}
+    for page in inline:
+        for comment in page:
+            key = review_id(comment["id"])
+            node = comment["node_id"]
+            require(isinstance(node, str) and bool(node), "missing inline comment node ID")
+            require(key not in by_id and node not in by_node, "duplicate inline comment ID")
+            by_id[key], by_node[node] = comment, key
+            if comment.get("in_reply_to_id") is not None:
+                parent = review_id(comment["in_reply_to_id"])
+                replies.setdefault(parent, []).append(key)
+    result = deepcopy(threads)
+    for page in result:
+        for thread in page["data"]["repository"]["pullRequest"]["reviewThreads"]["nodes"]:
+            first = thread["comments"]["nodes"][0] if thread["comments"]["nodes"] else {}
+            if thread["isResolved"] or (first.get("author") or {}).get("login") != "chatgpt-codex-connector":
+                continue
+            root = by_node.get(first.get("id"))
+            require(root is not None, "Codex thread root missing from paginated inline comments")
+            # The first visible comment may itself reply to a deleted root.
+            # Follow parent IDs first so sibling replies are not silently lost.
+            ancestors = set()
+            while root in by_id and by_id[root].get("in_reply_to_id") is not None:
+                require(root not in ancestors, "cyclic inline reply chain")
+                ancestors.add(root)
+                root = review_id(by_id[root]["in_reply_to_id"])
+            pending, seen, authors = [root], set(), []
+            while pending:
+                key = pending.pop()
+                require(key not in seen, "cyclic inline reply chain")
+                seen.add(key)
+                if key not in by_id:  # A deleted original root can still link visible replies.
+                    pending.extend(replies.get(key, []))
+                    continue
+                user = by_id[key].get("user") or {}
+                if user.get("login") == BOT and user.get("type") == "Bot":
+                    login = "chatgpt-codex-connector"
+                else:
+                    login = user.get("login")
+                    if login == "chatgpt-codex-connector":
+                        login = None  # An unverified human identity cannot stand in for Codex.
+                authors.append({"author": {"login": login}})
+                pending.extend(replies.get(key, []))
+            thread["comments"]["nodes"] = authors
+    return result
+
+
 def children(repo, pr):
     if pr["head"]["repo"]["full_name"] != repo:
         return []
@@ -138,10 +189,11 @@ def snapshot(repo, number, head, default, workflows):
         updates = api("graphql", method="POST", fields={"owner": repo.split("/")[0],
                       "name": repo.split("/")[1], "number": number, "query": FEEDBACK_QUERY}, pages=True)
         review_updates = review_edit_times(updates)
-    check_feedback(comments, reviews, review_updates, thumbs)
+    inline = api(f"{root}/pulls/{number}/comments?per_page=100", pages=True)
+    check_feedback(comments + inline, reviews, review_updates, thumbs)
     threads = api("graphql", method="POST", fields={"owner": repo.split("/")[0],
                   "name": repo.split("/")[1], "number": number, "query": THREAD_QUERY}, pages=True)
-    require(verdict("threads.jq", threads, author="chatgpt-codex-connector") == "ok",
+    require(verdict("threads.jq", thread_participants(threads, inline), author="chatgpt-codex-connector") == "ok",
             "unresolved review threads")
     evidence = []
     for workflow, required_jobs in workflows.items():
@@ -161,7 +213,7 @@ def snapshot(repo, number, head, default, workflows):
         evidence.append((runs, jobs))
     # Comparing complete fetched evidence also detects reruns, edited summaries,
     # newly added objections, retargeting and children during the first pass.
-    return pr, child_pages, reactions, timeline, reviews, comments, review_updates, threads, evidence
+    return pr, child_pages, reactions, timeline, reviews, comments, inline, review_updates, threads, evidence
 
 
 def dispatch(repo, workflow, default):
@@ -179,9 +231,18 @@ def merge_candidate(repo, number, head, default, workflows):
     require(live == after[0] and not any(children(repo, live)), "final PR or child state changed")
     # REST's sha precondition is atomic. Unlike gh pr merge, this cannot
     # silently queue/arm an auto-merge request when checks are pending.
-    result = api(f"repos/{repo}/pulls/{number}/merge", method="PUT",
-                 fields={"sha": head, "merge_method": "squash"})
-    require(result.get("merged") is True, "GitHub did not merge")
+    try:
+        result = api(f"repos/{repo}/pulls/{number}/merge", method="PUT",
+                     fields={"sha": head, "merge_method": "squash"})
+        if not isinstance(result, dict) or result.get("merged") is not True:
+            raise ValueError("GitHub did not confirm the merge")
+    except Exception as error:
+        # A transport/decode failure may happen AFTER GitHub merged. Never
+        # swallow it as a rejection, retry the write, or continue to other PRs.
+        raise RuntimeError(
+            f"PR #{number}: merge write failed or outcome is uncertain; stop for operator recovery. "
+            "Verify the PR merge state and dispatch required postmerge tests if merged before rerunning."
+        ) from error
     # GITHUB_TOKEN push events do not start workflows. Explicit dispatch starts
     # only these test/lint workflows; there is no deploy/release dispatch here.
     for workflow in workflows:

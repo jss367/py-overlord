@@ -2,6 +2,8 @@
 
 import copy
 import importlib.util
+import json
+import subprocess
 from pathlib import Path
 from unittest.mock import patch
 
@@ -34,7 +36,7 @@ def fixture():
     return {"pr": pr, "children": [[]], "reactions": [[{
         "content": "+1", "user": {"login": BOT}, "created_at": "2026-10-26T16:15:50Z"}]],
         "timeline": [[]], "reviews": [[]], "comments": [[summary()]],
-        "threads": [thread_page()], "runs": [{"workflow_runs": [run]}],
+        "threads": [thread_page()], "inline": [[]], "runs": [{"workflow_runs": [run]}],
         "jobs": [{"jobs": [job(1, "success", 1, name="test")]}]}
 
 
@@ -47,7 +49,7 @@ def transport(data, calls):
             return {"default_branch": "main"}
         if path == "graphql":
             if "reviewThreads" in kwargs["fields"]["query"]:
-                return data["threads"]
+                return copy.deepcopy(data["threads"])
             nodes = [{"databaseId": r.get("legacy_id", r["id"]),
                       "fullDatabaseId": r.get("graphql_id", r["id"]),
                       "updatedAt": r.get("edited_at", r["submitted_at"])}
@@ -55,7 +57,7 @@ def transport(data, calls):
             return [{"data": {"repository": {"pullRequest": {"reviews": {"nodes": nodes}}}}}]
         for suffix, key in [("/pulls/7", "pr"), ("/reactions?", "reactions"),
                             ("/timeline?", "timeline"), ("/reviews?", "reviews"),
-                            ("/comments?", "comments"), ("/runs?", "runs"),
+                            ("/pulls/7/comments?", "inline"), ("/comments?", "comments"), ("/runs?", "runs"),
                             ("/jobs?", "jobs"), ("/pulls?", "children")]:
             if (path.endswith(suffix) if key == "pr" else suffix in path):
                 return copy.deepcopy(data[key])
@@ -357,4 +359,168 @@ def test_duplicate_normalized_ids_fail_closed():
         data["reviews"][0].append(entry)
     with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), \
             pytest.raises(ValueError, match="duplicate review database ID"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+
+
+def codex_thread_with_replies(data, replies):
+    root = feedback("comments", association="NONE", kind="Bot", at="2026-10-26T16:00:00Z")
+    root.update(id=1, node_id="ROOT", in_reply_to_id=None, user={"login": BOT, "type": "Bot"})
+    node = thread("chatgpt-codex-connector")
+    node["comments"]["nodes"][0]["id"] = "ROOT"
+    data["threads"] = [thread_page(node)]
+    data["inline"] = [[root], replies]
+
+
+@pytest.mark.parametrize("edited", [False, True])
+def test_paginated_human_reply_in_codex_thread_invalidates_approval(edited):
+    data = fixture()
+    reply = feedback("comments", at="2026-10-26T16:00:00Z" if edited else "2026-10-26T16:16:00Z")
+    reply.update(id=2, node_id="REPLY", in_reply_to_id=1)
+    if edited:
+        reply["updated_at"] = "2026-10-26T16:16:00Z"
+    codex_thread_with_replies(data, [reply])
+    with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), pytest.raises(ValueError):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+
+
+def test_uncertain_merge_write_is_fatal_to_main(monkeypatch):
+    data = fixture()
+    required = json.loads((gate.GATE / "required-ci.json").read_text())
+    data["jobs"] = [{"jobs": [job(1, "success", n, name=name)
+                              for n, name in enumerate(name for names in required.values() for name in names)]}]
+    calls = []
+    fake = transport(data, calls)
+    monkeypatch.setenv("REPO", REPO)
+
+    def uncertain(path, **kwargs):
+        if path == f"repos/{REPO}/pulls?state=open&per_page=100":
+            return [[data["pr"], dict(data["pr"], number=8)]]
+        if path.endswith("/merge"):
+            calls.append((path, kwargs))
+            raise subprocess.CalledProcessError(1, ["gh", "api", path])
+        return fake(path, **kwargs)
+
+    with patch.object(gate, "api", uncertain), patch.object(gate, "dispatch") as dispatch, \
+            pytest.raises(RuntimeError, match="merge"):
+        gate.main()
+    dispatch.assert_not_called()
+    assert sum(path.endswith("/merge") for path, _ in calls) == 1
+    assert not any("/pulls/8" in path for path, _ in calls)
+
+
+def test_unresolved_mixed_thread_is_not_exempt_after_new_approval():
+    data = fixture()
+    reply = feedback("comments", association="NONE", at="2026-10-26T16:00:00Z")
+    reply.update(id=2, node_id="REPLY", in_reply_to_id=1)
+    codex_thread_with_replies(data, [reply])
+    with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="unresolved review threads"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+
+
+def test_verified_codex_only_thread_with_paginated_replies_remains_exempt():
+    data = fixture()
+    reply = feedback("comments", association="NONE", kind="Bot", at="2026-10-26T16:00:00Z")
+    reply.update(id=2, node_id="REPLY", in_reply_to_id=1, user={"login": BOT, "type": "Bot"})
+    codex_thread_with_replies(data, [reply])
+    assert any(path.endswith("/merge") for path, _ in merge(data))
+
+
+def test_missing_codex_thread_root_from_inline_pages_fails_closed():
+    data = fixture()
+    codex_thread_with_replies(data, [])
+    data["inline"] = [[]]
+    with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="thread root missing"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+
+
+def test_nested_human_reply_to_codex_reply_blocks():
+    data = fixture()
+    bot = feedback("comments", association="NONE", kind="Bot", at="2026-10-26T16:00:00Z")
+    bot.update(id=2, node_id="BOT_REPLY", in_reply_to_id=1, user={"login": BOT, "type": "Bot"})
+    human = feedback("comments", association="NONE", at="2026-10-26T16:00:00Z")
+    human.update(id=3, node_id="HUMAN_REPLY", in_reply_to_id=2)
+    codex_thread_with_replies(data, [bot, human])
+    with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="unresolved review threads"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+
+
+def test_new_inline_edit_during_second_snapshot_blocks_even_resolved_thread():
+    data = fixture()
+    human = feedback("comments", at="2026-10-26T16:00:00Z")
+    human.update(id=2, node_id="HUMAN_REPLY", in_reply_to_id=1)
+    codex_thread_with_replies(data, [human])
+    data["threads"][0]["data"]["repository"]["pullRequest"]["reviewThreads"]["nodes"][0]["isResolved"] = True
+    calls = []
+    fake = transport(data, calls)
+    count = 0
+
+    def mutate(path, **kwargs):
+        nonlocal count
+        if path.endswith("/pulls/7"):
+            count += 1
+            if count == 2:
+                data["inline"][1][0]["updated_at"] = "2026-10-26T16:16:00Z"
+        return fake(path, **kwargs)
+
+    with patch.object(gate, "api", mutate), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="trusted feedback"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+    assert not any(path.endswith("/merge") for path, _ in calls)
+
+
+@pytest.mark.parametrize("outcome", [None, {"merged": False}, {"merged": 1}, "bad JSON shape",
+                                     ValueError("invalid JSON"), subprocess.TimeoutExpired("gh", 1)])
+def test_unconfirmed_merge_write_fails_without_retry_or_dispatch(outcome):
+    data = fixture()
+    calls = []
+    fake = transport(data, calls)
+
+    def write(path, **kwargs):
+        if path.endswith("/merge"):
+            calls.append((path, kwargs))
+            if isinstance(outcome, Exception):
+                raise outcome
+            return outcome
+        return fake(path, **kwargs)
+
+    with patch.object(gate, "api", write), patch.object(gate, "dispatch") as dispatch, \
+            pytest.raises(RuntimeError, match="operator recovery"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+    dispatch.assert_not_called()
+    assert sum(path.endswith("/merge") for path, _ in calls) == 1
+
+
+@pytest.mark.parametrize("fork", [False, True])
+def test_missing_ci_pr_association_remains_unsupported_and_fail_closed(fork):
+    data = fixture()
+    if fork:
+        data["pr"]["head"]["repo"]["full_name"] = "contributor/example"
+        data["runs"][0]["workflow_runs"][0]["head_repository"]["full_name"] = "contributor/example"
+    data["runs"][0]["workflow_runs"][0]["pull_requests"] = []
+    calls = []
+    with patch.object(gate, "api", transport(data, calls)), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="CI missing or not successful"):
+        gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
+    assert not any(path.endswith("/merge") for path, _ in calls)
+
+
+def test_fork_ci_with_matching_pr_and_base_association_can_pass():
+    data = fixture()
+    data["pr"]["head"]["repo"]["full_name"] = "contributor/example"
+    data["runs"][0]["workflow_runs"][0]["head_repository"]["full_name"] = "contributor/example"
+    assert any(path.endswith("/merge") for path, _ in merge(data))
+
+
+def test_human_sibling_reply_after_deleted_root_is_not_lost():
+    data = fixture()
+    human = feedback("comments", association="NONE", at="2026-10-26T16:00:00Z")
+    human.update(id=3, node_id="HUMAN_REPLY", in_reply_to_id=1)
+    codex_thread_with_replies(data, [human])
+    # The original comment #1 was deleted; first visible comment #2 is Codex.
+    data["inline"][0][0].update(id=2, in_reply_to_id=1)
+    with patch.object(gate, "api", transport(data, [])), patch.object(gate, "dispatch"), \
+            pytest.raises(ValueError, match="unresolved review threads"):
         gate.merge_candidate(REPO, 7, HEAD, "main", WORKFLOWS)
